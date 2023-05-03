@@ -125,7 +125,7 @@ const DashboardNavbar = (props: { onLogout: React.MouseEventHandler<any> }) => {
                                 <Dropdown.Item className="fw-bold">
                                     <FontAwesomeIcon icon={faEnvelopeOpen} className="me-2" /> Messages
                                 </Dropdown.Item>
-                                <Dropdown.Item className="fw-bold">
+                                <Dropdown.Item className="fw-bold" href="mailto:info@therr.com" target="_blank">
                                     <FontAwesomeIcon icon={faUserShield} className="me-2" /> Support
                                 </Dropdown.Item>
 

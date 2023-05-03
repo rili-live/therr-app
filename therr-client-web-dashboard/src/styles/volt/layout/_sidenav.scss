@@ -34,12 +34,25 @@
 		.nav-link {
 			color: $light;
 			border: $border-width solid $dark;
+			display: flex;
+			align-items: center;
 			&:hover {
 				color: $light;
 				background-color: #2e3650;
 			}
 			&.active {
 				color: $white;
+			}
+
+			&.open-external {
+				&::after {
+					background-image: none;
+					content: '\f35d';
+					height:1.25rem;
+					width:.5rem;
+					font: var(--fa-font-solid);
+					margin-left: auto;
+				}
 			}
 		}
 		margin-bottom: .2rem;

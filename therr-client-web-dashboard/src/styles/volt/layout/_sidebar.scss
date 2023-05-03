@@ -31,7 +31,15 @@
             }
         }
     } 
-}  
+}
+
+.therr-for-business {
+    position: fixed;
+    left: 15px;
+    bottom: 45px;
+    width: 230px;
+    z-index: 999;
+}
 
 .upgrade-to-pro {
     position: fixed;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Accordion } from '@themesberg/react-bootstrap';
 
-export default (props) => {
+const AccordionComponent = (props: any) => {
     const { defaultKey, data = [], className = '' } = props;
 
     const AccordionItem = (item) => {
@@ -9,7 +9,7 @@ export default (props) => {
 
         return (
             <Accordion.Item eventKey={eventKey}>
-                <Accordion.Button variant="link" className="w-100 d-flex justify-content-between">
+                <Accordion.Button className="w-100 d-flex justify-content-between">
                     <span className="h6 mb-0 fw-bold">
                         {title}
                     </span>
@@ -31,3 +31,5 @@ export default (props) => {
         </Accordion>
     );
 };
+
+export default AccordionComponent;

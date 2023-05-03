@@ -15,14 +15,13 @@ import {
 } from '@fortawesome/react-fontawesome';
 import {
     faBook,
-    faBoxOpen,
-    faChartPie,
+    faBullhorn,
+    faChartBar,
     faCog,
-    faFileAlt,
     faHandHoldingUsd,
     faHome,
+    faMapMarked,
     faSignOutAlt,
-    faTable,
     faTimes,
     faRocket,
 } from '@fortawesome/free-solid-svg-icons';
@@ -77,7 +76,8 @@ const Sidebar = (props: any = {}) => {
         const {
             title, link, external, target, icon, image, badgeText, badgeBg = 'secondary', badgeColor = 'primary',
         } = itemProps;
-        const classNames = badgeText ? 'd-flex justify-content-start align-items-center justify-content-between' : '';
+        let classNames = badgeText ? 'd-flex justify-content-start align-items-center justify-content-between' : '';
+        classNames = external ? `${classNames} open-external` : classNames;
         const navItemClassName = link === pathname ? 'active' : '';
         const linkProps: any = external ? { href: link } : { as: Link, to: link };
 
@@ -132,17 +132,16 @@ const Sidebar = (props: any = {}) => {
                             </Nav.Link>
                         </div>
                         <Nav className="flex-column pt-3 pt-md-0">
-                            <NavItem title="Your Dashboard" link={'/'} icon={faHome} />
+                            <NavItem title="My Dashboard" link={'/'} icon={faHome} />
+                            <NavItem title="Customer Metrics" link={'/'} icon={faChartBar} />
+                            <NavItem title="My Spaces" link={'/'} icon={faMapMarked} />
+                            <NavItem title="My Campaigns" icon={faBullhorn} link={'/'} />
 
-                            <NavItem title="Overview" link={'/'} icon={faChartPie} />
-                            <NavItem title="Transactions" icon={faHandHoldingUsd} link={'/'} />
-                            <NavItem title="Settings" icon={faCog} link={'/'} />
-
-                            <CollapsableNavItem eventKey="tables/" title="Tables" icon={faTable}>
+                            {/* <CollapsableNavItem eventKey="tables/" title="Tables" icon={faTable}>
                                 <NavItem title="Bootstrap Table" link={'/'} />
-                            </CollapsableNavItem>
+                            </CollapsableNavItem> */}
 
-                            <CollapsableNavItem eventKey="examples/" title="Page Examples" icon={faFileAlt}>
+                            {/* <CollapsableNavItem eventKey="examples/" title="Page Examples" icon={faFileAlt}>
                                 <NavItem title="Sign In" link={'/'} />
                                 <NavItem title="Sign Up" link={'/'} />
                                 <NavItem title="Forgot password" link={'/'} />
@@ -150,20 +149,17 @@ const Sidebar = (props: any = {}) => {
                                 <NavItem title="Lock" link={'/'} />
                                 <NavItem title="404 Not Found" link={'/'} />
                                 <NavItem title="500 Server Error" link={'/'} />
-                            </CollapsableNavItem>
+                            </CollapsableNavItem> */}
 
                             <Dropdown.Divider className="my-3 border-indigo" />
 
+                            <NavItem title="Settings" icon={faCog} link={'/'} />
                             <CollapsableNavItem eventKey="documentation/" title="Getting Started" icon={faBook}>
                                 <NavItem title="Overview" link={'/'} />
-                                <NavItem title="Download" link={'/'} />
                                 <NavItem title="Quick Start" link={'/'} />
-                                <NavItem title="License" link={'/'} />
-                                <NavItem title="Folder Structure" link={'/'} />
-                                <NavItem title="Build Tools" link={'/'} />
-                                <NavItem title="Changelog" link={'/'} />
+                                <NavItem title="Claim a Space" link={'/'} />
                             </CollapsableNavItem>
-                            <CollapsableNavItem eventKey="components/" title="Components" icon={faBoxOpen}>
+                            {/* <CollapsableNavItem eventKey="components/" title="Components" icon={faBoxOpen}>
                                 <NavItem title="Accordion" link={'/'} />
                                 <NavItem title="Alerts" link={'/'} />
                                 <NavItem title="Badges" link={'/'} />
@@ -180,7 +176,7 @@ const Sidebar = (props: any = {}) => {
                                 <NavItem title="Tabs" link={'/'} />
                                 <NavItem title="Toasts" link={'/'} />
                                 <NavItem title="Tooltips" link={'/'} />
-                            </CollapsableNavItem>
+                            </CollapsableNavItem> */}
                             <NavItem external title="Therr for Business" link="https://business.therr.com" target="_blank" image={TherrForBusinessLogo} />
                             <Button as={Link} to={'/'} variant="secondary" className="upgrade-to-pro"><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
                         </Nav>
