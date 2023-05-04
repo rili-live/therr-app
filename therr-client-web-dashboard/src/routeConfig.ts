@@ -3,24 +3,16 @@ export default [
     {
         route: '/',
         head: {
-            title: 'Local Social Network',
-            description: 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
+            title: 'Home',
+            description: 'Access your local business Dashboard',
         },
         view: 'index',
     },
     {
-        route: '/forums',
+        route: '/dashboard',
         head: {
-            title: 'Forums',
-            description: 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
-        },
-        view: 'index',
-    },
-    {
-        route: '/create-forum',
-        head: {
-            title: 'Join Forum',
-            description: 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
+            title: 'Dashboard',
+            description: 'Access your local business Dashboard',
         },
         view: 'index',
     },
@@ -28,31 +20,15 @@ export default [
         route: '/login',
         head: {
             title: 'Login',
-            description: 'Sign in to Therr and see what new events are popping up in the local community.',
-        },
-        view: 'index',
-    },
-    {
-        route: '/user/profile',
-        head: {
-            title: 'Profile',
-            description: 'Your user profile page',
+            description: 'Sign in to Therr for Business dashboard.',
         },
         view: 'index',
     },
     {
         route: '*',
         head: {
-            title: 'Not Found',
-            description: 'Navigate social media with movement and earn rewards for upvotes & interactions.',
-        },
-        view: 'index',
-    },
-    {
-        route: '/go-mobile',
-        head: {
-            title: 'Go Mobile',
-            description: 'For the best experience, download the mobile version of Therr app',
+            title: 'Page Not Found',
+            description: 'Access your local business Dashboard',
         },
         view: 'index',
     },
