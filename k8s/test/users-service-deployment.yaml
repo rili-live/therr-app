@@ -63,6 +63,11 @@ spec:
           value: "info"
         - name: LOGGING_DATASET
           value: "production"
+        - name: MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64
+          valueFrom:
+            secretKeyRef:
+              name: maps-service-google-app-credentials
+              key: MAPS_SERVICE_GOOGLE_APP_CREDENTIALS
         - name: REDIS_PUB_HOST
           value: "redis-cluster-ip-service"
         - name: REDIS_PUB_PORT

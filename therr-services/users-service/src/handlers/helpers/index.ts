@@ -7,22 +7,6 @@ import handleHttpError from '../../utilities/handleHttpError';
 import { storage } from '../../api/aws';
 import getBucket from '../../utilities/getBucket';
 
-const guessCategoryFromText = (text?: string) => {
-    if (text?.includes('food')) {
-        return 'food';
-    }
-    if (text?.includes('music')) {
-        return 'music';
-    }
-    if (text?.includes('art')) {
-        return 'art';
-    }
-    if (text?.includes('nature')) {
-        return 'nature';
-    }
-    return 'uncategorized';
-};
-
 // TODO: Improve
 const getStorageFilepath = (filename, {
     requestId,
@@ -58,23 +42,6 @@ const fetchSignedUrl = ({
         .file(filePath)
         .getSignedUrl(options)
         .then((url) => [url, filePath]);
-};
-
-const getSupportedIntegrations = (platform, {
-    accessToken,
-    mediaId,
-}) => {
-    if (platform === 'instagram') {
-        // eslint-disable-next-line max-len
-        return `https://graph.instagram.com/${mediaId}?fields=id,media_type,media_url,thumbnail_url,caption,permalink,username,timestamp&access_token=${accessToken}`;
-    }
-
-    if (platform === 'facebook-instagram') {
-        // eslint-disable-next-line max-len
-        return `https://graph.facebook.com/v14.0/${mediaId}?fields=id,media_type,media_url,thumbnail_url,caption,permalink,username,timestamp&access_token=${accessToken}`;
-    }
-
-    return '';
 };
 
 const getSignedUrlResponse = (req, res, bucket) => {
@@ -213,10 +180,8 @@ const streamUploadFile = (fileUrl, filename, {
 };
 
 export {
-    guessCategoryFromText,
     fetchSignedUrl,
     checkIsMediaSafeForWork,
-    getSupportedIntegrations,
     getSignedUrlResponse,
     streamUploadFile,
 };
