@@ -13,6 +13,7 @@ import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import { createUserHelper, getUserHelper, isUserProfileIncomplete } from './helpers/user';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
+import { checkIsMediaSafeForWork } from './helpers';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => {
@@ -209,6 +210,13 @@ const updateUser = (req, res) => {
             // TODO: If password, validate and update password
             let passwordPromise: Promise<any> = Promise.resolve();
 
+            let mediaPromise: Promise<boolean> = Promise.resolve(true);
+
+            // Prevent unsafe media
+            if (req.body.media?.profilePicture) {
+                mediaPromise = checkIsMediaSafeForWork([req.body.media?.profilePicture]);
+            }
+
             if (password && oldPassword) {
                 passwordPromise = updatePassword({
                     hashedPassword: userSearchResults[0].password,
@@ -259,25 +267,35 @@ const updateUser = (req, res) => {
             }
 
             passwordPromise
-                .then(() => Store.users
-                    .updateUser(updateArgs, {
-                        id: userId,
-                    })
-                    .then((results) => {
-                        const user = results[0];
-                        delete user.password;
-                        delete user.oneTimePassword;
-                        delete user.verificationCodes;
-
-                        // TODO: Investigate security issue
-                        // Lockdown updateUser
-                        return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent polution
-                    }))
                 .catch((e) => handleHttpError({
                     res,
                     message: translate(locale, 'User/password combination is incorrect'),
                     statusCode: 400,
-                }));
+                }))
+                .then(() => mediaPromise)
+                .then((isMediaSafeForWork) => {
+                    if (!isMediaSafeForWork) {
+                        return handleHttpError({
+                            res,
+                            message: translate(locale, 'Restricted media'),
+                            statusCode: 400,
+                        });
+                    }
+                    return Store.users
+                        .updateUser(updateArgs, {
+                            id: userId,
+                        })
+                        .then((results) => {
+                            const user = results[0];
+                            delete user.password;
+                            delete user.oneTimePassword;
+                            delete user.verificationCodes;
+
+                            // TODO: Investigate security issue
+                            // Lockdown updateUser
+                            return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent polution
+                        });
+                });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
