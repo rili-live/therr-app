@@ -96,7 +96,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr | ${this.translate('pages.dashboardOverview.pageTitle')} | ${user.details.userName}`;
+        document.title = `Therr for Business | ${this.translate('pages.dashboardOverview.pageTitle')} | ${user.details.userName}`;
         if (!userConnections.connections.length) {
             this.props.searchUserConnections({
                 filterBy: 'acceptingUserId',

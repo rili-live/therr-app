@@ -105,7 +105,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.login.pageTitle')}`;
+        document.title = `Therr for Business | ${this.translate('pages.login.pageTitle')}`;
     }
 
     login = (credentials: any) => this.props.login(credentials);
