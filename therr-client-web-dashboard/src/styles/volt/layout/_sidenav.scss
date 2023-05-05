@@ -1,3 +1,5 @@
+$sidebar-width-desktop: 280px;
+
 /*
  * Sidebar
 */
@@ -12,10 +14,11 @@
 	overflow-y: auto;
 	width: 100%;
 	@include transition(max-width .3s);
+
 	
 	@include media-breakpoint-up(md) {
 		width: 100%;
-		max-width: 260px;
+		max-width: $sidebar-width-desktop;
 	}
 
 	.nav {
@@ -192,6 +195,7 @@
 		}
 		&:not(.collapsed) {
 			background-color:#2e3650;
+			box-shadow: 0 0 0 0.1rem rgba(#4c5680, 0.2);
 			&::after{
 				transform: rotate(90deg);
     			transition: all .2s ease;
@@ -241,7 +245,7 @@
 	@include transition(all .3s);
 
 	@include media-breakpoint-up(md) {
-		margin-left: 260px;
+		margin-left: $sidebar-width-desktop;
 	}
 }
 

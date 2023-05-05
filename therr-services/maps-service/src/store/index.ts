@@ -3,6 +3,7 @@ import ExternalMediaIntegrationsStore from './ExternalMediaIntegrationsStore';
 import MediaStore from './MediaStore';
 import MomentsStore from './MomentsStore';
 import SpacesStore from './SpacesStore';
+import SpaceMetricsStore from './SpaceMetricsStore';
 import SpaceIncentivesStore from './SpaceIncentivesStore';
 import SpaceIncentiveCouponsStore from './SpaceIncentiveCouponsStore';
 
@@ -16,6 +17,8 @@ class Store {
     moments: MomentsStore;
 
     spaces: SpacesStore;
+
+    spaceMetrics: SpaceMetricsStore;
 
     spaceIncentives: SpaceIncentivesStore;
 
@@ -31,6 +34,8 @@ class Store {
         this.moments = new MomentsStore(this.db, this.media);
 
         this.spaces = new SpacesStore(this.db, this.media);
+
+        this.spaceMetrics = new SpaceMetricsStore(this.db);
 
         this.spaceIncentives = new SpaceIncentivesStore(this.db);
 

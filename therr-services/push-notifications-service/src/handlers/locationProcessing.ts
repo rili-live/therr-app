@@ -95,6 +95,10 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                             activatedSpaceIds: spaceIdsToActivate,
                         },
                         userLocationCache,
+                        {
+                            longitude,
+                            latitude,
+                        },
                     );
 
                     updateAchievements(headers, momentIdsToActivate, spaceIdsToActivate);

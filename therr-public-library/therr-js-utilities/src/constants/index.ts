@@ -15,6 +15,8 @@ import {
 import AccessLevels from './enums/AccessLevels';
 import IncentiveRequirementKeys from './enums/IncentiveRequirementKeys';
 import IncentiveRewardKeys from './enums/IncentiveRewardKeys';
+import MetricNames from './enums/MetricNames';
+import MetricValueTypes from './enums/MetricValueTypes';
 import * as Notifications from './enums/Notifications';
 import * as PushNotifications from './enums/PushNotifications';
 import SocketClientActionTypes from './enums/SocketClientActionTypes';
@@ -34,6 +36,8 @@ export {
     ErrorCodes,
     IncentiveRequirementKeys,
     IncentiveRewardKeys,
+    MetricNames,
+    MetricValueTypes,
     Location,
     ILogLevel,
     LogLevelMap,

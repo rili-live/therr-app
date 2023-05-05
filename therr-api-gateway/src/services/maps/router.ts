@@ -117,6 +117,12 @@ mapsServiceRouter.delete('/spaces', deleteAreasValidation, validate, handleServi
     method: 'delete',
 }));
 
+// Space Metrics
+mapsServiceRouter.get('/space-metrics/:spaceId', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}));
+
 // TODO: Add rate limiter?
 // External APIs
 mapsServiceRouter.use('/place', createProxyMiddleware({

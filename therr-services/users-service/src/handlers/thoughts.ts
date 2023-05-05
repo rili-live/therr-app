@@ -1,9 +1,11 @@
 import axios from 'axios';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import { ErrorCodes, Notifications } from 'therr-js-utilities/constants';
+import printLogs from 'therr-js-utilities/print-logs';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
 import { findReactions, hasUserReacted } from '../api/reactions';
+import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -38,6 +40,25 @@ const createThought = async (req, res) => {
         fromUserId: userId,
     })
         .then(([thought]) => {
+            printLogs({
+                level: 'info',
+                messageOrigin: 'API_SERVER',
+                messages: ['Thought Created'],
+                tracer: beeline,
+                traceArgs: {
+                    // TODO: Add a sentiment analysis property
+                    action: 'create-thought',
+                    category: thought.category,
+                    parentId: thought.parentId,
+                    isPublic: thought.isPublic,
+                    isRepost: thought.isRepost,
+                    logCategory: 'user-sentiment',
+                    userId,
+                    hashTags: thought.hashTags,
+                    isMatureContent: thought.isMatureContent,
+                    locale,
+                },
+            });
             if (thought.parentId) {
                 // Reward users for replying to thoughts
                 Store.thoughts.getById(thought.parentId, {}).then(({ thoughts }) => {
