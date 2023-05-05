@@ -69,6 +69,8 @@ interface IDashboardOverviewProps extends IDashboardOverviewRouterProps, IStoreP
 
 interface IDashboardOverviewState {
     metrics: any[];
+    impressionsLabels: string[] | undefined;
+    impressionsValues: number[][] | undefined;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -91,6 +93,8 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
         super(props);
 
         this.state = {
+            impressionsLabels: undefined,
+            impressionsValues: undefined,
             metrics: [],
         };
 
@@ -122,13 +126,52 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
     fetchSpaceMetrics = (timeSpan: 'week' | 'month') => {
         const startDate = moment().subtract(1, `${timeSpan}s`).utc().format('YYYY-MM-DD HH:mm:ss');
         const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        const labelsLength = timeSpan === 'week' ? 7 : 31;
+        const startDay = Number(moment().subtract(labelsLength, 'd').format('D'));
+        const startMonth = Number(moment().subtract(labelsLength, 'd').format('M'));
+        const daysInFirstMonth = moment().subtract(labelsLength, 'd').daysInMonth();
+        const daysInNextMonth = moment().daysInMonth();
+        const daysInLastMonth = moment().add(1, 'M').daysInMonth();
+        const currentMonthIndex = 0;
+        let currentMonth = startMonth;
+        // TODO: Update this to support more than 1 month time span
+        // by dynamically determine days in the "previous" month
+        const formattedMetrics = Array.from({ length: labelsLength }, (_, i) => {
+            let day = startDay + i + 1;
+            const daysInCurrentMonth = [daysInFirstMonth, daysInNextMonth, daysInLastMonth][currentMonthIndex];
+            if (day > daysInCurrentMonth) {
+                day -= daysInCurrentMonth;
+                if (day > daysInNextMonth) {
+                    day -= daysInNextMonth;
+                }
+            }
+            if (day === 1 && day !== startDay + 1) {
+                currentMonth += 1;
+            }
+            return [`${currentMonth}/${day}`, 0];
+        }).reduce((acc, cur) => ({
+            ...acc,
+            [cur[0]]: cur[1],
+        }), {});
         // TODO: get current user spaces
-        MapsService.getSpaceMetrics('04065742-f260-4cfe-b70b-69c3983bec83', {
+        MapsService.getSpaceMetrics('ff9a0e0b-7b1f-4ce9-a7e2-9c7147949268', {
             startDate,
             endDate,
         }).then((response) => {
+            // TODO: Account for different metric names and value types
+            response.data.metrics.forEach((metric) => {
+                const month = new Date(metric.createdAt).getUTCMonth() + 1;
+                const dayOfMonth = new Date(metric.createdAt).getUTCDate();
+                const dataKey = `${month}/${dayOfMonth}`;
+                formattedMetrics[dataKey] = formattedMetrics[dataKey] !== undefined
+                    ? formattedMetrics[dataKey] + Number(metric.value)
+                    : Number(metric.value);
+            });
+
             this.setState({
                 metrics: response.data.metrics,
+                impressionsLabels: Object.keys(formattedMetrics),
+                impressionsValues: [Object.values(formattedMetrics)],
             });
         }).catch((err) => {
             console.log(err);
@@ -151,6 +194,8 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
     };
 
     public render(): JSX.Element | null {
+        const { impressionsLabels, impressionsValues, metrics } = this.state;
+
         return (
             <div id="page_user_profile" className="flex-box column">
                 <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
@@ -186,17 +231,19 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                 <Row className="justify-content-md-center">
                     <Col xs={12} className="mb-4 d-none d-sm-block">
                         <SalesValueWidget
-                            title="Sales Value"
-                            value="10,567"
-                            percentage={10.57}
+                            title="Space Metrics"
+                            value={metrics.length}
+                            labels={impressionsLabels}
+                            values={impressionsValues}
+                            percentage={100}
                             fetchSpaceMetrics={this.fetchSpaceMetrics}
                         />
                     </Col>
                     <Col xs={12} className="mb-4 d-sm-none">
                         <SalesValueWidgetPhone
-                            title="Sales Value"
-                            value="10,567"
-                            percentage={10.57}
+                            title="Space Metrics"
+                            value={metrics.length}
+                            percentage={100}
                         />
                     </Col>
                     <Col xs={12} sm={6} xl={4} className="mb-4">
