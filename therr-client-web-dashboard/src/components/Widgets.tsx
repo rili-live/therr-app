@@ -347,6 +347,8 @@ export const SalesValueWidget = (props: any) => {
         value,
         percentage,
         fetchSpaceMetrics,
+        labels,
+        values,
     } = props;
     const percentageIcon = percentage < 0 ? faAngleDown : faAngleUp;
     const percentageColor = percentage < 0 ? 'text-danger' : 'text-success';
@@ -354,7 +356,7 @@ export const SalesValueWidget = (props: any) => {
     const onTimeSpanChange = (spanOfTime: 'week' | 'month') => {
         setTimeSpan(spanOfTime);
         if (spanOfTime !== timeSpan) {
-            fetchSpaceMetrics(timeSpan);
+            fetchSpaceMetrics(spanOfTime);
         }
     };
 
@@ -365,7 +367,7 @@ export const SalesValueWidget = (props: any) => {
                     <h5 className="fw-normal mb-2">
                         {title}
                     </h5>
-                    <h3>${value}</h3>
+                    <h3>{value} Impressions</h3>
                     <small className="fw-bold mt-2">
                         <span className="me-2">Yesterday</span>
                         <FontAwesomeIcon icon={percentageIcon} className={`${percentageColor} me-1`} />
@@ -394,7 +396,7 @@ export const SalesValueWidget = (props: any) => {
                 </div>
             </Card.Header>
             <Card.Body className="p-2">
-                <SalesValueChart timeSpan={timeSpan} />
+                <SalesValueChart timeSpan={timeSpan} labels={labels} values={values} />
             </Card.Body>
         </Card>
     );
