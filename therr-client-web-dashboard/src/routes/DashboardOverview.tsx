@@ -117,7 +117,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
         if (!this.state.metrics.length) {
             const startDate = moment().subtract(1, 'months').utc().format('YYYY-MM-DD HH:mm:ss');
             const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-            MapsService.getSpaceMetrics('612e2e50-3201-4f51-abde-8e1570b7536d', {
+            MapsService.getSpaceMetrics('ad9334ab-5712-4b3f-b9e3-15e9760c8adb', {
                 startDate,
                 endDate,
             }).then((response) => {
