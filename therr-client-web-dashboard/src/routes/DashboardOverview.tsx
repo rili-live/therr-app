@@ -115,20 +115,25 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
             }, user.details.id);
         }
         if (!this.state.metrics.length) {
-            const startDate = moment().subtract(1, 'months').utc().format('YYYY-MM-DD HH:mm:ss');
-            const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-            MapsService.getSpaceMetrics('ad9334ab-5712-4b3f-b9e3-15e9760c8adb', {
-                startDate,
-                endDate,
-            }).then((response) => {
-                this.setState({
-                    metrics: response.data.metrics,
-                })
-            }).catch((err) => {
-                console.log(err);
-            });
+            this.fetchSpaceMetrics('week');
         }
     }
+
+    fetchSpaceMetrics = (timeSpan: 'week' | 'month') => {
+        const startDate = moment().subtract(1, `${timeSpan}s`).utc().format('YYYY-MM-DD HH:mm:ss');
+        const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        // TODO: get current user spaces
+        MapsService.getSpaceMetrics('04065742-f260-4cfe-b70b-69c3983bec83', {
+            startDate,
+            endDate,
+        }).then((response) => {
+            this.setState({
+                metrics: response.data.metrics,
+            });
+        }).catch((err) => {
+            console.log(err);
+        });
+    };
 
     getConnectionDetails = (connection) => {
         const { user } = this.props;
@@ -184,6 +189,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                             title="Sales Value"
                             value="10,567"
                             percentage={10.57}
+                            fetchSpaceMetrics={this.fetchSpaceMetrics}
                         />
                     </Col>
                     <Col xs={12} className="mb-4 d-sm-none">
