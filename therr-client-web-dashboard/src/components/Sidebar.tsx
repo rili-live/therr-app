@@ -16,11 +16,20 @@ import {
 import {
     faBook,
     faBullhorn,
+    faBullseye,
+    faChartArea,
     faChartBar,
+    faChartPie,
+    faChartLine,
     faCog,
+    faComments,
+    faCommentAlt,
+    faCommentDots,
+    faHandHoldingHeart,
     faHandHoldingUsd,
     faHome,
     faMapMarked,
+    faMeh,
     faSignOutAlt,
     faTimes,
     faRocket,
@@ -133,7 +142,6 @@ const Sidebar = (props: any = {}) => {
                         </div>
                         <Nav className="flex-column pt-3 pt-md-0">
                             <NavItem title="My Dashboard" link={'/'} icon={faHome} />
-                            <NavItem title="Customer Metrics" link={'/'} icon={faChartBar} />
                             <NavItem title="My Spaces" link={'/'} icon={faMapMarked} />
                             <NavItem title="My Campaigns" icon={faBullhorn} link={'/'} />
 
@@ -150,6 +158,28 @@ const Sidebar = (props: any = {}) => {
                                 <NavItem title="404 Not Found" link={'/'} />
                                 <NavItem title="500 Server Error" link={'/'} />
                             </CollapsableNavItem> */}
+
+                            <Dropdown.Divider className="my-3 border-indigo" />
+
+                            <CollapsableNavItem eventKey="acquisition/" title="Customer Acquisition" icon={faBullseye}>
+                                <NavItem title="Overview" link={'/'} />
+                                <NavItem title="Awareness" link={'/'} icon={faChartLine} />
+                                <NavItem title="Engagement" link={'/'} icon={faHandHoldingHeart} />
+                            </CollapsableNavItem>
+
+                            <CollapsableNavItem eventKey="metrics/" title="Customer Metrics" icon={faChartBar}>
+                                <NavItem title="Overview" link={'/'} />
+                                <NavItem title="Impressions" link={'/'} icon={faChartBar} />
+                                <NavItem title="Interests" link={'/'} icon={faChartArea} />
+                                <NavItem title="Engagement" link={'/'} icon={faChartPie} />
+                            </CollapsableNavItem>
+
+                            <CollapsableNavItem eventKey="feedback/" title="Customer Relations" icon={faComments}>
+                                <NavItem title="Overview" link={'/'} />
+                                <NavItem title="Communications" link={'/'} icon={faCommentDots} />
+                                <NavItem title="Reviews" link={'/'} icon={faCommentAlt} />
+                                <NavItem title="Sentiment" link={'/'} icon={faMeh} />
+                            </CollapsableNavItem>
 
                             <Dropdown.Divider className="my-3 border-indigo" />
 

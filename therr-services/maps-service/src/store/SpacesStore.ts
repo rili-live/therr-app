@@ -116,11 +116,16 @@ export default class SpacesStore {
         const query = knexBuilder
             .select([
                 'id',
+                'category',
                 'fromUserId',
-                'notificationMsg',
-                'message',
+                'isPublic',
+                'isMatureContent',
                 'latitude',
                 'longitude',
+                'message',
+                'notificationMsg',
+                'radius',
+                'region',
             ])
             .from(SPACES_TABLE_NAME)
             .where({
