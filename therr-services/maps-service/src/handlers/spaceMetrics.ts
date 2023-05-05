@@ -70,8 +70,6 @@ const getSpaceMetrics = (req, res) => {
 
     return Store.spaces.getByIdSimple(spaceId)
         .then(([space]) => {
-            console.log(space);
-
             printLogs({
                 level: 'info',
                 messageOrigin: 'API_SERVER',

@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
+import moment from 'moment-timezone';
 import {
     FontAwesomeIcon,
 } from '@fortawesome/react-fontawesome';
@@ -22,6 +23,7 @@ import {
     ButtonGroup,
 } from '@themesberg/react-bootstrap';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
+import { MapsService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
@@ -65,7 +67,9 @@ interface IDashboardOverviewProps extends IDashboardOverviewRouterProps, IStoreP
     onInitMessaging?: Function;
 }
 
-interface IDashboardOverviewState {}
+interface IDashboardOverviewState {
+    metrics: any[];
+}
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
@@ -86,7 +90,9 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
     constructor(props: IDashboardOverviewProps) {
         super(props);
 
-        this.state = {};
+        this.state = {
+            metrics: [],
+        };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
@@ -107,6 +113,20 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                 order: 'desc',
                 shouldCheckReverse: true,
             }, user.details.id);
+        }
+        if (!this.state.metrics.length) {
+            const startDate = moment().subtract(1, 'months').utc().format('YYYY-MM-DD HH:mm:ss');
+            const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            MapsService.getSpaceMetrics('ad9334ab-5712-4b3f-b9e3-15e9760c8adb', {
+                startDate,
+                endDate,
+            }).then((response) => {
+                this.setState({
+                    metrics: response.data.metrics,
+                })
+            }).catch((err) => {
+                console.log(err);
+            });
         }
     }
 
