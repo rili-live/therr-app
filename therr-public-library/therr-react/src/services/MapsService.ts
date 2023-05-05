@@ -15,6 +15,11 @@ interface IGetAreaDetailsArgs {
     withMedia?: boolean;
     withUser?: boolean;
 }
+
+interface IGetSpaceMetricsArgs {
+    startDate: string;
+    endDate: string;
+}
 interface ICreateAreaBody {
     category?: string;
     expiresAt?: any;
@@ -161,6 +166,17 @@ class MapsService {
     searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('spaces', query, data);
 
     deleteSpaces = (data: IDeleteAreasBody) => this.deleteAreas('spaces', data);
+
+    // Map Metrics
+    getSpaceMetrics = (spaceId: string, args: IGetSpaceMetricsArgs) => {
+        const url = `/maps-service/space-metrics/${spaceId}?startDate=${args.startDate}&endDate=${args.endDate}`;
+
+        return axios({
+            method: 'get',
+            url,
+            data: args,
+        });
+    };
 
     // Media
     getSignedUrlPublicBucket = (args: ISignedUrlArgs) => {
