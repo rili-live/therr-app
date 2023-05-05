@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     FontAwesomeIcon,
 } from '@fortawesome/react-fontawesome';
@@ -342,9 +342,21 @@ export const RankingWidget = () => (
 );
 
 export const SalesValueWidget = (props: any) => {
-    const { title, value, percentage } = props;
+    const {
+        title,
+        value,
+        percentage,
+        fetchSpaceMetrics,
+    } = props;
     const percentageIcon = percentage < 0 ? faAngleDown : faAngleUp;
     const percentageColor = percentage < 0 ? 'text-danger' : 'text-success';
+    const [timeSpan, setTimeSpan] = useState('week');
+    const onTimeSpanChange = (spanOfTime: 'week' | 'month') => {
+        setTimeSpan(spanOfTime);
+        if (spanOfTime !== timeSpan) {
+            fetchSpaceMetrics(timeSpan);
+        }
+    };
 
     return (
         <Card className="bg-secondary-alt shadow-sm">
@@ -363,12 +375,26 @@ export const SalesValueWidget = (props: any) => {
                     </small>
                 </div>
                 <div className="d-flex ms-auto">
-                    <Button variant="secondary" size="sm" className="me-2">Month</Button>
-                    <Button variant="primary" size="sm" className="me-3">Week</Button>
+                    <Button
+                        variant={timeSpan === 'month' ? 'primary' : 'secondary'}
+                        size="sm"
+                        className="me-2"
+                        onClick={() => onTimeSpanChange('month')}
+                    >
+                        Month
+                    </Button>
+                    <Button
+                        variant={timeSpan === 'week' ? 'primary' : 'secondary'}
+                        size="sm"
+                        className="me-3"
+                        onClick={() => onTimeSpanChange('week')}
+                    >
+                        Week
+                    </Button>
                 </div>
             </Card.Header>
             <Card.Body className="p-2">
-                <SalesValueChart />
+                <SalesValueChart timeSpan={timeSpan} />
             </Card.Body>
         </Card>
     );
