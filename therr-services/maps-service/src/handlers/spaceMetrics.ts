@@ -78,14 +78,14 @@ const getSpaceMetrics = (req, res) => {
                 traceArgs: {
                     // TODO: Add a sentiment analysis property
                     action: 'fetch-space-metrics',
-                    category: space.category,
-                    radius: space.radius,
-                    spaceId: space.id,
-                    isPublic: space.isPublic,
+                    category: space?.category,
+                    radius: space?.radius,
+                    spaceId: space?.id,
+                    isPublic: space?.isPublic,
                     logCategory: 'user-sentiment',
                     userId,
-                    region: space.region,
-                    isMatureContent: space.isMatureContent,
+                    region: space?.region,
+                    isMatureContent: space?.isMatureContent,
                     locale,
                 },
             });
