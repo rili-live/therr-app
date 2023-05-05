@@ -1,7 +1,11 @@
 import axios from 'axios';
 import path from 'path';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
-import { ErrorCodes } from 'therr-js-utilities/constants';
+import {
+    ErrorCodes,
+    MetricNames,
+    MetricValueTypes,
+} from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import printLogs from 'therr-js-utilities/print-logs';
 import beeline from '../beeline';
@@ -188,6 +192,17 @@ const getSpaceDetails = (req, res) => {
     })
         .then(({ spaces, media, users }) => {
             const space = spaces[0];
+            // Non-blocking
+            Store.spaceMetrics.create([{
+                name: MetricNames.SPACE_IMPRESSION,
+                spaceId: space.id,
+                value: '1',
+                valueType: MetricValueTypes.NUMBER,
+                userId,
+            }], {
+                latitude: space.latitude,
+                longitude: space.longitude,
+            });
             let userHasAccessPromise = () => Promise.resolve(true);
             // Verify that user has activated space and has access to view it
             // TODO: Verify space exists

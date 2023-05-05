@@ -1,7 +1,13 @@
 import axios from 'axios';
 import { distanceTo } from 'geolocation-utils';
 import printLogs from 'therr-js-utilities/print-logs';
-import { Location, Notifications, PushNotifications } from 'therr-js-utilities/constants';
+import {
+    Location,
+    MetricNames,
+    MetricValueTypes,
+    Notifications,
+    PushNotifications,
+} from 'therr-js-utilities/constants';
 import { getSearchQueryString } from 'therr-js-utilities/http';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import { IAreaType } from 'therr-js-utilities/types';
@@ -329,10 +335,44 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
     return Promise.all([momentsPromise, spacesPromise]);
 };
 
+const sendSpaceMetric = (headers: IHeaders, spaces: any[], userLocation: IUserlocation, metricName: MetricNames) => axios({
+    method: 'post',
+    url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/space-metrics`,
+    headers: {
+        authorization: headers.authorization,
+        'x-localecode': headers.locale,
+        'x-userid': headers.userId,
+    },
+    data: {
+        name: metricName,
+        spaceIds: spaces.map((space) => space.id),
+        value: '1',
+        valueType: MetricValueTypes.NUMBER,
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+    },
+}).catch((err) => {
+    printLogs({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: err.toString(),
+        tracer: beeline,
+        traceArgs: {
+            errorMessage: err?.message,
+            source: 'areaLocationHelpers',
+            issue: 'failed to create space metrics',
+        },
+    });
+});
+
 const activateAreasAndNotify = (
     headers: IHeaders,
     activationArgs: IActivationArgs,
     userLocationCache: UserLocationCache,
+    userLocation: {
+        latitude: number,
+        longitude: number,
+    },
 ): Promise<void | undefined> => {
     const {
         activatedMomentIds,
@@ -366,6 +406,36 @@ const activateAreasAndNotify = (
             userHasActivated: true,
         },
     }) : Promise.resolve();
+
+    // Send Metrics
+    if (spaces.length) {
+        // TODO: Add moment metrics
+        const spacesVisited: any = [];
+        const spacesProspected: any = [];
+        spaces.forEach((space) => {
+            const distanceFromSpace = distanceTo({
+                lon: userLocation.latitude,
+                lat: userLocation.longitude,
+            }, {
+                lon: space.longitude,
+                lat: space.latitude,
+            });
+
+            // If user is very close to a space, we consider it visited
+            if (distanceFromSpace > Location.AREA_PROXIMITY_METERS - 1) {
+                spacesVisited.push(space);
+            } else {
+                // Otherwise the user is a "prospective" customer
+                spacesProspected.push(space);
+            }
+        });
+        if (spacesVisited.length) {
+            sendSpaceMetric(headers, spacesVisited, userLocation, MetricNames.SPACE_VISIT);
+        }
+        if (spacesProspected.length) {
+            sendSpaceMetric(headers, spacesProspected, userLocation, MetricNames.SPACE_PROSPECT);
+        }
+    }
 
     return Promise.all([momentReactionsPromise, spaceReactionsPromise])
         .then(() => Promise.all([userLocationCache.getLastMomentNotificationDate(), userLocationCache.getLastSpaceNotificationDate()]))
