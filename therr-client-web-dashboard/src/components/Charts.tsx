@@ -2,13 +2,13 @@ import React from 'react';
 import Chartist from 'react-chartist';
 import ChartistTooltip from 'chartist-plugin-tooltips-updated';
 
-export const SalesValueChart = (props: { timeSpan: string }) => {
+export const SalesValueChart = (props: { timeSpan: string, labels: string[], values: number[][] }) => {
     const data = props.timeSpan === 'week' ? {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        series: [[1, 2, 5, 3, 3, 7, 3]],
+        labels: props.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        series: props.values || [[1, 2, 5, 3, 3, 7, 3]],
     } : {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-        series: [[10, 18, 8, 22]],
+        labels: props.labels || ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        series: props.values || [[10, 18, 8, 22]],
     };
 
     const options = {
