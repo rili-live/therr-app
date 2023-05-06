@@ -341,6 +341,7 @@ export const RankingWidget = () => (
     </Card>
 );
 
+// This should also abstract SalesValueWidgetPhone so we don't need to maintain 2 separate components
 export const SalesValueWidget = (props: any) => {
     const {
         title,
