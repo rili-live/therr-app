@@ -22,7 +22,7 @@ const buildRateLimiter = (msg, count = 1, minutes = 1) => RateLimit({
 });
 
 const createMomentLimiter = buildRateLimiter(momentsLimitReachedMessage, 5, 60 * 24);
-const createSpaceLimiter = buildRateLimiter(spacesLimitReachedMessage, 100, 60 * 24);
+const createSpaceLimiter = buildRateLimiter(spacesLimitReachedMessage, 10, 60 * 24);
 
 export {
     createMomentLimiter,
