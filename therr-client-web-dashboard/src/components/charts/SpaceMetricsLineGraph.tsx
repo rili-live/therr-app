@@ -44,8 +44,33 @@ export const SpaceMetricsLineGraph = ({
     ];
 
     if (isMobile) {
+        let sampledData = data;
+
+        if (timeSpan === 'month') {
+            const sampledLabels = [];
+            const sampledValues = [];
+            const every = 3;
+
+            for (let i = 0; i < (labels || []).length; i += every) {
+                sampledLabels.push(labels[i]);
+            }
+            (values || []).forEach((valueArr, index) => {
+                for (let i = 0; i < valueArr.length; i += every) {
+                    if (!sampledValues[index]) {
+                        sampledValues[index] = [];
+                    }
+                    sampledValues[index].push(values[index][i]);
+                }
+            });
+
+            sampledData = {
+                labels: sampledLabels,
+                series: sampledValues,
+            };
+        }
+
         return (
-            <Chartist data={data} options={{ ...options, plugins }} type="Line" className="ct-series-g ct-major-tenth" />
+            <Chartist data={sampledData} options={{ ...options, plugins }} type="Line" className="ct-series-g ct-major-tenth" />
         );
     }
 

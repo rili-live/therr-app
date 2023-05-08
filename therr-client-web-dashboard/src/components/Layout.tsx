@@ -377,7 +377,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         className={ isLandingStylePage ? 'content-container-home view' : 'content-container view' }
                     >
                         <Preloader show={!this.state.clientHasLoaded} />
-                        <Sidebar show={shouldShowSidebar} />
+                        <Sidebar show={shouldShowSidebar} user={user} />
                         <main className={mainClassNames}>
                             {
                                 shouldShowSidebar

@@ -43,16 +43,20 @@ import {
     Accordion,
     Navbar,
 } from '@themesberg/react-bootstrap';
+import getUserImageUri from '../utilities/getUserImageUri';
 
 const TherrForBusinessLogo = '/assets/img/therr-logo.svg';
 const ReactHero = '/assets/img/therr-logo.svg';
 const ProfilePicture = '/assets/img/team/profile-picture-3.jpg';
 
 const Sidebar = (props: any = {}) => {
+    const { user } = props;
     const location = useLocation();
     const { pathname } = location;
     const [show, setShow] = useState(false);
     const showClass = show ? 'show' : '';
+
+    const currentUserImageUri = getUserImageUri(user, 200);
 
     const onCollapse = () => setShow(!show);
 
@@ -127,7 +131,7 @@ const Sidebar = (props: any = {}) => {
                         <div className="user-card d-flex d-md-none align-items-center justify-content-between justify-content-md-center pb-4">
                             <div className="d-flex align-items-center">
                                 <div className="user-avatar lg-avatar me-4">
-                                    <Image src={ProfilePicture} className="card-img-top rounded-circle border-white" />
+                                    <Image src={currentUserImageUri || ProfilePicture} className="card-img-top rounded-circle border-white" />
                                 </div>
                                 <div className="d-block">
                                     <h6>Hi, Jane</h6>
