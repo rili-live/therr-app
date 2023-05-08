@@ -28,12 +28,16 @@ import {
     InputGroup,
 } from '@themesberg/react-bootstrap';
 import NOTIFICATIONS_DATA from '../data/notifications';
+import getUserImageUri from '../utilities/getUserImageUri';
 
 const Profile3 = '/assets/img/team/profile-picture-3.jpg';
 
-const DashboardNavbar = (props: { onLogout: React.MouseEventHandler<any> }) => {
+const DashboardNavbar = (props: { onLogout: React.MouseEventHandler<any>, user: any }) => {
+    const { user } = props;
     const [notifications, setNotifications] = useState(NOTIFICATIONS_DATA);
     const areNotificationsRead = notifications.reduce((acc, notif) => acc && notif.read, true);
+
+    const currentUserImageUri = getUserImageUri(props.user, 200);
 
     const markNotificationsAsRead = () => {
         setTimeout(() => {
@@ -109,9 +113,9 @@ const DashboardNavbar = (props: { onLogout: React.MouseEventHandler<any> }) => {
                         <Dropdown as={Nav.Item}>
                             <Dropdown.Toggle as={Nav.Link} className="pt-1 px-0">
                                 <div className="media d-flex align-items-center">
-                                    <Image src={Profile3} className="user-avatar md-avatar rounded-circle" />
+                                    <Image src={currentUserImageUri || Profile3} className="user-avatar md-avatar rounded-circle" />
                                     <div className="media-body ms-2 text-dark align-items-center d-none d-lg-block">
-                                        <span className="mb-0 font-small fw-bold">Bonnie Green</span>
+                                        <span className="mb-0 font-small fw-bold">{user?.details?.userName}</span>
                                     </div>
                                 </div>
                             </Dropdown.Toggle>
@@ -122,9 +126,9 @@ const DashboardNavbar = (props: { onLogout: React.MouseEventHandler<any> }) => {
                                 <Dropdown.Item className="fw-bold">
                                     <FontAwesomeIcon icon={faCog} className="me-2" /> Settings
                                 </Dropdown.Item>
-                                <Dropdown.Item className="fw-bold">
+                                {/* <Dropdown.Item className="fw-bold">
                                     <FontAwesomeIcon icon={faEnvelopeOpen} className="me-2" /> Messages
-                                </Dropdown.Item>
+                                </Dropdown.Item> */}
                                 <Dropdown.Item className="fw-bold" href="mailto:info@therr.com" target="_blank">
                                     <FontAwesomeIcon icon={faUserShield} className="me-2" /> Support
                                 </Dropdown.Item>

@@ -381,7 +381,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         <main className={mainClassNames}>
                             {
                                 shouldShowSidebar
-                                && <DashboardNavbar onLogout={this.handleLogout} />
+                                && <DashboardNavbar onLogout={this.handleLogout} user={user} />
                             }
                             <AppRoutes
                                 initMessaging={this.initMessaging}
