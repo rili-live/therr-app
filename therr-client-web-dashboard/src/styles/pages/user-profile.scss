@@ -1,6 +1,8 @@
 $profileImgWidth: rem-calc(100px);
 
 #page_user_profile {
+    flex: 1;
+
     .header-profile-picture {
         width: 100%;
         display: flex;

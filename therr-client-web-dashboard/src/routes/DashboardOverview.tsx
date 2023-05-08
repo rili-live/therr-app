@@ -7,9 +7,7 @@ import {
     FontAwesomeIcon,
 } from '@fortawesome/react-fontawesome';
 import {
-    faCashRegister,
-    faChartLine,
-    faCloudUploadAlt,
+    faPencilRuler,
     faPlus,
     faRocket,
     faTasks,
@@ -27,24 +25,54 @@ import { MapsService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
-import {
-    CounterWidget,
-    CircleChartWidget,
-    BarChartWidget,
-    TeamMembersWidget,
-    ProgressTrackWidget,
-    RankingWidget,
-    SalesValueWidget,
-    SalesValueWidgetPhone,
-    AcquisitionWidget,
-} from '../components/Widgets';
-import {
-    PageVisitsTable,
-} from '../components/Tables';
-import {
-    trafficShares,
-    totalOrders,
-} from '../data/charts';
+// import {
+//     CounterWidget,
+//     CircleChartWidget,
+//     BarChartWidget,
+//     TeamMembersWidget,
+//     ProgressTrackWidget,
+//     RankingWidget,
+//     AcquisitionWidget,
+// } from '../components/Widgets';
+// import {
+//     PageVisitsTable,
+// } from '../components/Tables';
+// import {
+//     trafficShares,
+//     totalOrders,
+// } from '../data/charts';
+import { SpaceMetricsDisplay } from '../components/widgets/SpaceMetricsDisplay';
+
+const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
+    // TODO: Update this to support more than 1 month time span
+    // by dynamically determine days in the "previous" month
+    const labelsLength = timeSpan === 'week' ? 7 : 31;
+    const startDay = Number(moment().subtract(labelsLength, 'd').format('D'));
+    const startMonth = Number(moment().subtract(labelsLength, 'd').format('M'));
+    const daysInFirstMonth = moment().subtract(labelsLength, 'd').daysInMonth();
+    const daysInNextMonth = moment().daysInMonth();
+    const daysInLastMonth = moment().add(1, 'M').daysInMonth();
+    const currentMonthIndex = 0;
+    let currentMonth = startMonth;
+
+    return Array.from({ length: labelsLength }, (_, i) => {
+        let day = startDay + i + 1;
+        const daysInCurrentMonth = [daysInFirstMonth, daysInNextMonth, daysInLastMonth][currentMonthIndex];
+        if (day > daysInCurrentMonth) {
+            day -= daysInCurrentMonth;
+            if (day > daysInNextMonth) {
+                day -= daysInNextMonth;
+            }
+        }
+        if (day === 1 && day !== startDay + 1) {
+            currentMonth += 1;
+        }
+        return [`${currentMonth}/${day}`, 0];
+    }).reduce((acc, cur) => ({
+        ...acc,
+        [cur[0]]: cur[1],
+    }), {});
+}
 
 interface IDashboardOverviewRouterProps {
     navigation: {
@@ -126,33 +154,8 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
     fetchSpaceMetrics = (timeSpan: 'week' | 'month') => {
         const startDate = moment().subtract(1, `${timeSpan}s`).utc().format('YYYY-MM-DD HH:mm:ss');
         const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-        const labelsLength = timeSpan === 'week' ? 7 : 31;
-        const startDay = Number(moment().subtract(labelsLength, 'd').format('D'));
-        const startMonth = Number(moment().subtract(labelsLength, 'd').format('M'));
-        const daysInFirstMonth = moment().subtract(labelsLength, 'd').daysInMonth();
-        const daysInNextMonth = moment().daysInMonth();
-        const daysInLastMonth = moment().add(1, 'M').daysInMonth();
-        const currentMonthIndex = 0;
-        let currentMonth = startMonth;
-        // TODO: Update this to support more than 1 month time span
-        // by dynamically determine days in the "previous" month
-        const formattedMetrics = Array.from({ length: labelsLength }, (_, i) => {
-            let day = startDay + i + 1;
-            const daysInCurrentMonth = [daysInFirstMonth, daysInNextMonth, daysInLastMonth][currentMonthIndex];
-            if (day > daysInCurrentMonth) {
-                day -= daysInCurrentMonth;
-                if (day > daysInNextMonth) {
-                    day -= daysInNextMonth;
-                }
-            }
-            if (day === 1 && day !== startDay + 1) {
-                currentMonth += 1;
-            }
-            return [`${currentMonth}/${day}`, 0];
-        }).reduce((acc, cur) => ({
-            ...acc,
-            [cur[0]]: cur[1],
-        }), {});
+        const formattedMetrics = populateEmptyMetrics(timeSpan);
+
         // TODO: get current user spaces
         MapsService.getSpaceMetrics('ff9a0e0b-7b1f-4ce9-a7e2-9c7147949268', {
             startDate,
@@ -197,21 +200,21 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
         const { impressionsLabels, impressionsValues, metrics } = this.state;
 
         return (
-            <div id="page_user_profile" className="flex-box column">
+            <div id="page_dashboard_overview" className="flex-box column">
                 <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
                     <Dropdown className="btn-toolbar">
                         <Dropdown.Toggle as={Button} variant="primary" size="sm" className="me-2">
-                            <FontAwesomeIcon icon={faPlus} className="me-2" />New Task
+                            <FontAwesomeIcon icon={faTasks} className="me-2" />Manage Spaces
                         </Dropdown.Toggle>
                         <Dropdown.Menu className="dashboard-dropdown dropdown-menu-left mt-2">
                             <Dropdown.Item className="fw-bold">
-                                <FontAwesomeIcon icon={faTasks} className="me-2" /> New Task
+                                <FontAwesomeIcon icon={faPlus} className="me-2" /> Claim a Space
                             </Dropdown.Item>
                             <Dropdown.Item className="fw-bold">
-                                <FontAwesomeIcon icon={faCloudUploadAlt} className="me-2" /> Upload Files
+                                <FontAwesomeIcon icon={faPencilRuler} className="me-2" /> Edit Spaces
                             </Dropdown.Item>
                             <Dropdown.Item className="fw-bold">
-                                <FontAwesomeIcon icon={faUserShield} className="me-2" /> Preview Security
+                                <FontAwesomeIcon icon={faUserShield} className="me-2" /> Manage Access
                             </Dropdown.Item>
 
                             <Dropdown.Divider />
@@ -230,7 +233,8 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
 
                 <Row className="justify-content-md-center">
                     <Col xs={12} className="mb-4 d-none d-sm-block">
-                        <SalesValueWidget
+                        <SpaceMetricsDisplay
+                            isMobile={false}
                             title="Space Metrics"
                             value={metrics.length}
                             labels={impressionsLabels}
@@ -240,13 +244,17 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                         />
                     </Col>
                     <Col xs={12} className="mb-4 d-sm-none">
-                        <SalesValueWidgetPhone
+                        <SpaceMetricsDisplay
+                            isMobile={true}
                             title="Space Metrics"
                             value={metrics.length}
+                            labels={impressionsLabels}
+                            values={impressionsValues}
                             percentage={100}
+                            fetchSpaceMetrics={this.fetchSpaceMetrics}
                         />
                     </Col>
-                    <Col xs={12} sm={6} xl={4} className="mb-4">
+                    {/* <Col xs={12} sm={6} xl={4} className="mb-4">
                         <CounterWidget
                             category="Customers"
                             title="345k"
@@ -272,10 +280,10 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                         <CircleChartWidget
                             title="Traffic Share"
                             data={trafficShares} />
-                    </Col>
+                    </Col> */}
                 </Row>
 
-                <Row>
+                {/* <Row>
                     <Col xs={12} xl={12} className="mb-4">
                         <Row>
                             <Col xs={12} xl={8} className="mb-4">
@@ -315,7 +323,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                             </Col>
                         </Row>
                     </Col>
-                </Row>
+                </Row> */}
             </div>
         );
     }
