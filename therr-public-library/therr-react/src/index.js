@@ -16,6 +16,11 @@ const routingComponents = [
     'components/routing/index',
 ];
 
+// Constants
+const constants = [
+    'constants/index',
+];
+
 // Redux
 const redux = [
     'redux/actions/index',
@@ -35,6 +40,7 @@ const types = [
 
 module.exports = {
     components: miscellaneousComponents.concat(formComponents).concat(routingComponents),
+    constants,
     redux,
     services,
     types,
