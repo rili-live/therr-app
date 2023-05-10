@@ -205,7 +205,6 @@ class MapsService {
         longitude,
         latitude,
         radius,
-        apiKey,
         input,
         sessiontoken,
     }: IPlacesAutoCompleteArgs) => {

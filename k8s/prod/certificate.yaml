@@ -18,4 +18,4 @@ spec:
     - 'websocket-service.therr.com'
     - 'www.websocket-service.therr.com'
   duration: 4320h # 180d
-  renewBefore: 720h # 30d
+  renewBefore: 360h # 15d

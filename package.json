@@ -99,8 +99,8 @@
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^27.5.1",
     "babel-loader": "^8.2.5",
-    "babel-plugin-macros": "^3.1.0",
     "babel-plugin-array-includes": "^2.0.3",
+    "babel-plugin-macros": "^3.1.0",
     "babel-plugin-module-resolver": "^4.1.0",
     "chai": "^4.3.6",
     "clean-webpack-plugin": "^3.0.0",
@@ -179,7 +179,6 @@
     "bootstrap": "^5.2.3",
     "chartist": "^0.11.4",
     "chartist-plugin-tooltips-updated": "^0.1.4",
-    "simplebar-react": "^2.3.0",
     "color": "^3.2.1",
     "copy-webpack-plugin": "^9.1.0",
     "cors": "^2.8.5",
@@ -193,6 +192,7 @@
     "express-validator": "^5.3.1",
     "firebase-admin": "^10.3.0",
     "form-data": "^4.0.0",
+    "formik": "^2.2.9",
     "fs-extra": "^10.1.0",
     "geolocation-utils": "^1.2.5",
     "google-auth-library": "^7.14.1",
@@ -221,6 +221,8 @@
     "randomcolor": "^0.6.2",
     "rate-limit-redis": "^3.0.0",
     "react": "^18.2.0",
+    "react-bootstrap": "^2.7.4",
+    "react-bootstrap-typeahead": "^6.1.2",
     "react-chartist": "^0.14.4",
     "react-copy-to-clipboard": "^5.0.3",
     "react-datetime": "^3.0.4",
@@ -236,6 +238,7 @@
     "redux-logger": "^3.0.6",
     "redux-socket.io": "^1.4.0",
     "seamless-immutable": "^7.1.4",
+    "simplebar-react": "^2.3.0",
     "socket.io": "^4.5.1",
     "socket.io-client": "^4.5.4",
     "socket.io-redis": "^6.1.1",
@@ -243,6 +246,7 @@
     "twilio": "^3.81.0",
     "uuid": "^8.3.2",
     "validator": "^13.7.0",
-    "yargs": "^13.3.2"
+    "yargs": "^13.3.2",
+    "yup": "^1.1.1"
   }
 }

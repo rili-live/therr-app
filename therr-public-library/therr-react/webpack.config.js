@@ -11,6 +11,7 @@ const rootPkg = require('../../package.json');
 
 const {
     components,
+    constants,
     redux,
     services,
     types,
@@ -32,7 +33,7 @@ components.forEach((filePath) => {
     const name = isIndexFile ? filePath.split('/index')[0] : filePath;
     entry[name] = `${PATHS.app}/${filePath}.${isIndexFile ? 'ts' : 'tsx'}`;
 });
-[...redux, ...services, ...types].forEach((filePath) => {
+[...redux, ...constants, ...services, ...types].forEach((filePath) => {
     const name = filePath.includes('index') ? filePath.split('/index')[0] : filePath;
     entry[name] = `${PATHS.app}/${filePath}.ts`;
 });

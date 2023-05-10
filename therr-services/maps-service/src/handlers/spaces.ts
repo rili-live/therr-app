@@ -89,6 +89,7 @@ const createSpace = async (req, res) => {
                     featuredIncentiveRewardValue: space.featuredIncentiveRewardValue,
                     featuredIncentiveCurrencyId: space.featuredIncentiveCurrencyId,
                     locale,
+                    userId,
                 },
             });
             // if condition could work for any incentive property
