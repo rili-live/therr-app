@@ -26,6 +26,8 @@ interface IRequiredUserDetails {
     lastName?: string;
     phoneNumber?: string;
     userName?: string;
+    isBusinessAccount?: boolean;
+    isDashboardRegistration?: boolean;
 }
 
 export interface IUserByInviteDetails {
@@ -187,6 +189,9 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
             const userAccessLevels = [
                 AccessLevels.DEFAULT,
             ];
+            if (userDetails.isDashboardRegistration) {
+                userAccessLevels.push(AccessLevels.DASHBOARD_SIGNUP);
+            }
             if (isSSO) {
                 if (isMissingUserProps) {
                     userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
@@ -199,6 +204,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                 email: userDetails.email,
                 firstName: userDetails.firstName || undefined,
                 hasAgreedToTerms,
+                isBusinessAccount: userDetails.isBusinessAccount,
                 lastName: userDetails.lastName || undefined,
                 password: hash,
                 phoneNumber: userDetails.phoneNumber || undefined,
@@ -286,7 +292,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                             }, {
                                 name: userDetails.email,
                                 oneTimePassword: otPassword,
-                            });
+                            }, userDetails.isDashboardRegistration);
                         }
 
                         return sendNewUserInviteEmail({
@@ -298,7 +304,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                             toEmail: userByInviteDetails?.toEmail || '',
                             verificationCodeToken: codeDetails.token,
                             oneTimePassword: otPassword,
-                        });
+                        }, !!userDetails.isDashboardRegistration);
                     })
                     .then(() => user);
             }
@@ -319,7 +325,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
             }, {
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
                 verificationCodeToken: codeDetails.token,
-            }).then(() => user);
+            }, userDetails.isDashboardRegistration).then(() => user);
         })
         .catch((error) => {
             console.log(error);

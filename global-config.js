@@ -5,10 +5,13 @@ const apiMapsPort = 7773;
 const apiReactionsPort = 7774;
 const apiPushNotificationsPort = 7775;
 const clientPort = 7070;
+const dashboardClientPort = 7071;
 const websocketPort = 7743;
 const hostDev = '127.0.0.1';
 const hostStage = 'stage.therr.com';
+const dashboardHostStage = 'stage.dashboard.therr.com';
 const hostProd = 'therr.com';
+const dashboardHostProd = 'dashboard.therr.com';
 const googleOAuth2WebClientId = '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com';
 
 module.exports = {
@@ -28,6 +31,7 @@ module.exports = {
         googleOAuth2WebClientId,
         host: hostDev,
         hostFull: `http://${hostDev}:${clientPort}`,
+        dashboardHostFull: `http://${hostDev}:${dashboardClientPort}`,
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,
@@ -49,6 +53,7 @@ module.exports = {
         googleOAuth2WebClientId,
         host: hostStage,
         hostFull: `https://${hostStage}`,
+        dashboardHostFull: `http://${dashboardHostStage}`,
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,
@@ -70,6 +75,7 @@ module.exports = {
         googleOAuth2WebClientId,
         host: hostProd,
         hostFull: `https://${hostProd}`,
+        dashboardHostFull: `https://${dashboardHostProd}`,
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,

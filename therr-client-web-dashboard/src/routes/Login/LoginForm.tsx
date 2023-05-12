@@ -17,9 +17,9 @@ import {
     Card,
     Button,
     FormCheck,
-    Container,
     InputGroup,
-} from '@themesberg/react-bootstrap';
+    ToastProps,
+} from 'react-bootstrap';
 import translator from '../../services/translator';
 
 // Regular component props
@@ -27,11 +27,11 @@ interface ILoginFormProps {
     alert?: string;
     login: Function;
     title?: string;
+    toggleAlert: (show?: boolean, alertHeading?: string, alertVariation?: ToastProps['bg'], alertMessage?: string) => any;
 }
 
 interface ILoginFormState {
     inputs: any;
-    prevLoginError: string;
     isSubmitting: boolean;
 }
 
@@ -49,7 +49,6 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                 userName: '',
                 password: '',
             },
-            prevLoginError: '',
             isSubmitting: false,
         };
 
@@ -62,6 +61,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
 
     onSubmit = (event: React.MouseEvent<HTMLInputElement>) => {
         event.preventDefault();
+        const { toggleAlert } = this.props;
         const { password, rememberMe, userName } = this.state.inputs;
         switch (event.currentTarget.id) {
             case 'password':
@@ -77,21 +77,13 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                         rememberMe,
                     }).catch((error: any) => {
                         if (error.statusCode === 401 || error.statusCode === 404) {
-                            this.setState({
-                                prevLoginError: error.message,
-                            });
+                            toggleAlert(true, 'Error Authenticating', 'danger', error.message);
                         } else if (error.statusCode === 403 && error.message === 'One-time password has expired') {
-                            this.setState({
-                                prevLoginError: this.translate('components.loginForm.oneTimePasswordExpired'),
-                            });
+                            toggleAlert(true, 'Token Expired', 'danger', this.translate('components.loginForm.oneTimePasswordExpired'));
                         } else if (error.statusCode === 429 && error.message === 'Too many login attempts, please try again later.') {
-                            this.setState({
-                                prevLoginError: this.translate('components.loginForm.tooManyRequests'),
-                            });
+                            toggleAlert(true, 'Too Many Requests', 'danger', this.translate('components.loginForm.tooManyRequests'));
                         } else {
-                            this.setState({
-                                prevLoginError: this.translate('components.loginForm.backendErrorMessage'),
-                            });
+                            toggleAlert(true, 'Oops! Something went wrong', 'danger', this.translate('components.loginForm.backendErrorMessage'));
                         }
                         this.setState({
                             isSubmitting: false,
@@ -119,12 +111,11 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                 ...this.state.inputs,
                 ...newInputChanges,
             },
-            prevLoginError: '',
         });
+        this.props.toggleAlert(false);
     };
 
     public render(): JSX.Element | null {
-        const { prevLoginError } = this.state;
         const { alert, title } = this.props;
 
         return (
@@ -165,13 +156,13 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                             />
                         </InputGroup>
                     </Form.Group>
-                    {/* <div className='d-flex justify-content-between align-items-center mb-4'>
+                    <div className='d-flex justify-content-between align-items-center mb-4'>
                         <Form.Check type='checkbox'>
                             <FormCheck.Input id='defaultCheck5' className='me-2' />
                             <FormCheck.Label htmlFor='defaultCheck5' className='mb-0'>Remember me</FormCheck.Label>
                         </Form.Check>
-                        <Card.Link className='small text-end'>Lost password?</Card.Link>
-                    </div> */}
+                        <Card.Link as={Link} to="/reset-password" className='small text-end'>Forgot password?</Card.Link>
+                    </div>
                 </Form.Group>
                 <Button id="login_button" variant='primary' type='submit' className='w-100' onClick={this.onSubmit} onSubmit={this.onSubmit} disabled={this.isLoginFormDisabled()}>
                     {this.translate('components.loginForm.buttons.login')}

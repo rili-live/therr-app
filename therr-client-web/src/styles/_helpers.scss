@@ -4,3 +4,26 @@
     $remSize: math.div($size, 16px);
     @return #{$remSize}rem;
 }
+
+.mb-2 {
+    margin-bottom: 1rem;
+}
+.px-2 {
+    padding-right: 1rem;
+    padding-left: 1rem;
+}
+.password-requirements {
+    border: 2px solid #fcfeff;
+    border-radius: 1rem;
+    p {
+        font-size: 0.75rem;
+    }
+}
+
+@media only screen and (min-width: $screen-medium) {
+    .password-requirements {
+        p {
+            font-size: 1rem;
+        }
+    }
+}

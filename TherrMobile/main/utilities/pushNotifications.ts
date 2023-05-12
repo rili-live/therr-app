@@ -30,7 +30,7 @@ const sendTriggerNotification = async (
     futureDate: Date,
     notification: Notification,
     androidChannel?: AndroidChannel,
-    repeatFrequency: RepeatFrequency = RepeatFrequency.NONE,
+    repeatFrequency?: RepeatFrequency,
 ) => {
     const settings = await notifee.getNotificationSettings();
     if (settings.android.alarm !== AndroidNotificationSetting.ENABLED) {
@@ -44,6 +44,8 @@ const sendTriggerNotification = async (
         timestamp: futureDate.getTime(),
         repeatFrequency: repeatFrequency,
     };
+
+    console.log(futureDate.getTime());
 
     // Request permissions (required for iOS)
     return notifee.requestPermission()

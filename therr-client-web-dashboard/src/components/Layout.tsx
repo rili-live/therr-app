@@ -1,4 +1,3 @@
-import classnames from 'classnames';
 import * as React from 'react';
 import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
@@ -12,7 +11,6 @@ import {
 } from 'therr-react/components';
 import { NotificationActions, SocketActions, MessageActions } from 'therr-react/redux/actions';
 import { UsersService } from 'therr-react/services';
-// import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import classNames from 'classnames';
 import Header from './Header';
@@ -228,6 +226,10 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         logout(user.details);
     };
 
+    navToSettings = () => {
+        this.props.navigation.navigate('/settings');
+    };
+
     initMessaging = (e, connectionDetails, context) => {
         const { searchDms, messages } = this.props;
         const { isMessagingOpen, isMsgContainerOpen } = this.state;
@@ -338,7 +340,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
     public render(): JSX.Element | null {
         const { location, user } = this.props;
-        const navMenuClassNames = classnames({
+        const navMenuClassNames = classNames({
             'is-open': this.state.isNavMenuOpen,
             'is-expanded': this.state.isNavMenuExpanded,
         });
@@ -381,7 +383,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         <main className={mainClassNames}>
                             {
                                 shouldShowSidebar
-                                && <DashboardNavbar onLogout={this.handleLogout} user={user} />
+                                && <DashboardNavbar onLogout={this.handleLogout} navToSettings={this.navToSettings} user={user} />
                             }
                             <AppRoutes
                                 initMessaging={this.initMessaging}
