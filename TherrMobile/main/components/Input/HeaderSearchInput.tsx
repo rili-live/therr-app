@@ -5,8 +5,7 @@ import { bindActionCreators } from 'redux';
 import { Badge, InputProps } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { MapActions } from 'therr-react/redux/actions';
-import { IMapReduxState } from 'therr-react/types';
-import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
+import { IMapState as IMapReduxState } from 'therr-react/types';
 import DeviceInfo from 'react-native-device-info';
 import RoundInput from './';
 import translator from '../../services/translator';
@@ -98,7 +97,6 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 longitude: map?.longitude || '37.76999',
                 latitude: map?.latitude || '-122.44696',
                 // radius,
-                apiKey: Platform.OS === 'ios' ? GOOGLE_APIS_IOS_KEY : GOOGLE_APIS_ANDROID_KEY,
                 input: text,
             });
         }, 500);

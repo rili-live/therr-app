@@ -260,7 +260,7 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             // borderWidth: 2,
         },
         cardImageContainer: {
-            flex: 3,
+            flex: 1,
             width: '100%',
         },
         cardImage: {
@@ -268,6 +268,8 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             width: '100%',
         },
         textContent: {
+            display: 'flex',
+            justifyContent: 'flex-end',
         },
         cardTitle: {
             fontFamily: therrFontFamily,

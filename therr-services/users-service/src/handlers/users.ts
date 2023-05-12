@@ -42,6 +42,8 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 email: req.body.email,
                 password: req.body.password,
                 firstName: req.body.firstName,
+                isBusinessAccount: req.body.isBusinessAccount,
+                isDashboardRegistration: req.body.isDashboardRegistration,
                 lastName: req.body.lastName,
                 phoneNumber: req.body.phoneNumber,
                 userName: req.body.userName,
@@ -561,7 +563,7 @@ const deleteUser = (req, res) => {
 };
 
 const createOneTimePassword = (req, res) => {
-    const { email } = req.body;
+    const { email, isDashboardRegistration } = req.body;
 
     return Store.users.getUsers({ email: normalizeEmail(email) })
         .then((userDetails) => {
@@ -588,7 +590,7 @@ const createOneTimePassword = (req, res) => {
                 }, {
                     name: email,
                     oneTimePassword: otPassword,
-                }))
+                }, isDashboardRegistration || userDetails[0].accessLevels.includes(AccessLevels.DASHBOARD_SIGNUP)))
                 .then(() => res.status(200).send({ message: 'One time password created and sent' }))
                 .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
         });
@@ -731,7 +733,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
                     }, {
                         name: users[0].firstName && users[0].lastName ? `${users[0].firstName} ${users[0].lastName}` : users[0].email,
                         verificationCodeToken: codeDetails.token,
-                    })
+                    }, req.body.isDashboardRegistration || users[0].accessLevels.includes(AccessLevels.DASHBOARD_SIGNUP))
                         .then(() => res.status(200).send({ message: 'New verification E-mail sent' }))
                         .catch((error) => {
                             // Delete user to allow re-registration

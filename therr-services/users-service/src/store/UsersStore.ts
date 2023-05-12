@@ -13,6 +13,7 @@ export interface ICreateUserParams {
     email: string;
     firstName?: string;
     hasAgreedToTerms: boolean;
+    isBusinessAccount?: boolean;
     lastName?: string;
     password: string;
     phoneNumber?: string;

@@ -16,7 +16,7 @@ export interface ITemplateParams {
 }
 
 // TODO: Localize email
-export default (emailParams: ISendCoinsReceivedEmailConfig, templateParams: ITemplateParams) => {
+export default (emailParams: ISendCoinsReceivedEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     const template = Handlebars.compile(templateString);
     const htmlConfig = {
         header: 'You earned TherrCoins!',

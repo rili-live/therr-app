@@ -383,7 +383,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
                         if (isDraft) {
                             const nowPlus = new Date();
-                            nowPlus.setHours(nowPlus.getHours() + 1.5);
+                            nowPlus.setHours(nowPlus.getMinutes() + 1);
                             sendTriggerNotification(nowPlus, {
                                 title: this.translate('alertTitles.draftReminder'),
                                 body: this.translate('alertMessages.draftReminder'),

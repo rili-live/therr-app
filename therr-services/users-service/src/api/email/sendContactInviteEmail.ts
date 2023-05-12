@@ -17,7 +17,7 @@ export interface ITemplateParams {
 }
 
 // TODO: Localize email
-export default (emailParams: ISendContactInviteEmailConfig, templateParams: ITemplateParams) => {
+export default (emailParams: ISendContactInviteEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     const template = Handlebars.compile(templateString);
     const htmlConfig = {
         header: `New invite from ${templateParams.fromName}!`,
