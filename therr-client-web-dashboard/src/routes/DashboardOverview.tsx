@@ -7,6 +7,8 @@ import {
     FontAwesomeIcon,
 } from '@fortawesome/react-fontawesome';
 import {
+    faChevronLeft,
+    faChevronRight,
     faPencilRuler,
     faPlus,
     faRocket,
@@ -42,6 +44,35 @@ import withNavigation from '../wrappers/withNavigation';
 //     totalOrders,
 // } from '../data/charts';
 import { SpaceMetricsDisplay } from '../components/widgets/SpaceMetricsDisplay';
+
+interface ISpace {
+    id: string;
+    fromUserId: string;
+    locale: string;
+    isPublic: true,
+    message: string;
+    notificationMsg: string;
+    mediaIds: string;
+    mentionsIds: string;
+    hashTags: string;
+    maxViews: number;
+    latitude: number;
+    longitude: number;
+    radius: number;
+    maxProximity: number;
+    isMatureContent: boolean;
+    isModeratorApproved: boolean;
+    isForSale: boolean;
+    isHirable: boolean;
+    isPromotional: boolean;
+    isExclusiveToGroups: boolean;
+    category: string;
+    region: string;
+    createdAt: string;
+    updatedAt: string;
+    geom: string;
+    areaType: string;
+}
 
 const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
     // TODO: Update this to support more than 1 month time span
@@ -96,9 +127,12 @@ interface IDashboardOverviewProps extends IDashboardOverviewRouterProps, IStoreP
 }
 
 interface IDashboardOverviewState {
+    currentSpaceIndex: number;
     metrics: any[];
     impressionsLabels: string[] | undefined;
     impressionsValues: number[][] | undefined;
+    spacesInView: ISpace[]; // TODO: Move to Redux
+    spanOfTime: 'week' | 'month';
 }
 
 const mapStateToProps = (state: any) => ({
@@ -121,9 +155,12 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
         super(props);
 
         this.state = {
+            currentSpaceIndex: 0,
             impressionsLabels: undefined,
             impressionsValues: undefined,
             metrics: [],
+            spacesInView: [],
+            spanOfTime: 'week',
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -151,33 +188,54 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
         }
     }
 
+    fetchMySpaces = () => MapsService.searchMySpaces({
+        itemsPerPage: 5,
+        pageNumber: 1,
+    }).then(({ data }) => new Promise((resolve) => {
+        this.setState({
+            spacesInView: data.results,
+        }, () => resolve(null));
+    }));
+
     fetchSpaceMetrics = (timeSpan: 'week' | 'month') => {
+        this.setState({
+            spanOfTime: timeSpan,
+        });
+        const { spacesInView } = this.state;
+
         const startDate = moment().subtract(1, `${timeSpan}s`).utc().format('YYYY-MM-DD HH:mm:ss');
         const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
         const formattedMetrics = populateEmptyMetrics(timeSpan);
+        const prefetchPromise: Promise<any> = !spacesInView.length ? this.fetchMySpaces() : Promise.resolve();
 
-        // TODO: get current user spaces
-        MapsService.getSpaceMetrics('ff9a0e0b-7b1f-4ce9-a7e2-9c7147949268', {
-            startDate,
-            endDate,
-        }).then((response) => {
-            // TODO: Account for different metric names and value types
-            response.data.metrics.forEach((metric) => {
-                const month = new Date(metric.createdAt).getUTCMonth() + 1;
-                const dayOfMonth = new Date(metric.createdAt).getUTCDate();
-                const dataKey = `${month}/${dayOfMonth}`;
-                formattedMetrics[dataKey] = formattedMetrics[dataKey] !== undefined
-                    ? formattedMetrics[dataKey] + Number(metric.value)
-                    : Number(metric.value);
-            });
+        prefetchPromise.then(() => {
+            const { currentSpaceIndex, spacesInView: updatedSpacesInView } = this.state;
 
-            this.setState({
-                metrics: response.data.metrics,
-                impressionsLabels: Object.keys(formattedMetrics),
-                impressionsValues: [Object.values(formattedMetrics)],
-            });
-        }).catch((err) => {
-            console.log(err);
+            if (updatedSpacesInView.length) {
+                // TODO: get current user spaces
+                MapsService.getSpaceMetrics(updatedSpacesInView[currentSpaceIndex].id, {
+                    startDate,
+                    endDate,
+                }).then((response) => {
+                    // TODO: Account for different metric names and value types
+                    response.data.metrics.forEach((metric) => {
+                        const month = new Date(metric.createdAt).getUTCMonth() + 1;
+                        const dayOfMonth = new Date(metric.createdAt).getUTCDate();
+                        const dataKey = `${month}/${dayOfMonth}`;
+                        formattedMetrics[dataKey] = formattedMetrics[dataKey] !== undefined
+                            ? formattedMetrics[dataKey] + Number(metric.value)
+                            : Number(metric.value);
+                    });
+
+                    this.setState({
+                        metrics: response.data.metrics,
+                        impressionsLabels: Object.keys(formattedMetrics),
+                        impressionsValues: [Object.values(formattedMetrics)],
+                    });
+                }).catch((err) => {
+                    console.log(err);
+                });
+            }
         });
     };
 
@@ -194,8 +252,43 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
 
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
 
+    onPrevSpaceClick = () => {
+        const {
+            currentSpaceIndex,
+            spanOfTime,
+        } = this.state;
+        if (currentSpaceIndex > 0) {
+            this.setState({
+                currentSpaceIndex: currentSpaceIndex - 1,
+            }, () => {
+                this.fetchSpaceMetrics(spanOfTime);
+            });
+        }
+    };
+
+    onNextSpaceClick = () => {
+        const {
+            currentSpaceIndex,
+            spacesInView,
+            spanOfTime,
+        } = this.state;
+        if (currentSpaceIndex < spacesInView.length - 1) {
+            this.setState({
+                currentSpaceIndex: currentSpaceIndex + 1,
+            }, () => {
+                this.fetchSpaceMetrics(spanOfTime);
+            });
+        }
+    };
+
     public render(): JSX.Element | null {
-        const { impressionsLabels, impressionsValues, metrics } = this.state;
+        const {
+            currentSpaceIndex,
+            spacesInView,
+            impressionsLabels,
+            impressionsValues,
+            metrics,
+        } = this.state;
 
         return (
             <div id="page_dashboard_overview" className="flex-box column">
@@ -224,8 +317,18 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                     </Dropdown>
 
                     <ButtonGroup>
-                        <Button variant="outline-primary" size="sm">Share</Button>
-                        <Button variant="outline-primary" size="sm">Export</Button>
+                        {
+                            currentSpaceIndex !== 0
+                                && <Button onClick={this.onPrevSpaceClick} variant="outline-primary" size="sm">
+                                    <FontAwesomeIcon icon={faChevronLeft} className="me-2" /> Previous Space
+                                </Button>
+                        }
+                        {
+                            currentSpaceIndex < spacesInView.length - 1
+                                && <Button onClick={this.onNextSpaceClick} variant="outline-primary" size="sm">
+                                    Next Space <FontAwesomeIcon icon={faChevronRight} className="me-2" />
+                                </Button>
+                        }
                     </ButtonGroup>
                 </div>
 
@@ -233,7 +336,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                     <Col xs={12} className="mb-4 d-none d-sm-block">
                         <SpaceMetricsDisplay
                             isMobile={false}
-                            title="Space Metrics"
+                            title={`Space Metrics: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
                             value={metrics.length}
                             labels={impressionsLabels}
                             values={impressionsValues}
@@ -244,7 +347,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                     <Col xs={12} className="mb-4 d-sm-none">
                         <SpaceMetricsDisplay
                             isMobile={true}
-                            title="Space Metrics"
+                            title={`Space Metrics: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
                             value={metrics.length}
                             labels={impressionsLabels}
                             values={impressionsValues}

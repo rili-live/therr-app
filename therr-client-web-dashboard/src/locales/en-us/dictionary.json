@@ -190,6 +190,7 @@
     "register": {
       "pageTitle": "Register",
       "pageHeader": "Create Your Account",
+      "pageSubheader": "...to view customer metrics",
       "registerSuccess": "Registration success! Check your e-mail for verification.",
       "registerError": "Oops, something went wrong",
       "passwordRequirements1": "Contains a mixture of letters and numbers",

@@ -165,6 +165,8 @@ class MapsService {
 
     searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('spaces', query, data);
 
+    searchMySpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('spaces', query, data);
+
     deleteSpaces = (data: IDeleteAreasBody) => this.deleteAreas('spaces', data);
 
     // Map Metrics
