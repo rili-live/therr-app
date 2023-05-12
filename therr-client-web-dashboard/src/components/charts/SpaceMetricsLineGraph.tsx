@@ -17,10 +17,10 @@ export const SpaceMetricsLineGraph = ({
 }: ISpaceMetricsLineGraphProps) => {
     const data = timeSpan === 'week' ? {
         labels: labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        series: values || [[1, 2, 5, 3, 3, 7, 3], [1, 2, 5, 3, 3, 7, 3]],
+        series: values || [[0, 0, 0, 0, 0, 0, 0]],
     } : {
         labels: labels || ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-        series: values || [[10, 18, 8, 22]],
+        series: values || [[0, 0, 0, 0]],
     };
 
     const options = {

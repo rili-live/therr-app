@@ -25,14 +25,19 @@ const MetricsSummary = ({
         <h5 className="fw-normal mb-2">
             {title}
         </h5>
-        <h3>{value} {metricLabel}</h3>
-        <small className="fw-bold mt-2">
-            <span className="me-2">{previousTimespanLabel}</span>
-            <FontAwesomeIcon icon={percentageIcon} className={`${percentageColor} me-1`} />
-            <span className={percentageColor}>
-                {percentage}%
-            </span>
-        </small>
+        {
+            value != null
+            && <>
+                <h3>{value} {metricLabel}</h3>
+                <small className="fw-bold mt-2">
+                    <span className="me-2">{previousTimespanLabel}</span>
+                    <FontAwesomeIcon icon={percentageIcon} className={`${percentageColor} me-1`} />
+                    <span className={percentageColor}>
+                        {percentage}%
+                    </span>
+                </small>
+            </>
+        }
     </>
 );
 
@@ -88,7 +93,7 @@ export const SpaceMetricsDisplay = (props: any) => {
                     <div className="d-block mb-3 mb-md-0">
                         <MetricsSummary
                             title={title}
-                            value={value}
+                            value={values ? value : null}
                             metricLabel="Impressions"
                             previousTimespanLabel={timeSpan === 'week' ? 'Previous Week' : 'Previous Month'}
                             percentage={percentage}
@@ -114,7 +119,7 @@ export const SpaceMetricsDisplay = (props: any) => {
                 <div className="d-block">
                     <MetricsSummary
                         title={title}
-                        value={value}
+                        value={values ? value : null}
                         metricLabel="Impressions"
                         previousTimespanLabel={timeSpan === 'week' ? 'Previous Week' : 'Previous Month'}
                         percentage={percentage}
