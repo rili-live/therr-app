@@ -283,6 +283,9 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                         }, {
                             name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
                             inviterEmail: userByInviteDetails?.fromEmail || '',
+                        }, {
+                            isBusinessAccount: userDetails.isBusinessAccount,
+                            isDashboardRegistration: userDetails.isDashboardRegistration,
                         });
 
                         if (isSSO) {
@@ -315,6 +318,9 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
             }, {
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
+            }, {
+                isBusinessAccount: userDetails.isBusinessAccount,
+                isDashboardRegistration: userDetails.isDashboardRegistration,
             });
 
             // STANDARD USER REGISTRATION
