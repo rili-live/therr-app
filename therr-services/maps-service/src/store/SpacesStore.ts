@@ -80,6 +80,45 @@ export default class SpacesStore {
         return this.db.read.query(query.toString()).then((response) => response.rows);
     }
 
+    // eslint-disable-next-line default-param-last
+    searchMySpaces(conditions: any = {}, returning, userId: string, overrides?: any, includePublicResults = true) {
+        const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
+        const limit = conditions.pagination.itemsPerPage;
+        let queryString: any = knexBuilder
+            .select((returning && returning.length) ? returning : '*')
+            .from(SPACES_TABLE_NAME)
+            // TODO: Determine a better way to select spaces that are most relevant to the user
+            // .orderBy(`${SPACES_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
+            // NOTE: Cast to a geography type to search distance within n meters
+            .where({
+                fromUserId: userId,
+                isMatureContent: false, // content that has been blocked
+            });
+
+        if (conditions.query != undefined && conditions.filterBy) { // eslint-disable-line eqeqeq
+            const operator = conditions.filterOperator || '=';
+            const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
+
+            queryString = queryString.andWhere(conditions.filterBy, operator, query);
+            queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                builder.where(conditions.filterBy, operator, query);
+                if (includePublicResults) {
+                    builder.orWhere({ isPublic: true });
+                }
+            });
+        }
+
+        queryString = queryString
+            .limit(limit)
+            .offset(offset)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => {
+            const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
+            return configuredResponse;
+        });
+    }
+
     getById(id) {
         const query = knexBuilder
             .select([
@@ -164,7 +203,7 @@ export default class SpacesStore {
     }
 
     // eslint-disable-next-line default-param-last
-    searchSpaces(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
+    searchSpaces(conditions: any = {}, returning, fromUserIds: string[] = [], overrides?: any, includePublicResults = true) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let proximityMax = overrides?.distanceOverride || Location.AREA_PROXIMITY_METERS;
