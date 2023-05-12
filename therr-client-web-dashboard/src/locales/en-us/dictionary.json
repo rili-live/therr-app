@@ -182,7 +182,8 @@
     },
     "login": {
       "pageTitle": "Login",
-      "pageHeader": "Sign in to your dashboard"
+      "pageHeader": "Sign in to your dashboard",
+      "pageSubheader": "...to view customer metrics"
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
