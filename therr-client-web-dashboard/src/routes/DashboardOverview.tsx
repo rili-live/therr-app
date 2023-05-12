@@ -320,7 +320,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                         {
                             currentSpaceIndex !== 0
                                 && <Button onClick={this.onPrevSpaceClick} variant="outline-primary" size="sm">
-                                    <FontAwesomeIcon icon={faChevronLeft} className="me-2" /> Previous Space
+                                    <FontAwesomeIcon icon={faChevronLeft} className="me-2" /> Prev. Space
                                 </Button>
                         }
                         {
