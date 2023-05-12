@@ -189,11 +189,11 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
     }
 
     fetchMySpaces = () => MapsService.searchMySpaces({
-        itemsPerPage: 5,
+        itemsPerPage: 50,
         pageNumber: 1,
-    }).then(({ data }) => new Promise((resolve) => {
+    }).then((response) => new Promise((resolve) => {
         this.setState({
-            spacesInView: data.results,
+            spacesInView: response?.data?.results || [],
         }, () => resolve(null));
     }));
 
@@ -218,7 +218,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                     endDate,
                 }).then((response) => {
                     // TODO: Account for different metric names and value types
-                    response.data.metrics.forEach((metric) => {
+                    response?.data?.metrics.forEach((metric) => {
                         const month = new Date(metric.createdAt).getUTCMonth() + 1;
                         const dayOfMonth = new Date(metric.createdAt).getUTCDate();
                         const dataKey = `${month}/${dayOfMonth}`;
@@ -292,8 +292,8 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
 
         return (
             <div id="page_dashboard_overview" className="flex-box column">
-                <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
-                    <Dropdown className="btn-toolbar">
+                <div className="d-flex justify-content-around justify-content-md-between flex-wrap flex-md-nowrap align-items-center py-4">
+                    <Dropdown className="btn-toolbar mb-2 mb-md-0">
                         <Dropdown.Toggle as={Button} variant="primary" size="sm" className="me-2">
                             <FontAwesomeIcon icon={faTasks} className="me-2" />Manage Spaces
                         </Dropdown.Toggle>
@@ -316,7 +316,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                         </Dropdown.Menu>
                     </Dropdown>
 
-                    <ButtonGroup>
+                    <ButtonGroup className="mb-2 mb-md-0">
                         {
                             currentSpaceIndex !== 0
                                 && <Button onClick={this.onPrevSpaceClick} variant="outline-primary" size="sm">
