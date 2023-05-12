@@ -50,7 +50,7 @@ const ReactHero = '/assets/img/therr-logo.svg';
 const ProfilePicture = '/assets/img/team/profile-picture-3.jpg';
 
 const Sidebar = (props: any = {}) => {
-    const { user } = props;
+    const { onLogout, user } = props;
     const location = useLocation();
     const { pathname } = location;
     const [show, setShow] = useState(false);
@@ -135,7 +135,7 @@ const Sidebar = (props: any = {}) => {
                                 </div>
                                 <div className="d-block">
                                     <h6>Hi, {user?.details?.userName}</h6>
-                                    <Button as={Link} variant="secondary" size="sm" to={'/'} className="text-dark">
+                                    <Button variant="secondary" size="sm" onClick={onLogout} className="text-dark">
                                         <FontAwesomeIcon icon={faSignOutAlt} className="me-2" /> Logout
                                     </Button>
                                 </div>
