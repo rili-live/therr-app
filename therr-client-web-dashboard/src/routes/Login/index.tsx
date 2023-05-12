@@ -146,9 +146,9 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                                         <div className='text-center text-md-center mb-2 mt-md-0'>
                                             <h3 className='mb-0'>{this.translate('pages.login.pageHeader')}</h3>
                                         </div>
-                                        <div className='text-center text-md-center mb-4 mt-md-0'>
+                                        {/* <div className='text-center text-md-center mb-4 mt-md-0'>
                                             <h3 className='mb-0'>{this.translate('pages.login.pageSubheader')}</h3>
-                                        </div>
+                                        </div> */}
                                         <LoginForm
                                             login={this.login}
                                             alert={alertMessage}
