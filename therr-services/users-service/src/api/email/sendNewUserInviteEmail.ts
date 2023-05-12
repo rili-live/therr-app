@@ -19,7 +19,7 @@ export interface ITemplateParams {
 }
 
 // TODO: Localize email
-export default (emailParams: ISendNewUserInviteEmailConfig, templateParams: ITemplateParams) => {
+export default (emailParams: ISendNewUserInviteEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     const template = Handlebars.compile(templateString);
     const htmlConfig = {
         header: 'Your Profile Awaits!',

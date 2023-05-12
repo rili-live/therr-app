@@ -6,6 +6,7 @@ import {
     Input,
 } from 'therr-react/components';
 import translator from '../../services/translator';
+import PasswordRequirements from './PasswordRequirements';
 
 // Regular component props
 interface IRegisterFormProps {
@@ -69,22 +70,12 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
         });
     };
 
-    onPhoneInputChange = (value: string) => {
-        this.setState({
-            inputs: {
-                ...this.state.inputs,
-                phoneNumber: value,
-            },
-            isPhoneNumberValid: isValidPhoneNumber(value),
-        });
-    };
-
     public render(): JSX.Element | null {
         const { isPhoneNumberValid } = this.state;
 
         return (
             <div className="register-container">
-                <div className="flex fill max-wide-20">
+                <div className="flex fill max-wide-30">
                     <h1 className="text-center">{this.props.title}</h1>
 
                     {/* <label className="required" htmlFor="e_mail">{this.translate('components.registerForm.labels.email')}:</label> */}
@@ -140,6 +131,12 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                         translate={this.translate}
                         validations={['isRequired']}
                         placeholder={this.translate('components.registerForm.labels.repeatPassword')}
+                    />
+
+                    <PasswordRequirements
+                        className="password-requirements mb-2 px-2"
+                        password={this.state.inputs.password}
+                        translate={this.translate}
                     />
 
                     <div className="text-left">

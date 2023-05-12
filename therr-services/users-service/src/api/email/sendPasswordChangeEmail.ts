@@ -16,7 +16,7 @@ export interface ITemplateParams {
 }
 
 // TODO: Localize email
-export default (emailParams: ISendPasswordChangeEmailConfig, templateParams: ITemplateParams) => {
+export default (emailParams: ISendPasswordChangeEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     const template = Handlebars.compile(templateString);
     const html = template({
         header: 'Therr App: Password Changed',

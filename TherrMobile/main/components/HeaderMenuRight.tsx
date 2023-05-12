@@ -470,7 +470,7 @@ class HeaderMenuRight extends React.Component<
                                                     onPress={() => this.navTo('Notifications')}
                                                 />
                                                 {
-                                                    hasNotifications && <View style={themeMenu.styles.notificationCircle}>
+                                                    hasNotifications && <View style={themeMenu.styles.notificationCircle2}>
                                                         <Text style={{ color: 'white' }}>{unreadCount.toString()}</Text>
                                                     </View>
                                                 }

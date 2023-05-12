@@ -72,7 +72,7 @@ const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
         ...acc,
         [cur[0]]: cur[1],
     }), {});
-}
+};
 
 interface IDashboardOverviewRouterProps {
     navigation: {
@@ -192,9 +192,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
         return onInitMessaging && onInitMessaging(e, this.getConnectionDetails(connection), 'user-profile');
     };
 
-    onCreateForumClick = () => {
-        this.props.navigation.navigate('/create-forum');
-    };
+    navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
 
     public render(): JSX.Element | null {
         const { impressionsLabels, impressionsValues, metrics } = this.state;
@@ -207,13 +205,13 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                             <FontAwesomeIcon icon={faTasks} className="me-2" />Manage Spaces
                         </Dropdown.Toggle>
                         <Dropdown.Menu className="dashboard-dropdown dropdown-menu-left mt-2">
-                            <Dropdown.Item className="fw-bold">
+                            <Dropdown.Item className="fw-bold" onClick={this.navigateHandler('/claim-a-space')}>
                                 <FontAwesomeIcon icon={faPlus} className="me-2" /> Claim a Space
                             </Dropdown.Item>
-                            <Dropdown.Item className="fw-bold">
+                            {/* <Dropdown.Item className="fw-bold" onClick={this.onClaimSpaceClick}>
                                 <FontAwesomeIcon icon={faPencilRuler} className="me-2" /> Edit Spaces
-                            </Dropdown.Item>
-                            <Dropdown.Item className="fw-bold">
+                            </Dropdown.Item> */}
+                            <Dropdown.Item className="fw-bold" onClick={this.navigateHandler('/claim-a-space')}>
                                 <FontAwesomeIcon icon={faUserShield} className="me-2" /> Manage Access
                             </Dropdown.Item>
 

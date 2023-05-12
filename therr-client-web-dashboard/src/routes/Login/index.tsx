@@ -5,28 +5,14 @@ import { Location, NavigateFunction, Link } from 'react-router-dom';
 import LogRocket from 'logrocket';
 import { IUserState } from 'therr-react/types';
 import {
-    FontAwesomeIcon,
-} from '@fortawesome/react-fontawesome';
-import {
-    faAngleLeft,
-    faEnvelope,
-    faUnlockAlt,
-} from '@fortawesome/free-solid-svg-icons';
-import {
-    faFacebookF,
-    faGithub,
-    faTwitter,
-} from '@fortawesome/free-brands-svg-icons';
-import {
     Col,
     Row,
-    Form,
     Card,
-    Button,
-    FormCheck,
     Container,
-    InputGroup,
-} from '@themesberg/react-bootstrap';
+    Toast,
+    ToastContainer,
+    ToastProps,
+} from 'react-bootstrap';
 import LoginForm from './LoginForm';
 import translator from '../../services/translator';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -61,6 +47,10 @@ export interface ILoginProps extends ILoginRouterProps, IStoreProps {
 }
 
 interface ILoginState {
+    alertHeading: string;
+    alertMessage: string;
+    alertVariation: ToastProps['bg'];
+    alertIsVisible: boolean;
     inputs: any;
 }
 
@@ -97,7 +87,13 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     constructor(props: ILoginProps) {
         super(props);
 
+        const { location } = props;
+
         this.state = {
+            alertHeading: 'Success!',
+            alertMessage: (location.state as any)?.successMessage || '',
+            alertVariation: 'success',
+            alertIsVisible: location.state && (location.state as any).successMessage,
             inputs: {},
         };
 
@@ -108,11 +104,31 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         document.title = `Therr for Business | ${this.translate('pages.login.pageTitle')}`;
     }
 
+    toggleAlert = (show?: boolean, alertHeading = 'Success!', alertVariation: ToastProps['bg'] = 'success', alertMessage = '') => {
+        const alertIsVisible = show !== undefined ? show : !this.state.alertIsVisible;
+        if (!alertIsVisible) {
+            this.setState({
+                alertIsVisible,
+            });
+        } else {
+            this.setState({
+                alertIsVisible,
+                alertHeading,
+                alertVariation,
+                alertMessage: alertMessage || this.state.alertMessage,
+            });
+        }
+    };
+
     login = (credentials: any) => this.props.login(credentials);
 
     public render(): JSX.Element | null {
-        const { location } = this.props;
-        const alertSuccessMessage = location.state && (location.state as any).successMessage;
+        const {
+            alertHeading,
+            alertMessage,
+            alertIsVisible,
+            alertVariation,
+        } = this.state;
 
         return (
             <div id="page_login" className="flex-box center space-evenly row">
@@ -132,7 +148,8 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                                         </div>
                                         <LoginForm
                                             login={this.login}
-                                            alert={alertSuccessMessage}
+                                            alert={alertMessage}
+                                            toggleAlert={this.toggleAlert}
                                         />
 
                                         {/* <div className='mt-3 mb-4 text-center'>
@@ -149,20 +166,31 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                                                 <FontAwesomeIcon icon={faGithub} />
                                             </Button>
                                         </div> */}
-                                        {/* <div className='d-flex justify-content-center align-items-center mt-4'>
+                                        <div className='d-flex justify-content-center align-items-center mt-4'>
                                             <span className='fw-normal'>
-                                                Not registered?
-                                                <Card.Link as={Link} to={'/'} className='fw-bold'>
+                                                {/* eslint-disable-next-line no-trailing-spaces */}
+                                                Not registered? 
+                                                <Card.Link as={Link} to={'/register'} className='fw-bold' style={{ paddingLeft: '.5rem' }}>
                                                     {'Create account'}
                                                 </Card.Link>
                                             </span>
-                                        </div> */}
+                                        </div>
                                     </div>
                                 </Col>
                             </Row>
                         </Container>
                     </section>
                 </main>
+                <ToastContainer className="p-3" position={'bottom-end'}>
+                    <Toast bg={alertVariation} show={alertIsVisible && !!alertMessage} onClose={() => this.toggleAlert(false)}>
+                        <Toast.Header>
+                            <img src="holder.js/20x20?text=%20" className="rounded me-2" alt="" />
+                            <strong className="me-auto">{alertHeading}</strong>
+                            {/* <small>11 mins ago</small> */}
+                        </Toast.Header>
+                        <Toast.Body>{alertMessage}</Toast.Body>
+                    </Toast>
+                </ToastContainer>
             </div>
         );
     }

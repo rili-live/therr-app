@@ -134,9 +134,9 @@ const Sidebar = (props: any = {}) => {
                                     <Image src={currentUserImageUri || ProfilePicture} className="card-img-top rounded-circle border-white" />
                                 </div>
                                 <div className="d-block">
-                                    <h6>Hi, Jane</h6>
+                                    <h6>Hi, {user?.details?.userName}</h6>
                                     <Button as={Link} variant="secondary" size="sm" to={'/'} className="text-dark">
-                                        <FontAwesomeIcon icon={faSignOutAlt} className="me-2" /> Sign Out
+                                        <FontAwesomeIcon icon={faSignOutAlt} className="me-2" /> Logout
                                     </Button>
                                 </div>
                             </div>
@@ -145,8 +145,8 @@ const Sidebar = (props: any = {}) => {
                             </Nav.Link>
                         </div>
                         <Nav className="flex-column pt-3 pt-md-0">
-                            <NavItem title="My Dashboard" link={'/'} icon={faHome} />
-                            <NavItem title="My Spaces" link={'/'} icon={faMapMarked} />
+                            <NavItem title="My Dashboard" link={'/dashboard'} icon={faHome} />
+                            <NavItem title="Claim a Space" link={'/claim-a-space'} icon={faMapMarked} />
                             <NavItem title="My Campaigns" icon={faBullhorn} link={'/'} />
 
                             {/* <CollapsableNavItem eventKey="tables/" title="Tables" icon={faTable}>
@@ -187,7 +187,7 @@ const Sidebar = (props: any = {}) => {
 
                             <Dropdown.Divider className="my-3 border-indigo" />
 
-                            <NavItem title="Settings" icon={faCog} link={'/'} />
+                            <NavItem title="Settings" icon={faCog} link={'/settings'} />
                             <CollapsableNavItem eventKey="documentation/" title="Getting Started" icon={faBook}>
                                 <NavItem title="Overview" link={'/'} />
                                 <NavItem title="Quick Start" link={'/'} />

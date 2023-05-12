@@ -7,6 +7,7 @@ class VerificationCodesService {
         url: '/users-service/users/forgot-password',
         data: {
             email,
+            isDashboardRegistration: true,
         },
     });
 
@@ -16,6 +17,7 @@ class VerificationCodesService {
         data: {
             email,
             type: 'email',
+            isDashboardRegistration: true,
         },
     });
 
