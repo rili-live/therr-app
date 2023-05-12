@@ -11,10 +11,15 @@ export interface ISendNewUserAdminNotificationEmailConfig {
 
 export interface ITemplateParams {
     name: string;
-    inviterEmail?: string
+    inviterEmail?: string;
 }
 
-export default (emailParams: ISendNewUserAdminNotificationEmailConfig, templateParams: ITemplateParams) => {
+export interface IAccountTypeParams {
+    isBusinessAccount: boolean | undefined;
+    isDashboardRegistration: boolean | undefined;
+}
+
+export default (emailParams: ISendNewUserAdminNotificationEmailConfig, templateParams: ITemplateParams, accountTypeParams: IAccountTypeParams) => {
     const otherEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',');
     const template = Handlebars.compile(templateString);
     const dearUser = templateParams.inviterEmail
@@ -23,7 +28,7 @@ export default (emailParams: ISendNewUserAdminNotificationEmailConfig, templateP
     const htmlConfig = {
         header: 'Therr App: New User Registration 🎉',
         dearUser,
-        body1: 'A new user signed up for the app 🎉',
+        body1: `A new user signed up for the app 🎉 (${JSON.stringify(accountTypeParams)})`,
     };
     const html = template(htmlConfig);
 
