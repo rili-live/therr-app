@@ -57,6 +57,7 @@ const requestRewardsExchange = (req, res) => {
                     tracer: beeline,
                     traceArgs: {
                         amount: req.body.amount || user.settingsTherrCoinTotal,
+                        provider: req.body.provider,
                         exchangeRate,
                         userId,
                     },
@@ -68,6 +69,7 @@ const requestRewardsExchange = (req, res) => {
                 }, {
                     amount: req.body.amount || user.settingsTherrCoinTotal,
                     exchangeRate,
+                    provider: req.body.provider || 'amazon',
                     userId: req.headers['x-userid'],
                     userName: user.userName,
                     userEmail: user.email,
