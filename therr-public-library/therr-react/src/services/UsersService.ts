@@ -197,11 +197,12 @@ class UsersService {
         url: '/users-service/users/achievements',
     });
 
-    requestRewardsExchange = (amount: number) => axios({
+    requestRewardsExchange = (amount: number, provider: string) => axios({
         method: 'post',
         url: '/users-service/rewards',
         data: {
             amount,
+            provider,
         },
     });
 
