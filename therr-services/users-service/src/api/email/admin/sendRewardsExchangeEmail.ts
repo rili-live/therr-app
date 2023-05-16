@@ -11,7 +11,8 @@ export interface ISendRewardsExchangeEmailConfig {
 }
 
 export interface ITemplateParams {
-    amount: number,
+    amount: number;
+    provider: string;
     email: string;
     userId: string;
     userName: string;
@@ -24,7 +25,7 @@ export default (emailParams: ISendRewardsExchangeEmailConfig, templateParams: an
     const htmlConfig = {
         header: 'Therr App: Rewards Exchange Request',
         dearUser: 'Hello admin,',
-        body1: `UserName, ${templateParams.userName}, requested to exchange ${templateParams.amount} coins at rate of $${templateParams.exchangeRate}.`,
+        body1: `UserName, ${templateParams.userName}, requested to exchange ${templateParams.amount} coins at rate of $${templateParams.exchangeRate} from ${templateParams.provider}.`,
         body2: `User Email: ${templateParams.userEmail}`,
         bodyBold: `UserId: ${templateParams.userId}`,
     };
