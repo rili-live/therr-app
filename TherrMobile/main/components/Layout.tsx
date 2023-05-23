@@ -45,6 +45,7 @@ import HeaderTherrLogo from './HeaderTherrLogo';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
 import { AndroidChannelIds, PressActionIds, getAndroidChannel } from '../constants';
+import { socketIO } from '../socket-io-middleware';
 
 const Stack = createStackNavigator();
 
@@ -587,6 +588,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const { logout } = this.props;
 
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
+        socketIO.disconnect();
+
         return logout(userDetails);
     };
 

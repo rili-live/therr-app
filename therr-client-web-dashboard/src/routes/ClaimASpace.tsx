@@ -25,8 +25,11 @@ import {
     Button,
     Dropdown,
     ButtonGroup,
-} from '@themesberg/react-bootstrap';
+    Toast,
+    ToastContainer,
+} from 'react-bootstrap';
 import { MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { MapsService } from 'therr-react/services';
 import { IMapState as IMapReduxState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 import translator from '../services/translator';
@@ -138,6 +141,23 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
 
     onAddressTypeaheadSelect = (selected: Option[]) => {
         const result: any = selected[0];
+        console.log(result);
+
+        MapsService.getPlaceDetails({
+            placeId: result.place_id,
+        }).then(({ data }) => {
+            console.log(data?.result?.geometry?.location?.lat);
+            console.log(data?.result?.geometry?.location?.lng);
+            this.setState({
+                inputs: {
+                    ...this.state.inputs,
+                    latitude: data?.result?.geometry?.location?.lat,
+                    longitude: data?.result?.geometry?.location?.lng,
+                },
+            });
+        }).catch((err) => {
+            console.log(err);
+        });
 
         this.setState({
             inputs: {
@@ -164,8 +184,22 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
 
     onSubmitSpaceClaim = (event: React.MouseEvent<HTMLInputElement>) => {
         event.preventDefault();
-        const { spaceTitle, spaceDescription } = this.state.inputs;
-        console.log(this.state.inputs);
+        const { map } = this.props;
+        const {
+            address, latitude, longitude, spaceTitle, spaceDescription,
+        } = this.state.inputs;
+
+        MapsService.requestClaim({
+            title: spaceTitle,
+            description: spaceDescription,
+            address,
+            latitude,
+            longitude,
+        }).then((response) => {
+            console.log(response);
+        }).catch((error) => {
+            console.log(error);
+        });
     };
 
     public render(): JSX.Element | null {
@@ -230,6 +264,16 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
                         </Row>
                     </Col> */}
                 </Row>
+                {/* <ToastContainer className="p-3" position={'bottom-end'}>
+                    <Toast bg={alertVariation} show={alertIsVisible && !!alertMessage} onClose={() => this.toggleAlert(false)}>
+                        <Toast.Header>
+                            <img src="holder.js/20x20?text=%20" className="rounded me-2" alt="" />
+                            <strong className="me-auto">{alertHeading}</strong>
+                            <small>1 mins ago</small>
+                        </Toast.Header>
+                        <Toast.Body>{alertMessage}</Toast.Body>
+                    </Toast>
+                </ToastContainer> */}
             </div>
         );
     }

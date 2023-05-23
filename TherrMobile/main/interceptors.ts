@@ -4,6 +4,7 @@ import { CommonActions } from '@react-navigation/native';
 // import { LoaderActions } from './library/loader';
 import getConfig from './utilities/getConfig';
 import UsersActions from './redux/actions/UsersActions';
+import { socketIO } from './socket-io-middleware';
 
 const MAX_LOGOUT_ATTEMPTS = 3;
 
@@ -103,6 +104,7 @@ const initInterceptors = (
                     Number(error.statusCode) === 401 ||
                     Number(error.statusCode) === 403
                 ) {
+                    socketIO.disconnect();
                     // store.dispatch(UsersActions.setRedirect(window.location.pathname));
                     // TODO: This is so BAD. Find a better way, but for now it prevents an infinite loop and ensures that the user idToken is reset
                     if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {

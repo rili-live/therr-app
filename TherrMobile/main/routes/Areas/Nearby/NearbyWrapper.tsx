@@ -1,13 +1,13 @@
 import React from 'react';
-import { Keyboard, PermissionsAndroid, Platform, Text, View } from 'react-native';
-import { Slider } from 'react-native-elements';
+import { PermissionsAndroid, Platform, Text, View } from 'react-native';
+// import { Slider } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { PushNotificationsService } from 'therr-react/services';
-import { Location } from 'therr-js-utilities/constants';
+// import { Location } from 'therr-js-utilities/constants';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Geolocation from 'react-native-geolocation-service';
 import { buildStyles } from '../../../styles';
@@ -522,10 +522,10 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
 
     renderHeader = () => {
-        const { radiusOfAwareness, radiusOfInfluence } = this.props.map;
+        // const { radiusOfAwareness, radiusOfInfluence } = this.props.map;
 
-        const radiusOfAwarenessMiles = Math.round(radiusOfAwareness * 0.000621371 * 100) / 100;
-        const radiusOfInfluenceMiles = Math.round(radiusOfInfluence * 0.000621371 * 100) / 100;
+        // const radiusOfAwarenessMiles = Math.round(radiusOfAwareness * 0.000621371 * 100) / 100;
+        // const radiusOfInfluenceMiles = Math.round(radiusOfInfluence * 0.000621371 * 100) / 100;
 
 
         return (
@@ -535,7 +535,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                         {this.translate('components.nearbyBottomSheet.title')}
                     </Text>
                 </View>
-                <View style={[this.themeMoments.styles.areaCarouselHeaderSliders, { backgroundColor: this.theme.colors.backgroundWhite }]}>
+                {/* <View style={[this.themeMoments.styles.areaCarouselHeaderSliders, { backgroundColor: this.theme.colors.backgroundWhite }]}>
                     <View style={this.themeForms.styles.inputSliderContainerTight}>
                         <Text style={this.themeForms.styles.inputLabelDark}>
                             {`${this.translate('forms.nearbyForm.labels.radiusOfAwareness', { miles: radiusOfAwarenessMiles })}`}
@@ -572,7 +572,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                             onSlidingComplete={(value) => this.onSliderInfluenceChange(value)}
                         />
                     </View>
-                </View>
+                </View> */}
             </>
         );
     };
