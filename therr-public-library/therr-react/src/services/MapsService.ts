@@ -20,6 +20,7 @@ interface IGetSpaceMetricsArgs {
     startDate: string;
     endDate: string;
 }
+
 interface ICreateAreaBody {
     category?: string;
     expiresAt?: any;
@@ -66,7 +67,6 @@ export interface IPlacesAutoCompleteArgs {
 }
 
 export interface IPlaceDetailsArgs {
-    apiKey: string;
     placeId: string;
     sessiontoken?: string;
 }
@@ -169,6 +169,17 @@ class MapsService {
 
     deleteSpaces = (data: IDeleteAreasBody) => this.deleteAreas('spaces', data);
 
+    // Dashboard
+    requestClaim = (args: any) => {
+        const url = '/maps-service/spaces/request-claim';
+
+        return axios({
+            method: 'post',
+            url,
+            data: args,
+        });
+    };
+
     // Map Metrics
     getSpaceMetrics = (spaceId: string, args: IGetSpaceMetricsArgs) => {
         const url = `/maps-service/space-metrics/${spaceId}?startDate=${args.startDate}&endDate=${args.endDate}`;
@@ -228,7 +239,6 @@ class MapsService {
     };
 
     getPlaceDetails = ({
-        apiKey,
         placeId,
         sessiontoken,
     }: IPlaceDetailsArgs) => {
@@ -246,7 +256,6 @@ class MapsService {
     };
 
     getPlaceNearbySearch = ({
-        apiKey,
         placeId,
         sessiontoken,
     }: IPlaceDetailsArgs) => {

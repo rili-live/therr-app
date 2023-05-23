@@ -566,6 +566,16 @@
         "bio": "Your bio...",
         "businessAccount": "Business",
         "personalAccount": "Personal"
+      },
+      "giftCardProviders": {
+        "unselected": "Select a gift card...",
+        "amazon": "Amazon",
+        "lyft": "Lyft",
+        "doorDash": "DoorDash",
+        "uberEats": "Uber Eats",
+        "chewy": "Chewy",
+        "starbucks": "Starbucks",
+        "grubHub": "GrubHub"
       }
     },
     "socialSync": {
@@ -831,7 +841,7 @@
       "info": {
         "earlyAccess": "Claim coins from local business offers and app achievements.",
         "stepOne": "Complete achievements and local activities to earn coins.",
-        "stepTwo": "After you have at least $5 in coins, you are eligible to exchange.",
+        "stepTwo": "After you have at least ${minimum} in coins, you are eligible to exchange.",
         "stepThree": "Click 'Exchange Now' below and you will receive an eGift Card to your account e-mail within 24-72 hours.",
         "stepFour": "More reward options coming soon!"
       },

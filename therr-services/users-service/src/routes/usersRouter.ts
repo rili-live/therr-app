@@ -17,6 +17,7 @@ import {
     createOneTimePassword,
     verifyUserAccount,
     resendVerification,
+    requestSpace,
 } from '../handlers/users';
 
 const router = express.Router();
@@ -47,5 +48,6 @@ router.delete('/:id', deleteUser);
 router.post('/forgot-password', createOneTimePassword);
 router.post('/verify/resend', resendVerification);
 router.post('/verify/:token', verifyUserAccount);
+router.post('/request-space', requestSpace);
 
 export default router;
