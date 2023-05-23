@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import restRequest from '../utilities/restRequest';
-import isBlacklisted from '../utilities/isBlacklisted';
+import isBlacklisted, { isBlacklistedEmail } from '../utilities/isBlacklisted';
 
 interface IHandleServiceRequestArgs {
     basePath: string;
@@ -36,6 +36,15 @@ const handleServiceRequest = ({
     // TODO: RAUTO-27: Remove this
     if (req.headers.authorization) {
         config.headers.authorization = req.headers.authorization;
+    }
+
+    if (isBlacklistedEmail(req?.body?.email || req?.body?.userName)) {
+        return handleHttpError({
+            err: new Error('E-mail address is blacklisted'),
+            res,
+            message: 'Invalid request. Please try again later.',
+            statusCode: 400,
+        });
     }
 
     if (isBlacklisted(req.ip)) {
