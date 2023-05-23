@@ -63,6 +63,11 @@ interface IClaimASpaceProps extends IClaimASpaceRouterProps, IStoreProps {
 }
 
 interface IClaimASpaceState {
+    alertIsVisible: boolean;
+    alertVariation: string;
+    alertTitle: string;
+    alertMessage: string;
+    isSubmitting: boolean;
     inputs: {
         [key: string]: any;
     };
@@ -92,6 +97,11 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
         super(props);
 
         this.state = {
+            alertIsVisible: false,
+            alertVariation: 'success',
+            alertTitle: '',
+            alertMessage: '',
+            isSubmitting: false,
             inputs: {
                 spaceTitle: '',
                 spaceDescription: '',
@@ -116,7 +126,10 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
 
     isSubmitDisabled = () => {
-        const { inputs } = this.state;
+        const { inputs, isSubmitting } = this.state;
+        if (isSubmitting) {
+            return true;
+        }
         if (inputs.address) {
             return false;
         }
@@ -146,8 +159,6 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
         MapsService.getPlaceDetails({
             placeId: result.place_id,
         }).then(({ data }) => {
-            console.log(data?.result?.geometry?.location?.lat);
-            console.log(data?.result?.geometry?.location?.lng);
             this.setState({
                 inputs: {
                     ...this.state.inputs,
@@ -189,21 +200,55 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
             address, latitude, longitude, spaceTitle, spaceDescription,
         } = this.state.inputs;
 
+        this.setState({
+            isSubmitting: true,
+        });
+
         MapsService.requestClaim({
             title: spaceTitle,
             description: spaceDescription,
             address,
             latitude,
             longitude,
-        }).then((response) => {
-            console.log(response);
+        }).then(() => {
+            this.setState({
+                alertTitle: 'Request Sent',
+                alertMessage: 'Success! Please allow 24-72 hours as we review your request.',
+                alertVariation: 'success',
+            });
+            this.toggleAlert(true);
         }).catch((error) => {
-            console.log(error);
+            this.onSubmitError('Unknown Error', 'Failed to process your request. Please try again.');
+        }).finally(() => {
+            this.setState({
+                isSubmitting: false,
+            });
+        });
+    };
+
+    onSubmitError = (errTitle: string, errMsg: string) => {
+        this.setState({
+            alertTitle: errTitle,
+            alertMessage: errMsg,
+            alertVariation: 'danger',
+        });
+        this.toggleAlert(true);
+    };
+
+    toggleAlert = (show?: boolean) => {
+        this.setState({
+            alertIsVisible: show !== undefined ? show : !this.state.alertIsVisible,
         });
     };
 
     public render(): JSX.Element | null {
-        const { inputs } = this.state;
+        const {
+            alertIsVisible,
+            alertVariation,
+            alertTitle,
+            alertMessage,
+            inputs,
+        } = this.state;
         const { map, user } = this.props;
 
         return (
@@ -264,16 +309,16 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
                         </Row>
                     </Col> */}
                 </Row>
-                {/* <ToastContainer className="p-3" position={'bottom-end'}>
+                <ToastContainer className="p-3" position={'bottom-end'}>
                     <Toast bg={alertVariation} show={alertIsVisible && !!alertMessage} onClose={() => this.toggleAlert(false)}>
                         <Toast.Header>
                             <img src="holder.js/20x20?text=%20" className="rounded me-2" alt="" />
-                            <strong className="me-auto">{alertHeading}</strong>
-                            <small>1 mins ago</small>
+                            <strong className="me-auto">{alertTitle}</strong>
+                            {/* <small>1 mins ago</small> */}
                         </Toast.Header>
                         <Toast.Body>{alertMessage}</Toast.Body>
                     </Toast>
-                </ToastContainer> */}
+                </ToastContainer>
             </div>
         );
     }
