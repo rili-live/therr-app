@@ -11,6 +11,7 @@ import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
+import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequestEmail';
 import { createUserHelper, getUserHelper, isUserProfileIncomplete } from './helpers/user';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
@@ -691,7 +692,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
     let userVerificationCodes;
 
-    Store.users.getUsers({
+    return Store.users.getUsers({
         email: normalizeEmail(req.body.email),
     })
         .then((users) => {
@@ -749,6 +750,48 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
         });
 };
 
+const requestSpace: RequestHandler = (req: any, res: any) => {
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const userId = req.headers['x-userid'];
+    // TODO: Supply user agent to determine if web or mobile
+    const {
+        address,
+        longitude,
+        latitude,
+        title,
+        description,
+    } = req.body;
+
+    return Store.users.getUserById(userId)
+        .then((users) => {
+            if (!users.length) {
+                return handleHttpError({
+                    res,
+                    message: 'User not found',
+                    statusCode: 404,
+                });
+            }
+
+            return sendSpaceClaimRequestEmail({
+                subject: '[Urgent Request] User Claimed a Space',
+                toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+            }, {
+                address,
+                longitude,
+                latitude,
+                title,
+                description,
+                userId,
+            });
+        })
+        .then(() => res.status(200).send({ message: 'Request sent to admin' }))
+        .catch((err) => handleHttpError({
+            err,
+            res,
+            message: 'SQL:USER_ROUTES:ERROR',
+        }));
+};
+
 export {
     createUser,
     getMe,
@@ -767,4 +810,5 @@ export {
     createOneTimePassword,
     verifyUserAccount,
     resendVerification,
+    requestSpace,
 };

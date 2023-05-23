@@ -321,6 +321,39 @@ const searchMySpaces: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
+const requestSpace: RequestHandler = async (req: any, res: any) => {
+    const authorization = req.headers.authorization;
+    const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+
+    const {
+        address,
+        longitude,
+        latitude,
+        title,
+        description,
+    } = req.body;
+
+    return axios({ // Create companion reaction for user's own moment
+        method: 'post',
+        url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/request-space`,
+        headers: {
+            authorization,
+            'x-localecode': locale,
+            'x-userid': userId,
+        },
+        data: {
+            address,
+            longitude,
+            latitude,
+            title,
+            description,
+        },
+    })
+        .then(({ data }) => res.status(200).send(data))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+};
+
 // NOTE: This should remain a non-public endpoint
 const findSpaces: RequestHandler = async (req: any, res: any) => {
     // const userId = req.headers['x-userid'];
@@ -401,6 +434,7 @@ export {
     getSpaceDetails,
     searchSpaces,
     searchMySpaces,
+    requestSpace,
     findSpaces,
     getSignedUrlPrivateBucket,
     getSignedUrlPublicBucket,

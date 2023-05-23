@@ -21,6 +21,7 @@ import {
     getSpaceDetailsValidation,
 
 } from './validation/spaces';
+import { requestSpaceClaimValidation } from './validation/dashboard';
 
 const mapsServiceRouter = express.Router();
 
@@ -126,6 +127,12 @@ mapsServiceRouter.delete('/spaces', deleteAreasValidation, validate, handleServi
 mapsServiceRouter.get('/space-metrics/:spaceId', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'get',
+}));
+
+// Dashboard
+mapsServiceRouter.post('/spaces/request-claim', requestSpaceClaimValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
 }));
 
 // TODO: Add rate limiter?

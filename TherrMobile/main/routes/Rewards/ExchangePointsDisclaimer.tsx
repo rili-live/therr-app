@@ -8,6 +8,7 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import { UsersService } from 'therr-react/services';
 import { IUserState } from 'therr-react/types';
 import Toast from 'react-native-toast-message';
+import { Picker as ReactPicker } from '@react-native-picker/picker';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -18,6 +19,7 @@ import { buildStyles as buildFormStyles } from '../../styles/forms';
 import spacingStyles from '../../styles/layouts/spacing';
 import BaseStatusBar from '../../components/BaseStatusBar';
 
+const DOLLAR_MINIMUM = 10;
 
 interface IExchangePointsDisclaimerDispatchProps {
     getMe: Function;
@@ -35,6 +37,7 @@ export interface IExchangePointsDisclaimerProps extends IStoreProps {
 
 interface IExchangePointsDisclaimerState {
     exchangeRate?: number;
+    inputs: any;
     isSubmitting: boolean;
 }
 
@@ -59,6 +62,9 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
 
         this.state = {
             isSubmitting: false,
+            inputs: {
+                giftCardProvider: '',
+            },
         };
 
         this.translate = (key: string, params: any) =>
@@ -87,18 +93,19 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
         const dollar = this.getDollarTotal();
 
         // Minimum of $10 exchange
-        return isSubmitting || dollar < 10;
+        return isSubmitting || dollar < DOLLAR_MINIMUM;
     };
 
     onSubmit = () => {
+        const { inputs } = this.state;
         this.setState({
             isSubmitting: true,
         });
 
-        const cointTotal = this.sanitizeCoinTotal();
+        const coinTotal = this.sanitizeCoinTotal();
 
         // TODO: Allow user to specify an amount
-        UsersService.requestRewardsExchange(cointTotal).then(() => {
+        UsersService.requestRewardsExchange(coinTotal, inputs.giftCardProvider).then(() => {
             Toast.show({
                 type: 'successBig',
                 text1: this.translate('pages.exchangePointsDisclaimer.alertTitles.requestSent'),
@@ -133,8 +140,23 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
         return rounded;
     };
 
+    onInputChange = (name: string, value: string) => {
+        const { inputs } = this.state;
+        const newInputChanges = {
+            [name]: value,
+        };
+
+        this.setState({
+            inputs: {
+                ...inputs,
+                ...newInputChanges,
+            },
+            isSubmitting: false,
+        });
+    };
+
     render() {
-        const { exchangeRate } = this.state;
+        const { exchangeRate, inputs } = this.state;
         const { navigation, user } = this.props;
         const pageHeader = this.translate('pages.exchangePointsDisclaimer.pageHeader');
         const pageHeaderYourWallet = this.translate('pages.exchangePointsDisclaimer.pageHeaderYourWallet');
@@ -159,6 +181,35 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                     {this.translate('pages.exchangePointsDisclaimer.info.earlyAccess')}
                                 </Text>
                             </View>
+                            <ReactPicker
+                                selectedValue={inputs.giftCardProvider}
+                                style={this.themeForms.styles.picker}
+                                itemStyle={this.themeForms.styles.pickerItem}
+                                onValueChange={(itemValue) =>
+                                    this.onInputChange('giftCardProvider', itemValue)
+                                }>
+                                <ReactPicker.Item label={this.translate(
+                                    'forms.settings.giftCardProviders.unselected'
+                                )} value={''} />
+                                <ReactPicker.Item label={this.translate(
+                                    'forms.settings.giftCardProviders.amazon'
+                                )} value={'Amazon'} />
+                                <ReactPicker.Item label={this.translate(
+                                    'forms.settings.giftCardProviders.chewy'
+                                )} value={'Chewy'} />
+                                <ReactPicker.Item label={this.translate(
+                                    'forms.settings.giftCardProviders.doorDash'
+                                )} value={'Door Dash'} />
+                                <ReactPicker.Item label={this.translate(
+                                    'forms.settings.giftCardProviders.grubHub'
+                                )} value={'Grub Hub'} />
+                                <ReactPicker.Item label={this.translate(
+                                    'forms.settings.giftCardProviders.starbucks'
+                                )} value={'Starbucks'} />
+                                <ReactPicker.Item label={this.translate(
+                                    'forms.settings.giftCardProviders.uberEats'
+                                )} value={'Uber Eats'} />
+                            </ReactPicker>
                             {
                                 exchangeRate &&
                                     <View style={this.theme.styles.sectionContainer}>
@@ -213,7 +264,9 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                         />
                                     </View>
                                     <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
-                                        {this.translate('pages.exchangePointsDisclaimer.info.stepTwo')}
+                                        {this.translate('pages.exchangePointsDisclaimer.info.stepTwo', {
+                                            minimum: DOLLAR_MINIMUM,
+                                        })}
                                     </Text>
                                 </View>
                                 <View style={{ display: 'flex', flexDirection: 'row' }}>
