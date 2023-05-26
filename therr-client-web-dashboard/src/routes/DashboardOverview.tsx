@@ -44,35 +44,8 @@ import withNavigation from '../wrappers/withNavigation';
 //     totalOrders,
 // } from '../data/charts';
 import { SpaceMetricsDisplay } from '../components/widgets/SpaceMetricsDisplay';
-
-interface ISpace {
-    id: string;
-    fromUserId: string;
-    locale: string;
-    isPublic: true,
-    message: string;
-    notificationMsg: string;
-    mediaIds: string;
-    mentionsIds: string;
-    hashTags: string;
-    maxViews: number;
-    latitude: number;
-    longitude: number;
-    radius: number;
-    maxProximity: number;
-    isMatureContent: boolean;
-    isModeratorApproved: boolean;
-    isForSale: boolean;
-    isHirable: boolean;
-    isPromotional: boolean;
-    isExclusiveToGroups: boolean;
-    category: string;
-    region: string;
-    createdAt: string;
-    updatedAt: string;
-    geom: string;
-    areaType: string;
-}
+import ManageSpacesMenu from '../components/ManageSpacesMenu';
+import { ISpace } from '../types';
 
 const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
     // TODO: Update this to support more than 1 month time span
@@ -171,7 +144,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.dashboardOverview.pageTitle')} | ${user.details.userName}`;
+        document.title = `Therr for Business | ${this.translate('pages.dashboardOverview.pageTitle')}`;
         if (!userConnections.connections.length) {
             this.props.searchUserConnections({
                 filterBy: 'acceptingUserId',
@@ -293,28 +266,10 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
         return (
             <div id="page_dashboard_overview" className="flex-box column">
                 <div className="d-flex justify-content-around justify-content-md-between flex-wrap flex-md-nowrap align-items-center py-4">
-                    <Dropdown className="btn-toolbar mb-2 mb-md-0">
-                        <Dropdown.Toggle as={Button} variant="primary" size="sm" className="me-2">
-                            <FontAwesomeIcon icon={faTasks} className="me-2" />Manage Spaces
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu className="dashboard-dropdown dropdown-menu-left mt-2">
-                            <Dropdown.Item className="fw-bold" onClick={this.navigateHandler('/claim-a-space')}>
-                                <FontAwesomeIcon icon={faPlus} className="me-2" /> Claim a Space
-                            </Dropdown.Item>
-                            {/* <Dropdown.Item className="fw-bold" onClick={this.onClaimSpaceClick}>
-                                <FontAwesomeIcon icon={faPencilRuler} className="me-2" /> Edit Spaces
-                            </Dropdown.Item> */}
-                            <Dropdown.Item className="fw-bold" onClick={this.navigateHandler('/claim-a-space')}>
-                                <FontAwesomeIcon icon={faUserShield} className="me-2" /> Manage Access
-                            </Dropdown.Item>
-
-                            <Dropdown.Divider />
-
-                            <Dropdown.Item className="fw-bold">
-                                <FontAwesomeIcon icon={faRocket} className="text-danger me-2" /> Upgrade to Pro
-                            </Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown>
+                    <ManageSpacesMenu
+                        className="mb-2 mb-md-0"
+                        navigateHandler={this.navigateHandler}
+                    />
 
                     <ButtonGroup className="mb-2 mb-md-0">
                         {

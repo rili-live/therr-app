@@ -191,7 +191,7 @@ const Sidebar = (props: any = {}) => {
                             <CollapsableNavItem eventKey="documentation/" title="Getting Started" icon={faBook}>
                                 <NavItem title="Overview" link={'/'} />
                                 <NavItem title="Quick Start" link={'/'} />
-                                <NavItem title="Claim a Space" link={'/'} />
+                                <NavItem title="Claim a Space" link={'/claim-a-space'} />
                             </CollapsableNavItem>
                             {/* <CollapsableNavItem eventKey="components/" title="Components" icon={faBoxOpen}>
                                 <NavItem title="Accordion" link={'/'} />

@@ -123,6 +123,9 @@
       "pageTitle": "Change Password",
       "successMessage": "Your password has been updated!"
     },
+    "claimASpace": {
+      "pageTitle": "Claim a Space"
+    },
     "emailVerification": {
       "buttons": {
         "send": "Send E-mail"
@@ -184,6 +187,9 @@
       "pageTitle": "Login",
       "pageHeader": "Sign in to your dashboard",
       "pageSubheader": "...to view customer metrics"
+    },
+    "manageSpaces": {
+      "pageTitle": "Manage Spaces"
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"

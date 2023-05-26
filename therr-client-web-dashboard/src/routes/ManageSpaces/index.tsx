@@ -3,67 +3,52 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
 import {
-    FontAwesomeIcon,
-} from '@fortawesome/react-fontawesome';
-import {
-    faBoxOpen,
-    faCartArrowDown,
-    faChartPie,
-    faChevronDown,
-    faClipboard,
-    faCommentDots,
-    faFileAlt,
-    faPlus,
-    faRocket,
-    faStore,
-    faTasks,
-    faUserShield,
-} from '@fortawesome/free-solid-svg-icons';
-import {
     Col,
     Row,
     Button,
-    Dropdown,
     ButtonGroup,
     Toast,
     ToastContainer,
+    ToggleButtonGroup,
 } from 'react-bootstrap';
 import { MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IMapState as IMapReduxState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { Option } from 'react-bootstrap-typeahead/types/types';
-import translator from '../services/translator';
-import withNavigation from '../wrappers/withNavigation';
-import { ChoosePhotoWidget, ProfileCardWidget } from '../components/Widgets';
-import EditSpaceForm from '../components/forms/EditSpaceForm';
-import ManageSpacesMenu from '../components/ManageSpacesMenu';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import translator from '../../services/translator';
+import withNavigation from '../../wrappers/withNavigation';
+import ManageSpacesMenu from '../../components/ManageSpacesMenu';
+import SpacesListTable from './SpacesListTable';
+import { ISpace } from '../../types';
 
-const Profile3 = '/assets/img/team/profile-picture-3.jpg';
+const ItemsPerPage = 10;
 
-interface IClaimASpaceRouterProps {
+interface IManageSpacesRouterProps {
     navigation: {
         navigate: NavigateFunction;
     }
 }
 
-interface IClaimASpaceDispatchProps {
+interface IManageSpacesDispatchProps {
     searchUserConnections: Function;
     getPlacesSearchAutoComplete: Function;
     setSearchDropdownVisibility: Function;
 }
 
-interface IStoreProps extends IClaimASpaceDispatchProps {
+interface IStoreProps extends IManageSpacesDispatchProps {
     map: IMapReduxState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
 
 // Regular component props
-interface IClaimASpaceProps extends IClaimASpaceRouterProps, IStoreProps {
+interface IManageSpacesProps extends IManageSpacesRouterProps, IStoreProps {
     onInitMessaging?: Function;
 }
 
-interface IClaimASpaceState {
+interface IManageSpacesState {
     alertIsVisible: boolean;
     alertVariation: string;
     alertTitle: string;
@@ -72,6 +57,11 @@ interface IClaimASpaceState {
     inputs: {
         [key: string]: any;
     };
+    pagination: {
+        itemsPerPage: number;
+        pageNumber: number;
+    };
+    spacesInView: ISpace[]; // TODO: Move to Redux
 }
 
 const mapStateToProps = (state: any) => ({
@@ -87,14 +77,14 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 /**
- * ClaimASpace
+ * ManageSpaces
  */
-export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, IClaimASpaceState> {
+export class ManageSpacesComponent extends React.Component<IManageSpacesProps, IManageSpacesState> {
     private translate: Function;
 
     private throttleTimeoutId: any;
 
-    constructor(props: IClaimASpaceProps) {
+    constructor(props: IManageSpacesProps) {
         super(props);
 
         this.state = {
@@ -107,21 +97,43 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
                 spaceTitle: '',
                 spaceDescription: '',
             },
+            pagination: {
+                itemsPerPage: ItemsPerPage,
+                pageNumber: 1,
+            },
+            spacesInView: [],
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() {
-        const {
-            user,
-            userConnections,
-        } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.claimASpace.pageTitle')}`;
+        const { pagination } = this.state;
+        document.title = `Therr for Business | ${this.translate('pages.manageSpaces.pageTitle')}`;
+        this.fetchMySpaces(pagination.pageNumber, pagination.itemsPerPage);
     }
 
     componentWillUnmount = () => {
         clearTimeout(this.throttleTimeoutId);
+    };
+
+    fetchMySpaces = (pageNumber = 1, itemsPerPage = ItemsPerPage) => {
+        this.setState({
+            pagination: {
+                ...this.state.pagination,
+                pageNumber,
+                itemsPerPage,
+            },
+        }, () => {
+            MapsService.searchMySpaces({
+                itemsPerPage,
+                pageNumber,
+            }).then((response) => new Promise((resolve) => {
+                this.setState({
+                    spacesInView: response?.data?.results || [],
+                }, () => resolve(null));
+            }));
+        });
     };
 
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
@@ -227,6 +239,16 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
         });
     };
 
+    onPageBack = () => {
+        const { pagination } = this.state;
+        this.fetchMySpaces(pagination.pageNumber - 1, pagination.itemsPerPage);
+    };
+
+    onPageForward = () => {
+        const { pagination } = this.state;
+        this.fetchMySpaces(pagination.pageNumber + 1, pagination.itemsPerPage);
+    };
+
     onSubmitError = (errTitle: string, errMsg: string) => {
         this.setState({
             alertTitle: errTitle,
@@ -248,7 +270,8 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
             alertVariation,
             alertTitle,
             alertMessage,
-            inputs,
+            pagination,
+            spacesInView,
         } = this.state;
         const { map, user } = this.props;
 
@@ -259,38 +282,29 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
                         navigateHandler={this.navigateHandler}
                     />
 
-                    <ButtonGroup>
-                        <Button variant="outline-primary" size="sm">Share</Button>
+                    <ButtonGroup className="mb-2 mb-md-0">
+                        {
+                            pagination.pageNumber > 1
+                                && <Button onClick={this.onPageBack} variant="outline-primary" size="sm">
+                                    <FontAwesomeIcon icon={faChevronLeft} className="me-2" /> Prev. Page
+                                </Button>
+                        }
+                        {
+                            spacesInView.length === ItemsPerPage
+                                && <Button onClick={this.onPageForward} variant="outline-primary" size="sm">
+                                    Next Page <FontAwesomeIcon icon={faChevronRight} className="me-2" />
+                                </Button>
+                        }
                     </ButtonGroup>
                 </div>
 
                 <Row className="d-flex justify-content-around align-items-center py-4">
                     <Col xs={12} xl={10} xxl={8}>
-                        <h1 className="text-center">Claim Your Business Space</h1>
-                        <EditSpaceForm
-                            addressTypeAheadResults={map?.searchPredictions?.results || []}
-                            inputs={inputs}
-                            isSubmitDisabled={this.isSubmitDisabled()}
-                            onAddressTypeaheadChange={this.onAddressTypeaheadChange}
-                            onAddressTypeaheadSelect={this.onAddressTypeaheadSelect}
-                            onInputChange={this.onInputChange}
-                            onSubmit={this.onSubmitSpaceClaim}
+                        <h1 className="text-center">Manage Your Spaces</h1>
+                        <SpacesListTable
+                            spacesInView={spacesInView}
                         />
                     </Col>
-
-                    {/* <Col xs={12} xl={4}>
-                        <Row>
-                            <Col xs={12}>
-                                <ProfileCardWidget />
-                            </Col>
-                            <Col xs={12}>
-                                <ChoosePhotoWidget
-                                    title="Select profile photo"
-                                    photo={Profile3}
-                                />
-                            </Col>
-                        </Row>
-                    </Col> */}
                 </Row>
                 <ToastContainer className="p-3" position={'bottom-end'}>
                     <Toast bg={alertVariation} show={alertIsVisible && !!alertMessage} onClose={() => this.toggleAlert(false)}>
@@ -307,4 +321,4 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(ClaimASpaceComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(ManageSpacesComponent));

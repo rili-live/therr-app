@@ -79,7 +79,7 @@ export class SettingsComponent extends React.Component<ISettingsProps, ISettings
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.settings.pageTitle')} | ${user.details.userName}`;
+        document.title = `Therr for Business | ${this.translate('pages.settings.pageTitle')}`;
     }
 
     onSubmitPasswordChange = (oldPassword, newPassword) => UsersService.changePassword({
