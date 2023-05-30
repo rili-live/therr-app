@@ -8,6 +8,7 @@ export enum INavMenuContext {
 export interface ISpace {
     id: string;
     fromUserId: string;
+    addressReadable?: string;
     locale: string;
     isPublic: true,
     message: string;

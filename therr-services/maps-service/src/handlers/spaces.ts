@@ -115,6 +115,7 @@ const createSpace = async (req, res) => {
                 checkIsMediaSafeForWork(media).then((isSafeForWork) => {
                     if (!isSafeForWork) {
                         return Store.spaces.updateSpace(space.id, {
+                            fromUserId: userId,
                             isMatureContent: !isSafeForWork,
                         }).catch((err) => {
                             printLogs({
@@ -135,6 +136,7 @@ const createSpace = async (req, res) => {
             return createIncentivePromise.then(([spaceIncentive]) => {
                 if (spaceIncentive) {
                     return Store.spaces.updateSpace(space.id, {
+                        fromUserId: userId,
                         featuredIncentiveKey: spaceIncentive.incentiveKey,
                         featuredIncentiveValue: spaceIncentive.incentiveValue,
                         featuredIncentiveRewardKey: spaceIncentive.incentiveRewardKey,
@@ -433,6 +435,7 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                     checkIsMediaSafeForWork(media).then((isSafeForWork) => {
                         if (!isSafeForWork) {
                             return Store.spaces.updateSpace(space.id, {
+                                fromUserId: userId,
                                 isMatureContent: !isSafeForWork,
                             }).catch((err) => {
                                 printLogs({
@@ -532,6 +535,21 @@ const getSignedUrlPrivateBucket = (req, res) => getSignedUrl(req, res, process.e
 
 const getSignedUrlPublicBucket = (req, res) => getSignedUrl(req, res, process.env.BUCKET_PUBLIC_USER_DATA);
 
+// WRITE
+const updateSpace = (req, res) => {
+    const userId = req.headers['x-userid'];
+
+    // TODO: Check media for mature content
+    // TODO: Verify address is close to longitude/latitude
+
+    return Store.spaces.updateSpace(req.params.spaceId, {
+        ...req.body,
+        fromUserId: userId,
+    })
+        .then(([space]) => res.status(200).send(space))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+};
+
 // DELETE
 const deleteSpaces = (req, res) => {
     const userId = req.headers['x-userid'];
@@ -554,5 +572,6 @@ export {
     findSpaces,
     getSignedUrlPrivateBucket,
     getSignedUrlPublicBucket,
+    updateSpace,
     deleteSpaces,
 };

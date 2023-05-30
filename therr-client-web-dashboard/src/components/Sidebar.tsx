@@ -87,11 +87,11 @@ const Sidebar = (props: any = {}) => {
 
     const NavItem = (itemProps: any) => {
         const {
-            title, link, external, target, icon, image, badgeText, badgeBg = 'secondary', badgeColor = 'primary',
+            className, title, link, external, target, icon, image, badgeText, badgeBg = 'secondary', badgeColor = 'primary',
         } = itemProps;
         let classNames = badgeText ? 'd-flex justify-content-start align-items-center justify-content-between' : '';
         classNames = external ? `${classNames} open-external` : classNames;
-        const navItemClassName = link === pathname ? 'active' : '';
+        const navItemClassName = link === pathname ? `active ${className}` : `${className}`;
         const linkProps: any = external ? { href: link } : { as: Link, to: link };
 
         return (
@@ -174,7 +174,7 @@ const Sidebar = (props: any = {}) => {
                             <CollapsableNavItem eventKey="metrics/" title="Customer Metrics" icon={faChartBar}>
                                 <NavItem title="Overview" link={'/'} />
                                 <NavItem title="Impressions" link={'/'} icon={faChartBar} />
-                                <NavItem title="Interests" link={'/'} icon={faChartArea} />
+                                {/* <NavItem title="Interests" link={'/'} icon={faChartArea} /> */}
                                 <NavItem title="Engagement" link={'/'} icon={faChartPie} />
                             </CollapsableNavItem>
 
@@ -211,7 +211,7 @@ const Sidebar = (props: any = {}) => {
                                 <NavItem title="Toasts" link={'/'} />
                                 <NavItem title="Tooltips" link={'/'} />
                             </CollapsableNavItem> */}
-                            <NavItem external title="Therr for Business" link="https://business.therr.com" target="_blank" image={TherrForBusinessLogo} />
+                            <NavItem className="mb-6" external title="Therr for Business" link="https://business.therr.com" target="_blank" image={TherrForBusinessLogo} />
                             <Button as={Link} to={'/'} variant="secondary" className="upgrade-to-pro"><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
                         </Nav>
                     </div>
