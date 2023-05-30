@@ -332,9 +332,17 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
         latitude,
         title,
         description,
+
+        //
+        category,
+        media,
+        hashTags,
+        isPublic,
+        maxViews,
+        maxProximity,
     } = req.body;
 
-    return axios({ // Create companion reaction for user's own moment
+    return axios({
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/request-space`,
         headers: {
@@ -348,9 +356,117 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
             latitude,
             title,
             description,
+
+            //
+            category,
+            hashTags,
+            isPublic,
+            maxViews,
+            maxProximity,
         },
     })
-        .then(({ data }) => res.status(200).send(data))
+        .then(({ data }) => {
+            const isTextMature = isTextUnsafe([title, description, hashTags]);
+
+            Store.spaces.createSpace({
+                addressReadable: address,
+                category,
+                fromUserId: userId,
+                locale,
+                isPublic,
+                isMatureContent: isTextMature,
+                message: description,
+                notificationMsg: title,
+                media,
+                hashTags,
+                isClaimPending: true,
+                maxViews,
+                maxProximity,
+                longitude,
+                latitude,
+            }).then(([space]) => axios({ // Create companion reaction for user's own space
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/space-reactions/${space.id}`,
+                headers: {
+                    authorization,
+                    'x-localecode': locale,
+                    'x-userid': userId,
+                },
+                data: {
+                    userHasActivated: true,
+                },
+            }).then(({ data: reaction }) => {
+                printLogs({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Space Created'],
+                    tracer: beeline,
+                    traceArgs: {
+                        // TODO: Add a sentiment analysis score property
+                        action: 'create-space',
+                        category: space.category,
+                        radius: space.radius,
+                        isPublic: space.isPublic,
+                        isDraft: space.isDraft,
+                        logCategory: 'user-sentiment',
+                        region: space.region,
+                        hashTags: space.hashTags,
+                        hasMedia: media?.length > 0,
+                        isMatureContent: space.isMatureContent,
+                        featuredIncentiveKey: space.featuredIncentiveKey,
+                        featuredIncentiveValue: space.featuredIncentiveValue,
+                        featuredIncentiveRewardKey: space.featuredIncentiveRewardKey,
+                        featuredIncentiveRewardValue: space.featuredIncentiveRewardValue,
+                        featuredIncentiveCurrencyId: space.featuredIncentiveCurrencyId,
+                        locale,
+                        userId,
+                    },
+                });
+
+                // TODO: This technically leaves room for a gap of time where users may find
+                // explicit content before it's flag has been updated. We should solve this by
+                // marking the content pending before making it available to search
+                // This check is redundant and unnecessary if the text already marked the content as "mature"
+                // Async - fire and forget to prevent slow request
+
+                if (!isTextMature) {
+                    checkIsMediaSafeForWork(media).then((isSafeForWork) => {
+                        if (!isSafeForWork) {
+                            return Store.spaces.updateSpace(space.id, {
+                                isMatureContent: !isSafeForWork,
+                            }).catch((err) => {
+                                printLogs({
+                                    level: 'error',
+                                    messageOrigin: 'API_SERVER',
+                                    messages: ['failed to update space after sightengine check'],
+                                    tracer: beeline,
+                                    traceArgs: {
+                                        errorMessage: err?.message,
+                                        errorResponse: err?.response?.data,
+                                        userId,
+                                    },
+                                });
+                            });
+                        }
+                    });
+                }
+            })).catch((err) => {
+                printLogs({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['failed to create space after claim request'],
+                    tracer: beeline,
+                    traceArgs: {
+                        errorMessage: err?.message,
+                        errorResponse: err?.response?.data,
+                        locale,
+                        userId,
+                    },
+                });
+            });
+
+            return res.status(200).send(data);
+        })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
