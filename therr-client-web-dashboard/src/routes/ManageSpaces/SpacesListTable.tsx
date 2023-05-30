@@ -56,6 +56,7 @@ const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
         } = props;
         const {
             id,
+            addressReadable,
             notificationMsg,
             isPublic,
             message,
@@ -69,22 +70,16 @@ const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
         return (
             <tr>
                 <td className="fw-bold border-0">
-                    {notificationMsg || '-'}
-                </td>
-                {/* <td className="border-0">
-                    <ValueChange value={overallRankChange} />
-                </td> */}
-                <td className="fw-bold border-0">
-                    {category || '-'}
+                    <Link to={`/edit-space/${id}`} state={{ space }}>{notificationMsg || '-'}</Link>
                 </td>
                 <td className="fw-bold border-0">
                     {isPublic && '✓'}
                 </td>
                 <td className="fw-bold border-0">
-                    {createdAt || '-'}
+                    {category || '-'}
                 </td>
                 <td className="fw-bold border-0">
-                    {updatedAt || '-'}
+                    {addressReadable || '-'}
                 </td>
                 <td className="border-0">
                     <Card.Link href="#" className="d-flex align-items-center">
@@ -93,6 +88,12 @@ const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
                         }
                         <div><span className="h6">{region}</span></div>
                     </Card.Link>
+                </td>
+                {/* <td className="border-0">
+                    <ValueChange value={overallRankChange} />
+                </td> */}
+                <td className="fw-bold border-0">
+                    {updatedAt || '-'}
                 </td>
                 <td>
                     <Dropdown as={ButtonGroup}>
@@ -108,9 +109,9 @@ const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
                             <Dropdown.Item as={Link} to={`/edit-space/${id}`} state={{ space }}>
                                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Edit
                             </Dropdown.Item>
-                            <Dropdown.Item className="text-danger">
-                                <FontAwesomeIcon icon={faTrashAlt} className="me-2" /> Remove
-                            </Dropdown.Item>
+                            {/* <Dropdown.Item className="text-danger">
+                                <FontAwesomeIcon icon={faTrashAlt} className="me-2" /> Delete?
+                            </Dropdown.Item> */}
                         </Dropdown.Menu>
                     </Dropdown>
                 </td>
@@ -125,11 +126,11 @@ const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
                     <thead className="thead-light">
                         <tr>
                             <th className="border-0">Name</th>
-                            <th className="border-0">Category</th>
                             <th className="border-0">Is Public?</th>
-                            <th className="border-0">Created Date</th>
-                            <th className="border-0">Last Updated</th>
+                            <th className="border-0">Category</th>
+                            <th className="border-0">Address</th>
                             <th className="border-0">Country</th>
+                            <th className="border-0">Last Updated</th>
                             <th className="border-0">Actions</th>
                         </tr>
                     </thead>

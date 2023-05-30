@@ -438,6 +438,7 @@ export default class SpacesStore {
         const isTextMature = isTextUnsafe([params.notificationMsg, params.message, params.hashTags || '']);
 
         const sanitizedParams = {
+            addressReadable: params.addressReadable,
             notificationMsg: params.notificationMsg,
             message: params.message,
             category: params.category,

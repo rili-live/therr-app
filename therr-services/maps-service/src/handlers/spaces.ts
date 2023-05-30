@@ -8,6 +8,7 @@ import {
 } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import printLogs from 'therr-js-utilities/print-logs';
+import { distanceTo } from 'geolocation-utils';
 import beeline from '../beeline';
 import { storage } from '../api/aws';
 import * as globalConfig from '../../../../global-config';
@@ -17,6 +18,8 @@ import translate from '../utilities/translator';
 import Store from '../store';
 import { checkIsMediaSafeForWork } from './helpers';
 import { isTextUnsafe } from '../utilities/contentSafety';
+
+const MAX_DISTANCE_TO_ADDRESS_METERS = 2000;
 
 // CREATE
 const createSpace = async (req, res) => {
@@ -540,10 +543,21 @@ const updateSpace = (req, res) => {
     const userId = req.headers['x-userid'];
 
     // TODO: Check media for mature content
+
     // TODO: Verify address is close to longitude/latitude
+    // const canChangeAddress = req.body.addressReadable && req.body.longitude && req.body.latitude;
+    // const isNearLongLat = canChangeAddress ? distanceTo({
+    //     lon: req.body.longitude,
+    //     lat: req.body.latitude,
+    // }, {
+    //     lon: longitude,
+    //     lat: latitude,
+    // }) <= MAX_DISTANCE_TO_ADDRESS_METERS : false;
+    // const addressReadable = isNearLongLat ? req.body.addressReadable : undefined;
 
     return Store.spaces.updateSpace(req.params.spaceId, {
         ...req.body,
+        // addressReadable,
         fromUserId: userId,
     })
         .then(([space]) => res.status(200).send(space))

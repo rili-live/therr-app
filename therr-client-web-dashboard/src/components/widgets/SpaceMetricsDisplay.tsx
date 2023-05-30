@@ -88,7 +88,7 @@ export const SpaceMetricsDisplay = (props: any) => {
 
     if (isMobile) {
         return (
-            <Card className="bg-secondary-alt shadow-sm">
+            <Card className="bg-white shadow-sm">
                 <Card.Header className="d-md-flex flex-row align-items-center flex-0">
                     <div className="d-block mb-3 mb-md-0">
                         <MetricsSummary
@@ -114,7 +114,7 @@ export const SpaceMetricsDisplay = (props: any) => {
     }
 
     return (
-        <Card className="bg-secondary-alt shadow-sm">
+        <Card className="bg-white shadow-sm">
             <Card.Header className="d-flex flex-row align-items-center flex-0">
                 <div className="d-block">
                     <MetricsSummary
