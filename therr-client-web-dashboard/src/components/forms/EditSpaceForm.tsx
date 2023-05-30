@@ -1,24 +1,35 @@
 import React, { useState } from 'react';
-import moment from 'moment-timezone';
-import Datetime from 'react-datetime';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt, faSearch } from '@fortawesome/free-solid-svg-icons';
 import {
-    Col, Row, Card, Form, Button, InputGroup,
-} from '@themesberg/react-bootstrap';
+    Col, Row, Card, Form, Button,
+} from 'react-bootstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
+
+const spaceCategories = [
+    'uncategorized',
+    'menu',
+    'deals',
+    'storefront',
+    'idea',
+    'food',
+    'music',
+    'nature',
+];
 
 interface IEditSpaceFormProps {
     addressTypeAheadResults: any[],
     inputs: {
-        [key: string]: any;
+        address?: Option[];
+        category?: string;
+        spaceTitle: string;
+        spaceDescription: string;
     }
     isSubmitDisabled: boolean;
     onAddressTypeaheadChange: (text: string, event: React.ChangeEvent<HTMLInputElement>) => void,
     onAddressTypeaheadSelect: (selected: Option[]) => void;
     onInputChange: React.ChangeEventHandler<HTMLInputElement>;
     onSubmit: (event: React.MouseEvent<HTMLInputElement>) => void;
+    submitText: string;
 }
 
 const EditSpaceForm = ({
@@ -29,6 +40,7 @@ const EditSpaceForm = ({
     onAddressTypeaheadChange,
     onInputChange,
     onSubmit,
+    submitText,
 }: IEditSpaceFormProps) => {
     const [birthday, setBirthday] = useState('');
 
@@ -56,6 +68,7 @@ const EditSpaceForm = ({
                                     placeholder="Search an address..."
                                     onInputChange={onAddressTypeaheadChange}
                                     onChange={onAddressTypeaheadSelect}
+                                    selected={inputs.address}
                                 />
                             </Form.Group>
                         </Col>
@@ -73,6 +86,23 @@ const EditSpaceForm = ({
                                     type="text"
                                     placeholder="The name or title of your space/business"
                                 />
+                            </Form.Group>
+                        </Col>
+                        <Col md={6} className="mb-3">
+                            <Form.Group controlId="category">
+                                <Form.Label>Category</Form.Label>
+                                <Form.Control
+                                    value={inputs.category}
+                                    name="category"
+                                    onChange={onInputChange}
+                                    as="select"
+                                >
+                                    {
+                                        spaceCategories.map((cat, index) => (
+                                            <option key={index} value={cat}>{cat}</option>
+                                        ))
+                                    }
+                                </Form.Control>
                             </Form.Group>
                         </Col>
                     </Row>
@@ -146,7 +176,7 @@ const EditSpaceForm = ({
                             onClick={onSubmit}
                             onSubmit={onSubmit}
                             disabled={isSubmitDisabled}
-                        >Claim this Space</Button>
+                        >{submitText}</Button>
                     </div>
                 </Form>
             </Card.Body>

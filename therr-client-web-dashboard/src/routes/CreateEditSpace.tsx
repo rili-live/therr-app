@@ -19,31 +19,39 @@ import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
 import EditSpaceForm from '../components/forms/EditSpaceForm';
 import ManageSpacesMenu from '../components/ManageSpacesMenu';
+import { ISpace } from '../types';
 
-interface IClaimASpaceRouterProps {
+interface ICreateEditSpaceRouterProps {
+    location: {
+        state: {
+            space?: ISpace;
+        };
+    };
+    routeParams: any;
     navigation: {
         navigate: NavigateFunction;
     }
 }
 
-interface IClaimASpaceDispatchProps {
+interface ICreateEditSpaceDispatchProps {
     searchUserConnections: Function;
+    updateSpace: Function;
     getPlacesSearchAutoComplete: Function;
     setSearchDropdownVisibility: Function;
 }
 
-interface IStoreProps extends IClaimASpaceDispatchProps {
+interface IStoreProps extends ICreateEditSpaceDispatchProps {
     map: IMapReduxState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
 
 // Regular component props
-interface IClaimASpaceProps extends IClaimASpaceRouterProps, IStoreProps {
+interface ICreateEditSpaceProps extends ICreateEditSpaceRouterProps, IStoreProps {
     onInitMessaging?: Function;
 }
 
-interface IClaimASpaceState {
+interface ICreateEditSpaceState {
     alertIsVisible: boolean;
     alertVariation: string;
     alertTitle: string;
@@ -52,6 +60,7 @@ interface IClaimASpaceState {
     inputs: {
         [key: string]: any;
     };
+    isEditing: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -62,20 +71,23 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     searchUserConnections: UserConnectionsActions.search,
+    updateSpace: MapActions.updateSpace,
     getPlacesSearchAutoComplete: MapActions.getPlacesSearchAutoComplete,
     setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
 }, dispatch);
 
 /**
- * ClaimASpace
+ * CreateEditSpace
  */
-export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, IClaimASpaceState> {
+export class CreateEditSpaceComponent extends React.Component<ICreateEditSpaceProps, ICreateEditSpaceState> {
     private translate: Function;
 
     private throttleTimeoutId: any;
 
-    constructor(props: IClaimASpaceProps) {
+    constructor(props: ICreateEditSpaceProps) {
         super(props);
+
+        const { space } = props.location?.state || {};
 
         this.state = {
             alertIsVisible: false,
@@ -84,10 +96,16 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
             alertMessage: '',
             isSubmitting: false,
             inputs: {
-                category: 'uncategorized',
-                spaceTitle: '',
-                spaceDescription: '',
+                address: space?.addressReadable ? [
+                    {
+                        label: space?.addressReadable,
+                    },
+                ] : undefined,
+                category: space?.category || 'uncategorized',
+                spaceTitle: space?.notificationMsg || '',
+                spaceDescription: space?.message || '',
             },
+            isEditing: true,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -187,7 +205,10 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
         });
     };
 
-    onSubmitSpaceClaim = (event: React.MouseEvent<HTMLInputElement>) => {
+    onUpdateSpace = (event: React.MouseEvent<HTMLInputElement>) => {
+        const { location, navigation, updateSpace } = this.props;
+        const { space } = location?.state || {};
+
         event.preventDefault();
         const {
             address: selectedAddresses,
@@ -202,27 +223,33 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
             isSubmitting: true,
         });
 
-        MapsService.requestClaim({
-            title: spaceTitle,
-            description: spaceDescription,
-            address: selectedAddresses[0]?.description || selectedAddresses[0]?.label,
-            category,
-            latitude,
-            longitude,
-        }).then(() => {
-            this.setState({
-                alertTitle: 'Request Sent',
-                alertMessage: 'Success! Please allow 24-72 hours as we review your request.',
-                alertVariation: 'success',
+        if (space?.id) {
+            updateSpace(space.id, {
+                ...space,
+                notificationMsg: spaceTitle,
+                message: spaceDescription,
+                category,
+            }).then(() => {
+                this.setState({
+                    alertTitle: 'Successfully Updated!',
+                    alertMessage: 'This space was updated without issue.',
+                    alertVariation: 'success',
+                });
+                this.toggleAlert(true);
+                setTimeout(() => {
+                    this.setState({
+                        isSubmitting: false,
+                    });
+                    navigation.navigate('/manage-spaces');
+                }, 2000);
+            }).catch((error) => {
+                console.log(error);
+                this.onSubmitError('Unknown Error', 'Failed to process your request. Please try again later.');
+                this.setState({
+                    isSubmitting: false,
+                });
             });
-            this.toggleAlert(true);
-        }).catch((error) => {
-            this.onSubmitError('Unknown Error', 'Failed to process your request. Please try again.');
-        }).finally(() => {
-            this.setState({
-                isSubmitting: false,
-            });
-        });
+        }
     };
 
     onSubmitError = (errTitle: string, errMsg: string) => {
@@ -247,6 +274,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
             alertTitle,
             alertMessage,
             inputs,
+            isEditing,
         } = this.state;
         const { map, user } = this.props;
 
@@ -257,17 +285,23 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
                         navigateHandler={this.navigateHandler}
                     />
 
-                    {/* <ButtonGroup>
+                    <ButtonGroup>
                         <Button variant="outline-primary" size="sm">Share</Button>
-                    </ButtonGroup> */}
+                    </ButtonGroup>
                 </div>
 
                 <Row className="d-flex justify-content-around align-items-center py-4">
                     <Col xs={12} xl={10} xxl={8}>
-                        <h1 className="text-center">Claim Your Business Space</h1>
+                        {
+                            isEditing
+                                ? <h1 className="text-center">Edit Space</h1>
+                                : <h1 className="text-center">Create a Space</h1>
+                        }
                         <EditSpaceForm
                             addressTypeAheadResults={map?.searchPredictions?.results || []}
                             inputs={{
+                                address: inputs.address,
+                                category: inputs.category,
                                 spaceTitle: inputs.spaceTitle,
                                 spaceDescription: inputs.spaceDescription,
                             }}
@@ -275,8 +309,8 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeaheadSelect={this.onAddressTypeaheadSelect}
                             onInputChange={this.onInputChange}
-                            onSubmit={this.onSubmitSpaceClaim}
-                            submitText='Claim this Space'
+                            onSubmit={this.onUpdateSpace}
+                            submitText='Update Space'
                         />
                     </Col>
 
@@ -309,4 +343,4 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(ClaimASpaceComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(CreateEditSpaceComponent));

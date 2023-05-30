@@ -22,3 +22,8 @@ export const createSpaceValidation = [
     body('featuredIncentiveRewardValue').isNumeric().optional(),
     body('featuredIncentiveCurrencyId').isString().optional(),
 ];
+
+export const updateSpaceValidation = [
+    ...createAreaValidation,
+    param('spaceId'),
+];

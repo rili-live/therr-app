@@ -19,7 +19,7 @@ import {
 } from './validation/moments';
 import {
     getSpaceDetailsValidation,
-
+    updateSpaceValidation,
 } from './validation/spaces';
 import { requestSpaceClaimValidation } from './validation/dashboard';
 
@@ -91,6 +91,11 @@ mapsServiceRouter.delete('/moments', deleteAreasValidation, validate, handleServ
 mapsServiceRouter.post('/spaces', createSpaceLimiter, createAreaValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
+}));
+
+mapsServiceRouter.put('/spaces/:spaceId', updateSpaceValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'put',
 }));
 
 mapsServiceRouter.post('/spaces/:spaceId/details', getSpaceDetailsValidation, validate, handleServiceRequest({

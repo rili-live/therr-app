@@ -161,6 +161,8 @@ class MapsService {
     // Spaces
     createSpace = (data: ICreateSpaceBody) => this.createArea('spaces', data);
 
+    updateSpace = (id: string, data: ICreateAreaBody) => this.updateArea('spaces', id, data);
+
     getSpaceDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('spaces', id, args);
 
     searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('spaces', query, data);
