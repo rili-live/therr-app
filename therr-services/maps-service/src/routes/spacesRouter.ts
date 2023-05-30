@@ -8,13 +8,15 @@ import {
     findSpaces,
     getSignedUrlPublicBucket,
     getSignedUrlPrivateBucket,
+    updateSpace,
     deleteSpaces,
 } from '../handlers/spaces';
 
 const router = express.Router();
 
-// CREATE
+// WRITE
 router.post('/', createSpace);
+router.put('/:spaceId', updateSpace);
 
 // SEARCH
 router.post('/:spaceId/details', getSpaceDetails);

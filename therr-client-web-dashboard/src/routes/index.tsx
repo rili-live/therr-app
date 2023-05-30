@@ -12,6 +12,7 @@ import Settings from './Settings';
 import EmailVerification from './EmailVerification';
 import ResetPassword from './ResetPassword';
 import ManageSpaces from './ManageSpaces';
+import CreateEditSpace from './CreateEditSpace';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -52,6 +53,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/claim-a-space',
         element: <AuthRoute
             component={ClaimASpace}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
+        path: '/edit-space/:spaceId',
+        element: <AuthRoute
+            component={CreateEditSpace}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

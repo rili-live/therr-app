@@ -133,6 +133,31 @@ const Maps = {
             data: response.data,
         });
     }),
+    updateSpace: (id: string, data: any, isCompletedDraft: false) => (dispatch: any) => MapsService
+        .updateSpace(id, data).then((response: any) => {
+            if (isCompletedDraft) {
+                dispatch({
+                    type: MapActionTypes.SPACE_CREATED,
+                    data: {
+                        id: response.data.id,
+                        ...data,
+                    }, // server doesn't return changes, so use request data
+                });
+            }
+
+            // TODO: Not sure if this is necessary if transitioning from draft, but it doesn't hurt
+            dispatch({
+                type: MapActionTypes.SPACE_UPDATED,
+                data: {
+                    space: {
+                        id: response.data.id,
+                        ...data,
+                    },
+                }, // server doesn't return changes, so use request data
+            });
+
+            return response.data;
+        }),
     getSpaceDetails: (id: number, data: any) => (dispatch: any) => MapsService.getSpaceDetails(id, data)
         .then((response: any) => {
             dispatch({

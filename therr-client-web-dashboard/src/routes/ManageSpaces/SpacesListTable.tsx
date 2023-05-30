@@ -1,7 +1,12 @@
 import React from 'react';
-import { faAngleDown, faAngleUp } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
+import {
+    faAngleDown, faAngleUp, faEdit, faEllipsisH, faEye, faTrashAlt,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Card, Image, Table } from 'react-bootstrap';
+import {
+    Button, ButtonGroup, Card, Dropdown, Image, Table,
+} from 'react-bootstrap';
 import { ISpace } from '../../types';
 
 const USAFlag = '/assets/img/flags/united-states-of-america.svg';
@@ -43,8 +48,14 @@ interface ISpacesListTableProps {
 }
 
 const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
-    const TableRow = (props: ISpace) => {
+    const TableRow = (props: {
+        space: ISpace;
+    }) => {
         const {
+            space,
+        } = props;
+        const {
+            id,
             notificationMsg,
             isPublic,
             message,
@@ -52,7 +63,7 @@ const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
             region,
             createdAt,
             updatedAt,
-        } = props;
+        } = space;
         const countryImage = countryImageMap[region];
 
         return (
@@ -83,6 +94,26 @@ const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
                         <div><span className="h6">{region}</span></div>
                     </Card.Link>
                 </td>
+                <td>
+                    <Dropdown as={ButtonGroup}>
+                        <Dropdown.Toggle as={Button} split variant="link" className="text-dark m-0 p-0">
+                            <span className="icon icon-sm">
+                                <FontAwesomeIcon icon={faEllipsisH} className="icon-dark" />
+                            </span>
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            {/* <Dropdown.Item>
+                                <FontAwesomeIcon icon={faEye} className="me-2" /> View Details
+                            </Dropdown.Item> */}
+                            <Dropdown.Item as={Link} to={`/edit-space/${id}`} state={{ space }}>
+                                <FontAwesomeIcon icon={faEdit} className="me-2" /> Edit
+                            </Dropdown.Item>
+                            <Dropdown.Item className="text-danger">
+                                <FontAwesomeIcon icon={faTrashAlt} className="me-2" /> Remove
+                            </Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                </td>
             </tr>
         );
     };
@@ -99,10 +130,11 @@ const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
                             <th className="border-0">Created Date</th>
                             <th className="border-0">Last Updated</th>
                             <th className="border-0">Country</th>
+                            <th className="border-0">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {spacesInView.map((space) => <TableRow key={`space-${space.id}`} {...space} />)}
+                        {spacesInView.map((space) => <TableRow key={`space-${space.id}`} space={space} />)}
                     </tbody>
                 </Table>
             </Card.Body>

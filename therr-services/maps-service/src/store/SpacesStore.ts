@@ -435,8 +435,13 @@ export default class SpacesStore {
     }
 
     updateSpace(id: string, params: any = {}) {
+        const isTextMature = isTextUnsafe([params.notificationMsg, params.message, params.hashTags || '']);
+
         const sanitizedParams = {
-            isMatureContent: params.isMatureContent,
+            notificationMsg: params.notificationMsg,
+            message: params.message,
+            category: params.category,
+            isMatureContent: params.isMatureContent || isTextMature ? true : undefined,
             isPublic: params.isMatureContent === true ? true : undefined, // NOTE: For now make this content private to reduce public, mature content
             featuredIncentiveKey: params.featuredIncentiveKey,
             featuredIncentiveValue: params.featuredIncentiveValue,
@@ -446,8 +451,8 @@ export default class SpacesStore {
         };
         const queryString = knexBuilder.update(sanitizedParams)
             .into(SPACES_TABLE_NAME)
-            .where({ id })
-            .returning(['id'])
+            .where({ id, fromUserId: params.fromUserId }) // users can only update their own spaces
+            .returning('*')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
