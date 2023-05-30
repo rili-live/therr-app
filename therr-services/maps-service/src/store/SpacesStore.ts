@@ -16,6 +16,8 @@ export const SPACES_TABLE_NAME = 'main.spaces';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 const maxNotificationMsgLength = 100;
+const DEFAULT_RADIUS_PRIVATE = 50;
+
 export interface ICreateSpaceParams {
     addressReadable?: string;
     areaType?: string;
@@ -31,17 +33,18 @@ export interface ICreateSpaceParams {
     media?: ICreateMediaParams[];
     mentionsIds?: string;
     hashTags?: string;
+    isClaimPending?: boolean;
     maxViews?: number;
     maxProximity?: number;
     latitude: number;
     longitude: number;
     radius?: string;
     polygonCoords?: string;
-    featuredIncentiveKey: string;
-    featuredIncentiveValue: number;
-    featuredIncentiveRewardKey: string;
-    featuredIncentiveRewardValue: number;
-    featuredIncentiveCurrencyId: string;
+    featuredIncentiveKey?: string;
+    featuredIncentiveValue?: number;
+    featuredIncentiveRewardKey?: string;
+    featuredIncentiveRewardValue?: number;
+    featuredIncentiveCurrencyId?: string;
 }
 
 interface IDeleteSpacesParams {
@@ -218,6 +221,7 @@ export default class SpacesStore {
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)) // eslint-disable-line quotes, max-len
             .andWhere({
+                isClaimPending: false, // hide pending claim requests
                 isMatureContent: false, // content that has been blocked
             });
 
@@ -264,6 +268,7 @@ export default class SpacesStore {
             .from(SPACES_TABLE_NAME)
             .orderBy(orderBy, order)
             .where('createdAt', '<', filters.before || new Date())
+            .andWhere('isClaimPending', false)
             .whereIn('id', spaceIds || [])
             .limit(restrictedLimit);
 
@@ -388,6 +393,7 @@ export default class SpacesStore {
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
 
         return mediaPromise.then((mediaIds: string | undefined) => {
+            const radius = params.radius || DEFAULT_RADIUS_PRIVATE;
             const sanitizedParams = {
                 addressReadable: params.addressReadable || '',
                 areaType: params.areaType || 'spaces',
@@ -396,6 +402,7 @@ export default class SpacesStore {
                 fromUserId: params.fromUserId,
                 locale: params.locale,
                 isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
+                isClaimPending: params.isClaimPending || false,
                 isMatureContent: isTextMature || !!params.isMatureContent,
                 message: params.message,
                 notificationMsg,
@@ -406,7 +413,7 @@ export default class SpacesStore {
                 maxProximity: params.maxProximity,
                 latitude: params.latitude,
                 longitude: params.longitude,
-                radius: params.radius,
+                radius,
                 region: region.code,
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
                 featuredIncentiveKey: params.featuredIncentiveKey,
@@ -415,7 +422,7 @@ export default class SpacesStore {
                 featuredIncentiveRewardValue: params.featuredIncentiveRewardValue,
                 featuredIncentiveCurrencyId: params.featuredIncentiveCurrencyId,
                 // eslint-disable-next-line max-len
-                geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${params.radius})::geometry, 4326)`),
+                geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${radius})::geometry, 4326)`),
             };
 
             const queryString = knexBuilder.insert(sanitizedParams)
