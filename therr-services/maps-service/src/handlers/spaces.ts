@@ -557,7 +557,7 @@ const updateSpace = (req, res) => {
 
     return Store.spaces.updateSpace(req.params.spaceId, {
         ...req.body,
-        addressReadable,
+        // addressReadable,
         fromUserId: userId,
     })
         .then(([space]) => res.status(200).send(space))
