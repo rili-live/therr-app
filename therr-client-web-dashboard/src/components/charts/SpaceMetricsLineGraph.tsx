@@ -1,8 +1,8 @@
 import React from 'react';
 import Chartist from 'react-chartist';
 import ChartistTooltip from 'chartist-plugin-tooltips-updated';
-import ApexChart from 'react-apexcharts';
-import { ApexOptions } from 'apexcharts';
+// import { ApexOptions } from 'apexcharts';
+// import ApexChart from 'react-apexcharts';
 
 interface ISpaceMetricsLineGraphProps {
     isMobile: boolean,
@@ -29,7 +29,7 @@ export const SpaceMetricsLineGraph = ({
         data: d,
     }));
 
-    const mobileOptions = {
+    const chartistOptions = {
         low: 0,
         showArea: true,
         fullWidth: true,
@@ -40,12 +40,12 @@ export const SpaceMetricsLineGraph = ({
         axisY: {
             // On the y-axis start means left and end means right
             showGrid: false,
-            showLabel: true,
+            showLabel: false,
             labelInterpolationFnc: (value) => `${value}`,
         },
     };
 
-    const options: ApexOptions = {
+    const options: any = {
         colors: ['#06A77D', '#4D4AE8', '#FD8E7A'],
         chart: {
             fontFamily: 'Inter',
@@ -170,16 +170,21 @@ export const SpaceMetricsLineGraph = ({
         }
 
         return (
-            <Chartist data={sampledData} options={{ ...mobileOptions, plugins }} type="Line" className="ct-series-g ct-major-tenth" />
+            <Chartist data={sampledData} options={{ ...chartistOptions, plugins }} type="Line" className="ct-series-g ct-major-tenth" />
         );
     }
 
     return (
-        <ApexChart
-            type="area"
-            height={640}
-            series={chartSeries}
-            options={options}
-        />
+        <Chartist data={data} options={{ ...chartistOptions, plugins }} type="Line" className="ct-series-g ct-double-octave" />
     );
+
+    // Uncomment after fixing dependency compilation error
+    // return (
+    //     <ApexChart
+    //         type="area"
+    //         height={640}
+    //         series={chartSeries}
+    //         options={options}
+    //     />
+    // );
 };
