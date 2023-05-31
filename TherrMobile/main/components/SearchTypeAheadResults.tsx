@@ -18,7 +18,7 @@ const renderListItem = (item, { handleSelect, styles }) => {
             android_ripple={{}}
             onPress={(e) => {
                 e.stopPropagation();
-                handleSelect(item);
+                handleSelect(item, true);
             }}
             style={styles.itemContainer}
         >

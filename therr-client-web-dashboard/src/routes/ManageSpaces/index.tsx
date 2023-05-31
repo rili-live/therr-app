@@ -299,7 +299,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                 </div>
 
                 <Row className="d-flex justify-content-around align-items-center py-4">
-                    <Col xs={12} xl={10} xxl={8}>
+                    <Col xs={12} xl={12} xxl={10}>
                         <h1 className="text-center">Manage Your Spaces</h1>
                         <SpacesListTable
                             spacesInView={spacesInView}

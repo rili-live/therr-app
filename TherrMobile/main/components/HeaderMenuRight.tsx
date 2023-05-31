@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Image, Text } from 'react-native-elements';
 import Overlay from 'react-native-modal-overlay';
-import { CommonActions, StackActions } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
@@ -114,7 +114,6 @@ class HeaderMenuRight extends React.Component<
 
     navTo = (routeName, params = {}) => {
         const { location, navigation, updateGpsStatus } = this.props;
-        const currentScreen = this.getCurrentScreen();
 
         if (routeName === 'Map') {
             requestLocationServiceActivation({
@@ -138,23 +137,6 @@ class HeaderMenuRight extends React.Component<
             });
         } else {
             this.toggleOverlay();
-
-            if (currentScreen === 'Map') {
-                navigation.dispatch(
-                    StackActions.replace(routeName, params)
-                );
-                navigation.dispatch(
-                    CommonActions.reset({
-                        index: 1,
-                        routes: [
-                            { name: 'Home' },
-                            { name: routeName, params },
-                        ],
-                    })
-                );
-                this.toggleOverlay();
-                return;
-            }
 
             navigation.navigate(routeName, params);
         }

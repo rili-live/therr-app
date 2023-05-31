@@ -1,7 +1,7 @@
 import React, { Ref } from 'react';
 import { Animated, Dimensions, View } from 'react-native';
 import MapView from 'react-native-map-clustering';
-import { PROVIDER_GOOGLE, Circle, Marker, MapPressEvent, MarkerPressEvent } from 'react-native-maps';
+import { PROVIDER_GOOGLE, Circle, Marker, MapPressEvent, MarkerPressEvent, PoiClickEvent } from 'react-native-maps';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { PushNotificationsService } from 'therr-react/services';
@@ -174,9 +174,17 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         this.addAnimationListener();
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
-            this.setState({
-                isPreviewBottomSheetVisible: false,
-            });
+            const { location, route } = this.props;
+            if (route?.params?.shouldShowPreview && location?.user?.latitude && location?.user?.longitude) {
+                this.openPreviewBottomSheet({
+                    latitude: location?.user?.latitude,
+                    longitude: location?.user?.longitude,
+                });
+            } else {
+                this.setState({
+                    isPreviewBottomSheetVisible: false,
+                });
+            }
         });
 
         this.unsubscribeBlurListener = navigation.addListener('blur', () => {
@@ -281,10 +289,24 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         return resolve(details);
     });
 
+    onPoiClick = (e) => {
+        if (e?.nativeEvent?.coordinate?.latitude && e?.nativeEvent?.coordinate?.longitude) {
+            const passThroughEvent: any = {
+                nativeEvent: {
+                    coordinate: {
+                        latitude: e?.nativeEvent?.coordinate?.latitude,
+                        longitude: e?.nativeEvent?.coordinate?.longitude,
+                    },
+                },
+            };
+            this.handleMapPress(passThroughEvent);
+        }
+    };
+
     /**
      * On press handler for any map press. Handles pressing an area, and determines when view or bottom-sheet menu to open
      */
-    handleMapPress = (event: MapPressEvent | MarkerPressEvent) => {
+    handleMapPress = (event: MapPressEvent | MarkerPressEvent, shouldToggleOnly = false) => {
         const { nativeEvent } = event;
         const {
             circleCenter,
@@ -300,6 +322,11 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         this.props.hideCreateActions();
 
         setSearchDropdownVisibility(false);
+
+        if (shouldToggleOnly) {
+            // This is a bit of a hack when mapRef.props.onPress is called from Map/index
+            return this.openPreviewBottomSheet(nativeEvent.coordinate);
+        }
 
         const pressedSpaces: any[] = Object.values(filteredSpaces).filter((space: any) => {
             if (!space.longitude || !space.latitude) {
@@ -437,6 +464,12 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 });
             }
         }
+    };
+
+    openPreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }) => {
+        this.setState({
+            isPreviewBottomSheetVisible: false,
+        }, () => this.togglePreviewBottomSheet(pressedCoords));
     };
 
     togglePreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }, pressedAreaId?: any) => {
@@ -774,6 +807,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         longitudeDelta: this.getLongitudeDelta(),
                     }}
                     onPress={this.handleMapPress}
+                    onPoiClick={this.onPoiClick}
                     onRegionChange={this.props.onRegionChange}
                     onRegionChangeComplete={this.props.onRegionChangeComplete}
                     onUserLocationChange={this.onUserLocationChange}
@@ -895,6 +929,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                     onPress={this.handleMapPress}
                                     stopPropagation={true}
                                     tracksViewChanges={true} // Note: Supposedly affects performance but not sure the implications
+                                    zIndex={index}
                                 >
                                     <Animated.View style={[{
                                         alignItems: 'center',

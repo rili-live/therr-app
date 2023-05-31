@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Platform, View } from 'react-native';
+import { Linking, Platform, View } from 'react-native';
 import { Button, Text } from 'react-native-elements';
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
@@ -246,6 +246,10 @@ export class RegisterFormComponent extends React.Component<
         }
     };
 
+    openPrivacyPolicy = () => {
+        Linking.openURL("https://www.therr.app/privacy-policy.html");
+    };
+
     public render() {
         const {
             isPasswordEntryDirty,
@@ -338,6 +342,10 @@ export class RegisterFormComponent extends React.Component<
                     <Text
                         style={themeForms.styles.buttonLink}
                         onPress={() => toggleEULA()}>{this.translate('forms.registerForm.buttons.eula')}</Text>
+                    {this.translate('forms.registerForm.subtitles.and')}
+                    <Text
+                        style={themeForms.styles.buttonLink}
+                        onPress={() => this.openPrivacyPolicy()}>{this.translate('forms.registerForm.buttons.privacyPolicy')}</Text>
                 </Text>
                 <View style={themeAuthForm.styles.registerButtonContainer}>
                     <Button
