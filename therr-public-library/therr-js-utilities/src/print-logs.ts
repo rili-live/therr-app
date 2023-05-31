@@ -1,3 +1,4 @@
+import { Beeline, Configure } from 'honeycomb-beeline'; // eslint-disable-line import/newline-after-import
 import { LogLevelMap, ILogLevel } from './constants';
 
 interface IPrintLogsArgs {
@@ -5,29 +6,7 @@ interface IPrintLogsArgs {
     messageOrigin: string;
     time?: Date | number;
     messages: (number | string) | (number | string)[];
-    tracer?: {
-        traceActive: any;
-        clearTrace: any;
-        getTraceContext: any;
-        marshalTraceContext: any;
-        unmarshalTraceContext: any;
-        startTrace: any;
-        finishTrace: any;
-        withTrace: any;
-        startSpan: any;
-        finishSpan: any;
-        withSpan: any;
-        startAsyncSpan: any;
-        startTimer: any;
-        finishTimer: any;
-        withTimer: any;
-        addContext: any;
-        removeContext: any;
-        customContext: any;
-        bindFunctionToTrace: any;
-        runWithoutTrace: any;
-        flush: any;
-    };
+    tracer?: Beeline & Configure;
     traceArgs?: { [key: string]: any };
 }
 
