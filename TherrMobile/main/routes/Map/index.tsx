@@ -384,7 +384,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 this.setState({
                     shouldIgnoreSearchThisAreaButton: false,
                 });
-            }, ANIMATE_TO_REGION_DURATION_SLOW + 2000); // Add some buffer room
+            }, ANIMATE_TO_REGION_DURATION_SLOW + 1000); // Add some buffer room
         }
     };
 
@@ -931,7 +931,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
-    handleSearchSelect = (selection) => {
+    handleSearchSelect = (selection, shouldTogglePreview = false) => {
         const { setSearchDropdownVisibility } = this.props;
 
         Keyboard.dismiss();
@@ -957,6 +957,16 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     latitude: geometry.viewport.northeast.lat,
                 });
                 this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW));
+                if (shouldTogglePreview) {
+                    this.mapRef.props.onPress({
+                        nativeEvent: {
+                            coordinate: {
+                                latitude: geometry.location.lat,
+                                longitude: geometry.location.lng,
+                            },
+                        },
+                    }, true);
+                }
                 this.handleSearchThisLocation(searchRadiusMeters, geometry.location.lat, geometry.location.lng);
             }
         }).catch((error) => {

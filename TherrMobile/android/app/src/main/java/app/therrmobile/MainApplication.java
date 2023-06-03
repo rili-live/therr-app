@@ -6,8 +6,6 @@ import com.facebook.react.ReactApplication;
 import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
 import com.reactnativecommunity.picker.RNCPickerPackage;
 import com.showlocationservicesdialogbox.LocationServicesDialogBoxPackage;
-import com.airbnb.android.react.maps.MapsPackage;
-import com.airbnb.android.react.maps.MapsPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;

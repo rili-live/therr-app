@@ -146,36 +146,6 @@ class MainButtonMenuAlt extends ButtonMenu {
                     onPress={() => this.onNavPressDynamic('Areas')}
                 />
                 <Button
-                    title={!isCompact ? translate('menus.main.buttons.map') : null}
-                    buttonStyle={
-                        currentScreen === 'Map'
-                            ? themeMenu.styles.buttonsActive
-                            : themeMenu.styles.buttons
-                    }
-                    containerStyle={
-                        currentScreen === 'Map'
-                            ? themeMenu.styles.buttonContainerActive
-                            : themeMenu.styles.buttonContainer
-                    }
-                    titleStyle={
-                        currentScreen === 'Map'
-                            ? themeMenu.styles.buttonsTitleActive
-                            : themeMenu.styles.buttonsTitle
-                    }
-                    icon={
-                        <TherrIcon
-                            name="map"
-                            size={22}
-                            style={
-                                currentScreen === 'Map'
-                                    ? themeMenu.styles.buttonIconActive
-                                    : themeMenu.styles.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.onNavPressDynamic('Map')}
-                />
-                <Button
                     title={!isCompact ? translate('menus.main.buttons.nearby') : null}
                     buttonStyle={
                         currentScreen === 'Nearby'
@@ -204,6 +174,36 @@ class MainButtonMenuAlt extends ButtonMenu {
                         />
                     }
                     onPress={() => this.handleNearbyPress()}
+                />
+                <Button
+                    title={!isCompact ? translate('menus.main.buttons.map') : null}
+                    buttonStyle={
+                        currentScreen === 'Map'
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
+                    }
+                    containerStyle={
+                        currentScreen === 'Map'
+                            ? themeMenu.styles.buttonContainerActive
+                            : themeMenu.styles.buttonContainer
+                    }
+                    titleStyle={
+                        currentScreen === 'Map'
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
+                    }
+                    icon={
+                        <TherrIcon
+                            name="map"
+                            size={22}
+                            style={
+                                currentScreen === 'Map'
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.onNavPressDynamic('Map')}
                 />
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.connect') : null}

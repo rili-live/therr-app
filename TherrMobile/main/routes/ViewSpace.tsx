@@ -187,7 +187,6 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         this.unsubscribeNavListener = navigation.addListener('beforeRemove', (e) => {
             const { isViewingIncentives } = this.state;
             // changeNavigationBarColor(therrTheme.colors.primary, false, true);
-            console.log(e.data.action);
             if (isViewingIncentives && (e.data.action.type === 'GO_BACK' || e.data.action.type === 'POP')) {
                 e.preventDefault();
                 this.setState({
@@ -295,7 +294,9 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                 navigation.navigate('Notifications');
             }
         } else {
-            navigation.navigate('Map');
+            navigation.navigate('Map', {
+                shouldShowPreview: true,
+            });
         }
     };
 

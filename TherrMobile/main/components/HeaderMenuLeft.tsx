@@ -33,7 +33,7 @@ class HeaderMenuLeft extends React.Component<
     handlePress = () => {
         const { isAuthenticated, isEmailVerifed, navigation } = this.props;
         if (isAuthenticated && isEmailVerifed) {
-            navigation.navigate('Home');
+            navigation.navigate('Map');
         } else if (isAuthenticated) {
             navigation.navigate('CreateProfile');
         } else {

@@ -500,7 +500,8 @@
       "buttons": {
         "backToLogin": "Back to Login",
         "register": "Sign Up",
-        "eula": "Terms of Use"
+        "eula": "Terms of Use",
+        "privacyPolicy": "Privacy Policy"
       },
       "defaultTitle": "Create an Account",
       "errorMessages": {
@@ -519,7 +520,8 @@
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "subtitles": {
-        "disclaimer": "By creating an account, you agree to our "
+        "disclaimer": "By creating an account, you agree to our ",
+        "and": " and "
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
@@ -1034,8 +1036,8 @@
       "pageTitle": "User Profile",
       "siteDescription1": "Welcome to Therr app. As we gather feedback and develop new features, let us know how we can improve the experience.",
       "siteDescription2": "So how does it work?",
-      "siteDescription3": "Share a moment with your connections on the map (private or public). Moments are proximity activated and entirely customizable.",
-      "siteDescription4": "Then, check your feed for moments posted by others in the locales you travel to most often. Get to know the local culture by searching content that was shared nearby (recently or historically), and filter your interests with hashtags, keywords, etc.",
+      "siteDescription3": "Content on the map is proximity activated. Share a moment with your connections on the map. Discover spaces nearby, and claim TherrCoins for actions (posting, reviewing, visiting, etc).",
+      "siteDescription4": "Then, check your feed for moments posted by others in the locales you travel to most often. Get to know the local culture by searching content that was shared nearby. Just tap anywhere on the map to start exploring.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
       "validationErrors": {
@@ -1066,7 +1068,8 @@
       "unconnect": "Remove connection with {userName}? (You will no longer be able to activate new content from this user)",
       "header": {
         "claimSpace": "Claim a Space",
-        "eula": "End-User License Agreement (EULA)"
+        "eula": "End-User License Agreement (EULA)",
+
       },
       "body": {
         "claimSpace": "Spaces are for businesses and promoters. Content is public and helps you leverage custom push notifications, metrics, and location ownership."
