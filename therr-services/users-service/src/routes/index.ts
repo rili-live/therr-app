@@ -9,6 +9,7 @@ import notificationsRouter from './notificationsRouter';
 import rewardsRouter from './rewardsRouter';
 import thoughtsRouter from './thoughtsRouter';
 import userConnectionsRouter from './userConnectionsRouter';
+import userMetricsRouter from './userMetricsRouter';
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ router.use('/thoughts', thoughtsRouter);
 router.use('/users/achievements', userAchievementsRouter);
 router.use('/users/connections', userConnectionsRouter);
 router.use('/users/notifications', notificationsRouter);
+router.use('/users/metrics', userMetricsRouter);
 router.use('/users', usersRouter);
 
 export default router;
