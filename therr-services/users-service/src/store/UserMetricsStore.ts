@@ -61,20 +61,16 @@ export default class UserMetricsStore {
             region = countryReverseGeo.get_country(longLat.latitude, longLat.longitude);
         }
 
-        const modifiedParams = params.map((p) => {
-            const insert: ICreateUserMetricsParams = {
-                ...p,
-                region: region ? region.code : undefined,
-                latitude: longLat?.latitude,
-                longitude: longLat?.longitude,
-            };
+        const modifiedParams: ICreateUserMetricsParams = {
+            ...params,
+            region: region ? region.code : undefined,
+            latitude: longLat?.latitude,
+            longitude: longLat?.longitude,
+        };
 
-            if (insert.dimensions && typeof insert.dimensions !== 'string') {
-                insert.dimensions = JSON.stringify(insert.dimensions);
-            }
-
-            return insert;
-        });
+        if (modifiedParams.dimensions && typeof modifiedParams.dimensions !== 'string') {
+            modifiedParams.dimensions = JSON.stringify(modifiedParams.dimensions);
+        }
 
         const queryString = knexBuilder.insert(modifiedParams)
             .into(USER_METRICS_TABLE_NAME)
