@@ -10,16 +10,16 @@ main: [![Build status](https://build.appcenter.ms/v0.1/apps/0f4a527c-5807-47dc-b
 A social network that connects people by proximity through the distance of time
 
 ## Getting Started
-First we need to setup Postgres and Redis to run locally. Mac users can install [postgres with brew](https://formulae.brew.sh/formula/postgresql@14). It's best to configure postgres with no password for simplicity. We can also create a user and grant them superuser privileges. See 'Database Setup below'.
+First we need to setup Postgres and Redis to run locally. Mac users can install [postgres with brew](https://formulae.brew.sh/formula/postgresql@14). It's best to configure postgres with no password for simplicity. We can also create a user and grant them superuser privileges. See 'Database Setup below'. Also make sure postgis is installed along with postgres as its required for maps services. See 'Database Setup below'.
 
 #### Database Setup
 We first need to create our 4 dev databases therr_dev_users, therr_dev_maps, therr_dev_reactions, therr_dev_messages and create a schema, "main" in each db. Then we can proceed to run the database migration scrips found in each sub-directory. See each microservice README.md (ie. therr-services/users-service/README.md) for detailed steps.
 
 #### Installing Dependencies
-We have some helper scripts in the root package.json. Try `npm run install:all` to loop through each microservice and install npm packages. This script first preps your environment to ensure you have the correct npm and node version. It's best to use nvm to manage these versions.
+We have some helper scripts in the root package.json. Try `npm run install:all` to loop through each microservice and install npm packages. This script first preps your environment to ensure you have the correct npm and node version. It's best to use nvm to manage these versions. Run `npm run build:all:dev` from the root to build all the custom libraries.
 
 #### Running The App Locally
-Each microservice has it's own package.json with start scripts. We can simply build with `npm run build:dev` then run `npm start` to run the nodejs service with nodemon. See each microservice README.md (ie. therr-services/users-service/README.md) for detailed steps.
+Setup the .env with correct credentials. Each microservice has it's own package.json with start scripts. We can simply build with `npm run build:dev` then run `npm run start` to run the nodejs service with nodemon. See each microservice README.md (ie. therr-services/users-service/README.md) for detailed steps.
 
 ## Documentation
 Documentation is mantained within the repo to align with a mentality of inline documentation,
