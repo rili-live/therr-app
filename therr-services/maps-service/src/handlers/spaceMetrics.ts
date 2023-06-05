@@ -102,7 +102,7 @@ const getSpaceMetrics = (req, res) => {
                     res,
                     message: translate(locale, 'spaces.mustBeOwner'),
                     statusCode: 400,
-                    errorCode: ErrorCodes.SPACE_ACCESS_RESTRICTED,
+                    errorCode: ErrorCodes.METRIC_ACCESS_RESTRICTED,
                 });
             }
 
@@ -111,7 +111,6 @@ const getSpaceMetrics = (req, res) => {
                 endDate,
             } = req.query;
 
-            // TODO: Fetch own reaction or reaction count for own space
             return Store.spaceMetrics.getForDateRange(startDate, endDate, {
                 spaceId,
             }).then((results) => res.status(200).send({ space, metrics: results }));

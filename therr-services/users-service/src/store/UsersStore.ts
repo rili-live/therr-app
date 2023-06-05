@@ -78,6 +78,8 @@ export default class UsersStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     };
 
+    getByIdSimple = (id: string) => this.getUserById(id, ['id']);
+
     getUserById = (id: string, returning: any = '*') => {
         let queryString: any = knexBuilder.select(returning).from('main.users')
             .where({ id });

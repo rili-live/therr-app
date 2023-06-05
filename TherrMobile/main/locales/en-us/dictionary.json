@@ -732,8 +732,8 @@
       "noHireAreasFound": "No freelancer postings found in your area. Check back soon to find local freelancers in range of your location.",
       "noNearbyAreasFound": "Nothing yet. Start the conversation by posting from the Map or increase the Awareness Radius to discover nearby content.",
       "noNewsAreasFound": "Local News stream coming soon!",
-      "noSocialAreasFound": "You have not yet activated any moments/spaces. Enable location from the map, and active areas will start to appear in this view as you travel.",
-      "noThoughtsFound": "You have not yet activated any global thoughts. Continue using the app to activate new thoughts."
+      "noSocialAreasFound": "Enable location from the map (or reset filters), and active areas will start to appear in this view as you travel.",
+      "noThoughtsFound": "You have not yet activated any global thoughts. Continue using the app (or reset filters) to activate new thoughts."
     },
     "bookmarked": {
       "headerTitle": "Favorited",

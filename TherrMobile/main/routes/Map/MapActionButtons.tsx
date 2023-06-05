@@ -115,36 +115,36 @@ export default ({
                     onPress={handleGpsRecenter}
                 />
             </View>
+            <View style={themeButtons.styles.mapFilters}>
+                <Button
+                    containerStyle={themeButtons.styles.btnContainer}
+                    buttonStyle={themeButtons.styles.btnLarge}
+                    icon={
+                        <TherrIcon
+                            name="filters"
+                            size={30}
+                            style={themeButtons.styles.btnIcon}
+                        />
+                    }
+                    raised={true}
+                    onPress={handleOpenMapFilters}
+                />
+            </View>
+            {
+                filterCount > 0 &&
+                <View style={themeButtons.styles.mapFiltersCount}>
+                    <Button
+                        containerStyle={themeButtons.styles.btnContainer}
+                        buttonStyle={[themeButtons.styles.btnSmall, { backgroundColor: themeButtons.colors.tertiary }]}
+                        raised={true}
+                        title={filterCount.toString()}
+                        onPress={handleOpenMapFilters}
+                    />
+                </View>
+            }
             {
                 shouldShowCreateButton &&
                     <>
-                        <View style={themeButtons.styles.mapFilters}>
-                            <Button
-                                containerStyle={themeButtons.styles.btnContainer}
-                                buttonStyle={themeButtons.styles.btnLarge}
-                                icon={
-                                    <TherrIcon
-                                        name="filters"
-                                        size={30}
-                                        style={themeButtons.styles.btnIcon}
-                                    />
-                                }
-                                raised={true}
-                                onPress={handleOpenMapFilters}
-                            />
-                        </View>
-                        {
-                            filterCount > 0 &&
-                            <View style={themeButtons.styles.mapFiltersCount}>
-                                <Button
-                                    containerStyle={themeButtons.styles.btnContainer}
-                                    buttonStyle={[themeButtons.styles.btnSmall, { backgroundColor: themeButtons.colors.tertiary }]}
-                                    raised={true}
-                                    title={filterCount.toString()}
-                                    onPress={handleOpenMapFilters}
-                                />
-                            </View>
-                        }
                         <Button
                             containerStyle={themeButtons.styles.addAMoment}
                             buttonStyle={themeButtons.styles.btnLargeWithText}
