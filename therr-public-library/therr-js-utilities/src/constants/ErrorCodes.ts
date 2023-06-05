@@ -5,6 +5,7 @@ const ErrorCodes = {
     USER_EXISTS: 'UserAlreadyExists',
     INVALID_REGION: 'InvalidRegion',
     INSUFFICIENT_THERR_COIN_FUNDS: 'InsufficientTherrCoinFunds',
+    METRIC_ACCESS_RESTRICTED: 'MetricAccessRestricted',
     MOMENT_ACCESS_RESTRICTED: 'MomentAccessRestricted',
     TOO_MANY_ACCOUNTS: 'OnlyTwoAccountsPerPhoneNumber',
     THOUGHT_ACCESS_RESTRICTED: 'ThoughtAccessRestricted',

@@ -14,6 +14,7 @@ import Toast from 'react-native-toast-message';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
+// import { MapsService } from 'therr-react/services';
 import { IncentiveRequirementKeys } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
