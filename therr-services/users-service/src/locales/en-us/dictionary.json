@@ -21,6 +21,9 @@
             "mismatchTokenUserId": "Invalid requesting user ID"
         }
     },
+    "metrics": {
+        "mustBeOwner": "Must be content owner to view metrics"
+    },
     "notifications": {
         "achievementCompleted": "You completed an achievement! Go claim your reward to collect coins.",
         "connectionRequestAccepted": "{firstName} {lastName} accepted your connection request",

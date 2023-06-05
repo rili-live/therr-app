@@ -1,7 +1,7 @@
 import React, { Ref } from 'react';
 import { Animated, Dimensions, View } from 'react-native';
 import MapView from 'react-native-map-clustering';
-import { PROVIDER_GOOGLE, Circle, Marker, MapPressEvent, MarkerPressEvent, PoiClickEvent } from 'react-native-maps';
+import { PROVIDER_GOOGLE, Circle, Marker, MapPressEvent, MarkerPressEvent } from 'react-native-maps';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { PushNotificationsService } from 'therr-react/services';
@@ -929,7 +929,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                     onPress={this.handleMapPress}
                                     stopPropagation={true}
                                     tracksViewChanges={true} // Note: Supposedly affects performance but not sure the implications
-                                    zIndex={index}
+                                    zIndex={(index + 1) * 2}
                                 >
                                     <Animated.View style={[{
                                         alignItems: 'center',
@@ -937,6 +937,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                         /* transform: [{ translateY: 0 }] */
                                         width: (spaceBubbleWidth * MAX_CIRCLE_DIAMETER_SCALE),
                                         height: (spaceBubbleWidth * MAX_CIRCLE_DIAMETER_SCALE),
+                                        zIndex: index + 1,
                                     }, opacityStyle]}>
                                         <Animated.View style={[{
                                             width: spaceBubbleWidth,
