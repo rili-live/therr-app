@@ -94,6 +94,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
     private scrollViewRef;
     private translate: Function;
     private unsubscribeNavListener;
+    private replyInput;
     private theme = buildStyles();
     private themeAccentLayout = buildAccentStyles();
     private themeButtons = buildButtonsStyles();
@@ -343,6 +344,9 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                 })
                 .finally(() => {
                     this.onInputChange('message', '');
+                    if (this.replyInput) {
+                        this.replyInput.clear();
+                    }
                     this.setState({
                         isSubmitting: false,
                     });
@@ -466,6 +470,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                             />
                             <View style={this.themeThought.styles.sendInputsContainer}>
                                 <RoundTextInput
+                                    ref={input => { this.replyInput = input; }}
                                     autoFocus
                                     placeholder={this.translate(
                                         'forms.editThought.labels.messageReply'

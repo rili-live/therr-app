@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
-import { ErrorCodes, Notifications } from 'therr-js-utilities/constants';
+import {
+    ErrorCodes, MetricNames, MetricValueTypes, Notifications,
+} from 'therr-js-utilities/constants';
 import printLogs from 'therr-js-utilities/print-logs';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
@@ -73,6 +75,43 @@ const createThought = async (req, res) => {
                                 achievementClass: 'thinker',
                                 achievementTier: '1_2',
                                 progressCount: 1,
+                            }).catch((err) => {
+                                printLogs({
+                                    level: 'error',
+                                    messageOrigin: 'API_SERVER',
+                                    messages: ['Error while creating thinker achievement after creating a thought on parent, tier 1_2'],
+                                    tracer: beeline,
+                                    traceArgs: {
+                                        errMessage: err?.message,
+                                    },
+                                });
+                            });
+
+                            // Log metric when replying to other users' thoughts
+                            Store.userMetrics.create({
+                                name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${thought.category || 'uncategorized'}` as MetricNames,
+                                value: '5', // Replying to a should is weighted more than viewing or liking
+                                valueType: MetricValueTypes.NUMBER,
+                                userId,
+                                contentUserId: thought.fromUserId,
+                                dimensions: {
+                                    thoughtId: thought.id,
+                                    isMatureContent: thought.isMatureContent,
+                                    isPublic: thought.isPublic,
+                                },
+                            }).catch((err) => {
+                                printLogs({
+                                    level: 'error',
+                                    messageOrigin: 'API_SERVER',
+                                    messages: ['failed to create user metric'],
+                                    tracer: beeline,
+                                    traceArgs: {
+                                        errorMessage: err?.message,
+                                        errorResponse: err?.response?.data,
+                                        userId,
+                                        thoughtId: thought.id,
+                                    },
+                                });
                             });
                         }
                         return createSendTotalNotification({
@@ -93,7 +132,18 @@ const createThought = async (req, res) => {
                             fromUser: {
                                 id: userId,
                             },
-                        }, true);
+                        }, true).catch((err) => {
+                            printLogs({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Error while creating total notification for thought reply'],
+                                tracer: beeline,
+                                traceArgs: {
+                                    errMessage: err?.message,
+                                    thoughtId: thought.parentId,
+                                },
+                            });
+                        });
                     }
 
                     return Promise.resolve();
@@ -109,6 +159,16 @@ const createThought = async (req, res) => {
                     achievementClass: 'thinker',
                     achievementTier: '1_1',
                     progressCount: 1,
+                }).catch((err) => {
+                    printLogs({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while creating thinker achievement after creating a thought, tier 1_1'],
+                        tracer: beeline,
+                        traceArgs: {
+                            errMessage: err?.message,
+                        },
+                    });
                 });
             }
 
@@ -170,6 +230,33 @@ const getThoughtDetails = (req, res) => {
             if (isOwnThought) {
                 listReactionsPromise = findReactions(thoughtId, {
                     'x-userid': userId,
+                });
+            } else {
+                // TODO: Add longitude/latitude if available
+                Store.userMetrics.create({
+                    name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${thought.category || 'uncategorized'}` as MetricNames,
+                    value: '1',
+                    valueType: MetricValueTypes.NUMBER,
+                    userId,
+                    contentUserId: thought.fromUserId,
+                    dimensions: {
+                        thoughtId: thought.id,
+                        isMatureContent: thought.isMatureContent,
+                        isPublic: thought.isPublic,
+                    },
+                }).catch((err) => {
+                    printLogs({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['failed to create user metric'],
+                        tracer: beeline,
+                        traceArgs: {
+                            errorMessage: err?.message,
+                            errorResponse: err?.response?.data,
+                            userId,
+                            thoughtId: thought.id,
+                        },
+                    });
                 });
             }
 
