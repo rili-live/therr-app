@@ -208,6 +208,19 @@ const getSpaceDetails = (req, res) => {
             }], {
                 latitude: space.latitude,
                 longitude: space.longitude,
+            }).catch((err) => {
+                printLogs({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['failed to create space metric'],
+                    tracer: beeline,
+                    traceArgs: {
+                        errorMessage: err?.message,
+                        errorResponse: err?.response?.data,
+                        userId,
+                        spaceId: space.id,
+                    },
+                });
             });
             let userHasAccessPromise = () => Promise.resolve(true);
             // Verify that user has activated space and has access to view it
