@@ -27,58 +27,72 @@ import {
     ListGroup,
     InputGroup,
 } from 'react-bootstrap';
-import NOTIFICATIONS_DATA from '../data/notifications';
+import {
+    NotificationActions
+} from 'therr-react/redux/actions';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { INotificationsState, INotification } from 'therr-react/types';
 import getUserImageUri from '../utilities/getUserImageUri';
+
+
+const mapStateToProps = (state: any) => ({
+    notifications: state.notifications,
+    
+});
+
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    updateNotification: NotificationActions.update,
+}, dispatch);
 
 const Profile3 = '/assets/img/team/profile-picture-3.jpg';
 
-interface IDashboardNavbarProps {
+interface IStoreProps {
+    notifications: INotificationsState;
+    updateNotification: Function;
+}
+
+interface IDashboardNavbarProps extends IStoreProps{
     navToSettings: () => any;
     onLogout: React.MouseEventHandler<any>;
     user: any;
 }
 
-const DashboardNavbar = (props: IDashboardNavbarProps) => {
-    const { user } = props;
-    const [notifications, setNotifications] = useState(NOTIFICATIONS_DATA);
-    const areNotificationsRead = notifications.reduce((acc, notif) => acc && notif.read, true);
-
-    const currentUserImageUri = getUserImageUri(props.user, 200);
-
-    const markNotificationsAsRead = () => {
+    const DashboardNavbar = (props: IDashboardNavbarProps) => {
+      const { user, notifications, updateNotification } = props;
+      const areNotificationsRead = notifications.messages.reduce((acc: boolean, notif: INotification) => acc && notif.isUnread, false);
+      const currentUserImageUri = getUserImageUri(user, 200);
+      const markNotificationsAsRead = () => {
         setTimeout(() => {
-            setNotifications(notifications.map((n) => ({ ...n, read: true })));
+          const messages = notifications.messages.map((n: INotification) => ({ ...n, isUnread: false }));
+        updateNotification(messages);        
+
         }, 300);
-    };
 
-    const Notification = (notificationProps: any) => {
-        const {
-            link, sender, image, time, message, read = false,
-        } = notificationProps;
-        const readClassName = read ? '' : 'text-danger';
+      };
+    
+      const Notification = (notificationProps: any) => {
+        const { sender, link, message, createdAt, isUnread = true } = notificationProps;
+        const readClassName = isUnread ? '' : 'text-danger';
 
+        //Notifications Display Styling
         return (
-            <ListGroup.Item action href={link} className="border-bottom border-light">
-                <Row className="align-items-center">
-                    <Col className="col-auto">
-                        <Image src={image} className="user-avatar lg-avatar rounded-circle" />
-                    </Col>
-                    <Col className="ps-0 ms--2">
-                        <div className="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h4 className="h6 mb-0 text-small">{sender}</h4>
-                            </div>
-                            <div className="text-end">
-                                <small className={readClassName}>{time}</small>
-                            </div>
-                        </div>
-                        <p className="font-small mt-1 mb-0">{message}</p>
-                    </Col>
-                </Row>
-            </ListGroup.Item>
+          <ListGroup.Item action href={link} className="border-bottom border-light">
+            <Row className="align-items-center">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h4 className="h6 mb-0 text-small">{sender}</h4>
+                  </div>
+                  <div className="text-end">
+                    <small className={readClassName}>{createdAt}</small>
+                  </div>
+                </div>
+                <p className="font-small mt-1 mb-0">{message}</p>
+            </Row>
+          </ListGroup.Item>
         );
-    };
-
+      };
+    
     return (
         <Navbar variant="dark" expanded className="ps-0 pe-2 pb-0">
             <Container fluid className="px-0">
@@ -106,9 +120,15 @@ const DashboardNavbar = (props: IDashboardNavbarProps) => {
                                     <Nav.Link href="#" className="text-center text-primary fw-bold border-bottom border-light py-3">
                                         Notifications
                                     </Nav.Link>
-
-                                    {notifications.map((n) => <Notification key={`notification-${n.id}`} {...n} />)}
-
+                                    {                
+                                        notifications.messages.map((n: INotification) => (
+                                            <Notification
+                                            key={n.id} 
+                                            message={n.message}
+                                            isUnread={n.isUnread}
+                                            />
+                                        ))
+                                    }
                                     <Dropdown.Item className="text-center text-primary fw-bold py-3">
                                         View all
                                     </Dropdown.Item>
@@ -153,4 +173,4 @@ const DashboardNavbar = (props: IDashboardNavbarProps) => {
     );
 };
 
-export default DashboardNavbar;
+export default connect(mapStateToProps, mapDispatchToProps)(DashboardNavbar);
