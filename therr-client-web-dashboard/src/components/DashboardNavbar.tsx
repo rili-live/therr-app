@@ -7,7 +7,6 @@ import {
 import {
     faBell,
     faCog,
-    faEnvelopeOpen,
     faSearch,
     faSignOutAlt,
     faUserShield,
@@ -17,7 +16,6 @@ import {
 } from '@fortawesome/free-regular-svg-icons';
 import {
     Row,
-    Col,
     Nav,
     Form,
     Image,
@@ -28,17 +26,15 @@ import {
     InputGroup,
 } from 'react-bootstrap';
 import {
-    NotificationActions
+    NotificationActions,
 } from 'therr-react/redux/actions';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'therr-react/types';
 import getUserImageUri from '../utilities/getUserImageUri';
 
-
 const mapStateToProps = (state: any) => ({
     notifications: state.notifications,
-    
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
@@ -58,41 +54,41 @@ interface IDashboardNavbarProps extends IStoreProps{
     user: any;
 }
 
-    const DashboardNavbar = (props: IDashboardNavbarProps) => {
-      const { user, notifications, updateNotification } = props;
-      const areNotificationsRead = notifications.messages.reduce((acc: boolean, notif: INotification) => acc && notif.isUnread, false);
-      const currentUserImageUri = getUserImageUri(user, 200);
-      const markNotificationsAsRead = () => {
+const DashboardNavbar = (props: IDashboardNavbarProps) => {
+    const { user, notifications, updateNotification } = props;
+    const areNotificationsRead = notifications.messages.reduce((acc: boolean, notif: INotification) => acc && notif.isUnread, false);
+    const currentUserImageUri = getUserImageUri(user, 200);
+    const markNotificationsAsRead = () => {
         setTimeout(() => {
-          const messages = notifications.messages.map((n: INotification) => ({ ...n, isUnread: false }));
-        updateNotification(messages);        
-
+            const messages = notifications.messages.map((n: INotification) => ({ ...n, isUnread: false }));
+            updateNotification(messages);
         }, 300);
+    };
 
-      };
-    
-      const Notification = (notificationProps: any) => {
-        const { sender, link, message, createdAt, isUnread = true } = notificationProps;
+    const Notification = (notificationProps: any) => {
+        const {
+            sender, link, message, createdAt, isUnread = true,
+        } = notificationProps;
         const readClassName = isUnread ? '' : 'text-danger';
 
-        //Notifications Display Styling
+        // Notifications Display Styling
         return (
-          <ListGroup.Item action href={link} className="border-bottom border-light">
-            <Row className="align-items-center">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h4 className="h6 mb-0 text-small">{sender}</h4>
-                  </div>
-                  <div className="text-end">
-                    <small className={readClassName}>{createdAt}</small>
-                  </div>
-                </div>
-                <p className="font-small mt-1 mb-0">{message}</p>
-            </Row>
-          </ListGroup.Item>
+            <ListGroup.Item action href={link} className="border-bottom border-light">
+                <Row className="align-items-center">
+                    <div className="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 className="h6 mb-0 text-small">{sender}</h4>
+                        </div>
+                        <div className="text-end">
+                            <small className={readClassName}>{createdAt}</small>
+                        </div>
+                    </div>
+                    <p className="font-small mt-1 mb-0">{message}</p>
+                </Row>
+            </ListGroup.Item>
         );
-      };
-    
+    };
+
     return (
         <Navbar variant="dark" expanded className="ps-0 pe-2 pb-0">
             <Container fluid className="px-0">
@@ -120,12 +116,12 @@ interface IDashboardNavbarProps extends IStoreProps{
                                     <Nav.Link href="#" className="text-center text-primary fw-bold border-bottom border-light py-3">
                                         Notifications
                                     </Nav.Link>
-                                    {                
+                                    {
                                         notifications.messages.map((n: INotification) => (
                                             <Notification
-                                            key={n.id} 
-                                            message={n.message}
-                                            isUnread={n.isUnread}
+                                                key={n.id}
+                                                message={n.message}
+                                                isUnread={n.isUnread}
                                             />
                                         ))
                                     }
