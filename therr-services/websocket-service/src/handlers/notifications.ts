@@ -14,7 +14,7 @@ const updateNotification = (socket: Socket, data: IUpdateNotificationData, decod
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
-        messages: `User, ${data.userName} with socketId ${socket.id}, updated a notification`,
+        messages: `User, ${data?.userName} with socketId ${socket.id}, updated a notification`,
         tracer: beeline,
         traceArgs: {
             socketId: socket.id,
@@ -22,15 +22,15 @@ const updateNotification = (socket: Socket, data: IUpdateNotificationData, decod
     });
     return restRequest({
         method: 'put',
-        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications/${data.notification.id}`,
+        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications/${data?.notification?.id}`,
         data: {
-            isUnread: data.notification.isUnread,
+            isUnread: data?.notification?.isUnread,
         },
     }, socket, decodedAuthenticationToken).then((response) => {
         socket.emit(SOCKET_MIDDLEWARE_ACTION, {
             type: SocketServerActionTypes.NOTIFICATION_UPDATED,
             data: {
-                ...data.notification,
+                ...data?.notification,
                 ...response.data,
             },
         });
