@@ -54,6 +54,30 @@ interface IDashboardNavbarProps extends IStoreProps{
     user: any;
 }
 
+const Notification = (notificationProps: any) => {
+    const {
+        sender, link, message, createdAt, isUnread = true,
+    } = notificationProps;
+    const readClassName = isUnread ? '' : 'text-danger';
+
+    // Notifications Display Styling
+    return (
+        <ListGroup.Item action href={link} className="border-bottom border-light">
+            <Row className="align-items-center">
+                <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 className="h6 mb-0 text-small">{sender}</h4>
+                    </div>
+                    <div className="text-end">
+                        <small className={readClassName}>{createdAt}</small>
+                    </div>
+                </div>
+                <p className="font-small mt-1 mb-0">{message}</p>
+            </Row>
+        </ListGroup.Item>
+    );
+};
+
 const DashboardNavbar = (props: IDashboardNavbarProps) => {
     const { user, notifications, updateNotification } = props;
     const areNotificationsRead = notifications.messages.reduce((acc: boolean, notif: INotification) => acc && notif.isUnread, false);
@@ -63,30 +87,6 @@ const DashboardNavbar = (props: IDashboardNavbarProps) => {
             const messages = notifications.messages.map((n: INotification) => ({ ...n, isUnread: false }));
             updateNotification(messages);
         }, 300);
-    };
-
-    const Notification = (notificationProps: any) => {
-        const {
-            sender, link, message, createdAt, isUnread = true,
-        } = notificationProps;
-        const readClassName = isUnread ? '' : 'text-danger';
-
-        // Notifications Display Styling
-        return (
-            <ListGroup.Item action href={link} className="border-bottom border-light">
-                <Row className="align-items-center">
-                    <div className="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 className="h6 mb-0 text-small">{sender}</h4>
-                        </div>
-                        <div className="text-end">
-                            <small className={readClassName}>{createdAt}</small>
-                        </div>
-                    </div>
-                    <p className="font-small mt-1 mb-0">{message}</p>
-                </Row>
-            </ListGroup.Item>
-        );
     };
 
     return (
