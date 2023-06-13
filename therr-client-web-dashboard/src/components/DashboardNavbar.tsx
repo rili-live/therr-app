@@ -33,6 +33,8 @@ import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'therr-react/types';
 import getUserImageUri from '../utilities/getUserImageUri';
 
+const MAX_NOTIFICATIONS_IN_VIEW = 8;
+
 const mapStateToProps = (state: any) => ({
     notifications: state.notifications,
 });
@@ -80,11 +82,12 @@ const Notification = (notificationProps: any) => {
 
 const DashboardNavbar = (props: IDashboardNavbarProps) => {
     const { user, notifications, updateNotification } = props;
+    const messagesSlice = notifications.messages.slice(0, MAX_NOTIFICATIONS_IN_VIEW);
     const areNotificationsRead = notifications.messages.reduce((acc: boolean, notif: INotification) => acc && notif.isUnread, false);
     const currentUserImageUri = getUserImageUri(user, 200);
     const markNotificationsAsRead = () => {
         setTimeout(() => {
-            const messages = notifications.messages.map((n: INotification) => ({ ...n, isUnread: false }));
+            const messages = messagesSlice.map((n: INotification) => ({ ...n, isUnread: false }));
             updateNotification(messages);
         }, 300);
     };
@@ -117,7 +120,7 @@ const DashboardNavbar = (props: IDashboardNavbarProps) => {
                                         Notifications
                                     </Nav.Link>
                                     {
-                                        notifications.messages.map((n: INotification) => (
+                                        messagesSlice.map((n: INotification) => (
                                             <Notification
                                                 key={n.id}
                                                 message={n.message}
