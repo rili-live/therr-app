@@ -5,6 +5,7 @@ import printLogs from 'therr-js-utilities/print-logs';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
 import emailValidator from 'therr-js-utilities/email-validator';
+import deepEmailValidate from 'deep-email-validator';
 import sendPushNotificationAndEmail from '../utilities/sendPushNotificationAndEmail';
 import beeline from '../beeline';
 import Store from '../store';
@@ -71,12 +72,21 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             if (!userResults.length) {
                 const blacklistedEmails = await failsafeBlackListRequest(acceptingUserEmail);
                 const emailIsBlacklisted = blacklistedEmails?.length;
+                const deepEmailValidation = await deepEmailValidate({
+                    email: acceptingUserEmail,
+                    sender: process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any,
+                    validateSMTP: false, // TODO: Consider enabling after testing in production (not working from localhost?)
+                });
                 // NOTE: This caused AWS SES Bounce rates to block our account.
                 // This is disabled until we can find a better way to handle this.
                 const isAutoUserCreateEnabled = await Store.config.get('features.isAutoUserCreateEnabled')
                     .then((configResults) => configResults?.length && parseConfigValue(configResults[0].value, configResults[0].type));
 
-                if (isAutoUserCreateEnabled && !emailIsBlacklisted && acceptingUserEmail && emailValidator.validate(acceptingUserEmail)) {
+                if (isAutoUserCreateEnabled
+                    && !emailIsBlacklisted
+                    && acceptingUserEmail
+                    && emailValidator.validate(acceptingUserEmail)
+                    && deepEmailValidation?.valid) {
                     // NOTE: This caused AWS SES Bounce rates to block our account.
                     // This is disabled until we can find a better way to handle this.
                     unverifiedUser = await createUserHelper({
