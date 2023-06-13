@@ -85,12 +85,6 @@ const DashboardNavbar = (props: IDashboardNavbarProps) => {
     const messagesSlice = notifications.messages.slice(0, MAX_NOTIFICATIONS_IN_VIEW);
     const areNotificationsRead = notifications.messages.reduce((acc: boolean, notif: INotification) => acc && notif.isUnread, false);
     const currentUserImageUri = getUserImageUri(user, 200);
-    const markNotificationsAsRead = () => {
-        setTimeout(() => {
-            const messages = messagesSlice.map((n: INotification) => ({ ...n, isUnread: false }));
-            updateNotification(messages);
-        }, 300);
-    };
 
     return (
         <Navbar variant="dark" expanded className="ps-0 pe-2 pb-0">
@@ -107,7 +101,7 @@ const DashboardNavbar = (props: IDashboardNavbarProps) => {
                         </Form>
                     </div>
                     <Nav className="align-items-center">
-                        <Dropdown as={Nav.Item} onToggle={markNotificationsAsRead} >
+                        <Dropdown as={Nav.Item}>
                             <Dropdown.Toggle as={Nav.Link} className="text-dark icon-notifications me-lg-3">
                                 <span className="icon icon-sm">
                                     <FontAwesomeIcon icon={faBell} className="bell-shake" />
