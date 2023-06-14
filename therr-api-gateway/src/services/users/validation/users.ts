@@ -11,6 +11,7 @@ export const createUserValidation = [
     body('userName').optional().isString(),
     body('isBusinessAccount').optional().isBoolean(),
     body('isDashboardRegistration').optional().isBoolean(),
+    body('inviteCode').optional().isString(),
 ];
 
 export const changePasswordValidation = [

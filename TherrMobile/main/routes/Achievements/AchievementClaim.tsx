@@ -21,6 +21,7 @@ const cardImagesLottie = {
     explorer: require('../../assets/explorer-card.json'),
     influencer: require('../../assets/influencer-card.json'),
     socialite: require('../../assets/socialite-card.json'),
+    communityLeader: require('../../assets/socialite-card.json'),
     thinker: require('../../assets/thinker-card.json'),
 };
 
@@ -136,7 +137,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                     return (
                         <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
                             {this.translate('pages.achievements.info.claimTitle', {
-                                achievementClass: userAchievement.achievementClass,
+                                achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, " $1"),
                                 achievementTitle: achievement.title,
                             })}
                         </Text>
@@ -145,7 +146,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                 return (
                     <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
                         {this.translate('pages.achievements.info.claimTitleInProgress', {
-                            achievementClass: userAchievement.achievementClass,
+                            achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, " $1"),
                             achievementTitle: achievement.title,
                         })}
                     </Text>
@@ -156,7 +157,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         return (
             <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
                 {this.translate('pages.achievements.info.claimTitleInProgress', {
-                    achievementClass: userAchievement.achievementClass,
+                    achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, " $1"),
                     achievementTitle: achievement.title,
                 })}
             </Text>

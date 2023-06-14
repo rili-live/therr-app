@@ -12,6 +12,7 @@ import PasswordRequirements from './PasswordRequirements';
 interface IRegisterFormProps {
   register: Function;
   title: string;
+  inviteCode?: string;
 }
 
 interface IRegisterFormState {
@@ -71,13 +72,21 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
     };
 
     public render(): JSX.Element | null {
+        const { inviteCode } = this.props;
         const { isPhoneNumberValid } = this.state;
 
         return (
             <div className="register-container">
                 <div className="flex fill max-wide-30">
                     <h1 className="text-center">{this.props.title}</h1>
-
+                    {
+                        inviteCode
+                        && <h4 className="mb-1 text-underline text-center">
+                            {this.translate('components.registerForm.text.signupForRewards', {
+                                userName: inviteCode,
+                            })}
+                        </h4>
+                    }
                     {/* <label className="required" htmlFor="e_mail">{this.translate('components.registerForm.labels.email')}:</label> */}
                     <Input
                         type="text"

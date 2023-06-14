@@ -1,6 +1,8 @@
 import { RequestHandler } from 'express';
 import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
+import printLogs from 'therr-js-utilities/print-logs';
 import normalizeEmail from 'normalize-email';
+import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
@@ -15,9 +17,12 @@ import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequest
 import { createUserHelper, getUserHelper, isUserProfileIncomplete } from './helpers/user';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
+import { createOrUpdateAchievement } from './helpers/achievements';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => {
+    const locale = req.headers['x-localecode'] || 'en-us';
+
     // This is a honeypot hidden field to prevent spam
     if (req.body.website) {
         return handleHttpError({
@@ -28,6 +33,11 @@ const createUser: RequestHandler = (req: any, res: any) => {
         });
     }
 
+    // TODO: Find inviter by inviteCode (userName) and credit both for signup
+    const {
+        inviteCode,
+    } = req.body;
+
     return Store.users.findUser(req.body)
         .then((findResults) => {
             if (findResults.length) {
@@ -36,6 +46,35 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     message: 'Username, e-mail, and phone number must be unique. A user already exists.',
                     statusCode: 400,
                     errorCode: ErrorCodes.USER_EXISTS,
+                });
+            }
+
+            if (inviteCode) {
+                Store.users.findUser({
+                    userName: inviteCode,
+                }).then((inviter) => {
+                    if (inviter.length) {
+                        // TODO: Send confirmation e-mail to inviter
+                        return createOrUpdateAchievement({
+                            userId: inviter[0].id,
+                            locale,
+                        }, {
+                            achievementClass: 'communityLeader',
+                            achievementTier: '1_1',
+                            progressCount: 1,
+                        });
+                    }
+                }).catch((err) => {
+                    printLogs({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: [`failed to reward invite code user, ${inviteCode}`],
+                        tracer: beeline,
+                        traceArgs: {
+                            errorMessage: err?.message,
+                            errorResponse: err?.response?.data,
+                        },
+                    });
                 });
             }
 
