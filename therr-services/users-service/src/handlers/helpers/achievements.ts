@@ -10,7 +10,13 @@ const getAchIdNumber = (id: string) => {
     return parseInt(arr.join(''), 10);
 };
 
-const createOrUpdateAchievement: (requesterDetails: any, requestBody: any) => Promise<ICreateOrUpdateResponse> = ({
+interface IRequesterDetails {
+    authorization?: string;
+    userId: string;
+    locale: string;
+}
+
+const createOrUpdateAchievement: (requesterDetails: IRequesterDetails, requestBody: any) => Promise<ICreateOrUpdateResponse> = ({
     authorization,
     userId,
     locale,
