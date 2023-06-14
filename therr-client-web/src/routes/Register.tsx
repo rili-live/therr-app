@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { NavigateFunction } from 'react-router-dom';
+import { Location, NavigateFunction } from 'react-router-dom';
+import qs from 'qs';
 import translator from '../services/translator';
 import RegisterForm from '../components/forms/RegisterForm';
 import UsersActions from '../redux/actions/UsersActions';
@@ -15,6 +16,7 @@ interface IRegisterRouterProps {
 
 interface IRegisterDispatchProps {
     register: Function;
+    location: Location;
 }
 
 type IStoreProps = IRegisterDispatchProps
@@ -26,6 +28,7 @@ interface IRegisterProps extends IRegisterRouterProps, IStoreProps {
 interface IRegisterState {
     errorMessage: string;
     inputs: any;
+    inviteCode: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -44,9 +47,12 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     constructor(props: IRegisterProps) {
         super(props);
 
+        const searchParams = qs.parse(props.location?.search, { ignoreQueryPrefix: true });
+
         this.state = {
             errorMessage: '',
             inputs: {},
+            inviteCode: searchParams?.['invite-code'] as string || '',
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -57,7 +63,11 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     }
 
     register = (credentials: any) => {
-        this.props.register(credentials).then((response: any) => {
+        const { inviteCode } = this.state;
+        this.props.register({
+            ...credentials,
+            inviteCode,
+        }).then((response: any) => {
             this.props.navigation.navigate('/login', {
                 state: {
                     successMessage: this.translate('pages.register.registerSuccess'),
@@ -77,12 +87,12 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     };
 
     public render(): JSX.Element | null {
-        const { errorMessage } = this.state;
+        const { errorMessage, inviteCode } = this.state;
 
         return (
             <>
                 <div id="page_register" className="flex-box space-evenly center row wrap-reverse">
-                    <RegisterForm register={this.register} title={this.translate('pages.register.pageTitle')} />
+                    <RegisterForm register={this.register} title={this.translate('pages.register.pageTitle')} inviteCode={inviteCode} />
                 </div>
                 {
                     errorMessage

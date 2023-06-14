@@ -301,9 +301,12 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
     };
 
     onShareALink = () => {
+        const { user } = this.props;
         Share.share({
-            message: this.translate('forms.createConnection.shareLink.message'),
-            url: 'https://therr.app',
+            message: this.translate('forms.createConnection.shareLink.message', {
+                inviteCode: user.details.userName,
+            }),
+            url: `https://www.therr.com/register?invite-code=${user.details.userName}`,
             title: this.translate('forms.createConnection.shareLink.title'),
         }).then((response) => {
             if (response.action === Share.sharedAction) {

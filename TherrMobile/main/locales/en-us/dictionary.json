@@ -266,7 +266,7 @@
         "email": "Invitee's E-mail"
       },
       "shareLink": {
-        "message": "Have you heard of Therr app yet? It's a newsfeed that creates connections through the areas around you. Find the android and iOS links here https://therr.app",
+        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 https://www.therr.com/register?invite-code={inviteCode}",
         "title": "Therr App | Nearby Newsfeed"
       }
     },

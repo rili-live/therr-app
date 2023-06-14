@@ -87,6 +87,9 @@
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
+      },
+      "text": {
+        "signupForRewards": "Continue signup to earn rewards for you and {userName}!"
       }
     },
     "userMenu": {

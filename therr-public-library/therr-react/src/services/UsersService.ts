@@ -24,6 +24,7 @@ interface IRegisterCredentials {
     phoneNumber: string;
     userName: string;
     password: string;
+    inviteCode?: string;
 }
 
 interface IUpdateUser {
