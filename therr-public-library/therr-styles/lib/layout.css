@@ -25,6 +25,9 @@
 .flex-box.space-around {
   justify-content: space-around;
 }
+.flex-box.space-between {
+  justify-content: space-between;
+}
 .flex-box.space-evenly {
   justify-content: space-evenly;
 }
