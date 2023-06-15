@@ -226,6 +226,7 @@ class UsersActions {
             dispatch({
                 type: SocketClientActionTypes.UPDATE_USER,
                 data: {
+                    details: userData,
                     settings: userSettingsData,
                 },
             });
