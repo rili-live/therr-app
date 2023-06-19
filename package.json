@@ -228,6 +228,7 @@
     "react-copy-to-clipboard": "^5.0.3",
     "react-datetime": "^3.0.4",
     "react-dom": "^18.2.0",
+    "react-dropzone": "^14.2.3",
     "react-ga4": "^2.1.0",
     "react-native-uuid": "^2.0.1",
     "react-phone-number-input": "3.1.25",

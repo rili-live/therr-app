@@ -7,18 +7,11 @@ GIT_SHA=$(git rev-parse HEAD)
 source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
 
-TRAVIS_CI_CD_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
-
-CURRENT_BRANCH=${TRAVIS_CI_CD_BRANCH:-$CICD_BRANCH}
+CURRENT_BRANCH=${CICD_BRANCH:-$CIRCLE_BRANCH}
 echo "Current branch is $CURRENT_BRANCH"
 
-# TRAVIS_BRANCH represents the destination branch for PR builds
-if [ ! -z "$TRAVIS_PULL_REQUEST_BRANCH" ]; then
-  DESTINATION_BRANCH=$TRAVIS_BRANCH
-  echo "Destination branch is $TRAVIS_BRANCH"
-else
-  DESTINATION_BRANCH="main"
-fi
+DESTINATION_BRANCH="main"
+echo "Destination branch is $DESTINATION_BRANCH"
 
 # Only build the docker images when the source branch is stage or main
 if [[ ("$CURRENT_BRANCH" != "stage") && ("$CURRENT_BRANCH" != "main") ]]; then
