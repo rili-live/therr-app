@@ -5,20 +5,13 @@ set -e
 source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
 
-TRAVIS_CI_CD_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
-
-CURRENT_BRANCH=${TRAVIS_CI_CD_BRANCH:-$CICD_BRANCH}
+CURRENT_BRANCH=${CICD_BRANCH:-$CIRCLE_BRANCH}
 echo "Current branch is $CURRENT_BRANCH"
 
-# TRAVIS_BRANCH represents the destination branch for PR builds
-if [ ! -z "$TRAVIS_PULL_REQUEST_BRANCH" ]; then
-  DESTINATION_BRANCH=$TRAVIS_BRANCH
-  echo "Destination branch is $TRAVIS_BRANCH"
-else
-  DESTINATION_BRANCH="main"
-fi
+DESTINATION_BRANCH="main"
+echo "Destination branch is $DESTINATION_BRANCH"
 
-# This should get us the SHA of the stage branch prior to main that last build and published docker images
+# This should get us the SHA of the stage branch prior to main that last built and published docker images
 export $(cat VERSIONS.txt)
 GIT_SHA="${LAST_PUBLISHED_GIT_SHA}"
 echo "LAST_PUBLISHED_GIT_SHA=${GIT_SHA}"

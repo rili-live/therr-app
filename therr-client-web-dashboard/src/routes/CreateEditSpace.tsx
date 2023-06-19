@@ -13,7 +13,9 @@ import {
 } from 'react-bootstrap';
 import { MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
-import { IMapState as IMapReduxState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import {
+    IContentState, IMapState as IMapReduxState, IUserState, IUserConnectionsState,
+} from 'therr-react/types';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
@@ -37,10 +39,12 @@ interface ICreateEditSpaceDispatchProps {
     searchUserConnections: Function;
     updateSpace: Function;
     getPlacesSearchAutoComplete: Function;
+    getSpaceDetails: Function;
     setSearchDropdownVisibility: Function;
 }
 
 interface IStoreProps extends ICreateEditSpaceDispatchProps {
+    content: IContentState;
     map: IMapReduxState;
     user: IUserState;
     userConnections: IUserConnectionsState;
@@ -56,6 +60,7 @@ interface ICreateEditSpaceState {
     alertVariation: string;
     alertTitle: string;
     alertMessage: string;
+    fetchedSpace: any;
     isSubmitting: boolean;
     inputs: {
         [key: string]: any;
@@ -64,6 +69,7 @@ interface ICreateEditSpaceState {
 }
 
 const mapStateToProps = (state: any) => ({
+    content: state.content,
     map: state.map,
     user: state.user,
     userConnections: state.userConnections,
@@ -73,6 +79,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     searchUserConnections: UserConnectionsActions.search,
     updateSpace: MapActions.updateSpace,
     getPlacesSearchAutoComplete: MapActions.getPlacesSearchAutoComplete,
+    getSpaceDetails: MapActions.getSpaceDetails,
     setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
 }, dispatch);
 
@@ -94,6 +101,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
             alertVariation: 'success',
             alertTitle: '',
             alertMessage: '',
+            fetchedSpace: space,
             isSubmitting: false,
             inputs: {
                 address: space?.addressReadable ? [
@@ -112,11 +120,26 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
     }
 
     componentDidMount() {
-        const {
-            user,
-            userConnections,
-        } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.claimASpace.pageTitle')}`;
+        document.title = `Therr for Business | ${this.translate('pages.editSpace.pageTitle')}`;
+        const { getSpaceDetails, location } = this.props;
+        const { space } = location?.state || {};
+        const { spaceId } = this.props.routeParams;
+        const id = space?.id || spaceId;
+
+        if (id) {
+            getSpaceDetails(id, {
+                withMedia: true,
+            }).then((data) => {
+                this.setState({
+                    fetchedSpace: {
+                        ...this.state.fetchedSpace,
+                        ...data?.space,
+                    },
+                });
+            }).catch(() => {
+                // Happens when space is not yet activated, but that is OK
+            });
+        }
     }
 
     componentWillUnmount = () => {
@@ -273,10 +296,13 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
             alertVariation,
             alertTitle,
             alertMessage,
+            fetchedSpace,
             inputs,
             isEditing,
         } = this.state;
-        const { map, user } = this.props;
+        const { content, map, user } = this.props;
+        const mediaId = (fetchedSpace?.media && fetchedSpace?.media[0]?.id) || (fetchedSpace?.mediaIds?.length && fetchedSpace?.mediaIds?.split(',')[0]);
+        const spaceMediaUrl = content?.media[mediaId];
 
         return (
             <div id="page_settings" className="flex-box column">
@@ -305,6 +331,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                                 spaceTitle: inputs.spaceTitle,
                                 spaceDescription: inputs.spaceDescription,
                             }}
+                            mediaUrl={spaceMediaUrl}
                             isSubmitDisabled={this.isSubmitDisabled()}
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeaheadSelect={this.onAddressTypeaheadSelect}

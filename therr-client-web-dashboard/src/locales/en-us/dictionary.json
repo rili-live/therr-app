@@ -126,6 +126,9 @@
     "claimASpace": {
       "pageTitle": "Claim a Space"
     },
+    "editSpace": {
+      "pageTitle": "Create/EditSpace"
+    },
     "emailVerification": {
       "buttons": {
         "send": "Send E-mail"
