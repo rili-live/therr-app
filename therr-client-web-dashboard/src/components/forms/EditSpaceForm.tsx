@@ -78,9 +78,9 @@ const EditSpaceForm = ({
                     <Row>
                         {
                             mediaUrl
-                            && <Col md={4} className="mb-3 py-4">
-                                <Image src={mediaUrl} className="" />
-                            </Col>
+                                && <Col md={4} className="mb-3 py-4">
+                                    <Image src={mediaUrl} className="" />
+                                </Col>
                         }
                         <Col sm={mediaUrl ? 8 : 12}>
                             <h5 className="my-4">General Information</h5>
