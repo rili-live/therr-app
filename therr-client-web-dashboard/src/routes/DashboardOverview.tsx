@@ -104,6 +104,7 @@ interface IDashboardOverviewState {
     metrics: any[];
     impressionsLabels: string[] | undefined;
     impressionsValues: number[][] | undefined;
+    percentageChange: number;
     spacesInView: ISpace[]; // TODO: Move to Redux
     spanOfTime: 'week' | 'month';
 }
@@ -132,6 +133,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
             impressionsLabels: undefined,
             impressionsValues: undefined,
             metrics: [],
+            percentageChange: undefined,
             spacesInView: [],
             spanOfTime: 'week',
         };
@@ -202,6 +204,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
 
                     this.setState({
                         metrics: response.data.metrics,
+                        percentageChange: response.data.aggregations.previousSeriesPct,
                         impressionsLabels: Object.keys(formattedMetrics),
                         impressionsValues: [Object.values(formattedMetrics)],
                     });
@@ -261,6 +264,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
             impressionsLabels,
             impressionsValues,
             metrics,
+            percentageChange
         } = this.state;
 
         return (
@@ -295,7 +299,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                             value={metrics.length}
                             labels={impressionsLabels}
                             values={impressionsValues}
-                            percentage={100}
+                            percentage={percentageChange}
                             fetchSpaceMetrics={this.fetchSpaceMetrics}
                         />
                     </Col>
@@ -306,7 +310,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                             value={metrics.length}
                             labels={impressionsLabels}
                             values={impressionsValues}
-                            percentage={100}
+                            percentage={percentageChange}
                             fetchSpaceMetrics={this.fetchSpaceMetrics}
                         />
                     </Col>

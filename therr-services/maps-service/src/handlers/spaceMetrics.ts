@@ -4,7 +4,7 @@ import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
-
+import { aggregateMetrics, PercentageChange } from '../api/aggregations';
 // CREATE
 const createSpaceMetric = async (req, res) => {
     const authorization = req.headers.authorization;
@@ -61,6 +61,14 @@ const createSpaceMetric = async (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
+async function getMetrics(startDate, endDate, spaceId) {
+    const range = endDate - startDate;
+    const currentSeries = await Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId });
+    const previousSeries = await Store.spaceMetrics.getForDateRange(startDate - range, endDate - range, { spaceId });
+
+    return ([currentSeries, previousSeries]);
+}
+
 // READ
 const getSpaceMetrics = (req, res) => {
     const userId = req.headers['x-userid'];
@@ -110,10 +118,15 @@ const getSpaceMetrics = (req, res) => {
                 startDate,
                 endDate,
             } = req.query;
-
-            return Store.spaceMetrics.getForDateRange(startDate, endDate, {
-                spaceId,
-            }).then((results) => res.status(200).send({ space, metrics: results }));
+            return getMetrics(startDate, endDate, spaceId).then((results) => res.status(200).send({
+            // const [currentSeries, previousSeries] = results
+                space,
+                metrics: results[0],
+                aggregations: {
+                    metrics: aggregateMetrics(results[0]),
+                    previousSeriesPct: PercentageChange(results[0], results[1]),
+                },
+            }));
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
