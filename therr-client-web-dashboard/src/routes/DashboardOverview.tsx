@@ -195,7 +195,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                     // TODO: Account for different metric names and value types
                     formattedMetrics = {
                         ...formattedMetrics,
-                        ...(response?.data?.metrics || [])
+                        ...(response?.data?.aggregations.metrics || [])
                     };
 
                     this.setState({
