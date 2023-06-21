@@ -12,7 +12,7 @@ const aggregateMetrics = (metrics) => {
     return formattedMetrics;
 };
 
-const PercentageChange = (currentSeries, previousSeries) => {
+const getPercentageChange = (currentSeries, previousSeries) => {
     let currentMetricSum = 0;
     let previousMetricSum = 0;
     const curValues = Object.values(currentSeries);
@@ -28,4 +28,4 @@ const PercentageChange = (currentSeries, previousSeries) => {
     return ((currentMetricSum - previousMetricSum) * 100) / previousMetricSum;
 };
 
-export { aggregateMetrics, PercentageChange };
+export { aggregateMetrics, getPercentageChange };

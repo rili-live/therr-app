@@ -4,7 +4,7 @@ import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
-import { aggregateMetrics, PercentageChange } from '../api/aggregations';
+import { aggregateMetrics, getPercentageChange } from '../api/aggregations';
 // CREATE
 const createSpaceMetric = async (req, res) => {
     const authorization = req.headers.authorization;
@@ -61,12 +61,12 @@ const createSpaceMetric = async (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
-async function getMetrics(startDate, endDate, spaceId) {
+function getMetrics(startDate, endDate, spaceId) {
     const range = endDate - startDate;
-    const currentSeries = await Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId });
-    const previousSeries = await Store.spaceMetrics.getForDateRange(startDate - range, endDate - range, { spaceId });
+    const currentSeriesPromise = Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId });
+    const prevSeriesPromise = Store.spaceMetrics.getForDateRange(startDate - range, endDate - range, { spaceId });
 
-    return ([currentSeries, previousSeries]);
+    return Promise.all([currentSeriesPromise, prevSeriesPromise]);
 }
 
 // READ
@@ -118,13 +118,12 @@ const getSpaceMetrics = (req, res) => {
                 startDate,
                 endDate,
             } = req.query;
-            return getMetrics(startDate, endDate, spaceId).then((results) => res.status(200).send({
-            // const [currentSeries, previousSeries] = results
+            return getMetrics(startDate, endDate, spaceId).then(([currentMetrics, previousMetrics]) => res.status(200).send({
                 space,
-                metrics: results[0],
+                metrics: currentMetrics,
                 aggregations: {
-                    metrics: aggregateMetrics(results[0]),
-                    previousSeriesPct: PercentageChange(results[0], results[1]),
+                    metrics: aggregateMetrics(currentMetrics),
+                    previousSeriesPct: getPercentageChange(currentMetrics, previousMetrics),
                 },
             }));
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
