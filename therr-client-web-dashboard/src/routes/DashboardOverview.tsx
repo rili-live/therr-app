@@ -104,6 +104,7 @@ interface IDashboardOverviewState {
     metrics: any[];
     impressionsLabels: string[] | undefined;
     impressionsValues: number[][] | undefined;
+    percentageChange: number;
     spacesInView: ISpace[]; // TODO: Move to Redux
     spanOfTime: 'week' | 'month';
 }
@@ -132,6 +133,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
             impressionsLabels: undefined,
             impressionsValues: undefined,
             metrics: [],
+            percentageChange: 0,
             spacesInView: [],
             spanOfTime: 'week',
         };
@@ -178,7 +180,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
 
         const startDate = moment().subtract(1, `${timeSpan}s`).utc().format('YYYY-MM-DD HH:mm:ss');
         const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-        const formattedMetrics = populateEmptyMetrics(timeSpan);
+        let formattedMetrics = populateEmptyMetrics(timeSpan);
         const prefetchPromise: Promise<any> = !spacesInView.length ? this.fetchMySpaces() : Promise.resolve();
 
         prefetchPromise.then(() => {
@@ -191,17 +193,14 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                     endDate,
                 }).then((response) => {
                     // TODO: Account for different metric names and value types
-                    response?.data?.metrics.forEach((metric) => {
-                        const month = new Date(metric.createdAt).getUTCMonth() + 1;
-                        const dayOfMonth = new Date(metric.createdAt).getUTCDate();
-                        const dataKey = `${month}/${dayOfMonth}`;
-                        formattedMetrics[dataKey] = formattedMetrics[dataKey] !== undefined
-                            ? formattedMetrics[dataKey] + Number(metric.value)
-                            : Number(metric.value);
-                    });
+                    formattedMetrics = {
+                        ...formattedMetrics,
+                        ...(response?.data?.aggregations.metrics || [])
+                    };
 
                     this.setState({
                         metrics: response.data.metrics,
+                        percentageChange: response.data.aggregations.previousSeriesPct,
                         impressionsLabels: Object.keys(formattedMetrics),
                         impressionsValues: [Object.values(formattedMetrics)],
                     });
@@ -261,6 +260,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
             impressionsLabels,
             impressionsValues,
             metrics,
+            percentageChange
         } = this.state;
 
         return (
@@ -295,7 +295,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                             value={metrics.length}
                             labels={impressionsLabels}
                             values={impressionsValues}
-                            percentage={100}
+                            percentage={percentageChange}
                             fetchSpaceMetrics={this.fetchSpaceMetrics}
                         />
                     </Col>
@@ -306,7 +306,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                             value={metrics.length}
                             labels={impressionsLabels}
                             values={impressionsValues}
-                            percentage={100}
+                            percentage={percentageChange}
                             fetchSpaceMetrics={this.fetchSpaceMetrics}
                         />
                     </Col>
