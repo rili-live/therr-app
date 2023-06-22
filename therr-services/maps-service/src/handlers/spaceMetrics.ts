@@ -4,7 +4,7 @@ import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
-
+import { aggregateMetrics, getPercentageChange } from '../api/aggregations';
 // CREATE
 const createSpaceMetric = async (req, res) => {
     const authorization = req.headers.authorization;
@@ -61,6 +61,18 @@ const createSpaceMetric = async (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
+function getMetrics(startDate, endDate, spaceId) {
+    const startDateTime = new Date(endDate).getTime();
+    const endDateTime = new Date(startDate).getTime();
+    const range = endDateTime - startDateTime;
+    const previousSeriesStartDate = new Date(startDateTime - range);
+    const previousSeriesEndDate = new Date(endDateTime - range);
+    const currentSeriesPromise = Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId });
+    const prevSeriesPromise = Store.spaceMetrics.getForDateRange(previousSeriesStartDate, (previousSeriesEndDate), { spaceId });
+
+    return Promise.all([currentSeriesPromise, prevSeriesPromise]);
+}
+
 // READ
 const getSpaceMetrics = (req, res) => {
     const userId = req.headers['x-userid'];
@@ -110,10 +122,14 @@ const getSpaceMetrics = (req, res) => {
                 startDate,
                 endDate,
             } = req.query;
-
-            return Store.spaceMetrics.getForDateRange(startDate, endDate, {
-                spaceId,
-            }).then((results) => res.status(200).send({ space, metrics: results }));
+            return getMetrics(startDate, endDate, spaceId).then(([currentMetrics, previousMetrics]) => res.status(200).send({
+                space,
+                metrics: currentMetrics,
+                aggregations: {
+                    metrics: aggregateMetrics(currentMetrics),
+                    previousSeriesPct: getPercentageChange(currentMetrics, previousMetrics),
+                },
+            }));
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
