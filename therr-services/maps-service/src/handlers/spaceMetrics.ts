@@ -62,9 +62,13 @@ const createSpaceMetric = async (req, res) => {
 };
 
 function getMetrics(startDate, endDate, spaceId) {
-    const range = endDate - startDate;
+    const startDateTime = new Date(endDate).getTime();
+    const endDateTime = new Date(startDate).getTime();
+    const range = endDateTime - startDateTime;
+    const previousSeriesStartDate = new Date(startDateTime - range);
+    const previousSeriesEndDate = new Date(endDateTime - range);
     const currentSeriesPromise = Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId });
-    const prevSeriesPromise = Store.spaceMetrics.getForDateRange(startDate - range, endDate - range, { spaceId });
+    const prevSeriesPromise = Store.spaceMetrics.getForDateRange(previousSeriesStartDate, (previousSeriesEndDate), { spaceId });
 
     return Promise.all([currentSeriesPromise, prevSeriesPromise]);
 }
