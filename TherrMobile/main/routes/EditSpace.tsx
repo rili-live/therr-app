@@ -282,7 +282,6 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
 
         // TODO: This is too slow
-        // Use public method for public spaces
         return signImageUrl(isPublic, {
             action: 'write',
             filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g,'_')}.${fileExtension}`,
@@ -295,7 +294,6 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             const localFileCroppedPath = `${imageDetails?.path}`;
 
             // Upload to Google Cloud
-            // TODO: Abstract and add nudity filter sightengine.com
             return RNFB.fetch(
                 'PUT',
                 signedUrl,

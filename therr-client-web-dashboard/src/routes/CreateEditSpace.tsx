@@ -13,6 +13,7 @@ import {
 } from 'react-bootstrap';
 import { MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
+import { Content } from 'therr-js-utilities/constants';
 import {
     IContentState, IMapState as IMapReduxState, IUserState, IUserConnectionsState,
 } from 'therr-react/types';
@@ -22,6 +23,7 @@ import withNavigation from '../wrappers/withNavigation';
 import EditSpaceForm from '../components/forms/EditSpaceForm';
 import ManageSpacesMenu from '../components/ManageSpacesMenu';
 import { ISpace } from '../types';
+import { signAndUploadImage } from '../utilities/media';
 
 interface ICreateEditSpaceRouterProps {
     location: {
@@ -61,6 +63,7 @@ interface ICreateEditSpaceState {
     alertTitle: string;
     alertMessage: string;
     fetchedSpace: any;
+    files: any[];
     isSubmitting: boolean;
     inputs: {
         [key: string]: any;
@@ -102,6 +105,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
             alertTitle: '',
             alertMessage: '',
             fetchedSpace: space,
+            files: [],
             isSubmitting: false,
             inputs: {
                 address: space?.addressReadable ? [
@@ -110,6 +114,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                     },
                 ] : undefined,
                 category: space?.category || 'uncategorized',
+                isPublic: space?.isPublic,
                 spaceTitle: space?.notificationMsg || '',
                 spaceDescription: space?.message || '',
             },
@@ -134,6 +139,16 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                     fetchedSpace: {
                         ...this.state.fetchedSpace,
                         ...data?.space,
+                    },
+                    inputs: {
+                        address: data?.space?.addressReadable ? [
+                            {
+                                label: data?.space?.addressReadable,
+                            },
+                        ] : undefined,
+                        category: data?.space?.category || 'uncategorized',
+                        spaceTitle: data?.space?.notificationMsg || '',
+                        spaceDescription: data?.space?.message || '',
                     },
                 });
             }).catch(() => {
@@ -228,7 +243,14 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
         });
     };
 
+    onSelectMedia = (files: any[]) => {
+        this.setState({
+            files,
+        });
+    };
+
     onUpdateSpace = (event: React.MouseEvent<HTMLInputElement>) => {
+        const { files } = this.state;
         const { location, navigation, updateSpace } = this.props;
         const { space } = location?.state || {};
 
@@ -247,24 +269,28 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
         });
 
         if (space?.id) {
-            updateSpace(space.id, {
+            const createUpdateArgs = {
                 ...space,
                 notificationMsg: spaceTitle,
                 message: spaceDescription,
                 category,
-            }).then(() => {
-                this.setState({
-                    alertTitle: 'Successfully Updated!',
-                    alertMessage: 'This space was updated without issue.',
-                    alertVariation: 'success',
-                });
-                this.toggleAlert(true);
-                setTimeout(() => {
+                addressReadable: (selectedAddresses?.length && selectedAddresses[0]?.label) || space.addressReadable,
+            };
+            (files.length > 0 ? signAndUploadImage(createUpdateArgs, files) : Promise.resolve(createUpdateArgs)).then((modifiedArgs) => {
+                updateSpace(space.id, modifiedArgs).then(() => {
                     this.setState({
-                        isSubmitting: false,
+                        alertTitle: 'Successfully Updated!',
+                        alertMessage: 'This space was updated without issue.',
+                        alertVariation: 'success',
                     });
-                    navigation.navigate('/manage-spaces');
-                }, 2000);
+                    this.toggleAlert(true);
+                    setTimeout(() => {
+                        this.setState({
+                            isSubmitting: false,
+                        });
+                        navigation.navigate('/manage-spaces');
+                    }, 1500);
+                });
             }).catch((error) => {
                 console.log(error);
                 this.onSubmitError('Unknown Error', 'Failed to process your request. Please try again later.');
@@ -336,6 +362,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeaheadSelect={this.onAddressTypeaheadSelect}
                             onInputChange={this.onInputChange}
+                            onSelectMedia={this.onSelectMedia}
                             onSubmit={this.onUpdateSpace}
                             submitText='Update Space'
                         />

@@ -1,8 +1,9 @@
 
 import logger from 'redux-logger';
 import { configureStore } from '@reduxjs/toolkit';
-import rootReducer from './redux/reducers';
+import { CurriedGetDefaultMiddleware } from '@reduxjs/toolkit/dist/getDefaultMiddleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import rootReducer from './redux/reducers';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
 
 declare global {
@@ -13,6 +14,14 @@ declare global {
 }
 
 let preloadedState;
+
+const getMiddleware = (getDefaultMiddleware: CurriedGetDefaultMiddleware<any>) => {
+    if (__DEV__) {
+        return getDefaultMiddleware().concat(socketIOMiddleWare).concat(logger);
+    }
+
+    return getDefaultMiddleware().concat(socketIOMiddleWare);
+};
 
 const getStore = async () => {
     // Get stored user details from session storage if they are already logged in
@@ -47,7 +56,7 @@ const getStore = async () => {
         // Create Store - Redux Development (Chrome Only)
         reducer: rootReducer,
         preloadedState,
-        middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(logger),
+        middleware: getMiddleware,
         devTools: !!__DEV__,
     });
 };
