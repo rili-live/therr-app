@@ -61,8 +61,10 @@ const signAndUploadImage = (createArgs: any, files: any[]) => {
                     },
                     body: buffer,
                 },
-            ).then(() => modifiedCreateArgs);
-        });
+            );
+        })
+            .then(() => modifiedCreateArgs)
+            .catch(() => modifiedCreateArgs);
     });
 };
 
