@@ -1,6 +1,8 @@
 import LogRocket from 'logrocket';
 import logger from 'redux-logger';
 import { configureStore } from '@reduxjs/toolkit';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import { CurriedGetDefaultMiddleware } from '@reduxjs/toolkit/dist/getDefaultMiddleware';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
 
@@ -48,11 +50,19 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
     }
 }
 
+const getMiddleware = (getDefaultMiddleware: CurriedGetDefaultMiddleware<any>) => {
+    if (process.env.NODE_ENV === 'development') {
+        return getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()).concat(logger);
+    }
+
+    return getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware());
+};
+
 const store: any = configureStore( // Create Store (Production)
     {
         reducer: rootReducer,
         preloadedState,
-        middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()).concat(logger),
+        middleware: getMiddleware,
         devTools: process.env.NODE_ENV === 'development',
     },
 );

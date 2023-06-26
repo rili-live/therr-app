@@ -435,28 +435,46 @@ export default class SpacesStore {
     }
 
     updateSpace(id: string, params: any = {}) {
-        const isTextMature = isTextUnsafe([params.notificationMsg, params.message, params.hashTags || '']);
+        // TODO: Support creating multiple
+        // eslint-disable-next-line no-param-reassign
+        params.media = params.media
+            ? params.media.map((media, index): ICreateMediaParams => ({
+                ...media,
+                fromUserId: params.fromUserId,
+                altText: `${params.notificationMsg} ${index}`,
+            }))
+            : undefined;
 
-        const sanitizedParams = {
-            addressReadable: params.addressReadable,
-            notificationMsg: params.notificationMsg,
-            message: params.message,
-            category: params.category,
-            isMatureContent: params.isMatureContent || isTextMature ? true : undefined,
-            isPublic: params.isMatureContent === true ? true : undefined, // NOTE: For now make this content private to reduce public, mature content
-            featuredIncentiveKey: params.featuredIncentiveKey,
-            featuredIncentiveValue: params.featuredIncentiveValue,
-            featuredIncentiveRewardKey: params.featuredIncentiveRewardKey,
-            featuredIncentiveRewardValue: params.featuredIncentiveRewardValue,
-            incentiveCurrencyId: params.incentiveCurrencyId,
-        };
-        const queryString = knexBuilder.update(sanitizedParams)
-            .into(SPACES_TABLE_NAME)
-            .where({ id, fromUserId: params.fromUserId }) // users can only update their own spaces
-            .returning('*')
-            .toString();
+        const mediaPromise: Promise<string | undefined> = params.media
+            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString())
+            : Promise.resolve(undefined);
 
-        return this.db.write.query(queryString).then((response) => response.rows);
+        return mediaPromise.then((mediaIds: string | undefined) => {
+            const isTextMature = isTextUnsafe([params.notificationMsg, params.message, params.hashTags || '']);
+
+            const sanitizedParams = {
+                addressReadable: params.addressReadable,
+                notificationMsg: params.notificationMsg,
+                message: params.message,
+                category: params.category,
+                isMatureContent: params.isMatureContent || isTextMature ? true : undefined,
+                isPublic: params.isMatureContent === true ? true : undefined, // NOTE: For now make this content private to reduce public, mature content
+                featuredIncentiveKey: params.featuredIncentiveKey,
+                featuredIncentiveValue: params.featuredIncentiveValue,
+                featuredIncentiveRewardKey: params.featuredIncentiveRewardKey,
+                featuredIncentiveRewardValue: params.featuredIncentiveRewardValue,
+                incentiveCurrencyId: params.incentiveCurrencyId,
+                mediaIds: mediaIds || params.mediaIds || '',
+            };
+
+            const queryString = knexBuilder.update(sanitizedParams)
+                .into(SPACES_TABLE_NAME)
+                .where({ id, fromUserId: params.fromUserId }) // users can only update their own spaces
+                .returning('*')
+                .toString();
+
+            return this.db.write.query(queryString).then((response) => response.rows);
+        });
     }
 
     delete(fromUserId: string) {

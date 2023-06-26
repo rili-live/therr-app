@@ -48,6 +48,7 @@ interface IClaimASpaceState {
     alertVariation: string;
     alertTitle: string;
     alertMessage: string;
+    files: any[];
     isSubmitting: boolean;
     inputs: {
         [key: string]: any;
@@ -82,6 +83,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
             alertVariation: 'success',
             alertTitle: '',
             alertMessage: '',
+            files: [],
             isSubmitting: false,
             inputs: {
                 category: 'uncategorized',
@@ -187,6 +189,12 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
         });
     };
 
+    onSelectMedia = (files: any[]) => {
+        this.setState({
+            files,
+        });
+    };
+
     onSubmitSpaceClaim = (event: React.MouseEvent<HTMLInputElement>) => {
         event.preventDefault();
         const {
@@ -275,6 +283,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeaheadSelect={this.onAddressTypeaheadSelect}
                             onInputChange={this.onInputChange}
+                            onSelectMedia={this.onSelectMedia}
                             onSubmit={this.onSubmitSpaceClaim}
                             submitText='Claim this Space'
                         />
