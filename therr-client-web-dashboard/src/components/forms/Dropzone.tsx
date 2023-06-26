@@ -42,6 +42,11 @@ const Dropzone = ({
         getRootProps,
         getInputProps,
     } = useDropzone({
+        accept: {
+            'image/png': ['.png'],
+            'image/jpeg': ['.jpg', '.jpeg'],
+            'image/webp': ['.webp'],
+        },
         onDrop,
         multiple: false,
     });
