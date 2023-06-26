@@ -17,6 +17,11 @@ const redisClient = new Redis({
         const delay = Math.min(times * 50, 5000);
         return delay;
     },
+    /**
+     * Redis is a single point of failure because we rely on rate limiting.
+     * This config property causes it to retry indefinitely until Redis is back online
+     */
+    maxRetriesPerRequest: null,
 });
 
 // Redis Error handling
