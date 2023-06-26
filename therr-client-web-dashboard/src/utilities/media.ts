@@ -25,7 +25,7 @@ const fileToBuffer = (file) => new Promise((resolve, reject) => {
         const binaryStr = reader.result;
         return resolve(binaryStr);
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
 });
 
 const signAndUploadImage = (createArgs: any, files: any[]) => {
@@ -43,28 +43,24 @@ const signAndUploadImage = (createArgs: any, files: any[]) => {
         modifiedCreateArgs.media[0].type = createArgs.isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
         modifiedCreateArgs.media[0].path = response?.data?.path;
 
-        const formData = new FormData();
-
         // TODO: Upload the file to Google Cloud
-        return fileToBuffer(firstFile).then((buffer: string) => {
-            formData.append('file', firstFile);
-
-            // Upload to Google Cloud
-            return fetch(
-                signedUrl,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': firstFile.type,
-                        'Content-Length': firstFile.size.toString(),
-                        'Content-Disposition': 'inline',
-                    },
-                    body: buffer,
+        return fileToBuffer(firstFile).then((buffer: string) => fetch(
+            signedUrl,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': firstFile.type,
+                    'Content-Length': firstFile.size.toString(),
+                    'Content-Disposition': 'inline',
                 },
-            );
-        })
+                body: buffer,
+            },
+        ))
             .then(() => modifiedCreateArgs)
-            .catch(() => modifiedCreateArgs);
+            .catch((err) => {
+                console.log(err);
+                return modifiedCreateArgs;
+            });
     });
 };
 

@@ -465,6 +465,7 @@ export default class SpacesStore {
                 featuredIncentiveRewardValue: params.featuredIncentiveRewardValue,
                 incentiveCurrencyId: params.incentiveCurrencyId,
                 mediaIds: mediaIds || params.mediaIds || '',
+                updatedAt: new Date(),
             };
 
             const queryString = knexBuilder.update(sanitizedParams)
