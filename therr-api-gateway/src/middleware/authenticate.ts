@@ -14,6 +14,7 @@ const authenticate = async (req, res, next) => {
 
                     req['x-userid'] = decoded.id;
                     req['x-username'] = decoded.userName;
+                    req['x-user-access-levels'] = decoded.accessLevels ? JSON.stringify(decoded.accessLevels) : '[]';
 
                     if (isBlacklisted(req.ip)
                     || (decoded && decoded.isBlocked && decoded.isBlocked === true && !req.path.includes('users-service/auth/logout'))) {
