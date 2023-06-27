@@ -1,4 +1,4 @@
-import { ErrorCodes } from 'therr-js-utilities/constants';
+import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
 import printLogs from 'therr-js-utilities/print-logs';
 import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
@@ -61,7 +61,7 @@ const createSpaceMetric = async (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
-function getMetrics(startDate, endDate, spaceId) {
+const getFormattedMetrics = (startDate, endDate, spaceId) => {
     const startDateTime = new Date(endDate).getTime();
     const endDateTime = new Date(startDate).getTime();
     const range = endDateTime - startDateTime;
@@ -71,12 +71,14 @@ function getMetrics(startDate, endDate, spaceId) {
     const prevSeriesPromise = Store.spaceMetrics.getForDateRange(previousSeriesStartDate, (previousSeriesEndDate), { spaceId });
 
     return Promise.all([currentSeriesPromise, prevSeriesPromise]);
-}
+};
 
 // READ
 const getSpaceMetrics = (req, res) => {
     const userId = req.headers['x-userid'];
+    const userAccessLevels = req.headers['x-user-access-levels'];
     const locale = req.headers['x-localecode'] || 'en-us';
+    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
 
     const { spaceId } = req.params;
 
@@ -109,7 +111,7 @@ const getSpaceMetrics = (req, res) => {
                     errorCode: ErrorCodes.NOT_FOUND,
                 });
             }
-            if (space?.fromUserId !== userId) {
+            if (space?.fromUserId !== userId && !accessLevels?.contains(AccessLevels.SUPER_ADMIN)) {
                 return handleHttpError({
                     res,
                     message: translate(locale, 'spaces.mustBeOwner'),
@@ -122,7 +124,7 @@ const getSpaceMetrics = (req, res) => {
                 startDate,
                 endDate,
             } = req.query;
-            return getMetrics(startDate, endDate, spaceId).then(([currentMetrics, previousMetrics]) => res.status(200).send({
+            return getFormattedMetrics(startDate, endDate, spaceId).then(([currentMetrics, previousMetrics]) => res.status(200).send({
                 space,
                 metrics: currentMetrics,
                 aggregations: {

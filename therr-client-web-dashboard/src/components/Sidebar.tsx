@@ -43,14 +43,24 @@ import {
     Accordion,
     Navbar,
 } from '@themesberg/react-bootstrap';
+import {
+    AccessControl,
+} from 'therr-react/components';
 import getUserImageUri from '../utilities/getUserImageUri';
 
 const TherrForBusinessLogo = '/assets/img/therr-logo.svg';
 const ReactHero = '/assets/img/therr-logo.svg';
 const ProfilePicture = '/assets/img/team/profile-picture-3.jpg';
 
-const Sidebar = (props: any = {}) => {
-    const { onLogout, user } = props;
+interface ISidebarProps {
+    onLogout: (event: any) => any;
+    isSuperAdmin: boolean;
+    show: boolean;
+    user: any;
+}
+
+const Sidebar = (props: ISidebarProps) => {
+    const { onLogout, isSuperAdmin, user } = props;
     const location = useLocation();
     const { pathname } = location;
     const [show, setShow] = useState(false);
@@ -146,6 +156,9 @@ const Sidebar = (props: any = {}) => {
                         </div>
                         <Nav className="flex-column pt-3 pt-md-0">
                             <NavItem title="My Dashboard" link={'/dashboard'} icon={faHome} />
+                            <AccessControl isAuthorized={isSuperAdmin}>
+                                <NavItem title="Admin Dashboard" link={'/admin-dashboard'} icon={faHome} />
+                            </AccessControl>
                             <NavItem title="Claim a Space" link={'/claim-a-space'} icon={faMapMarked} />
                             <NavItem title="My Campaigns" icon={faBullhorn} link={'/'} />
 

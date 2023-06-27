@@ -4,9 +4,9 @@ import { connect } from 'react-redux';
 import { Location, NavigateFunction } from 'react-router-dom';
 import { TransitionGroup } from 'react-transition-group';
 import ReactGA from 'react-ga4';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { IMessagesState, IUserState, AccessCheckType } from 'therr-react/types';
 import {
-    AccessControl,
     SvgButton,
 } from 'therr-react/components';
 import { NotificationActions, SocketActions, MessageActions } from 'therr-react/redux/actions';
@@ -261,6 +261,14 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         this.setState(newState);
     };
 
+    isSuperAdmin = () => UsersService.isAuthorized(
+        {
+            type: AccessCheckType.ALL,
+            levels: [AccessLevels.SUPER_ADMIN],
+        },
+        this.props.user,
+    );
+
     renderNavMenuContent = () => {
         const { navMenuContext } = this.state;
 
@@ -379,7 +387,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         className={ isLandingStylePage ? 'content-container-home view' : 'content-container view' }
                     >
                         <Preloader show={!this.state.clientHasLoaded} />
-                        <Sidebar onLogout={this.handleLogout} show={shouldShowSidebar} user={user} />
+                        <Sidebar isSuperAdmin={this.isSuperAdmin()} onLogout={this.handleLogout} show={shouldShowSidebar} user={user} />
                         <main className={mainClassNames}>
                             {
                                 shouldShowSidebar

@@ -13,6 +13,7 @@ export const createUserToken = (user: any, rememberMe?: boolean) => {
         phoneNumber,
         isBlocked,
         isSSO,
+        accessLevels,
     } = user;
     // Sign the JWT
     return jwt.sign(
@@ -23,6 +24,7 @@ export const createUserToken = (user: any, rememberMe?: boolean) => {
             phoneNumber,
             isBlocked,
             isSSO: isSSO || false,
+            accessLevels,
         },
         (process.env.JWT_SECRET || ''),
         {

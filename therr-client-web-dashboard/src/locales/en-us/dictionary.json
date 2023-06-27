@@ -208,6 +208,9 @@
       "passwordRequirements3": "At least one special character !@#$%^&*",
       "passwordRequirements4": "At least 8 characters"
     },
+    "adminDashboardOverview": {
+      "pageTitle": "Admin Dashboard"
+    },
     "dashboardOverview": {
       "pageTitle": "Dashboard"
     }

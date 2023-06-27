@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
+import { AxiosResponse } from 'axios';
 import moment from 'moment-timezone';
 import {
     FontAwesomeIcon,
@@ -22,11 +23,10 @@ import {
     Dropdown,
     ButtonGroup,
 } from '@themesberg/react-bootstrap';
-import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
-import translator from '../services/translator';
-import withNavigation from '../wrappers/withNavigation';
+import translator from '../../services/translator';
+import withNavigation from '../../wrappers/withNavigation';
 // import {
 //     CounterWidget,
 //     CircleChartWidget,
@@ -43,9 +43,9 @@ import withNavigation from '../wrappers/withNavigation';
 //     trafficShares,
 //     totalOrders,
 // } from '../data/charts';
-import { SpaceMetricsDisplay } from '../components/widgets/SpaceMetricsDisplay';
-import ManageSpacesMenu from '../components/ManageSpacesMenu';
-import { ISpace } from '../types';
+import { SpaceMetricsDisplay } from '../../components/widgets/SpaceMetricsDisplay';
+import ManageSpacesMenu from '../../components/ManageSpacesMenu';
+import { ISpace } from '../../types';
 
 const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
     // TODO: Update this to support more than 1 month time span
@@ -78,28 +78,25 @@ const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
     }), {});
 };
 
-interface IDashboardOverviewRouterProps {
+interface IBaseDashboardRouterProps {
     navigation: {
         navigate: NavigateFunction;
     }
 }
 
-interface IDashboardOverviewDispatchProps {
-    createUserConnection: Function;
-    searchUserConnections: Function;
+interface IBaseDashboardDispatchProps {
 }
 
-interface IStoreProps extends IDashboardOverviewDispatchProps {
+interface IStoreProps extends IBaseDashboardDispatchProps {
     user: IUserState;
-    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
-interface IDashboardOverviewProps extends IDashboardOverviewRouterProps, IStoreProps {
-    onInitMessaging?: Function;
+interface IBaseDashboardProps extends IBaseDashboardRouterProps, IStoreProps {
+    fetchSpaces: () => Promise<AxiosResponse<any, any>>;
 }
 
-interface IDashboardOverviewState {
+interface IBaseDashboardState {
     currentSpaceIndex: number;
     metrics: any[];
     impressionsLabels: string[] | undefined;
@@ -111,21 +108,18 @@ interface IDashboardOverviewState {
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
-    userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    createUserConnection: UserConnectionsActions.create,
-    searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
 /**
- * DashboardOverview
+ * BaseDashboard
  */
-export class DashboardOverviewComponent extends React.Component<IDashboardOverviewProps, IDashboardOverviewState> {
+export class BaseDashboardComponent extends React.Component<IBaseDashboardProps, IBaseDashboardState> {
     private translate: Function;
 
-    constructor(props: IDashboardOverviewProps) {
+    constructor(props: IBaseDashboardProps) {
         super(props);
 
         this.state = {
@@ -142,35 +136,20 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
     }
 
     componentDidMount() {
-        const {
-            user,
-            userConnections,
-        } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.dashboardOverview.pageTitle')}`;
-        if (!userConnections.connections.length) {
-            this.props.searchUserConnections({
-                filterBy: 'acceptingUserId',
-                query: user.details.id,
-                itemsPerPage: 50,
-                pageNumber: 1,
-                orderBy: 'interactionCount',
-                order: 'desc',
-                shouldCheckReverse: true,
-            }, user.details.id);
-        }
         if (!this.state.metrics.length) {
             this.fetchSpaceMetrics('week');
         }
     }
 
-    fetchMySpaces = () => MapsService.searchMySpaces({
-        itemsPerPage: 50,
-        pageNumber: 1,
-    }).then((response) => new Promise((resolve) => {
-        this.setState({
-            spacesInView: response?.data?.results || [],
-        }, () => resolve(null));
-    }));
+    fetchDashboardSpaces = () => {
+        const { fetchSpaces } = this.props;
+
+        return fetchSpaces().then((response) => new Promise((resolve) => {
+            this.setState({
+                spacesInView: response?.data?.results || [],
+            }, () => resolve(null));
+        }));
+    };
 
     fetchSpaceMetrics = (timeSpan: 'week' | 'month') => {
         this.setState({
@@ -181,7 +160,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
         const startDate = moment().subtract(1, `${timeSpan}s`).utc().format('YYYY-MM-DD HH:mm:ss');
         const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
         let formattedMetrics = populateEmptyMetrics(timeSpan);
-        const prefetchPromise: Promise<any> = !spacesInView.length ? this.fetchMySpaces() : Promise.resolve();
+        const prefetchPromise: Promise<any> = !spacesInView.length ? this.fetchDashboardSpaces() : Promise.resolve();
 
         prefetchPromise.then(() => {
             const { currentSpaceIndex, spacesInView: updatedSpacesInView } = this.state;
@@ -195,7 +174,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                     // TODO: Account for different metric names and value types
                     formattedMetrics = {
                         ...formattedMetrics,
-                        ...(response?.data?.aggregations.metrics || [])
+                        ...(response?.data?.aggregations.metrics || []),
                     };
 
                     this.setState({
@@ -209,17 +188,6 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
                 });
             }
         });
-    };
-
-    getConnectionDetails = (connection) => {
-        const { user } = this.props;
-
-        return connection.users.find((u) => u.id !== user.details.id);
-    };
-
-    handleInitMessaging = (e, connection) => {
-        const { onInitMessaging } = this.props;
-        return onInitMessaging && onInitMessaging(e, this.getConnectionDetails(connection), 'user-profile');
     };
 
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
@@ -260,7 +228,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
             impressionsLabels,
             impressionsValues,
             metrics,
-            percentageChange
+            percentageChange,
         } = this.state;
 
         return (
@@ -385,4 +353,4 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(DashboardOverviewComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(BaseDashboardComponent));

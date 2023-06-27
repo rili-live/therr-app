@@ -5,7 +5,8 @@ import { AccessLevels } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
 import Login from './Login';
 import ClaimASpace from './ClaimASpace';
-import DashboardOverview from './DashboardOverview';
+import AdminDashboardOverview from './Dashboards/AdminDashboardOverview';
+import DashboardOverview from './Dashboards/DashboardOverview';
 import PageNotFound from './PageNotFound';
 import Register from './Register';
 import Settings from './Settings';
@@ -45,6 +46,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ANY,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
+        path: '/admin-dashboard',
+        element: <AuthRoute
+            component={AdminDashboardOverview}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.SUPER_ADMIN],
             })}
             redirectPath={'/login'}
         />,

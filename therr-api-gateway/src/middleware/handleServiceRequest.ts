@@ -21,9 +21,11 @@ const handleServiceRequest = ({
             'x-requestid': uuidv4(),
             'x-localecode': req.headers['x-localecode'] || '',
             'x-platform': req.headers['x-platform'] || '',
+            'x-user-device-token': req.headers['x-user-device-token'] || '',
+            // (securely) Tacked on from JWT decode
             'x-userid': req.headers['x-userid'] || req['x-userid'] || '',
             'x-username': req.headers['x-username'] || req['x-username'] || '',
-            'x-user-device-token': req.headers['x-user-device-token'] || '',
+            'x-user-access-levels': req.headers['x-user-access-levels'] || req['x-user-access-levels'] || '',
         },
         method,
         url: `${basePath}${overrideUrl || req.url}`,
@@ -31,11 +33,6 @@ const handleServiceRequest = ({
 
     if (method !== 'get') {
         config.data = req.body;
-    }
-
-    // TODO: RAUTO-27: Remove this
-    if (req.headers.authorization) {
-        config.headers.authorization = req.headers.authorization;
     }
 
     if (isBlacklistedEmail(req?.body?.email || req?.body?.userName)) {
