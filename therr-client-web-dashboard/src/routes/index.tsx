@@ -84,7 +84,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
-        path: '/manage-spaces',
+        path: '/manage-spaces/:context',
         element: <AuthRoute
             component={ManageSpaces}
             isAuthorized={routePropsConfig.isAuthorized({

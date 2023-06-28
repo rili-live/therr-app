@@ -46,6 +46,7 @@ import withNavigation from '../../wrappers/withNavigation';
 import { SpaceMetricsDisplay } from '../../components/widgets/SpaceMetricsDisplay';
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
 import { ISpace } from '../../types';
+import AdminManageSpacesMenu from '../../components/AdminManageSpacesMenu';
 
 const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
     // TODO: Update this to support more than 1 month time span
@@ -94,6 +95,7 @@ interface IStoreProps extends IBaseDashboardDispatchProps {
 // Regular component props
 interface IBaseDashboardProps extends IBaseDashboardRouterProps, IStoreProps {
     fetchSpaces: () => Promise<AxiosResponse<any, any>>;
+    isSuperAdmin: boolean;
 }
 
 interface IBaseDashboardState {
@@ -230,15 +232,19 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             metrics,
             percentageChange,
         } = this.state;
+        const {
+            isSuperAdmin,
+        } = this.props;
 
         return (
             <div id="page_dashboard_overview" className="flex-box column">
                 <div className="d-flex justify-content-around justify-content-md-between flex-wrap flex-md-nowrap align-items-center py-4">
-                    <ManageSpacesMenu
-                        className="mb-2 mb-md-0"
-                        navigateHandler={this.navigateHandler}
-                    />
-
+                    {
+                        isSuperAdmin && <AdminManageSpacesMenu className="mb-2 mb-md-0" navigateHandler={this.navigateHandler} />
+                    }
+                    {
+                        !isSuperAdmin && <ManageSpacesMenu className="mb-2 mb-md-0" navigateHandler={this.navigateHandler} />
+                    }
                     <ButtonGroup className="mb-2 mb-md-0">
                         {
                             currentSpaceIndex !== 0

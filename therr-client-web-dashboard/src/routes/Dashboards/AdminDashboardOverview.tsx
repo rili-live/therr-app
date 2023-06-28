@@ -90,7 +90,7 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
     // eslint-disable-next-line class-methods-use-this
     public render(): JSX.Element | null {
         return (
-            <BaseDashboard fetchSpaces={fetchAllSpaces} />
+            <BaseDashboard fetchSpaces={fetchAllSpaces} isSuperAdmin={true} />
         );
     }
 }
