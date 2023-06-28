@@ -29,6 +29,7 @@ interface IManageSpacesRouterProps {
     navigation: {
         navigate: NavigateFunction;
     }
+    routeParams: any;
 }
 
 interface IManageSpacesDispatchProps {
@@ -109,8 +110,14 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
 
     componentDidMount() {
         const { pagination } = this.state;
+        const { routeParams } = this.props;
         document.title = `Therr for Business | ${this.translate('pages.manageSpaces.pageTitle')}`;
-        this.fetchMySpaces(pagination.pageNumber, pagination.itemsPerPage);
+
+        if (routeParams.context === 'me') {
+            this.fetchMySpaces(pagination.pageNumber, pagination.itemsPerPage);
+        } else if (routeParams.context === 'admin') {
+            console.log('admin search')
+        }
     }
 
     componentWillUnmount = () => {
