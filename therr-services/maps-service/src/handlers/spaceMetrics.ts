@@ -4,7 +4,7 @@ import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
-import { aggregateMetrics, getPercentageChange } from '../api/aggregations';
+import { aggregateMetrics, getPercentageChange, getMetricsByName } from '../api/aggregations';
 // CREATE
 const createSpaceMetric = async (req, res) => {
     const authorization = req.headers.authorization;
@@ -70,7 +70,7 @@ const getFormattedMetrics = (startDate, endDate, spaceId) => {
     const currentSeriesPromise = Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId });
     const prevSeriesPromise = Store.spaceMetrics.getForDateRange(previousSeriesStartDate, (previousSeriesEndDate), { spaceId });
 
-    return Promise.all([currentSeriesPromise, prevSeriesPromise]);
+    return Promise.all([getMetricsByName(currentSeriesPromise, 'space.user.prospect'), getMetricsByName(prevSeriesPromise, 'space.user.prospect'), getMetricsByName(currentSeriesPromise, 'space.user.impression'), getMetricsByName(prevSeriesPromise, 'space.user.impression'), getMetricsByName(currentSeriesPromise, 'space.user.visit'), getMetricsByName(prevSeriesPromise, 'space.user.visit')]);
 };
 
 // READ
@@ -124,12 +124,22 @@ const getSpaceMetrics = (req, res) => {
                 startDate,
                 endDate,
             } = req.query;
-            return getFormattedMetrics(startDate, endDate, spaceId).then(([currentMetrics, previousMetrics]) => res.status(200).send({
+            return getFormattedMetrics(startDate, endDate, spaceId).then(([currProspectMetrics, prevProspectMetrics, currImpressionMetrics, prevImpressionMetrics, currVisitMetrics, prevVisitMetrics]) => res.status(200).send({
                 space,
-                metrics: currentMetrics,
+                metrics: {
+                    "space.user.prospects": currProspectMetrics,
+                    "space.user.impressions": currImpressionMetrics,
+                    "space.user.visits": currVisitMetrics
+                },
                 aggregations: {
-                    metrics: aggregateMetrics(currentMetrics),
-                    previousSeriesPct: getPercentageChange(currentMetrics, previousMetrics),
+                    metrics: {
+                        "space.user.prospects": aggregateMetrics(currProspectMetrics),
+                        "space.user.impressions": aggregateMetrics(currImpressionMetrics),
+                        "space.user.visits": aggregateMetrics(currVisitMetrics)
+                    },
+                    previousSeriesAPct: getPercentageChange(currProspectMetrics, prevProspectMetrics),
+                    previousSeriesBPct: getPercentageChange(currImpressionMetrics, prevImpressionMetrics),
+                    previousSeriesCPct: getPercentageChange(currVisitMetrics, prevVisitMetrics)
                 },
             }));
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));

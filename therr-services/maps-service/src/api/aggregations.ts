@@ -1,3 +1,8 @@
+const getMetricsByName = (metrics, name) => {
+    const filteredMetrics = metrics.filter(metric => metric.name === name);
+    return filteredMetrics;
+};
+
 const aggregateMetrics = (metrics) => {
     const formattedMetrics = {};
 
@@ -28,4 +33,4 @@ const getPercentageChange = (currentSeries, previousSeries) => {
     return ((currentMetricSum - previousMetricSum) * 100) / previousMetricSum;
 };
 
-export { aggregateMetrics, getPercentageChange };
+export { aggregateMetrics, getPercentageChange, getMetricsByName };
