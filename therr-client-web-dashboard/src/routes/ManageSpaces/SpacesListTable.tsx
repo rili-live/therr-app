@@ -45,9 +45,10 @@ const ValueChange = ({ value, suffix }: any) => {
 
 interface ISpacesListTableProps {
     spacesInView: ISpace[];
+    editContext: string;
 }
 
-const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
+const SpacesListTable = ({ spacesInView, editContext }: ISpacesListTableProps) => {
     const TableRow = (props: {
         space: ISpace;
     }) => {
@@ -70,7 +71,7 @@ const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
         return (
             <tr>
                 <td className="fw-bold border-0">
-                    <Link to={`/edit-space/${id}`} state={{ space }}>{notificationMsg || '-'}</Link>
+                    <Link to={`/edit-space/${id}/${editContext}`} state={{ space }}>{notificationMsg || '-'}</Link>
                 </td>
                 <td className="fw-bold border-0">
                     {isPublic && '✓'}
@@ -106,7 +107,7 @@ const SpacesListTable = ({ spacesInView }: ISpacesListTableProps) => {
                             {/* <Dropdown.Item>
                                 <FontAwesomeIcon icon={faEye} className="me-2" /> View Details
                             </Dropdown.Item> */}
-                            <Dropdown.Item as={Link} to={`/edit-space/${id}`} state={{ space }}>
+                            <Dropdown.Item as={Link} to={`/edit-space/${id}/${editContext}`} state={{ space }}>
                                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Edit
                             </Dropdown.Item>
                             {/* <Dropdown.Item className="text-danger">
