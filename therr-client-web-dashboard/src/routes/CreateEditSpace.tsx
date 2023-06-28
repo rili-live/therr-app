@@ -251,7 +251,12 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
 
     onUpdateSpace = (event: React.MouseEvent<HTMLInputElement>) => {
         const { files } = this.state;
-        const { location, navigation, updateSpace } = this.props;
+        const {
+            location,
+            navigation,
+            updateSpace,
+            routeParams,
+        } = this.props;
         const { space } = location?.state || {};
 
         event.preventDefault();
@@ -288,7 +293,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                         this.setState({
                             isSubmitting: false,
                         });
-                        navigation.navigate('/manage-spaces');
+                        navigation.navigate(`/manage-spaces/${routeParams.context}`);
                     }, 1500);
                 });
             }).catch((error) => {
