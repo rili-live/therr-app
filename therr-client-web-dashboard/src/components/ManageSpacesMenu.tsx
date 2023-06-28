@@ -23,8 +23,8 @@ const ManageSpacesMenu = ({
             <Dropdown.Item className="fw-bold" onClick={navigateHandler('/claim-a-space')}>
                 <FontAwesomeIcon icon={faPlus} className="me-2" /> Claim a Space
             </Dropdown.Item>
-            <Dropdown.Item className="fw-bold" onClick={navigateHandler('/manage-spaces')}>
-                <FontAwesomeIcon icon={faPencilRuler} className="me-2" /> Edit Spaces
+            <Dropdown.Item className="fw-bold" onClick={navigateHandler('/manage-spaces/me')}>
+                <FontAwesomeIcon icon={faPencilRuler} className="me-2" /> Edit My Spaces
             </Dropdown.Item>
             {/* <Dropdown.Item className="fw-bold" onClick={navigateHandler('/claim-a-space')}>
                 <FontAwesomeIcon icon={faUserShield} className="me-2" /> Manage Access

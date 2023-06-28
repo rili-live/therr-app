@@ -96,7 +96,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
     // eslint-disable-next-line class-methods-use-this
     public render(): JSX.Element | null {
         return (
-            <BaseDashboard fetchSpaces={fetchMySpaces} />
+            <BaseDashboard fetchSpaces={fetchMySpaces} isSuperAdmin={false} />
         );
     }
 }
