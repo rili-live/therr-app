@@ -76,6 +76,7 @@ export interface ISignedUrlArgs {
     action: string;
     filename: string;
     areaType?: IAreaType;
+    overrideFromUserId?: string;
 }
 
 class MapsService {
@@ -197,7 +198,10 @@ class MapsService {
     // Media
     getSignedUrlPublicBucket = (args: ISignedUrlArgs) => {
         const areaType: IAreaType = args.areaType || 'moments';
-        const queryString = `?action=${args.action}&filename=${args.filename}`;
+        let queryString = `?action=${args.action}&filename=${args.filename}`;
+        if (args.overrideFromUserId) {
+            queryString = `${queryString}&overrideFromUserId=${args.overrideFromUserId}`;
+        }
 
         return axios({
             method: 'get',
@@ -207,7 +211,10 @@ class MapsService {
 
     getSignedUrlPrivateBucket = (args: ISignedUrlArgs) => {
         const areaType: IAreaType = args.areaType || 'moments';
-        const queryString = `?action=${args.action}&filename=${args.filename}`;
+        let queryString = `?action=${args.action}&filename=${args.filename}`;
+        if (args.overrideFromUserId) {
+            queryString = `${queryString}&overrideFromUserId=${args.overrideFromUserId}`;
+        }
 
         return axios({
             method: 'get',
