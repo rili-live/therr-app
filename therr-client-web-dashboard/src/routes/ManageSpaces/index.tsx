@@ -13,7 +13,13 @@ import {
 } from 'react-bootstrap';
 import { MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
-import { IMapState as IMapReduxState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import {
+    IMapState as IMapReduxState,
+    IUserState,
+    IUserConnectionsState,
+    ISearchQuery,
+} from 'therr-react/types';
+import { AxiosResponse } from 'axios';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
@@ -113,18 +119,16 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
         const { routeParams } = this.props;
         document.title = `Therr for Business | ${this.translate('pages.manageSpaces.pageTitle')}`;
 
-        if (routeParams.context === 'me') {
-            this.fetchMySpaces(pagination.pageNumber, pagination.itemsPerPage);
-        } else if (routeParams.context === 'admin') {
-            console.log('admin search')
-        }
+        this.fetchSpaces(pagination.pageNumber, pagination.itemsPerPage);
     }
 
     componentWillUnmount = () => {
         clearTimeout(this.throttleTimeoutId);
     };
 
-    fetchMySpaces = (pageNumber = 1, itemsPerPage = ItemsPerPage) => {
+    fetchSpaces = (pageNumber = 1, itemsPerPage = ItemsPerPage) => {
+        const { routeParams } = this.props;
+
         this.setState({
             pagination: {
                 ...this.state.pagination,
@@ -132,10 +136,22 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                 itemsPerPage,
             },
         }, () => {
-            MapsService.searchMySpaces({
-                itemsPerPage,
-                pageNumber,
-            }).then((response) => new Promise((resolve) => {
+            const searchSpacesPromise: Promise<AxiosResponse<any, any>> = routeParams.context === 'admin'
+                ? MapsService.searchSpaces({
+                    query: 'connections',
+                    itemsPerPage,
+                    pageNumber,
+                    filterBy: 'fromUserIds',
+                    latitude: 32.8205566, // defaults to Dallas, TX
+                    longitude: -96.8963576, // defaults to Dallas, TX
+                }, {
+                    distanceOverride: 160934, // ~ 100 miles
+                })
+                : MapsService.searchMySpaces({
+                    itemsPerPage,
+                    pageNumber,
+                }); // TODO: Make this an admin route
+            searchSpacesPromise.then((response) => new Promise((resolve) => {
                 this.setState({
                     spacesInView: response?.data?.results || [],
                 }, () => resolve(null));
@@ -248,12 +264,12 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
 
     onPageBack = () => {
         const { pagination } = this.state;
-        this.fetchMySpaces(pagination.pageNumber - 1, pagination.itemsPerPage);
+        this.fetchSpaces(pagination.pageNumber - 1, pagination.itemsPerPage);
     };
 
     onPageForward = () => {
         const { pagination } = this.state;
-        this.fetchMySpaces(pagination.pageNumber + 1, pagination.itemsPerPage);
+        this.fetchSpaces(pagination.pageNumber + 1, pagination.itemsPerPage);
     };
 
     onSubmitError = (errTitle: string, errMsg: string) => {
@@ -280,7 +296,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
             pagination,
             spacesInView,
         } = this.state;
-        const { map, user } = this.props;
+        const { map, routeParams, user } = this.props;
 
         return (
             <div id="page_settings" className="flex-box column">
@@ -310,6 +326,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                         <h1 className="text-center">Manage Your Spaces</h1>
                         <SpacesListTable
                             spacesInView={spacesInView}
+                            editContext={routeParams.context}
                         />
                     </Col>
                 </Row>

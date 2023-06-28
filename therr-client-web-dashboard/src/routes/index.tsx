@@ -73,7 +73,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
-        path: '/edit-space/:spaceId',
+        path: '/edit-space/:spaceId/:context',
         element: <AuthRoute
             component={CreateEditSpace}
             isAuthorized={routePropsConfig.isAuthorized({
