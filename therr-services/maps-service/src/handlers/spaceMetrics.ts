@@ -5,6 +5,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
 import { aggregateMetrics, getPercentageChange, getMetricsByName } from '../api/aggregations';
+import MetricNames from 'therr-js-utilities/constants/enums/MetricNames';
 // CREATE
 const createSpaceMetric = async (req, res) => {
     const authorization = req.headers.authorization;
@@ -70,7 +71,7 @@ const getFormattedMetrics = (startDate, endDate, spaceId) => {
     const currentSeriesPromise = Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId });
     const prevSeriesPromise = Store.spaceMetrics.getForDateRange(previousSeriesStartDate, (previousSeriesEndDate), { spaceId });
 
-    return Promise.all([getMetricsByName(currentSeriesPromise, 'space.user.prospect'), getMetricsByName(prevSeriesPromise, 'space.user.prospect'), getMetricsByName(currentSeriesPromise, 'space.user.impression'), getMetricsByName(prevSeriesPromise, 'space.user.impression'), getMetricsByName(currentSeriesPromise, 'space.user.visit'), getMetricsByName(prevSeriesPromise, 'space.user.visit')]);
+    return Promise.all([getMetricsByName(currentSeriesPromise, [MetricNames.SPACE_PROSPECT, MetricNames.SPACE_IMPRESSION, MetricNames.SPACE_VISIT]), getMetricsByName(prevSeriesPromise, [MetricNames.SPACE_PROSPECT, MetricNames.SPACE_IMPRESSION, MetricNames.SPACE_VISIT])]);
 };
 
 // READ
@@ -124,22 +125,27 @@ const getSpaceMetrics = (req, res) => {
                 startDate,
                 endDate,
             } = req.query;
-            return getFormattedMetrics(startDate, endDate, spaceId).then(([currProspectMetrics, prevProspectMetrics, currImpressionMetrics, prevImpressionMetrics, currVisitMetrics, prevVisitMetrics]) => res.status(200).send({
+            return getFormattedMetrics(startDate, endDate, spaceId).then((
+                [currMetrics, prevMetrics]) => res.status(200).send({
                 space,
                 metrics: {
-                    "space.user.prospects": currProspectMetrics,
-                    "space.user.impressions": currImpressionMetrics,
-                    "space.user.visits": currVisitMetrics
+                    'space.user.prospects': currMetrics[MetricNames.SPACE_PROSPECT],
+                    'space.user.impressions': currMetrics[MetricNames.SPACE_IMPRESSION],
+                    'space.user.visits': currMetrics[MetricNames.SPACE_VISIT],
                 },
                 aggregations: {
-                    metrics: {
-                        "space.user.prospects": aggregateMetrics(currProspectMetrics),
-                        "space.user.impressions": aggregateMetrics(currImpressionMetrics),
-                        "space.user.visits": aggregateMetrics(currVisitMetrics)
+                    'space.user.prospects': {
+                        metrics: aggregateMetrics(currMetrics[MetricNames.SPACE_PROSPECT]),
+                        previousSeriesAPct: getPercentageChange(currMetrics[MetricNames.SPACE_PROSPECT], prevMetrics[MetricNames.SPACE_PROSPECT]),
                     },
-                    previousSeriesAPct: getPercentageChange(currProspectMetrics, prevProspectMetrics),
-                    previousSeriesBPct: getPercentageChange(currImpressionMetrics, prevImpressionMetrics),
-                    previousSeriesCPct: getPercentageChange(currVisitMetrics, prevVisitMetrics)
+                    'space.user.impressions': {
+                        metrics: aggregateMetrics(currMetrics[MetricNames.SPACE_PROSPECT]),
+                        previousSeriesBPct: getPercentageChange(currMetrics[MetricNames.SPACE_IMPRESSION], prevMetrics[MetricNames.SPACE_IMPRESSION]),
+                    },
+                    'space.user.visits': {
+                        metrics: aggregateMetrics(currMetrics[MetricNames.SPACE_VISIT]),
+                        previousSeriesCPct: getPercentageChange(currMetrics[MetricNames.SPACE_VISIT], MetricNames.SPACE_VISIT),
+                    }
                 },
             }));
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));

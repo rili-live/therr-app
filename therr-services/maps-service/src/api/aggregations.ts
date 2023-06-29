@@ -1,6 +1,16 @@
-const getMetricsByName = (metrics, name) => {
-    const filteredMetrics = metrics.filter(metric => metric.name === name);
-    return filteredMetrics;
+const getMetricsByName = (metrics, names) => {
+    //Creating empty dictionary by metric name
+    const MetricsByName = names.reduce((MetricsByName, name) => {
+        MetricsByName[name] = [];
+        return MetricsByName;
+    }, {});
+    metrics.forEach(metric => {
+        if (MetricsByName.hasOwnProperty(metric.name)) {
+            MetricsByName[metric.name].push(metric);
+        }
+    });
+
+    return MetricsByName;  
 };
 
 const aggregateMetrics = (metrics) => {
