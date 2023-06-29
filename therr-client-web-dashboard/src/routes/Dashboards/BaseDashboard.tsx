@@ -25,6 +25,7 @@ import {
 } from '@themesberg/react-bootstrap';
 import { MapsService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import { MetricNames } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 // import {
@@ -176,12 +177,12 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                     // TODO: Account for different metric names and value types
                     formattedMetrics = {
                         ...formattedMetrics,
-                        ...(response?.data?.aggregations.metrics || []),
+                        ...(response?.data?.aggregations?.[MetricNames.SPACE_IMPRESSION]?.metrics || []),
                     };
 
                     this.setState({
                         metrics: response.data.metrics,
-                        percentageChange: response.data.aggregations.previousSeriesPct,
+                        percentageChange: response?.data?.aggregations?.[MetricNames.SPACE_IMPRESSION]?.previousSeriesPct,
                         impressionsLabels: Object.keys(formattedMetrics),
                         impressionsValues: [Object.values(formattedMetrics)],
                     });
