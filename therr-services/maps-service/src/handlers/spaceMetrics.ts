@@ -63,13 +63,13 @@ const createSpaceMetric = async (req, res) => {
 };
 
 const getFormattedMetrics = (startDate, endDate, spaceId) => {
-    const startDateTime = new Date(endDate).getTime();
-    const endDateTime = new Date(startDate).getTime();
-    const range = endDateTime - startDateTime;
+    const startDateTime = new Date(startDate).getTime();
+    const endDateTime = new Date(endDate).getTime();
+    const range = endDateTime - startDateTime - 1;
     const previousSeriesStartDate = new Date(startDateTime - range);
-    const previousSeriesEndDate = new Date(endDateTime - range);
-    const currentSeriesPromise = Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId });
-    const prevSeriesPromise = Store.spaceMetrics.getForDateRange(previousSeriesStartDate, (previousSeriesEndDate), { spaceId });
+    const previousSeriesEndDate = startDate;
+    const currentSeriesPromise = Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId, valueType: 'NUMBER' });
+    const prevSeriesPromise = Store.spaceMetrics.getForDateRange(previousSeriesStartDate, previousSeriesEndDate, { spaceId, valueType: 'NUMBER' });
 
     return Promise.all(
         [
@@ -143,11 +143,11 @@ const getSpaceMetrics = (req, res) => {
                 const aggregations: any = {};
                 Object.keys(groupedCurrentMetrics).forEach((key) => {
                     const previousSeriesPct = getPercentageChange(
-                        groupedCurrentMetrics[key],
-                        groupedPreviousMetrics[key],
+                        groupedCurrentMetrics[key] || [],
+                        groupedPreviousMetrics[key] || [],
                     );
                     aggregations[key] = {
-                        metrics: aggregateMetrics(groupedCurrentMetrics[key]),
+                        metrics: aggregateMetrics(groupedCurrentMetrics[key] || []),
                         previousSeriesPct,
                     };
                 });

@@ -27,16 +27,21 @@ const aggregateMetrics = (metrics) => {
 };
 
 const getPercentageChange = (currentSeries, previousSeries) => {
-    let currentMetricSum = 0;
-    let previousMetricSum = 0;
-    const curValues = Object.values(currentSeries);
-    const preValues = Object.values(previousSeries);
+    const currentMetricSum = currentSeries.reduce((a, b) => {
+        if (b === 0) {
+            return Number(a.value || 0);
+        }
+        return Number(a.value || 0) + Number(b.value || 0);
+    }, 0);
+    const previousMetricSum = previousSeries.reduce((a, b) => {
+        if (b === 0) {
+            return Number(a.value || 0);
+        }
+        return Number(a.value || 0) + Number(b.value || 0);
+    }, 0);
 
-    for (let val = 0; val < curValues.length; val += 1) {
-        currentMetricSum += currentSeries[val];
-    }
-    for (let val = 0; val < preValues.length; val += 1) {
-        previousMetricSum += previousSeries[val];
+    if (previousMetricSum === 0) {
+        return 100;
     }
 
     return ((currentMetricSum - previousMetricSum) * 100) / previousMetricSum;
