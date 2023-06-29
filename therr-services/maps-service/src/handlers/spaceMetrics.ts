@@ -111,7 +111,7 @@ const getSpaceMetrics = (req, res) => {
                     errorCode: ErrorCodes.NOT_FOUND,
                 });
             }
-            if (space?.fromUserId !== userId && !accessLevels?.contains(AccessLevels.SUPER_ADMIN)) {
+            if (space?.fromUserId !== userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
                 return handleHttpError({
                     res,
                     message: translate(locale, 'spaces.mustBeOwner'),

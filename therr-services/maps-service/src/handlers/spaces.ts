@@ -2,6 +2,7 @@ import axios from 'axios';
 import path from 'path';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import {
+    AccessLevels,
     ErrorCodes,
     MetricNames,
     MetricValueTypes,
@@ -177,6 +178,8 @@ const createSpace = async (req, res) => {
 const getSpaceDetails = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
+    const userAccessLevels = req.headers['x-user-access-levels'];
+    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
 
     const { spaceId } = req.params;
 
@@ -225,7 +228,7 @@ const getSpaceDetails = (req, res) => {
             let userHasAccessPromise = () => Promise.resolve(true);
             // Verify that user has activated space and has access to view it
             // TODO: Verify space exists
-            if (space?.fromUserId !== userId) {
+            if (space?.fromUserId !== userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
                 userHasAccessPromise = () => getReactions('space', spaceId, {
                     'x-userid': userId,
                 });
@@ -517,6 +520,21 @@ const findSpaces: RequestHandler = async (req: any, res: any) => {
 const getSignedUrl = (req, res, bucket) => {
     const requestId = req.headers['x-requestid'];
     const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const userAccessLevels = req.headers['x-user-access-levels'];
+    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        overrideFromUserId,
+    } = req.query;
+
+    if (overrideFromUserId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.accessDenied'),
+            statusCode: 403,
+            errorCode: ErrorCodes.ACCESS_DENIED,
+        });
+    }
 
     const {
         action,
@@ -533,7 +551,7 @@ const getSignedUrl = (req, res, bucket) => {
     const parsedFileName = path.parse(filename);
     const directory = parsedFileName.dir ? `${parsedFileName.dir}/` : '';
 
-    const filePath = `${userId}/${directory}${parsedFileName.name}_${requestId}${parsedFileName.ext}`;
+    const filePath = `${overrideFromUserId || userId}/${directory}${parsedFileName.name}_${requestId}${parsedFileName.ext}`;
 
     return storage
         .bucket(bucket)
@@ -554,8 +572,23 @@ const getSignedUrlPublicBucket = (req, res) => getSignedUrl(req, res, process.en
 // WRITE
 const updateSpace = (req, res) => {
     const userId = req.headers['x-userid'];
+    const userAccessLevels = req.headers['x-user-access-levels'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        overrideFromUserId,
+    } = req.body;
 
     // TODO: Check media for mature content
+
+    if (overrideFromUserId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.accessDenied'),
+            statusCode: 403,
+            errorCode: ErrorCodes.ACCESS_DENIED,
+        });
+    }
 
     // TODO: Verify address is close to longitude/latitude
     // const canChangeAddress = req.body.addressReadable && req.body.longitude && req.body.latitude;
@@ -571,7 +604,7 @@ const updateSpace = (req, res) => {
     return Store.spaces.updateSpace(req.params.spaceId, {
         ...req.body,
         // addressReadable,
-        fromUserId: userId,
+        fromUserId: overrideFromUserId || userId,
     })
         .then(([space]) => res.status(200).send(space))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));

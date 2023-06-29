@@ -251,7 +251,12 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
 
     onUpdateSpace = (event: React.MouseEvent<HTMLInputElement>) => {
         const { files } = this.state;
-        const { location, navigation, updateSpace } = this.props;
+        const {
+            location,
+            navigation,
+            updateSpace,
+            routeParams,
+        } = this.props;
         const { space } = location?.state || {};
 
         event.preventDefault();
@@ -269,13 +274,16 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
         });
 
         if (space?.id) {
-            const createUpdateArgs = {
+            const createUpdateArgs: any = {
                 ...space,
                 notificationMsg: spaceTitle,
                 message: spaceDescription,
                 category,
                 addressReadable: (selectedAddresses?.length && selectedAddresses[0]?.label) || space.addressReadable,
             };
+            if (routeParams.context === 'admin') {
+                createUpdateArgs.overrideFromUserId = space.fromUserId;
+            }
             (files.length > 0 ? signAndUploadImage(createUpdateArgs, files) : Promise.resolve(createUpdateArgs)).then((modifiedArgs) => {
                 updateSpace(space.id, modifiedArgs).then(() => {
                     this.setState({
@@ -288,7 +296,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                         this.setState({
                             isSubmitting: false,
                         });
-                        navigation.navigate('/manage-spaces');
+                        navigation.navigate(`/manage-spaces/${routeParams.context}`);
                     }, 1500);
                 });
             }).catch((error) => {

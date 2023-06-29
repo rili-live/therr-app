@@ -33,7 +33,7 @@ export const SpaceMetricsLineGraph = ({
                 if (!sampledValues[index]) {
                     sampledValues[index] = [];
                 }
-                sampledValues[index].push(values[index][i]);
+                sampledValues[index].push(valuesOrDefault[index][i]);
             }
         });
     } else {

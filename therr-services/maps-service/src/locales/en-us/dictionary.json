@@ -1,5 +1,6 @@
 {
   "errorMessages": {
+    "accessDenied": "Access to this resource is denied",
     "posts": {
         "duplicatePost": "Duplicate posts are not allowed"
     }

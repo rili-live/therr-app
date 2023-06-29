@@ -5,4 +5,5 @@ import {
 export const getSignedUrlValidation = [
     query('action').exists(),
     query('filename').exists(),
+    query('overrideFromUserId').optional(),
 ];

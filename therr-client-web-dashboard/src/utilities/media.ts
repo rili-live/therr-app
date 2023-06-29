@@ -1,10 +1,17 @@
 import { MapsService } from 'therr-react/services';
 import { Content } from 'therr-js-utilities/constants';
 
+interface ISignImageUrlArgs {
+    action: string;
+    filename: string;
+    overrideFromUserId?: string;
+}
+
 const signImageUrl = (isPublic: boolean, {
     action,
     filename,
-}) => {
+    overrideFromUserId,
+}: ISignImageUrlArgs) => {
     const signUrl = isPublic ? MapsService.getSignedUrlPublicBucket : MapsService.getSignedUrlPrivateBucket;
 
     // TODO: This is too slow
@@ -12,6 +19,7 @@ const signImageUrl = (isPublic: boolean, {
     return signUrl({
         action,
         filename,
+        overrideFromUserId,
     });
 };
 
@@ -37,6 +45,7 @@ const signAndUploadImage = (createArgs: any, files: any[]) => {
     return signImageUrl(createArgs.isPublic, {
         action: 'write',
         filename: `content/${fileNameSplit[0].replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
+        overrideFromUserId: modifiedCreateArgs.overrideFromUserId,
     }).then((response) => {
         const signedUrl = response?.data?.url && response?.data?.url[0];
         modifiedCreateArgs.media = [{}];
