@@ -1,11 +1,11 @@
 import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
 import printLogs from 'therr-js-utilities/print-logs';
+import { MetricNames } from 'therr-js-utilities/constants';
 import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
 import { aggregateMetrics, getPercentageChange, getMetricsByName } from '../api/aggregations';
-import MetricNames from 'therr-js-utilities/constants/enums/MetricNames';
 // CREATE
 const createSpaceMetric = async (req, res) => {
     const authorization = req.headers.authorization;
@@ -71,7 +71,12 @@ const getFormattedMetrics = (startDate, endDate, spaceId) => {
     const currentSeriesPromise = Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId });
     const prevSeriesPromise = Store.spaceMetrics.getForDateRange(previousSeriesStartDate, (previousSeriesEndDate), { spaceId });
 
-    return Promise.all([getMetricsByName(currentSeriesPromise, [MetricNames.SPACE_PROSPECT, MetricNames.SPACE_IMPRESSION, MetricNames.SPACE_VISIT]), getMetricsByName(prevSeriesPromise, [MetricNames.SPACE_PROSPECT, MetricNames.SPACE_IMPRESSION, MetricNames.SPACE_VISIT])]);
+    return Promise.all(
+        [
+            currentSeriesPromise,
+            prevSeriesPromise,
+        ],
+    );
 };
 
 // READ
@@ -125,29 +130,34 @@ const getSpaceMetrics = (req, res) => {
                 startDate,
                 endDate,
             } = req.query;
-            return getFormattedMetrics(startDate, endDate, spaceId).then((
-                [currMetrics, prevMetrics]) => res.status(200).send({
-                space,
-                metrics: {
-                    'space.user.prospects': currMetrics[MetricNames.SPACE_PROSPECT],
-                    'space.user.impressions': currMetrics[MetricNames.SPACE_IMPRESSION],
-                    'space.user.visits': currMetrics[MetricNames.SPACE_VISIT],
-                },
-                aggregations: {
-                    'space.user.prospects': {
-                        metrics: aggregateMetrics(currMetrics[MetricNames.SPACE_PROSPECT]),
-                        previousSeriesAPct: getPercentageChange(currMetrics[MetricNames.SPACE_PROSPECT], prevMetrics[MetricNames.SPACE_PROSPECT]),
-                    },
-                    'space.user.impressions': {
-                        metrics: aggregateMetrics(currMetrics[MetricNames.SPACE_PROSPECT]),
-                        previousSeriesBPct: getPercentageChange(currMetrics[MetricNames.SPACE_IMPRESSION], prevMetrics[MetricNames.SPACE_IMPRESSION]),
-                    },
-                    'space.user.visits': {
-                        metrics: aggregateMetrics(currMetrics[MetricNames.SPACE_VISIT]),
-                        previousSeriesCPct: getPercentageChange(currMetrics[MetricNames.SPACE_VISIT], MetricNames.SPACE_VISIT),
-                    }
-                },
-            }));
+            return getFormattedMetrics(startDate, endDate, spaceId).then(([currMetrics, prevMetrics]) => {
+                const metricNames = [MetricNames.SPACE_PROSPECT, MetricNames.SPACE_IMPRESSION, MetricNames.SPACE_VISIT];
+                const groupedCurrentMetrics = getMetricsByName(
+                    currMetrics,
+                    metricNames,
+                );
+                const groupedPreviousMetrics = getMetricsByName(
+                    prevMetrics,
+                    metricNames,
+                );
+                const aggregations: any = {};
+                Object.keys(groupedCurrentMetrics).forEach((key) => {
+                    const previousSeriesPct = getPercentageChange(
+                        groupedCurrentMetrics[key],
+                        groupedPreviousMetrics[key],
+                    );
+                    aggregations[key] = {
+                        metrics: aggregateMetrics(groupedCurrentMetrics[key]),
+                        previousSeriesPct,
+                    };
+                });
+
+                return res.status(200).send({
+                    space,
+                    metrics: groupedCurrentMetrics,
+                    aggregations,
+                });
+            });
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
