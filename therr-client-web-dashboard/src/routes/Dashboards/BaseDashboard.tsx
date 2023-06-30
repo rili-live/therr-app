@@ -101,9 +101,8 @@ interface IBaseDashboardProps extends IBaseDashboardRouterProps, IStoreProps {
 
 interface IBaseDashboardState {
     currentSpaceIndex: number;
-    metrics: any[];
-    impressionsLabels: string[] | undefined;
-    impressionsValues: number[][] | undefined;
+    overviewGraphLabels: string[] | undefined;
+    overviewGraphValues: number[][] | undefined;
     percentageChange: number;
     spacesInView: ISpace[]; // TODO: Move to Redux
     spanOfTime: 'week' | 'month';
@@ -127,9 +126,8 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
 
         this.state = {
             currentSpaceIndex: 0,
-            impressionsLabels: undefined,
-            impressionsValues: undefined,
-            metrics: [],
+            overviewGraphLabels: undefined,
+            overviewGraphValues: undefined,
             percentageChange: 0,
             spacesInView: [],
             spanOfTime: 'week',
@@ -139,7 +137,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
     }
 
     componentDidMount() {
-        if (!this.state.metrics.length) {
+        if (!this.state.overviewGraphValues?.length) {
             this.fetchSpaceMetrics('week');
         }
     }
@@ -162,7 +160,10 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
 
         const startDate = moment().subtract(1, `${timeSpan}s`).utc().format('YYYY-MM-DD HH:mm:ss');
         const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-        let formattedMetrics = populateEmptyMetrics(timeSpan);
+        const emptyMetrics = populateEmptyMetrics(timeSpan);
+        let formattedProspects = emptyMetrics;
+        let formattedImpressions = emptyMetrics;
+        let formattedVisits = emptyMetrics;
         const prefetchPromise: Promise<any> = !spacesInView.length ? this.fetchDashboardSpaces() : Promise.resolve();
 
         prefetchPromise.then(() => {
@@ -174,17 +175,26 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                     startDate,
                     endDate,
                 }).then((response) => {
-                    // TODO: Account for different metric names and value types
-                    formattedMetrics = {
-                        ...formattedMetrics,
-                        ...(response?.data?.aggregations?.[MetricNames.SPACE_IMPRESSION]?.metrics || []),
+                    const prospects = response?.data?.aggregations?.[MetricNames.SPACE_PROSPECT] || {};
+                    const impressions = response?.data?.aggregations?.[MetricNames.SPACE_IMPRESSION] || {};
+                    const visits = response?.data?.aggregations?.[MetricNames.SPACE_VISIT] || {};
+                    formattedProspects = {
+                        ...formattedProspects,
+                        ...prospects.metrics,
+                    };
+                    formattedImpressions = {
+                        ...formattedImpressions,
+                        ...impressions.metrics,
+                    };
+                    formattedVisits = {
+                        ...formattedVisits,
+                        ...visits.metrics,
                     };
 
                     this.setState({
-                        metrics: response.data.metrics,
-                        percentageChange: response?.data?.aggregations?.[MetricNames.SPACE_IMPRESSION]?.previousSeriesPct,
-                        impressionsLabels: Object.keys(formattedMetrics),
-                        impressionsValues: [Object.values(formattedMetrics)],
+                        percentageChange: impressions.previousSeriesPct,
+                        overviewGraphLabels: Object.keys(emptyMetrics),
+                        overviewGraphValues: [Object.values(formattedVisits), Object.values(formattedImpressions), Object.values(formattedProspects)],
                     });
                 }).catch((err) => {
                     console.log(err);
@@ -228,9 +238,8 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         const {
             currentSpaceIndex,
             spacesInView,
-            impressionsLabels,
-            impressionsValues,
-            metrics,
+            overviewGraphLabels,
+            overviewGraphValues,
             percentageChange,
         } = this.state;
         const {
@@ -267,9 +276,8 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         <SpaceMetricsDisplay
                             isMobile={false}
                             title={`Space Metrics: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
-                            value={metrics.length}
-                            labels={impressionsLabels}
-                            values={impressionsValues}
+                            labels={overviewGraphLabels}
+                            values={overviewGraphValues}
                             percentage={percentageChange}
                             fetchSpaceMetrics={this.fetchSpaceMetrics}
                         />
@@ -278,9 +286,8 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         <SpaceMetricsDisplay
                             isMobile={true}
                             title={`Space Metrics: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
-                            value={metrics.length}
-                            labels={impressionsLabels}
-                            values={impressionsValues}
+                            labels={overviewGraphLabels}
+                            values={overviewGraphValues}
                             percentage={percentageChange}
                             fetchSpaceMetrics={this.fetchSpaceMetrics}
                         />

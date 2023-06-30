@@ -1,6 +1,5 @@
-import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
+import { AccessLevels, ErrorCodes, MetricNames } from 'therr-js-utilities/constants';
 import printLogs from 'therr-js-utilities/print-logs';
-import { MetricNames } from 'therr-js-utilities/constants';
 import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
