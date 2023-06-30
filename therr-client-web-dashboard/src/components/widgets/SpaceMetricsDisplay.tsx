@@ -12,10 +12,11 @@ import {
 } from '@themesberg/react-bootstrap';
 import { SpaceMetricsLineGraph } from '../charts/SpaceMetricsLineGraph';
 
+// TODO: Display label for each type of metric
 const MetricsSummary = ({
     title,
-    value,
     metricLabel,
+    totalCount,
     previousTimespanLabel,
     percentage,
     percentageIcon,
@@ -26,9 +27,9 @@ const MetricsSummary = ({
             {title}
         </h5>
         {
-            value != null
+            totalCount != null
             && <>
-                <h3>{value} {metricLabel}</h3>
+                <h3>{totalCount} {metricLabel}</h3>
                 <small className="fw-bold mt-2">
                     <span className="me-2">{previousTimespanLabel}</span>
                     <FontAwesomeIcon icon={percentageIcon} className={`${percentageColor} me-1`} />
@@ -69,7 +70,6 @@ const ChartActions = ({
 export const SpaceMetricsDisplay = (props: any) => {
     const {
         title,
-        value,
         percentage,
         fetchSpaceMetrics,
         isMobile,
@@ -85,6 +85,8 @@ export const SpaceMetricsDisplay = (props: any) => {
             fetchSpaceMetrics(spanOfTime);
         }
     };
+    // TODO: Sum each individual metric
+    const totalMetricsCount = values ? values.reduce((acc, cur) => cur.reduce((a, c) => a + c, 0) + acc, 0) : 0;
 
     if (isMobile) {
         return (
@@ -93,8 +95,8 @@ export const SpaceMetricsDisplay = (props: any) => {
                     <div className="d-block mb-3 mb-md-0">
                         <MetricsSummary
                             title={title}
-                            value={values ? value : null}
-                            metricLabel="Impressions"
+                            totalCount={totalMetricsCount}
+                            metricLabel="Visits/Prospects/Impressions"
                             previousTimespanLabel={timeSpan === 'week' ? 'Previous Week' : 'Previous Month'}
                             percentage={percentage}
                             percentageIcon={percentageIcon}
@@ -119,8 +121,8 @@ export const SpaceMetricsDisplay = (props: any) => {
                 <div className="d-block">
                     <MetricsSummary
                         title={title}
-                        value={values ? value : null}
-                        metricLabel="Impressions"
+                        totalCount={totalMetricsCount}
+                        metricLabel="Visits/Prospects/Impressions"
                         previousTimespanLabel={timeSpan === 'week' ? 'Previous Week' : 'Previous Month'}
                         percentage={percentage}
                         percentageIcon={percentageIcon}
