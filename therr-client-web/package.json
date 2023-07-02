@@ -11,6 +11,7 @@
     "build:server": "../node_modules/.bin/webpack --config webpack.server.config.js --env production",
     "build:server:dev": "../node_modules/.bin/webpack --config webpack.server.config.js --env development",
     "build:watch": "node ./update-views.js && npm run build:server:dev && ../node_modules/.bin/webpack --config webpack.app.config.js --watch --env development",
+    "dev": "npx concurrently \"npm run build:watch\" \"npm start\"",
     "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
     "lint": "../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx ./",
     "start": "../node_modules/.bin/nodemon --require=../node_modules/dotenv/config ./build/server-client.js dotenv_config_path=../.env",

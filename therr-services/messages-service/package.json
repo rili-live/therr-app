@@ -7,6 +7,7 @@
     "build": "../../node_modules/.bin/webpack --env production",
     "build:dev": "../../node_modules/.bin/webpack --env development",
     "build:watch": "../../node_modules/.bin/webpack --watch --env development",
+    "dev": "npx concurrently \"npm run build:watch\" \"npm start\"",
     "lint:fix": "../../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx --fix ./",
     "lint": "../../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx ./",
     "migrations:create": "dotenv_config_path=../../.env node --require=../../node_modules/dotenv/config ../../node_modules/.bin/knex --knexfile ./src/store/knexfile.js migrate:make $1",
