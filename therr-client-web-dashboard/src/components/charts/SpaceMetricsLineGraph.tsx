@@ -8,7 +8,7 @@ interface ISpaceMetricsLineGraphProps {
     isMobile: boolean,
     timeSpan: string,
     labels: string[],
-    values: number[][], // [[Prospects],[Impressions],[Visits]]
+    values: number[][], // [[Visits],[Prospects],[Impressions]]
 }
 
 export const SpaceMetricsLineGraph = ({
@@ -18,7 +18,9 @@ export const SpaceMetricsLineGraph = ({
     values,
 }: ISpaceMetricsLineGraphProps) => {
     const labelsOrDefault = labels || (timeSpan === 'week' ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Week 1', 'Week 2', 'Week 3', 'Week 4']);
-    const valuesOrDefault = values || (timeSpan === 'week' ? [[0, 0, 0, 0, 0, 0, 0]] : [[0, 0, 0, 0]]);
+    const valuesOrDefault = values || (timeSpan === 'week'
+        ? [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
+        : [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
     let sampledLabels = [];
     let sampledValues = [];
 
@@ -29,11 +31,17 @@ export const SpaceMetricsLineGraph = ({
             sampledLabels.push(labelsOrDefault[i]);
         }
         valuesOrDefault.forEach((valueArr, index) => {
-            for (let i = 0; i < valueArr.length; i += every) {
-                if (!sampledValues[index]) {
-                    sampledValues[index] = [];
+            let currentSample = 0;
+            for (let i = 0; i < valueArr.length; i += 1) {
+                if (i % every === 0) {
+                    if (!sampledValues[index]) {
+                        sampledValues[index] = [];
+                    }
+                    sampledValues[index].push(currentSample);
+                    currentSample = 0;
+                } else {
+                    currentSample += valuesOrDefault[index][i];
                 }
-                sampledValues[index].push(valuesOrDefault[index][i]);
             }
         });
     } else {
@@ -44,16 +52,16 @@ export const SpaceMetricsLineGraph = ({
         labels: labelsOrDefault,
         series: [
             {
-                name: 'Prospects',
-                data: [],
-            },
-            {
-                name: 'Impressions',
+                name: 'Visits',
                 data: valuesOrDefault[0],
             },
             {
-                name: 'Visits',
-                data: [],
+                name: 'Impressions',
+                data: valuesOrDefault[1],
+            },
+            {
+                name: 'Prospects',
+                data: valuesOrDefault[2],
             },
         ],
     };
@@ -61,16 +69,16 @@ export const SpaceMetricsLineGraph = ({
         labels: sampledLabels,
         series: [
             {
-                name: 'Prospects',
-                data: [],
-            },
-            {
-                name: 'Impressions',
+                name: 'Visits',
                 data: sampledValues[0],
             },
             {
-                name: 'Visits',
-                data: [],
+                name: 'Impressions',
+                data: sampledValues[1],
+            },
+            {
+                name: 'Prospects',
+                data: sampledValues[2],
             },
         ],
     };
@@ -79,6 +87,13 @@ export const SpaceMetricsLineGraph = ({
         low: 0,
         showArea: true,
         fullWidth: true,
+        // lineSmooth: false,
+        chartPadding: {
+            top: 15,
+            right: 35,
+            bottom: 5,
+            left: 10,
+        },
         axisX: {
             position: 'end',
             showGrid: true,
