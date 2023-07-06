@@ -179,23 +179,23 @@ const Sidebar = (props: ISidebarProps) => {
                             <Dropdown.Divider className="my-3 border-indigo" />
 
                             <CollapsableNavItem eventKey="acquisition/" title="Customer Acquisition" icon={faBullseye}>
-                                <NavItem title="Overview" link={'/'} />
+                                {/* <NavItem title="Overview" link={'/'} />
                                 <NavItem title="Awareness" link={'/'} icon={faChartLine} />
-                                <NavItem title="Engagement" link={'/'} icon={faHandHoldingHeart} />
+                                <NavItem title="Engagement" link={'/'} icon={faHandHoldingHeart} /> */}
                             </CollapsableNavItem>
 
                             <CollapsableNavItem eventKey="metrics/" title="Customer Metrics" icon={faChartBar}>
-                                <NavItem title="Overview" link={'/'} />
+                                {/* <NavItem title="Overview" link={'/'} />
                                 <NavItem title="Impressions" link={'/'} icon={faChartBar} />
-                                {/* <NavItem title="Interests" link={'/'} icon={faChartArea} /> */}
-                                <NavItem title="Engagement" link={'/'} icon={faChartPie} />
+                                <NavItem title="Interests" link={'/'} icon={faChartArea} />
+                                <NavItem title="Engagement" link={'/'} icon={faChartPie} /> */}
                             </CollapsableNavItem>
 
                             <CollapsableNavItem eventKey="feedback/" title="Customer Relations" icon={faComments}>
-                                <NavItem title="Overview" link={'/'} />
+                                {/* <NavItem title="Overview" link={'/'} />
                                 <NavItem title="Communications" link={'/'} icon={faCommentDots} />
                                 <NavItem title="Reviews" link={'/'} icon={faCommentAlt} />
-                                <NavItem title="Sentiment" link={'/'} icon={faMeh} />
+                                <NavItem title="Sentiment" link={'/'} icon={faMeh} /> */}
                             </CollapsableNavItem>
 
                             <Dropdown.Divider className="my-3 border-indigo" />

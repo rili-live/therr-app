@@ -18,7 +18,7 @@ import translator from '../../services/translator';
 import UsersActions from '../../redux/actions/UsersActions';
 import withNavigation from '../../wrappers/withNavigation';
 
-const BgImage = '/assets/img/illustrations/signin.svg';
+const BgImage = '/assets/img/illustrations/signin-v2.svg';
 
 export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
     || !props.user.isAuthenticated
@@ -133,7 +133,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         return (
             <div id="page_login" className="flex-box center space-evenly row">
                 <main>
-                    <section className='d-flex align-items-center my-5 mt-lg-6 mb-lg-5'>
+                    <section className='d-flex align-items-center my-5 mt-lg-7 mb-lg-5'>
                         <Container>
                             {/* <p className='text-center'>
                                 <Card.Link as={Link} to={'/'} className='text-gray-700'>
