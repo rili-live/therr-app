@@ -15,7 +15,7 @@ import RegisterForm from './RegisterForm';
 import UsersActions from '../../redux/actions/UsersActions';
 import withNavigation from '../../wrappers/withNavigation';
 
-const BgImage = '/assets/img/illustrations/signin.svg';
+const BgImage = '/assets/img/illustrations/signin-v2.svg';
 
 interface IRegisterRouterProps {
     navigation: {
@@ -113,7 +113,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         return (
             <div id="page_login" className="flex-box center space-evenly row">
                 <main>
-                    <section className='d-flex align-items-center my-5 mt-lg-6 mb-lg-5'>
+                    <section className='d-flex align-items-center my-5 mt-lg-7 mb-lg-5'>
                         <Container>
                             {/* <p className='text-center'>
                                 <Card.Link as={Link} to={'/'} className='text-gray-700'>
