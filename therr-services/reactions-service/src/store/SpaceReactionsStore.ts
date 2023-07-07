@@ -16,6 +16,7 @@ export interface ICreateSpaceReactionParams {
     userHasReported?: boolean;
     userHasSuperDisliked?: boolean;
     userLocale?: string;
+    rating?: number;
 }
 
 export interface IUpdateSpaceReactionConditions {
@@ -32,6 +33,7 @@ export interface IUpdateSpaceReactionParams {
     userHasReported?: boolean;
     userHasSuperDisliked?: boolean;
     userLocale?: string;
+    rating?: number;
 }
 
 interface IUpdateWhereInConfig {

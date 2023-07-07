@@ -8,7 +8,7 @@ import RNFB from 'rn-fetch-blob';
 import Toast from 'react-native-toast-message';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState } from 'therr-react/types';
-import { MapActions } from 'therr-react/redux/actions';
+import { ReactionActions, MapActions } from 'therr-react/redux/actions';
 import { Content, ErrorCodes } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
@@ -51,6 +51,7 @@ import { sendForegroundNotification, sendTriggerNotification } from '../utilitie
 import BottomSheet from '../components/BottomSheet/BottomSheet';
 import TherrIcon from '../components/TherrIcon';
 import ConfirmModal from '../components/Modals/ConfirmModal';
+import SpaceRating from '../components/Input/SpaceRating';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -80,6 +81,7 @@ const hapticFeedbackOptions = {
 interface IEditMomentDispatchProps {
     createMoment: Function;
     updateMoment: Function;
+    createOrUpdateSpaceReaction: Function;
 }
 
 interface IStoreProps extends IEditMomentDispatchProps {
@@ -115,6 +117,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createMoment: MapActions.createMoment,
     updateMoment: MapActions.updateMoment,
+    createOrUpdateSpaceReaction: ReactionActions.createOrUpdateSpaceReaction,
 }, dispatch);
 
 export class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
@@ -295,10 +298,12 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             maxViews,
             expiresAt,
             radius,
+            rating,
             spaceId,
             isPublic,
         } = this.state.inputs;
         const {
+            createOrUpdateSpaceReaction,
             navigation,
             route,
             user,
@@ -324,6 +329,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             longitude,
             maxViews,
             radius,
+            rating,
             skipReward: shouldSkipRewards,
             spaceId,
             expiresAt,
@@ -343,6 +349,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 const createOrUpdatePromise = route.params.area?.id
                     ? this.props.updateMoment(route.params.area.id, modifiedCreateArgs, !isDraft) // isCompletedDraft (when id and saving finalized)
                     : this.props.createMoment(modifiedCreateArgs);
+
+                if (spaceId && rating !== null) {
+                    createOrUpdateSpaceReaction(spaceId, { rating });
+                }
 
                 createOrUpdatePromise
                     .then((response) => {
@@ -478,6 +488,15 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             },
             errorMsg: '',
             isSubmitting: false,
+        });
+    };
+
+    onSelectRating = (rating: number) => {
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                rating,
+            },
         });
     };
 
@@ -856,6 +875,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     renderEditingNearbySpaces = () => {
         const {
             errorMsg,
+            inputs,
         } = this.state;
 
         return (
@@ -873,6 +893,15 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             formStyles={this.themeForms.styles}
                         />
                     </View>
+                    {
+                        inputs.spaceId &&
+                        <View style={this.theme.styles.sectionContainer}>
+                            <Text style={this.theme.styles.sectionTitleCenter}>
+                                {this.translate('forms.editMoment.headers.rating')}
+                            </Text>
+                            <SpaceRating themeForms={this.themeForms} isEditable onSelectRating={this.onSelectRating} />
+                        </View>
+                    }
                     <Alert
                         containerStyles={addMargins({
                             marginBottom: 24,

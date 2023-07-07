@@ -66,6 +66,11 @@ export interface IFindMomentReactionParams {
 }
 export interface ICreateSpaceReactionBody extends ICreateAreaReactionBody {
     spaceId: number;
+    rating?: number;
+}
+export interface ICreateOrUpdateSpaceReactionBody extends ICreateOrUpdateAreaReactionBody {
+    spaceId: number;
+    rating?: number;
 }
 export interface IGetSpaceReactionParams {
     limit?: number;
@@ -212,7 +217,7 @@ class ReactionsService {
     );
 
     // Spaces
-    createOrUpdateSpaceReaction = (id: number, data: ICreateOrUpdateAreaReactionBody) => this.createOrUpdatePostReaction(
+    createOrUpdateSpaceReaction = (id: number, data: ICreateOrUpdateSpaceReactionBody) => this.createOrUpdatePostReaction(
         'spaces',
         id,
         data,

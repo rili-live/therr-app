@@ -71,6 +71,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             color: therrTheme.colors.placeholderTextColorAlt,
         },
+        ratingContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            width: '100%',
+            justifyContent: 'center',
+        },
         switchContainer: {
             display: 'flex',
             flexDirection: 'row',
