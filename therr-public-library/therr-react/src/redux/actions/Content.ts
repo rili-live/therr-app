@@ -1,6 +1,6 @@
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { ContentActionTypes } from '../../types/redux/content';
-import ReactionsService, { ISearchActiveAreasParams, ICreateOrUpdateAreaReactionBody, ISearchActiveAreasByIdsParams } from '../../services/ReactionsService';
+import ReactionsService, { ISearchActiveAreasParams, ICreateOrUpdateAreaReactionBody, ISearchActiveAreasByIdsParams, ICreateOrUpdateSpaceReactionBody } from '../../services/ReactionsService';
 import { ISearchAreasArgs } from '../../services/MapsService';
 import { MapsService } from '../../services';
 
@@ -128,7 +128,7 @@ const Content = {
         }),
     createOrUpdateSpaceReaction: (
         spaceId: number,
-        params: ICreateOrUpdateAreaReactionBody,
+        params: ICreateOrUpdateSpaceReactionBody,
         spaceUserId: string,
         reactorUserName: string,
     ) => (dispatch: any) => ReactionsService
