@@ -131,7 +131,7 @@ export class DocumentationOverviewComponent extends React.Component<IDocumentati
         } = this.state;
 
         return (
-            <div id="page_dashboard_overview" className="flex-box column">
+            <div id="page_documentation_overview" className="flex-box column">
                 <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
                 </div>
 
