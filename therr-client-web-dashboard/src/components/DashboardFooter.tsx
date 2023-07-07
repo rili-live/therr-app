@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 import React from 'react';
 import moment from 'moment-timezone';
+import classNames from 'classnames';
 import {
     Row,
     Col,
@@ -30,6 +31,17 @@ const DashboardFooter = (props: any) => {
     const toggleSettings = (toggle) => {
         props.toggleSettings(toggle);
     };
+
+    const containerStyles = classNames({
+        footer: true,
+        'p-5': true,
+        'mb-4': true,
+        'mt-4': true,
+        'bg-white': !props.isLandingStylePage,
+        rounded: !props.isLandingStylePage,
+        'shadow-sm': !props.isLandingStylePage,
+        card: !props.isLandingStylePage,
+    });
 
     return (
         <div>
@@ -68,7 +80,7 @@ const DashboardFooter = (props: any) => {
                     </Card.Body>
                 </Card>
             )} */}
-            <footer className="footer section py-5">
+            <footer className={containerStyles}>
                 <Row>
                     <Col xs={12} lg={6} className="mb-4 mb-lg-0">
                         <p className="mb-0 text-center text-xl-left">

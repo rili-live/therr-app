@@ -33,6 +33,7 @@ import {
     faSignOutAlt,
     faTimes,
     faRocket,
+    faTasks,
 } from '@fortawesome/free-solid-svg-icons';
 import {
     Nav,
@@ -157,7 +158,7 @@ const Sidebar = (props: ISidebarProps) => {
                         <Nav className="flex-column pt-3 pt-md-0">
                             <NavItem title="My Dashboard" link={'/dashboard'} icon={faHome} />
                             <AccessControl isAuthorized={isSuperAdmin}>
-                                <NavItem title="Admin Dashboard" link={'/admin-dashboard'} icon={faHome} />
+                                <NavItem title="Admin Dashboard" link={'/admin-dashboard'} icon={faTasks} />
                             </AccessControl>
                             <NavItem title="Claim a Space" link={'/claim-a-space'} icon={faMapMarked} />
                             <NavItem title="My Campaigns" icon={faBullhorn} link={'/'} />
@@ -202,8 +203,8 @@ const Sidebar = (props: ISidebarProps) => {
 
                             <NavItem title="Settings" icon={faCog} link={'/settings'} />
                             <CollapsableNavItem eventKey="documentation/" title="Getting Started" icon={faBook}>
-                                <NavItem title="Overview" link={'/'} />
-                                <NavItem title="Quick Start" link={'/'} />
+                                <NavItem title="Overview" link={'/documentation/overview'} />
+                                <NavItem title="Quick Start" link={'/claim-a-space'} />
                                 <NavItem title="Claim a Space" link={'/claim-a-space'} />
                             </CollapsableNavItem>
                             {/* <CollapsableNavItem eventKey="components/" title="Components" icon={faBoxOpen}>

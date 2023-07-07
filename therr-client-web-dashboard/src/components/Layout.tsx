@@ -397,9 +397,11 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                                 initMessaging={this.initMessaging}
                                 isAuthorized={(access) => UsersService.isAuthorized(access, user)}
                             />
-                            {
-                                <DashboardFooter toggleSettings={() => { console.log('toggleSettings'); }} showSettings={false} />
-                            }
+                            <DashboardFooter
+                                toggleSettings={() => { console.log('toggleSettings'); }}
+                                showSettings={false}
+                                isLandingStylePage={isLandingStylePage}
+                            />
                         </main>
                     </TransitionGroup>
 
