@@ -115,6 +115,21 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
         this.props.toggleAlert(false);
     };
 
+    onCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { checked } = event.currentTarget;
+
+        const newInputChanges = {
+            rememberMe: !this.state.inputs.rememberMe,
+        };
+
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                ...newInputChanges,
+            },
+        });
+    };
+
     public render(): JSX.Element | null {
         const { alert, title } = this.props;
 
@@ -157,10 +172,10 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                         </InputGroup>
                     </Form.Group>
                     <div className='d-flex justify-content-between align-items-center mb-4'>
-                        <Form.Check type='checkbox'>
-                            <FormCheck.Input id='defaultCheck5' className='me-2' />
+                        <FormCheck id="remember_me" type='checkbox'>
+                            <FormCheck.Input id='defaultCheck5' className='me-2' onChange={this.onCheckboxChange} checked={this.state.inputs.rememberMe} />
                             <FormCheck.Label htmlFor='defaultCheck5' className='mb-0'>Remember me</FormCheck.Label>
-                        </Form.Check>
+                        </FormCheck>
                         <Card.Link as={Link} to="/reset-password" className='small text-end'>Forgot password?</Card.Link>
                     </div>
                 </Form.Group>
