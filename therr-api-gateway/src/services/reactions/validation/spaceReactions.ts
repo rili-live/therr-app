@@ -16,6 +16,7 @@ export const createOrUpdateSpaceReactionValidation = [
     body('userHasSuperDisliked').isBoolean().optional(),
     body('userBookmarkCategory').optional(),
     body('userBookmarkPriority').isNumeric().optional(),
+    body('rating').isNumeric().optional(),
 ];
 
 export const getSpaceReactionsValidation = [

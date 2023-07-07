@@ -7,6 +7,7 @@ import ReactionsService, {
     IFindSpaceReactionParams,
     IGetThoughtReactionParams,
     IFindThoughtReactionParams,
+    ICreateOrUpdateSpaceReactionBody,
 } from '../../services/ReactionsService';
 
 const Reactions = {
@@ -39,7 +40,7 @@ const Reactions = {
         }),
 
     // Spaces
-    createOrUpdateSpaceReaction: (spaceId: number, data: ICreateOrUpdateAreaReactionBody) => (dispatch: any) => ReactionsService
+    createOrUpdateSpaceReaction: (spaceId: number, data: ICreateOrUpdateSpaceReactionBody) => (dispatch: any) => ReactionsService
         .createOrUpdateSpaceReaction(spaceId, data).then((response: any) => {
             dispatch({
                 type: ReactionActionTypes.SPACE_REACTION_CREATED_OR_UPDATED,

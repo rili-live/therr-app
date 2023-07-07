@@ -387,6 +387,9 @@
         "radius": "Radius: {meters} meters",
         "unselected": "Select a Space"
       },
+      "headers": {
+        "rating": "Rating / Review"
+      },
       "modal": {
         "insufficientFundsTitle": "No TherrCoins Available",
         "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TherrCoin.",
