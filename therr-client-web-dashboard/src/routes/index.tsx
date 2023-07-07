@@ -14,6 +14,7 @@ import EmailVerification from './EmailVerification';
 import ResetPassword from './ResetPassword';
 import ManageSpaces from './ManageSpaces';
 import CreateEditSpace from './CreateEditSpace';
+import DocumentationOverview from './Documentation/DocumentationOverview';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -57,6 +58,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.SUPER_ADMIN],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
+        path: '/documentation/overview',
+        element: <AuthRoute
+            component={DocumentationOverview}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
             })}
             redirectPath={'/login'}
         />,
