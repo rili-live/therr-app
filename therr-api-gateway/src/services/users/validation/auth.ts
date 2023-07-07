@@ -8,7 +8,7 @@ export const authenticateUserTokenValidation = [
 ];
 
 export const authenticateUserValidation = [
-    body('rememberMe').optional().isString(),
+    body('rememberMe').optional().isBoolean(),
     oneOf([
         [
             body('userName').exists().isString(),
