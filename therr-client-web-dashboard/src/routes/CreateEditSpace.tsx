@@ -250,7 +250,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
     };
 
     onUpdateSpace = (event: React.MouseEvent<HTMLInputElement>) => {
-        const { files } = this.state;
+        const { files, fetchedSpace } = this.state;
         const {
             location,
             navigation,
@@ -273,19 +273,24 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
             isSubmitting: true,
         });
 
-        if (space?.id) {
+        const spaceInView = {
+            ...fetchedSpace,
+            ...space,
+        };
+
+        if (spaceInView?.id) {
             const createUpdateArgs: any = {
-                ...space,
+                ...spaceInView,
                 notificationMsg: spaceTitle,
                 message: spaceDescription,
                 category,
-                addressReadable: (selectedAddresses?.length && selectedAddresses[0]?.label) || space.addressReadable,
+                addressReadable: (selectedAddresses?.length && selectedAddresses[0]?.label) || spaceInView.addressReadable,
             };
             if (routeParams.context === 'admin') {
-                createUpdateArgs.overrideFromUserId = space.fromUserId;
+                createUpdateArgs.overrideFromUserId = spaceInView.fromUserId;
             }
             (files.length > 0 ? signAndUploadImage(createUpdateArgs, files) : Promise.resolve(createUpdateArgs)).then((modifiedArgs) => {
-                updateSpace(space.id, modifiedArgs).then(() => {
+                updateSpace(spaceInView.id, modifiedArgs).then(() => {
                     this.setState({
                         alertTitle: 'Successfully Updated!',
                         alertMessage: 'This space was updated without issue.',
