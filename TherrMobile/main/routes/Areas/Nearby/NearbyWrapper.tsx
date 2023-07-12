@@ -33,6 +33,7 @@ import { ILocationState } from '../../../types/redux/location';
 import LocationUseDisclosureModal from '../../../components/Modals/LocationUseDisclosureModal';
 import getDirections from '../../../utilities/getDirections';
 import GpsEnableButtonDialog from './GPSEnableDialog';
+import getReadableDistance from '../../../utilities/getReadableDistance';
 
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
@@ -83,7 +84,7 @@ interface INearbyWrapperState {
     selectedArea: any;
 }
 
-const shouldRenderNearbyNewsfeed = (location) => {
+const shouldRenderNearbyAreaFeed = (location) => {
     return location?.settings.isGpsEnabled
         && location?.settings?.isLocationDislosureComplete
         && isLocationPermissionGranted(location?.permissions);
@@ -138,7 +139,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
     // This allows us to fetch results when the user enables location from the map, then opens the Nearby bottom sheet
     static getDerivedStateFromProps(nextProps: INearbyWrapperProps, nextState: INearbyWrapperState) {
-        if (!nextState.isNearbyNewsfeedVisible && shouldRenderNearbyNewsfeed(nextProps.location)) {
+        if (!nextState.isNearbyNewsfeedVisible && shouldRenderNearbyAreaFeed(nextProps.location)) {
             return {
                 isNearbyNewsfeedVisible: true,
             };
@@ -259,9 +260,9 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             activeTab,
             content,
             isForBookmarks: false,
-        }, 'createdAt');
+        }, 'distance');
 
-        if (shouldRenderNearbyNewsfeed(location) && (isFirstLoad || !activeData?.length || activeData.length < 21)) {
+        if (shouldRenderNearbyAreaFeed(location) && (isFirstLoad || !activeData?.length || activeData.length < 21)) {
             return this.handleRefresh(false);
         } else {
             this.setState({
@@ -272,7 +273,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
     };
 
     handleRefresh = (shouldShowLoader = false) => {
-        const { content, map, updateActiveMomentsStream, updateActiveSpacesStream, user } = this.props;
+        const { content, location, updateActiveMomentsStream, updateActiveSpacesStream, user } = this.props;
         const { activeTab } = this.state;
 
         if (shouldShowLoader) {
@@ -282,8 +283,8 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
         }
 
         const activeMomentsPromise = updateActiveMomentsStream({
-            userLatitude: map.latitude,
-            userLongitude: map.longitude,
+            userLatitude: location?.user?.latitude,
+            userLongitude: location?.user?.longitude,
             withMedia: true,
             withUser: true,
             offset: 0,
@@ -293,8 +294,8 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
         });
 
         const activeSpacesPromise = updateActiveSpacesStream({
-            userLatitude: map.latitude,
-            userLongitude: map.longitude,
+            userLatitude: location?.user?.latitude,
+            userLongitude: location?.user?.longitude,
             withMedia: true,
             withUser: true,
             offset: 0,
@@ -604,13 +605,23 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             isForBookmarks: false,
             isForDrafts: false,
         }, 'distance');
+        const formattedActiveData = activeData.map(d => {
+            const formatted = {
+                ...d,
+            };
+            if (d.distance != null && !d.distance.toString().includes(' ')) {
+                formatted.distance = getReadableDistance(formatted.distance);
+            }
+
+            return formatted;
+        });
 
         return (
             <>
                 {
-                    shouldRenderNearbyNewsfeed(location) &&
+                    shouldRenderNearbyAreaFeed(location) &&
                         <AreaCarousel
-                            activeData={activeData}
+                            activeData={formattedActiveData}
                             content={content}
                             displaySize={displaySize}
                             fetchMedia={fetchMedia}
@@ -635,7 +646,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                         />
                 }
                 {
-                    !shouldRenderNearbyNewsfeed(location) && <GpsEnableButtonDialog
+                    !shouldRenderNearbyAreaFeed(location) && <GpsEnableButtonDialog
                         handleEnableLocationPress={this.handleEnableLocationPress}
                         theme={this.theme}
                         themeForms={this.themeForms}
