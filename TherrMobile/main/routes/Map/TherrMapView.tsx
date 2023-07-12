@@ -1,5 +1,5 @@
 import React, { Ref } from 'react';
-import { Animated, Dimensions, View } from 'react-native';
+import { Animated, Dimensions, Platform, View } from 'react-native';
 import MapView from 'react-native-map-clustering';
 import { PROVIDER_GOOGLE, Circle, Marker, MapPressEvent, MarkerPressEvent } from 'react-native-maps';
 import { connect } from 'react-redux';
@@ -928,7 +928,8 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                     }}
                                     onPress={this.handleMapPress}
                                     stopPropagation={true}
-                                    tracksViewChanges={true} // Note: Supposedly affects performance but not sure the implications
+                                    // Note: Supposedly affects performance but not sure the implications. Causes Android flicker
+                                    tracksViewChanges={(Platform.OS !== 'android')}
                                     zIndex={(index + 1) * 2}
                                 >
                                     <Animated.View style={[{

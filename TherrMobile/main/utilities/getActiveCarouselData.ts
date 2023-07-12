@@ -8,7 +8,7 @@ interface IPost {
 }
 
 interface IArea extends IPost {
-    distance: number;
+    distance: number | string;
 }
 
 /**
@@ -18,8 +18,31 @@ interface IArea extends IPost {
  * @returns a merged list of moments and spaces
  */
 const mergeAreas = (moments: IArea[], spaces: IArea[], sortBy = 'createdAt', shouldIncludeDrafts = false) => {
+    // TODO: This is groooosssss....sorting should happen on the server side
     if (sortBy === 'distance') {
-        return [...moments, ...spaces].sort((a, b) => a.distance - b.distance);
+        return [...moments, ...spaces].sort((a, b) => {
+            let aDist = a.distance;
+            let bDist = b.distance;
+            let aSplit;
+            let bSplit;
+            if (typeof aDist === 'string') {
+                aSplit = aDist.split(' ');
+
+                aDist = Number(aSplit[0]);
+                if (aSplit[1] === 'ft') {
+                    aDist *= 0.000189394;
+                }
+            }
+            if (typeof bDist === 'string') {
+                bSplit = bDist.split(' ');
+                bDist = Number(bSplit[0]);
+                if (bSplit[1] === 'ft') {
+                    bDist *= 0.000189394;
+                }
+            }
+
+            return aDist - bDist;
+        });
     } else {
         return mergeSortByCreatedAt(moments, spaces, shouldIncludeDrafts);
     }

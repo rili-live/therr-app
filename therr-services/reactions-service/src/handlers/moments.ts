@@ -81,7 +81,7 @@ const searchActiveMoments = async (req: any, res: any) => {
                         lon: userLongitude,
                         lat: userLatitude,
                     }) / 1069.344; // convert meters to miles
-                    alteredMoment.distance = Math.round(distance * 10) / 10;
+                    alteredMoment.distance = getReadableDistance(distance);
                 }
                 return {
                     ...alteredMoment,
