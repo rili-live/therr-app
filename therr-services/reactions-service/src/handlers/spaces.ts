@@ -169,7 +169,7 @@ const searchActiveSpacesByIds = async (req: any, res: any) => {
                         lon: userLongitude,
                         lat: userLatitude,
                     }) / 1069.344; // convert meters to miles
-                    alteredSpace.distance = Math.round(10 * distance) / 10;
+                    alteredSpace.distance = getReadableDistance(distance);
                 }
                 return {
                     ...alteredSpace,
