@@ -5,11 +5,15 @@ import { Location, NavigateFunction } from 'react-router-dom';
 import { TransitionGroup } from 'react-transition-group';
 import ReactGA from 'react-ga4';
 import { AccessLevels } from 'therr-js-utilities/constants';
-import { IMessagesState, IUserState, AccessCheckType } from 'therr-react/types';
+import {
+    IMessagesState, IUserState, AccessCheckType, IMapState,
+} from 'therr-react/types';
 import {
     SvgButton,
 } from 'therr-react/components';
-import { NotificationActions, SocketActions, MessageActions } from 'therr-react/redux/actions';
+import {
+    NotificationActions, SocketActions, MapActions, MessageActions,
+} from 'therr-react/redux/actions';
 import { UsersService } from 'therr-react/services';
 // import { Loader } from '../library/loader';
 import classNames from 'classnames';
@@ -44,9 +48,12 @@ interface ILayoutDispatchProps {
     refreshConnection: Function;
     searchDms: Function;
     searchNotifications: Function;
+    getPlacesSearchAutoComplete: Function;
+    setSearchDropdownVisibility: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
+    map?: IMapState;
     messages?: IMessagesState;
     user?: IUserState;
 }
@@ -77,10 +84,14 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
     searchDms: MessageActions.searchDMs,
     refreshConnection: SocketActions.refreshConnection,
     searchNotifications: NotificationActions.search,
+    getPlacesSearchAutoComplete: MapActions.getPlacesSearchAutoComplete,
+    setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
 }, dispatch);
 
 // TODO: Animation between view change is not working when wrapped around a Switch
 export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState> {
+    private throttleTimeoutId;
+
     constructor(props: ILayoutProps, state: ILayoutState) {
         super(props);
 
@@ -226,6 +237,26 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         logout(user.details);
     };
 
+    onSearchInpuChange = (event) => {
+        event.preventDefault();
+        const { name, value } = event.currentTarget;
+
+        const { getPlacesSearchAutoComplete, map, setSearchDropdownVisibility } = this.props;
+
+        clearTimeout(this.throttleTimeoutId);
+
+        this.throttleTimeoutId = setTimeout(() => {
+            getPlacesSearchAutoComplete({
+                longitude: map?.longitude || '37.76999',
+                latitude: map?.latitude || '-122.44696',
+                // radius,
+                input: value,
+            });
+        }, 500);
+
+        setSearchDropdownVisibility(!!value?.length);
+    };
+
     navToSettings = () => {
         this.props.navigation.navigate('/settings');
     };
@@ -347,7 +378,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     };
 
     public render(): JSX.Element | null {
-        const { location, user } = this.props;
+        const { location, map, user } = this.props;
         const navMenuClassNames = classNames({
             'is-open': this.state.isNavMenuOpen,
             'is-expanded': this.state.isNavMenuExpanded,
@@ -391,7 +422,13 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         <main className={mainClassNames}>
                             {
                                 shouldShowSidebar
-                                && <DashboardNavbar onLogout={this.handleLogout} navToSettings={this.navToSettings} user={user} />
+                                && <DashboardNavbar
+                                    map={map}
+                                    onLogout={this.handleLogout}
+                                    onSearchInpuChange={this.onSearchInpuChange}
+                                    navToSettings={this.navToSettings}
+                                    user={user}
+                                />
                             }
                             <AppRoutes
                                 initMessaging={this.initMessaging}
