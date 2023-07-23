@@ -145,8 +145,8 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                     itemsPerPage,
                     pageNumber,
                     filterBy: 'fromUserIds',
-                    latitude: latitude || 33.7673401, // defaults to Atlanta, GA
-                    longitude: latitude || -84.5025308, // defaults to Atlanta, GA
+                    latitude: latitude || 41.8336152, // defaults to Chicago, IL
+                    longitude: latitude || -87.8967688, // defaults to Chicago, IL
                 }, {
                     distanceOverride: 160934, // ~ 100 miles
                 })
