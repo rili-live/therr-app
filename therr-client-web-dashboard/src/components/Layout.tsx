@@ -74,6 +74,7 @@ interface ILayoutState {
 }
 
 const mapStateToProps = (state: any) => ({
+    map: state.map,
     messages: state.messages,
     redirectRoute: state.redirectRoute,
     user: state.user,

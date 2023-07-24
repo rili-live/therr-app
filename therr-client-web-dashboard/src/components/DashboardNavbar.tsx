@@ -105,6 +105,18 @@ const DashboardNavbar = (props: IDashboardNavbarProps) => {
                                 </InputGroup>
                             </Form.Group>
                         </Form>
+                        {/* {
+                            isSearchDropdownVisible
+                                && <ul className="list-inline list-group-flush list-group-borderless text-center text-xl-right mb-0">
+                                    {
+                                        map?.searchPredictions?.results?.map((prediction) => (
+                                            <li key={prediction.place_id} className="list-inline-item px-0 px-sm-2">
+                                                {prediction.description}
+                                            </li>
+                                        ))
+                                    }
+                                </ul>
+                        } */}
                     </div>
                     <Nav className="align-items-center">
                         <Dropdown as={Nav.Item}>
