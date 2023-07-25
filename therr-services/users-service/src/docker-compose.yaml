@@ -1,0 +1,14 @@
+version: '1'
+services:
+  users-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./therr-services/users-service:/usr/src/app/therr-services/users-service
+      - /usr/src/app/node_modules
+    environment:
+      - BUILD_MODE=development
+      - NODE_ENV=development
+    ports:
+      - "7771:7771"

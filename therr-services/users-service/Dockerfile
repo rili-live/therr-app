@@ -4,7 +4,7 @@ FROM node:$NODE_VERSION
 # Run install in development for devDependencies/dependencies to be installed correctly
 ENV NODE_ENV development
 
-ARG BUILD_MODE=production
+ARG BUILD_MODE=development
 ENV BUILD_MODE $BUILD_MODE
 
 RUN npm i npm@latest -g
@@ -62,11 +62,11 @@ RUN if [ "$BUILD_MODE" = "development" ]; then \
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
 
 # Run app with an environment equal to the mode that it was built
-ARG BUILD_MODE=production
+ARG BUILD_MODE=development
 ENV BUILD_MODE $BUILD_MODE
 ENV NODE_ENV $BUILD_MODE
 RUN echo "Running app in $NODE_ENV"
 
 EXPOSE 7771
 
-CMD ["node", "./build/server.js"]
+CMD ["node", "run", "build:dev"]
