@@ -60,6 +60,8 @@ interface IManageSpacesState {
     alertVariation: string;
     alertTitle: string;
     alertMessage: string;
+    latitude?: number;
+    longitude?: number;
     isSubmitting: boolean;
     inputs: {
         [key: string]: any;
@@ -127,6 +129,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
     };
 
     fetchSpaces = (pageNumber = 1, itemsPerPage = ItemsPerPage) => {
+        const { latitude, longitude } = this.state;
         const { routeParams } = this.props;
 
         this.setState({
@@ -142,8 +145,8 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                     itemsPerPage,
                     pageNumber,
                     filterBy: 'fromUserIds',
-                    latitude: 41.8336152, // defaults to Chicago, IL
-                    longitude: -87.8967688, // defaults to Chicago, IL
+                    latitude: latitude || 41.8336152, // defaults to Chicago, IL
+                    longitude: longitude || -87.8967688, // defaults to Chicago, IL
                 }, {
                     distanceOverride: 160934, // ~ 100 miles
                 })

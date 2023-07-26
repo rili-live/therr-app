@@ -18,6 +18,14 @@ import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
 import { parseConfigValue } from './config';
 
+const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
+    if (receivingPhoneNumber.startsWith('+44')) {
+        return process.env.TWILIO_SENDER_PHONE_NUMBER_GB;
+    }
+
+    return process.env.TWILIO_SENDER_PHONE_NUMBER;
+};
+
 const failsafeBlackListRequest = (email) => Store.blacklistedEmails.get({
     email,
 }).catch((err) => {
@@ -329,7 +337,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                         name: `${requestingUserFirstName} ${requestingUserLastName}`,
                     }),
                     to: contact.phoneNumber, // Text this number
-                    from: process.env.TWILIO_SENDER_PHONE_NUMBER, // From a valid Twilio number
+                    from: getTherrFromPhoneNumber(contact.phoneNumber), // From a valid Twilio number
                 }));
         });
 

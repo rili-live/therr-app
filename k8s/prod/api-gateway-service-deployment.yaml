@@ -60,6 +60,8 @@ spec:
               key: TWILIOAUTHTOKEN
         - name: TWILIO_SENDER_PHONE_NUMBER
           value: "+14783124948"
+        - name: TWILIO_SENDER_PHONE_NUMBER_GB
+          value: "+447700158631"
         - name: BUCKET_PUBLIC_USER_DATA
           value: "therr-public-user-data"
         - name: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY

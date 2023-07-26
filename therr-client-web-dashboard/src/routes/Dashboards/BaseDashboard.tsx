@@ -95,12 +95,14 @@ interface IStoreProps extends IBaseDashboardDispatchProps {
 
 // Regular component props
 interface IBaseDashboardProps extends IBaseDashboardRouterProps, IStoreProps {
-    fetchSpaces: () => Promise<AxiosResponse<any, any>>;
+    fetchSpaces: (latitude?: number, longitude?: number) => Promise<AxiosResponse<any, any>>;
     isSuperAdmin: boolean;
 }
 
 interface IBaseDashboardState {
     currentSpaceIndex: number;
+    latitude?: number;
+    longitude?: number;
     overviewGraphLabels: string[] | undefined;
     overviewGraphValues: number[][] | undefined;
     percentageChange: number;
@@ -142,10 +144,10 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         }
     }
 
-    fetchDashboardSpaces = () => {
+    fetchDashboardSpaces = (latitude?: number, longitude?: number) => {
         const { fetchSpaces } = this.props;
 
-        return fetchSpaces().then((response) => new Promise((resolve) => {
+        return fetchSpaces(latitude, longitude).then((response) => new Promise((resolve) => {
             this.setState({
                 spacesInView: response?.data?.results || [],
             }, () => resolve(null));
@@ -156,7 +158,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         this.setState({
             spanOfTime: timeSpan,
         });
-        const { spacesInView } = this.state;
+        const { latitude, longitude, spacesInView } = this.state;
 
         const startDate = moment().subtract(1, `${timeSpan}s`).utc().format('YYYY-MM-DD HH:mm:ss');
         const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
@@ -164,7 +166,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         let formattedProspects = emptyMetrics;
         let formattedImpressions = emptyMetrics;
         let formattedVisits = emptyMetrics;
-        const prefetchPromise: Promise<any> = !spacesInView.length ? this.fetchDashboardSpaces() : Promise.resolve();
+        const prefetchPromise: Promise<any> = !spacesInView.length ? this.fetchDashboardSpaces(latitude, longitude) : Promise.resolve();
 
         prefetchPromise.then(() => {
             const { currentSpaceIndex, spacesInView: updatedSpacesInView } = this.state;

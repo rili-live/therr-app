@@ -35,13 +35,13 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
-const fetchAllSpaces = () => MapsService.searchSpaces({
+const fetchAllSpaces = (latitude?: number, longitude?: number) => MapsService.searchSpaces({
     query: 'connections',
     itemsPerPage: 50,
     pageNumber: 1,
     filterBy: 'fromUserIds',
-    latitude: 32.8205566, // defaults to Dallas, TX
-    longitude: -96.8963576, // defaults to Dallas, TX
+    latitude: latitude || 32.8205566, // defaults to Dallas, TX
+    longitude: longitude || -96.8963576, // defaults to Dallas, TX
 }, {
     distanceOverride: 160934, // ~ 100 miles
 });
