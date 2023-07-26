@@ -11,6 +11,14 @@ import { verifyPhoneLimiter, verifyPhoneLongLimiter } from './limitation/phone';
 import * as globalConfig from '../../../../global-config';
 import restRequest from '../../utilities/restRequest';
 
+const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
+    if (receivingPhoneNumber.startsWith('+44')) {
+        return process.env.TWILIO_SENDER_PHONE_NUMBER_GB;
+    }
+
+    return process.env.TWILIO_SENDER_PHONE_NUMBER;
+};
+
 const generateVerificationCode = () => {
     const minm = 100000;
     const maxm = 999999;
@@ -87,7 +95,7 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
                         code: verificationCode,
                     }),
                     to: normalizedPhoneNumber, // Text this number
-                    from: process.env.TWILIO_SENDER_PHONE_NUMBER, // From a valid Twilio number
+                    from: getTherrFromPhoneNumber(normalizedPhoneNumber), // From a valid Twilio number
                 }))
             // eslint-disable-next-line arrow-body-style
             .then(() => {

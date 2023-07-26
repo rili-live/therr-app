@@ -30,7 +30,7 @@ import {
 } from 'therr-react/redux/actions';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { INotificationsState, INotification } from 'therr-react/types';
+import { INotificationsState, INotification, IMapState } from 'therr-react/types';
 import getUserImageUri from '../utilities/getUserImageUri';
 
 const MAX_NOTIFICATIONS_IN_VIEW = 8;
@@ -51,8 +51,10 @@ interface IStoreProps {
 }
 
 interface IDashboardNavbarProps extends IStoreProps{
+    map: IMapState;
     navToSettings: () => any;
     onLogout: React.MouseEventHandler<any>;
+    onSearchInpuChange: React.ChangeEventHandler<HTMLInputElement>;
     user: any;
 }
 
@@ -81,10 +83,14 @@ const Notification = (notificationProps: any) => {
 };
 
 const DashboardNavbar = (props: IDashboardNavbarProps) => {
-    const { user, notifications, updateNotification } = props;
+    const {
+        user, map, notifications, onSearchInpuChange, updateNotification,
+    } = props;
     const messagesSlice = notifications.messages.slice(0, MAX_NOTIFICATIONS_IN_VIEW);
     const areNotificationsRead = notifications.messages.reduce((acc: boolean, notif: INotification) => acc && notif.isUnread, false);
     const currentUserImageUri = getUserImageUri(user, 200);
+    // TODO: Display search dropdown and callback on select
+    const isSearchDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
 
     return (
         <Navbar variant="dark" expanded className="ps-0 pe-2 pb-0">
@@ -95,10 +101,22 @@ const DashboardNavbar = (props: IDashboardNavbarProps) => {
                             <Form.Group id="topbarSearch">
                                 <InputGroup className="input-group-merge search-bar">
                                     <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
-                                    <Form.Control type="text" placeholder="Search" />
+                                    <Form.Control type="text" placeholder="Search" onChange={onSearchInpuChange} />
                                 </InputGroup>
                             </Form.Group>
                         </Form>
+                        {/* {
+                            isSearchDropdownVisible
+                                && <ul className="list-inline list-group-flush list-group-borderless text-center text-xl-right mb-0">
+                                    {
+                                        map?.searchPredictions?.results?.map((prediction) => (
+                                            <li key={prediction.place_id} className="list-inline-item px-0 px-sm-2">
+                                                {prediction.description}
+                                            </li>
+                                        ))
+                                    }
+                                </ul>
+                        } */}
                     </div>
                     <Nav className="align-items-center">
                         <Dropdown as={Nav.Item}>

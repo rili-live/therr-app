@@ -48,6 +48,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
             inputs: {
                 userName: '',
                 password: '',
+                rememberMe: false,
             },
             isSubmitting: false,
         };
