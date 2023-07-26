@@ -58,6 +58,9 @@ const template = `
                       {{#if body2}}
                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">{{body2}}</p>
                       {{/if}}
+                      {{#if body3}}
+                        <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">{{body3}}</p>
+                      {{/if}}
                       {{#if bodyBold}}
                       <p style="font-family: sans-serif; font-size: 14px; font-weight: bold; margin: 0; Margin-bottom: 15px;">{{bodyBold}}</p>
                       {{/if}}
