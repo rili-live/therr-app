@@ -43,7 +43,7 @@ import {
     Dropdown,
     Accordion,
     Navbar,
-} from '@themesberg/react-bootstrap';
+} from 'react-bootstrap';
 import {
     AccessControl,
 } from 'therr-react/components';
@@ -226,7 +226,7 @@ const Sidebar = (props: ISidebarProps) => {
                                 <NavItem title="Tooltips" link={'/'} />
                             </CollapsableNavItem> */}
                             <NavItem className="mb-6" external title="Therr for Business" link="https://business.therr.com" target="_blank" image={TherrForBusinessLogo} />
-                            <Button as={Link} to={'/'} variant="secondary" className="upgrade-to-pro"><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
+                            <Button href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className="upgrade-to-pro"><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
                         </Nav>
                     </div>
                 </SimpleBar>
