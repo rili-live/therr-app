@@ -125,6 +125,16 @@ spec:
             secretKeyRef:
               name: therrjwtsecret
               key: THERRJWT_SECRET
+        - name: STRIPE_WEBHOOK_SIGNING_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: stripe-webhook-secret
+              key: STRIPEWEBHOOKSECRET
+        - name: STRIPE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: stripe-secret-key
+              key: STRIPESECRETKEY
         - name: TWILIO_ACCOUNT_SID
           valueFrom:
             secretKeyRef:
@@ -137,6 +147,8 @@ spec:
               key: TWILIOAUTHTOKEN
         - name: TWILIO_SENDER_PHONE_NUMBER
           value: "+14783124948"
+        - name: TWILIO_SENDER_PHONE_NUMBER_GB
+          value: "+447700158631"
         - name: TWITTER_APP_BEARER_TOKEN
           valueFrom:
             secretKeyRef:
