@@ -6,6 +6,8 @@ import {
     ErrorCodes,
     IncentiveRequirementKeys,
     IncentiveRewardKeys,
+    MetricNames,
+    MetricValueTypes,
 } from 'therr-js-utilities/constants';
 import printLogs from 'therr-js-utilities/print-logs';
 import { RequestHandler } from 'express';
@@ -24,6 +26,7 @@ import {
 } from './helpers';
 import updateAchievements from './helpers/updateAchievements';
 import { isTextUnsafe } from '../utilities/contentSafety';
+import userMetricsService from '../api/userMetricsService';
 
 const MAX_INTERGRATIONS_PER_USER = 50;
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
@@ -518,14 +521,45 @@ const getMomentDetails = (req, res) => {
         .then(({ moments, media, users }) => {
             const moment = moments[0];
             let userHasAccessPromise = () => Promise.resolve(true);
-            // Verify that user has activated moment and has access to view it
+            const isOwnMoment = userId === moment.fromUserId;
+
             // TODO: Verify moment exists
-            if (moment?.fromUserId !== userId) {
+            if (!isOwnMoment) {
                 userHasAccessPromise = () => getReactions('moment', momentId, {
                     'x-userid': userId,
                 });
+
+                userMetricsService.uploadMetric({
+                    name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${moment.category || 'uncategorized'}` as MetricNames,
+                    value: '1',
+                    valueType: MetricValueTypes.NUMBER,
+                    userId,
+                }, {
+                    momentId: moment.id,
+                    isMatureContent: moment.isMatureContent,
+                    isPublic: moment.isPublic,
+                }, {
+                    contentUserId: moment.fromUserId,
+                    authorization: req.headers.authorization,
+                    userId,
+                    locale,
+                }).catch((err) => {
+                    printLogs({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['failed to upload user metric'],
+                        tracer: beeline,
+                        traceArgs: {
+                            errorMessage: err?.message,
+                            errorResponse: err?.response?.data,
+                            userId,
+                            momentId: moment.id,
+                        },
+                    });
+                });
             }
 
+            // Verify that user has activated moment and has access to view it
             return userHasAccessPromise().then((isActivated) => {
                 if (!isActivated) {
                     return handleHttpError({
