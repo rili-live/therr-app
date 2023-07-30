@@ -12,6 +12,7 @@ import printLogs from 'therr-js-utilities/print-logs';
 import { distanceTo } from 'geolocation-utils';
 import beeline from '../beeline';
 import { storage } from '../api/aws';
+import areaMetricsService from '../api/areaMetricsService';
 import * as globalConfig from '../../../../global-config';
 import getReactions from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
@@ -202,15 +203,15 @@ const getSpaceDetails = (req, res) => {
         .then(({ spaces, media, users }) => {
             const space = spaces[0];
             // Non-blocking
-            Store.spaceMetrics.create([{
+            areaMetricsService.uploadMetric({
                 name: MetricNames.SPACE_IMPRESSION,
-                spaceId: space.id,
                 value: '1',
                 valueType: MetricValueTypes.NUMBER,
                 userId,
-            }], {
+            }, {}, {
                 latitude: space.latitude,
                 longitude: space.longitude,
+                spaceId: space.id,
             }).catch((err) => {
                 printLogs({
                     level: 'error',

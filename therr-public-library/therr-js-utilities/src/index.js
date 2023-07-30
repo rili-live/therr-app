@@ -14,6 +14,10 @@ const utilities = [
     // HTTP/REST Helpers
     'http/index',
 
+    // Metrics
+    'metrics/index',
+    'metrics/types',
+
     // Express Middleware
     'middleware/index',
 

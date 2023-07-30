@@ -5,6 +5,7 @@ import {
 } from 'therr-js-utilities/constants';
 import printLogs from 'therr-js-utilities/print-logs';
 import { RequestHandler } from 'express';
+import userMetricsService from '../api/userMetricsService';
 import * as globalConfig from '../../../../global-config';
 import { findReactions, hasUserReacted } from '../api/reactions';
 import beeline from '../beeline';
@@ -88,17 +89,17 @@ const createThought = async (req, res) => {
                             });
 
                             // Log metric when replying to other users' thoughts
-                            Store.userMetrics.create({
+                            userMetricsService.uploadMetric({
                                 name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${thought.category || 'uncategorized'}` as MetricNames,
                                 value: '5', // Replying to a should is weighted more than viewing or liking
                                 valueType: MetricValueTypes.NUMBER,
                                 userId,
+                            }, {
+                                thoughtId: thought.id,
+                                isMatureContent: thought.isMatureContent,
+                                isPublic: thought.isPublic,
+                            }, {
                                 contentUserId: thought.fromUserId,
-                                dimensions: {
-                                    thoughtId: thought.id,
-                                    isMatureContent: thought.isMatureContent,
-                                    isPublic: thought.isPublic,
-                                },
                             }).catch((err) => {
                                 printLogs({
                                     level: 'error',
