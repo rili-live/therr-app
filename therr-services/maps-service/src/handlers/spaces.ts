@@ -9,7 +9,6 @@ import {
 } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import printLogs from 'therr-js-utilities/print-logs';
-import { distanceTo } from 'geolocation-utils';
 import beeline from '../beeline';
 import { storage } from '../api/aws';
 import areaMetricsService from '../api/areaMetricsService';
@@ -20,6 +19,7 @@ import translate from '../utilities/translator';
 import Store from '../store';
 import { checkIsMediaSafeForWork } from './helpers';
 import { isTextUnsafe } from '../utilities/contentSafety';
+import userMetricsService from '../api/userMetricsService';
 
 const MAX_DISTANCE_TO_ADDRESS_METERS = 2000;
 
@@ -216,7 +216,35 @@ const getSpaceDetails = (req, res) => {
                 printLogs({
                     level: 'error',
                     messageOrigin: 'API_SERVER',
-                    messages: ['failed to create space metric'],
+                    messages: ['failed to upload space metric'],
+                    tracer: beeline,
+                    traceArgs: {
+                        errorMessage: err?.message,
+                        errorResponse: err?.response?.data,
+                        userId,
+                        spaceId: space.id,
+                    },
+                });
+            });
+            userMetricsService.uploadMetric({
+                name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${space.category || 'uncategorized'}` as MetricNames,
+                value: '1',
+                valueType: MetricValueTypes.NUMBER,
+                userId,
+            }, {
+                spaceId: space.id,
+                isMatureContent: space.isMatureContent,
+                isPublic: space.isPublic,
+            }, {
+                contentUserId: space.fromUserId,
+                authorization: req.headers.authorization,
+                userId,
+                locale,
+            }).catch((err) => {
+                printLogs({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['failed to upload user metric'],
                     tracer: beeline,
                     traceArgs: {
                         errorMessage: err?.message,

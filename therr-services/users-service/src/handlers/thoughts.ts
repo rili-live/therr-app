@@ -104,7 +104,7 @@ const createThought = async (req, res) => {
                                 printLogs({
                                     level: 'error',
                                     messageOrigin: 'API_SERVER',
-                                    messages: ['failed to create user metric'],
+                                    messages: ['failed to upload user metric'],
                                     tracer: beeline,
                                     traceArgs: {
                                         errorMessage: err?.message,
@@ -228,28 +228,27 @@ const getThoughtDetails = (req, res) => {
             let userHasAccessPromise = Promise.resolve(true);
             let listReactionsPromise: Promise<any> = Promise.resolve();
 
-            if (isOwnThought) {
+            if (!isOwnThought) {
                 listReactionsPromise = findReactions(thoughtId, {
                     'x-userid': userId,
                 });
-            } else {
-                // TODO: Add longitude/latitude if available
-                Store.userMetrics.create({
+
+                userMetricsService.uploadMetric({
                     name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${thought.category || 'uncategorized'}` as MetricNames,
                     value: '1',
                     valueType: MetricValueTypes.NUMBER,
                     userId,
+                }, {
+                    thoughtId: thought.id,
+                    isMatureContent: thought.isMatureContent,
+                    isPublic: thought.isPublic,
+                }, {
                     contentUserId: thought.fromUserId,
-                    dimensions: {
-                        thoughtId: thought.id,
-                        isMatureContent: thought.isMatureContent,
-                        isPublic: thought.isPublic,
-                    },
                 }).catch((err) => {
                     printLogs({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
-                        messages: ['failed to create user metric'],
+                        messages: ['failed to upload user metric'],
                         tracer: beeline,
                         traceArgs: {
                             errorMessage: err?.message,

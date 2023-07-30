@@ -1,10 +1,10 @@
-import { MetricsService } from 'therr-js-utilities/metrics';
 import {
+    MetricsService,
     IMetric,
     IMetricUniqueProperties,
     IMetricDimensions,
     IMetricCombined,
-} from 'therr-js-utilities/metrics/types';
+} from 'therr-js-utilities/metrics';
 import Store from '../store';
 
 export class UserMetricsProvider {
@@ -39,6 +39,8 @@ export class UserMetricsProvider {
             region: metric.uniqueDbProperties.region,
             dimensions: metric.dimensions,
         }));
+
+        // Multiple metrics, 1 db request
         return Store.spaceMetrics.create(metricParams, {
             latitude: metrics[0].uniqueDbProperties.latitude,
             longitude: metrics[0].uniqueDbProperties.longitude,

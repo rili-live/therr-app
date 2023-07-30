@@ -16,7 +16,6 @@ const utilities = [
 
     // Metrics
     'metrics/index',
-    'metrics/types',
 
     // Express Middleware
     'middleware/index',

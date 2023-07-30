@@ -4,7 +4,7 @@ import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
-import { ICreateUserMetricsParams } from '../store/UserMetricsStore';
+import userMetricsService from '../api/userMetricsService';
 
 // CREATE
 const createUserMetric = async (req, res) => {
@@ -30,22 +30,20 @@ const createUserMetric = async (req, res) => {
         });
     }
 
-    const params: ICreateUserMetricsParams = {
-        userId: requestingUserId,
+    userMetricsService.uploadMetric({
         name,
-        latitude,
-        longitude,
-        contentUserId,
-        dimensions,
         value,
         valueType,
-    };
-
-    return Store.userMetrics.create(params)
-        .then(([metric]) => res.status(201).send({
-            metric,
-        }))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
+        userId: requestingUserId,
+    }, {
+        ...dimensions,
+    }, {
+        contentUserId,
+        latitude,
+        longitude,
+    }).then(([metric]) => res.status(201).send({
+        metric,
+    })).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
 };
 
 // READ

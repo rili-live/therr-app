@@ -1,10 +1,13 @@
-import { AccessLevels, ErrorCodes, MetricNames } from 'therr-js-utilities/constants';
+import {
+    AccessLevels, ErrorCodes, MetricNames, MetricValueTypes,
+} from 'therr-js-utilities/constants';
 import printLogs from 'therr-js-utilities/print-logs';
 import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
 import { aggregateMetrics, getPercentageChange, getMetricsByName } from '../api/aggregations';
+import areaMetricsService from '../api/areaMetricsService';
 // CREATE
 const createSpaceMetric = async (req, res) => {
     const authorization = req.headers.authorization;
@@ -51,12 +54,19 @@ const createSpaceMetric = async (req, res) => {
         },
     }];
 
-    return Store.spaceMetrics.create(params, {
-        longitude,
-        latitude,
-    })
-        .then(([metric]) => res.status(201).send({
-            metric,
+    return areaMetricsService.uploadMetrics(params.map((param) => ({
+        name: MetricNames.SPACE_IMPRESSION,
+        value: '1',
+        valueType: MetricValueTypes.NUMBER,
+        userId,
+        dimensions: param.dimension,
+        uniqueDbProperties: {
+            latitude: param.userLatitude,
+            longitude: param.userLongitude,
+        },
+    })))
+        .then((metrics) => res.status(201).send({
+            metrics,
         }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
