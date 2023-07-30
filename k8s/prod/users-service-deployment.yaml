@@ -118,11 +118,11 @@ spec:
             secretKeyRef:
               name: google-maps-places-server-side-api-key
               key: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
-        - name: PLAID_SECRET_KEY
-          valueFrom:
-            secretKeyRef:
-              name: plaid-secret-key
-              key: PLAIDSECRETKEY
+        # - name: PLAID_SECRET_KEY
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: plaid-secret-key
+        #       key: PLAIDSECRETKEY
         - name: USERS_SERVICE_DATABASE
           value: "therr_users_service_db"
         - name: JWT_SECRET
