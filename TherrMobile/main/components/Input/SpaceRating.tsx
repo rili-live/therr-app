@@ -36,7 +36,7 @@ const SpaceRating = ({
                     <MaterialIcon
                         name={rating && num <= rating ? 'star' : 'star-border'}
                         size={40}
-                        style={{ color: rating === null ? themeForms.colors.textGray : themeForms.colors.textWhite }}
+                        style={{ color: rating === null ? themeForms.colors.textGray : themeForms.colors.ternary2 }}
                     />
                 </Pressable>
             ))

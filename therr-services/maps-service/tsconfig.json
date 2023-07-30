@@ -13,7 +13,7 @@
 		"resolveJsonModule": true,
 		"experimentalDecorators": true,
 		"inlineSourceMap": true,               /* Emit a single file with source maps instead of having a separate file. */
-    "inlineSources": true,
+    	"inlineSources": true,
 		"paths": {
 			"react": ["../../node_modules/@types/react"],
 				"therr-public-library/therr-styles/*": ["../../therr-public-library/therr-styles/*"],
