@@ -145,8 +145,8 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                     itemsPerPage,
                     pageNumber,
                     filterBy: 'fromUserIds',
-                    latitude: latitude || 41.8336152, // defaults to Chicago, IL
-                    longitude: longitude || -87.8967688, // defaults to Chicago, IL
+                    latitude: latitude || 33.7673401, // defaults to Atlanta, GA
+                    longitude: longitude || -84.5025305, // defaults to Atlanta, GA
                 }, {
                     distanceOverride: 160934, // ~ 100 miles
                 })
@@ -183,8 +183,8 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
 
         this.throttleTimeoutId = setTimeout(() => {
             getPlacesSearchAutoComplete({
-                longitude: map?.longitude || '37.76999',
-                latitude: map?.latitude || '-122.44696',
+                longitude: map?.longitude || '33.7673401', // defaults to Atlanta, GA
+                latitude: map?.latitude || '-84.5025305', // defaults to Atlanta, GA
                 // radius,
                 input: text,
             });
