@@ -51,6 +51,11 @@ interface ICreateSpaceBody extends ICreateAreaBody {
     featuredIncentiveRewardKey?: string;
     featuredIncentiveRewardValue?: number;
     featuredIncentiveCurrencyId?: string;
+    phoneNumber?: string;
+    websiteUrl?: string;
+    menuUrl?: string;
+    orderUrl?: string;
+    reservationUrl?: string;
 }
 
 interface IDeleteAreasBody {
