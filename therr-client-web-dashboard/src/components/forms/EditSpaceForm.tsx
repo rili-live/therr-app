@@ -24,6 +24,11 @@ interface IEditSpaceFormProps {
         category?: string;
         spaceTitle: string;
         spaceDescription: string;
+        phoneNumber?: string;
+        websiteUrl?: string;
+        menuUrl?: string;
+        orderUrl?: string;
+        reservationUrl?: string;
     }
     isSubmitDisabled: boolean;
     mediaUrl?: string;
@@ -33,6 +38,7 @@ interface IEditSpaceFormProps {
     onSubmit: (event: React.MouseEvent<HTMLInputElement>) => void;
     onSelectMedia: (files: any[]) => any;
     submitText: string;
+    shouldShowAdvancedFields?: boolean;
 }
 
 const EditSpaceForm = ({
@@ -46,6 +52,7 @@ const EditSpaceForm = ({
     onSubmit,
     onSelectMedia,
     submitText,
+    shouldShowAdvancedFields,
 }: IEditSpaceFormProps) => {
     const [birthday, setBirthday] = useState('');
 
@@ -94,14 +101,15 @@ const EditSpaceForm = ({
                             <Row>
                                 <Col md={6} className="mb-3">
                                     <Form.Group controlId="spaceTitle">
-                                        <Form.Label>Space Title / Headline</Form.Label>
+                                        <Form.Label className="required" aria-required>Space Title / Headline</Form.Label>
                                         <Form.Control
                                             value={inputs.spaceTitle}
                                             name="spaceTitle"
                                             onChange={onInputChange}
-                                            required
                                             type="text"
                                             placeholder="The name or title of your space/business"
+                                            required
+                                            aria-required
                                         />
                                     </Form.Group>
                                 </Col>
@@ -123,6 +131,37 @@ const EditSpaceForm = ({
                                     </Form.Group>
                                 </Col>
                             </Row>
+                            {
+                                shouldShowAdvancedFields
+                                && <Row>
+                                    <Col md={6} className="mb-3">
+                                        <Form.Group controlId="websiteUrl">
+                                            <Form.Label>Website URL (optional)</Form.Label>
+                                            <Form.Control
+                                                value={inputs.websiteUrl}
+                                                name="websiteUrl"
+                                                onChange={onInputChange}
+                                                required
+                                                type="url"
+                                                placeholder="ex.) https://my-restaurant.com/"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6} className="mb-3">
+                                        <Form.Group controlId="orderUrl">
+                                            <Form.Label>Delivery/Pickup URL (optional)</Form.Label>
+                                            <Form.Control
+                                                value={inputs.orderUrl}
+                                                name="orderUrl"
+                                                onChange={onInputChange}
+                                                required
+                                                type="url"
+                                                placeholder="ex.) https://my-restaurant.com/delivery/"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            }
                             <Row>
                                 <Col md={12} className="mb-3">
                                     <Form.Group controlId="spaceDescription">
