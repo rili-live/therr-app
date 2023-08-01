@@ -117,6 +117,11 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                 isPublic: space?.isPublic,
                 spaceTitle: space?.notificationMsg || '',
                 spaceDescription: space?.message || '',
+                phoneNumber: space?.phoneNumber || '',
+                websiteUrl: space?.websiteUrl || '',
+                menuUrl: space?.menuUrl || '',
+                orderUrl: space?.orderUrl || '',
+                reservationUrl: space?.reservationUrl || '',
             },
             isEditing: true,
         };
@@ -267,6 +272,11 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
             longitude,
             spaceTitle,
             spaceDescription,
+            phoneNumber,
+            websiteUrl,
+            menuUrl,
+            orderUrl,
+            reservationUrl,
         } = this.state.inputs;
 
         this.setState({
@@ -285,6 +295,11 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                 message: spaceDescription,
                 category,
                 addressReadable: (selectedAddresses?.length && selectedAddresses[0]?.label) || spaceInView.addressReadable,
+                phoneNumber,
+                websiteUrl,
+                menuUrl,
+                orderUrl,
+                reservationUrl,
             };
             if (routeParams.context === 'admin') {
                 createUpdateArgs.overrideFromUserId = spaceInView.fromUserId;
@@ -369,6 +384,11 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                                 category: inputs.category,
                                 spaceTitle: inputs.spaceTitle,
                                 spaceDescription: inputs.spaceDescription,
+                                phoneNumber: inputs.phoneNumber,
+                                websiteUrl: inputs.websiteUrl,
+                                menuUrl: inputs.menuUrl,
+                                orderUrl: inputs.orderUrl,
+                                reservationUrl: inputs.reservationUrl,
                             }}
                             mediaUrl={spaceMediaUrl}
                             isSubmitDisabled={this.isSubmitDisabled()}
@@ -378,6 +398,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                             onSelectMedia={this.onSelectMedia}
                             onSubmit={this.onUpdateSpace}
                             submitText='Update Space'
+                            shouldShowAdvancedFields
                         />
                     </Col>
 

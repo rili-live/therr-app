@@ -176,7 +176,7 @@
         "login": "Login"
       },
       "searchInput": {
-        "placeholder": "Search..."
+        "placeholder": "Search a location..."
       }
     },
     "headerLinkRight": {
