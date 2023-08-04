@@ -33,4 +33,9 @@ export interface ISpace {
     updatedAt: string;
     geom: string;
     areaType: string;
+    phoneNumber?: string;
+    websiteUrl?: string;
+    menuUrl?: string;
+    orderUrl?: string;
+    reservationUrl?: string;
 }

@@ -245,6 +245,7 @@
     "socket.io": "^4.5.1",
     "socket.io-client": "^4.5.4",
     "socket.io-redis": "^6.1.1",
+    "stripe": "^12.14.0",
     "tty-browserify": "0.0.1",
     "twilio": "^3.81.0",
     "uuid": "^8.3.2",

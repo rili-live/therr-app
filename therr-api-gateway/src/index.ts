@@ -56,6 +56,7 @@ app.use(authenticate.unless({
         { url: /\/v1\/maps-service\/place\/*/, methods: ['GET'] }, // Google Maps: Places proxy
         { url: '/v1/users-service/subscribers/signup', methods: ['POST'] }, // email marketing subscribe
         { url: '/v1/users-service/auth', methods: ['POST'] }, // login
+        { url: '/v1/users-service/payments/webhook', methods: ['POST'] }, // webhook
         { url: '/v1/users-service/users', methods: ['POST'] }, // register
         { url: '/v1/users-service/users/forgot-password', methods: ['POST'] }, // one time password
         { url: /\/v1\/users-service\/users\/verify\/.*/, methods: ['POST'] }, // verify account

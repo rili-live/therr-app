@@ -95,6 +95,12 @@ usersServiceRouter.get('/rewards/exchange-rate', validate, async (req, res, next
     console.error('Error setting exchange rate in cache', error);
 })));
 
+// Payments
+usersServiceRouter.post('/payments/webhook', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
 // Connections - order matters here for route matching
 usersServiceRouter.post('/users/connections', userConnectionLimiter, createUserConnectionValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
