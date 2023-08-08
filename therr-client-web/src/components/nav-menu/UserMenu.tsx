@@ -10,6 +10,7 @@ import {
     UserConnectionsActions,
 } from 'therr-react/redux/actions';
 import { IUserState, INotificationsState, INotification } from 'therr-react/types';
+import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import { bindActionCreators } from 'redux';
 import Notification from './Notification';
 import translator from '../../services/translator';
@@ -89,7 +90,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         const updatedUserConnection = {
             ...notification.userConnection,
             acceptingUserId: user.details.id,
-            requestStatus: isAccepted ? 'complete' : 'denied',
+            requestStatus: isAccepted ? UserConnectionTypes.COMPLETE : UserConnectionTypes.DENIED,
         };
 
         this.markNotificationAsRead(e, notification, updatedUserConnection);

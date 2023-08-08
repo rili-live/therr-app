@@ -66,6 +66,7 @@ interface ISearchQuery {
     pageNumber?: number;
     returning?: string;
     shouldCheckReverse?: string;
+    withMedia?: string;
     longitude?: number;
     latitude?: number;
 }

@@ -313,7 +313,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                         successMsg: this.translate('forms.editThought.backendSuccessMessage'),
                     });
 
-                    analytics().logEvent('thought_create', {
+                    analytics().logEvent('thought_reply_create', {
                         parentId,
                         category,
                         fromUserId: user.details.id,
