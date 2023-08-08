@@ -126,12 +126,16 @@ const map = (state: IMapState = initialState, action: any) => {
             delete modifiedSpaces[action.data.id];
             return state.setIn(['spaces'], modifiedSpaces);
         // // // // // // // // // // // //
-        case MapActionTypes.UPDATE_COORDS:
+        case MapActionTypes.UPDATE_MAP_VIEW_COORDS:
             return state
-                .setIn(['longitude'], action.data.longitude)
-                .setIn(['latitude'], action.data.latitude)
                 .setIn(['prevLongitude'], state.longitude)
-                .setIn(['prevLatitude'], state.latitude);
+                .setIn(['prevLatitude'], state.latitude)
+                .setIn(['prevLongitudeDelta'], state.longitudeDelta)
+                .setIn(['prevLatitudeDelta'], state.latitudeDelta)
+                .setIn(['longitude'], action.data.longitude || state.longitude)
+                .setIn(['latitude'], action.data.latitude || state.latitude)
+                .setIn(['longitudeDelta'], action.data.longitudeDelta || state.longitudeDelta)
+                .setIn(['latitudeDelta'], action.data.latitudeDelta || state.latitudeDelta);
         case MapActionTypes.UPDATE_USER_RADIUS:
             return state
                 .setIn(['radiusOfAwareness'], action.data.radiusOfAwareness)

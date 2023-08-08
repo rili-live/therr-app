@@ -21,6 +21,7 @@ import * as Notifications from './enums/Notifications';
 import * as PushNotifications from './enums/PushNotifications';
 import SocketClientActionTypes from './enums/SocketClientActionTypes';
 import SocketServerActionTypes from './enums/SocketServerActionTypes';
+import UserConnectionTypes from './enums/UserConnectionTypes';
 
 const PasswordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
 
@@ -50,4 +51,5 @@ export {
     ResourceExchangeRates,
     SocketClientActionTypes,
     SocketServerActionTypes,
+    UserConnectionTypes,
 };

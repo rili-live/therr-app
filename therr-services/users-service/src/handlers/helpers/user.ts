@@ -2,7 +2,7 @@ import beeline from '../../beeline'; // eslint-disable-line import/order
 import printLogs from 'therr-js-utilities/print-logs';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
-import { AccessLevels } from 'therr-js-utilities/constants';
+import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
 import Store from '../../store';
 import { hashPassword } from '../../utilities/userHelpers';
 import { validatePassword } from '../../utilities/passwordUtils';
@@ -51,7 +51,7 @@ interface IGetUserHelperArgs {
  * @returns boolean
  */
 const isUserInfoPublic = (user, connection) => connection?.isMe || user.settingsIsProfilePublic
-    || (connection?.requestStatus === 'complete' && !connection?.isConnectionBroken);
+    || (connection?.requestStatus === UserConnectionTypes.COMPLETE && !connection?.isConnectionBroken);
 
 const getUserProfileResponse = (userResult, friendship, connectionCount: number, socialSyncs) => {
     // Only select specific properties should be returned
@@ -77,7 +77,10 @@ const getUserProfileResponse = (userResult, friendship, connectionCount: number,
 
             // More details
             isNotConnected: !friendship,
-            isPendingConnection: friendship ? (friendship.requestStatus === 'denied' || friendship.requestStatus === 'pending') : false,
+            isPendingConnection: friendship
+                // eslint-disable-next-line max-len
+                ? (friendship.requestStatus === UserConnectionTypes.DENIED || friendship.requestStatus === UserConnectionTypes.PENDING || friendship.requestStatus === UserConnectionTypes.BLOCKED)
+                : false,
             connectionCount,
             socialSyncs,
         };
@@ -94,7 +97,10 @@ const getUserProfileResponse = (userResult, friendship, connectionCount: number,
 
         // More details
         isNotConnected: true,
-        isPendingConnection: friendship ? (friendship.requestStatus === 'denied' || friendship.requestStatus === 'pending') : false,
+        isPendingConnection: friendship
+            // eslint-disable-next-line max-len
+            ? (friendship.requestStatus === UserConnectionTypes.DENIED || friendship.requestStatus === UserConnectionTypes.PENDING || friendship.requestStatus === UserConnectionTypes.BLOCKED)
+            : false,
         connectionCount,
         socialSyncs,
     };

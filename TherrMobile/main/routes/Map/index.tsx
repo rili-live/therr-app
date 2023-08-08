@@ -109,6 +109,7 @@ interface IMapDispatchProps {
     findMomentReactions: Function;
     findSpaceReactions: Function;
     updateUserCoordinates: Function;
+    updateMapViewCoordinates: Function;
     searchMoments: Function;
     searchSpaces: Function;
     setInitialUserLocation: Function;
@@ -184,6 +185,7 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             captureClickTarget: UserInterfaceActions.captureClickEvent,
             updateUserCoordinates: MapActions.updateUserCoordinates,
+            updateMapViewCoordinates: MapActions.updateMapViewCoordinates,
             searchMoments: MapActions.searchMoments,
             searchSpaces: MapActions.searchSpaces,
             setInitialUserLocation: MapActions.setInitialUserLocation,
@@ -257,6 +259,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldIgnoreSearchThisAreaButton: false,
             shouldRenderMapCircles: false,
             shouldShowCreateActions: false,
+            // Note: This is essentially the same as redux state `location.user.longitude/latitude` (plus defaults)
+            // We should probably consolidate this into redux
             circleCenter: {
                 longitude: routeLongitude || DEFAULT_LONGITUDE,
                 latitude: routeLatitude || DEFAULT_LATITUDE,
@@ -719,9 +723,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                     longitude: map.longitude,
                                     latitude: map.latitude,
                                 };
-                                this.setState({
-                                    circleCenter: coords,
-                                });
+                                this.updateCircleCenter(coords);
                                 updateUserCoordinates(coords);
                                 this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION);
                                 return resolve(coords);
@@ -736,9 +738,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                         position.coords
                                             .longitude,
                                 };
-                                this.setState({
-                                    circleCenter: coords,
-                                });
+                                this.updateCircleCenter(coords);
                                 setInitialUserLocation();
                                 updateUserCoordinates(coords);
                                 this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION_SLOW);
@@ -1115,6 +1115,15 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         // }
     };
 
+    onPressFindFriends = () => {
+        const { navigation } = this.props;
+
+        navigation.navigate('Contacts', {
+            activeTab: 'invite',
+            shouldLaunchContacts: true,
+        });
+    };
+
     showAreaAlert = () => {
         this.setState({
             isAreaAlertVisible: true,
@@ -1249,8 +1258,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     onRegionChangeComplete = (region, filteredAreasCount: number) => {
-        const { updateUserCoordinates } = this.props;
-        updateUserCoordinates({
+        const { updateMapViewCoordinates } = this.props;
+        updateMapViewCoordinates({
+            latitude: region.latitude,
+            longitude: region.longitude,
             latitudeDelta: region.latitudeDelta,
             longitudeDelta: region.longitudeDelta,
         });
@@ -1465,6 +1476,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     onRequestClose={this.handleStopTouring}
                     themeButtons={this.themeButtons}
                     themeTour={this.themeTour}
+                    onFindFriends={this.onPressFindFriends}
                 />
                 {
                     <BottomSheetPlus
