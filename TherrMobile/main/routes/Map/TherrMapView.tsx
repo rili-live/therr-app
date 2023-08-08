@@ -244,15 +244,15 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         this.previewScrollIndex = index;
                         const { latitude, longitude } = areasInPreview[index] || {};
                         if (latitude && longitude) {
-                            const { location } = this.props;
+                            const { map } = this.props;
                             let animationLatitudeDelta = PRIMARY_LATITUDE_DELTA * 2;
                             let animationLongitudeDelta = PRIMARY_LONGITUDE_DELTA * 2;
 
-                            if (location?.user?.latitudeDelta && location?.user?.latitudeDelta <= MAX_ANIMATION_LATITUDE_DELTA) {
-                                animationLatitudeDelta = location?.user?.latitudeDelta;
+                            if (map?.latitudeDelta && map?.latitudeDelta <= MAX_ANIMATION_LATITUDE_DELTA) {
+                                animationLatitudeDelta = map?.latitudeDelta;
                             }
-                            if (location?.user?.longitudeDelta && location?.user?.longitudeDelta <= MAX_ANIMATION_LONGITUDE_DELTA) {
-                                animationLongitudeDelta = location?.user?.longitudeDelta;
+                            if (map?.longitudeDelta && map?.longitudeDelta <= MAX_ANIMATION_LONGITUDE_DELTA) {
+                                animationLongitudeDelta = map?.longitudeDelta;
                             }
 
                             const loc = {

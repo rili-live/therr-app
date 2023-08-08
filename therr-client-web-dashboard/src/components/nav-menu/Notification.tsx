@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ButtonPrimary } from 'therr-react/components';
 import { INotification } from 'therr-react/types';
+import { UserConnectionTypes } from 'therr-js-utilities/constants';
 
 // Regular component props
 interface INotificationProps {
@@ -22,7 +23,7 @@ const Notification: React.FunctionComponent<INotificationProps> = ({
             <div className={notificationClassNames} onClick={(e) => handleSetRead(e, notification)}>
                 <span>{notification.message}</span>
                 {
-                    notification.userConnection.requestStatus === 'pending'
+                    notification.userConnection.requestStatus === UserConnectionTypes.PENDING
                     && <div className="action-buttons text-right">
                         <ButtonPrimary
                             id="deny_connection_request_button"

@@ -34,14 +34,12 @@ const locations = (state: ILocationState = initialState, action: any) => {
                 ...state.permissions,
                 ...action.data,
             });
-        case MapActionTypes.UPDATE_COORDS:
+        case MapActionTypes.UPDATE_USER_COORDS:
             return state
-                .setIn(['user', 'longitude'], action.data.longitude || state.user?.longitude)
-                .setIn(['user', 'latitude'], action.data.latitude || state.user?.latitude)
-                .setIn(['user', 'longitudeDelta'], action.data.longitudeDelta || state.user?.longitudeDelta)
-                .setIn(['user', 'latitudeDelta'], action.data.latitudeDelta || state.user?.latitudeDelta)
                 .setIn(['user', 'prevLongitude'], state.user?.longitude)
-                .setIn(['user', 'prevLatitude'], state.user?.latitude);
+                .setIn(['user', 'prevLatitude'], state.user?.latitude)
+                .setIn(['user', 'longitude'], action.data.longitude || state.user?.longitude)
+                .setIn(['user', 'latitude'], action.data.latitude || state.user?.latitude);
         default:
             return state;
     }

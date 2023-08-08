@@ -12,7 +12,7 @@ import {
     IUserConnectionsState,
     INotificationsState as IStoreNotificationsState,
 } from 'therr-react/types';
-import { Notifications as NotificationsEmuns } from 'therr-js-utilities/constants';
+import { Notifications as NotificationsEmuns, UserConnectionTypes } from 'therr-js-utilities/constants';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
@@ -98,7 +98,7 @@ class Notifications extends React.Component<
         const updatedUserConnection = {
             ...notification.userConnection,
             acceptingUserId: user.details.id,
-            requestStatus: isAccepted ? 'complete' : 'denied',
+            requestStatus: isAccepted ? UserConnectionTypes.COMPLETE : UserConnectionTypes.DENIED,
         };
 
         this.onNotificationPress(e, notification, updatedUserConnection, false);
@@ -106,7 +106,7 @@ class Notifications extends React.Component<
         updateUserConnection({
             connection: {
                 otherUserId,
-                requestStatus: isAccepted ? 'complete' : 'denied',
+                requestStatus: isAccepted ? UserConnectionTypes.COMPLETE : UserConnectionTypes.DENIED,
             },
             user: user.details,
         });

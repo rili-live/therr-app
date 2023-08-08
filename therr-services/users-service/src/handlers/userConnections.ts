@@ -1,5 +1,7 @@
 import { RequestHandler } from 'express';
-import { CurrentSocialValuations, Notifications, PushNotifications } from 'therr-js-utilities/constants';
+import {
+    CurrentSocialValuations, Notifications, PushNotifications, UserConnectionTypes,
+} from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import printLogs from 'therr-js-utilities/print-logs';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
@@ -171,7 +173,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     acceptingUserId: acceptingUser.id as string,
                 }, {
                     isConnectionBroken: false,
-                    requestStatus: 'pending',
+                    requestStatus: UserConnectionTypes.PENDING,
                 });
             } else {
                 createOrUpdateAchievement({
@@ -197,7 +199,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 connectionPromise = Store.userConnections.createUserConnection({
                     requestingUserId,
                     acceptingUserId: acceptingUser.id as string,
-                    requestStatus: 'pending',
+                    requestStatus: UserConnectionTypes.PENDING,
                 });
             }
 
@@ -548,7 +550,7 @@ const updateUserConnection = (req, res) => {
             Store.users.getUserById(requestingUserId, ['userName']).then((otherUserRows) => {
                 const fromUserName = otherUserRows[0]?.userName;
 
-                if (requestStatus === 'complete') {
+                if (requestStatus === UserConnectionTypes.COMPLETE) {
                     Promise.all([
                         // For sender
                         createOrUpdateAchievement({
