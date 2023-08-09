@@ -2,6 +2,7 @@
 import React, {
     useState,
 } from 'react';
+import ReactGA from 'react-ga4';
 import SimpleBar from 'simplebar-react';
 import {
     Link,
@@ -66,6 +67,11 @@ const Sidebar = (props: ISidebarProps) => {
     const { pathname } = location;
     const [show, setShow] = useState(false);
     const showClass = show ? 'show' : '';
+    const onClickUpgrade = () => {
+        ReactGA.event('clicked_upgrade_btn', {
+            source: 'sidebar-nav',
+        });
+    };
 
     const currentUserImageUri = getUserImageUri(user, 200);
 
@@ -226,7 +232,7 @@ const Sidebar = (props: ISidebarProps) => {
                                 <NavItem title="Tooltips" link={'/'} />
                             </CollapsableNavItem> */}
                             <NavItem className="mb-6" external title="Therr for Business" link="https://business.therr.com" target="_blank" image={TherrForBusinessLogo} />
-                            <Button href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className="upgrade-to-pro"><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
+                            <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className="upgrade-to-pro"><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
                         </Nav>
                     </div>
                 </SimpleBar>
