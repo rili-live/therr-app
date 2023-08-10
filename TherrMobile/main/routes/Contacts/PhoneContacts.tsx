@@ -93,6 +93,8 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
         // Used to find people already on the app that the user may know
         UserConnectionsService.findPeopleYouKnow({
             contacts: contactsSlimmedDown,
+        }).catch((error) => {
+            console.log(error);
         });
     }
 
