@@ -35,6 +35,12 @@ class UserConnectionsService {
         data,
     });
 
+    findPeopleYouKnow = (data: any) => axios({
+        method: 'post',
+        url: '/users-service/users/connections/find-people',
+        data,
+    });
+
     update = (otherUserId: number, data: ICreateConnectionBody) => axios({
         method: 'put',
         url: '/users-service/users/connections',
