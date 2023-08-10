@@ -19,6 +19,7 @@ const ManageSpacesMenu = ({
     const onClickUpgrade = () => {
         ReactGA.event('clicked_upgrade_btn', {
             source: 'manage-menu',
+            plan: 'basic',
         });
     };
 

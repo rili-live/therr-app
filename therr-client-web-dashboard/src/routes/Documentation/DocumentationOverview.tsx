@@ -2,7 +2,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { NavigateFunction } from 'react-router-dom';
+import { Link, NavigateFunction } from 'react-router-dom';
 import {
     Col,
     Row,
@@ -18,7 +18,6 @@ import { UsersService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
-import { Link } from 'react-router-dom';
 
 interface IDocumentationOverviewRouterProps {
     navigation: {

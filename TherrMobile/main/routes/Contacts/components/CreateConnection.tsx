@@ -294,17 +294,25 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
         }
 
         return requestOSContactsPermissions(storePermissions).then((response) => {
+            const { user } = this.props;
             const permissionsDenied = Object.keys(response).some((key) => {
                 return response[key] !== 'granted';
             });
             if (!permissionsDenied) {
-                return Contacts.getAll().then(contacts => {
+                analytics().logEvent('phone_contacts_perm_granted', {
+                    userId: user.details.id,
+                }).catch((err) => console.log(err));
+                return Contacts.getAllWithoutPhotos().then(contacts => {
                     // contacts returned
 
                     navigation.navigate('PhoneContacts', {
                         allContacts: contacts,
                     });
                 });
+            } else {
+                analytics().logEvent('phone_contacts_perm_denied', {
+                    userId: user.details.id,
+                }).catch((err) => console.log(err));
             }
         });
     };

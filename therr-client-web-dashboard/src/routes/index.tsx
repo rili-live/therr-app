@@ -15,6 +15,10 @@ import ResetPassword from './ResetPassword';
 import ManageSpaces from './ManageSpaces';
 import CreateEditSpace from './CreateEditSpace';
 import DocumentationOverview from './Documentation/DocumentationOverview';
+import AcquisitionOverview from './CustomerAcquisition/AcquisitionOverview';
+import AdminAcquisitionOverview from './CustomerAcquisition/AdminAcquisitionOverview';
+import CampaignsOverview from './Campaigns/CampaignsOverview';
+import AdminCampaignsOverview from './Campaigns/AdminCampaignsOverview';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -52,12 +56,56 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
-        path: '/admin-dashboard',
+        path: '/dashboard-admin',
         element: <AuthRoute
             component={AdminDashboardOverview}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.SUPER_ADMIN],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
+        path: '/campaigns/overview',
+        element: <AuthRoute
+            component={CampaignsOverview}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
+        path: '/campaigns-admin/overview',
+        element: <AuthRoute
+            component={AdminCampaignsOverview}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
+        path: '/customer-acquisition/overview',
+        element: <AuthRoute
+            component={AcquisitionOverview}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
+        path: '/customer-acquisition-admin/overview',
+        element: <AuthRoute
+            component={AdminAcquisitionOverview}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
             })}
             redirectPath={'/login'}
         />,
