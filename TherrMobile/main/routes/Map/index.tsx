@@ -1477,6 +1477,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     themeButtons={this.themeButtons}
                     themeTour={this.themeTour}
                     onFindFriends={this.onPressFindFriends}
+                    user={user}
                 />
                 {
                     <BottomSheetPlus

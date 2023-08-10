@@ -3,6 +3,8 @@ import { Text, Modal, Pressable, View, GestureResponderEvent } from 'react-nativ
 import { Button } from 'react-native-elements';
 import AnimatedLottieView from 'lottie-react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import analytics from '@react-native-firebase/analytics';
+import { IUserState } from 'therr-react/types';
 import claimASpace from '../../assets/claim-a-space.json';
 import shareAMoment from '../../assets/share-a-moment.json';
 import discover from '../../assets/discover.json';
@@ -19,6 +21,7 @@ interface ITouringModal {
     themeTour: {
         styles: any;
     };
+    user: IUserState;
 }
 
 const TouringModal = ({
@@ -28,6 +31,7 @@ const TouringModal = ({
     themeButtons,
     themeTour,
     translate,
+    user,
 }: ITouringModal) => {
     const [tab, setTab] = useState(0);
     const onClose = (e?: GestureResponderEvent) => {
@@ -40,6 +44,9 @@ const TouringModal = ({
     };
     const onFindFriendsPress = (e?: GestureResponderEvent) => {
         onClose(e);
+        analytics().logEvent('find_friends_from_tour', {
+            userId: user.details.id,
+        }).catch((err) => console.log(err));
         onFindFriends();
     };
 
