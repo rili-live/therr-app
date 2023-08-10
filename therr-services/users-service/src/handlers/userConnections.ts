@@ -469,6 +469,8 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
     }
 };
 
+const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => res.status(201).send({});
+
 // READ
 const getUserConnection = (req, res) => Store.userConnections.getUserConnections({
     requestingUserId: req.params.requestingUserId,
@@ -628,6 +630,7 @@ const updateUserConnection = (req, res) => {
 export {
     createUserConnection,
     createOrInviteUserConnections,
+    findPeopleYouMayKnow,
     getUserConnection,
     searchUserConnections,
     updateUserConnection,

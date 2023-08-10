@@ -2,6 +2,7 @@ import * as express from 'express';
 import {
     createUserConnection,
     createOrInviteUserConnections,
+    findPeopleYouMayKnow,
     getUserConnection,
     searchUserConnections,
     updateUserConnection,
@@ -12,6 +13,7 @@ const router = express.Router();
 // CREATE
 router.post('/', createUserConnection);
 router.post('/multi-invite', createOrInviteUserConnections);
+router.post('/find-people', findPeopleYouMayKnow);
 
 // READ
 router.get('/:requestingUserId', getUserConnection);
