@@ -41,9 +41,9 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
                     title={`${connectionDetails.firstName?.substring(0, 1)}${connectionDetails.lastName?.substring(0, 1)}`}
                     rounded
                     source={{
-                        uri: getUserImageUri({ details: connectionDetails }, 100),
+                        uri: getUserImageUri({ details: connectionDetails }, 150),
                     }}
-                    size="small"
+                    size="medium"
                 />
             </Pressable>
             <View style={spacingStyles.flexOne}>

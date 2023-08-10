@@ -70,6 +70,7 @@ const Sidebar = (props: ISidebarProps) => {
     const onClickUpgrade = () => {
         ReactGA.event('clicked_upgrade_btn', {
             source: 'sidebar-nav',
+            plan: 'basic',
         });
     };
 
@@ -164,10 +165,10 @@ const Sidebar = (props: ISidebarProps) => {
                         <Nav className="flex-column pt-3 pt-md-0">
                             <NavItem title="My Dashboard" link={'/dashboard'} icon={faHome} />
                             <AccessControl isAuthorized={isSuperAdmin}>
-                                <NavItem title="Admin Dashboard" link={'/admin-dashboard'} icon={faTasks} />
+                                <NavItem title="Admin Dashboard" link={'/dashboard-admin'} icon={faTasks} />
                             </AccessControl>
                             <NavItem title="Claim a Space" link={'/claim-a-space'} icon={faMapMarked} />
-                            <NavItem title="My Campaigns" icon={faBullhorn} link={'/'} />
+                            <NavItem title="My Campaigns" icon={faBullhorn} link={'/campaigns/overview'} />
 
                             {/* <CollapsableNavItem eventKey="tables/" title="Tables" icon={faTable}>
                                 <NavItem title="Bootstrap Table" link={'/'} />
@@ -186,24 +187,24 @@ const Sidebar = (props: ISidebarProps) => {
                             <Dropdown.Divider className="my-3 border-indigo" />
 
                             <CollapsableNavItem eventKey="acquisition/" title="Customer Acquisition" icon={faBullseye}>
-                                {/* <NavItem title="Overview" link={'/'} />
-                                <NavItem title="Awareness" link={'/'} icon={faChartLine} />
+                                <NavItem title="Overview" link={'/customer-acquisition/overview'} />
+                                {/* <NavItem title="Awareness" link={'/'} icon={faChartLine} />
                                 <NavItem title="Engagement" link={'/'} icon={faHandHoldingHeart} /> */}
                             </CollapsableNavItem>
 
-                            <CollapsableNavItem eventKey="metrics/" title="Customer Metrics" icon={faChartBar}>
-                                {/* <NavItem title="Overview" link={'/'} />
+                            {/* <CollapsableNavItem eventKey="metrics/" title="Customer Metrics" icon={faChartBar}>
+                                <NavItem title="Overview" link={'/'} />
                                 <NavItem title="Impressions" link={'/'} icon={faChartBar} />
                                 <NavItem title="Interests" link={'/'} icon={faChartArea} />
-                                <NavItem title="Engagement" link={'/'} icon={faChartPie} /> */}
+                                <NavItem title="Engagement" link={'/'} icon={faChartPie} />
                             </CollapsableNavItem>
 
                             <CollapsableNavItem eventKey="feedback/" title="Customer Relations" icon={faComments}>
-                                {/* <NavItem title="Overview" link={'/'} />
+                                <NavItem title="Overview" link={'/'} />
                                 <NavItem title="Communications" link={'/'} icon={faCommentDots} />
                                 <NavItem title="Reviews" link={'/'} icon={faCommentAlt} />
-                                <NavItem title="Sentiment" link={'/'} icon={faMeh} /> */}
-                            </CollapsableNavItem>
+                                <NavItem title="Sentiment" link={'/'} icon={faMeh} />
+                            </CollapsableNavItem> */}
 
                             <Dropdown.Divider className="my-3 border-indigo" />
 
