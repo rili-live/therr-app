@@ -406,6 +406,8 @@ class ViewUser extends React.Component<
                 acceptingUserId: user?.userInView.id,
                 acceptingUserPhoneNumber: user?.userInView.phoneNumber,
                 acceptingUserEmail: user?.userInView.email,
+            }, {
+                userName: user?.details?.userName,
             }).then(() => {
                 updateUserInView({
                     isPendingConnection: true,

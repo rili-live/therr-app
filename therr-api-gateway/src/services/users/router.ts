@@ -112,7 +112,7 @@ usersServiceRouter.post('/users/connections/multi-invite', multiInviteLimiter, i
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/connections/find-people', handleServiceRequest({
+usersServiceRouter.post('/users/connections/find-people', multiInviteLimiter, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

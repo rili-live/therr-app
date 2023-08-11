@@ -34,6 +34,7 @@ const TouringModal = ({
     user,
 }: ITouringModal) => {
     const [tab, setTab] = useState(0);
+    const [isDoneDisabled, setDoneDisabled] = useState(true);
     const onClose = (e?: GestureResponderEvent) => {
         e?.stopPropagation();
         // This is necessary to prevent odd bug where advancing is necessary before closing. Otherwise modal gets stuck open
@@ -49,6 +50,15 @@ const TouringModal = ({
         }).catch((err) => console.log(err));
         onFindFriends();
     };
+
+    if (tab === 3) {
+        // Prevents user from rapid clicking and missing the find friends button
+        if (isDoneDisabled) {
+            setTimeout(() => {
+                setDoneDisabled(false);
+            }, 1000);
+        }
+    }
 
     return (
         <Modal
@@ -187,6 +197,7 @@ const TouringModal = ({
                                 onPress={onClose}
                                 iconRight
                                 themeButtons={themeButtons}
+                                disabled={isDoneDisabled}
                             />
                         </View>
                     </Pressable>
