@@ -29,7 +29,7 @@ app.use(honey);
 
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(/^(?!\/v1\/users\/connections\/find-people$)/, express.json());
 
 if (process.env.NODE_ENV !== 'production') {
     app.use(cors());
