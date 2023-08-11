@@ -13,7 +13,9 @@ const router = express.Router();
 // CREATE
 router.post('/', createUserConnection);
 router.post('/multi-invite', createOrInviteUserConnections);
-router.post('/find-people', findPeopleYouMayKnow);
+router.post('/find-people', express.json({
+    limit: '1000kb',
+}), findPeopleYouMayKnow);
 
 // READ
 router.get('/:requestingUserId', getUserConnection);

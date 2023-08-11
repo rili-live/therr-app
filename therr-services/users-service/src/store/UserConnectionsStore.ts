@@ -241,7 +241,6 @@ export default class UserConnectionsStore {
     }
 
     createIfNotExist(connections: ICreateUserConnectionParams[]) {
-        // TODO: Filter out connections that have neither a phone number or email
         const queryString = knexBuilder.insert(connections)
             .into(USER_CONNECTIONS_TABLE_NAME)
             .onConflict()
