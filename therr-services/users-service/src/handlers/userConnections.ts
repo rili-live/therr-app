@@ -505,8 +505,6 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
     const contactsLimitedForPerformance = contactEmails.slice(0, 100).concat(contactPhones.slice(0, 100));
 
     return Store.users.findUsersByContactInfo(contactsLimitedForPerformance, ['id']).then((users: { id: string; }[]) => {
-        // TODO: Ensure other userConnection endpoint update a "might-know" to the "complete"
-        // after requesting connection
         const mightKnowConnections = users.map((user) => ({
             requestingUserId,
             acceptingUserId: user.id,
