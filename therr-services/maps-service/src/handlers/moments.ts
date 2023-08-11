@@ -655,6 +655,13 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
                 'x-localecode': req.headers['x-localecode'] || 'en-us',
                 'x-userid': userId,
             },
+        }).catch((err) => {
+            console.log(err);
+            return {
+                data: {
+                    results: [],
+                },
+            };
         });
         fromUserIds = connectionsResponse.data.results
             .map((connection: any) => connection.users.filter((user: any) => user.id != userId)[0].id); // eslint-disable-line eqeqeq

@@ -11,4 +11,7 @@ export default (args: IFindUsersArgs) => axios({
     method: 'post',
     url: `${baseUsersServiceRoute}/users/find`,
     data: args,
-}).then(({ data: users }) => users);
+}).then(({ data: users }) => users).catch((err) => {
+    console.log(err);
+    return [];
+});
