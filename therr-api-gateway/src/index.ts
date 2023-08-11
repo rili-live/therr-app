@@ -43,7 +43,8 @@ app.use(honey);
 
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+// Use defaults except for specific route in regex
+app.use(/^(?!\/v1\/users-service\/users\/connections\/find-people$)/, express.json());
 
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
