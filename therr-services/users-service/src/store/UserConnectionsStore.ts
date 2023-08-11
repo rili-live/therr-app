@@ -240,6 +240,18 @@ export default class UserConnectionsStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
+    createIfNotExist(connections: ICreateUserConnectionParams[]) {
+        // TODO: Filter out connections that have neither a phone number or email
+        const queryString = knexBuilder.insert(connections)
+            .into(USER_CONNECTIONS_TABLE_NAME)
+            .onConflict()
+            .ignore()
+            .returning('id')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
     updateUserConnection(conditions: IUpdateUserConnectionConditions, params: IUpdateUserConnectionParams) {
         const queryString = knexBuilder.update({
             ...params,

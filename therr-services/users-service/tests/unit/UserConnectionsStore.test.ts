@@ -1,6 +1,7 @@
 /* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
+import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import UserConnectionsStore, { USER_CONNECTIONS_TABLE_NAME } from '../../src/store/UserConnectionsStore';
 
 describe('UserConnectionsStore', () => {
@@ -92,7 +93,7 @@ describe('UserConnectionsStore', () => {
             }, {
                 interactionCount: 5,
                 isConnectionBroken: false,
-                requestStatus: 'complete',
+                requestStatus: UserConnectionTypes.COMPLETE,
             });
 
             expect(mockStore.write.query.args[0][0].includes(expected1)).to.be.equal(true);
