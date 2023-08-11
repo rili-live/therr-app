@@ -32,7 +32,7 @@ interface IFindUsersArgs {
     ids?: string[];
 }
 
-interface IFindUsersByContactInfo {
+export interface IFindUsersByContactInfo {
     email?: string;
     phoneNumber?: string;
 }
