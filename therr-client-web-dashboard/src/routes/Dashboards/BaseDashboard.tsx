@@ -45,9 +45,12 @@ import withNavigation from '../../wrappers/withNavigation';
 //     totalOrders,
 // } from '../data/charts';
 import { SpaceMetricsDisplay } from '../../components/widgets/SpaceMetricsDisplay';
+import StarRating  from '../../components/widgets/StarRating';
+
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
 import { ISpace } from '../../types';
 import AdminManageSpacesMenu from '../../components/AdminManageSpacesMenu';
+//import { getSpaceReactions } from ''
 
 const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
     // TODO: Update this to support more than 1 month time span
@@ -142,8 +145,27 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         if (!this.state.overviewGraphValues?.length) {
             this.fetchSpaceMetrics('week');
         }
+       // this.fetchSpaceReactions();
     }
+/* UNCOMMENT
+    fetchSpaceReactions = () => {
+        const { spacesInView, currentSpaceIndex } = this.state;
 
+        if (spacesInView[currentSpaceIndex]) {
+            const spaceId = spacesInView[currentSpaceIndex].id;
+
+            getSpaceReactions({ query: { spaceId } })
+                .then(response => {
+                    this.setState({
+                        averageRating: response.avgRating
+                    });
+                })
+                .catch(err => {
+                    console.error("Error fetching space reactions:", err);
+                });
+        }
+    };
+*/
     fetchDashboardSpaces = (latitude?: number, longitude?: number) => {
         const { fetchSpaces } = this.props;
 
@@ -243,6 +265,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             overviewGraphLabels,
             overviewGraphValues,
             percentageChange,
+            //averageRating UNCOMMENT
         } = this.state;
         const {
             isSuperAdmin,
@@ -272,8 +295,17 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         }
                     </ButtonGroup>
                 </div>
+                    <div className="d-flex justify-content-end">
+                        <div className="d-flex flex-column justify-content-center">
+                            <h2>Space Rating</h2>
+                            <StarRating value={3} />
+                            <p>Rating: 3</p>
+                        </div>
+                </div>
+				
 
                 <Row className="justify-content-md-center">
+       
                     <Col xs={12} className="mb-4 d-none d-sm-block">
                         <SpaceMetricsDisplay
                             isMobile={false}

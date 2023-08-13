@@ -83,26 +83,23 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
 };
 
 // READ
-const getSpaceReactions: RequestHandler = async (req: any, res: any) => {
-    const userId = req.headers['x-userid'];
-    const spaceIds = req.query?.spaceIds?.split(',');
-    const queryParams: any = {
-        userId,
-    };
+const getSpaceReactions: RequestHandler = (req: any, res: any) => {
+    const spaceId = req.query.spaceId;
+    return Store.spaceReactions.getBySpaceId({ spaceId }, parseInt(req.query.limit || 100, 10))
+        .then((reactions) => {
+            const ratings = reactions
+                .filter((reaction) => reaction.rating !== null && reaction.rating !== undefined)
+                .map((reaction) => reaction.rating);
 
-    if (queryParams.spaceId) {
-        queryParams.spaceId = parseInt(queryParams.spaceId, 10);
-    }
+            const totalRatings = ratings.length;
+            const sum = ratings.reduce((acc, curr) => acc + curr, 0);
+            const avgRating = totalRatings > 0 ? sum / totalRatings : null;
 
-    delete queryParams.spaceIds;
-
-    return Store.spaceReactions.get(queryParams, spaceIds, {
-        limit: parseInt(req.query.limit, 10),
-        offset: 0,
-        order: req.query.order || 'DESC',
-    })
-        .then(([spaces]) => res.status(200).send(spaces))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
+            res.status(200).send({ avgRating, totalRatings });
+        })
+        .catch((err) => {
+            handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' });
+        });
 };
 
 const getReactionsBySpaceId: RequestHandler = async (req: any, res: any) => {
