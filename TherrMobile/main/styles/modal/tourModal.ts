@@ -49,6 +49,31 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 16,
             fontFamily: therrFontFamily,
         },
+        buttonContainer: {
+            height: 150,
+            width: 200,
+            display: 'flex',
+            paddingVertical: 10,
+            marginBottom: 20,
+            justifyContent: 'center',
+        },
+        buttonPrimary: {
+            backgroundColor: therrTheme.colors.primary3,
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: 20,
+            height: 49,
+        },
+        buttonTitle: {
+            fontSize: 18,
+            fontWeight: '500',
+            fontFamily: therrFontFamily,
+            color: therrTheme.colors.textBlack,
+        },
+        buttonIconStyle: {
+            color: therrTheme.colors.textBlack,
+            paddingLeft: 8,
+        },
     });
 
     return ({

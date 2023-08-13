@@ -27,13 +27,19 @@ class UserConnectionsService {
         method: 'post',
         url: '/users-service/users/connections',
         data,
-    })
+    });
 
     invite = (data: IInviteConnectionsBody) => axios({
         method: 'post',
         url: '/users-service/users/connections/multi-invite',
         data,
-    })
+    });
+
+    findPeopleYouKnow = (data: any) => axios({
+        method: 'post',
+        url: '/users-service/users/connections/find-people',
+        data,
+    });
 
     update = (otherUserId: number, data: ICreateConnectionBody) => axios({
         method: 'put',
@@ -42,18 +48,21 @@ class UserConnectionsService {
             ...data,
             otherUserId,
         },
-    })
+    });
 
     search = (query: ISearchQuery) => {
         let queryString = getSearchQueryString(query);
         if (query.shouldCheckReverse) {
             queryString = `${queryString}&shouldCheckReverse=true`;
         }
+        if (query.withMedia) {
+            queryString = `${queryString}&withMedia=true`;
+        }
         return axios({
             method: 'get',
             url: `/users-service/users/connections${queryString}`,
         });
-    }
+    };
 }
 
 export default new UserConnectionsService();

@@ -112,6 +112,14 @@ usersServiceRouter.post('/users/connections/multi-invite', multiInviteLimiter, i
     method: 'post',
 }));
 
+// NOTE: Override size limit
+usersServiceRouter.post('/users/connections/find-people', express.json({
+    limit: '1000kb',
+}), multiInviteLimiter, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
 usersServiceRouter.get('/users/connections/:requestingUserId', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',

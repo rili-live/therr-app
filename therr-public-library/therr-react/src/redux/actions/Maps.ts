@@ -215,7 +215,13 @@ const Maps = {
     // Location
     updateUserCoordinates: (data: any) => (dispatch: any) => {
         dispatch({
-            type: MapActionTypes.UPDATE_COORDS,
+            type: MapActionTypes.UPDATE_USER_COORDS,
+            data,
+        });
+    },
+    updateMapViewCoordinates: (data: any) => (dispatch: any) => {
+        dispatch({
+            type: MapActionTypes.UPDATE_MAP_VIEW_COORDS,
             data,
         });
     },

@@ -213,6 +213,18 @@
     },
     "dashboardOverview": {
       "pageTitle": "Dashboard"
+    },
+    "acquisitionOverview": {
+      "pageTitle": "Acquisition Overview"
+    },
+    "adminAcquisitionOverview": {
+      "pageTitle": "Acquisition Overview"
+    },
+    "campaignsOverview": {
+      "pageTitle": "Campaigns Overview"
+    },
+    "adminCampaignsOverview": {
+      "pageTitle": "Campaigns Overview"
     }
   }
 }

@@ -185,6 +185,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     orderBy: 'interactionCount',
                     order: 'desc',
                     shouldCheckReverse: true,
+                    withMedia: true,
                 },
                 user.details && user.details.id
             )
@@ -245,6 +246,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
     renderSceneMap = ({ route }) => {
         const { isRefreshing } = this.state;
+        const shouldLaunchContacts = this.props.route?.params?.shouldLaunchContacts;
 
         switch (route.key) {
             case 'connections':
@@ -283,6 +285,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 return (
                     <CreateConnection
                         navigation={navigation}
+                        shouldLaunchContacts={shouldLaunchContacts}
                         toggleNameConfirmModal={this.toggleNameConfirmModal}
                     />
                 );

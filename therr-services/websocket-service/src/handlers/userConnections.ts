@@ -1,6 +1,8 @@
 import * as socketio from 'socket.io';
 import printLogs from 'therr-js-utilities/print-logs';
-import { Notifications, SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
+import {
+    Notifications, SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION, UserConnectionTypes,
+} from 'therr-js-utilities/constants';
 import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config';
@@ -16,7 +18,7 @@ interface IUpdateUserConnectionData {
         interactionCount?: number;
         isConnectionBroken?: boolean,
         otherUserId: string,
-        requestStatus?: 'complete' | 'pending' | 'denied',
+        requestStatus?: UserConnectionTypes,
     };
     user: any;
 }
@@ -83,7 +85,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                         type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
                         data: connection,
                     });
-                } else if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
+                } else if (connection.requestStatus === UserConnectionTypes.COMPLETE) { // Do not send notification when connection denied
                     // TO USER WHO SENT REQUEST...
                     socket.to(rUserSocketId).emit(SOCKET_MIDDLEWARE_ACTION, {
                         type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
@@ -123,7 +125,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
 
         return connection;
     }).then((connection: any) => {
-        if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
+        if (connection.requestStatus === UserConnectionTypes.COMPLETE) { // Do not send notification when connection denied
             return restRequest({
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications`,

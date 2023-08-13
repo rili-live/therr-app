@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Text, Modal, Pressable, View, GestureResponderEvent } from 'react-native';
+import { Button } from 'react-native-elements';
 import AnimatedLottieView from 'lottie-react-native';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import analytics from '@react-native-firebase/analytics';
+import { IUserState } from 'therr-react/types';
 import claimASpace from '../../assets/claim-a-space.json';
 import shareAMoment from '../../assets/share-a-moment.json';
 import discover from '../../assets/discover.json';
@@ -8,6 +12,7 @@ import ModalButton from './ModalButton';
 
 interface ITouringModal {
     isVisible: boolean;
+    onFindFriends: any;
     onRequestClose: any;
     translate: Function;
     themeButtons: {
@@ -16,16 +21,20 @@ interface ITouringModal {
     themeTour: {
         styles: any;
     };
+    user: IUserState;
 }
 
 const TouringModal = ({
     isVisible,
     onRequestClose,
+    onFindFriends,
     themeButtons,
     themeTour,
     translate,
+    user,
 }: ITouringModal) => {
     const [tab, setTab] = useState(0);
+    const [isDoneDisabled, setDoneDisabled] = useState(true);
     const onClose = (e?: GestureResponderEvent) => {
         e?.stopPropagation();
         // This is necessary to prevent odd bug where advancing is necessary before closing. Otherwise modal gets stuck open
@@ -34,6 +43,22 @@ const TouringModal = ({
             onRequestClose();
         }
     };
+    const onFindFriendsPress = (e?: GestureResponderEvent) => {
+        onClose(e);
+        analytics().logEvent('find_friends_from_tour', {
+            userId: user.details.id,
+        }).catch((err) => console.log(err));
+        onFindFriends();
+    };
+
+    if (tab === 3) {
+        // Prevents user from rapid clicking and missing the find friends button
+        if (isDoneDisabled) {
+            setTimeout(() => {
+                setDoneDisabled(false);
+            }, 1000);
+        }
+    }
 
     return (
         <Modal
@@ -49,7 +74,7 @@ const TouringModal = ({
                 onPress={onClose}
                 style={themeTour.styles.overlay}>
                 {
-                    (tab !== 1 && tab !== 2) &&
+                    (tab !== 1 && tab !== 2 && tab !== 3) &&
                     <Pressable style={themeTour.styles.container}>
                         <Text style={themeTour.styles.header}>{translate('modals.touringModal.header3')}</Text>
                         <Text style={themeTour.styles.text}>{translate('modals.touringModal.exploreTheWorld')}</Text>
@@ -125,11 +150,54 @@ const TouringModal = ({
                                 themeButtons={themeButtons}
                             />
                             <ModalButton
+                                iconName="arrow-forward"
+                                title={translate('modals.touringModal.next')}
+                                onPress={() => setTab(3)}
+                                iconRight
+                                themeButtons={themeButtons}
+                            />
+                        </View>
+                    </Pressable>
+                }
+                {
+                    (tab === 3) &&
+                    <Pressable style={themeTour.styles.container}>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header4')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.findFriends')}</Text>
+                        <View style={themeTour.styles.buttonContainer}>
+                            <Button
+                                buttonStyle={themeTour.styles.buttonPrimary}
+                                titleStyle={themeTour.styles.buttonTitle}
+                                title={translate(
+                                    'forms.createConnection.buttons.findFriends'
+                                )}
+                                onPress={onFindFriendsPress}
+                                raised={false}
+                                icon={
+                                    <MaterialIcon
+                                        style={themeTour.styles.buttonIconStyle}
+                                        name="people"
+                                        size={24}
+                                    />
+                                }
+                                iconRight
+                            />
+                        </View>
+                        <View style={themeTour.styles.actionsContainer}>
+                            <ModalButton
+                                iconName="arrow-back"
+                                title={translate('modals.touringModal.back')}
+                                onPress={() => setTab(2)}
+                                iconRight={false}
+                                themeButtons={themeButtons}
+                            />
+                            <ModalButton
                                 iconName="check"
                                 title={translate('modals.touringModal.done')}
                                 onPress={onClose}
                                 iconRight
                                 themeButtons={themeButtons}
+                                disabled={isDoneDisabled}
                             />
                         </View>
                     </Pressable>

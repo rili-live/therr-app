@@ -244,7 +244,8 @@
       "buttons": {
         "submit": "Send",
         "invitePhoneContacts": "Invite Phone Contacts",
-        "shareALink": "Share a Link"
+        "shareALink": "Share a Link",
+        "findFriends": "Find Friends"
       },
       "errorMessages": {
         "invalidEmail": "Invalid e-mail",
@@ -1071,7 +1072,7 @@
       "unconnect": "Remove connection with {userName}? (You will no longer be able to activate new content from this user)",
       "header": {
         "claimSpace": "Claim a Space",
-        "eula": "End-User License Agreement (EULA)",
+        "eula": "End-User License Agreement (EULA)"
 
       },
       "body": {
@@ -1115,12 +1116,14 @@
       "back": "Back",
       "next": "Next",
       "done": "Done",
-      "header1": "Tour: Claim a Space",
+      "header1": "Tour: Earn Rewards",
       "header2": "Tour: Create a Moment",
       "header3": "Tour: Explore the World",
+      "header4": "Tour: Find Friends",
       "createAMoment": "Press the GPS button on the map to start creating content. We require location for all posts to prevent fake users and focus on local-first interactions.",
-      "claimYourSpaces": "Businesses and promoters can claim spaces on the map and offer rewards. Nobody can claim overlapping spaces. Visit a space to earn rewards!",
-      "exploreTheWorld": "Start discovering content by enabling location and walking around. Use the search bar and filters, then travel to those locations. The 'Discovered' page shows all activated content."
+      "claimYourSpaces": "Businesses and promoters can claim spaces on the map and offer rewards. Visit a space to earn rewards, then exchange coins/points for cash!",
+      "exploreTheWorld": "Start discovering content by enabling location and walking around. Use the search bar and filters, then travel to those locations. The 'Discovered' page shows all activated content.",
+      "findFriends": "Connect with friends, businesses, and your local network. Organize your connections by type and location. Earn bonus rewards for inviting friends!"
     }
   },
   "permissions": {

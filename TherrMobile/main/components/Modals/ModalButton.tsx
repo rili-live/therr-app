@@ -10,9 +10,10 @@ interface IModalButtonProps {
     onPress: any;
     iconRight: any;
     themeButtons: any;
+    disabled?: boolean;
 }
 
-const ModalButton = ({ color, title, iconName, onPress, iconRight, themeButtons }: IModalButtonProps) => {
+const ModalButton = ({ color, disabled, title, iconName, onPress, iconRight, themeButtons }: IModalButtonProps) => {
     const iconStyle = iconRight ? { paddingLeft: 7 } : { paddingRight: 7 };
     return (
         <Button
@@ -31,6 +32,7 @@ const ModalButton = ({ color, title, iconName, onPress, iconRight, themeButtons 
             type="clear"
             onPress={onPress}
             title={title}
+            disabled={disabled}
         />
     );
 };

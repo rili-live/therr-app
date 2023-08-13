@@ -5,6 +5,7 @@ import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import analytics from '@react-native-firebase/analytics';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { FlatList } from 'react-native-gesture-handler';
@@ -38,6 +39,7 @@ interface IStoreProps extends ICreateConnectionDispatchProps {
 
 // Regular component props
 export interface ICreateConnectionProps extends IStoreProps {
+    shouldLaunchContacts: boolean;
     navigation: any;
     toggleNameConfirmModal: () => any;
 }
@@ -98,7 +100,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
     }
 
     componentDidMount() {
-        const { navigation, user, userConnections } = this.props;
+        const { navigation, shouldLaunchContacts, user, userConnections } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.activeConnections.headerTitle'),
@@ -119,6 +121,10 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                     user.details && user.details.id
                 )
                 .catch(() => {});
+        }
+
+        if (shouldLaunchContacts) {
+            this.onGetPhoneContacts();
         }
     }
 
@@ -237,6 +243,9 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
 
         createUserConnection(reqBody, user.details)
             .then(() => {
+                analytics().logEvent('connection_invites_sent', {
+                    userId: user.details.id,
+                }).catch((err) => console.log(err));
                 this.setState({
                     inputs: {
                         email: '',
@@ -285,17 +294,25 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
         }
 
         return requestOSContactsPermissions(storePermissions).then((response) => {
+            const { user } = this.props;
             const permissionsDenied = Object.keys(response).some((key) => {
                 return response[key] !== 'granted';
             });
             if (!permissionsDenied) {
-                return Contacts.getAll().then(contacts => {
+                analytics().logEvent('phone_contacts_perm_granted', {
+                    userId: user.details.id,
+                }).catch((err) => console.log(err));
+                return Contacts.getAllWithoutPhotos().then(contacts => {
                     // contacts returned
 
                     navigation.navigate('PhoneContacts', {
                         allContacts: contacts,
                     });
                 });
+            } else {
+                analytics().logEvent('phone_contacts_perm_denied', {
+                    userId: user.details.id,
+                }).catch((err) => console.log(err));
             }
         });
     };

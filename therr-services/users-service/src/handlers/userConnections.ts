@@ -1,5 +1,7 @@
 import { RequestHandler } from 'express';
-import { CurrentSocialValuations, Notifications, PushNotifications } from 'therr-js-utilities/constants';
+import {
+    CurrentSocialValuations, Notifications, PushNotifications, UserConnectionTypes,
+} from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import printLogs from 'therr-js-utilities/print-logs';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
@@ -17,6 +19,7 @@ import sendContactInviteEmail from '../api/email/sendContactInviteEmail';
 import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
 import { parseConfigValue } from './config';
+import { IFindUsersByContactInfo } from '../store/UsersStore';
 
 const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
     if (receivingPhoneNumber.startsWith('+44')) {
@@ -154,15 +157,15 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         acceptingUserId: acceptingUser.id,
     }, true)
         .then((getResults) => {
-            if (getResults.length && !getResults[0].isConnectionBroken) {
+            let connectionPromise;
+
+            if (getResults.length && !getResults[0].isConnectionBroken && getResults[0].requestStatus !== UserConnectionTypes.MIGHT_KNOW) {
                 return handleHttpError({
                     res,
                     message: translate(locale, 'errorMessages.userConnections.alreadyExists'),
                     statusCode: 400,
                 });
             }
-
-            let connectionPromise;
 
             if (getResults.length && getResults[0].isConnectionBroken) {
                 // Re-create connection after unconnection
@@ -171,7 +174,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     acceptingUserId: acceptingUser.id as string,
                 }, {
                     isConnectionBroken: false,
-                    requestStatus: 'pending',
+                    requestStatus: UserConnectionTypes.PENDING,
                 });
             } else {
                 createOrUpdateAchievement({
@@ -194,11 +197,18 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     });
                 });
 
-                connectionPromise = Store.userConnections.createUserConnection({
-                    requestingUserId,
-                    acceptingUserId: acceptingUser.id as string,
-                    requestStatus: 'pending',
-                });
+                connectionPromise = getResults[0]?.requestStatus === UserConnectionTypes.MIGHT_KNOW
+                    ? Store.userConnections.updateUserConnection({
+                        requestingUserId,
+                        acceptingUserId: acceptingUser.id as string,
+                    }, {
+                        requestStatus: UserConnectionTypes.PENDING,
+                    })
+                    : Store.userConnections.createUserConnection({
+                        requestingUserId,
+                        acceptingUserId: acceptingUser.id as string,
+                        requestStatus: UserConnectionTypes.PENDING,
+                    });
             }
 
             // NOTE: no need to refetch user from DB
@@ -467,6 +477,46 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
     }
 };
 
+const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    const requestingUserId = userId;
+    const locale = req.headers['x-localecode'] || 'en-us';
+
+    const { contacts } = req.body;
+    const contactEmails: IFindUsersByContactInfo[] = [];
+    const contactPhones: IFindUsersByContactInfo[] = [];
+    contacts.forEach((contact) => {
+        if (contact.emailAddresses?.length) {
+            contact.emailAddresses.forEach((item: any) => {
+                contactEmails.push({
+                    email: item.email,
+                });
+            });
+        }
+        if (contact.phoneNumbers?.length) {
+            contact.phoneNumbers.forEach((item: any) => {
+                contactPhones.push({
+                    phoneNumber: item.number,
+                });
+            });
+        }
+    });
+
+    const contactsLimitedForPerformance = contactEmails.slice(0, 100).concat(contactPhones.slice(0, 100));
+
+    return Store.users.findUsersByContactInfo(contactsLimitedForPerformance, ['id']).then((users: { id: string; }[]) => {
+        const mightKnowConnections = users.map((user) => ({
+            requestingUserId,
+            acceptingUserId: user.id,
+            requestStatus: UserConnectionTypes.MIGHT_KNOW,
+        }));
+
+        return Store.userConnections.createIfNotExist(mightKnowConnections);
+    })
+        .then((connections) => res.status(201).send({ mightKnow: connections.length }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+};
+
 // READ
 const getUserConnection = (req, res) => Store.userConnections.getUserConnections({
     requestingUserId: req.params.requestingUserId,
@@ -548,7 +598,7 @@ const updateUserConnection = (req, res) => {
             Store.users.getUserById(requestingUserId, ['userName']).then((otherUserRows) => {
                 const fromUserName = otherUserRows[0]?.userName;
 
-                if (requestStatus === 'complete') {
+                if (requestStatus === UserConnectionTypes.COMPLETE) {
                     Promise.all([
                         // For sender
                         createOrUpdateAchievement({
@@ -626,6 +676,7 @@ const updateUserConnection = (req, res) => {
 export {
     createUserConnection,
     createOrInviteUserConnections,
+    findPeopleYouMayKnow,
     getUserConnection,
     searchUserConnections,
     updateUserConnection,

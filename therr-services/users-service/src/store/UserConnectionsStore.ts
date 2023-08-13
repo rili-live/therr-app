@@ -1,5 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 import { USERS_TABLE_NAME } from './UsersStore';
 
@@ -12,7 +13,7 @@ export interface ICreateUserConnectionParams {
     acceptingUserId: string;
     interactionCount?: number;
     isConnectionBroken?: boolean;
-    requestStatus: 'pending' | 'complete'; // auto-complete should only be available internally
+    requestStatus: UserConnectionTypes; // auto-complete should only be available internally
 }
 
 export interface IUpdateUserConnectionConditions {
@@ -23,7 +24,7 @@ export interface IUpdateUserConnectionConditions {
 export interface IUpdateUserConnectionParams {
     interactionCount?: number;
     isConnectionBroken?: boolean;
-    requestStatus?: 'pending' | 'complete' | 'denied';
+    requestStatus?: UserConnectionTypes;
 }
 
 export default class UserConnectionsStore {
@@ -46,7 +47,7 @@ export default class UserConnectionsStore {
             })
             .where({
                 isConnectionBroken: false,
-                requestStatus: 'complete',
+                requestStatus: UserConnectionTypes.COMPLETE,
             });
 
         if (params.filterBy && params.query) {
@@ -170,7 +171,7 @@ export default class UserConnectionsStore {
             ])
             .where({
                 isConnectionBroken: false,
-                requestStatus: 'complete',
+                requestStatus: UserConnectionTypes.COMPLETE,
             });
 
         // TODO: Compare query performance and consider using `findUserConnections` method instead
@@ -198,7 +199,8 @@ export default class UserConnectionsStore {
             .offset(offset)
             .toString();
 
-        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'users', propId: 'id' }]));
+        return this.db.read.query(queryString)
+            .then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'users', propId: 'id' }]));
     }
 
     findUserConnections(userId: string, otherUserIds: string[]) {
@@ -228,11 +230,22 @@ export default class UserConnectionsStore {
         const newConnections = otherUserIds.map((otherUserId) => ({
             requestingUserId: userId,
             acceptingUserId: otherUserId,
-            requestStatus: 'pending',
+            requestStatus: UserConnectionTypes.PENDING,
         }));
         const queryString = knexBuilder.insert(newConnections)
             .into(USER_CONNECTIONS_TABLE_NAME)
             .returning(['id', 'acceptingUserId', 'requestingUserId'])
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    createIfNotExist(connections: ICreateUserConnectionParams[]) {
+        const queryString = knexBuilder.insert(connections)
+            .into(USER_CONNECTIONS_TABLE_NAME)
+            .onConflict()
+            .ignore()
+            .returning('id')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);

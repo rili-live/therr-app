@@ -2,7 +2,7 @@ import beeline from '../../beeline'; // eslint-disable-line import/order
 import printLogs from 'therr-js-utilities/print-logs';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
-import { AccessLevels } from 'therr-js-utilities/constants';
+import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
 import Store from '../../store';
 import { hashPassword } from '../../utilities/userHelpers';
 import { validatePassword } from '../../utilities/passwordUtils';
@@ -51,9 +51,9 @@ interface IGetUserHelperArgs {
  * @returns boolean
  */
 const isUserInfoPublic = (user, connection) => connection?.isMe || user.settingsIsProfilePublic
-    || (connection?.requestStatus === 'complete' && !connection?.isConnectionBroken);
+    || (connection?.requestStatus === UserConnectionTypes.COMPLETE && !connection?.isConnectionBroken);
 
-const getUserProfileResponse = (userResult, friendship, connectionCount: number, socialSyncs) => {
+const getUserProfileResponse = (userResult, friendship: undefined | { [key: string]: any }, connectionCount: number, socialSyncs) => {
     // Only select specific properties should be returned
     const sanitizedUserResult: any = {
         id: userResult.id,
@@ -76,8 +76,13 @@ const getUserProfileResponse = (userResult, friendship, connectionCount: number,
             ...sanitizedUserResult,
 
             // More details
-            isNotConnected: !friendship,
-            isPendingConnection: friendship ? (friendship.requestStatus === 'denied' || friendship.requestStatus === 'pending') : false,
+            isNotConnected: !friendship || friendship.requestStatus === UserConnectionTypes.MIGHT_KNOW,
+            isPendingConnection: friendship
+                // eslint-disable-next-line max-len
+                ? (friendship.requestStatus === UserConnectionTypes.DENIED
+                    || friendship.requestStatus === UserConnectionTypes.PENDING
+                    || friendship.requestStatus === UserConnectionTypes.BLOCKED)
+                : false,
             connectionCount,
             socialSyncs,
         };
@@ -94,7 +99,12 @@ const getUserProfileResponse = (userResult, friendship, connectionCount: number,
 
         // More details
         isNotConnected: true,
-        isPendingConnection: friendship ? (friendship.requestStatus === 'denied' || friendship.requestStatus === 'pending') : false,
+        isPendingConnection: friendship
+            // eslint-disable-next-line max-len
+            ? (friendship.requestStatus === UserConnectionTypes.DENIED
+                || friendship.requestStatus === UserConnectionTypes.PENDING
+                || friendship.requestStatus === UserConnectionTypes.BLOCKED)
+            : false,
         connectionCount,
         socialSyncs,
     };
@@ -136,7 +146,7 @@ const getUserHelper = ({
         const userPromises: Promise<any>[] = [];
         const countPromise = Store.userConnections.countUserConnections(userResult.id);
         const syncsPromise = Store.socialSyncs.getSyncs(userResult.id).then((syncResults) => getMappedSocialSyncResults(isMe, syncResults));
-        const friendPromise = getUserFriendship(isMe, userResult.id, requestingUserId);
+        const friendPromise: Promise<undefined | { [key: string]: any }> = getUserFriendship(isMe, userResult.id, requestingUserId);
 
         userPromises.push(friendPromise, countPromise, syncsPromise);
 

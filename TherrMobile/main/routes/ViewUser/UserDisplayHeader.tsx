@@ -117,24 +117,24 @@ const ListItem = ({
             };
             break;
         case 'remove-connection-request':
-            contextOnPress = (contxt, userDetails) => {
+            contextOnPress = (context, userDetails) => {
                 onToggleMoreBottomSheet(false);
-                onConnectionRequest(contxt, userDetails);
+                onConnectionRequest(context, userDetails);
             };
             break;
         // case 'send-message':
         //     contextOnPress = onMessageUser;
         //     break;
         case 'block-user':
-            contextOnPress = (contxt, userDetails) => {
+            contextOnPress = (context, userDetails) => {
                 onToggleMoreBottomSheet(false);
-                onBlockUser(contxt, userDetails);
+                onBlockUser(context, userDetails);
             };
             break;
         case 'report-user':
-            contextOnPress = (contxt, userDetails) => {
+            contextOnPress = (context, userDetails) => {
                 onToggleMoreBottomSheet(false);
-                onReportUser(contxt, userDetails);
+                onReportUser(context, userDetails);
             };
             break;
         default:
