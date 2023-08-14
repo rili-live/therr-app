@@ -1,6 +1,6 @@
 const DEFAULT_COORDINATES = {
-    latitude: 33.7673401, // defaults to Atlanta, GA
-    longitude: -84.5025305, // defaults to Atlanta, GA
+    latitude: 33.6049778, // defaults to Phoenix, AZ
+    longitude: -112.454681, // defaults to Phoenix, AZ
 };
 
 export {
