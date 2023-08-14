@@ -40,8 +40,8 @@ const fetchAllSpaces = (latitude?: number, longitude?: number) => MapsService.se
     itemsPerPage: 50,
     pageNumber: 1,
     filterBy: 'fromUserIds',
-    latitude: latitude || 32.8205566, // defaults to Dallas, TX
-    longitude: longitude || -96.8963576, // defaults to Dallas, TX
+    latitude: latitude || 33.6049778, // defaults to Phoenix, AZ
+    longitude: longitude || -112.454681, // defaults to Phoenix, AZ
 }, {
     distanceOverride: 160934, // ~ 100 miles
 });
