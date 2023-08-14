@@ -6,6 +6,7 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import BaseAcquisitionDashboard from './BaseAcquisitionDashboard';
+import { DEFAULT_COORDINATES } from '../../constants/LocationDefaults';
 
 interface IAdminAcquisitionOverviewDispatchProps {
     createUserConnection: Function;
@@ -40,8 +41,8 @@ const fetchAllSpaces = (latitude?: number, longitude?: number) => MapsService.se
     itemsPerPage: 50,
     pageNumber: 1,
     filterBy: 'fromUserIds',
-    latitude: latitude || 33.6049778, // defaults to Phoenix, AZ
-    longitude: longitude || -112.454681, // defaults to Phoenix, AZ
+    latitude: latitude || DEFAULT_COORDINATES.latitude,
+    longitude: longitude || DEFAULT_COORDINATES.longitude,
 }, {
     distanceOverride: 160934, // ~ 100 miles
 });
