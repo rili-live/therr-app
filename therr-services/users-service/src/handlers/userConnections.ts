@@ -505,7 +505,9 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
     const contactsLimitedForPerformance = contactEmails.slice(0, 100).concat(contactPhones.slice(0, 100));
 
     return Store.users.findUsersByContactInfo(contactsLimitedForPerformance, ['id']).then((users: { id: string; }[]) => {
-        const mightKnowConnections = users.map((user) => ({
+        // TODO: Add db constraint to prevent requestingUserId equal to acceptingUserId
+        const filteredUsers = users.filter((u) => u.id !== requestingUserId);
+        const mightKnowConnections = filteredUsers.map((user) => ({
             requestingUserId,
             acceptingUserId: user.id,
             requestStatus: UserConnectionTypes.MIGHT_KNOW,

@@ -56,6 +56,9 @@ interface ICreateSpaceBody extends ICreateAreaBody {
     menuUrl?: string;
     orderUrl?: string;
     reservationUrl?: string;
+    businessTransactionId?: string;
+    businessTransactionName?: string;
+    isPointOfInterest?: boolean;
 }
 
 interface IDeleteAreasBody {
