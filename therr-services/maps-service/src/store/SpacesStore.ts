@@ -50,6 +50,9 @@ export interface ICreateSpaceParams {
     menuUrl?: string;
     orderUrl?: string;
     reservationUrl?: string;
+    businessTransactionId?: string;
+    businessTransactionName?: string;
+    isPointOfInterest?: boolean;
 }
 
 interface IDeleteSpacesParams {
@@ -436,6 +439,9 @@ export default class SpacesStore {
                 menuUrl: params.menuUrl,
                 orderUrl: params.orderUrl,
                 reservationUrl: params.reservationUrl,
+                businessTransactionId: params.businessTransactionId,
+                businessTransactionName: params.businessTransactionName,
+                isPointOfInterest: params.isPointOfInterest,
                 // eslint-disable-next-line max-len
                 geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${radius})::geometry, 4326)`),
             };
@@ -485,6 +491,9 @@ export default class SpacesStore {
                 menuUrl: params.menuUrl,
                 orderUrl: params.orderUrl,
                 reservationUrl: params.reservationUrl,
+                businessTransactionId: params.businessTransactionId,
+                businessTransactionName: params.businessTransactionName,
+                isPointOfInterest: params.isPointOfInterest,
                 updatedAt: new Date(),
             };
 
