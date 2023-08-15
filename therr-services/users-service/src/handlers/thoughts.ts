@@ -357,7 +357,11 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
                 'x-localecode': req.headers['x-localecode'] || 'en-us',
                 'x-userid': userId,
             },
-        });
+        }).catch(() => ({
+            data: {
+                results: [],
+            },
+        }));
         fromUserIds = connectionsResponse.data.results
             .map((connection: any) => connection.users.filter((user: any) => user.id != userId)[0].id); // eslint-disable-line eqeqeq
     }
@@ -380,7 +384,7 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
             },
         };
 
-        res.status(200).send(response);
+        return res.status(200).send(response);
     })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHTS_ROUTES:ERROR' }));
 };
