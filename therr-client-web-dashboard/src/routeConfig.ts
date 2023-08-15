@@ -4,7 +4,7 @@ export default [
         route: '/',
         head: {
             title: 'Home',
-            description: 'Access your local business Dashboard',
+            description: 'Access your local business dashboard for single origin marketing',
         },
         view: 'index',
     },
@@ -12,7 +12,7 @@ export default [
         route: '/dashboard',
         head: {
             title: 'Dashboard',
-            description: 'Access your local business Dashboard',
+            description: 'Your local business dashboard',
         },
         view: 'index',
     },
@@ -28,7 +28,7 @@ export default [
         route: '*',
         head: {
             title: 'Page Not Found',
-            description: 'Access your local business Dashboard',
+            description: 'Oops! This page is nowhere to be found.',
         },
         view: 'index',
     },
