@@ -325,6 +325,10 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                 this.setState({
                     isSubmitting: false,
                 });
+            }).finally(() => {
+                this.setState({
+                    isSubmitting: false,
+                });
             });
         }
     };

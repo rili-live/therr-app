@@ -1,5 +1,7 @@
 import { RequestHandler } from 'express';
 // import axios from 'axios';
+import printLogs from 'therr-js-utilities/print-logs';
+import beeline from '../beeline'; // eslint-disable-line import/order
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
@@ -34,14 +36,36 @@ const createOrUpdateMomentReaction = (req, res) => {
             })
                 .then(([momentReaction]) => {
                     // TODO: Should this be a blocking request to ensure update?
-                    sendUserCoinUpdateRequest(req, reactionsResponse[0]);
+                    sendUserCoinUpdateRequest(req, reactionsResponse[0]).catch((err) => {
+                        printLogs({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Failed to request coin update'],
+                            tracer: beeline,
+                            traceArgs: {
+                                errorMessage: err?.message,
+                                errorOrigin: 'createOrUpdateMomentReaction-update',
+                            },
+                        });
+                    });
 
-                    res.status(200).send(momentReaction);
+                    return res.status(200).send(momentReaction);
                 });
         }
 
         // TODO: Should this be a blocking request to ensure update?
-        sendUserCoinUpdateRequest(req, {});
+        sendUserCoinUpdateRequest(req, {}).catch((err) => {
+            printLogs({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Failed to request coin update'],
+                tracer: beeline,
+                traceArgs: {
+                    errorMessage: err?.message,
+                    errorOrigin: 'createOrUpdateMomentReaction-create',
+                },
+            });
+        });
 
         return Store.momentReactions.create({
             userId,
