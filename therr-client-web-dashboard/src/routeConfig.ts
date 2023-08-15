@@ -25,6 +25,30 @@ export default [
         view: 'index',
     },
     {
+        route: '/register',
+        head: {
+            title: 'Register',
+            description: 'Register your Therr for Business account.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/settings',
+        head: {
+            title: 'Settings',
+            description: 'Updated your dashboard account settings.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/reset-password',
+        head: {
+            title: 'Reset Your Password',
+            description: 'Forgot your password? Reset it here.',
+        },
+        view: 'index',
+    },
+    {
         route: '*',
         head: {
             title: 'Page Not Found',
