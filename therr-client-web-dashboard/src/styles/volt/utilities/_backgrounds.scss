@@ -43,14 +43,17 @@
 .pricing-card-basic {
     background: linear-gradient(190deg, $basic-card-2, $basic-card 60%);
     box-shadow: $box-shadow-lg;
+    min-height: 50vh !important;
 }
 
 .pricing-card-advanced {
     background: linear-gradient(190deg, $advanced-card-2, $advanced-card 60%);
     box-shadow: $box-shadow-lg;
+    min-height: 50vh !important;
 }
 
 .pricing-card-pro {
     background: linear-gradient(190deg, $pro-card-2, $pro-card 60%);
     box-shadow: $box-shadow-lg;
+    min-height: 50vh !important;
 }
