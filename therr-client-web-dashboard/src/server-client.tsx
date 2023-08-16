@@ -62,12 +62,13 @@ app.get('/apple-app-site-association', (req, res) => res.status(200).json(appLin
 // app.get('/.well-known/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
 
 // Universal routing and rendering for SEO
+// TODO: Factor in whitelist config
 routeConfig.forEach((config) => {
     const routePath = config.route;
     const routeView = config.view;
-    const title = config.head.title;
+    let title = config.head.title || 'Therr for Business';
     const description = config.head.description
-    || 'A nearby newsfeed app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
+    || 'Access your local business dashboard for single origin marketing';
 
     app.get(routePath, (req, res) => {
         const promises: any = [];
@@ -77,6 +78,10 @@ routeConfig.forEach((config) => {
                 details: {},
             },
         };
+        console.log(`DEBUG-HOST: ${req.hostname}`);
+        if (req.hostname && req.hostname.includes('appymeal')) {
+            title = 'AppyMeal';
+        }
         const store = configureStore({
             reducer: rootReducer,
             preloadedState: initialState,
