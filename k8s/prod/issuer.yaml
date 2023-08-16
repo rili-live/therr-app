@@ -20,3 +20,5 @@ spec:
         dnsZones:
         - 'therr.com'
         - '*.therr.com'
+        # Whitelabel
+        - 'dashboard.appymeal.com'
