@@ -7,6 +7,7 @@ import { UserConnectionsActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import BaseDashboard from './BaseDashboard';
 import { DEFAULT_COORDINATES } from '../../constants/LocationDefaults';
+import { getWebsiteName } from '../../utilities/getHostContext';
 
 interface IAdminDashboardOverviewDispatchProps {
     createUserConnection: Function;
@@ -74,7 +75,7 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.adminDashboardOverview.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.adminDashboardOverview.pageTitle')}`;
     }
 
     getConnectionDetails = (connection) => {

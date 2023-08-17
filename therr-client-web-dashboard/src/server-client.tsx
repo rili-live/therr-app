@@ -32,6 +32,7 @@ if (!process.env.BROWSER) {
 }
 import Layout from './components/Layout'; // eslint-disable-line
 import getRoutes, { IRoute } from './routes'; // eslint-disable-line
+import { getBrandContext } from './utilities/getHostContext';
 
 // Initialize the server and configure support for handlebars templates
 const app = express();
@@ -69,13 +70,15 @@ routeConfig.forEach((config) => {
     const title = config.head.title;
     let description = config.head.description
     || 'Access your local business dashboard for single origin marketing';
-    let brandName = 'Therr for Business';
-    let host = 'dashboard.therr.com';
-    // TODO: Define all variations (sizes, platforms) of the favicon icons
-    let faviconFileName = 'favicon.ico';
-    let metaImageFileName = 'therr-for-business-logo.png';
 
     app.get(routePath, (req, res) => {
+        const brandContext = getBrandContext(req.hostname);
+        const brandName = brandContext.brandName;
+        const host = brandContext.host;
+        // TODO: Define all variations (sizes, platforms) of the favicon icons
+        const faviconFileName = brandContext.faviconFileName;
+        const metaImageFileName = brandContext.metaImageFileName;
+        description = description.replace('Therr for Business', brandName);
         const promises: any = [];
         const staticContext: any = {};
         const initialState = {
@@ -84,13 +87,6 @@ routeConfig.forEach((config) => {
             },
         };
 
-        if (req.hostname && req.hostname.includes('dashboard.appymeal.com')) {
-            brandName = 'AppyMeal';
-            host = req.hostname || 'dashboard.appmeal.com';
-            faviconFileName = 'favicon-appymeal.ico';
-            metaImageFileName = 'meta-image-appymeal.png';
-            description = description.replace('Therr for Business', brandName);
-        }
         const store = configureStore({
             reducer: rootReducer,
             preloadedState: initialState,
