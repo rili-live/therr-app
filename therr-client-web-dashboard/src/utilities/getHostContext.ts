@@ -78,8 +78,9 @@ const getWebsiteName = () => {
 
 const getBrandContext = (hostname?: string): IBrandConfig => {
     const windowHostName = window?.location?.hostname || 'dashboard.therr.com';
+    const sanitizedHostName = (hostname || windowHostName).replace('www.', '');
 
-    return brandConfigs[hostname || windowHostName] || brandConfigs['dashboard.therr.com'];
+    return brandConfigs[sanitizedHostName] || brandConfigs['dashboard.therr.com'];
 };
 
 export {
