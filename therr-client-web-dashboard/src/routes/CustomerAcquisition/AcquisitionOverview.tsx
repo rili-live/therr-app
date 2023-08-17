@@ -78,7 +78,7 @@ export class AcquisitionOverviewComponent extends React.Component<IAcquisitionOv
                 orderBy: 'interactionCount',
                 order: 'desc',
                 shouldCheckReverse: true,
-            }, user.details.id);
+            }, user.details.id).catch((err) => console.log(err));
         }
     }
 
