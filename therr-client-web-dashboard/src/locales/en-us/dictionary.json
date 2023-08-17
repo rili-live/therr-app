@@ -165,16 +165,7 @@
       "pageTitle": "Settings"
     },
     "home": {
-      "pageTitle": "Home",
-      "welcome": "The Nearby Event Stream & Rewards App",
-      "apple": "Apple",
-      "android": "Android",
-      "devices": "devices",
-      "eventOrganizers": "Storefronts",
-      "freelancers": "Freelancers",
-      "or": "or",
-      "info": "Therr is a space to share content at various geo-locations and connect with other users while traveling the globe or even just walking around your local community.",
-      "info2": "Install the mobile app for the best experience."
+      "pageTitle": "Home"
     },
     "createProfile": {
       "pageTitle": "Create Profile",

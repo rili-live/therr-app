@@ -34,6 +34,7 @@ import AppRoutes from './AppRoutes';
 import Preloader from './Preloader';
 import Sidebar from './Sidebar';
 import DashboardNavbar from './DashboardNavbar';
+import { getBrandContext } from '../utilities/getHostContext';
 
 interface ILayoutRouterProps {
     navigation: {
@@ -302,6 +303,8 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     );
 
     renderNavMenuContent = () => {
+        const brandContext = getBrandContext();
+
         const { navMenuContext } = this.state;
 
         if (navMenuContext === INavMenuContext.HEADER_PROFILE) {
@@ -326,7 +329,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         return (
             <>
-                <p>Therr Inc.</p>
+                <p>{brandContext.brandName}</p>
                 <p>Under Construction</p>
                 <p>Check back soon for updates</p>
                 <div className="nav-menu-footer">

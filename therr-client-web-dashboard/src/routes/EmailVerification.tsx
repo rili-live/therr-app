@@ -21,6 +21,7 @@ import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 import VerificationCodesService from '../services/VerificationCodesService';
 import withNavigation from '../wrappers/withNavigation';
+import { getWebsiteName } from '../utilities/getHostContext';
 
 interface IEmailVerificationRouterProps {
     navigation: {
@@ -66,7 +67,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.emailVerification.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.emailVerification.pageTitle')}`;
 
         const queryParams = new URLSearchParams(window.location.search);
         const verificationToken = queryParams.get('token');
