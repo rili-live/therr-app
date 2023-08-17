@@ -22,3 +22,4 @@ spec:
         - '*.therr.com'
         # Whitelabel
         - 'dashboard.appymeal.com'
+        - '*.dashboard.appymeal.com'

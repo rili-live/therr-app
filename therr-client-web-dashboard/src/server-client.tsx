@@ -66,9 +66,14 @@ app.get('/apple-app-site-association', (req, res) => res.status(200).json(appLin
 routeConfig.forEach((config) => {
     const routePath = config.route;
     const routeView = config.view;
-    let title = config.head.title || 'Therr for Business';
-    const description = config.head.description
+    const title = config.head.title;
+    let description = config.head.description
     || 'Access your local business dashboard for single origin marketing';
+    let brandName = 'Therr for Business';
+    let host = 'dashboard.therr.com';
+    // TODO: Define all variations (sizes, platforms) of the favicon icons
+    let faviconFileName = 'favicon.ico';
+    let metaImageFileName = 'therr-for-business-logo.png';
 
     app.get(routePath, (req, res) => {
         const promises: any = [];
@@ -78,9 +83,13 @@ routeConfig.forEach((config) => {
                 details: {},
             },
         };
-        console.log(`DEBUG-HOST: ${req.hostname}`);
-        if (req.hostname && req.hostname.includes('appymeal')) {
-            title = 'AppyMeal';
+
+        if (req.hostname && req.hostname.includes('dashboard.appymeal.com')) {
+            brandName = 'AppyMeal';
+            host = req.hostname || 'dashboard.appmeal.com';
+            faviconFileName = 'favicon-appymeal.ico';
+            metaImageFileName = 'meta-image-appymeal.png';
+            description = description.replace('Therr for Business', brandName);
         }
         const store = configureStore({
             reducer: rootReducer,
@@ -130,9 +139,13 @@ routeConfig.forEach((config) => {
             } else {
                 ReactGA.send({ hitType: 'pageview', page: req.path, title });
                 return res.render(routeView, {
+                    brandName,
                     title,
                     description,
+                    faviconFileName,
+                    host,
                     markup,
+                    metaImageFileName,
                     state,
                 });
             }
