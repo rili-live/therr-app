@@ -19,6 +19,7 @@ import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
 import EditSpaceForm from '../components/forms/EditSpaceForm';
 import ManageSpacesMenu from '../components/ManageSpacesMenu';
+import { getWebsiteName } from '../utilities/getHostContext';
 
 interface IClaimASpaceRouterProps {
     navigation: {
@@ -100,7 +101,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.claimASpace.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.claimASpace.pageTitle')}`;
     }
 
     componentWillUnmount = () => {

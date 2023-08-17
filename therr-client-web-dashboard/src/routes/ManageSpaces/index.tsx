@@ -29,6 +29,7 @@ import ManageSpacesMenu from '../../components/ManageSpacesMenu';
 import SpacesListTable from './SpacesListTable';
 import { ISpace } from '../../types';
 import { DEFAULT_COORDINATES } from '../../constants/LocationDefaults';
+import { getWebsiteName } from '../../utilities/getHostContext';
 
 const ItemsPerPage = 10;
 
@@ -120,7 +121,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
     componentDidMount() {
         const { pagination } = this.state;
         const { routeParams } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.manageSpaces.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.manageSpaces.pageTitle')}`;
 
         this.fetchSpaces(pagination.pageNumber, pagination.itemsPerPage);
     }

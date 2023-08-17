@@ -18,6 +18,7 @@ import { UsersService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
+import { getWebsiteName } from '../../utilities/getHostContext';
 
 interface IDocumentationOverviewRouterProps {
     navigation: {
@@ -79,7 +80,7 @@ export class DocumentationOverviewComponent extends React.Component<IDocumentati
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.settings.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.settings.pageTitle')}`;
     }
 
     onSubmitPasswordChange = (oldPassword, newPassword) => UsersService.changePassword({

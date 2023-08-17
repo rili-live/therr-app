@@ -17,6 +17,7 @@ import LoginForm from './LoginForm';
 import translator from '../../services/translator';
 import UsersActions from '../../redux/actions/UsersActions';
 import withNavigation from '../../wrappers/withNavigation';
+import { getWebsiteName } from '../../utilities/getHostContext';
 
 const BgImage = '/assets/img/illustrations/signin-v2.svg';
 
@@ -101,7 +102,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr for Business | ${this.translate('pages.login.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.login.pageTitle')}`;
     }
 
     toggleAlert = (show?: boolean, alertHeading = 'Success!', alertVariation: ToastProps['bg'] = 'success', alertMessage = '') => {

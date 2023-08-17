@@ -6,6 +6,7 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import BaseAcquisitionDashboard from './BaseCampaignsOverview';
+import { getWebsiteName } from '../../utilities/getHostContext';
 
 interface ICampaignsOverviewDispatchProps {
     createUserConnection: Function;
@@ -67,7 +68,7 @@ export class CampaignsOverviewComponent extends React.Component<ICampaignsOvervi
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.campaignsOverview.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.campaignsOverview.pageTitle')}`;
 
         if (!userConnections.connections.length) {
             this.props.searchUserConnections({

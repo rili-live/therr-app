@@ -90,7 +90,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                 orderBy: 'interactionCount',
                 order: 'desc',
                 shouldCheckReverse: true,
-            }, user.details.id);
+            }, user.details.id).catch((err) => console.log(err));
         }
 
         if (forums && (!forums.searchResults || !forums.searchResults.length)) {

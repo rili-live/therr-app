@@ -49,6 +49,7 @@ import {
     AccessControl,
 } from 'therr-react/components';
 import getUserImageUri from '../utilities/getUserImageUri';
+import { getBrandContext } from '../utilities/getHostContext';
 
 const TherrForBusinessLogo = '/assets/img/therr-logo.svg';
 const ReactHero = '/assets/img/therr-logo.svg';
@@ -62,6 +63,7 @@ interface ISidebarProps {
 }
 
 const Sidebar = (props: ISidebarProps) => {
+    const brandContext = getBrandContext();
     const { onLogout, isSuperAdmin, user } = props;
     const location = useLocation();
     const { pathname } = location;
@@ -232,7 +234,14 @@ const Sidebar = (props: ISidebarProps) => {
                                 <NavItem title="Toasts" link={'/'} />
                                 <NavItem title="Tooltips" link={'/'} />
                             </CollapsableNavItem> */}
-                            <NavItem className="mb-6" external title="Therr for Business" link="https://business.therr.com" target="_blank" image={TherrForBusinessLogo} />
+                            <NavItem
+                                className="mb-6"
+                                external
+                                title={brandContext.parentHomepageName}
+                                link={brandContext.parentHomepageUrl}
+                                target="_blank"
+                                image={brandContext.brandName === 'Therr for Business' ? 'TherrForBusinessLogo' : undefined}
+                            />
                             <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className="upgrade-to-pro"><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
                         </Nav>
                     </div>
