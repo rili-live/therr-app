@@ -40,8 +40,8 @@ const brandConfigs: IBrandConfigs = {
         parentAppUrl: 'https://www.therr.app/',
         parentAppName: 'Therr App',
         parentContactUrl: 'https://business.therr.com/contact',
-        faviconFileName: 'favicon-appymeal.ico',
-        metaImageFileName: 'meta-image-appymeal.png',
+        faviconFileName: 'favicon.ico',
+        metaImageFileName: 'therr-for-business-logo.png',
         mobileLogoFileName: 'therr-logo.svg',
     },
     'dashboard.appymeal.com': {
