@@ -19,12 +19,14 @@ import {
     faDownload,
     faRocket,
 } from '@fortawesome/free-solid-svg-icons';
+import { getBrandContext } from '../utilities/getHostContext';
 
 const BS5Logo = '/assets/img/technologies/bootstrap-5-logo.svg';
 const ReactLogo = '/assets/img/technologies/react-logo.svg';
 const LaravelLogo = '/assets/img/technologies/laravel-logo.svg';
 
 const DashboardFooter = (props: any) => {
+    const brandContext = getBrandContext();
     const currentYear = moment().get('year');
     const showSettings = props.showSettings;
 
@@ -85,30 +87,30 @@ const DashboardFooter = (props: any) => {
                     <Col xs={12} lg={6} className="mb-4 mb-lg-0">
                         <p className="mb-0 text-center text-xl-left">
                             Copyright © 2020-{`${currentYear} `}
-                            <Card.Link href="https://business.therr.com" target="_blank" className="text-blue text-decoration-none fw-normal">
-                                Therr for Business
+                            <Card.Link href={brandContext.parentHomepageUrl} target="_blank" className="text-blue text-decoration-none fw-normal">
+                                {brandContext.parentHomepageName}
                             </Card.Link>
                         </p>
                     </Col>
                     <Col xs={12} lg={6}>
                         <ul className="list-inline list-group-flush list-group-borderless text-center text-xl-right mb-0">
                             <li className="list-inline-item px-0 px-sm-2">
-                                <Card.Link href="https://business.therr.com/about" target="_blank">
+                                <Card.Link href={brandContext.parentAboutUrl} target="_blank">
                                     About
                                 </Card.Link>
                             </li>
                             <li className="list-inline-item px-0 px-sm-2">
-                                <Card.Link href="https://www.therr.app/" target="_blank">
-                                    Therr App
-                                </Card.Link>
-                            </li>
-                            <li className="list-inline-item px-0 px-sm-2">
-                                <Card.Link href="https://business.therr.com/blog" target="_blank">
+                                <Card.Link href={brandContext.parentBlogUrl} target="_blank">
                                     Blog
                                 </Card.Link>
                             </li>
                             <li className="list-inline-item px-0 px-sm-2">
-                                <Card.Link href="https://business.therr.com/contact" target="_blank">
+                                <Card.Link href={brandContext.parentAppUrl} target="_blank">
+                                    {brandContext.parentAppName}
+                                </Card.Link>
+                            </li>
+                            <li className="list-inline-item px-0 px-sm-2">
+                                <Card.Link href={brandContext.parentContactUrl} target="_blank">
                                     Contact
                                 </Card.Link>
                             </li>

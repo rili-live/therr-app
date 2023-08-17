@@ -18,6 +18,7 @@ import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
 import AccountDetailsForm from '../components/forms/AccountDetailsForm';
 import ChangePasswordForm from '../components/forms/ChangePasswordForm';
+import { getWebsiteName } from '../utilities/getHostContext';
 
 interface ISettingsRouterProps {
     navigation: {
@@ -79,7 +80,7 @@ export class SettingsComponent extends React.Component<ISettingsProps, ISettings
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.settings.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.settings.pageTitle')}`;
     }
 
     onSubmitPasswordChange = (oldPassword, newPassword) => UsersService.changePassword({

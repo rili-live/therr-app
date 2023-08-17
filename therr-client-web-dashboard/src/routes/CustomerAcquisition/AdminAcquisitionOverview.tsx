@@ -7,6 +7,7 @@ import { UserConnectionsActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import BaseAcquisitionDashboard from './BaseAcquisitionDashboard';
 import { DEFAULT_COORDINATES } from '../../constants/LocationDefaults';
+import { getWebsiteName } from '../../utilities/getHostContext';
 
 interface IAdminAcquisitionOverviewDispatchProps {
     createUserConnection: Function;
@@ -74,7 +75,7 @@ export class AdminAcquisitionOverviewComponent extends React.Component<IAdminAcq
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.adminAcquisitionOverview.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.adminAcquisitionOverview.pageTitle')}`;
     }
 
     getConnectionDetails = (connection) => {

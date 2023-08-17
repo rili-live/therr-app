@@ -24,6 +24,7 @@ import EditSpaceForm from '../components/forms/EditSpaceForm';
 import ManageSpacesMenu from '../components/ManageSpacesMenu';
 import { ISpace } from '../types';
 import { signAndUploadImage } from '../utilities/media';
+import { getWebsiteName } from '../utilities/getHostContext';
 
 interface ICreateEditSpaceRouterProps {
     location: {
@@ -130,7 +131,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
     }
 
     componentDidMount() {
-        document.title = `Therr for Business | ${this.translate('pages.editSpace.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.editSpace.pageTitle')}`;
         const { getSpaceDetails, location } = this.props;
         const { space } = location?.state || {};
         const { spaceId } = this.props.routeParams;

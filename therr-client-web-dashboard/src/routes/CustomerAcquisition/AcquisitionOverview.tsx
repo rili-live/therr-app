@@ -6,6 +6,7 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import BaseAcquisitionDashboard from './BaseAcquisitionDashboard';
+import { getWebsiteName } from '../../utilities/getHostContext';
 
 interface IAcquisitionOverviewDispatchProps {
     createUserConnection: Function;
@@ -67,7 +68,7 @@ export class AcquisitionOverviewComponent extends React.Component<IAcquisitionOv
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.acquisitionOverview.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.acquisitionOverview.pageTitle')}`;
 
         if (!userConnections.connections.length) {
             this.props.searchUserConnections({
