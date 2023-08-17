@@ -14,6 +14,7 @@ import translator from '../../services/translator';
 import RegisterForm from './RegisterForm';
 import UsersActions from '../../redux/actions/UsersActions';
 import withNavigation from '../../wrappers/withNavigation';
+import { getWebsiteName } from '../../utilities/getHostContext';
 
 const BgImage = '/assets/img/illustrations/signin-v2.svg';
 
@@ -63,7 +64,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.register.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.register.pageTitle')}`;
     }
 
     register = (credentials: any) => {
