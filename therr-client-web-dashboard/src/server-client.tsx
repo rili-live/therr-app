@@ -62,7 +62,7 @@ routeConfig.forEach((config) => {
         // TODO: Define all variations (sizes, platforms) of the favicon icons
         const faviconFileName = brandContext.faviconFileName;
         const metaImageFileName = brandContext.metaImageFileName;
-        description = description.replace('Therr for Business', brandName);
+        description = description.replace('Therr for Business', brandName); // See views/index.hbs
         const promises: any = [];
         const staticContext: any = {};
         const initialState = {
