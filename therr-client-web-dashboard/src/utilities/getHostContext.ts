@@ -40,8 +40,8 @@ const brandConfigs: IBrandConfigs = {
         parentAppUrl: 'https://www.therr.app/',
         parentAppName: 'Therr App',
         parentContactUrl: 'https://business.therr.com/contact',
-        faviconFileName: 'favicon-appymeal.ico',
-        metaImageFileName: 'meta-image-appymeal.png',
+        faviconFileName: 'favicon.ico',
+        metaImageFileName: 'therr-for-business-logo.png',
         mobileLogoFileName: 'therr-logo.svg',
     },
     'dashboard.appymeal.com': {
@@ -78,8 +78,9 @@ const getWebsiteName = () => {
 
 const getBrandContext = (hostname?: string): IBrandConfig => {
     const windowHostName = window?.location?.hostname || 'dashboard.therr.com';
+    const sanitizedHostName = (hostname || windowHostName).replace('www.', '');
 
-    return brandConfigs[hostname || windowHostName] || brandConfigs['dashboard.therr.com'];
+    return brandConfigs[sanitizedHostName] || brandConfigs['dashboard.therr.com'];
 };
 
 export {

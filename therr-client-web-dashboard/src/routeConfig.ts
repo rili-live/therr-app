@@ -20,6 +20,7 @@ export default [
         route: '/login',
         head: {
             title: 'Login',
+            // Note: These brand specific descriptions are dynamically updated in the server side rendering client
             description: 'Sign in to Therr for Business dashboard.',
         },
         view: 'index',
@@ -28,6 +29,7 @@ export default [
         route: '/register',
         head: {
             title: 'Register',
+            // Note: These brand specific descriptions are dynamically updated in the server side rendering client
             description: 'Register your Therr for Business account.',
         },
         view: 'index',
