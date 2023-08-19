@@ -66,7 +66,7 @@ class UsersActions {
         const userData: IUser = Immutable.from({
             accessLevels,
             id,
-            idToken,
+            idToken, // Note: CAREFUL! - if this is undefined it could overwrite stored value an trigger user logout in interceptors.ts
             email,
             firstName,
             lastName,
@@ -222,18 +222,23 @@ class UsersActions {
 
     getMe = () => async (dispatch: any) => {
         await UsersService.getMe().then(async (response) => {
+            const storedUserDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
             const { userData, userSettingsData } = this.extractUserData(response.data);
+            const combinedUserDetails = {
+                ...storedUserDetails,
+                userData,
+            };
             dispatch({
                 type: SocketClientActionTypes.UPDATE_USER,
                 data: {
-                    details: userData,
+                    details: combinedUserDetails,
                     settings: userSettingsData,
                 },
             });
-            (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
+            (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(combinedUserDetails));
             (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
             if (!this.NativeStorage) {
-                localStorage.setItem('therrUser', JSON.stringify(userData));
+                localStorage.setItem('therrUser', JSON.stringify(combinedUserDetails));
                 localStorage.setItem('therrUserSettings', JSON.stringify(userSettingsData));
             }
         });
