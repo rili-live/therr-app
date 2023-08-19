@@ -39,3 +39,21 @@
 .fill-soft {
     fill: $soft;
 }
+
+.pricing-card-basic {
+    background: linear-gradient(190deg, $basic-card-2, $basic-card 60%);
+    min-height: 50vh !important;
+    @include box-shadow($box-shadow-pricing);
+}
+
+.pricing-card-advanced {
+    background: linear-gradient(190deg, $advanced-card-2, $advanced-card 60%);
+    min-height: 50vh !important;
+    @include box-shadow($box-shadow-pricing);
+}
+
+.pricing-card-pro {
+    background: linear-gradient(190deg, $pro-card-2, $pro-card 60%);
+    min-height: 50vh !important;
+    @include box-shadow($box-shadow-pricing);
+}

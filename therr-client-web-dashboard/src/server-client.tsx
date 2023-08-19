@@ -32,6 +32,7 @@ if (!process.env.BROWSER) {
 }
 import Layout from './components/Layout'; // eslint-disable-line
 import getRoutes, { IRoute } from './routes'; // eslint-disable-line
+import { getBrandContext } from './utilities/getHostContext';
 
 // Initialize the server and configure support for handlebars templates
 const app = express();
@@ -45,31 +46,23 @@ app.set('views', path.join(__dirname, 'views'));
 // Define the folder that will be used for static assets
 app.use(express.static(path.join(__dirname, '/../build/static/')));
 
-const appLinksJson = {
-    applinks: {
-        apps: [],
-        details: [
-            {
-                appID: '22AN4MZ6H5.com.therr.mobile.Therr',
-                paths: ['*'],
-            },
-        ],
-    },
-};
-
-// Apple universal link (Opens ios app when clicking therr URLs from mobile)
-app.get('/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
-// app.get('/.well-known/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
-
 // Universal routing and rendering for SEO
+// TODO: Factor in whitelist config
 routeConfig.forEach((config) => {
     const routePath = config.route;
     const routeView = config.view;
     const title = config.head.title;
-    const description = config.head.description
-    || 'A nearby newsfeed app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
+    let description = config.head.description
+    || 'Access your local business dashboard for single origin marketing';
 
     app.get(routePath, (req, res) => {
+        const brandContext = getBrandContext(req.hostname);
+        const brandName = brandContext.brandName;
+        const host = brandContext.host;
+        // TODO: Define all variations (sizes, platforms) of the favicon icons
+        const faviconFileName = brandContext.faviconFileName;
+        const metaImageFileName = brandContext.metaImageFileName;
+        description = description.replace('Therr for Business', brandName); // See views/index.hbs
         const promises: any = [];
         const staticContext: any = {};
         const initialState = {
@@ -77,6 +70,7 @@ routeConfig.forEach((config) => {
                 details: {},
             },
         };
+
         const store = configureStore({
             reducer: rootReducer,
             preloadedState: initialState,
@@ -125,9 +119,13 @@ routeConfig.forEach((config) => {
             } else {
                 ReactGA.send({ hitType: 'pageview', page: req.path, title });
                 return res.render(routeView, {
+                    brandName,
                     title,
                     description,
+                    faviconFileName,
+                    host,
                     markup,
+                    metaImageFileName,
                     state,
                 });
             }

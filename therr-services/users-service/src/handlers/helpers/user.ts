@@ -414,11 +414,11 @@ const validateCredentials = (userSearchResults, {
             // Verify user because they are using email SSO
             const isMissingUserProps = isUserProfileIncomplete(userSearchResults[0], false);
             const userAccessLevels = [
-                AccessLevels.DEFAULT,
+                ...userSearchResults[0].accessLevels,
             ];
-            if (isMissingUserProps) {
+            if (isMissingUserProps && !userAccessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
                 userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
-            } else {
+            } else if (!userAccessLevels.includes(AccessLevels.EMAIL_VERIFIED)) {
                 userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
             }
 

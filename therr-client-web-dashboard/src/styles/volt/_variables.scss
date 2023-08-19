@@ -136,6 +136,14 @@ $brand-colors: map-merge((
   "github":       $github
 ), $brand-colors);
 
+// Pricing Cards
+$basic-card:     #E63016;
+$basic-card-2:   #F3BB30;
+$advanced-card:  #19B8E5;
+$advanced-card-2:  #81D9B8;
+$pro-card:       #0A3467;
+$pro-card-2:       #17B9E6;
+
 // Theme colors
 $theme-colors: ();
 $theme-colors: map-merge((
@@ -184,7 +192,11 @@ $theme-colors: map-merge((
   "paypal":       $paypal,
   "behance":      $behance,
   "reddit" :      $reddit,  
-  "github":       $github
+  "github":       $github,
+  "teal":         $teal,
+  "basic-card":   $basic-card,
+  "advanced-card":$advanced-card,
+  "pro-card":     $pro-card,
 ), $theme-colors);
 
 
@@ -333,7 +345,7 @@ $enable-smooth-scroll:        false;
 //
 // The gradient which is added to components if `$enable-gradients` is `true`
 // This gradient is also added to elements with `.bg-gradient`
-$gradient: linear-gradient(180deg, rgba($white, .15), rgba($white, 0));
+$gradient: linear-gradient(180deg, rgba($white, .35), rgba($white, .2));
 
 // Spacing
 //
@@ -478,6 +490,7 @@ $component-hover-border-color: $gray-300;
 $rounded-pill:                50rem;
 
 $box-shadow:                  0 .5rem 1rem rgba($black, .15);
+$box-shadow-pricing:          0 .5rem 1rem rgba($black, .5);
 $box-shadow-sm:               0 2px 18px rgba(0, 0, 0, 0.02);
 $box-shadow-lg:               0 1rem 3rem rgba($black, .175);
 $box-shadow-inset:            inset 0 1px 2px rgba($black, .075);

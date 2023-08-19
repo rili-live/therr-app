@@ -18,6 +18,7 @@ import { UsersService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
+import { getBrandContext, getWebsiteName } from '../../utilities/getHostContext';
 
 interface IDocumentationOverviewRouterProps {
     navigation: {
@@ -79,7 +80,7 @@ export class DocumentationOverviewComponent extends React.Component<IDocumentati
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.settings.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.settings.pageTitle')}`;
     }
 
     onSubmitPasswordChange = (oldPassword, newPassword) => UsersService.changePassword({
@@ -128,6 +129,7 @@ export class DocumentationOverviewComponent extends React.Component<IDocumentati
             alertTitle,
             alertMessage,
         } = this.state;
+        const brandContext = getBrandContext();
 
         return (
             <div id="page_documentation_overview" className="flex-box column">
@@ -140,28 +142,29 @@ export class DocumentationOverviewComponent extends React.Component<IDocumentati
                             <Card.Body>
                                 <article>
                                     <h1 className="h2" id="overview">Overview </h1>
-                                    <p><em>Therr for Business</em> is a local-first dashboard offering solutions for <b>location marketing</b>, <b>business metrics</b>, and <b>customer engagement</b>.
-                                        We also partner and integrate with delivery service platforms (ie. <Card.Link href="https://appymeal.com/" target="_blank" >AppyMeal</Card.Link>, etc.).</p>
+                                    <p><em>{brandContext.brandName}</em> is a local-first dashboard offering solutions for <b>location marketing</b>, <b>business metrics</b>, and <b>customer engagement</b>.
+                                        We also partner and integrate with delivery service platforms and other local business service providers.</p>
                                     <p>Getting started is <u>simple and free</u>:</p>
                                     <ol className="docs-list">
-                                        <li>First, claim your space on the <Card.Link href="https://therr.app/" target="_blank" >mobile app</Card.Link> or <Link to="/claim-a-space">here on the dashboard</Link>.</li>
-                                        <li>Next, add an <b>incentive</b> to reward customers for: (sharing on social media, reviewing your business, visiting your business, etc.)</li>
-                                        <li>Finally, create a <b>marketing campaign</b>.</li>
+                                        <li>First, claim your space <Link to="/claim-a-space">here on the dashboard</Link> or on the <Card.Link href="https://therr.app/" target="_blank" >universal customer rewards app</Card.Link>.</li>
+                                        <li>Next, add an <b>incentive</b> to reward customers for: (sharing on social media, reviewing your business, visiting your business, making a purchase, etc.)</li>
+                                        <li>Finally, create a <b><Link to="/campaigns/overview">marketing campaign</Link></b>.</li>
                                     </ol>
 
                                     <h2 id="incentives-explained">Incentives Explained</h2>
-                                    <p>Incentives are an easy way to initiate engagement at your business location. This is a perfect starting point for <b>more foot traffic</b>, <b>enhanced online presence</b>, and <b>customer loyalty</b>.
+                                    <p>Incentives are an easy way to initiate engagement at your business location and gain customer insights. This is a perfect starting point for <b>more foot traffic</b>, <b>enhanced online presence</b>, and <b>customer loyalty</b>.
                                         Combining incentives with a marketing campaign will drive new customers to your location and build the foundation for repeat customers.
                                         Additionally, it provides a wealth of data and metrics that can be used to <b>optimize revenue</b> in the most efficient way possible.</p>
 
                                     <h2 id="getting-support">Getting support</h2>
-                                    <p>If you have any questions, reach out to our support team 24/7. Please <Card.Link href="mailto: info@therr.com" target="_blank">contact us</Card.Link> and we&rsquo;ll get back to you in no time!</p>
+                                    <p>If you have any questions, reach out to our support team 24/7. Please <Card.Link href={`mailto: ${brandContext.contactEmail}`} target="_blank">contact us</Card.Link> and we&rsquo;ll get back to you in no time!</p>
 
                                     <h2 id="community">Community</h2>
                                     <ul className="docs-list">
-                                        <li>Follow <Card.Link href="https://www.instagram.com/therr.for.business/" target="_blank">@therr.for.business</Card.Link> on Instagram.</li>
-                                        <li>Follow <Card.Link href="https://twitter.com/therr_app" target="_blank">Therr App on Twitter</Card.Link>.</li>
-                                        <li>Read and subscribe to <Card.Link href="https://business.therr.com/blog" target="_blank">{"The Official 'Therr For Business' Blog"}</Card.Link>.</li>
+                                        <li>Follow <Card.Link href={`https://www.instagram.com/${brandContext.instagramHandle}/`} target="_blank">{`@${brandContext.instagramHandle}`}</Card.Link> on Instagram.</li>
+                                        <li>Follow <Card.Link href={`https://www.facebook.com/${brandContext.facebookHandle}/`} target="_blank">{`@${brandContext.facebookHandle}`}</Card.Link> on Facebook.</li>
+                                        <li>Follow <Card.Link href={`https://www.twitter.com/${brandContext.twitterHandle}/`} target="_blank">{`@${brandContext.twitterHandle}`}</Card.Link> on Twitter.</li>
+                                        <li>Read and subscribe to <Card.Link href={brandContext.parentBlogUrl} target="_blank">{brandContext.parentBlogName}</Card.Link>.</li>
                                     </ul>
                                 </article>
                             </Card.Body>

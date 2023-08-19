@@ -21,6 +21,7 @@ import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 import VerificationCodesService from '../services/VerificationCodesService';
 import withNavigation from '../wrappers/withNavigation';
+import { getWebsiteName } from '../utilities/getHostContext';
 
 interface IResetPasswordRouterProps {
     navigation: {
@@ -66,7 +67,7 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps,
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.resetPassword.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.resetPassword.pageTitle')}`;
     }
 
     onSubmit = (event: any) => {

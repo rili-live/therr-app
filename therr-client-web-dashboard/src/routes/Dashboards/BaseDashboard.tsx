@@ -8,6 +8,7 @@ import {
     FontAwesomeIcon,
 } from '@fortawesome/react-fontawesome';
 import {
+    faChartLine,
     faChevronLeft,
     faChevronRight,
     faPencilRuler,
@@ -28,15 +29,7 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { MetricNames } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
-// import {
-//     CounterWidget,
-//     CircleChartWidget,
-//     BarChartWidget,
-//     TeamMembersWidget,
-//     ProgressTrackWidget,
-//     RankingWidget,
-//     AcquisitionWidget,
-// } from '../components/Widgets';
+import CounterWidget from '../../components/widgets/CounterWidget';
 // import {
 //     PageVisitsTable,
 // } from '../components/Tables';
@@ -109,6 +102,7 @@ interface IBaseDashboardState {
     overviewGraphLabels: string[] | undefined;
     overviewGraphValues: number[][] | undefined;
     percentageChange: number;
+    totalImpressions: number;
     spacesInView: ISpace[]; // TODO: Move to Redux
     spanOfTime: 'week' | 'month';
     averageRating: number;
@@ -137,6 +131,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             overviewGraphLabels: undefined,
             overviewGraphValues: undefined,
             percentageChange: 0,
+            totalImpressions: 0,
             spacesInView: [],
             spanOfTime: 'week',
             averageRating:0,
@@ -224,6 +219,10 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
 
                     this.setState({
                         percentageChange: impressions.previousSeriesPct,
+                        totalImpressions: impressions.metrics
+                            ? Object.values(impressions.metrics as { [key: string]: number })
+                                .reduce((acc: number, cur: number) => acc + cur, 0)
+                            : 0,
                         overviewGraphLabels: Object.keys(emptyMetrics),
                         overviewGraphValues: [Object.values(formattedVisits), Object.values(formattedImpressions), Object.values(formattedProspects)],
                     });
@@ -275,11 +274,17 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             overviewGraphValues,
             percentageChange,
             averageRating,
-            totalRating
+            totalRating,
+            totalImpressions,
+            spanOfTime,
         } = this.state;
         const {
             isSuperAdmin,
         } = this.props;
+
+        const avgImpressions = spanOfTime === 'week'
+            ? Math.ceil(totalImpressions / 7)
+            : Math.ceil(totalImpressions / 30);
 
         return (
             <div id="page_dashboard_overview" className="flex-box column">
@@ -316,8 +321,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
 				
 
                 <Row className="justify-content-md-center">
-       
-                    <Col xs={12} className="mb-4 d-none d-sm-block">
+                    <Col xs={12} lg={9} className="mb-4 d-none d-sm-block">
                         <SpaceMetricsDisplay
                             isMobile={false}
                             title={`Space Metrics: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
@@ -327,7 +331,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                             fetchSpaceMetrics={this.fetchSpaceMetrics}
                         />
                     </Col>
-                    <Col xs={12} className="mb-4 d-sm-none">
+                    <Col xs={12} lg={9} className="mb-4 d-sm-none">
                         <SpaceMetricsDisplay
                             isMobile={true}
                             title={`Space Metrics: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
@@ -337,19 +341,19 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                             fetchSpaceMetrics={this.fetchSpaceMetrics}
                         />
                     </Col>
-                    {/* <Col xs={12} sm={6} xl={4} className="mb-4">
+                    <Col xs={12} lg={3} className="mb-4">
                         <CounterWidget
-                            category="Customers"
-                            title="345k"
-                            period="Feb 1 - Apr 1"
-                            percentage={18.2}
+                            category="Daily Impressions"
+                            title={`~${avgImpressions} per day`}
+                            period={spanOfTime}
+                            percentage={percentageChange}
                             icon={faChartLine}
                             iconColor="shape-secondary"
                         />
                     </Col>
 
-                    <Col xs={12} sm={6} xl={4} className="mb-4">
-                        <CounterWidget
+                    {/* <Col xs={12} sm={6} xl={4} className="mb-4">
+                        <tCounterWidget
                             category="Revenue"
                             title="$43,594"
                             period="Feb 1 - Apr 1"

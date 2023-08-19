@@ -4,7 +4,7 @@ export default [
         route: '/',
         head: {
             title: 'Home',
-            description: 'Access your local business Dashboard',
+            description: 'Access your local business dashboard for single origin marketing',
         },
         view: 'index',
     },
@@ -12,7 +12,7 @@ export default [
         route: '/dashboard',
         head: {
             title: 'Dashboard',
-            description: 'Access your local business Dashboard',
+            description: 'Your local business dashboard',
         },
         view: 'index',
     },
@@ -20,7 +20,33 @@ export default [
         route: '/login',
         head: {
             title: 'Login',
+            // Note: These brand specific descriptions are dynamically updated in the server side rendering client
             description: 'Sign in to Therr for Business dashboard.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/register',
+        head: {
+            title: 'Register',
+            // Note: These brand specific descriptions are dynamically updated in the server side rendering client
+            description: 'Register your Therr for Business account.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/settings',
+        head: {
+            title: 'Settings',
+            description: 'Updated your dashboard account settings.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/reset-password',
+        head: {
+            title: 'Reset Your Password',
+            description: 'Forgot your password? Reset it here.',
         },
         view: 'index',
     },
@@ -28,7 +54,7 @@ export default [
         route: '*',
         head: {
             title: 'Page Not Found',
-            description: 'Access your local business Dashboard',
+            description: 'Oops! This page is nowhere to be found.',
         },
         view: 'index',
     },

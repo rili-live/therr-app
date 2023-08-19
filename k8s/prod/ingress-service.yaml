@@ -40,6 +40,8 @@ spec:
       - www.api.therr.com
       - websocket-service.therr.com
       - www.websocket-service.therr.com
+      - dashboard.appymeal.com
+      - www.dashboard.appymeal.com
     secretName: therr-network-secret
   rules:
   - host: therr.com
@@ -121,5 +123,27 @@ spec:
             name: websocket-service-cluster-ip-service
             port:
               number: 7743
+        pathType: ImplementationSpecific
+        
+  # Whitelabel
+  - host: dashboard.appymeal.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7071
+        pathType: ImplementationSpecific
+  - host: www.dashboard.appymeal.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7071
         pathType: ImplementationSpecific
           

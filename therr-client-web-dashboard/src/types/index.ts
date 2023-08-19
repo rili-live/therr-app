@@ -38,4 +38,7 @@ export interface ISpace {
     menuUrl?: string;
     orderUrl?: string;
     reservationUrl?: string;
+    businessTransactionId?: string;
+    businessTransactionName?: string;
+    isPointOfInterest?: boolean;
 }

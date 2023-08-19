@@ -5,7 +5,7 @@ import * as React from 'react';
 import { mount } from 'enzyme';
 // import { CreateForumComponent } from '../CreateForum';
 
-describe('Therr App', () => {
+describe('Whitelabel App', () => {
     let wrapper: any = null;
 
     // function mountWithProps(props = {}) {

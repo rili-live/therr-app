@@ -49,10 +49,7 @@ import {
     AccessControl,
 } from 'therr-react/components';
 import getUserImageUri from '../utilities/getUserImageUri';
-
-const TherrForBusinessLogo = '/assets/img/therr-logo.svg';
-const ReactHero = '/assets/img/therr-logo.svg';
-const ProfilePicture = '/assets/img/team/profile-picture-3.jpg';
+import { getBrandContext } from '../utilities/getHostContext';
 
 interface ISidebarProps {
     onLogout: (event: any) => any;
@@ -62,6 +59,9 @@ interface ISidebarProps {
 }
 
 const Sidebar = (props: ISidebarProps) => {
+    const brandContext = getBrandContext();
+    const MobileLogo = `/assets/img/${brandContext.mobileLogoFileName}`;
+    const DefaultProfilePicture = '/assets/img/team/profile-picture-3.jpg';
     const { onLogout, isSuperAdmin, user } = props;
     const location = useLocation();
     const { pathname } = location;
@@ -137,7 +137,7 @@ const Sidebar = (props: ISidebarProps) => {
         <>
             <Navbar expand={false} collapseOnSelect variant="dark" className="navbar-theme-primary px-4 d-md-none">
                 <Navbar.Brand className="me-lg-5" as={Link} to={'/'}>
-                    <Image src={ReactHero} className="navbar-brand-light" />
+                    <Image src={MobileLogo} className="navbar-brand-light" />
                 </Navbar.Brand>
                 <Navbar.Toggle as={Button} aria-controls="main-navbar" onClick={onCollapse}>
                     <span className="navbar-toggler-icon" />
@@ -149,7 +149,7 @@ const Sidebar = (props: ISidebarProps) => {
                         <div className="user-card d-flex d-md-none align-items-center justify-content-between justify-content-md-center pb-4">
                             <div className="d-flex align-items-center">
                                 <div className="user-avatar lg-avatar me-4">
-                                    <Image src={currentUserImageUri || ProfilePicture} className="card-img-top rounded-circle border-white" />
+                                    <Image src={currentUserImageUri || DefaultProfilePicture} className="card-img-top rounded-circle border-white" />
                                 </div>
                                 <div className="d-block">
                                     <h6>Hi, {user?.details?.userName}</h6>
@@ -232,7 +232,14 @@ const Sidebar = (props: ISidebarProps) => {
                                 <NavItem title="Toasts" link={'/'} />
                                 <NavItem title="Tooltips" link={'/'} />
                             </CollapsableNavItem> */}
-                            <NavItem className="mb-6" external title="Therr for Business" link="https://business.therr.com" target="_blank" image={TherrForBusinessLogo} />
+                            <NavItem
+                                className="mb-6"
+                                external
+                                title={brandContext.parentHomepageName}
+                                link={brandContext.parentHomepageUrl}
+                                target="_blank"
+                                image={MobileLogo}
+                            />
                             <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className="upgrade-to-pro"><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
                         </Nav>
                     </div>

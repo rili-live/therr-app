@@ -121,6 +121,17 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                     }
                 }
             }
+        }).catch((err) => {
+            printLogs({
+                level: 'error',
+                messageOrigin: 'SOCKET_IO_LOGS',
+                messages: err.toString(),
+                tracer: beeline,
+                traceArgs: {
+                    errorMessage: err?.message,
+                    source: 'userConnections-redisSessions.getUserById',
+                },
+            });
         });
 
         return connection;

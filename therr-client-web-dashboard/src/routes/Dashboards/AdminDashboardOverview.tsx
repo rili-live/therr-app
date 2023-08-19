@@ -6,6 +6,8 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import BaseDashboard from './BaseDashboard';
+import { DEFAULT_COORDINATES } from '../../constants/LocationDefaults';
+import { getWebsiteName } from '../../utilities/getHostContext';
 
 interface IAdminDashboardOverviewDispatchProps {
     createUserConnection: Function;
@@ -40,8 +42,8 @@ const fetchAllSpaces = (latitude?: number, longitude?: number) => MapsService.se
     itemsPerPage: 50,
     pageNumber: 1,
     filterBy: 'fromUserIds',
-    latitude: latitude || 32.8205566, // defaults to Dallas, TX
-    longitude: longitude || -96.8963576, // defaults to Dallas, TX
+    latitude: latitude || DEFAULT_COORDINATES.latitude,
+    longitude: longitude || DEFAULT_COORDINATES.longitude,
 }, {
     distanceOverride: 160934, // ~ 100 miles
 });
@@ -73,7 +75,7 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.adminDashboardOverview.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.adminDashboardOverview.pageTitle')}`;
     }
 
     getConnectionDetails = (connection) => {

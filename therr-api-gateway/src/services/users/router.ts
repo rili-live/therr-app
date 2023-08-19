@@ -84,7 +84,7 @@ usersServiceRouter.get('/rewards/exchange-rate', validate, async (req, res, next
     const cachedExchangeRate = await CacheStore.usersService.getExchangeRate();
 
     if (cachedExchangeRate) {
-        return res.send({ exchangeRate: cachedExchangeRate, cached: true });
+        return res.status(200).send({ exchangeRate: cachedExchangeRate, cached: true });
     }
 
     return next();

@@ -28,6 +28,8 @@ import withNavigation from '../../wrappers/withNavigation';
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
 import SpacesListTable from './SpacesListTable';
 import { ISpace } from '../../types';
+import { DEFAULT_COORDINATES } from '../../constants/LocationDefaults';
+import { getWebsiteName } from '../../utilities/getHostContext';
 
 const ItemsPerPage = 10;
 
@@ -119,7 +121,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
     componentDidMount() {
         const { pagination } = this.state;
         const { routeParams } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.manageSpaces.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.manageSpaces.pageTitle')}`;
 
         this.fetchSpaces(pagination.pageNumber, pagination.itemsPerPage);
     }
@@ -145,8 +147,8 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                     itemsPerPage,
                     pageNumber,
                     filterBy: 'fromUserIds',
-                    latitude: latitude || 33.7673401, // defaults to Atlanta, GA
-                    longitude: longitude || -84.5025305, // defaults to Atlanta, GA
+                    latitude: latitude || DEFAULT_COORDINATES.latitude,
+                    longitude: longitude || DEFAULT_COORDINATES.longitude,
                 }, {
                     distanceOverride: 160934, // ~ 100 miles
                 })

@@ -6,6 +6,7 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import BaseDashboard from './BaseDashboard';
+import { getWebsiteName } from '../../utilities/getHostContext';
 
 interface IDashboardOverviewDispatchProps {
     createUserConnection: Function;
@@ -67,7 +68,7 @@ export class DashboardOverviewComponent extends React.Component<IDashboardOvervi
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr for Business | ${this.translate('pages.dashboardOverview.pageTitle')}`;
+        document.title = `${getWebsiteName()} | ${this.translate('pages.dashboardOverview.pageTitle')}`;
 
         if (!userConnections.connections.length) {
             this.props.searchUserConnections({
