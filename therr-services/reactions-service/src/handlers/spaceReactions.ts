@@ -83,7 +83,29 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
 };
 
 // READ
-const getSpaceReactions: RequestHandler = (req: any, res: any) => {
+const getSpaceReactions: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    const spaceIds = req.query?.spaceIds?.split(',');
+    const queryParams: any = {
+        userId,
+    };
+
+    if (queryParams.spaceId) {
+        queryParams.spaceId = parseInt(queryParams.spaceId, 10);
+    }
+
+    delete queryParams.spaceIds;
+
+    return Store.spaceReactions.get(queryParams, spaceIds, {
+        limit: parseInt(req.query.limit, 10),
+        offset: 0,
+        order: req.query.order || 'DESC',
+    })
+        .then(([spaces]) => res.status(200).send(spaces))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
+};
+
+const getSpaceRatings: RequestHandler = (req: any, res: any) => {
     const spaceId = req.query.spaceId;
     return Store.spaceReactions.getBySpaceId({ spaceId }, parseInt(req.query.limit || 100, 10))
         .then((reactions) => {
@@ -159,6 +181,7 @@ const findSpaceReactions: RequestHandler = async (req: any, res: any) => {
 
 export {
     getSpaceReactions,
+    getSpaceRatings,
     getReactionsBySpaceId,
     createOrUpdateSpaceReaction,
     createOrUpdateMultiSpaceReactions,

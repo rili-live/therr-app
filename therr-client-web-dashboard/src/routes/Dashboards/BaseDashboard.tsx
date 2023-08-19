@@ -23,7 +23,7 @@ import {
     Dropdown,
     ButtonGroup,
 } from '@themesberg/react-bootstrap';
-import { MapsService } from 'therr-react/services';
+import { MapsService, ReactionsService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { MetricNames } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
@@ -111,6 +111,9 @@ interface IBaseDashboardState {
     percentageChange: number;
     spacesInView: ISpace[]; // TODO: Move to Redux
     spanOfTime: 'week' | 'month';
+    averageRating: number;
+    totalRating: number;
+
 }
 
 const mapStateToProps = (state: any) => ({
@@ -136,6 +139,9 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             percentageChange: 0,
             spacesInView: [],
             spanOfTime: 'week',
+            averageRating:0,
+            totalRating:0,
+
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -145,27 +151,28 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         if (!this.state.overviewGraphValues?.length) {
             this.fetchSpaceMetrics('week');
         }
-       // this.fetchSpaceReactions();
+       this.fetchSpaceReactions();
     }
-/* UNCOMMENT
+
     fetchSpaceReactions = () => {
         const { spacesInView, currentSpaceIndex } = this.state;
 
         if (spacesInView[currentSpaceIndex]) {
             const spaceId = spacesInView[currentSpaceIndex].id;
 
-            getSpaceReactions({ query: { spaceId } })
+            ReactionsService.getSpaceRatings({ query: { spaceId } })
                 .then(response => {
                     this.setState({
-                        averageRating: response.avgRating
+                        averageRating: response?.data?.avgRating,
+                        totalRating: response?.data?.totalRatings
                     });
                 })
                 .catch(err => {
-                    console.error("Error fetching space reactions:", err);
+                    console.error("Error fetching space ratings:", err);
                 });
         }
     };
-*/
+
     fetchDashboardSpaces = (latitude?: number, longitude?: number) => {
         const { fetchSpaces } = this.props;
 
@@ -239,6 +246,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                 currentSpaceIndex: currentSpaceIndex - 1,
             }, () => {
                 this.fetchSpaceMetrics(spanOfTime);
+                this.fetchSpaceReactions();
             });
         }
     };
@@ -254,6 +262,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                 currentSpaceIndex: currentSpaceIndex + 1,
             }, () => {
                 this.fetchSpaceMetrics(spanOfTime);
+                this.fetchSpaceReactions();
             });
         }
     };
@@ -265,7 +274,8 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             overviewGraphLabels,
             overviewGraphValues,
             percentageChange,
-            //averageRating UNCOMMENT
+            averageRating,
+            totalRating
         } = this.state;
         const {
             isSuperAdmin,
@@ -298,8 +308,9 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                     <div className="d-flex justify-content-end">
                         <div className="d-flex flex-column justify-content-center">
                             <h2>Space Rating</h2>
-                            <StarRating value={3} />
-                            <p>Rating: 3</p>
+                            <StarRating value={averageRating} />
+                            <p>Average Rating: {averageRating}</p>
+                            <p>Based on {Intl.NumberFormat().format(totalRating)} ratings</p>
                         </div>
                 </div>
 				
