@@ -30,7 +30,7 @@ const brandConfigs: IBrandConfigs = {
         host: 'dashboard.therr.com',
         contactEmail: 'info@therr.com',
         instagramHandle: 'therr.for.business',
-        facebookHandle: 'TherrApp',
+        facebookHandle: 'therr.for.business',
         twitterHandle: 'therr_app',
         parentHomepageName: 'Therr for Business',
         parentHomepageUrl: 'https://business.therr.com',
