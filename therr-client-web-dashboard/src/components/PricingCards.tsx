@@ -61,6 +61,7 @@ const PricingCards = ({
                                             <ul className="list-unstyled text-white text-left">
                                                 <li><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
                                                 <li><i className="fas fa-check"></i> Additional customer metrics</li>
+                                                <li><i className="fas fa-check"></i> 24/7 Tech Support</li>
                                             </ul>
                                         </Card.Body>
                                     </Card>
@@ -86,7 +87,9 @@ const PricingCards = ({
                                             <hr />
                                             <ul className="list-unstyled text-white text-left">
                                                 <li><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
-                                                <li><i className="fas fa-check"></i> Additional customer metrics</li>
+                                                <li><i className="fas fa-check"></i> Enhanced customer metrics</li>
+                                                <li><i className="fas fa-check"></i> 24/7 Tech Support</li>
+                                                <li><i className="fas fa-check"></i> Automated & Configurable Marketing Campaigns (S.O.M.)</li>
                                                 <li><i className="fas fa-check"></i> Customer & Micro-influencer incentives (for reviews, shout-outs, promos, etc.)</li>
                                             </ul>
                                         </Card.Body>
@@ -114,10 +117,12 @@ const PricingCards = ({
                                             <ul className="list-unstyled text-white text-left">
                                                 <li><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
                                                 <li><i className="fas fa-check"></i> Additional customer metrics</li>
+                                                <li><i className="fas fa-check"></i> 24/7 Tech Support</li>
+                                                <li><i className="fas fa-check"></i> Automated & Configurable Marketing Campaigns (S.O.M.)</li>
                                                 <li><i className="fas fa-check"></i> Customer & influencer incentives (for reviews, shout-outs, promos, etc.)</li>
                                                 <li><i className="fas fa-check"></i> Point-of-purchase incentives for customers & influencers</li>
                                                 <li><i className="fas fa-check"></i> Influencer marketing on Instagram/Twitter/etc.</li>
-                                                <li><i className="fas fa-check"></i> Curated Google Ads campaign</li>
+                                                <li><i className="fas fa-check"></i> Curated Facebook, Twitter, & Google Ads campaign</li>
                                             </ul>
                                         </Card.Body>
                                     </Card>
