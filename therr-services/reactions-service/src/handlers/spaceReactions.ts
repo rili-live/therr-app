@@ -107,10 +107,9 @@ const getSpaceReactions: RequestHandler = async (req: any, res: any) => {
 
 const getSpaceRatings: RequestHandler = (req: any, res: any) => {
     const spaceId = req.params.spaceId;
-    return Store.spaceReactions.getBySpaceId({ spaceId }, parseInt(req.query.limit || 100, 10))
+    return Store.spaceReactions.getRatingsBySpaceId({ spaceId }, parseInt(req.query.limit || 100, 10))
         .then((reactions) => {
             const ratings = reactions
-                .filter((reaction) => reaction.rating !== null && reaction.rating !== undefined)
                 .map((reaction) => reaction.rating);
 
             const totalRatings = ratings.length;
