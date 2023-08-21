@@ -260,6 +260,8 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             activeTab,
             content,
             isForBookmarks: false,
+            shouldIncludeMoments: true,
+            shouldIncludeSpaces: true,
         }, 'distance');
 
         if (shouldRenderNearbyAreaFeed(location) && (isFirstLoad || !activeData?.length || activeData.length < 21)) {
@@ -310,6 +312,8 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                     activeTab,
                     content,
                     isForBookmarks: false,
+                    shouldIncludeMoments: true,
+                    shouldIncludeSpaces: true,
                 }, 'distance');
                 const hasRenderedFirstContent = data.length;
                 this.setState({ isFirstLoad: !hasRenderedFirstContent });
@@ -604,6 +608,8 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             content,
             isForBookmarks: false,
             isForDrafts: false,
+            shouldIncludeMoments: true,
+            shouldIncludeSpaces: true,
         }, 'distance');
         const formattedActiveData = activeData.map(d => {
             const formatted = {

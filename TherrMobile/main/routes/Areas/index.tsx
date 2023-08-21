@@ -164,6 +164,8 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             content,
             isForBookmarks: false,
             shouldIncludeThoughts: true,
+            shouldIncludeMoments: true,
+            shouldIncludeSpaces: true,
         }, 'createdAt');
         if (!activeData?.length || activeData.length < 21) {
             this.handleRefresh();
@@ -400,6 +402,9 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     content,
                     isForBookmarks: false,
                     shouldIncludeThoughts: false,
+                    shouldIncludeMoments: true,
+                    // TODO: Include promoted spaces in discoveries
+                    // shouldIncludeSpaces: true,
                 }, 'createdAt', categoriesFilter);
 
                 return (
@@ -421,6 +426,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         updateSpaceReaction={createOrUpdateSpaceReaction}
                         updateThoughtReaction={createOrUpdateThoughtReaction}
                         emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.DISCOVERIES)}
+                        emptyIconName="map"
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
                         user={user}
@@ -436,7 +442,6 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     content,
                     isForBookmarks: false,
                     shouldIncludeThoughts: true,
-                    shouldExcludeMapContent: true,
                 }, 'createdAt', thoughtCategoriesFilter);
 
                 return (
@@ -458,6 +463,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         updateSpaceReaction={createOrUpdateSpaceReaction}
                         updateThoughtReaction={createOrUpdateThoughtReaction}
                         emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.THOUGHTS)}
+                        emptyIconName="idea"
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
                         user={user}

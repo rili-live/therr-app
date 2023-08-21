@@ -6,8 +6,17 @@ const large = 16;
 
 const styles = StyleSheet.create({
     // FLEX
+    flex: {
+        display: 'flex',
+    },
     flexOne: {
         flex: 1,
+    },
+    alignCenter: {
+        alignItems: 'center',
+    },
+    justifyCenter: {
+        justifyContent: 'center',
     },
 
     // HEIGHT/WIDTH
