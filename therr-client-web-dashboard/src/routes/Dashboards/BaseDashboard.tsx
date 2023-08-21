@@ -14,6 +14,7 @@ import {
     faPencilRuler,
     faPlus,
     faRocket,
+    faStar,
     faTasks,
     faUserShield,
 } from '@fortawesome/free-solid-svg-icons';
@@ -24,7 +25,7 @@ import {
     Dropdown,
     ButtonGroup,
 } from '@themesberg/react-bootstrap';
-import { MapsService } from 'therr-react/services';
+import { MapsService, ReactionsService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { MetricNames } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
@@ -38,9 +39,12 @@ import CounterWidget from '../../components/widgets/CounterWidget';
 //     totalOrders,
 // } from '../data/charts';
 import { SpaceMetricsDisplay } from '../../components/widgets/SpaceMetricsDisplay';
+import StarRating from '../../components/widgets/StarRating';
+
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
 import { ISpace } from '../../types';
 import AdminManageSpacesMenu from '../../components/AdminManageSpacesMenu';
+import StarRatingDisplay from '../../components/widgets/StarRatingDisplay';
 
 const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
     // TODO: Update this to support more than 1 month time span
@@ -102,6 +106,9 @@ interface IBaseDashboardState {
     totalImpressions: number;
     spacesInView: ISpace[]; // TODO: Move to Redux
     spanOfTime: 'week' | 'month';
+    averageRating: number;
+    totalRating: number;
+
 }
 
 const mapStateToProps = (state: any) => ({
@@ -128,6 +135,9 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             totalImpressions: 0,
             spacesInView: [],
             spanOfTime: 'week',
+            averageRating: 0,
+            totalRating: 0,
+
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -137,7 +147,27 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         if (!this.state.overviewGraphValues?.length) {
             this.fetchSpaceMetrics('week');
         }
+        this.fetchSpaceReactions();
     }
+
+    fetchSpaceReactions = () => {
+        const { spacesInView, currentSpaceIndex } = this.state;
+
+        if (spacesInView[currentSpaceIndex]) {
+            const spaceId = spacesInView[currentSpaceIndex].id;
+
+            ReactionsService.getSpaceRatings(spaceId)
+                .then((response) => {
+                    this.setState({
+                        averageRating: response?.data?.avgRating,
+                        totalRating: response?.data?.totalRatings,
+                    });
+                })
+                .catch((err) => {
+                    console.error('Error fetching space ratings:', err);
+                });
+        }
+    };
 
     fetchDashboardSpaces = (latitude?: number, longitude?: number) => {
         const { fetchSpaces } = this.props;
@@ -146,7 +176,9 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             this.setState({
                 spacesInView: response?.data?.results || [],
             }, () => resolve(null));
-        }));
+        })).then(() => {
+            this.fetchSpaceReactions();
+        });
     };
 
     fetchSpaceMetrics = (timeSpan: 'week' | 'month') => {
@@ -216,6 +248,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                 currentSpaceIndex: currentSpaceIndex - 1,
             }, () => {
                 this.fetchSpaceMetrics(spanOfTime);
+                this.fetchSpaceReactions();
             });
         }
     };
@@ -231,6 +264,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                 currentSpaceIndex: currentSpaceIndex + 1,
             }, () => {
                 this.fetchSpaceMetrics(spanOfTime);
+                this.fetchSpaceReactions();
             });
         }
     };
@@ -242,6 +276,8 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             overviewGraphLabels,
             overviewGraphValues,
             percentageChange,
+            averageRating,
+            totalRating,
             totalImpressions,
             spanOfTime,
         } = this.state;
@@ -277,12 +313,11 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         }
                     </ButtonGroup>
                 </div>
-
                 <Row className="justify-content-md-center">
                     <Col xs={12} lg={9} className="mb-4 d-none d-sm-block">
                         <SpaceMetricsDisplay
                             isMobile={false}
-                            title={`Space Metrics: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
+                            title={`Location Name: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
                             labels={overviewGraphLabels}
                             values={overviewGraphValues}
                             percentage={percentageChange}
@@ -292,7 +327,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                     <Col xs={12} lg={9} className="mb-4 d-sm-none">
                         <SpaceMetricsDisplay
                             isMobile={true}
-                            title={`Space Metrics: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
+                            title={`Location Name: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
                             labels={overviewGraphLabels}
                             values={overviewGraphValues}
                             percentage={percentageChange}
@@ -300,14 +335,28 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         />
                     </Col>
                     <Col xs={12} lg={3} className="mb-4">
-                        <CounterWidget
-                            category="Daily Impressions"
-                            title={`~${avgImpressions} per day`}
-                            period={spanOfTime}
-                            percentage={percentageChange}
-                            icon={faChartLine}
-                            iconColor="shape-secondary"
-                        />
+                        <Row className="justify-content-md-center">
+                            <Col xs={12} className="mb-4">
+                                <StarRatingDisplay
+                                    averageRating={averageRating}
+                                    totalRating={totalRating}
+                                    category="Space Rating"
+                                    title={`Avg. Rating: ${averageRating || 'N/A'}`}
+                                    icon={faStar}
+                                    iconColor="shape-secondary"
+                                />
+                            </Col>
+                            <Col xs={12} className="mb-4">
+                                <CounterWidget
+                                    period={spanOfTime}
+                                    percentage={percentageChange}
+                                    category="Daily Impressions"
+                                    title={`~${avgImpressions} per day`}
+                                    icon={faChartLine}
+                                    iconColor="shape-secondary"
+                                />
+                            </Col>
+                        </Row>
                     </Col>
 
                     {/* <Col xs={12} sm={6} xl={4} className="mb-4">
