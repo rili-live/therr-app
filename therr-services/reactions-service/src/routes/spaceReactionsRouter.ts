@@ -3,6 +3,7 @@ import {
     createOrUpdateSpaceReaction,
     createOrUpdateMultiSpaceReactions,
     getSpaceReactions,
+    getSpaceRatings,
     getReactionsBySpaceId,
     findSpaceReactions,
 } from '../handlers/spaceReactions';
@@ -13,9 +14,11 @@ const router = express.Router();
 router.post('/:spaceId', createOrUpdateSpaceReaction);
 
 router.post('/create-update/multiple', createOrUpdateMultiSpaceReactions);
-
 // GET
 router.get('/', getSpaceReactions);
+
+// GET
+router.get('/:spaceId/ratings', getSpaceRatings);
 
 // GET
 router.get('/:spaceId', getReactionsBySpaceId);

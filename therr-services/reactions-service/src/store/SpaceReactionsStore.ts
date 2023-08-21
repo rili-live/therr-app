@@ -81,6 +81,19 @@ export default class SpaceReactionsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
+    getRatingsBySpaceId(conditions: any, limit = 1000) {
+        // TODO: RSERVE-52 | Remove hard limit and optimize for getting reaction counts
+        const restrictedLimit = limit > 5000 ? 5000 : limit;
+
+        const queryString = knexBuilder.select(['rating'])
+            .from(SPACE_REACTIONS_TABLE_NAME)
+            .where(conditions)
+            .whereNotNull('rating')
+            .limit(restrictedLimit);
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
+    }
+
     create(params: ICreateSpaceReactionParams | ICreateSpaceReactionParams[]) {
         const queryString = knexBuilder(SPACE_REACTIONS_TABLE_NAME)
             .insert(params)

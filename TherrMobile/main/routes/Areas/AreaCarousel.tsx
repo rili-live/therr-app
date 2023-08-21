@@ -17,6 +17,7 @@ interface IAreaCarouselProps {
     activeData: any;
     content: any;
     displaySize?: any;
+    emptyIconName?: string;
     inspectContent: any;
     containerRef: any;
     fetchMedia: any;
@@ -155,6 +156,7 @@ const AreaCarousel = ({
     activeData,
     content,
     displaySize,
+    emptyIconName,
     inspectContent,
     containerRef,
     fetchMedia,
@@ -254,7 +256,7 @@ const AreaCarousel = ({
                     });
                 }}
                 initialNumToRender={1}
-                ListEmptyComponent={<ListEmpty text={emptyListMessage} theme={themeRoot} />}
+                ListEmptyComponent={<ListEmpty iconName={emptyIconName} text={emptyListMessage} theme={themeRoot} />}
                 ListHeaderComponent={renderHeader()}
                 ListFooterComponent={<View style={theme.styles.areaCarouselFooter} />}
                 ref={(component) => {
