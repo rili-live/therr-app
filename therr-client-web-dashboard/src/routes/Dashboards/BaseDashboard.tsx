@@ -14,6 +14,7 @@ import {
     faPencilRuler,
     faPlus,
     faRocket,
+    faStar,
     faTasks,
     faUserShield,
 } from '@fortawesome/free-solid-svg-icons';
@@ -43,6 +44,7 @@ import StarRating from '../../components/widgets/StarRating';
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
 import { ISpace } from '../../types';
 import AdminManageSpacesMenu from '../../components/AdminManageSpacesMenu';
+import StarRatingDisplay from '../../components/widgets/StarRatingDisplay';
 
 const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
     // TODO: Update this to support more than 1 month time span
@@ -174,7 +176,9 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             this.setState({
                 spacesInView: response?.data?.results || [],
             }, () => resolve(null));
-        }));
+        })).then(() => {
+            this.fetchSpaceReactions();
+        });
     };
 
     fetchSpaceMetrics = (timeSpan: 'week' | 'month') => {
@@ -309,20 +313,11 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         }
                     </ButtonGroup>
                 </div>
-                <div className="d-flex justify-content-end">
-                    <div className="d-flex flex-column justify-content-center">
-                        <h2>Space Rating</h2>
-                        <StarRating value={averageRating} />
-                        <p>Average Rating: {averageRating}</p>
-                        <p>Based on {Intl.NumberFormat().format(totalRating)} ratings</p>
-                    </div>
-                </div>
-
                 <Row className="justify-content-md-center">
                     <Col xs={12} lg={9} className="mb-4 d-none d-sm-block">
                         <SpaceMetricsDisplay
                             isMobile={false}
-                            title={`Space Metrics: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
+                            title={`Location Name: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
                             labels={overviewGraphLabels}
                             values={overviewGraphValues}
                             percentage={percentageChange}
@@ -332,7 +327,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                     <Col xs={12} lg={9} className="mb-4 d-sm-none">
                         <SpaceMetricsDisplay
                             isMobile={true}
-                            title={`Space Metrics: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
+                            title={`Location Name: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
                             labels={overviewGraphLabels}
                             values={overviewGraphValues}
                             percentage={percentageChange}
@@ -340,14 +335,28 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         />
                     </Col>
                     <Col xs={12} lg={3} className="mb-4">
-                        <CounterWidget
-                            category="Daily Impressions"
-                            title={`~${avgImpressions} per day`}
-                            period={spanOfTime}
-                            percentage={percentageChange}
-                            icon={faChartLine}
-                            iconColor="shape-secondary"
-                        />
+                        <Row className="justify-content-md-center">
+                            <Col xs={12} className="mb-4">
+                                <StarRatingDisplay
+                                    averageRating={averageRating}
+                                    totalRating={totalRating}
+                                    category="Space Rating"
+                                    title={`Avg. Rating: ${averageRating || 'N/A'}`}
+                                    icon={faStar}
+                                    iconColor="shape-secondary"
+                                />
+                            </Col>
+                            <Col xs={12} className="mb-4">
+                                <CounterWidget
+                                    period={spanOfTime}
+                                    percentage={percentageChange}
+                                    category="Daily Impressions"
+                                    title={`~${avgImpressions} per day`}
+                                    icon={faChartLine}
+                                    iconColor="shape-secondary"
+                                />
+                            </Col>
+                        </Row>
                     </Col>
 
                     {/* <Col xs={12} sm={6} xl={4} className="mb-4">

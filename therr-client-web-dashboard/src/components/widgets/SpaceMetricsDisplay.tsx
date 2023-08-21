@@ -23,13 +23,13 @@ const MetricsSummary = ({
     percentageColor,
 }: any) => (
     <>
-        <h5 className="fw-normal mb-2">
+        <h3 className="fw-normal mb-2">
             {title}
-        </h5>
+        </h3>
         {
             totalCount != null
             && <>
-                <h3>{totalCount} {metricLabel}</h3>
+                <h5>{totalCount} {metricLabel}</h5>
                 <small className="fw-bold mt-2">
                     <span className="me-2">{previousTimespanLabel}</span>
                     <FontAwesomeIcon icon={percentageIcon} className={`${percentageColor} me-1`} />
