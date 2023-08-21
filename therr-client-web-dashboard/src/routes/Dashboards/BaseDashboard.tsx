@@ -38,12 +38,11 @@ import CounterWidget from '../../components/widgets/CounterWidget';
 //     totalOrders,
 // } from '../data/charts';
 import { SpaceMetricsDisplay } from '../../components/widgets/SpaceMetricsDisplay';
-import StarRating  from '../../components/widgets/StarRating';
+import StarRating from '../../components/widgets/StarRating';
 
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
 import { ISpace } from '../../types';
 import AdminManageSpacesMenu from '../../components/AdminManageSpacesMenu';
-//import { getSpaceReactions } from ''
 
 const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
     // TODO: Update this to support more than 1 month time span
@@ -134,8 +133,8 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             totalImpressions: 0,
             spacesInView: [],
             spanOfTime: 'week',
-            averageRating:0,
-            totalRating:0,
+            averageRating: 0,
+            totalRating: 0,
 
         };
 
@@ -146,7 +145,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         if (!this.state.overviewGraphValues?.length) {
             this.fetchSpaceMetrics('week');
         }
-       this.fetchSpaceReactions();
+        this.fetchSpaceReactions();
     }
 
     fetchSpaceReactions = () => {
@@ -156,14 +155,14 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             const spaceId = spacesInView[currentSpaceIndex].id;
 
             ReactionsService.getSpaceRatings({ query: { spaceId } })
-                .then(response => {
+                .then((response) => {
                     this.setState({
                         averageRating: response?.data?.avgRating,
-                        totalRating: response?.data?.totalRatings
+                        totalRating: response?.data?.totalRatings,
                     });
                 })
-                .catch(err => {
-                    console.error("Error fetching space ratings:", err);
+                .catch((err) => {
+                    console.error('Error fetching space ratings:', err);
                 });
         }
     };
@@ -310,15 +309,14 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         }
                     </ButtonGroup>
                 </div>
-                    <div className="d-flex justify-content-end">
-                        <div className="d-flex flex-column justify-content-center">
-                            <h2>Space Rating</h2>
-                            <StarRating value={averageRating} />
-                            <p>Average Rating: {averageRating}</p>
-                            <p>Based on {Intl.NumberFormat().format(totalRating)} ratings</p>
-                        </div>
+                <div className="d-flex justify-content-end">
+                    <div className="d-flex flex-column justify-content-center">
+                        <h2>Space Rating</h2>
+                        <StarRating value={averageRating} />
+                        <p>Average Rating: {averageRating}</p>
+                        <p>Based on {Intl.NumberFormat().format(totalRating)} ratings</p>
+                    </div>
                 </div>
-				
 
                 <Row className="justify-content-md-center">
                     <Col xs={12} lg={9} className="mb-4 d-none d-sm-block">
