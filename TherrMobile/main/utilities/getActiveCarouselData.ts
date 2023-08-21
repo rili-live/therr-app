@@ -90,7 +90,8 @@ interface IGetActiveDataArgs {
     isForBookmarks?: boolean;
     isForDrafts?: boolean;
     shouldIncludeThoughts?: boolean;
-    shouldExcludeMapContent?: boolean;
+    shouldIncludeMoments?: boolean;
+    shouldIncludeSpaces?: boolean;
 }
 
 export default ({
@@ -99,7 +100,8 @@ export default ({
     isForBookmarks,
     isForDrafts,
     shouldIncludeThoughts,
-    shouldExcludeMapContent,
+    shouldIncludeMoments,
+    shouldIncludeSpaces,
 }: IGetActiveDataArgs, sortBy = 'createdAt', categories: string[] = [SELECT_ALL]) => {
     if (activeTab === CAROUSEL_TABS.EVENTS) {
         return [];
@@ -112,7 +114,11 @@ export default ({
 
     if (isForBookmarks) {
         // TODO: Add Thought Bookmarks
-        const mapContent = shouldExcludeMapContent ? [] : mergeAreas(content.bookmarkedMoments, content.bookmarkedSpaces, sortBy);
+        const mapContent = mergeAreas(
+            shouldIncludeMoments ? content.bookmarkedMoments : [],
+            shouldIncludeSpaces ? content.bookmarkedSpaces : [],
+            sortBy,
+        );
 
         return mapContent;
     }
@@ -122,7 +128,12 @@ export default ({
         return mergeAreas(drafts, [], sortBy, isForDrafts);
     }
 
-    let sortedData = shouldExcludeMapContent ? [] : mergeAreas(content.activeMoments, content.activeSpaces, sortBy, isForDrafts);
+    let sortedData = mergeAreas(
+        shouldIncludeMoments ? content.activeMoments : [],
+        shouldIncludeSpaces ? content.activeSpaces : [],
+        sortBy,
+        isForDrafts,
+    );
 
     if (shouldIncludeThoughts) {
         sortedData = mergeSortByCreatedAt(sortedData, content.activeThoughts, isForDrafts);
