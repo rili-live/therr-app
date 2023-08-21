@@ -72,6 +72,7 @@ export interface ICreateOrUpdateSpaceReactionBody extends ICreateOrUpdateAreaRea
     spaceId: number;
     rating?: number;
 }
+
 export interface IGetSpaceReactionParams {
     limit?: number;
     spaceId?: number;
@@ -239,6 +240,11 @@ class ReactionsService {
             url: `/reactions-service/space-reactions${queryString}`,
         });
     };
+
+    getSpaceRatings = (spaceId: string) => axios({
+        method: 'get',
+        url: `/reactions-service/space-reactions/${spaceId}/ratings`,
+    });
 
     findSpaceReactions = (params: IFindSpaceReactionParams) => axios({
         method: 'post',
