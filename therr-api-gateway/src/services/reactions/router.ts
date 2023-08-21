@@ -73,7 +73,7 @@ reactionsServiceRouter.get('/space-reactions', getSpaceReactionsValidation, vali
     method: 'get',
 }));
 
-reactionsServiceRouter.get('/space-reactions/ratings', getSpaceReactionsValidation, validate, handleServiceRequest({
+reactionsServiceRouter.get('/space-reactions/:spaceId/ratings', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
     method: 'get',
 }));

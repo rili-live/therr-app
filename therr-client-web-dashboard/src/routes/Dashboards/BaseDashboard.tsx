@@ -154,7 +154,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         if (spacesInView[currentSpaceIndex]) {
             const spaceId = spacesInView[currentSpaceIndex].id;
 
-            ReactionsService.getSpaceRatings({ query: { spaceId } })
+            ReactionsService.getSpaceRatings(spaceId)
                 .then((response) => {
                     this.setState({
                         averageRating: response?.data?.avgRating,

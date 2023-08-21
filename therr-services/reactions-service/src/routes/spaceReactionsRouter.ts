@@ -18,7 +18,7 @@ router.post('/create-update/multiple', createOrUpdateMultiSpaceReactions);
 router.get('/', getSpaceReactions);
 
 // GET
-router.get('/ratings', getSpaceRatings);
+router.get('/:spaceId/ratings', getSpaceRatings);
 
 // GET
 router.get('/:spaceId', getReactionsBySpaceId);
