@@ -126,6 +126,7 @@ routeConfig.forEach((config) => {
                     host,
                     markup,
                     metaImageFileName,
+                    routePath,
                     state,
                 });
             }
