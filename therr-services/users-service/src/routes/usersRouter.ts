@@ -18,6 +18,7 @@ import {
     verifyUserAccount,
     resendVerification,
     requestSpace,
+    updateLastKnownLocation,
 } from '../handlers/users';
 
 const router = express.Router();
@@ -36,10 +37,12 @@ router.post('/find', findUsers);
 // UPDATE
 router.put('/change-password', updateUserPassword);
 router.put('/:id', updateUser);
+router.put('/:id/location', updateLastKnownLocation);
 router.put('/:id/verify-phone', updatePhoneVerification); // apply phone verified access level
 router.put('/:id/block', blockUser);
 router.put('/:id/report', reportUser);
 router.put('/:id/coins', updateUserCoins);
+router.put('/:id/location', updateUserCoins);
 
 // DELETE
 router.delete('/:id', deleteUser);

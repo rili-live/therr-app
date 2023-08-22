@@ -404,7 +404,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     shouldIncludeThoughts: false,
                     shouldIncludeMoments: true,
                     // TODO: Include promoted spaces in discoveries
-                    // shouldIncludeSpaces: true,
+                    shouldIncludeSpaces: !content?.activeMoments?.length,
                 }, 'createdAt', categoriesFilter);
 
                 return (

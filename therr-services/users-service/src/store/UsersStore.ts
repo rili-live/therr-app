@@ -265,6 +265,12 @@ export default class UsersStore {
             modifiedParams.shouldHideMatureContent = params.shouldHideMatureContent;
         }
 
+        if (params.lastKnownLatitude != null && params.lastKnownLongitude != null) {
+            modifiedParams.lastKnownLatitude = params.lastKnownLatitude;
+            modifiedParams.lastKnownLongitude = params.lastKnownLongitude;
+            modifiedParams.lastKnownLocation = knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.lastKnownLongitude}, ${params.lastKnownLatitude}), 4326)`);
+        }
+
         // Security: Prevent updating multiple users
         if (!normalizedConditions.id && !normalizedConditions.email) {
             throw new Error('User ID or email is required to call updateUser');

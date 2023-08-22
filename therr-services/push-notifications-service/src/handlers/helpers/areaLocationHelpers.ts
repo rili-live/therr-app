@@ -297,6 +297,23 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
     if (shouldInvalidateCache) {
         userLocationCache.invalidateCache();
 
+        // TODO: Update user.lastKnownLocation
+        axios({
+            method: 'put',
+            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/${headers.userId}/location`,
+            headers: {
+                authorization: headers.authorization,
+                'x-localecode': headers.locale,
+                'x-userid': headers.userId,
+            },
+            data: {
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude,
+            },
+        }).catch((error) => {
+            console.log(error);
+        });
+
         const momentsPromise = fetchNearbyAreas('moments', userLocationCache, {
             headers,
             userLocation,
