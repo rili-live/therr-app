@@ -14,7 +14,7 @@
     "build:release": "export $(cat .env | xargs) && pushd android && ./gradlew bundleRelease && popd",
     "build:release:apk": "export $(cat .env | xargs) && pushd android && ./gradlew assembleRelease && popd",
     "build:release:ipa": "export $(cat .env | xargs) && ./node_modules/.bin/react-native run-ios --configuration Release",
-    "clean": "npm run clean:env && watchman watch-del-all && rm -rf $TMPDIR/react-native-packager-cache-* && rm -rf $TMPDIR/metro-bundler-cache-* && rm -rf node_modules/ && npm cache clean --force && npm install && npm start -- --reset-cache",
+    "clean": "npm run clean:env && watchman watch-del-all && rm -rf $TMPDIR/react-native-packager-cache-* && rm -rf $TMPDIR/metro-bundler-cache-* && rm -rf node_modules/ && npm cache clean --force && npm install --legacy-peer-deps && npm start -- --reset-cache",
     "clean:env": "rm -rf node_modules/.cache/babel-loader/*",
     "env:export": "export $(cat .env | xargs)",
     "getSHA": "pushd android && ./gradlew signingReport; popd",

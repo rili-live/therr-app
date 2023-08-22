@@ -39,6 +39,7 @@ const MIN_ZOOM_LEVEL = 1; // Setting this too high may break animation to region
 const MOMENTS_REFRESH_THROTTLE_MS = 30 * 1000;
 const LOCATION_PROCESSING_THROTTLE_MS = 5 * 1000;
 const MAX_DISTANCE_TO_NEARBY_SPACE = 120; // Distance in meters (roughly 400 feet)
+const EST_US_RADIUS_METERS = 6250000;
 
 // RegEx
 const youtubeLinkRegex = /(?:http(?:s?):\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-_]*)(&(amp;)?[\w?‌​=]*)?/mi;
@@ -119,6 +120,7 @@ export {
     MOMENTS_REFRESH_THROTTLE_MS,
     LOCATION_PROCESSING_THROTTLE_MS,
     MAX_DISTANCE_TO_NEARBY_SPACE,
+    EST_US_RADIUS_METERS,
 
     // RegEx
     youtubeLinkRegex,

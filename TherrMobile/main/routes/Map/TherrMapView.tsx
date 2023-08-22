@@ -738,17 +738,25 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     };
 
     getLatitudeDelta = () => {
-        const { map, route } = this.props;
+        const { map, route, user } = this.props;
         if (route.params?.latitude) {
             return SECONDARY_LATITUDE_DELTA;
+        }
+
+        if (user?.lastKnownLatitude && user?.lastKnownLongitude) {
+            return MAX_ANIMATION_LATITUDE_DELTA;
         }
         return map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA;
     };
 
     getLongitudeDelta = () => {
-        const { map, route } = this.props;
+        const { map, route, user } = this.props;
         if (route.params?.longitude) {
             return SECONDARY_LONGITUDE_DELTA;
+        }
+
+        if (user?.lastKnownLatitude && user?.lastKnownLongitude) {
+            return MAX_ANIMATION_LONGITUDE_DELTA;
         }
         return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;
     };

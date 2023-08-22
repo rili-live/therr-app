@@ -342,6 +342,37 @@ const updateUser = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
+const updateLastKnownLocation = (req, res) => {
+    const userId = req.headers['x-userid'];
+    const {
+        latitude,
+        longitude,
+    } = req.body;
+
+    if (userId !== req.params.id) {
+        return handleHttpError({
+            res,
+            message: 'UserIds do not match',
+            statusCode: 400,
+        });
+    }
+
+    return Store.users
+        .updateUser({
+            lastKnownLatitude: latitude,
+            lastKnownLongitude: longitude,
+        }, {
+            id: userId,
+        }).then(() => res.status(200).send({
+            latitude,
+            longitude,
+        })).catch((e) => handleHttpError({
+            res,
+            message: e.message,
+            statusCode: 500,
+        }));
+};
+
 const updatePhoneVerification = (req, res) => Store.users.findUser({ id: req.params.id })
     .then((userSearchResults) => {
         const userId = req.headers['x-userid'];
@@ -840,6 +871,7 @@ export {
     getUsers,
     findUsers,
     updateUser,
+    updateLastKnownLocation,
     updatePhoneVerification,
     updateUserCoins,
     blockUser,

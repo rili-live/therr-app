@@ -32,6 +32,7 @@ import {
     MOMENTS_REFRESH_THROTTLE_MS,
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
+    EST_US_RADIUS_METERS,
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
@@ -262,8 +263,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             // Note: This is essentially the same as redux state `location.user.longitude/latitude` (plus defaults)
             // We should probably consolidate this into redux
             circleCenter: {
-                longitude: routeLongitude || DEFAULT_LONGITUDE,
-                latitude: routeLatitude || DEFAULT_LATITUDE,
+                longitude: routeLongitude || props?.user?.details?.lastKnownLongitude || DEFAULT_LONGITUDE,
+                latitude: routeLatitude || props?.user?.details?.lastKnownLatitude || DEFAULT_LATITUDE,
             },
         };
 
@@ -283,7 +284,12 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }
 
         if (!route.params?.longitude || !route.params?.latitude) {
-            this.handleSearchSelect(DEFAULT_MAP_SEARCH);
+            if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
+                // Load the users last known location
+                this.handleSearchThisLocation(EST_US_RADIUS_METERS, user?.details?.lastKnownLatitude, user?.details?.lastKnownLongitude);
+            } else {
+                this.handleSearchSelect(DEFAULT_MAP_SEARCH);
+            }
         } else {
             this.handleSearchThisLocation(undefined, route.params?.latitude, route.params?.longitude);
         }

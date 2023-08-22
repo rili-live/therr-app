@@ -22,8 +22,8 @@ export class UserMetricsProvider {
         region: uniqueDbProperties.region,
         dimensions,
     }], {
-        latitude: uniqueDbProperties.latitude,
-        longitude: uniqueDbProperties.longitude,
+        latitude: uniqueDbProperties?.latitude,
+        longitude: uniqueDbProperties?.longitude,
     });
 
     // eslint-disable-next-line class-methods-use-this
@@ -42,8 +42,8 @@ export class UserMetricsProvider {
 
         // Multiple metrics, 1 db request
         return Store.spaceMetrics.create(metricParams, {
-            latitude: metrics[0].uniqueDbProperties.latitude,
-            longitude: metrics[0].uniqueDbProperties.longitude,
+            latitude: metrics[0].uniqueDbProperties?.latitude,
+            longitude: metrics[0].uniqueDbProperties?.longitude,
         });
     };
 }
