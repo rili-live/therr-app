@@ -128,6 +128,7 @@ routeConfig.forEach((config) => {
                     title,
                     description,
                     markup,
+                    routePath,
                     state,
                 });
             }
