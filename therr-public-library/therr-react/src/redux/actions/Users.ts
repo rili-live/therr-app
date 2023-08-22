@@ -37,6 +37,8 @@ class UsersActions {
             lastName,
             phoneNumber,
             userName,
+            lastKnownLatitude,
+            lastKnownLongitude,
             media,
             settingsBio,
             settingsThemeName,
@@ -74,6 +76,8 @@ class UsersActions {
             phoneNumber,
             userName,
             media,
+            lastKnownLatitude,
+            lastKnownLongitude,
         });
         // TODO: Get user settings data from db response
         const userSettingsData: IUserSettings = Immutable.from({
