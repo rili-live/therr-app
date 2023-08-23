@@ -187,16 +187,21 @@ class ViewUser extends React.Component<
     }
 
     fetchUser = () => {
-        const { getUser, getIntegratedMoments, route } = this.props;
+        const { getUser, getIntegratedMoments, navigation, route } = this.props;
         const { userInView } = route.params;
 
         getUser(userInView.id).then((response) => {
-            this.props.navigation.setOptions({
+            navigation.setOptions({
                 title: response?.userName || this.translate('pages.viewUser.headerTitle'),
             });
             if (response?.id) {
                 getIntegratedMoments(response?.id); // TODO: Maybe only load after clicking tab
                 this.fetchThoughts();
+            }
+        }).catch((error) => {
+            console.log(error);
+            if (error?.statusCode === 404) {
+                navigation.goBack();
             }
         }).finally(() => {
             this.setState({
