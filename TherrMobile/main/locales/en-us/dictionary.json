@@ -1107,7 +1107,7 @@
     },
     "infoModalPoints": {
       "header": "What are coins?",
-      "description": "In a future iteration of the app, coins will be exchangable for cash or cryptocurrency. Opt in to nearby notifications, and start earning coins through various activities like inviting friends and creating quality content. Or, opt out and enjoy the app ad-free!",
+      "description": "Click 'Exchange' from the main menu to exchange coins for gift cards. In a future iteration of the app, coins will be exchangable for cash or cryptocurrency. Opt in to nearby notifications, and start earning coins through various activities like sharing a 'moment' at a participating business, inviting friends, and earning achievements. Or, opt out and enjoy the app ad-free!",
       "done": "close"
     },
     "touringModal": {
@@ -1137,7 +1137,7 @@
     "locationGps": {
       "header": "User Location?",
       "description1": "This app wants to change your device settings: Use GPS, Wi-Fi, and cell network for location",
-      "description2": "This app collects location data in the background to enable content discovery by proximity and to send related notifications. Location is required in the foreground to enable content posting",
+      "description2": "This app collects location data in the background to enable content discovery by proximity and to send related notifications. Location is required in the foreground to enable content posting and prevent location spoofing.",
       "link": "Learn more",
       "no": "NO",
       "yes": "YES",

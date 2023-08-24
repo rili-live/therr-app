@@ -192,7 +192,7 @@ const AreaCarousel = ({
 
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
-        handleRefresh().finally(() => setRefreshing(false));
+        handleRefresh()?.finally(() => setRefreshing(false));
     }, [handleRefresh]);
 
     // if (Platform.OS === 'ios') {

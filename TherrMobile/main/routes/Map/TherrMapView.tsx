@@ -743,7 +743,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             return SECONDARY_LATITUDE_DELTA;
         }
 
-        if (user?.lastKnownLatitude && user?.lastKnownLongitude) {
+        if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
             return MAX_ANIMATION_LATITUDE_DELTA;
         }
         return map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA;
@@ -755,7 +755,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             return SECONDARY_LONGITUDE_DELTA;
         }
 
-        if (user?.lastKnownLatitude && user?.lastKnownLongitude) {
+        if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
             return MAX_ANIMATION_LONGITUDE_DELTA;
         }
         return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;

@@ -9,7 +9,7 @@ import { IUserState } from 'therr-react/types';
 import { Content, PasswordRegex } from 'therr-js-utilities/constants';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import RNFB from 'rn-fetch-blob';
+import RNFB from 'react-native-blob-util';
 import Toast from 'react-native-toast-message';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';

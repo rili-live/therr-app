@@ -203,7 +203,7 @@ export default class ThoughtsStore {
                     : Promise.resolve(null));
 
                 const [users] = await Promise.all(thoughtDetailsPromises);
-                const usersMap = users.reduce((acc, user) => {
+                const usersMap = (users || []).reduce((acc, user) => {
                     acc[user.id] = user;
                     return acc;
                 }, {});

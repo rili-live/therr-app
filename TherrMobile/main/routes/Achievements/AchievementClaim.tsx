@@ -214,6 +214,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                                 speed={1}
                                 autoPlay
                                 loop
+                                style={{ position: 'absolute', width: '100%', height: '100%' }}
                             />
                             <View style={this.themeAchievements.styles.cardImageContainerLarge}>
                                 {/* <Image
@@ -227,6 +228,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                                         speed={2.4}
                                         autoPlay
                                         loop={false}
+                                        style={{ position: 'absolute', width: '100%', height: '100%' }}
                                     />
                                 </View>
                             </View>

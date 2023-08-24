@@ -27,6 +27,7 @@ const AchievementTile = ({ claimText, completedText, handleClaim, onPressAchieve
                             resizeMode="cover"
                             speed={1}
                             progress={0}
+                            style={{ position: 'absolute', width: '100%', height: '100%' }}
                         />
                     </View>
                 </View>

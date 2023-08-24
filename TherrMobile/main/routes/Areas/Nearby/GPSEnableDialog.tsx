@@ -32,9 +32,11 @@ const GpsEnableButtonDialog = ({ handleEnableLocationPress, theme, themeForms, t
                     <LottieView
                         source={earthLoader}
                         // resizeMode="cover"
+                        resizeMode="contain"
                         speed={1}
                         autoPlay
                         loop
+                        style={{ position: 'absolute', width: '100%', height: '100%' }}
                     />
                 </View>
                 <Text style={theme.styles.sectionTitleCenter}>
