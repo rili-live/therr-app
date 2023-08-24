@@ -1,8 +1,10 @@
+const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
+
 /**
- * Metro configuration for React Native
- * https://github.com/facebook/react-native
+ * Metro configuration
+ * https://facebook.github.io/metro/docs/configuration
  *
- * @format
+ * @type {import('metro-config').MetroConfig}
  */
 const path = require('path');
 
@@ -23,15 +25,7 @@ const watchFolders = [
     path.join(__dirname, '/../therr-public-library/therr-js-utilities/lib'),
 ];
 
-module.exports = {
-    transformer: {
-        getTransformOptions: async () => ({
-            transform: {
-                experimentalImportSupport: false,
-                inlineRequires: true,
-            },
-        }),
-    },
+const config = {
     resolver: {
         extraNodeModules: new Proxy(extraNodeModules, {
             get: (target, name) =>
@@ -43,3 +37,5 @@ module.exports = {
     },
     watchFolders,
 };
+
+module.exports = mergeConfig(getDefaultConfig(__dirname), config);

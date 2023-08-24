@@ -11,7 +11,7 @@ import { MapActions } from 'therr-react/redux/actions';
 // import { Content } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 // import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-// import RNFB from 'rn-fetch-blob';
+// import RNFB from 'react-native-blob-util';
 import Toast from 'react-native-toast-message';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';

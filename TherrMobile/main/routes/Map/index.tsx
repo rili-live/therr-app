@@ -32,7 +32,7 @@ import {
     MOMENTS_REFRESH_THROTTLE_MS,
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
-    EST_US_RADIUS_METERS,
+    MAX_ANIMATION_LATITUDE_DELTA,
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
@@ -286,7 +286,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         if (!route.params?.longitude || !route.params?.latitude) {
             if (user?.details?.lastKnownLatitude && user?.details?.lastKnownLongitude) {
                 // Load the users last known location
-                this.handleSearchThisLocation(EST_US_RADIUS_METERS, user?.details?.lastKnownLatitude, user?.details?.lastKnownLongitude);
+                // Note: See getLongitudeDelta()
+                // This converts degrees to miles then miles to meters (times 4 for extended search)
+                const radiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
+                this.handleSearchThisLocation(radiusMeters, user?.details?.lastKnownLatitude, user?.details?.lastKnownLongitude);
             } else {
                 this.handleSearchSelect(DEFAULT_MAP_SEARCH);
             }
@@ -313,6 +316,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 areButtonsVisible: true,
             });
             setSearchDropdownVisibility(false);
+
+            if (route?.params?.shouldInitiateLocation) {
+                this.handleGpsRecenterPress();
+            }
+
             clearTimeout(this.timeoutIdLocationReady);
         });
 
@@ -674,6 +682,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         let perms;
 
+        // NOTE: This logic is re-used in the Area/index.tsx file
+        // We may want to find a better way rather than copy/paste to keep things in sync
         return requestLocationServiceActivation({
             isGpsEnabled: location?.settings?.isGpsEnabled,
             translate: this.translate,

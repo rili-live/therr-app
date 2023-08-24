@@ -19,6 +19,7 @@ export default ({
         const permissionLink = translate('permissions.locationGps.link');
         const permissionYes = translate('permissions.locationGps.yes');
         const permissionNo = translate('permissions.locationGps.no');
+        // Android only
         return LocationServicesDialogBox.checkLocationServicesIsEnabled({
             message:
                 `<h2 style='color: #0af13e'>${permissionHeader}</h2>${permissionDescription1}<br/><br/>` +

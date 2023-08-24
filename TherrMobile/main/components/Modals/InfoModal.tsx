@@ -67,6 +67,7 @@ export default ({
                     <AnimatedLottieView
                         source={shareAMoment}
                         // resizeMode="cover"
+                        resizeMode="contain"
                         speed={1}
                         autoPlay={true}
                         loop
