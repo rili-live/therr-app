@@ -3,11 +3,11 @@ import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
+import AnimatedLottieView from 'lottie-react-native';
 import { ITherrThemeColors } from '../../styles/themes';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import TherrIcon from '../../components/TherrIcon';
 import claimASpace from '../../assets/claim-a-space.json';
-import AnimatedLottieView from 'lottie-react-native';
 
 export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment';
 
@@ -79,6 +79,7 @@ export default ({
         <AnimatedLottieView
             source={claimASpace}
             // resizeMode="cover"
+            resizeMode="contain"
             speed={1}
             autoPlay={false}
             loop

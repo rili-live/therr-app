@@ -90,6 +90,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                         speed={1}
                         autoPlay
                         loop={false}
+                        style={[{position: 'absolute', width: '100%', height: '100%'}]}
                     />
                 </View>
             );

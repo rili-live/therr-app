@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, SafeAreaView, View } from 'react-native';
+import { Dimensions, Platform, SafeAreaView, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -11,6 +11,7 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
+import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locationDisclosure';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
 // import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
@@ -20,6 +21,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
+import LocationActions from '../../redux/actions/LocationActions';
 import { CAROUSEL_TABS } from '../../constants';
 import { handleAreaReaction, handleThoughtReaction, loadMorePosts, navToViewContent } from '../../utilities/postViewHelpers';
 import getDirections from '../../utilities/getDirections';
@@ -29,6 +31,9 @@ import AreaCarousel from './AreaCarousel';
 import { Text } from 'react-native-elements';
 import ThoughtOptionsModal from '../../components/Modals/ThoughtOptionsModal';
 import TherrIcon from '../../components/TherrIcon';
+import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
+import { isLocationPermissionGranted } from '../../utilities/requestOSPermissions';
+import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -53,6 +58,10 @@ interface IAreasDispatchProps {
     updateActiveThoughtsStream: Function;
     createOrUpdateThoughtReaction: Function;
 
+    updateLocationDisclosure: Function;
+    updateLocationPermissions: Function;
+    updateGpsStatus: Function;
+
     logout: Function;
 }
 
@@ -72,6 +81,7 @@ export interface IAreasProps extends IStoreProps {
 interface IAreasState {
     activeTabIndex: number;
     isLoading: boolean;
+    isLocationUseDisclosureModalVisible: boolean;
     areAreaOptionsVisible: boolean;
     areThoughtOptionsVisible: boolean;
     selectedArea: any;
@@ -101,6 +111,10 @@ const mapDispatchToProps = (dispatch: any) =>
             searchActiveThoughts: ContentActions.searchActiveThoughts,
             updateActiveThoughtsStream: ContentActions.updateActiveThoughtsStream,
             createOrUpdateThoughtReaction: ContentActions.createOrUpdateThoughtReaction,
+
+            updateGpsStatus: LocationActions.updateGpsStatus,
+            updateLocationDisclosure: LocationActions.updateLocationDisclosure,
+            updateLocationPermissions: LocationActions.updateLocationPermissions,
         },
         dispatch
     );
@@ -119,6 +133,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     private themeAreas = buildAreaStyles();
     private themeButtons = buildButtonsStyles();
     private themeLoader = buildLoaderStyles();
+    private themeDisclosure = buildDisclosureStyles();
     private themeMenu = buildMenuStyles();
     private themeReactionsModal = buildReactionsModalStyles();
 
@@ -131,6 +146,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         this.state = {
             activeTabIndex: 0,
             isLoading: true,
+            isLocationUseDisclosureModalVisible: false,
             areAreaOptionsVisible: false,
             areThoughtOptionsVisible: false,
             selectedArea: {},
@@ -147,6 +163,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         this.themeAreas = buildAreaStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
+        this.themeDisclosure = buildDisclosureStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.loaderId = getRandomLoaderId();
@@ -232,6 +249,85 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         navigation.navigate('EditThought', {});
     };
 
+    handleCreateMoment = () => {
+        const { location, navigation, updateLocationDisclosure, updateGpsStatus } = this.props;
+
+        if (!(location?.user?.latitude && location?.user?.longitude)) {
+            navigation.navigate('Map', {
+                shouldInitiateLocation: true,
+            });
+            return;
+        }
+
+        // NOTE: This logic is re-used in the Map/index.tsx file
+        // We may want to find a better way rather than copy/paste to keep things in sync
+        requestLocationServiceActivation({
+            isGpsEnabled: location?.settings?.isGpsEnabled,
+            translate: this.translate,
+            shouldIgnoreRequirement: false,
+        }).then((response: any) => {
+            if (response?.status || Platform.OS === 'ios') {
+                if (response?.alreadyEnabled && isLocationPermissionGranted(location.permissions)) {
+                    // Ensure that the user sees location disclosure even if gps is already enabled (otherwise requestOSMapPermissions will handle it)
+                    if (!location?.settings?.isLocationDislosureComplete) {
+                        this.setState({
+                            isLocationUseDisclosureModalVisible: true,
+                        });
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                updateLocationDisclosure(true);
+                updateGpsStatus(response?.status || 'enabled');
+
+                return false;
+            }
+
+            return Promise.resolve(false);
+        }).then((shouldAbort) => {
+            if (shouldAbort) {
+                return;
+            }
+
+            if (location?.settings?.isGpsEnabled && location?.user?.latitude && location?.user?.longitude) {
+                navigation.reset({
+                    index: 1,
+                    routes: [
+                        {
+                            name: 'Areas',
+                            params: {
+                                latitude: location?.user?.latitude,
+                                longitude: location?.user?.longitude,
+                            },
+                        },
+                        {
+                            name: 'EditMoment',
+                            params: {
+                                latitude: location?.user?.latitude,
+                                longitude: location?.user?.longitude,
+                                imageDetails: {},
+                                // nearbySpaces,
+                                area: {},
+                            },
+                        },
+                    ],
+                });
+            }
+        });
+    };
+
+    handleLocationDisclosureSelect = (selection) => {
+        const { updateLocationDisclosure } = this.props;
+        // TODO: Decide if selection should be dynamic
+        console.log(selection);
+        updateLocationDisclosure(true).then(() => {
+            this.toggleLocationUseDisclosure();
+            this.handleCreateMoment();
+        });
+    };
+
     handleRefresh = () => {
         const { content, updateActiveMomentsStream, updateActiveSpacesStream, updateActiveThoughtsStream, user } = this.props;
         this.setState({ isLoading: true });
@@ -267,6 +363,13 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             this.loadTimeoutId = setTimeout(() => {
                 this.setState({ isLoading: false });
             }, 400);
+        });
+    };
+
+    toggleLocationUseDisclosure = () => {
+        const { isLocationUseDisclosureModalVisible } = this.state;
+        this.setState({
+            isLocationUseDisclosureModalVisible: !isLocationUseDisclosureModalVisible,
         });
     };
 
@@ -493,6 +596,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         updateSpaceReaction={createOrUpdateSpaceReaction}
                         updateThoughtReaction={createOrUpdateThoughtReaction}
                         emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.EVENTS)}
+                        emptyIconName="ticket"
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
                         user={user}
@@ -538,11 +642,13 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             activeTabIndex,
             areAreaOptionsVisible,
             areThoughtOptionsVisible,
+            isLocationUseDisclosureModalVisible,
             selectedThought,
             selectedArea,
             tabRoutes,
         } = this.state;
         const { navigation, user } = this.props;
+        const tabName = Object.values(CAROUSEL_TABS)[activeTabIndex];
 
         return (
             <>
@@ -573,19 +679,38 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         // style={styles.container}
                     />
                 </SafeAreaView>
-                <Button
-                    containerStyle={this.themeButtons.styles.addAThought}
-                    buttonStyle={this.themeButtons.styles.btnLarge}
-                    icon={
-                        <TherrIcon
-                            name={'idea'}
-                            size={27}
-                            style={this.themeButtons.styles.btnIcon}
-                        />
-                    }
-                    raised={true}
-                    onPress={this.handleEditThought}
-                />
+                {
+                    tabName === CAROUSEL_TABS.THOUGHTS
+                    && <Button
+                        containerStyle={this.themeButtons.styles.addAThought}
+                        buttonStyle={this.themeButtons.styles.btnLarge}
+                        icon={
+                            <TherrIcon
+                                name={'idea'}
+                                size={27}
+                                style={this.themeButtons.styles.btnIcon}
+                            />
+                        }
+                        raised={true}
+                        onPress={this.handleEditThought}
+                    />
+                }
+                {
+                    tabName === CAROUSEL_TABS.DISCOVERIES
+                    && <Button
+                        containerStyle={this.themeButtons.styles.addAThought}
+                        buttonStyle={this.themeButtons.styles.btnLarge}
+                        icon={
+                            <TherrIcon
+                                name={'map-marker-clock'}
+                                size={27}
+                                style={this.themeButtons.styles.btnIcon}
+                            />
+                        }
+                        raised={true}
+                        onPress={this.handleCreateMoment}
+                    />
+                }
                 <AreaOptionsModal
                     isVisible={areAreaOptionsVisible}
                     onRequestClose={() => this.toggleAreaOptions(selectedArea)}
@@ -601,6 +726,14 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     onSelect={this.onThoughtOptionSelect}
                     themeButtons={this.themeButtons}
                     themeReactionsModal={this.themeReactionsModal}
+                />
+                <LocationUseDisclosureModal
+                    isVisible={isLocationUseDisclosureModalVisible}
+                    translate={this.translate}
+                    onRequestClose={this.toggleLocationUseDisclosure}
+                    onSelect={this.handleLocationDisclosureSelect}
+                    themeButtons={this.themeButtons}
+                    themeDisclosure={this.themeDisclosure}
                 />
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
                 <MainButtonMenu

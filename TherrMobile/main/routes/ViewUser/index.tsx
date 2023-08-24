@@ -201,7 +201,7 @@ class ViewUser extends React.Component<
         }).catch((error) => {
             console.log(error);
             if (error?.statusCode === 404) {
-                navigation.goBack();
+                navigation?.goBack();
             }
         }).finally(() => {
             this.setState({

@@ -81,6 +81,7 @@ const TouringModal = ({
                         <AnimatedLottieView
                             source={claimASpace}
                             // resizeMode="cover"
+                            resizeMode="contain"
                             speed={1}
                             autoPlay={false}
                             loop
@@ -105,6 +106,7 @@ const TouringModal = ({
                         <AnimatedLottieView
                             source={shareAMoment}
                             // resizeMode="cover"
+                            resizeMode="contain"
                             speed={1}
                             autoPlay={false}
                             loop
@@ -136,6 +138,7 @@ const TouringModal = ({
                         <AnimatedLottieView
                             source={discover}
                             // resizeMode="cover"
+                            resizeMode="contain"
                             speed={1}
                             autoPlay={false}
                             loop

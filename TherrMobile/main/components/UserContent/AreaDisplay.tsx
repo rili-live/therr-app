@@ -184,6 +184,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         progress={placeholderMediaType === 'autoplay' ? 0 : 1}
                         autoPlay={placeholderMediaType === 'autoplay'}
                         loop={false}
+                        style={[{position: 'absolute', width: '100%', height: '100%'}]}
                     />
                 </View>
             );

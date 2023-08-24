@@ -130,6 +130,7 @@ target 'Therr' do
   pod 'Yoga', :path => '../node_modules/react-native/ReactCommon/yoga', :modular_headers => true
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
+  pod 'react-native-blob-util', :path => '../node_modules/react-native-blob-util'
   pod 'Firebase/Analytics', :modular_headers => true
   pod 'Firebase/Auth', :modular_headers => true
   pod 'nanopb', :modular_headers => true
@@ -139,6 +140,7 @@ target 'Therr' do
   pod 'FirebaseCore', :modular_headers => true
   pod 'FirebaseCoreExtension', :modular_headers => true
   pod 'GoogleUtilities', :modular_headers => true
+  
 
   target 'TherrTests' do
     inherit! :complete

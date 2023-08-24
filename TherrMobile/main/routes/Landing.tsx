@@ -6,16 +6,17 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
+import { bindActionCreators } from 'redux';
+import AnimatedLottieView from 'lottie-react-native';
 import { buildStyles } from '../styles';
 import { buildStyles as buildFTUIStyles } from '../styles/first-time-ui';
 import { buildStyles as buildAuthFormStyles } from '../styles/forms/authenticationForms';
 import { buildStyles as buildFormStyles } from '../styles/forms';
-import { bindActionCreators } from 'redux';
+
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
 import BaseStatusBar from '../components/BaseStatusBar';
 import OrDivider from '../components/Input/OrDivider';
-import AnimatedLottieView from 'lottie-react-native';
 
 // import ftuiClaim from '../assets/discover.json';
 import ftuiClaim from '../assets/ftui-claim.json';
@@ -31,6 +32,7 @@ const { width: viewportWidth } = Dimensions.get('window');
 const graphicStyles: any = {
     width: '100%',
     maxHeight: 200,
+    minHeight: 200,
     flex: 1,
     padding: 0,
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { GestureResponderEvent, View } from 'react-native';
 import { Button } from 'react-native-elements';
-import RNFB from 'rn-fetch-blob';
+import RNFB from 'react-native-blob-util';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import Alert from '../Alert';
 import UserImage from '../UserContent/UserImage';

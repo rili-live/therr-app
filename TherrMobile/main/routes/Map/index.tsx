@@ -316,6 +316,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 areButtonsVisible: true,
             });
             setSearchDropdownVisibility(false);
+
+            if (route?.params?.shouldInitiateLocation) {
+                this.handleGpsRecenterPress();
+            }
+
             clearTimeout(this.timeoutIdLocationReady);
         });
 
@@ -677,6 +682,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         let perms;
 
+        // NOTE: This logic is re-used in the Area/index.tsx file
+        // We may want to find a better way rather than copy/paste to keep things in sync
         return requestLocationServiceActivation({
             isGpsEnabled: location?.settings?.isGpsEnabled,
             translate: this.translate,
