@@ -151,11 +151,6 @@ export default class SpacesStore {
                 `${SPACE_INCENTIVES_TABLE_NAME}.minUserDataProps as incentives[].minUserDataProps`,
                 `${SPACE_INCENTIVES_TABLE_NAME}.region as incentives[].region`,
                 `${SPACE_INCENTIVES_TABLE_NAME}.requiredUserDataProps as incentives[].requiredUserDataProps`,
-                `${SPACE_INCENTIVES_TABLE_NAME}.phoneNumber as incentives[].phoneNumber`,
-                `${SPACE_INCENTIVES_TABLE_NAME}.websiteUrl as incentives[].websiteUrl`,
-                `${SPACE_INCENTIVES_TABLE_NAME}.menuUrl as incentives[].menuUrl`,
-                `${SPACE_INCENTIVES_TABLE_NAME}.orderUrl as incentives[].orderUrl`,
-                `${SPACE_INCENTIVES_TABLE_NAME}.reservationUrl as incentives[].reservationUrl`,
                 `${SPACE_INCENTIVES_TABLE_NAME}.startsAt as incentives[].startsAt`,
                 `${SPACE_INCENTIVES_TABLE_NAME}.endsAt as incentives[].endsAt`,
             ])
