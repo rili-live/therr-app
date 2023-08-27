@@ -5,7 +5,7 @@ import SpaceReactionsStore from '../../src/store/SpaceReactionsStore';
 describe('SpaceReactionsStore', () => {
     describe('getRatingsBySpaceId', () => {
         it('queries for ratings with default limit', async () => {
-            const expectedQuery = `select "rating" from "main"."spaceReactions" where "rating" is not null limit 1000`;
+            const expectedQuery = `select "rating" from "main"."spaceReactions" where "someCondition" = true and "rating" is not null limit 1000`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
