@@ -128,7 +128,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapViewState> {
+class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewState> {
     static getDerivedStateFromProps(nextProps: ITherrMapViewProps, nextState: ITherrMapViewState) {
         if (nextProps.areMapActionsVisible && nextState.isPreviewBottomSheetVisible) {
             return {

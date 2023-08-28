@@ -169,6 +169,7 @@
     },
     "contactsSearch": {
       "noContactsFound": "No contacts found",
+      "noUsersFound": "No users found",
       "title": "All Contacts"
     },
     "header": {
@@ -627,10 +628,11 @@
     },
     "headerTabs": {
       "discoveries": "Discoveries",
-      "connections": "Connections",
+      "connections": "My Connections",
+      "people": "People",
       "social": "Social",
       "events": "Events",
-      "invite": "Invite",
+      "invite": "Invites",
       "media": "Media",
       "news": "News",
       "thoughts": "Thoughts"

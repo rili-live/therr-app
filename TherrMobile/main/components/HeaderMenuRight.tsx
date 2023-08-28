@@ -77,7 +77,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class HeaderMenuRight extends React.Component<
+class HeaderMenuRight extends React.PureComponent<
     IHeaderMenuRightProps,
     IHeaderMenuRightState
 > {

@@ -119,7 +119,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class Areas extends React.Component<IAreasProps, IAreasState> {
+class Areas extends React.PureComponent<IAreasProps, IAreasState> {
     static whyDidYouRender = true;
 
     private carouselDiscoveriesRef;
