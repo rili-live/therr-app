@@ -32,6 +32,14 @@ interface IFindUsersArgs {
     ids?: string[];
 }
 
+interface ISearchUsersArgs {
+    ids?: string[];
+    query?: string;
+    queryColumnName?: string;
+    limit?: number;
+    offset?: number;
+}
+
 export interface IFindUsersByContactInfo {
     email?: string;
     phoneNumber?: string;
@@ -126,6 +134,41 @@ export default class UsersStore {
     }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media']) {
         let queryString: any = knexBuilder.select(returning).from('main.users')
             .whereIn('id', ids || []);
+
+        queryString = queryString.toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    searchUsers({
+        ids,
+        query,
+        queryColumnName,
+        limit,
+        offset,
+    }: ISearchUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media']) {
+        const supportedSearchColumns = ['firstName', 'lastName', 'userName'];
+        const MAX_LIMIT = 200;
+        const throttledLimit = Math.min(limit || 100, MAX_LIMIT);
+        let queryString: any = knexBuilder.select(returning).from('main.users')
+            .orderBy('createdAt')
+            .limit(throttledLimit)
+            .offset(offset || 0);
+
+        if (ids) {
+            queryString = queryString.whereIn('id', ids || []);
+        }
+
+        if (query) {
+            if (supportedSearchColumns.includes(queryColumnName || '')) {
+                queryString = queryString.where(queryColumnName, 'like', `%${query}%`);
+            } else {
+                queryString = queryString.where((builder) => {
+                    builder.where('firstName', 'like', `%${query}%`)
+                        .orWhere('lastName', 'like', `%${query}%`)
+                        .orWhere('userName', 'like', `%${query}%`);
+                });
+            }
+        }
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);

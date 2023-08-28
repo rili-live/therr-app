@@ -227,6 +227,42 @@ const findUsers: RequestHandler = (req: any, res: any) => Store.users.findUsers(
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
+const searchUsers: RequestHandler = (req: any, res: any) => {
+    const {
+        ids,
+        query,
+        queryColumnName,
+        limit,
+        offset,
+    } = req.body;
+
+    const actualLimit = limit || 21;
+    const actualOffset = offset || 0;
+
+    return Store.users.searchUsers({
+        ids,
+        query,
+        queryColumnName,
+        limit: actualLimit,
+        offset: actualOffset,
+    })
+        .then((results) => {
+            res.status(200).send({
+                results: results.map((user) => {
+                    delete user.password; // eslint-disable-line no-param-reassign
+                    delete user.oneTimePassword; // eslint-disable-line no-param-reassign
+                    delete user.verificationCodes; // eslint-disable-line no-param-reassign
+                    return user;
+                }),
+                pagination: {
+                    itemsPerPage: (actualLimit),
+                    pageNumber: actualOffset + 1,
+                },
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
 // UPDATE
 const updateUser = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
@@ -870,6 +906,7 @@ export {
     getUserByUserName,
     getUsers,
     findUsers,
+    searchUsers,
     updateUser,
     updateLastKnownLocation,
     updatePhoneVerification,

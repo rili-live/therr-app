@@ -27,6 +27,14 @@ interface IRegisterCredentials {
     inviteCode?: string;
 }
 
+export interface ISearchUsersArgs {
+    ids?: string[];
+    query?: string;
+    queryColumnName?: string;
+    limit?: number;
+    offset?: number;
+}
+
 interface IUpdateUser {
     firstName: string;
     lastName: string;
@@ -124,6 +132,12 @@ class UsersService {
     getMe = () => axios({
         method: 'get',
         url: '/users-service/users/me',
+    });
+
+    search = (args: ISearchUsersArgs) => axios({
+        method: 'post',
+        url: '/users-service/users/search',
+        data: args,
     });
 
     report = (userId: string) => axios({

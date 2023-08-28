@@ -38,12 +38,14 @@ export interface IUserState extends Immutable.ImmutableObject<any> {
   userInView: IUser;
   thoughts: any;
   myThoughts: any;
+  users: any;
 }
 
 export enum UserActionTypes {
   GET_MY_ACHIEVEMENTS = 'GET_MY_ACHIEVEMENTS',
   UPDATE_MY_ACHIEVEMENTS = 'UPDATE_MY_ACHIEVEMENTS',
   GET_USER = 'GET_USER',
+  GET_USERS = 'GET_USERS',
   LOGIN = 'LOGIN',
   UPDATE_USER_TOUR = 'UPDATE_USER_TOUR',
   UPDATE_USER_FTUI = 'UPDATE_USER_FTUI',
