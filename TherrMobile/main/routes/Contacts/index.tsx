@@ -10,6 +10,7 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import spacingStyles from '../../styles/layouts/spacing';
 import translator from '../../services/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -336,9 +337,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 translate={this.translate}
                             />
                         )}
-                        ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(
-                            'components.contactsSearch.noContactsFound'
-                        )} />}
+                        ListEmptyComponent={
+                            <View style={spacingStyles.marginHorizLg}>
+                                <ListEmpty iconName="key-user" theme={this.theme} text={this.translate(
+                                    'components.contactsSearch.noContactsFound'
+                                )} />
+                            </View>
+                        }
                         stickyHeaderIndices={[]}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
@@ -407,6 +412,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 />
                 <CreateConnectionButton onPress={this.navToInvite} themeButtons={this.themeButtons} translate={this.translate} />
                 <MainButtonMenu
+                    activeRoute="Contacts"
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}

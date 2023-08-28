@@ -737,6 +737,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                 />
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
                 <MainButtonMenu
+                    activeRoute="Areas"
                     navigation={navigation}
                     onActionButtonPress={this.scrollTop}
                     translate={this.translate}

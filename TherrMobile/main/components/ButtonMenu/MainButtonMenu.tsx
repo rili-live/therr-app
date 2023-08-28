@@ -104,9 +104,9 @@ class MainButtonMenuAlt extends ButtonMenu {
 
     render() {
         const { isCompact, translate, themeMenu, user } = this.props;
-        const currentScreen = this.getCurrentScreen();
+        const activeRoute = this.getActiveRoute();
         // const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
-        const isConnectViewActive = currentScreen === 'Contacts';
+        const isConnectViewActive = activeRoute === 'Contacts';
         let imageStyle = {
             height: 26,
             width: 26,
@@ -118,17 +118,17 @@ class MainButtonMenuAlt extends ButtonMenu {
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.list') : null}
                     buttonStyle={
-                        currentScreen === 'Areas'
+                        activeRoute === 'Areas'
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
                     containerStyle={
-                        currentScreen === 'Areas'
+                        activeRoute === 'Areas'
                             ? themeMenu.styles.buttonContainerActive
                             : themeMenu.styles.buttonContainer
                     }
                     titleStyle={
-                        currentScreen === 'Areas'
+                        activeRoute === 'Areas'
                             ? themeMenu.styles.buttonsTitleActive
                             : themeMenu.styles.buttonsTitle
                     }
@@ -137,7 +137,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                             name="ul-list"
                             size={22}
                             style={
-                                currentScreen === 'Areas'
+                                activeRoute === 'Areas'
                                     ? themeMenu.styles.buttonIconActive
                                     : themeMenu.styles.buttonIcon
                             }
@@ -148,17 +148,17 @@ class MainButtonMenuAlt extends ButtonMenu {
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.nearby') : null}
                     buttonStyle={
-                        currentScreen === 'Nearby'
+                        activeRoute === 'Nearby'
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
                     containerStyle={
-                        currentScreen === 'Nearby'
+                        activeRoute === 'Nearby'
                             ? themeMenu.styles.buttonContainerActive
                             : themeMenu.styles.buttonContainer
                     }
                     titleStyle={
-                        currentScreen === 'Nearby'
+                        activeRoute === 'Nearby'
                             ? themeMenu.styles.buttonsTitleActive
                             : themeMenu.styles.buttonsTitle
                     }
@@ -167,7 +167,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                             name="nearby"
                             size={24}
                             style={
-                                currentScreen === 'Nearby'
+                                activeRoute === 'Nearby'
                                     ? themeMenu.styles.buttonIconActive
                                     : themeMenu.styles.buttonIcon
                             }
@@ -178,17 +178,17 @@ class MainButtonMenuAlt extends ButtonMenu {
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.map') : null}
                     buttonStyle={
-                        currentScreen === 'Map'
+                        activeRoute === 'Map'
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
                     containerStyle={
-                        currentScreen === 'Map'
+                        activeRoute === 'Map'
                             ? themeMenu.styles.buttonContainerActive
                             : themeMenu.styles.buttonContainer
                     }
                     titleStyle={
-                        currentScreen === 'Map'
+                        activeRoute === 'Map'
                             ? themeMenu.styles.buttonsTitleActive
                             : themeMenu.styles.buttonsTitle
                     }
@@ -197,7 +197,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                             name="map"
                             size={22}
                             style={
-                                currentScreen === 'Map'
+                                activeRoute === 'Map'
                                     ? themeMenu.styles.buttonIconActive
                                     : themeMenu.styles.buttonIcon
                             }
@@ -238,7 +238,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                     })}
                 />
                 <View style={
-                    currentScreen === 'ViewUser'
+                    activeRoute === 'ViewUser'
                         ? themeMenu.styles.buttonContainerActive
                         : themeMenu.styles.buttonContainer
                 }>

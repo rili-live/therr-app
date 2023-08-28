@@ -249,11 +249,11 @@ class Notifications extends React.Component<
                                 themeNotification={this.themeNotification}
                             />
                         )}
-                        ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(
+                        ListEmptyComponent={<ListEmpty iconName="bell" theme={this.theme} text={this.translate(
                             'pages.notifications.noNotifications'
                         )} />}
                         ref={(component) => (this.flatListRef = component)}
-                        initialScrollIndex={0}
+                        initialScrollIndex={notifications?.messages?.length ? 0 : undefined}
                         onContentSizeChange={this.onContentSizeChange}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
