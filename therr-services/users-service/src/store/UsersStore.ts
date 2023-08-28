@@ -150,7 +150,9 @@ export default class UsersStore {
         const MAX_LIMIT = 200;
         const throttledLimit = Math.min(limit || 100, MAX_LIMIT);
         let queryString: any = knexBuilder.select(returning).from('main.users')
-            .orderBy('createdAt')
+            .whereNotNull('userName')
+            .andWhere('settingsIsProfilePublic', true)
+            .orderBy('createdAt', 'desc')
             .limit(throttledLimit)
             .offset(offset || 0);
 
