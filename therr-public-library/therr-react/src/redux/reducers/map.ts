@@ -23,14 +23,14 @@ const map = (state: IMapState = initialState, action: any) => {
     }
 
     // Slice to keep total from overflowing
-    const slicedMoments = Object.entries(state.moments).slice(0, 500).reduce((acc, cur) => {
+    const slicedMoments = Object.entries(state.moments).slice(0, 300).reduce((acc, cur) => {
         const [key, value] = cur;
         acc[key] = value;
 
         return acc;
     }, {});
     const modifiedMoments = { ...slicedMoments };
-    const slicedSpaces = Object.entries(state.spaces).slice(0, 500).reduce((acc, cur) => {
+    const slicedSpaces = Object.entries(state.spaces).slice(0, 300).reduce((acc, cur) => {
         const [key, value] = cur;
         acc[key] = value;
 

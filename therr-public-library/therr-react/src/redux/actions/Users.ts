@@ -2,7 +2,7 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IUser, IUserSettings, UserActionTypes } from '../../types/redux/user';
-import UsersService, { ISocialSyncs } from '../../services/UsersService';
+import UsersService, { ISearchUsersArgs, ISocialSyncs } from '../../services/UsersService';
 import { ContentActionTypes } from '../../types/redux/content';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -152,6 +152,15 @@ class UsersActions {
     get = (userId: string) => (dispatch: any) => UsersService.get(userId).then((response) => {
         dispatch({
             type: UserActionTypes.GET_USER,
+            data: response?.data,
+        });
+
+        return response?.data;
+    });
+
+    search = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.search(args).then((response) => {
+        dispatch({
+            type: UserActionTypes.GET_USERS,
             data: response?.data,
         });
 

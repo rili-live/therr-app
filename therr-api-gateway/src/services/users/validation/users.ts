@@ -26,6 +26,15 @@ export const forgotPasswordValidation = [
     body('isDashboardRegistration').optional().isBoolean(),
 ];
 
+export const searchUsersValidation = [
+    body('ids').optional(),
+    body('query').optional().isString(),
+    body('queryColumnName').optional().isIn(['firstName', 'lastName', 'usersName']),
+    body('limit').optional(),
+    body('offset').optional(),
+    body('withMedia').isBoolean().optional(),
+];
+
 export const verifyUserAccountValidation = [
     oneOf([
         body('type').exists().isString().equals('email'),

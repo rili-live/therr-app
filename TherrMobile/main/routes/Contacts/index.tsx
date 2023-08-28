@@ -20,12 +20,14 @@ import LazyPlaceholder from './components/LazyPlaceholder';
 import CreateConnection from './components/CreateConnection';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import ListEmpty from '../../components/ListEmpty';
+import UsersActions from '../../redux/actions/UsersActions';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
 interface IContactsDispatchProps {
     logout: Function;
     searchUserConnections: Function;
+    searchUsers: Function;
 }
 
 interface IStoreProps extends IContactsDispatchProps {
@@ -42,6 +44,7 @@ export interface IContactsProps extends IStoreProps {
 interface IContactsState {
     isNameConfirmModalVisible: boolean;
     isRefreshing: boolean;
+    isRefreshingUserSearch: boolean;
     activeTabIndex: number;
     tabRoutes: { key: string; title: string }[];
 }
@@ -55,6 +58,7 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             searchUserConnections: UserConnectionsActions.search,
+            searchUsers: UsersActions.search,
         },
         dispatch
     );
@@ -80,6 +84,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             activeTabIndex,
             isNameConfirmModalVisible: false,
             isRefreshing: false,
+            isRefreshingUserSearch: false,
             tabRoutes: [
                 { key: 'connections', title: this.translate('menus.headerTabs.connections') },
                 { key: 'invite', title: this.translate('menus.headerTabs.invite') },
@@ -93,7 +98,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     }
 
     componentDidMount() {
-        const { navigation, userConnections } = this.props;
+        const { navigation, user, userConnections } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.contacts.headerTitle'),
@@ -101,6 +106,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
         if (!userConnections.connections.length) {
             this.handleRefresh();
+        }
+
+        if (!Object.keys(user.users || {})?.length) {
+            this.handleRefreshUsersSearch();
         }
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
@@ -166,6 +175,28 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         this.setState({
             activeTabIndex: index,
         });
+    };
+
+    handleRefreshUsersSearch = () => {
+        this.setState({
+            isRefreshingUserSearch: true,
+        });
+
+        this.props
+            .searchUsers(
+                {
+                    query: '',
+                    limit: 21,
+                    offset: 0,
+                    withMedia: true,
+                },
+            )
+            .catch(() => {})
+            .finally(() => {
+                this.setState({
+                    isRefreshingUserSearch: false,
+                });
+            });
     };
 
     handleRefresh = () => {

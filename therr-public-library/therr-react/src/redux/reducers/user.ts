@@ -14,6 +14,7 @@ const initialState: IUserState = Immutable.from({
     userInView: null,
     thoughts: Immutable.from([]),
     myThoughts: Immutable.from([]),
+    users: Immutable.from({}),
 });
 
 const getUserReducer = (socketIO) => (state: IUserState = initialState, action: any) => {
@@ -22,12 +23,27 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
+    // Slice to keep total from overflowing
+    const modifiedUsers = Object.entries(state.users || {}).slice(0, 100).reduce((acc, cur) => {
+        const [key, value] = cur;
+        acc[key] = value;
+
+        return acc;
+    }, {});
+
     const actionData = { ...action.data };
     const modifiedAchievements = { ...state.achievements };
     const modifiedThought = [...(state.thoughts || [])];
     let modifiedMyThought = [...(state.myThoughts || [])];
 
     switch (action.type) {
+        case UserActionTypes.GET_USERS:
+            // Convert array to object for faster lookup and de-duping
+            return state.setIn(['users'], action.data.results
+                .reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), modifiedUsers));
         case UserActionTypes.GET_MY_ACHIEVEMENTS:
             return state.setIn(['achievements'], action.data);
         case UserActionTypes.UPDATE_MY_ACHIEVEMENTS:
