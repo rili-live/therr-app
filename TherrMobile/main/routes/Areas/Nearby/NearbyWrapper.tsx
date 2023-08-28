@@ -247,8 +247,8 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
     };
 
     handleRefreshConditionally = (shouldShowLoader = false) => {
-        const { activeTab, isFirstLoad } = this.state;
-        const { content, location } = this.props;
+        // const { activeTab, isFirstLoad } = this.state;
+        const { location } = this.props;
 
         if (shouldShowLoader) {
             this.setState({
@@ -256,15 +256,16 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             });
         }
 
-        const activeData = getActiveCarouselData({
-            activeTab,
-            content,
-            isForBookmarks: false,
-            shouldIncludeMoments: true,
-            shouldIncludeSpaces: true,
-        }, 'distance');
+        // const activeData = getActiveCarouselData({
+        //     activeTab,
+        //     content,
+        //     isForBookmarks: false,
+        //     shouldIncludeMoments: true,
+        //     shouldIncludeSpaces: true,
+        // }, 'distance');
 
-        if (shouldRenderNearbyAreaFeed(location) && (isFirstLoad || !activeData?.length || activeData.length < 21)) {
+        if (shouldRenderNearbyAreaFeed(location)
+        ) {
             return this.handleRefresh(false);
         } else {
             this.setState({
@@ -609,7 +610,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             isForBookmarks: false,
             isForDrafts: false,
             shouldIncludeMoments: true,
-            shouldIncludeSpaces: true,
+            shouldIncludeSpaces: false, // spaces are best viewed in the animated preview
         }, 'distance');
         const formattedActiveData = activeData.map(d => {
             const formatted = {

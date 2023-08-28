@@ -33,6 +33,8 @@ import {
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
     MAX_ANIMATION_LATITUDE_DELTA,
+    ANIMATE_TO_REGION_DURATION_FAST,
+    MAX_ANIMATION_LONGITUDE_DELTA,
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
@@ -156,6 +158,7 @@ interface IMapState {
     isAreaAlertVisible: boolean;
     isScrollEnabled: boolean;
     isLocationReady: boolean;
+    isSearchLoading: boolean;
     isLocationUseDisclosureModalVisible: boolean;
     isMapReady: boolean;
     isMinLoadTimeComplete: boolean;
@@ -254,6 +257,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isAreaAlertVisible: false,
             isLocationUseDisclosureModalVisible: false,
             isLocationReady: false,
+            isSearchLoading: false,
             isMapReady: false,
             isMinLoadTimeComplete: false,
             isSearchThisLocationBtnVisible: false,
@@ -734,14 +738,23 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             });
 
                             // User has already logged in initially and loaded the map
-                            if (map.longitude && map.latitude && map.hasUserLocationLoaded) {
+                            if (location.user?.longitude && location.user?.latitude && map.hasUserLocationLoaded) {
+                                const { region } = this.state;
                                 const coords = {
-                                    longitude: map.longitude,
-                                    latitude: map.latitude,
+                                    longitude: location.user?.longitude,
+                                    latitude: location.user?.latitude,
                                 };
                                 this.updateCircleCenter(coords);
                                 updateUserCoordinates(coords);
-                                this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION);
+                                const mapDelta = region.longitude && region.latitudeDelta
+                                    && Math.abs(region.latitudeDelta - MAX_ANIMATION_LATITUDE_DELTA) > 0.001
+                                    && Math.abs(region.longitude - location.user?.longitude) < 0.0001
+                                    ? {
+                                        latitudeDelta: MAX_ANIMATION_LATITUDE_DELTA,
+                                        longitudeDelta: MAX_ANIMATION_LONGITUDE_DELTA,
+                                    }
+                                    : null;
+                                this.handleGpsRecenter(coords, mapDelta, ANIMATE_TO_REGION_DURATION_FAST);
                                 return resolve(coords);
                             }
                             // Get Location Success Handler
@@ -757,7 +770,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 this.updateCircleCenter(coords);
                                 setInitialUserLocation();
                                 updateUserCoordinates(coords);
-                                this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION_SLOW);
+                                this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION);
                                 return resolve(coords);
                             };
                             // Get Location Failed Handler
@@ -973,24 +986,28 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     latitude: geometry.viewport.northeast.lat,
                 });
                 this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW));
-                if (shouldTogglePreview) {
-                    this.mapRef.props.onPress({
-                        nativeEvent: {
-                            coordinate: {
-                                latitude: geometry.location.lat,
-                                longitude: geometry.location.lng,
-                            },
-                        },
-                    }, true);
-                }
-                this.handleSearchThisLocation(searchRadiusMeters, geometry.location.lat, geometry.location.lng);
+                this.handleSearchThisLocation(searchRadiusMeters, geometry.location.lat, geometry.location.lng)
+                    .finally(() => {
+                        // TODO: Determine if this needs to be canceled when navigating to a new view
+                        // We must wait for search to complete so new spaces are available for rendering the preview overlay
+                        if (shouldTogglePreview) {
+                            this.mapRef.props.onPress({
+                                nativeEvent: {
+                                    coordinate: {
+                                        latitude: geometry.location.lat,
+                                        longitude: geometry.location.lng,
+                                    },
+                                },
+                            }, true);
+                        }
+                    });
             }
         }).catch((error) => {
             console.log(error);
         });
     };
 
-    handleSearchThisLocation = (searchRadius?, latitude?, longitude?) => {
+    handleSearchThisLocation = (searchRadius?, latitude?, longitude?): Promise<any> => {
         const { findMomentReactions, findSpaceReactions, searchMoments, searchSpaces } = this.props;
         const { region } = this.state;
         this.setState({
@@ -1014,29 +1031,33 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
 
         if (lat && long) {
-            searchMoments({
-                query: 'me',
-                itemsPerPage: 20,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                latitude: lat,
-                longitude: long,
-            }, {
-                distanceOverride: radius,
+            this.setState({
+                isSearchLoading: true,
             });
-            searchSpaces({
-                query: 'me',
-                itemsPerPage: 20,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                latitude: lat,
-                longitude: long,
-            }, {
-                distanceOverride: radius,
-            });
-            Promise.all([
+
+            return Promise.all([
+                searchMoments({
+                    query: 'me',
+                    itemsPerPage: 20,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    latitude: lat,
+                    longitude: long,
+                }, {
+                    distanceOverride: radius,
+                }),
+                searchSpaces({
+                    query: 'me',
+                    itemsPerPage: 20,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    latitude: lat,
+                    longitude: long,
+                }, {
+                    distanceOverride: radius,
+                }),
                 searchMoments({
                     query: 'connections',
                     itemsPerPage: AREAS_SEARCH_COUNT_ZOOMED,
@@ -1064,16 +1085,23 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     findMomentReactions({
                         momentIds: moments?.results?.map(moment => moment.id),
                         userHasActivated: true,
-                    });
+                    }).catch((e) => console.log(e));
                 }
                 if (spaces?.results?.length) {
                     findSpaceReactions({
                         spaceIds: spaces?.results?.map(space => space.id),
                         userHasActivated: true,
-                    });
+                    }).catch((e) => console.log(e));
                 }
-            });
+            }).catch((err) => console.log(err))
+                .finally(() =>{
+                    this.setState({
+                        isSearchLoading: false,
+                    });
+                });
         }
+
+        return Promise.resolve();
     };
 
     handleStopTouring = () => {
@@ -1341,6 +1369,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isMinLoadTimeComplete,
             isAreaAlertVisible,
             isSearchThisLocationBtnVisible,
+            isSearchLoading,
             isScrollEnabled,
             shouldFollowUserLocation,
             shouldRenderMapCircles,
@@ -1432,9 +1461,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                         </>
                     )}
                     {
-                        (isSearchThisLocationBtnVisible && !isDropdownVisible) &&
+                        ((isSearchThisLocationBtnVisible || isSearchLoading) && !isDropdownVisible) &&
                         <SearchThisAreaButtonGroup
                             handleSearchLocation={this.handleSearchThisLocation}
+                            isSearchLoading={isSearchLoading}
                             translate={this.translate}
                             themeButtons={this.themeButtons}
                         />
@@ -1515,6 +1545,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     </BottomSheetPlus>
                 }
                 <MainButtonMenu
+                    activeRoute="Map"
                     navigation={navigation}
                     onActionButtonPress={this.toggleMomentBtns}
                     onNearbyPress={this.toggleNearbySheet}

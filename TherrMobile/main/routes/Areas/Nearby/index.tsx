@@ -96,6 +96,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                 {
                     !shouldHideNavbar &&
                     <MainButtonMenu
+                        activeRoute="Nearby"
                         navigation={navigation}
                         onActionButtonPress={this.scrollTop}
                         translate={this.translate}

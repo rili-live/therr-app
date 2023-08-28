@@ -230,6 +230,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             && area.featuredIncentiveRewardKey
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
         const shouldDisplayRelatedSpaceBanner = isExpanded && area.spaceId;
+        const toggleOptions = () => toggleAreaOptions(area);
 
         return (
             <>
@@ -268,7 +269,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
                             />
                         }
-                        onPress={toggleAreaOptions}
+                        onPress={toggleOptions}
                         type="clear"
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
