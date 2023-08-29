@@ -3,7 +3,7 @@ import { Notifications } from 'therr-js-utilities/constants';
 import { getDbCountQueryString } from 'therr-js-utilities/db';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
-import { USER_CONNECTIONS_TABLE_NAME } from './UserConnectionsStore';
+import { USER_CONNECTIONS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 

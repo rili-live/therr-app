@@ -168,7 +168,8 @@
       "title": "Active Contacts"
     },
     "contactsSearch": {
-      "noContactsFound": "No contacts found",
+      "noContactsFound": "No contacts found. Create a connection to get started",
+      "noUsersFound": "No users found",
       "title": "All Contacts"
     },
     "header": {
@@ -627,10 +628,12 @@
     },
     "headerTabs": {
       "discoveries": "Discoveries",
-      "connections": "Connections",
+      "connections": "My Connections",
+      "people": "People",
+      "search": "Search",
       "social": "Social",
       "events": "Events",
-      "invite": "Invite",
+      "invite": "Invites",
       "media": "Media",
       "news": "News",
       "thoughts": "Thoughts"

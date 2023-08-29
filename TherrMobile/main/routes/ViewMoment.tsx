@@ -304,7 +304,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         return createOrUpdateMomentReaction(momentId, data, moment.fromUserId, user.details.userName);
     };
 
-    toggleAreaOptions = () => {
+    toggleAreaOptions = (displayArea?: any) => {
         const { areAreaOptionsVisible, fetchedMoment } = this.state;
         const { moment } = this.props.route.params;
         const area = {
@@ -314,7 +314,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
         this.setState({
             areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedMoment: areAreaOptionsVisible ? {} : area,
+            selectedMoment: areAreaOptionsVisible ? {} : (area || displayArea),
         });
     };
 

@@ -20,6 +20,8 @@ interface IStoreProps extends IButtonMenuDispatchProps {
 
 // Regular component props
 export interface IButtonMenuProps extends IStoreProps {
+    activeRoute?: string;
+    children?: any;
     navigation: any;
     onActionButtonPress?: Function;
     onNearbyPress?: Function;
@@ -61,6 +63,15 @@ export class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuSta
         const { navigation } = this.props;
 
         navigation.navigate(routeName);
+    };
+
+    getActiveRoute = () => {
+        const { activeRoute } = this.props;
+        if (activeRoute) {
+            return activeRoute;
+        }
+
+        return this.getCurrentScreen();
     };
 
     getCurrentScreen = () => {

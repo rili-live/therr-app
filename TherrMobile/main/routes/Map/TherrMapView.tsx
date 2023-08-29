@@ -128,7 +128,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapViewState> {
+class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewState> {
     static getDerivedStateFromProps(nextProps: ITherrMapViewProps, nextState: ITherrMapViewState) {
         if (nextProps.areMapActionsVisible && nextState.isPreviewBottomSheetVisible) {
             return {
@@ -169,16 +169,17 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     }
 
     componentDidMount = () => {
-        const { navigation } = this.props;
+        const { map, navigation } = this.props;
         this.previewAnimation = new Animated.Value(0);
         this.addAnimationListener();
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
             const { location, route } = this.props;
-            if (route?.params?.shouldShowPreview && location?.user?.latitude && location?.user?.longitude) {
+            if (route?.params?.shouldShowPreview &&
+                ((map?.latitude && map?.longitude) || (location?.user?.latitude && location?.user?.longitude))) {
                 this.openPreviewBottomSheet({
-                    latitude: location?.user?.latitude,
-                    longitude: location?.user?.longitude,
+                    latitude: map?.latitude || location?.user?.latitude,
+                    longitude: map?.longitude || location?.user?.longitude,
                 });
             } else {
                 this.setState({

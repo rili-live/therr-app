@@ -645,6 +645,7 @@ class ViewUser extends React.Component<
                     themeModal={this.themeConfirmModal}
                 />
                 <MainButtonMenu
+                    activeRoute="ViewUser"
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}

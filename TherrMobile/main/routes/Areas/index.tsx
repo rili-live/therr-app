@@ -119,7 +119,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class Areas extends React.Component<IAreasProps, IAreasState> {
+class Areas extends React.PureComponent<IAreasProps, IAreasState> {
     static whyDidYouRender = true;
 
     private carouselDiscoveriesRef;
@@ -737,6 +737,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                 />
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
                 <MainButtonMenu
+                    activeRoute="Areas"
                     navigation={navigation}
                     onActionButtonPress={this.scrollTop}
                     translate={this.translate}
