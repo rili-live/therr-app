@@ -10,6 +10,7 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import spacingStyles from '../../styles/layouts/spacing';
 import translator from '../../services/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -21,6 +22,7 @@ import CreateConnection from './components/CreateConnection';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import ListEmpty from '../../components/ListEmpty';
 import UsersActions from '../../redux/actions/UsersActions';
+import UserSearchItem from './components/UserSearchItem';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -86,6 +88,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             isRefreshing: false,
             isRefreshingUserSearch: false,
             tabRoutes: [
+                { key: 'people', title: this.translate('menus.headerTabs.people') },
                 { key: 'connections', title: this.translate('menus.headerTabs.connections') },
                 { key: 'invite', title: this.translate('menus.headerTabs.invite') },
             ],
@@ -128,17 +131,17 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         }
     }
 
-    getConnectionDetails = (connection) => {
+    getConnectionOrUserDetails = (userOrConnection) => {
         const { user } = this.props;
 
         // Active connection format
-        if (!connection.users) {
-            return connection;
+        if (!userOrConnection.users) {
+            return userOrConnection;
         }
 
         // User <-> User connection format
         return (
-            connection.users.find(
+            userOrConnection.users.find(
                 (u) => user.details && u.id !== user.details.id
             ) || {}
         );
@@ -175,6 +178,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         this.setState({
             activeTabIndex: index,
         });
+    };
+
+    trySearchMoreUsers = () => {
+
     };
 
     handleRefreshUsersSearch = () => {
@@ -276,10 +283,41 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     renderSceneMap = ({ route }) => {
-        const { isRefreshing } = this.state;
+        const { isRefreshing, isRefreshingUserSearch } = this.state;
+        const { user } = this.props;
         const shouldLaunchContacts = this.props.route?.params?.shouldLaunchContacts;
 
         switch (route.key) {
+            case 'people':
+                const people: any[] = Object.values(user?.users || {});
+
+                return (
+                    <FlatList
+                        data={people}
+                        keyExtractor={(item) => String(item.id)}
+                        renderItem={({ item: connection }) => (
+                            <UserSearchItem
+                                key={connection.id}
+                                userDetails={this.getConnectionOrUserDetails(connection)}
+                                getUserSubtitle={this.getConnectionSubtitle}
+                                goToViewUser={this.goToViewUser}
+                                theme={this.theme}
+                                translate={this.translate}
+                            />
+                        )}
+                        ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(
+                            'components.contactsSearch.noUsersFound'
+                        )} />}
+                        stickyHeaderIndices={[]}
+                        refreshControl={<RefreshControl
+                            refreshing={isRefreshingUserSearch}
+                            onRefresh={this.handleRefreshUsersSearch}
+                        />}
+                        // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
+                        onEndReached={this.trySearchMoreUsers}
+                        onEndReachedThreshold={0.5}
+                    />
+                );
             case 'connections':
                 const connections = this.sortConnections();
 
@@ -290,7 +328,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         renderItem={({ item: connection }) => (
                             <ConnectionItem
                                 key={connection.id}
-                                connectionDetails={this.getConnectionDetails(connection)}
+                                connectionDetails={this.getConnectionOrUserDetails(connection)}
                                 getConnectionSubtitle={this.getConnectionSubtitle}
                                 goToViewUser={this.goToViewUser}
                                 isActive={connection.isActive}
@@ -299,9 +337,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 translate={this.translate}
                             />
                         )}
-                        ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(
-                            'components.contactsSearch.noContactsFound'
-                        )} />}
+                        ListEmptyComponent={
+                            <View style={spacingStyles.marginHorizLg}>
+                                <ListEmpty iconName="key-user" theme={this.theme} text={this.translate(
+                                    'components.contactsSearch.noContactsFound'
+                                )} />
+                            </View>
+                        }
                         stickyHeaderIndices={[]}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
@@ -370,6 +412,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 />
                 <CreateConnectionButton onPress={this.navToInvite} themeButtons={this.themeButtons} translate={this.translate} />
                 <MainButtonMenu
+                    activeRoute="Contacts"
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}

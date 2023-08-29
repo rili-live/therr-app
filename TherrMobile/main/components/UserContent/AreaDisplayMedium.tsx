@@ -122,6 +122,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         const { mediaWidth } = this.state;
 
         const isBookmarked = area.reaction?.userBookmarkCategory;
+        const toggleOptions = () => toggleAreaOptions(area);
 
         return (
             <>
@@ -160,7 +161,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                                 color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
                             />
                         }
-                        onPress={() => toggleAreaOptions(area)}
+                        onPress={toggleOptions}
                         type="clear"
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />

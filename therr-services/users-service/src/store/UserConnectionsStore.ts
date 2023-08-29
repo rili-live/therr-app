@@ -2,11 +2,9 @@ import KnexBuilder, { Knex } from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
-import { USERS_TABLE_NAME } from './UsersStore';
+import { USERS_TABLE_NAME, USER_CONNECTIONS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
-
-export const USER_CONNECTIONS_TABLE_NAME = 'main.userConnections';
 
 export interface ICreateUserConnectionParams {
     requestingUserId: string;

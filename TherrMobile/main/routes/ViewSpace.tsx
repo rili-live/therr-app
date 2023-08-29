@@ -288,16 +288,20 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         }
         const { navigation, route } = this.props;
         const { previousView } = route.params;
-        if (previousView && (previousView === 'Areas' || previousView === 'Notifications')) {
-            if (previousView === 'Areas') {
-                navigation.goBack();
-            } else if (previousView === 'Notifications') {
-                navigation.navigate('Notifications');
-            }
+        if (previousView === 'Areas') {
+            navigation.goBack();
+        } else if (previousView === 'Notifications') {
+            navigation.navigate('Notifications');
         } else {
-            navigation.navigate('Map', {
-                shouldShowPreview: true,
-            });
+            // Note: On ios goBack seems to retain the preview list in the right order
+            // better than this alternate approach
+            if (Platform.OS === 'ios') {
+                navigation.goBack();
+            } else {
+                navigation.navigate('Map', {
+                    shouldShowPreview: true,
+                });
+            }
         }
     };
 
@@ -351,7 +355,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         return createOrUpdateSpaceReaction(spaceId, data, space.fromUserId, user.details.userName);
     };
 
-    toggleAreaOptions = () => {
+    toggleAreaOptions = (displayArea?: any) => {
         const { areAreaOptionsVisible, fetchedSpace } = this.state;
         const { space } = this.props.route.params;
         const area = {
@@ -361,7 +365,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
 
         this.setState({
             areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedSpace: areAreaOptionsVisible ? {} : area,
+            selectedSpace: areAreaOptionsVisible ? {} : (area || displayArea),
         });
     };
 

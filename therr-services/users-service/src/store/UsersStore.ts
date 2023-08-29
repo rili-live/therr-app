@@ -1,12 +1,11 @@
 import KnexBuilder, { Knex } from 'knex';
-import { AccessLevels } from 'therr-js-utilities/constants';
+import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
 import { IConnection } from './connection';
+import { USERS_TABLE_NAME, USER_CONNECTIONS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
-
-export const USERS_TABLE_NAME = 'main.users';
 
 export interface ICreateUserParams {
     accessLevels: string | AccessLevels;
@@ -79,7 +78,7 @@ export default class UsersStore {
             'id',
             'email',
             'isUnclaimed',
-        ]).from('main.users')
+        ]).from(USERS_TABLE_NAME)
             .where({ email });
 
         queryString = queryString.toString();
@@ -89,7 +88,7 @@ export default class UsersStore {
     getByIdSimple = (id: string) => this.getUserById(id, ['id']);
 
     getUserById = (id: string, returning: any = '*') => {
-        let queryString: any = knexBuilder.select(returning).from('main.users')
+        let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
             .where({ id });
 
         queryString = queryString.toString();
@@ -98,7 +97,7 @@ export default class UsersStore {
 
     getByPhoneNumber = (phoneNumber: string) => {
         const normalizedPhone = normalizePhoneNumber(phoneNumber as string);
-        let queryString: any = knexBuilder.select(['email', 'phoneNumber', 'isBusinessAccount']).from('main.users')
+        let queryString: any = knexBuilder.select(['email', 'phoneNumber', 'isBusinessAccount']).from(USERS_TABLE_NAME)
             .where({ phoneNumber: normalizedPhone });
 
         queryString = queryString.toString();
@@ -111,7 +110,7 @@ export default class UsersStore {
         userName,
         phoneNumber,
     }: IFindUserArgs, returning: any = '*') => {
-        let queryString: any = knexBuilder.select(returning).from('main.users')
+        let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
             .where(function () {
                 return id ? this.where({ id }) : this;
             });
@@ -132,26 +131,27 @@ export default class UsersStore {
     findUsers({
         ids,
     }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media']) {
-        let queryString: any = knexBuilder.select(returning).from('main.users')
+        let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
             .whereIn('id', ids || []);
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    searchUsers({
+    searchUsers(requestingUserId, {
         ids,
         query,
         queryColumnName,
         limit,
         offset,
-    }: ISearchUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media']) {
+    }: ISearchUsersArgs, withConnections = false, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media']) {
         const supportedSearchColumns = ['firstName', 'lastName', 'userName'];
         const MAX_LIMIT = 200;
         const throttledLimit = Math.min(limit || 100, MAX_LIMIT);
-        let queryString: any = knexBuilder.select(returning).from('main.users')
+        let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
             .whereNotNull('userName')
             .andWhere('settingsIsProfilePublic', true)
+            .andWhereNot('id', requestingUserId)
             .orderBy('createdAt', 'desc')
             .limit(throttledLimit)
             .offset(offset || 0);
@@ -173,7 +173,40 @@ export default class UsersStore {
         }
 
         queryString = queryString.toString();
-        return this.db.read.query(queryString).then((response) => response.rows);
+        return this.db.read.query(queryString).then((response) => {
+            if (!response.rows?.length) {
+                return [];
+            }
+
+            if (!withConnections) {
+                return response.rows;
+            }
+
+            const users = response.rows;
+            const userIds = users.map((user) => user.id);
+            const usersById = users.reduce((acc, cur) => {
+                acc[cur.id] = cur;
+                return acc;
+            }, {});
+
+            const connectionsQueryString: any = knexBuilder.select('*').from(USER_CONNECTIONS_TABLE_NAME)
+                .where((builder) => {
+                    builder.where('requestingUserId', requestingUserId)
+                        .whereIn('acceptingUserId', userIds);
+                }).orWhere((builder) => {
+                    builder.where('acceptingUserId', requestingUserId)
+                        .whereIn('requestingUserId', userIds);
+                });
+
+            return this.db.read.query(connectionsQueryString.toString()).then(({ rows: connections }) => {
+                connections.forEach((connection) => {
+                    if (connection.requestingUserId === requestingUserId) {
+                        usersById[connection.acceptingUserId].isConnected = connection.requestStatus !== UserConnectionTypes.MIGHT_KNOW;
+                    }
+                });
+                return Object.values(usersById);
+            });
+        });
     }
 
     findUsersByContactInfo(
@@ -195,7 +228,7 @@ export default class UsersStore {
                 }
             }
         });
-        let queryString: any = knexBuilder.select(returning).from('main.users')
+        let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
             .whereIn('email', emails || [])
             .orWhereIn('phoneNumber', phoneNumbers);
 

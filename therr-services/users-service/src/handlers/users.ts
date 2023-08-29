@@ -228,6 +228,8 @@ const findUsers: RequestHandler = (req: any, res: any) => Store.users.findUsers(
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
 const searchUsers: RequestHandler = (req: any, res: any) => {
+    const userId = req.headers['x-userid']; // undefined if user is not logged in
+
     const {
         ids,
         query,
@@ -239,13 +241,13 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
     const actualLimit = limit || 21;
     const actualOffset = offset || 0;
 
-    return Store.users.searchUsers({
+    return Store.users.searchUsers(userId, {
         ids,
         query,
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
-    })
+    }, true)
         .then((results) => {
             res.status(200).send({
                 results: results.map((user) => {
