@@ -2,7 +2,6 @@ import KnexBuilder, { Knex } from 'knex';
 import { getDbCountQueryString } from 'therr-js-utilities/db';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
-import { USER_CONNECTIONS_TABLE_NAME } from './UserConnectionsStore';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
