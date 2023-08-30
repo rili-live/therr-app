@@ -159,13 +159,30 @@ class UsersActions {
     });
 
     search = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.search(args).then((response) => {
-        dispatch({
-            type: UserActionTypes.GET_USERS,
-            data: response?.data,
-        });
+        if (args.query) {
+            dispatch({
+                type: UserActionTypes.GET_USERS_REFETCH,
+                data: response?.data,
+            });
+        } else {
+            dispatch({
+                type: UserActionTypes.GET_USERS,
+                data: response?.data,
+            });
+        }
 
         return response?.data;
     });
+
+    searchUpdateUser = (userId: string, updates: { isConnected: boolean }) => (dispatch: any) => {
+        dispatch({
+            type: UserActionTypes.GET_USERS_UPDATE,
+            data: {
+                id: userId,
+                updates,
+            },
+        });
+    };
 
     updateUserInView = (data: any) => (dispatch: any) => {
         dispatch({

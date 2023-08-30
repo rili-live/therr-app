@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Avatar, Badge, ListItem } from 'react-native-elements';
+import { Avatar, Button, ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { getUserImageUri } from '../../../utilities/content';
 import { ITherrThemeColors } from '../../../styles/themes';
@@ -10,7 +10,12 @@ interface IUserSearchItemProps {
     userDetails: any;
     getUserSubtitle: any;
     goToViewUser: any;
+    onSendConnectRequest: any;
     theme: {
+        colors: ITherrThemeColors;
+        styles: any;
+    },
+    themeButtons: {
         colors: ITherrThemeColors;
         styles: any;
     },
@@ -21,9 +26,13 @@ const UserSearchItem: React.FunctionComponent<IUserSearchItemProps> = ({
     userDetails,
     getUserSubtitle,
     goToViewUser,
+    onSendConnectRequest,
     theme,
+    themeButtons,
     translate,
 }) => {
+    const handleConnectionRequest = () => onSendConnectRequest(userDetails);
+
     return (
         <ListItem
             onPress={() => goToViewUser(userDetails.id)}
@@ -46,9 +55,18 @@ const UserSearchItem: React.FunctionComponent<IUserSearchItemProps> = ({
                 <ListItem.Title>{userDetails.userName}</ListItem.Title>
                 <ListItem.Subtitle>{getUserSubtitle(userDetails) || translate('pages.userProfile.anonymous')}</ListItem.Subtitle>
             </View>
-            <Badge
-                badgeStyle={{ backgroundColor: theme.colors.accentDivider }}
-            />
+            <View>
+                {
+                    !userDetails.isConnected &&
+                        <Button
+                            onPress={handleConnectionRequest}
+                            containerStyle={themeButtons.styles.buttonPillContainerSquare}
+                            buttonStyle={themeButtons.styles.buttonPill}
+                            titleStyle={themeButtons.styles.buttonPillTitle}
+                            title={translate('menus.connections.buttons.connect')}
+                        />
+                }
+            </View>
         </ListItem>
     );
 };

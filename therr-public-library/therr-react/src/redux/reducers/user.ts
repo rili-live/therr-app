@@ -44,6 +44,22 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                     ...acc,
                     [item.id]: item,
                 }), modifiedUsers));
+        case UserActionTypes.GET_USERS_REFETCH:
+            // Convert array to object for faster lookup and de-duping
+            return state.setIn(['users'], action.data.results
+                .reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), {})); // Clear stale results
+        case UserActionTypes.GET_USERS_UPDATE:
+            if (modifiedUsers[action.data.id]) {
+                modifiedUsers[action.data.id] = {
+                    ...modifiedUsers[action.data.id],
+                    ...action.data.updates,
+                };
+            }
+            // Convert array to object for faster lookup and de-duping
+            return state.setIn(['users'], modifiedUsers); // Clear stale results
         case UserActionTypes.GET_MY_ACHIEVEMENTS:
             return state.setIn(['achievements'], action.data);
         case UserActionTypes.UPDATE_MY_ACHIEVEMENTS:
@@ -106,6 +122,7 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['isAuthenticated'], false)
                 .setIn(['socketDetails'], {})
+                .setIn(['users'], {})
                 .setIn(['details'], { id: state.details.id, userName: state.details.userName, media: state.details.media });
 
         // THOUGHTS //

@@ -27,9 +27,11 @@ import UserSearchItem from './components/UserSearchItem';
 const { width: viewportWidth } = Dimensions.get('window');
 
 interface IContactsDispatchProps {
+    createUserConnection: Function;
     logout: Function;
     searchUserConnections: Function;
     searchUsers: Function;
+    searchUpdateUser: Function;
 }
 
 interface IStoreProps extends IContactsDispatchProps {
@@ -59,8 +61,10 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            createUserConnection: UserConnectionsActions.create,
             searchUserConnections: UserConnectionsActions.search,
             searchUsers: UsersActions.search,
+            searchUpdateUser: UsersActions.searchUpdateUser,
         },
         dispatch
     );
@@ -242,6 +246,26 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         navigation.navigate('Settings');
     };
 
+    onSendConnectRequest = (acceptingUser: any) => {
+        const { createUserConnection, user, searchUpdateUser } = this.props;
+        // TODO: Send connection request
+        createUserConnection({
+            requestingUserId: user.details.id,
+            requestingUserFirstName: user.details.firstName,
+            requestingUserLastName: user.details.lastName,
+            requestingUserEmail: user.details.email,
+            acceptingUserId: acceptingUser?.id,
+            acceptingUserPhoneNumber: acceptingUser?.phoneNumber,
+            acceptingUserEmail: acceptingUser?.email,
+        }, {
+            userName: user?.details?.userName,
+        }).then(() => {
+            searchUpdateUser(acceptingUser.id, {
+                isConnected: true,
+            });
+        });
+    };
+
     toggleNameConfirmModal = () => {
         this.setState({
             isNameConfirmModalVisible: !this.state.isNameConfirmModalVisible,
@@ -295,13 +319,15 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     <FlatList
                         data={people}
                         keyExtractor={(item) => String(item.id)}
-                        renderItem={({ item: connection }) => (
+                        renderItem={({ item: user }) => (
                             <UserSearchItem
-                                key={connection.id}
-                                userDetails={this.getConnectionOrUserDetails(connection)}
+                                key={user.id}
+                                userDetails={this.getConnectionOrUserDetails(user)}
                                 getUserSubtitle={this.getConnectionSubtitle}
                                 goToViewUser={this.goToViewUser}
+                                onSendConnectRequest={this.onSendConnectRequest}
                                 theme={this.theme}
+                                themeButtons={this.themeButtons}
                                 translate={this.translate}
                             />
                         )}
@@ -316,6 +342,8 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
                         onEndReached={this.trySearchMoreUsers}
                         onEndReachedThreshold={0.5}
+                        ListFooterComponent={<View />}
+                        ListFooterComponentStyle={{ marginBottom: 80 }}
                     />
                 );
             case 'connections':
