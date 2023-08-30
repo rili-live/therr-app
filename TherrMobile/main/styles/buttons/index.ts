@@ -335,6 +335,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: 24,
             width: 24,
         },
+        btnSmallTitle: {
+            paddingRight: 10,
+            fontFamily: therrFontFamily,
+        },
         btnMedium: {
             ...btnStyles,
             backgroundColor: therrTheme.colors.accent1,
@@ -433,6 +437,21 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderRadius: 0,
             padding: 0,
             zIndex: 10000,
+        },
+        buttonPill: {
+            backgroundColor: therrTheme.colors.primary3,
+            paddingHorizontal: 15,
+            paddingVertical: 6,
+        },
+        buttonPillContainerRound: {
+            borderRadius: 50,
+        },
+        buttonPillContainerSquare: {
+            borderRadius: 8,
+        },
+        buttonPillTitle: {
+            fontSize: 15,
+            fontFamily: therrFontFamily,
         },
     });
 
