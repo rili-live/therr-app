@@ -25,6 +25,7 @@ import UsersActions from '../../redux/actions/UsersActions';
 import UserSearchItem from './components/UserSearchItem';
 
 const { width: viewportWidth } = Dimensions.get('window');
+const DEFAULT_PAGE_SIZE = 21;
 
 interface IContactsDispatchProps {
     createUserConnection: Function;
@@ -115,7 +116,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             this.handleRefresh();
         }
 
-        if (!Object.keys(user.users || {})?.length) {
+        if ((Object.keys(user.users || {})?.length || 0) < DEFAULT_PAGE_SIZE) {
             this.handleRefreshUsersSearch();
         }
 
@@ -197,7 +198,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             .searchUsers(
                 {
                     query: '',
-                    limit: 21,
+                    limit: DEFAULT_PAGE_SIZE,
                     offset: 0,
                     withMedia: true,
                 },
