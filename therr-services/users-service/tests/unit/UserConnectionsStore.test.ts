@@ -2,7 +2,8 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { UserConnectionTypes } from 'therr-js-utilities/constants';
-import UserConnectionsStore, { USER_CONNECTIONS_TABLE_NAME } from '../../src/store/UserConnectionsStore';
+import UserConnectionsStore from '../../src/store/UserConnectionsStore';
+import { USER_CONNECTIONS_TABLE_NAME } from '../../src/store/tableNames';
 
 describe('UserConnectionsStore', () => {
     describe('countRecords', () => {
