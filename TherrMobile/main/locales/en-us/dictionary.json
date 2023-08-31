@@ -673,7 +673,8 @@
         "activeConnections": "Active Connections",
         "invite": "Invite",
         "searchContacts": "Search Contacts",
-        "createConnection": "Add Connection"
+        "createConnection": "Add Connection",
+        "connect": "Connect"
       }
     },
     "filters": {

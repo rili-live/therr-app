@@ -73,8 +73,7 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
                         },
                     });
                     // NOTE: Always resolve, even if there is an error to prevent the API from failing
-                    resolve(data);
-                    return;
+                    return resolve(data);
                 }
                 resolve(data);
             });

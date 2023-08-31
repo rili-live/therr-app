@@ -12,7 +12,7 @@ const getUserImageUri = (user, size = 200) => {
         return `${globalConfig.baseApiGatewayRoute}/user-files/${user.details.media.profilePicture.path}`;
     }
 
-    return `https://robohash.org/${user.details?.id}?set=set1&size=${size}x${size}`;
+    return `https://robohash.org/${user.details?.id}?set=set5&size=${size}x${size}`;
 };
 
 const signImageUrl = (isPublic: boolean, {

@@ -875,45 +875,70 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             (Date.now() - this.state.lastMomentsRefresh <= MOMENTS_REFRESH_THROTTLE_MS)) {
             return;
         }
-        const { findMomentReactions, findSpaceReactions, map, searchMoments, searchSpaces } = this.props;
+        const { map } = this.props;
         const userCoords = coords || {
             longitude: map.longitude,
             latitude: map.latitude,
         };
+
         // TODO: Consider making this one, dynamic request to add efficiency
-        searchMoments({
-            query: 'me',
-            itemsPerPage: 50,
-            pageNumber: 1,
-            order: 'desc',
-            filterBy: 'fromUserIds',
-            ...userCoords,
-        });
-        searchSpaces({
-            query: 'me',
-            itemsPerPage: 50,
-            pageNumber: 1,
-            order: 'desc',
-            filterBy: 'fromUserIds',
-            ...userCoords,
-        });
-        Promise.all([
+        return this.searchMapAreas(userCoords, {
+            itemsPerPage: AREAS_SEARCH_COUNT,
+            meItemsPerPage: 50,
+        })
+            .finally(() =>{
+                this.setState({
+                    isSearchLoading: false,
+                });
+
+                this.setState({
+                    lastMomentsRefresh: Date.now(),
+                });
+            });
+    };
+
+    searchMapAreas = (
+        longLat: { longitude: string, latitude: string },
+        conditions: {
+            itemsPerPage: number,
+            meItemsPerPage: number,
+        },
+        distanceOverride?: any) => {
+        const { findMomentReactions, findSpaceReactions, searchMoments, searchSpaces } = this.props;
+
+        return Promise.all([
             searchMoments({
                 query: 'connections',
-                itemsPerPage: AREAS_SEARCH_COUNT,
+                itemsPerPage: conditions.itemsPerPage,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',
-                ...userCoords,
-            }),
+                ...longLat,
+            }, distanceOverride),
             searchSpaces({
                 query: 'connections',
-                itemsPerPage: AREAS_SEARCH_COUNT,
+                itemsPerPage: conditions.itemsPerPage,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',
-                ...userCoords,
-            }),
+                ...longLat,
+            }, distanceOverride),
+            searchMoments({
+                query: 'me',
+                itemsPerPage: conditions.meItemsPerPage,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...longLat,
+            }, distanceOverride),
+            searchSpaces({
+                query: 'me',
+                itemsPerPage: conditions.meItemsPerPage,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...longLat,
+            }, distanceOverride),
         ]).then(([moments, spaces]) => {
             if (moments?.results?.length) {
                 findMomentReactions({
@@ -930,10 +955,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             this.setState({
                 lastMomentsRefresh: Date.now(),
             });
-        });
-        this.setState({
-            lastMomentsRefresh: Date.now(),
-        });
+        }).catch((err) => console.log(err));
     };
 
     getSearchRadius = (locationCenter, locationEdge) => {
@@ -1008,7 +1030,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     handleSearchThisLocation = (searchRadius?, latitude?, longitude?): Promise<any> => {
-        const { findMomentReactions, findSpaceReactions, searchMoments, searchSpaces } = this.props;
         const { region } = this.state;
         this.setState({
             isSearchThisLocationBtnVisible: false,
@@ -1035,70 +1056,19 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 isSearchLoading: true,
             });
 
-            return Promise.all([
-                searchMoments({
-                    query: 'me',
-                    itemsPerPage: 20,
-                    pageNumber: 1,
-                    order: 'desc',
-                    filterBy: 'fromUserIds',
-                    latitude: lat,
-                    longitude: long,
-                }, {
-                    distanceOverride: radius,
-                }),
-                searchSpaces({
-                    query: 'me',
-                    itemsPerPage: 20,
-                    pageNumber: 1,
-                    order: 'desc',
-                    filterBy: 'fromUserIds',
-                    latitude: lat,
-                    longitude: long,
-                }, {
-                    distanceOverride: radius,
-                }),
-                searchMoments({
-                    query: 'connections',
-                    itemsPerPage: AREAS_SEARCH_COUNT_ZOOMED,
-                    pageNumber: 1,
-                    order: 'desc',
-                    filterBy: 'fromUserIds',
-                    latitude: lat,
-                    longitude: long,
-                }, {
-                    distanceOverride: radius,
-                }),
-                searchSpaces({
-                    query: 'connections',
-                    itemsPerPage: AREAS_SEARCH_COUNT_ZOOMED,
-                    pageNumber: 1,
-                    order: 'desc',
-                    filterBy: 'fromUserIds',
-                    latitude: lat,
-                    longitude: long,
-                }, {
-                    distanceOverride: radius,
-                }),
-            ]).then(([moments, spaces]) => {
-                if (moments?.results?.length) {
-                    findMomentReactions({
-                        momentIds: moments?.results?.map(moment => moment.id),
-                        userHasActivated: true,
-                    }).catch((e) => console.log(e));
-                }
-                if (spaces?.results?.length) {
-                    findSpaceReactions({
-                        spaceIds: spaces?.results?.map(space => space.id),
-                        userHasActivated: true,
-                    }).catch((e) => console.log(e));
-                }
-            }).catch((err) => console.log(err))
-                .finally(() =>{
-                    this.setState({
-                        isSearchLoading: false,
-                    });
+            return this.searchMapAreas({
+                latitude: lat,
+                longitude: long,
+            }, {
+                itemsPerPage: AREAS_SEARCH_COUNT_ZOOMED,
+                meItemsPerPage: 20,
+            }, {
+                distanceOverride: radius,
+            }).finally(() =>{
+                this.setState({
+                    isSearchLoading: false,
                 });
+            });
         }
 
         return Promise.resolve();
