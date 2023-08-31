@@ -46,6 +46,7 @@ import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
 import { AndroidChannelIds, PressActionIds, getAndroidChannel } from '../constants';
 import { socketIO } from '../socket-io-middleware';
+import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 
 const Stack = createStackNavigator();
 
@@ -621,6 +622,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     screenOptions={({ navigation }) => {
                         const themeName = this.props?.user?.settings?.mobileThemeName;
                         const currentScreen = this.getCurrentScreen(navigation);
+                        const isContacts = currentScreen === 'Contacts';
                         const isAreas = currentScreen === 'Areas';
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
                         const isMap = currentScreen === 'Map';
@@ -661,6 +663,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         }
                         if (isMap) {
                             headerTitle = () => <HeaderSearchInput
+                                navigation={navigation}
+                                theme={this.theme}
+                                themeForms={this.themeForms}
+                            />;
+                        }
+                        if (isContacts) {
+                            headerTitle = () => <HeaderSearchUsersInput
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}

@@ -162,12 +162,12 @@ export default class UsersStore {
 
         if (query) {
             if (supportedSearchColumns.includes(queryColumnName || '')) {
-                queryString = queryString.where(queryColumnName, 'like', `%${query}%`);
+                queryString = queryString.where(queryColumnName, 'ilike', `%${query}%`);
             } else {
                 queryString = queryString.where((builder) => {
-                    builder.where('firstName', 'like', `%${query}%`)
-                        .orWhere('lastName', 'like', `%${query}%`)
-                        .orWhere('userName', 'like', `%${query}%`);
+                    builder.where('firstName', 'ilike', `%${query}%`)
+                        .orWhere('lastName', 'ilike', `%${query}%`)
+                        .orWhere('userName', 'ilike', `%${query}%`);
                 });
             }
         }
