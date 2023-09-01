@@ -81,6 +81,7 @@ usersServiceRouter.post('/rewards', rewardRequestAttemptLimiter, createRewardsRe
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
+
 usersServiceRouter.get('/rewards/exchange-rate', validate, async (req, res, next) => {
     const cachedExchangeRate = await CacheStore.usersService.getExchangeRate();
 
@@ -92,9 +93,7 @@ usersServiceRouter.get('/rewards/exchange-rate', validate, async (req, res, next
 }, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
-}, (response) => CacheStore.usersService.setExchangeRate(response.exchangeRate).catch((error) => {
-    console.error('Error setting exchange rate in cache', error);
-})));
+}, (response) => CacheStore.usersService.setExchangeRate(response.exchangeRate)));
 
 // Payments
 usersServiceRouter.post('/payments/webhook', validate, handleServiceRequest({
