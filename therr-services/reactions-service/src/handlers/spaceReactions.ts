@@ -114,7 +114,7 @@ const getSpaceRatings: RequestHandler = (req: any, res: any) => {
 
             const totalRatings = ratings.length;
             const sum = ratings.reduce((acc, curr) => acc + curr, 0);
-            const avgRating = totalRatings > 0 ? sum / totalRatings : null;
+            const avgRating = totalRatings > 0 ? Math.round((sum / totalRatings) * 10) / 10 : null;
 
             res.status(200).send({ avgRating, totalRatings });
         })

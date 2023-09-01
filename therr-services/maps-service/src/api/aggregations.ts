@@ -44,7 +44,7 @@ const getPercentageChange = (currentSeries, previousSeries) => {
         return 100;
     }
 
-    return ((currentMetricSum - previousMetricSum) * 100) / previousMetricSum;
+    return Math.round(((currentMetricSum - previousMetricSum) * 100) / previousMetricSum);
 };
 
 export { aggregateMetrics, getPercentageChange, getMetricsByName };
