@@ -14,7 +14,7 @@ const handleServiceRequest = ({
     basePath,
     method,
     overrideUrl,
-}: IHandleServiceRequestArgs, updateCache?: (result: any) => void) => (req, res) => {
+}: IHandleServiceRequestArgs, updateCache?: (result: any, reqBody?: any) => void) => (req, res) => {
     const config: any = {
         headers: {
             authorization: req.headers.authorization || '',
@@ -56,7 +56,7 @@ const handleServiceRequest = ({
     return restRequest(config)
         .then((response) => {
             if (updateCache) {
-                updateCache(response.data);
+                updateCache(response.data, req.body);
             }
             return res.send(response.data);
         })
