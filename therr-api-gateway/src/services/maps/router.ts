@@ -22,6 +22,7 @@ import {
     updateSpaceValidation,
 } from './validation/spaces';
 import { requestSpaceClaimValidation } from './validation/dashboard';
+import CacheStore from '../../store';
 
 const mapsServiceRouter = express.Router();
 
@@ -47,7 +48,11 @@ mapsServiceRouter.post('/moments/integrated/dynamic', dynamicCreateIntegratedMom
     method: 'post',
 }));
 
-mapsServiceRouter.put('/moments/:momentId', updateAreaValidation, validate, handleServiceRequest({
+mapsServiceRouter.put('/moments/:momentId', updateAreaValidation, validate, async (req, res, next) => {
+    await CacheStore.mapsService.invalidateAreaDetails('moments', req.params.momentId);
+
+    return next();
+}, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'put',
 }));
@@ -57,10 +62,18 @@ mapsServiceRouter.get('/moments/integrated/:userId', validate, handleServiceRequ
     method: 'get',
 }));
 
-mapsServiceRouter.post('/moments/:momentId/details', getMomentDetailsValidation, validate, handleServiceRequest({
+mapsServiceRouter.post('/moments/:momentId/details', getMomentDetailsValidation, validate, async (req, res, next) => {
+    const momentDetails = await CacheStore.mapsService.getAreaDetails('moments', req.params.momentId);
+
+    if (momentDetails) {
+        return res.status(200).send({ ...momentDetails, cached: true });
+    }
+
+    return next();
+}, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
-}));
+}, (response) => CacheStore.mapsService.setAreaDetails('moments', response)));
 
 mapsServiceRouter.post('/moments/search', searchAreasValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
@@ -82,7 +95,13 @@ mapsServiceRouter.get('/moments/signed-url/private', getSignedUrlValidation, val
     method: 'get',
 }));
 
-mapsServiceRouter.delete('/moments', deleteAreasValidation, validate, handleServiceRequest({
+mapsServiceRouter.delete('/moments', deleteAreasValidation, validate, (req, res, next) => {
+    (req.body?.ids || []).forEach((id) => {
+        CacheStore.mapsService.invalidateAreaDetails('moments', id);
+    });
+
+    return next();
+}, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'delete',
 }));
@@ -93,15 +112,27 @@ mapsServiceRouter.post('/spaces', createSpaceLimiter, createAreaValidation, vali
     method: 'post',
 }));
 
-mapsServiceRouter.put('/spaces/:spaceId', updateSpaceValidation, validate, handleServiceRequest({
+mapsServiceRouter.put('/spaces/:spaceId', updateSpaceValidation, validate, async (req, res, next) => {
+    await CacheStore.mapsService.invalidateAreaDetails('spaces', req.params.spaceId);
+
+    return next();
+}, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'put',
 }));
 
-mapsServiceRouter.post('/spaces/:spaceId/details', getSpaceDetailsValidation, validate, handleServiceRequest({
+mapsServiceRouter.post('/spaces/:spaceId/details', getSpaceDetailsValidation, validate, async (req, res, next) => {
+    const momentDetails = await CacheStore.mapsService.getAreaDetails('spaces', req.params.spaceId);
+
+    if (momentDetails) {
+        return res.status(200).send({ ...momentDetails, cached: true });
+    }
+
+    return next();
+}, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
-}));
+}, (response) => CacheStore.mapsService.setAreaDetails('spaces', response)));
 
 mapsServiceRouter.post('/spaces/search', searchAreasValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
@@ -123,7 +154,13 @@ mapsServiceRouter.get('/spaces/signed-url/private', getSignedUrlValidation, vali
     method: 'get',
 }));
 
-mapsServiceRouter.delete('/spaces', deleteAreasValidation, validate, handleServiceRequest({
+mapsServiceRouter.delete('/spaces', deleteAreasValidation, validate, (req, res, next) => {
+    (req.body?.ids || []).forEach((id) => {
+        CacheStore.mapsService.invalidateAreaDetails('spaces', id);
+    });
+
+    return next();
+}, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'delete',
 }));
