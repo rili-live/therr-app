@@ -315,6 +315,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
+            const { map, location } = this.props;
             this.expandBottomSheet(-1);
             this.setState({
                 areButtonsVisible: true,
@@ -323,6 +324,24 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
             if (route?.params?.shouldInitiateLocation) {
                 this.handleGpsRecenterPress();
+            } else if (route?.params?.shouldShowPreview &&
+                ((map?.latitude && map?.longitude) || (location?.user?.latitude && location?.user?.longitude))) {
+
+                const searchRadiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
+                const latitude = map?.latitude || location?.user?.latitude;
+                const longitude = map?.longitude || location?.user?.longitude;
+                this.handleSearchThisLocation(searchRadiusMeters, latitude, longitude)
+                    .finally(() => {
+                        // TODO: Determine if this needs to be canceled when navigating to a new view
+                        this.mapRef.props.onPress({
+                            nativeEvent: {
+                                coordinate: {
+                                    latitude: latitude,
+                                    longitude: longitude,
+                                },
+                            },
+                        }, true);
+                    });
             }
 
             clearTimeout(this.timeoutIdLocationReady);
