@@ -25,7 +25,7 @@ import UsersActions from '../../redux/actions/UsersActions';
 import UserSearchItem from './components/UserSearchItem';
 
 const { width: viewportWidth } = Dimensions.get('window');
-const DEFAULT_PAGE_SIZE = 21;
+const DEFAULT_PAGE_SIZE = 50;
 
 interface IContactsDispatchProps {
     createUserConnection: Function;
@@ -78,6 +78,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     private themeMenu = buildMenuStyles();
     private unsubscribeFocusListener;
     private peopleListRef;
+    private connectionsListRef;
 
     constructor(props) {
         super(props);
@@ -122,7 +123,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             title: this.translate('pages.contacts.headerTitle'),
         });
 
-        if (!userConnections.connections.length) {
+        if ((userConnections.connections.length || 0) < DEFAULT_PAGE_SIZE) {
             this.handleRefresh();
         }
 
@@ -242,7 +243,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 {
                     filterBy: 'acceptingUserId',
                     query: user.details && user.details.id,
-                    itemsPerPage: 50,
+                    itemsPerPage: DEFAULT_PAGE_SIZE,
                     pageNumber: 1,
                     orderBy: 'interactionCount',
                     order: 'desc',
@@ -299,14 +300,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     scrollTop = () => {
-        this.peopleListRef?.scrollToOffset({ animated: true, offset: 0 });
-    };
-
-    onContentSizeChange = () => {
-        const { userConnections } = this.props;
+        const { userConnections, user } = this.props;
 
         if (userConnections.connections?.length) {
-            this.scrollTop();
+            this.connectionsListRef?.scrollToOffset({ animated: true, offset: 0 });
+        }
+        if (Object.keys(user.users || {}).length) {
+            this.peopleListRef?.scrollToOffset({ animated: true, offset: 0 });
         }
     };
 
@@ -372,7 +372,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             refreshing={isRefreshingUserSearch}
                             onRefresh={this.handleRefreshUsersSearch}
                         />}
-                        onContentSizeChange={this.onContentSizeChange}
+                        onContentSizeChange={this.scrollTop}
                         onEndReached={this.trySearchMoreUsers}
                         onEndReachedThreshold={0.5}
                         ListFooterComponent={<View />}
@@ -384,6 +384,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
+                        ref={(component) => this.connectionsListRef = component}
                         data={connections}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: connection }) => (
@@ -410,7 +411,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             refreshing={isRefreshing}
                             onRefresh={this.handleRefresh}
                         />}
-                        // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
+                        onContentSizeChange={this.scrollTop}
                     />
                 );
             case 'invite':

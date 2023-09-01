@@ -249,7 +249,9 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         if (checkIsMySpace(space, user)) {
             deleteSpace({ ids: [space.id] })
                 .then(() => {
-                    navigation.navigate('Map');
+                    navigation.navigate('Map', {
+                        shouldShowPreview: false,
+                    });
                 })
                 .catch((err) => {
                     console.log('Error deleting space', err);
@@ -591,6 +593,11 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         const spaceUserName = isMyContent ? user.details.userName : spaceInView.fromUserName;
         const mediaId = (spaceInView.media && spaceInView.media[0]?.id) || (spaceInView.mediaIds?.length && spaceInView.mediaIds?.split(',')[0]);
         const spaceMedia = content?.media[mediaId];
+        let areaUserName = spaceUserName || this.translate('alertTitles.nameUnknown');
+        if (areaUserName === 'therr_it_is') {
+            // This allows us to hide the user name/image when space is create by (essentially) our admin account
+            areaUserName = this.translate('alertTitles.nameUnknown');
+        }
 
         return (
             <>
@@ -624,7 +631,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                         // TODO: User Username from response
                                         user={user}
                                         areaUserDetails={{
-                                            userName: spaceUserName || this.translate('alertTitles.nameUnknown'),
+                                            userName: areaUserName,
                                         }}
                                         areaMedia={spaceMedia}
                                         placeholderMediaType="autoplay"
