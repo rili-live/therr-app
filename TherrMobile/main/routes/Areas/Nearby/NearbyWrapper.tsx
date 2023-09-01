@@ -218,7 +218,9 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
     goToMap = () => {
         const { navigation } = this.props;
-        navigation.navigate('Map');
+        navigation.navigate('Map', {
+            shouldShowPreview: false,
+        });
     };
 
     goToArea = (area) => {

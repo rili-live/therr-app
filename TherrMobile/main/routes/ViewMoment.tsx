@@ -211,7 +211,9 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         if (checkIsMyMoment(moment, user)) {
             deleteMoment({ ids: [moment.id] })
                 .then(() => {
-                    navigation.navigate('Map');
+                    navigation.navigate('Map', {
+                        shouldShowPreview: false,
+                    });
                 })
                 .catch((err) => {
                     console.log('Error deleting moment', err);
@@ -251,7 +253,9 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 navigation.navigate('Notifications');
             }
         } else {
-            navigation.navigate('Map');
+            navigation.navigate('Map', {
+                shouldShowPreview: false,
+            });
         }
     };
 

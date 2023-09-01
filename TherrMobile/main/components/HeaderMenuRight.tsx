@@ -178,7 +178,9 @@ class HeaderMenuRight extends React.PureComponent<
         });
 
         if (this.getCurrentScreen() !== 'Map') {
-            navigation.navigate('Map');
+            navigation.navigate('Map', {
+                shouldShowPreview: false,
+            });
         }
     };
 
