@@ -397,7 +397,9 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                             category,
                         }).catch((err) => console.log(err));
                         setTimeout(() => {
-                            this.props.navigation.navigate('Map');
+                            this.props.navigation.navigate('Map', {
+                                shouldShowPreview: true,
+                            });
                         }, 500);
                     })
                     .catch((error: any) => {
@@ -426,7 +428,9 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                     });
             }).catch((err) => {
                 console.log(err);
-                return navigation.navigate('Map');
+                return navigation.navigate('Map', {
+                    shouldShowPreview: false,
+                });
             });
         }
     };

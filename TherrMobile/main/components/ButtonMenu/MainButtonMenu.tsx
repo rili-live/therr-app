@@ -233,9 +233,12 @@ class MainButtonMenuAlt extends ButtonMenu {
                             }
                         />
                     }
-                    onPress={() => this.navTo('Contacts', {
-                        activeTab: 'connections',
-                    })}
+                    onPress={() => {
+                        this.navTo('Contacts', {
+                            activeTab: 'people',
+                        });
+                        this.onNavPressDynamic('Contacts');
+                    }}
                 />
                 <View style={
                     activeRoute === 'ViewUser'

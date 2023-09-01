@@ -73,7 +73,11 @@ mapsServiceRouter.post('/moments/:momentId/details', getMomentDetailsValidation,
 }, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
-}, (response) => CacheStore.mapsService.setAreaDetails('moments', response)));
+}, (response, reqBody) => {
+    if (reqBody.withMedia && reqBody.withUser) {
+        return CacheStore.mapsService.setAreaDetails('moments', response);
+    }
+}));
 
 mapsServiceRouter.post('/moments/search', searchAreasValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
@@ -132,7 +136,11 @@ mapsServiceRouter.post('/spaces/:spaceId/details', getSpaceDetailsValidation, va
 }, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
-}, (response) => CacheStore.mapsService.setAreaDetails('spaces', response)));
+}, (response, reqBody) => {
+    if (reqBody.withMedia && reqBody.withUser) {
+        return CacheStore.mapsService.setAreaDetails('spaces', response);
+    }
+}));
 
 mapsServiceRouter.post('/spaces/search', searchAreasValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,

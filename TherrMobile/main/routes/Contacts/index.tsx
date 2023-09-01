@@ -25,7 +25,7 @@ import UsersActions from '../../redux/actions/UsersActions';
 import UserSearchItem from './components/UserSearchItem';
 
 const { width: viewportWidth } = Dimensions.get('window');
-const DEFAULT_PAGE_SIZE = 21;
+const DEFAULT_PAGE_SIZE = 50;
 
 interface IContactsDispatchProps {
     createUserConnection: Function;
@@ -77,6 +77,8 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     private themeConfirmModal = buildConfirmModalStyles();
     private themeMenu = buildMenuStyles();
     private unsubscribeFocusListener;
+    private peopleListRef;
+    private connectionsListRef;
 
     constructor(props) {
         super(props);
@@ -85,7 +87,16 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             translator('en-us', key, params);
 
         const { route } = props;
-        const activeTabIndex = route.params?.activeTab === 'invite' ? 1 : 0;
+        let activeTabIndex = 0;
+        if (route.params?.activeTab === 'people') {
+            activeTabIndex = 0;
+        }
+        if (route.params?.activeTab === 'connections') {
+            activeTabIndex = 1;
+        }
+        if (route.params?.activeTab === 'invite') {
+            activeTabIndex = 2;
+        }
 
         this.state = {
             activeTabIndex,
@@ -112,7 +123,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             title: this.translate('pages.contacts.headerTitle'),
         });
 
-        if (!userConnections.connections.length) {
+        if ((userConnections.connections.length || 0) < DEFAULT_PAGE_SIZE) {
             this.handleRefresh();
         }
 
@@ -122,7 +133,16 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
             const { route } = this.props;
-            const activeTabIndex = route.params?.activeTab === 'invite' ? 1 : 0;
+            let activeTabIndex = 0;
+            if (route.params?.activeTab === 'people') {
+                activeTabIndex = 0;
+            }
+            if (route.params?.activeTab === 'connections') {
+                activeTabIndex = 1;
+            }
+            if (route.params?.activeTab === 'invite') {
+                activeTabIndex = 2;
+            }
 
             this.setState({
                 activeTabIndex,
@@ -223,7 +243,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 {
                     filterBy: 'acceptingUserId',
                     query: user.details && user.details.id,
-                    itemsPerPage: 50,
+                    itemsPerPage: DEFAULT_PAGE_SIZE,
                     pageNumber: 1,
                     orderBy: 'interactionCount',
                     order: 'desc',
@@ -279,6 +299,17 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         });
     };
 
+    scrollTop = () => {
+        const { userConnections, user } = this.props;
+
+        if (userConnections.connections?.length) {
+            this.connectionsListRef?.scrollToOffset({ animated: true, offset: 0 });
+        }
+        if (Object.keys(user.users || {}).length) {
+            this.peopleListRef?.scrollToOffset({ animated: true, offset: 0 });
+        }
+    };
+
     sortConnections = () => {
         const { userConnections } = this.props;
         const activeConnections = [...(userConnections?.activeConnections || [])].map(a => ({ ...a, isActive: true }));
@@ -318,6 +349,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
+                        ref={(component) => this.peopleListRef = component}
                         data={people}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: user }) => (
@@ -340,7 +372,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             refreshing={isRefreshingUserSearch}
                             onRefresh={this.handleRefreshUsersSearch}
                         />}
-                        // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
+                        onContentSizeChange={this.scrollTop}
                         onEndReached={this.trySearchMoreUsers}
                         onEndReachedThreshold={0.5}
                         ListFooterComponent={<View />}
@@ -352,6 +384,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
+                        ref={(component) => this.connectionsListRef = component}
                         data={connections}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: connection }) => (
@@ -378,7 +411,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             refreshing={isRefreshing}
                             onRefresh={this.handleRefresh}
                         />}
-                        // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
+                        onContentSizeChange={this.scrollTop}
                     />
                 );
             case 'invite':
@@ -443,7 +476,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 <MainButtonMenu
                     activeRoute="Contacts"
                     navigation={navigation}
-                    onActionButtonPress={this.handleRefresh}
+                    onActionButtonPress={this.scrollTop}
                     translate={this.translate}
                     user={user}
                     themeMenu={this.themeMenu}

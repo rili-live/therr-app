@@ -231,34 +231,41 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
         const shouldDisplayRelatedSpaceBanner = isExpanded && area.spaceId;
         const toggleOptions = () => toggleAreaOptions(area);
+        const isSpace = area.areaType === 'spaces';
 
         return (
             <>
                 <View style={themeViewArea.styles.areaAuthorContainer}>
-                    <Pressable
-                        onPress={() => goToViewUser(area.fromUserId)}
-                    >
-                        <Image
-                            source={{ uri: getUserImageUri({ details: { media: area.fromUserMedia, id: area.fromUserId } }, 52) }}
-                            style={themeViewArea.styles.areaUserAvatarImg}
-                            containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
-                            height={themeViewArea.styles.areaUserAvatarImg.height}
-                            width={themeViewArea.styles.areaUserAvatarImg.width}
-                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
-                            transition={false}
-                        />
-                    </Pressable>
-                    <View style={themeViewArea.styles.areaAuthorTextContainer}>
-                        {
-                            areaUserDetails &&
-                                <Text style={themeViewArea.styles.areaUserName} numberOfLines={1}>
-                                    {`${areaUserDetails.userName}`}
-                                </Text>
-                        }
-                        <Text style={themeViewArea.styles.dateTime}>
-                            {date}
-                        </Text>
-                    </View>
+                    {
+                        (isSpace && areaUserDetails?.userName === translate('alertTitles.nameUnknown'))
+                            ? <View style={{ flex: 1 }} />
+                            : <>
+                                <Pressable
+                                    onPress={() => goToViewUser(area.fromUserId)}
+                                >
+                                    <Image
+                                        source={{ uri: getUserImageUri({ details: { media: area.fromUserMedia, id: area.fromUserId } }, 52) }}
+                                        style={themeViewArea.styles.areaUserAvatarImg}
+                                        containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
+                                        height={themeViewArea.styles.areaUserAvatarImg.height}
+                                        width={themeViewArea.styles.areaUserAvatarImg.width}
+                                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
+                                        transition={false}
+                                    />
+                                </Pressable>
+                                <View style={themeViewArea.styles.areaAuthorTextContainer}>
+                                    {
+                                        areaUserDetails &&
+                                            <Text style={themeViewArea.styles.areaUserName} numberOfLines={1}>
+                                                {`${areaUserDetails.userName}`}
+                                            </Text>
+                                    }
+                                    <Text style={themeViewArea.styles.dateTime}>
+                                        {date}
+                                    </Text>
+                                </View>
+                            </>
+                    }
                     <Button
                         containerStyle={themeViewArea.styles.moreButtonContainer}
                         buttonStyle={themeViewArea.styles.moreButton}

@@ -127,17 +127,17 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     }
 
     componentDidMount() {
-        const { content, getMomentDetails, navigation, route, user } = this.props;
-        const { isMyContent, moment } = route.params;
+        const { content, getMomentDetails, navigation, route } = this.props;
+        const { moment } = route.params;
 
-        const momentUserName = isMyContent ? user.details.userName : moment.fromUserName;
+        const shouldFetchUser = !moment?.fromUserMedia || !moment.fromUserName;
         const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
         const momentMedia = content?.media[mediaId];
 
         // Move moment details out of route params and into redux
         getMomentDetails(moment.id, {
             withMedia: !momentMedia,
-            withUser: !momentUserName,
+            withUser: shouldFetchUser,
         }).then((data) => {
             if (data?.moment?.notificationMsg) {
                 this.notificationMsg = (data?.moment?.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
@@ -211,7 +211,9 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         if (checkIsMyMoment(moment, user)) {
             deleteMoment({ ids: [moment.id] })
                 .then(() => {
-                    navigation.navigate('Map');
+                    navigation.navigate('Map', {
+                        shouldShowPreview: false,
+                    });
                 })
                 .catch((err) => {
                     console.log('Error deleting moment', err);
@@ -251,7 +253,9 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 navigation.navigate('Notifications');
             }
         } else {
-            navigation.navigate('Map');
+            navigation.navigate('Map', {
+                shouldShowPreview: false,
+            });
         }
     };
 

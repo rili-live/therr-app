@@ -169,24 +169,11 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
     }
 
     componentDidMount = () => {
-        const { map, navigation } = this.props;
+        const { navigation } = this.props;
         this.previewAnimation = new Animated.Value(0);
         this.addAnimationListener();
 
-        this.unsubscribeFocusListener = navigation.addListener('focus', () => {
-            const { location, route } = this.props;
-            if (route?.params?.shouldShowPreview &&
-                ((map?.latitude && map?.longitude) || (location?.user?.latitude && location?.user?.longitude))) {
-                this.openPreviewBottomSheet({
-                    latitude: map?.latitude || location?.user?.latitude,
-                    longitude: map?.longitude || location?.user?.longitude,
-                });
-            } else {
-                this.setState({
-                    isPreviewBottomSheetVisible: false,
-                });
-            }
-        });
+        this.unsubscribeFocusListener = navigation.addListener('focus', () => {});
 
         this.unsubscribeBlurListener = navigation.addListener('blur', () => {
             this.setState({
@@ -281,7 +268,9 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
 
     getAreaDetails = (area) => new Promise((resolve) => {
         const { user } = this.props;
-        const details: any = {};
+        const details: any = {
+            ...area,
+        };
 
         if (isMyContent(area, user)) {
             details.userDetails = user.details;
@@ -762,7 +751,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
         return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;
     };
 
-    goToArea = (area: any) => {
+    goToSpace = (area: any) => {
         const { navigation, user } = this.props;
 
         // TODO: Should handle space or moment
@@ -1004,7 +993,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                 {
                     isPreviewBottomSheetVisible &&
                     <View style={[this.themeBottomSheet.styles.scrollViewOuterContainer, {
-                        height: CARD_HEIGHT + (2 * this.themeBottomSheet.styles.scrollViewOuterContainer.bottom),
+                        height: CARD_HEIGHT + (3 * this.themeBottomSheet.styles.scrollViewOuterContainer.bottom),
                     }]}>
                         <Animated.ScrollView
                             horizontal
@@ -1050,7 +1039,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                                             date={formattedDate}
                                             isDarkMode={false}
                                             key={area.id}
-                                            onPress={this.goToArea}
+                                            onPress={this.goToSpace}
                                             theme={this.theme}
                                             themeViewArea={this.themeViewArea}
                                             translate={this.translate}
