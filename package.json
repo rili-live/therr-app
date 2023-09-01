@@ -4,7 +4,7 @@
   "description": "The main Therr app root",
   "main": "index.js",
   "engines": {
-    "npm": ">=9.6.1"
+    "npm": ">=10.0.0"
   },
   "scripts": {
     "build:all": "npm run prep && _bin/apply-to-all.sh 'npm run build'",
