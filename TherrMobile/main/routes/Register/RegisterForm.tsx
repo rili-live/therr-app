@@ -235,6 +235,7 @@ export class RegisterFormComponent extends React.Component<
                 idToken,
                 nonce,
                 ssoProvider: provider,
+                ssoPlatform: Platform.OS,
                 userPhoneNumber: user.phoneNumber,
                 userFirstName: firstName,
                 userLastName: lastName,

@@ -19,6 +19,7 @@ import AcquisitionOverview from './CustomerAcquisition/AcquisitionOverview';
 import AdminAcquisitionOverview from './CustomerAcquisition/AdminAcquisitionOverview';
 import CampaignsOverview from './Campaigns/CampaignsOverview';
 import AdminCampaignsOverview from './Campaigns/AdminCampaignsOverview';
+import CreateUserProfile from './CreateUserProfile';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -45,14 +46,25 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
+        path: '/create-profile',
+        element: <AuthRoute
+            component={CreateUserProfile}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            })}
+            redirectPath={'/login'}
+        />,
+    },
+    {
         path: '/dashboard',
         element: <AuthRoute
             component={DashboardOverview}
             isAuthorized={routePropsConfig.isAuthorized({
-                type: AccessCheckType.ANY,
-                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
             })}
-            redirectPath={'/login'}
+            redirectPath={'/create-profile'}
         />,
     },
     {
@@ -83,7 +95,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             component={AdminCampaignsOverview}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ANY,
-                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.SUPER_ADMIN],
             })}
             redirectPath={'/login'}
         />,
@@ -115,8 +127,8 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <AuthRoute
             component={DocumentationOverview}
             isAuthorized={routePropsConfig.isAuthorized({
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
             })}
             redirectPath={'/login'}
         />,

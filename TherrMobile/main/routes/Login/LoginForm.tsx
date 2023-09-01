@@ -20,6 +20,7 @@ export interface ISSOUserDetails {
     idToken: string;
     nonce?: string;
     ssoProvider: string;
+    ssoPlatform?: string;
     userFirstName?: string;
     userLastName?: string;
     userPhoneNumber?: string;
@@ -116,6 +117,7 @@ export class LoginFormComponent extends React.Component<
                 idToken,
                 nonce,
                 ssoProvider: provider,
+                ssoPlatform: Platform.OS,
                 userPhoneNumber: user.phoneNumber,
                 userFirstName: firstName,
                 userLastName: lastName,

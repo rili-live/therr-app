@@ -112,7 +112,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         const { alertIsVisible, alertMessage } = this.state;
 
         return (
-            <div id="page_login" className="flex-box center space-evenly row">
+            <div id="page_register" className="flex-box center space-evenly row">
                 <main>
                     <section className='d-flex align-items-center my-5 mt-lg-7 mb-lg-5'>
                         <Container>

@@ -18,6 +18,10 @@ import { getMappedSocialSyncResults } from '../socialSync';
 
 const googleOAuth2ClientId = `${globalConfig[process.env.NODE_ENV].googleOAuth2WebClientId}`;
 const googleOAuth2Client = new OAuth2Client(googleOAuth2ClientId);
+const googleOAuth2ClientIdAndroid = `${globalConfig[process.env.NODE_ENV].googleOAuth2WebClientIdAndroid}`;
+const googleOAuth2ClientAndroid = new OAuth2Client(googleOAuth2ClientIdAndroid);
+const googleOAuth2ClientIdiOS = `${globalConfig[process.env.NODE_ENV].googleOAuth2WebClientIdiOS}`;
+const googleOAuth2ClientiOS = new OAuth2Client(googleOAuth2ClientIdiOS);
 
 interface IRequiredUserDetails {
     email: string;
@@ -358,6 +362,7 @@ interface IValidateCredentials {
     reqBody: {
         isSSO: boolean;
         ssoProvider?: string;
+        ssoPlatform?: string;
         nonce?: string;
         idToken: string;
         password: string;
@@ -376,12 +381,25 @@ const validateCredentials = (userSearchResults, {
     if (reqBody.isSSO) {
         let verifyTokenPromise;
         if (reqBody.ssoProvider === 'google') {
-            verifyTokenPromise = googleOAuth2Client.verifyIdToken({
-                idToken: reqBody.idToken,
-                audience: googleOAuth2ClientId, // Specify the CLIENT_ID of the app that accesses the backend
-                // Or, if multiple clients access the backend:
-                // [CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
-            });
+            console.log('DEBUG', reqBody.ssoPlatform)
+            if (!reqBody.ssoPlatform) {
+                verifyTokenPromise = googleOAuth2Client.verifyIdToken({
+                    idToken: reqBody.idToken,
+                    audience: googleOAuth2ClientId, // Specify the CLIENT_ID of the app that accesses the backend
+                    // Or, if multiple clients access the backend:
+                    // [CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+                });
+            } else if (reqBody.ssoPlatform === 'android') {
+                verifyTokenPromise = googleOAuth2ClientAndroid.verifyIdToken({
+                    idToken: reqBody.idToken,
+                    audience: googleOAuth2ClientIdAndroid,
+                });
+            } else if (reqBody.ssoPlatform === 'ios') {
+                verifyTokenPromise = googleOAuth2ClientiOS.verifyIdToken({
+                    idToken: reqBody.idToken,
+                    audience: googleOAuth2ClientIdiOS,
+                });
+            }
         } else if (reqBody.ssoProvider === 'apple') {
             verifyTokenPromise = appleSignin.verifyIdToken(reqBody.idToken, {
                 // Optional Options for further verification - Full list can be found
