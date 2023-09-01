@@ -376,7 +376,9 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                 navigation.navigate('Notifications');
             }
         } else {
-            navigation.navigate('Map');
+            navigation.navigate('Map', {
+                shouldShowPreview: false,
+            });
         }
     };
 

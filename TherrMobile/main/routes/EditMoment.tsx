@@ -419,7 +419,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         }).catch((err) => console.log(err));
 
                         setTimeout(() => {
-                            this.props.navigation.navigate('Map');
+                            this.props.navigation.navigate('Map', {
+                                shouldShowPreview: false,
+                            });
                         }, 500);
                     })
                     .catch((error: any) => {
@@ -452,7 +454,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     });
             }).catch((err) => {
                 console.log(err);
-                return navigation.navigate('Map');
+                return navigation.navigate('Map', {
+                    shouldShowPreview: false,
+                });
             });
         }
     };

@@ -215,7 +215,9 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
 
     goToMap = () => {
         const { navigation } = this.props;
-        navigation.navigate('Map');
+        navigation.navigate('Map', {
+            shouldShowPreview: false,
+        });
     };
 
     goToContent = (content) => {
@@ -255,10 +257,10 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         if (!(location?.user?.latitude && location?.user?.longitude)) {
             navigation.navigate('Map', {
                 shouldInitiateLocation: true,
+                shouldShowPreview: false,
             });
             return;
         }
-
         // NOTE: This logic is re-used in the Map/index.tsx file
         // We may want to find a better way rather than copy/paste to keep things in sync
         requestLocationServiceActivation({

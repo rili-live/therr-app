@@ -315,17 +315,20 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
-            const { map, location } = this.props;
+            const { map, location, route: inScopeRoute } = this.props;
             this.expandBottomSheet(-1);
             this.setState({
                 areButtonsVisible: true,
             });
             setSearchDropdownVisibility(false);
 
-            if (route?.params?.shouldInitiateLocation) {
+            if (inScopeRoute?.params?.shouldInitiateLocation) {
                 this.handleGpsRecenterPress();
-            } else if (route?.params?.shouldShowPreview &&
+            } else if (inScopeRoute?.params?.shouldShowPreview &&
                 ((map?.latitude && map?.longitude) || (location?.user?.latitude && location?.user?.longitude))) {
+                navigation.setParams({
+                    shouldShowPreview: false,
+                });
 
                 const searchRadiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
                 const latitude = map?.latitude || location?.user?.latitude;

@@ -993,7 +993,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                 {
                     isPreviewBottomSheetVisible &&
                     <View style={[this.themeBottomSheet.styles.scrollViewOuterContainer, {
-                        height: CARD_HEIGHT + (2 * this.themeBottomSheet.styles.scrollViewOuterContainer.bottom),
+                        height: CARD_HEIGHT + (3 * this.themeBottomSheet.styles.scrollViewOuterContainer.bottom),
                     }]}>
                         <Animated.ScrollView
                             horizontal
