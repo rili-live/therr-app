@@ -32,7 +32,6 @@ const utilities = [
     'localization',
     'promiser',
     'scroll-to',
-    'Logger',
     'normalize-phone-number',
     'print-logs',
 ];
