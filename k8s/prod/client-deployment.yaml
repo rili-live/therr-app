@@ -49,7 +49,5 @@ spec:
                 key: HONEYCOMB
           - name: LOG_LEVEL
             value: "info"
-          - name: LOGGING_DATASET
-            value: "production"
           - name: SOCKET_PORT
             value: "7743"

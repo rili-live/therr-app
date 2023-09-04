@@ -47,8 +47,6 @@ spec:
               key: HONEYCOMB
         - name: LOG_LEVEL
           value: "info"
-        - name: LOGGING_DATASET
-          value: "production"
         - name: REDIS_PUB_HOST
           value: "redis-cluster-ip-service"
         - name: REDIS_PUB_PORT
