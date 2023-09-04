@@ -59,6 +59,8 @@ spec:
             secretKeyRef:
               name: honeycomb-writekey
               key: HONEYCOMB
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "grpc"
         - name: LOG_LEVEL
           value: "info"
         - name: MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64

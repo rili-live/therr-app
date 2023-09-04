@@ -1,15 +1,17 @@
 /* eslint-disable import/no-import-module-exports */
-import beeline from './beeline'; // eslint-disable-line import/order
+import tracing from './tracing'; // eslint-disable-line import/order
 import axios from 'axios';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import * as path from 'path';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import router from './routes';
-import honey from './middleware/honey';
+import reqLogDecorator from './middleware/reqLogDecorator';
 import { version as packageVersion } from '../package.json';
 import authenticate from './middleware/authenticate';
+
+tracing.start();
 
 // Axios defaults
 axios.defaults.timeout = 1000 * 30; // 30 Second Request timeout
@@ -38,8 +40,8 @@ if (process.env.NODE_ENV !== 'production') {
     app.set('trust proxy', 1);
 }
 
-// Logging Middleware
-app.use(honey);
+// Open Telemetry Logging Middleware
+app.use(reqLogDecorator);
 
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
@@ -75,11 +77,10 @@ app.use(API_BASE_ROUTE, router);
 const { API_GATEWAY_PORT } = process.env;
 
 const server = app.listen(API_GATEWAY_PORT, () => {
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'API_SERVER',
         messages: [`Server running on port ${API_GATEWAY_PORT} with process id`, process.pid],
-        tracer: beeline,
         traceArgs: {
             port: API_GATEWAY_PORT,
             processId: process.pid,
@@ -112,17 +113,16 @@ if (process.env.NODE_ENV === 'development' && module.hot) {
 }
 
 process.on('uncaughtExceptionMonitor', (err, origin) => {
-    printLogs({
+    logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
-        tracer: beeline,
         traceArgs: {
             port: API_GATEWAY_PORT,
-            processId: process.pid,
+            'process.pid': process.pid,
             isUncaughtException: true,
-            errorMessage: err?.message,
-            errorOrigin: origin,
+            'error.message': err?.message,
+            'error.origin': origin,
             source: origin,
         },
     });

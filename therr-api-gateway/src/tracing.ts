@@ -4,6 +4,7 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 
 // Uses environment variables named HONEYCOMB_API_KEY and OTEL_SERVICE_NAME
 const sdk: NodeSDK = new HoneycombSDK({
+    serviceName: 'therr-api-gateway',
     instrumentations: [
         getNodeAutoInstrumentations({
             // We recommend disabling fs automatic instrumentation because
@@ -15,4 +16,4 @@ const sdk: NodeSDK = new HoneycombSDK({
     ],
 });
 
-sdk.start();
+export default sdk;

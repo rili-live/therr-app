@@ -43,6 +43,8 @@ spec:
             secretKeyRef:
               name: honeycomb-writekey
               key: HONEYCOMB
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "grpc"
         - name: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
           valueFrom:
             secretKeyRef:

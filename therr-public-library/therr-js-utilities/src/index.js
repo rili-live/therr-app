@@ -34,6 +34,7 @@ const utilities = [
     'scroll-to',
     'normalize-phone-number',
     'print-logs',
+    'log-or-update-span',
 ];
 
 module.exports = utilities;
