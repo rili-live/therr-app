@@ -3,13 +3,12 @@ import {
     CurrentSocialValuations, Notifications, PushNotifications, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
 import emailValidator from 'therr-js-utilities/email-validator';
 import deepEmailValidate from 'deep-email-validator';
 import sendPushNotificationAndEmail from '../utilities/sendPushNotificationAndEmail';
-import beeline from '../beeline';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
@@ -186,13 +185,12 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     achievementTier: '1_1',
                     progressCount: 1,
                 }).catch((err) => {
-                    printLogs({
+                    logSpan({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
                         messages: ['Error while creating socialite achievements for sent friend requests, tier 1_1'],
-                        tracer: beeline,
                         traceArgs: {
-                            errMessage: err?.message,
+                            'error.message': err?.message,
                         },
                     });
                 });
@@ -225,10 +223,15 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 type: 'new-connection-request',
                 retentionEmailType: PushNotifications.Types.newConnectionRequest,
             }).catch((err) => {
-                beeline.addContext({
-                    routeName: 'CreateUserConnection',
-                    method: sendPushNotificationAndEmail,
-                    errorMessage: err.stack,
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Error while sending push notification and email for new connection request'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'req.routeName': 'CreateUserConnection',
+                        method: sendPushNotificationAndEmail,
+                    },
                 });
             });
 
@@ -247,9 +250,15 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 ...userConnection,
                 notification: translateNotification(notification, locale),
             })).catch((err) => {
-                beeline.addContext({
-                    routeName: 'CreateUserConnection',
-                    errorMessage: err.stack,
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Error while creating notification for new connection request'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'req.routeName': 'CreateUserConnection',
+                        method: sendPushNotificationAndEmail,
+                    },
                 });
             })).then((userConnection) => res.status(201).send(userConnection));
         })
@@ -370,13 +379,12 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                     achievementTier: '1_1',
                     progressCount: createdIds.length,
                 }).catch((err) => {
-                    printLogs({
+                    logSpan({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
                         messages: ['Error while creating socialite achievements for multiple sent friend requests, tier 1_1'],
-                        tracer: beeline,
                         traceArgs: {
-                            errMessage: err?.message,
+                            'error.message': err?.message,
                         },
                     });
                 });
@@ -384,15 +392,12 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             })
             .then(() => Promise.all(phoneSendPromises))
             .catch((err) => { // TODO: change to Promise.allSettled
-                printLogs({
+                logSpan({
                     level: 'error',
                     messageOrigin: 'API_SERVER',
                     messages: [err?.message],
-                    tracer: beeline,
                     traceArgs: {
-                        issue: '',
-                        port: process.env.USERS_SERVICE_API_PORT,
-                        processId: process.pid,
+                        issue: 'failed to create invite',
                     },
                 });
             });
@@ -404,13 +409,13 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             }, {
                 id: userId,
             }).catch((err) => {
-                printLogs({
+                logSpan({
                     level: 'error',
                     messageOrigin: 'API_SERVER',
                     messages: [err?.message],
-                    tracer: beeline,
                     traceArgs: {
                         issue: 'error while updating user coins',
+                        'error.message': err?.message,
                     },
                 });
             });
@@ -624,13 +629,12 @@ const updateUserConnection = (req, res) => {
                             progressCount: 1,
                         }),
                     ]).catch((err) => {
-                        printLogs({
+                        logSpan({
                             level: 'error',
                             messageOrigin: 'API_SERVER',
                             messages: ['Error while creating socialite achievements for accepted friend requests, tier 1_2'],
-                            tracer: beeline,
                             traceArgs: {
-                                errMessage: err?.message,
+                                'error.message': err?.message,
                             },
                         });
                     });
@@ -645,14 +649,12 @@ const updateUserConnection = (req, res) => {
                     type: PushNotifications.Types.connectionRequestAccepted,
                 });
             }).catch((err) => {
-                printLogs({
+                logSpan({
                     level: 'error',
                     messageOrigin: 'API_SERVER',
                     messages: [err?.message],
-                    tracer: beeline,
                     traceArgs: {
-                        port: process.env.USERS_SERVICE_API_PORT,
-                        processId: process.pid,
+                        'error.message': err?.message,
                     },
                 });
             });

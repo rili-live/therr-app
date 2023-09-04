@@ -1,7 +1,6 @@
-import beeline from '../../beeline'; // eslint-disable-line import/order
 // eslint-disable-next-line import/extensions
 import emailValidator from 'therr-js-utilities/email-validator';
-import printLogs from 'therr-js-utilities/print-logs'; // eslint-disable-line import/order
+import logSpan from 'therr-js-utilities/log-or-update-span'; // eslint-disable-line import/order
 import { awsSES } from '../aws';
 import Store from '../../store';
 
@@ -63,13 +62,12 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
         if (emailValidator.validate(config.toAddresses[0]) && !emailIsBlacklisted) {
             return awsSES.sendEmail(params, (err, data) => {
                 if (err) {
-                    printLogs({
+                    logSpan({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
                         messages: ['Error sending email', err?.message],
-                        tracer: beeline,
                         traceArgs: {
-                            ...data,
+                            'email.messageId': data?.MessageId,
                         },
                     });
                     // NOTE: Always resolve, even if there is an error to prevent the API from failing

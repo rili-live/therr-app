@@ -3,12 +3,11 @@ import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/htt
 import {
     ErrorCodes, MetricNames, MetricValueTypes, Notifications,
 } from 'therr-js-utilities/constants';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import { RequestHandler } from 'express';
 import userMetricsService from '../api/userMetricsService';
 import * as globalConfig from '../../../../global-config';
 import { findReactions, hasUserReacted } from '../api/reactions';
-import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -43,23 +42,22 @@ const createThought = async (req, res) => {
         fromUserId: userId,
     })
         .then(([thought]) => {
-            printLogs({
+            logSpan({
                 level: 'info',
                 messageOrigin: 'API_SERVER',
                 messages: ['Thought Created'],
-                tracer: beeline,
                 traceArgs: {
                     // TODO: Add a sentiment analysis property
                     action: 'create-thought',
-                    category: thought.category,
-                    parentId: thought.parentId,
-                    isPublic: thought.isPublic,
-                    isRepost: thought.isRepost,
                     logCategory: 'user-sentiment',
-                    userId,
-                    hashTags: thought.hashTags,
-                    isMatureContent: thought.isMatureContent,
-                    locale,
+                    'thought.category': thought.category,
+                    'thought.parentId': thought.parentId,
+                    'thought.isPublic': thought.isPublic,
+                    'thought.isRepost': thought.isRepost,
+                    'thought.hashTags': thought.hashTags,
+                    'thought.isMatureContent': thought.isMatureContent,
+                    'user.locale': locale,
+                    'user.id': userId,
                 },
             });
             if (thought.parentId) {
@@ -77,13 +75,12 @@ const createThought = async (req, res) => {
                                 achievementTier: '1_2',
                                 progressCount: 1,
                             }).catch((err) => {
-                                printLogs({
+                                logSpan({
                                     level: 'error',
                                     messageOrigin: 'API_SERVER',
                                     messages: ['Error while creating thinker achievement after creating a thought on parent, tier 1_2'],
-                                    tracer: beeline,
                                     traceArgs: {
-                                        errMessage: err?.message,
+                                        'error.message': err?.message,
                                     },
                                 });
                             });
@@ -101,16 +98,15 @@ const createThought = async (req, res) => {
                             }, {
                                 contentUserId: thought.fromUserId,
                             }).catch((err) => {
-                                printLogs({
+                                logSpan({
                                     level: 'error',
                                     messageOrigin: 'API_SERVER',
                                     messages: ['failed to upload user metric'],
-                                    tracer: beeline,
                                     traceArgs: {
-                                        errorMessage: err?.message,
-                                        errorResponse: err?.response?.data,
-                                        userId,
-                                        thoughtId: thought.id,
+                                        'error.message': err?.message,
+                                        'error.response': err?.response?.data,
+                                        'user.id': userId,
+                                        'thought.id': thought.id,
                                     },
                                 });
                             });
@@ -134,14 +130,13 @@ const createThought = async (req, res) => {
                                 id: userId,
                             },
                         }, true).catch((err) => {
-                            printLogs({
+                            logSpan({
                                 level: 'error',
                                 messageOrigin: 'API_SERVER',
                                 messages: ['Error while creating total notification for thought reply'],
-                                tracer: beeline,
                                 traceArgs: {
-                                    errMessage: err?.message,
-                                    thoughtId: thought.parentId,
+                                    'error.message': err?.message,
+                                    'thought.id': thought.parentId,
                                 },
                             });
                         });
@@ -161,13 +156,12 @@ const createThought = async (req, res) => {
                     achievementTier: '1_1',
                     progressCount: 1,
                 }).catch((err) => {
-                    printLogs({
+                    logSpan({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
                         messages: ['Error while creating thinker achievement after creating a thought, tier 1_1'],
-                        tracer: beeline,
                         traceArgs: {
-                            errMessage: err?.message,
+                            'error.message': err?.message,
                         },
                     });
                 });
@@ -245,16 +239,15 @@ const getThoughtDetails = (req, res) => {
                 }, {
                     contentUserId: thought.fromUserId,
                 }).catch((err) => {
-                    printLogs({
+                    logSpan({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
                         messages: ['failed to upload user metric'],
-                        tracer: beeline,
                         traceArgs: {
-                            errorMessage: err?.message,
-                            errorResponse: err?.response?.data,
-                            userId,
-                            thoughtId: thought.id,
+                            'error.message': err?.message,
+                            'error.response': err?.response?.data,
+                            'user.id': userId,
+                            'thought.id': thought.id,
                         },
                     });
                 });

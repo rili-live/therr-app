@@ -3,11 +3,8 @@ import { RequestHandler } from 'express';
 import axios from 'axios';
 import qs from 'qs';
 import FormData from 'form-data';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 // import { ErrorCodes } from 'therr-js-utilities/constants';
-// import printLogs from 'therr-js-utilities/print-logs';
-// import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import sendSocialSyncAdminNotificationEmail from '../api/email/admin/sendSocialSyncAdminNotificationEmail';
 import Store from '../store';
@@ -257,15 +254,14 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
     } = req.query;
 
     if (error) {
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'API_SERVER',
             messages: ['Failed FB Authorization Request'],
-            tracer: beeline,
             traceArgs: {
                 error,
-                error_reason,
-                error_description,
+                'error.reason': error_reason,
+                'error.description': error_description,
             },
         });
         return res.status(301).send({
@@ -318,17 +314,15 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
             error_type,
         } = errResponse?.response?.data || {};
 
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'API_SERVER',
             messages: ['Failed FB OAuth Request'],
-            tracer: beeline,
             traceArgs: {
-                error_message,
-                error_type,
-                ...errResponse?.response?.data,
-                theHell1: errResponse?.toString(),
-                theHell2: errResponse?.response?.toString(),
+                'error.message': error_message,
+                'error.type': error_type,
+                'facebook.theHell1': errResponse?.toString(),
+                'facebook.theHell2': errResponse?.response?.toString(),
             },
         });
 
@@ -357,15 +351,14 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
     } = req.query;
 
     if (error) {
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'API_SERVER',
             messages: ['Failed IG Authorization Request'],
-            tracer: beeline,
             traceArgs: {
                 error,
-                error_reason,
-                error_description,
+                'error.reason': error_reason,
+                'error.description': error_description,
             },
         });
         return res.status(301)
@@ -420,17 +413,15 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
             error_type,
         } = errResponse?.response?.data || {};
 
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'API_SERVER',
             messages: ['Failed IG OAuth Request'],
-            tracer: beeline,
             traceArgs: {
-                error_message,
-                error_type,
-                ...errResponse?.response?.data,
-                theHell1: errResponse?.toString(),
-                theHell2: errResponse?.response?.toString(),
+                'error.message': error_message,
+                'error.type': error_type,
+                'instagram.theHell1': errResponse?.toString(),
+                'instagram.theHell2': errResponse?.response?.toString(),
             },
         });
 
@@ -458,15 +449,14 @@ const tiktokAppAuth: RequestHandler = (req: any, res: any) => {
     } = req.query;
 
     if (error) {
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'API_SERVER',
             messages: ['Failed TikTok Authorization Request'],
-            tracer: beeline,
             traceArgs: {
                 error,
-                error_reason,
-                error_description,
+                'error.reason': error_reason,
+                'error.description': error_description,
             },
         });
         return res.status(301).send({
@@ -515,17 +505,15 @@ const tiktokAppAuth: RequestHandler = (req: any, res: any) => {
             error_type,
         } = errResponse?.response?.data || {};
 
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'API_SERVER',
             messages: ['Failed TikTok OAuth Request'],
-            tracer: beeline,
             traceArgs: {
-                error_message,
-                error_type,
-                ...errResponse?.response?.data,
-                theHell1: errResponse?.toString(),
-                theHell2: errResponse?.response?.toString(),
+                'error.message': error_message,
+                'error.type': error_type,
+                'tiktok.theHell1': errResponse?.toString(),
+                'tiktok.theHell2': errResponse?.response?.toString(),
             },
         });
 

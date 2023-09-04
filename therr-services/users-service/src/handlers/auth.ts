@@ -1,9 +1,8 @@
 import { RequestHandler } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { AccessLevels, CurrentSocialValuations } from 'therr-js-utilities/constants';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizeEmail from 'normalize-email';
-import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { createUserToken } from '../utilities/userHelpers';
@@ -53,13 +52,12 @@ const login: RequestHandler = (req: any, res: any) => {
             }
 
             if (!userSearchResults.length && !req.body.isSSO) {
-                printLogs({
+                logSpan({
                     level: 'warn',
                     messageOrigin: 'API_SERVER',
                     messages: ['user auth failed: user not found'],
-                    tracer: beeline,
                     traceArgs: {
-                        userHash,
+                        'user.hash': userHash,
                     },
                 });
                 return handleHttpError({
@@ -72,13 +70,12 @@ const login: RequestHandler = (req: any, res: any) => {
             if (!req.body.isSSO
                 && !(userSearchResults[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED)
                     || userSearchResults[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES))) {
-                printLogs({
+                logSpan({
                     level: 'warn',
                     messageOrigin: 'API_SERVER',
                     messages: ['user auth failed: user not verified'],
-                    tracer: beeline,
                     traceArgs: {
-                        userHash,
+                        'user.hash': userHash,
                     },
                 });
                 return handleHttpError({
@@ -109,16 +106,15 @@ const login: RequestHandler = (req: any, res: any) => {
                     };
                     const idToken = createUserToken(user, req.body.rememberMe);
 
-                    printLogs({
+                    logSpan({
                         level: 'info',
                         messageOrigin: 'API_SERVER',
                         messages: ['user login success'],
-                        tracer: beeline,
                         traceArgs: {
-                            isSSO: req.body.isSSO,
-                            loginCount: !userSearchResults?.length ? 1 : userSearchResults[0].loginCount,
-                            userHash,
-                            userId: userDetails.id,
+                            'user.isSSO': req.body.isSSO,
+                            'user.loginCount': !userSearchResults?.length ? 1 : userSearchResults[0].loginCount,
+                            'user.hash': userHash,
+                            'user.id': userDetails.id,
                         },
                     });
 
@@ -150,15 +146,14 @@ const login: RequestHandler = (req: any, res: any) => {
 
                             return Promise.resolve();
                         }).catch((err) => {
-                            printLogs({
+                            logSpan({
                                 level: 'error',
                                 messageOrigin: 'API_SERVER',
                                 messages: [err?.message],
-                                tracer: beeline,
                                 traceArgs: {
                                     issue: '',
                                     port: process.env.USERS_SERVICE_API_PORT,
-                                    processId: process.pid,
+                                    'process.id': process.pid,
                                 },
                             });
                         });
@@ -180,13 +175,12 @@ const login: RequestHandler = (req: any, res: any) => {
                     });
                 }
 
-                printLogs({
+                logSpan({
                     level: 'warn',
                     messageOrigin: 'API_SERVER',
                     messages: ['user auth failed: incorrect password'],
-                    tracer: beeline,
                     traceArgs: {
-                        userHash,
+                        'user.hash': userHash,
                     },
                 });
 

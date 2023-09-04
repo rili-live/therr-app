@@ -1,7 +1,6 @@
 import Stripe from 'stripe';
 import { ErrorCodes } from 'therr-js-utilities/constants';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import sendAdminNewBusinessSubscriptionEmail from '../api/email/admin/sendAdminNewBusinessSubscriptionEmail';
@@ -17,19 +16,18 @@ const handleSubscriptionCreateUpdate = async (event) => {
     const customer = await stripe.customers.retrieve(eventObject.customer) as Stripe.Customer;
     const product = await stripe.products.retrieve(eventObject.plan?.product);
 
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'API_SERVER',
         messages: ['Customer Subscription Created'],
-        tracer: beeline,
         traceArgs: {
-            subscriptionPlanId: eventObject.plan?.id,
-            subscriptionPlanAmount: eventObject.plan?.amount,
-            subscriptionProductId: eventObject.product?.id,
-            subscriptionProductName: product.name,
-            subscriptionTrialStart: eventObject.trial_start ? eventObject.trial_start * 1000 : undefined,
-            subscriptionTrialEnd: eventObject.trial_end ? eventObject.trial_end * 1000 : undefined,
-            subscriptionStatus: eventObject.status,
+            'subscription.planId': eventObject.plan?.id,
+            'subscription.planAmount': eventObject.plan?.amount,
+            'subscription.productId': eventObject.product?.id,
+            'subscription.productName': product.name,
+            'subscription.trialStart': eventObject.trial_start ? eventObject.trial_start * 1000 : undefined,
+            'subscription.trialEnd': eventObject.trial_end ? eventObject.trial_end * 1000 : undefined,
+            'subscription.status': eventObject.status,
         },
     });
 
@@ -68,15 +66,14 @@ const handleWebhookEvents = async (req, res) => {
     const event = req.body;
     const eventObject = event.data.object;
 
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'API_SERVER',
         messages: ['Webhook event received'],
-        tracer: beeline,
         traceArgs: {
-            webhookEventType: event.type,
-            webhookEventAmount: eventObject.amount,
-            webhookEventStatus: eventObject.status,
+            'webhook.eventType': event.type,
+            'webhook.eventAmount': eventObject.amount,
+            'webhook.eventStatus': eventObject.status,
         },
     });
 
@@ -112,15 +109,14 @@ const handleWebhookEvents = async (req, res) => {
                 break;
             default:
                 // Unexpected event type
-                printLogs({
+                logSpan({
                     level: 'error',
                     messageOrigin: 'API_SERVER',
                     messages: ['Unhandled webhook event type'],
-                    tracer: beeline,
                     traceArgs: {
-                        webhookEventType: event.type,
-                        webhookEventAmount: eventObject.amount,
-                        webhookEventStatus: eventObject.status,
+                        'webhook.eventType': event.type,
+                        'webhook.eventAmount': eventObject.amount,
+                        'webhook.eventStatus': eventObject.status,
                     },
                 });
         }
