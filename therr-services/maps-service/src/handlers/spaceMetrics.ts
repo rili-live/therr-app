@@ -1,8 +1,7 @@
 import {
     AccessLevels, ErrorCodes, MetricNames, MetricValueTypes,
 } from 'therr-js-utilities/constants';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -99,23 +98,22 @@ const getSpaceMetrics = (req, res) => {
 
     return Store.spaces.getByIdSimple(spaceId)
         .then(([space]) => {
-            printLogs({
+            logSpan({
                 level: 'info',
                 messageOrigin: 'API_SERVER',
                 messages: ['Space Metrics Fetched'],
-                tracer: beeline,
                 traceArgs: {
                     // TODO: Add a sentiment analysis property
-                    action: 'fetch-space-metrics',
-                    category: space?.category,
-                    radius: space?.radius,
-                    spaceId: space?.id,
-                    isPublic: space?.isPublic,
                     logCategory: 'user-sentiment',
-                    userId,
-                    region: space?.region,
-                    isMatureContent: space?.isMatureContent,
-                    locale,
+                    action: 'fetch-space-metrics',
+                    'space.category': space?.category,
+                    'space.radius': space?.radius,
+                    'space.spaceId': space?.id,
+                    'space.isPublic': space?.isPublic,
+                    'space.region': space?.region,
+                    'space.isMatureContent': space?.isMatureContent,
+                    'user.locale': locale,
+                    'user.id': userId,
                 },
             });
             if (!space) {
