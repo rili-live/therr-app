@@ -1,8 +1,8 @@
 import HoneycombBeeline from 'honeycomb-beeline'; // eslint-disable-line import/newline-after-import
 const beeline = HoneycombBeeline({
     writeKey: process.env.HONEYCOMB_API_KEY,
-    dataset: process.env.LOGGING_DATASET,
     serviceName: 'users-service',
+    httpTracePropagationHook: HoneycombBeeline.w3c.httpTracePropagationHook,
 
     /* ... additional optional configuration ... */
 });

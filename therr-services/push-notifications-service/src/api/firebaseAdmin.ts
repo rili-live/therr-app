@@ -3,7 +3,6 @@ import * as admin from 'firebase-admin';
 import { PushNotifications } from 'therr-js-utilities/constants';
 import beeline from '../beeline';
 import translate from '../utilities/translator';
-import Logger from './Logger';
 
 const serviceAccount = JSON.parse(Buffer.from(process.env.PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 || '', 'base64').toString());
 
@@ -328,15 +327,14 @@ const predictAndSendNotification = (
             }
         })
         .catch((error) => {
-            Logger.log({
+            beeline.addContext({
                 errorMessage: error?.stack || 'Failed to send push notification',
                 messageData: message && message.data,
                 messageNotification: message && message.notification,
                 userId: config?.userId,
                 significance: 'failed to send push notification',
-                serviceName: 'push-notifications-service',
                 ...metrics,
-            }, process.env.LOGGING_DATASET);
+            });
         });
 };
 
