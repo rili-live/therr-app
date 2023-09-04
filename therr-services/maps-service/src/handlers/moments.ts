@@ -9,14 +9,13 @@ import {
     MetricNames,
     MetricValueTypes,
 } from 'therr-js-utilities/constants';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
 import getReactions from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
-import beeline from '../beeline';
 import {
     checkIsMediaSafeForWork,
     getSignedUrlResponse,
@@ -73,17 +72,16 @@ const createMoment = async (req, res) => {
                     // This prevents spamming and claiming a reward for every post
                     const existingCoupon = await Store.spaceIncentiveCoupons.get(userId, therrCoinIncentive.id);
                     const isClaimable = !existingCoupon.length || existingCoupon[0].useCount < therrCoinIncentive.maxUseCount;
-                    printLogs({
+                    logSpan({
                         level: 'info',
                         messageOrigin: 'API_SERVER',
                         messages: ['User attempted to claim rewards'],
-                        tracer: beeline,
                         traceArgs: {
-                            incentive: therrCoinIncentive,
-                            isIncentiveClaimable: isClaimable,
-                            incentiveAmount: therrCoinIncentive.incentiveRewardValue,
-                            userId,
-                            region,
+                            'space.incentive': therrCoinIncentive,
+                            'space.isIncentiveClaimable': isClaimable,
+                            'space.incentiveAmount': therrCoinIncentive.incentiveRewardValue,
+                            'user.id': userId,
+                            'space.region': region,
                         },
                     });
                     if (isClaimable) {
@@ -178,26 +176,25 @@ const createMoment = async (req, res) => {
                 userHasActivated: true,
             },
         }).then(({ data: reaction }) => {
-            printLogs({
+            logSpan({
                 level: 'info',
                 messageOrigin: 'API_SERVER',
                 messages: ['Moment Created'],
-                tracer: beeline,
                 traceArgs: {
                     // TODO: Add a sentiment analysis property
                     action: 'create-moment',
-                    category: moment.category,
-                    radius: moment.radius,
-                    spaceId: moment.spaceId,
-                    isPublic: moment.isPublic,
-                    isDraft: moment.isDraft,
                     logCategory: 'user-sentiment',
-                    userId,
-                    region: moment.region,
-                    hashTags: moment.hashTags,
-                    hasMedia: media?.length > 0,
-                    isMatureContent: moment.isMatureContent,
-                    locale,
+                    'moment.category': moment.category,
+                    'moment.radius': moment.radius,
+                    'moment.spaceId': moment.spaceId,
+                    'moment.isPublic': moment.isPublic,
+                    'moment.isDraft': moment.isDraft,
+                    'moment.region': moment.region,
+                    'moment.hashTags': moment.hashTags,
+                    'moment.hasMedia': media?.length > 0,
+                    'moment.isMatureContent': moment.isMatureContent,
+                    'user.id': userId,
+                    'user.locale': locale,
                 },
             });
             // TODO: This technically leaves room for a gap of time where users may find
@@ -214,15 +211,14 @@ const createMoment = async (req, res) => {
                             isPublic: false, // NOTE: For now make this content private to reduce public, mature content
                         };
                         return Store.moments.updateMoment(moment.id, momentArgs).catch((err) => {
-                            printLogs({
+                            logSpan({
                                 level: 'error',
                                 messageOrigin: 'API_SERVER',
                                 messages: ['failed to update moment after sightengine check'],
-                                tracer: beeline,
                                 traceArgs: {
-                                    errorMessage: err?.message,
-                                    errorResponse: err?.response?.data,
-                                    region,
+                                    'error.message': err?.message,
+                                    'error.response': err?.response?.data,
+                                    'moment.region': region,
                                 },
                             });
                         });
@@ -335,14 +331,13 @@ const createIntegratedMomentBase = ({
                     }
                     if (!isSafeForWork) {
                         Store.moments.updateMoment(moment.id, momentArgs).catch((err) => {
-                            printLogs({
+                            logSpan({
                                 level: 'error',
                                 messageOrigin: 'API_SERVER',
                                 messages: ['failed to update moment after sightengine check'],
-                                tracer: beeline,
                                 traceArgs: {
-                                    errorMessage: err?.message,
-                                    errorResponse: err?.response?.data,
+                                    'error.message': err?.message,
+                                    'error.response': err?.response?.data,
                                 },
                             });
                         });
@@ -544,16 +539,15 @@ const getMomentDetails = (req, res) => {
                     userId,
                     locale,
                 }).catch((err) => {
-                    printLogs({
+                    logSpan({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
                         messages: ['failed to upload user metric'],
-                        tracer: beeline,
                         traceArgs: {
-                            errorMessage: err?.message,
-                            errorResponse: err?.response?.data,
-                            userId,
-                            momentId: moment.id,
+                            'error.message': err?.message,
+                            'error.response': err?.response?.data,
+                            'user.id': userId,
+                            'moment.id': moment.id,
                         },
                     });
                 });

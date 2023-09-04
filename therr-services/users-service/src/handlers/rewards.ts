@@ -1,6 +1,5 @@
 import { ErrorCodes } from 'therr-js-utilities/constants';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import sendRewardsExchangeEmail from '../api/email/admin/sendRewardsExchangeEmail';
@@ -50,16 +49,15 @@ const requestRewardsExchange = (req, res) => {
 
         return fetchExchangeRate()
             .then((exchangeRate) => {
-                printLogs({
+                logSpan({
                     level: 'info',
                     messageOrigin: 'API_SERVER',
                     messages: ['User requested to exchange coins'],
-                    tracer: beeline,
                     traceArgs: {
-                        amount: req.body.amount || user.settingsTherrCoinTotal,
-                        provider: req.body.provider,
-                        exchangeRate,
-                        userId,
+                        'coins.amount': req.body.amount || user.settingsTherrCoinTotal,
+                        'giftcard.provider': req.body.provider,
+                        'coins.exchangeRate': exchangeRate,
+                        'user.id': userId,
                     },
                 });
 

@@ -1,8 +1,7 @@
 import axios from 'axios';
 import client from 'https';
 import path from 'path';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../../utilities/handleHttpError';
 import { storage } from '../../api/aws';
 import getBucket from '../../utilities/getBucket';
@@ -150,27 +149,25 @@ const checkIsMediaSafeForWork = (media: { type: string, path: string }[]): Promi
 
                         return false;
                     });
-                    printLogs({
+                    logSpan({
                         level: 'info',
                         messageOrigin: 'API_SERVER',
                         messages: ['sightengine metrics'],
-                        tracer: beeline,
                         traceArgs: {
-                            sightengineDurationMs: Date.now() - startTime,
+                            'sightengine.durationMs': Date.now() - startTime,
                         },
                     });
                     return isSafeForWork;
                 });
             }).catch((err) => {
                 // TODO: Send email to admin
-                printLogs({
+                logSpan({
                     level: 'error',
                     messageOrigin: 'API_SERVER',
                     messages: ['sightengine error'],
-                    tracer: beeline,
                     traceArgs: {
-                        errorMessage: err?.message,
-                        errorResponse: err?.response?.data,
+                        'error.message': err?.message,
+                        'error.response': err?.response?.data,
                     },
                 });
 

@@ -8,8 +8,7 @@ import {
     MetricValueTypes,
 } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import { storage } from '../api/aws';
 import areaMetricsService from '../api/areaMetricsService';
 import * as globalConfig from '../../../../global-config';
@@ -71,30 +70,30 @@ const createSpace = async (req, res) => {
                 userHasActivated: true,
             },
         }).then(({ data: reaction }) => {
-            printLogs({
+            logSpan({
                 level: 'info',
                 messageOrigin: 'API_SERVER',
                 messages: ['Space Created'],
-                tracer: beeline,
                 traceArgs: {
                     // TODO: Add a sentiment analysis score property
                     action: 'create-space',
-                    category: space.category,
-                    radius: space.radius,
-                    isPublic: space.isPublic,
-                    isDraft: space.isDraft,
                     logCategory: 'user-sentiment',
-                    region: space.region,
-                    hashTags: space.hashTags,
-                    hasMedia: media?.length > 0,
-                    isMatureContent: space.isMatureContent,
-                    featuredIncentiveKey: space.featuredIncentiveKey,
-                    featuredIncentiveValue: space.featuredIncentiveValue,
-                    featuredIncentiveRewardKey: space.featuredIncentiveRewardKey,
-                    featuredIncentiveRewardValue: space.featuredIncentiveRewardValue,
-                    featuredIncentiveCurrencyId: space.featuredIncentiveCurrencyId,
-                    locale,
-                    userId,
+                    'user.locale': locale,
+                    'user.id': userId,
+                    'space.category': space.category,
+                    'space.radius': space.radius,
+                    'space.isPublic': space.isPublic,
+                    'space.isDraft': space.isDraft,
+                    'space.region': space.region,
+                    'space.hashTags': space.hashTags,
+                    'space.hasMedia': media?.length > 0,
+                    'space.isMatureContent': space.isMatureContent,
+                    'space.featuredIncentiveKey': space.featuredIncentiveKey,
+                    'space.featuredIncentiveValue': space.featuredIncentiveValue,
+                    'space.featuredIncentiveRewardKey': space.featuredIncentiveRewardKey,
+                    'space.featuredIncentiveRewardValue': space.featuredIncentiveRewardValue,
+                    'space.featuredIncentiveCurrencyId': space.featuredIncentiveCurrencyId,
+                    
                 },
             });
             // if condition could work for any incentive property
@@ -123,14 +122,13 @@ const createSpace = async (req, res) => {
                             fromUserId: userId,
                             isMatureContent: !isSafeForWork,
                         }).catch((err) => {
-                            printLogs({
+                            logSpan({
                                 level: 'error',
                                 messageOrigin: 'API_SERVER',
                                 messages: ['failed to update space after sightengine check'],
-                                tracer: beeline,
                                 traceArgs: {
-                                    errorMessage: err?.message,
-                                    errorResponse: err?.response?.data,
+                                    'error.message': err?.message,
+                                    'error.response': err?.response?.data,
                                 },
                             });
                         });
@@ -213,16 +211,15 @@ const getSpaceDetails = (req, res) => {
                 longitude: space.longitude,
                 spaceId: space.id,
             }).catch((err) => {
-                printLogs({
+                logSpan({
                     level: 'error',
                     messageOrigin: 'API_SERVER',
                     messages: ['failed to upload space metric'],
-                    tracer: beeline,
                     traceArgs: {
-                        errorMessage: err?.message,
-                        errorResponse: err?.response?.data,
-                        userId,
-                        spaceId: space.id,
+                        'error.message': err?.message,
+                        'error.response': err?.response?.data,
+                        'user.id': userId,
+                        'space.id': space.id,
                     },
                 });
             });
@@ -241,16 +238,15 @@ const getSpaceDetails = (req, res) => {
                 userId,
                 locale,
             }).catch((err) => {
-                printLogs({
+                logSpan({
                     level: 'error',
                     messageOrigin: 'API_SERVER',
                     messages: ['failed to upload user metric'],
-                    tracer: beeline,
                     traceArgs: {
-                        errorMessage: err?.message,
-                        errorResponse: err?.response?.data,
-                        userId,
-                        spaceId: space.id,
+                        'error.message': err?.message,
+                        'error.response': err?.response?.data,
+                        'user.id': userId,
+                        'space.id': space.id,
                     },
                 });
             });
@@ -453,30 +449,29 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                     userHasActivated: true,
                 },
             }).then(({ data: reaction }) => {
-                printLogs({
+                logSpan({
                     level: 'info',
                     messageOrigin: 'API_SERVER',
                     messages: ['Space Created'],
-                    tracer: beeline,
                     traceArgs: {
                         // TODO: Add a sentiment analysis score property
                         action: 'create-space',
-                        category: space.category,
-                        radius: space.radius,
-                        isPublic: space.isPublic,
-                        isDraft: space.isDraft,
                         logCategory: 'user-sentiment',
-                        region: space.region,
-                        hashTags: space.hashTags,
-                        hasMedia: media?.length > 0,
-                        isMatureContent: space.isMatureContent,
-                        featuredIncentiveKey: space.featuredIncentiveKey,
-                        featuredIncentiveValue: space.featuredIncentiveValue,
-                        featuredIncentiveRewardKey: space.featuredIncentiveRewardKey,
-                        featuredIncentiveRewardValue: space.featuredIncentiveRewardValue,
-                        featuredIncentiveCurrencyId: space.featuredIncentiveCurrencyId,
-                        locale,
-                        userId,
+                        'user.locale': locale,
+                        'user.id': userId,
+                        'space.category': space.category,
+                        'space.radius': space.radius,
+                        'space.isPublic': space.isPublic,
+                        'space.isDraft': space.isDraft,
+                        'space.region': space.region,
+                        'space.hashTags': space.hashTags,
+                        'space.hasMedia': media?.length > 0,
+                        'space.isMatureContent': space.isMatureContent,
+                        'space.featuredIncentiveKey': space.featuredIncentiveKey,
+                        'space.featuredIncentiveValue': space.featuredIncentiveValue,
+                        'space.featuredIncentiveRewardKey': space.featuredIncentiveRewardKey,
+                        'space.featuredIncentiveRewardValue': space.featuredIncentiveRewardValue,
+                        'space.featuredIncentiveCurrencyId': space.featuredIncentiveCurrencyId,
                     },
                 });
 
@@ -493,15 +488,14 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                                 fromUserId: userId,
                                 isMatureContent: !isSafeForWork,
                             }).catch((err) => {
-                                printLogs({
+                                logSpan({
                                     level: 'error',
                                     messageOrigin: 'API_SERVER',
                                     messages: ['failed to update space after sightengine check'],
-                                    tracer: beeline,
                                     traceArgs: {
-                                        errorMessage: err?.message,
-                                        errorResponse: err?.response?.data,
-                                        userId,
+                                        'error.message': err?.message,
+                                        'error.response': err?.response?.data,
+                                        'user.id': userId,
                                     },
                                 });
                             });
@@ -509,16 +503,15 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                     });
                 }
             })).catch((err) => {
-                printLogs({
+                logSpan({
                     level: 'error',
                     messageOrigin: 'API_SERVER',
                     messages: ['failed to create space after claim request'],
-                    tracer: beeline,
                     traceArgs: {
-                        errorMessage: err?.message,
-                        errorResponse: err?.response?.data,
-                        locale,
-                        userId,
+                        'error.message': err?.message,
+                        'error.response': err?.response?.data,
+                        'user.locale': locale,
+                        'user.id': userId,
                     },
                 });
             });

@@ -1,6 +1,5 @@
 import { ErrorCodes } from 'therr-js-utilities/constants';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -53,18 +52,17 @@ const getUserMetrics = (req, res) => {
 
     const { contentUserId } = req.params;
 
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'API_SERVER',
         messages: ['User Metrics Fetched'],
-        tracer: beeline,
         traceArgs: {
             // TODO: Add a sentiment analysis property
             action: 'fetch-user-metrics',
-            userId: requestingUserId,
-            contentUserId,
             logCategory: 'user-sentiment',
-            locale,
+            'user.id': requestingUserId,
+            'metrics.contentUserId': contentUserId,
+            'user.locale': locale,
         },
     });
 
