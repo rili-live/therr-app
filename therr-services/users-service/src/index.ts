@@ -1,4 +1,5 @@
 /* eslint-disable import/no-import-module-exports */
+import tracing from './tracing'; // eslint-disable-line import/order
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -6,7 +7,6 @@ import * as path from 'path';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import router from './routes';
 import reqLogDecorator from './middleware/reqLogDecorator';
-import tracing from './tracing';
 import { version as packageVersion } from '../package.json';
 
 tracing.start();
