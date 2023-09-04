@@ -29,7 +29,7 @@ spec:
         image: therrapp/api-gateway:latest
         resources:
           limits:
-            memory: "128Mi"
+            memory: "256Mi"
             cpu: "75m"
         ports:
         - containerPort: 7770
