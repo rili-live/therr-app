@@ -21,7 +21,7 @@ export default (req, res, next) => {
     const activeSpan = opentelemetry.trace.getActiveSpan();
     activeSpan?.setAttribute('request.app', req.app);
     activeSpan?.setAttribute('request.ip', req.ip);
-    activeSpan?.setAttribute('request.body', serializedBody);
+    activeSpan?.setAttribute('request.body', serializedBody.toString());
     activeSpan?.setAttribute('request.query', serializedQuery);
     activeSpan?.setAttribute('request.osHostname', os.hostname());
 
