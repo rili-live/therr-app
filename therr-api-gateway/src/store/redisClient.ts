@@ -1,7 +1,7 @@
 import printLogs from 'therr-js-utilities/print-logs';
 import Redis from 'ioredis';
 import RedisStore from 'rate-limit-redis';
-import beeline from '../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 
 const maxConnectionRetries = 100;
 let connectionRetryCount = 0;
@@ -26,11 +26,10 @@ const redisClient = new Redis({
 
 // Redis Error handling
 redisClient.on('error', (error: any) => {
-    printLogs({
+    logSpan({
         level: 'error',
         messageOrigin: 'REDIS_CONNECTION_ERROR',
         messages: error.toString(),
-        tracer: beeline,
         traceArgs: {},
     });
 });
@@ -55,11 +54,10 @@ const connectToRedis = (options, callback) => {
         callback();
     }).catch((e) => {
         console.error(e);
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'REDIS_LOG',
             messages: [e.message],
-            tracer: options.tracer,
             traceArgs: {},
         });
 
@@ -85,9 +83,7 @@ const connectToRedis = (options, callback) => {
 };
 
 // TODO: Consider moving this to the server start. For now, let's fail fast.
-connectToRedis({
-    tracer: beeline,
-}, () => { console.log('Attempting to connect to Redis...'); });
+connectToRedis({}, () => { console.log('Attempting to connect to Redis...'); });
 
 /**
  * This must be instantiated after the redisClient connects because it also calls connect which causes an error otherwise

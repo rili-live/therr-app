@@ -41,6 +41,8 @@ spec:
             secretKeyRef:
               name: honeycomb-writekey
               key: HONEYCOMB
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "grpc"
         - name: LOG_LEVEL
           value: "info"
         - name: REDIS_PUB_HOST

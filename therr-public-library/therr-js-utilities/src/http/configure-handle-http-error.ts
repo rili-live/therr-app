@@ -1,5 +1,6 @@
 import debug from 'debug';
 import * as express from 'express';
+import opentelemetry from '@opentelemetry/api';
 import { ErrorCodes } from '../constants';
 
 const debugHttp = debug('http');
@@ -13,7 +14,7 @@ export interface IErrorArgs {
     errorCode?: string;
 }
 
-const configureHandleHttpError = (beeline: any) => ({
+const configureHandleHttpError = (beeline?: any) => ({
     err,
     res,
     message,
@@ -22,9 +23,16 @@ const configureHandleHttpError = (beeline: any) => ({
     errorCode,
 }: IErrorArgs) => {
     debugHttp((err && err.message) || err || message);
-    beeline.addContext({
-        errorMessage: err ? err.stack : message,
-    });
+
+    // TODO: Remove beeline
+    if (beeline) {
+        beeline.addContext({
+            errorMessage: err ? err.stack : message,
+        });
+    } else {
+        const activeSpan = opentelemetry.trace.getActiveSpan();
+        activeSpan?.setAttribute('error.message', err ? err.stack : message);
+    }
 
     return res.status(statusCode || 500).send({
         statusCode: statusCode || 500,
