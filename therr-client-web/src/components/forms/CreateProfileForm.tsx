@@ -77,9 +77,9 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
         this.setState({
             inputs: {
                 ...this.state.inputs,
-                phoneNumber: value,
+                phoneNumber: value || '+1',
             },
-            isPhoneNumberValid: isValidPhoneNumber(value),
+            isPhoneNumberValid: isValidPhoneNumber(value || '+1'),
         });
     };
 

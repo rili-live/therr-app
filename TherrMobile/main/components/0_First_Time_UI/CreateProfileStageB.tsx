@@ -71,31 +71,24 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
 
     onSubmitVerifyPhone = () => {
         const { phoneNumber } = this.state;
-        const { onSubmit, translate, user } = this.props;
+        const { translate, user } = this.props;
         this.setState({
             isSubmitting: true,
         });
         ApiService.verifyPhone(phoneNumber)
             .then(() => {
-                // analytics().logEvent('phone_verify_success', {
-                //     userId: user?.details?.id,
-                //     phoneNumber,
-                //     platform: 'mobile',
-                // }).catch((err) => console.log(err));
-                // this.setState({
-                //     isVerifying: true,
-                // });
-                // Toast.show({
-                //     type: 'success',
-                //     text1: translate('alertTitles.codeSent'),
-                //     text2: translate('alertMessages.codeSent'),
-                //     visibilityTime: 2000,
-                // });
-                // TODO: Revert after phone verification is fixed
-                onSubmit && onSubmit();
+                analytics().logEvent('phone_verify_success', {
+                    userId: user?.details?.id,
+                    phoneNumber,
+                    platform: 'mobile',
+                }).catch((err) => console.log(err));
+                this.setState({
+                    isVerifying: true,
+                });
                 Toast.show({
                     type: 'success',
-                    text1: translate('alertTitles.phoneVerifiedSuccess'),
+                    text1: translate('alertTitles.codeSent'),
+                    text2: translate('alertMessages.codeSent'),
                     visibilityTime: 2000,
                 });
             })

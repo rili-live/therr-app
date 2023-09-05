@@ -75,7 +75,7 @@ const AccountDetailsForm = ({
                     </Row> */}
                     <Row>
                         <Col md={6} className="mb-3">
-                            <Form.Group id="emal">
+                            <Form.Group id="email">
                                 <Form.Label>Email</Form.Label>
                                 <Form.Control value={email} required type="email" placeholder="name@company.com" disabled />
                             </Form.Group>
@@ -83,7 +83,7 @@ const AccountDetailsForm = ({
                         <Col md={6} className="mb-3">
                             <Form.Group id="phone">
                                 <Form.Label>Phone</Form.Label>
-                                <Form.Control value={phoneNumber} required type="string" placeholder="+12-345 678 910" disabled />
+                                <Form.Control value={phoneNumber} required type="tel" placeholder="+1 234 567 8910" disabled/>
                             </Form.Group>
                         </Col>
                     </Row>

@@ -9,7 +9,7 @@ import ScrollToTop from './components/ScrollToTop';
 import store from './store';
 
 // Third Party Styles
-// import 'react-phone-number-input/style.css';
+import 'react-phone-number-input/style.css';
 
 // Brand Styles
 // Change the following import to alter theme

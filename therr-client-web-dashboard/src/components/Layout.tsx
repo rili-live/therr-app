@@ -389,7 +389,6 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         });
         // TODO: Make sure header/footer is re-rendered if isLandingStylePage changes
         const isLandingStylePage = location.pathname === '/'
-            || location.pathname === '/create-profile'
             || location.pathname === '/login'
             || location.pathname === '/register'
             || location.pathname === '/verify-account'
