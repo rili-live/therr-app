@@ -379,7 +379,6 @@ const validateCredentials = (userSearchResults, {
     if (reqBody.isSSO) {
         let verifyTokenPromise;
         if (reqBody.ssoProvider === 'google') {
-            console.log('DEBUG', reqBody.ssoPlatform)
             if (!reqBody.ssoPlatform) {
                 verifyTokenPromise = googleOAuth2Client.verifyIdToken({
                     idToken: reqBody.idToken,

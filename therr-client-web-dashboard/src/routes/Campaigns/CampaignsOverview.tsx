@@ -1,11 +1,12 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { MapsService } from 'therr-react/services';
-import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import { MapsService, UsersService } from 'therr-react/services';
+import { IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
-import BaseAcquisitionDashboard from './BaseCampaignsOverview';
+import BaseCampaignsOverview from './BaseCampaignsOverview';
 import { getWebsiteName } from '../../utilities/getHostContext';
 
 interface ICampaignsOverviewDispatchProps {
@@ -94,10 +95,26 @@ export class CampaignsOverviewComponent extends React.Component<ICampaignsOvervi
         return onInitMessaging && onInitMessaging(e, this.getConnectionDetails(connection), 'user-profile');
     };
 
+    /**
+     * Clients of a white-label agency must be subscribed to view the campaigns dashboard
+     */
+    isSubscribed = () => {
+        const { user } = this.props;
+
+        return UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.DASHBOARD_SUBSCRIBER_BASIC, AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM, AccessLevels.DASHBOARD_SUBSCRIBER_PRO],
+                isPublic: true,
+            },
+            user,
+        );
+    };
+
     // eslint-disable-next-line class-methods-use-this
     public render(): JSX.Element | null {
         return (
-            <BaseAcquisitionDashboard isSuperAdmin={false} />
+            <BaseCampaignsOverview isSuperAdmin={false} isSubscriber={this.isSubscribed()} />
         );
     }
 }

@@ -46,9 +46,16 @@ const ValueChange = ({ value, suffix }: any) => {
 interface ISpacesListTableProps {
     spacesInView: ISpace[];
     editContext: string;
+    isLoading: boolean;
 }
 
-const SpacesListTable = ({ spacesInView, editContext }: ISpacesListTableProps) => {
+const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTableProps) => {
+    if (isLoading) {
+        return (
+            <p className="text-center mt-1">Loading...</p>
+        );
+    }
+
     const TableRow = (props: {
         space: ISpace;
     }) => {
