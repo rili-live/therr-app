@@ -8,21 +8,13 @@ import {
     FontAwesomeIcon,
 } from '@fortawesome/react-fontawesome';
 import {
-    faChartLine,
     faChevronLeft,
     faChevronRight,
-    faPencilRuler,
-    faPlus,
-    faRocket,
-    faStar,
-    faTasks,
-    faUserShield,
+    faMapMarked,
+    faSearch,
 } from '@fortawesome/free-solid-svg-icons';
 import {
-    Col,
-    Row,
     Button,
-    Dropdown,
     ButtonGroup,
 } from '@themesberg/react-bootstrap';
 import { MapsService, ReactionsService } from 'therr-react/services';
@@ -30,21 +22,10 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { MetricNames } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
-import CounterWidget from '../../components/widgets/CounterWidget';
-// import {
-//     PageVisitsTable,
-// } from '../components/Tables';
-// import {
-//     trafficShares,
-//     totalOrders,
-// } from '../data/charts';
-import { SpaceMetricsDisplay } from '../../components/widgets/SpaceMetricsDisplay';
-import StarRating from '../../components/widgets/StarRating';
-
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
 import { ISpace } from '../../types';
 import AdminManageSpacesMenu from '../../components/AdminManageSpacesMenu';
-import StarRatingDisplay from '../../components/widgets/StarRatingDisplay';
+import OverviewOfSpaceMetrics from './OverviewModules/OverviewOfSpaceMetrics';
 
 const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
     // TODO: Update this to support more than 1 month time span
@@ -100,6 +81,7 @@ interface IBaseDashboardState {
     currentSpaceIndex: number;
     latitude?: number;
     longitude?: number;
+    isLoadingSpaces: boolean;
     overviewGraphLabels: string[] | undefined;
     overviewGraphValues: number[][] | undefined;
     percentageChange: number;
@@ -108,7 +90,6 @@ interface IBaseDashboardState {
     spanOfTime: 'week' | 'month';
     averageRating: number;
     totalRating: number;
-
 }
 
 const mapStateToProps = (state: any) => ({
@@ -131,6 +112,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             currentSpaceIndex: 0,
             overviewGraphLabels: undefined,
             overviewGraphValues: undefined,
+            isLoadingSpaces: false,
             percentageChange: 0,
             totalImpressions: 0,
             spacesInView: [],
@@ -186,6 +168,9 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             spanOfTime: timeSpan,
         });
         const { latitude, longitude, spacesInView } = this.state;
+        this.setState({
+            isLoadingSpaces: true,
+        });
 
         const startDate = moment().subtract(1, `${timeSpan}s`).utc().format('YYYY-MM-DD HH:mm:ss');
         const endDate = moment().utc().format('YYYY-MM-DD HH:mm:ss');
@@ -233,6 +218,12 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                     console.log(err);
                 });
             }
+        }).catch((err) => {
+            console.log(err);
+        }).finally(() => {
+            this.setState({
+                isLoadingSpaces: false,
+            });
         });
     };
 
@@ -273,6 +264,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         const {
             currentSpaceIndex,
             spacesInView,
+            isLoadingSpaces,
             overviewGraphLabels,
             overviewGraphValues,
             percentageChange,
@@ -313,111 +305,39 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         }
                     </ButtonGroup>
                 </div>
-                <Row className="justify-content-md-center">
-                    <Col xs={12} lg={9} className="mb-4 d-none d-sm-block">
-                        <SpaceMetricsDisplay
-                            isMobile={false}
-                            title={`Location Name: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
-                            labels={overviewGraphLabels}
-                            values={overviewGraphValues}
-                            percentage={percentageChange}
-                            fetchSpaceMetrics={this.fetchSpaceMetrics}
-                        />
-                    </Col>
-                    <Col xs={12} lg={9} className="mb-4 d-sm-none">
-                        <SpaceMetricsDisplay
-                            isMobile={true}
-                            title={`Location Name: ${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
-                            labels={overviewGraphLabels}
-                            values={overviewGraphValues}
-                            percentage={percentageChange}
-                            fetchSpaceMetrics={this.fetchSpaceMetrics}
-                        />
-                    </Col>
-                    <Col xs={12} lg={3} className="mb-4">
-                        <Row className="justify-content-md-center">
-                            <Col xs={12} className="mb-4">
-                                <StarRatingDisplay
-                                    averageRating={averageRating}
-                                    totalRating={totalRating}
-                                    category="Space Rating"
-                                    title={`Avg. Rating: ${averageRating || 'N/A'}`}
-                                    icon={faStar}
-                                    iconColor="shape-secondary"
-                                />
-                            </Col>
-                            <Col xs={12} className="mb-4">
-                                <CounterWidget
-                                    period={spanOfTime}
-                                    percentage={percentageChange}
-                                    category="Daily Impressions"
-                                    title={`~${avgImpressions} per day`}
-                                    icon={faChartLine}
-                                    iconColor="shape-secondary"
-                                />
-                            </Col>
-                        </Row>
-                    </Col>
-
-                    {/* <Col xs={12} sm={6} xl={4} className="mb-4">
-                        <tCounterWidget
-                            category="Revenue"
-                            title="$43,594"
-                            period="Feb 1 - Apr 1"
-                            percentage={28.4}
-                            icon={faCashRegister}
-                            iconColor="shape-tertiary"
-                        />
-                    </Col>
-
-                    <Col xs={12} sm={6} xl={4} className="mb-4">
-                        <CircleChartWidget
-                            title="Traffic Share"
-                            data={trafficShares} />
-                    </Col> */}
-                </Row>
-
-                {/* <Row>
-                    <Col xs={12} xl={12} className="mb-4">
-                        <Row>
-                            <Col xs={12} xl={8} className="mb-4">
-                                <Row>
-                                    <Col xs={12} className="mb-4">
-                                        <PageVisitsTable />
-                                    </Col>
-
-                                    <Col xs={12} lg={6} className="mb-4">
-                                        <TeamMembersWidget />
-                                    </Col>
-
-                                    <Col xs={12} lg={6} className="mb-4">
-                                        <ProgressTrackWidget />
-                                    </Col>
-                                </Row>
-                            </Col>
-
-                            <Col xs={12} xl={4}>
-                                <Row>
-                                    <Col xs={12} className="mb-4">
-                                        <BarChartWidget
-                                            title="Total orders"
-                                            value={452}
-                                            percentage={18.2}
-                                            data={totalOrders} />
-                                    </Col>
-
-                                    <Col xs={12} className="px-0 mb-4">
-                                        <RankingWidget />
-                                    </Col>
-
-                                    <Col xs={12} className="px-0">
-                                        <AcquisitionWidget />
-                                    </Col>
-                                </Row>
-                            </Col>
-                        </Row>
-                    </Col>
-                </Row> */}
+                {
+                    (spacesInView?.length > 0 || isLoadingSpaces)
+                    && <OverviewOfSpaceMetrics
+                        currentSpaceIndex={currentSpaceIndex}
+                        overviewGraphLabels={overviewGraphLabels}
+                        overviewGraphValues={overviewGraphValues}
+                        percentageChange={percentageChange}
+                        avgImpressions={avgImpressions}
+                        spacesInView={spacesInView}
+                        spanOfTime={spanOfTime}
+                        averageRating={averageRating}
+                        totalRating={totalRating}
+                        fetchSpaceMetrics={this.fetchSpaceMetrics}
+                        isLoading={isLoadingSpaces}
+                    />
+                }
+                {
+                    (!spacesInView?.length && !isLoadingSpaces)
+                    && <>
+                        <h3 className="text-center mt-5">
+                            <FontAwesomeIcon icon={faSearch} className="me-2" />We Found 0 Business Locations Associated with Your Account
+                        </h3>
+                        <p className="text-center mt-1">
+                            Spaces are business locations used for hi-fi (geofence) location marketing.
+                            Claim a space to start promoting your local business today.
+                        </p>
+                        <div className="text-center mt-5">
+                            <Button variant="secondary" onClick={this.navigateHandler('/claim-a-space')}>
+                                <FontAwesomeIcon icon={faMapMarked} className="me-1" /> Claim a Business Location
+                            </Button>
+                        </div>
+                    </>
+                }
             </div>
         );
     }
