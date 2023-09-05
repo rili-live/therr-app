@@ -214,6 +214,7 @@
     "knex": "^0.95.15",
     "logrocket": "^3.0.1",
     "logrocket-react": "^5.0.1",
+    "lottie-react": "^2.4.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
     "node-sass": "^8.0.0",

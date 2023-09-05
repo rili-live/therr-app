@@ -22,7 +22,7 @@ import {
 import { AxiosResponse } from 'axios';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight, faMapMarked, faMapMarker, faMarker, faSearch } from '@fortawesome/free-solid-svg-icons';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
@@ -329,10 +329,30 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                 <Row className="d-flex justify-content-around align-items-center py-4">
                     <Col xs={12} xl={12} xxl={10}>
                         <h1 className="text-center">Manage Your Spaces</h1>
-                        <SpacesListTable
-                            spacesInView={spacesInView}
-                            editContext={routeParams.context}
-                        />
+                        {
+                            spacesInView?.length > 0
+                                && <SpacesListTable
+                                    spacesInView={spacesInView}
+                                    editContext={routeParams.context}
+                                />
+                        }
+                        {
+                            !spacesInView?.length
+                                && <>
+                                    <h3 className="text-center mt-5">
+                                        <FontAwesomeIcon icon={faSearch} className="me-2" />We Found 0 Business Locations Associated with Your Account
+                                    </h3>
+                                    <p className="text-center mt-1">
+                                        Spaces are business locations used for hi-fi (geofence) location marketing.
+                                        Claim a space to start promoting your local business today.
+                                    </p>
+                                    <div className="text-center mt-5">
+                                        <Button variant="secondary" onClick={this.navigateHandler('/claim-a-space')}>
+                                            <FontAwesomeIcon icon={faMapMarked} className="me-1" /> Claim a Business Location
+                                        </Button>
+                                    </div>
+                                </>
+                        }
                     </Col>
                 </Row>
                 <ToastContainer className="p-3" position={'bottom-end'}>
