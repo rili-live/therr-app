@@ -1,9 +1,8 @@
 import * as socketio from 'socket.io';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import {
     Notifications, SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
-import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config';
 import restRequest from '../utilities/restRequest';
@@ -24,13 +23,12 @@ interface IUpdateUserConnectionData {
 }
 
 const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionData, decodedAuthenticationToken: any) => {
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${data.user?.userName} with socketId ${socket.id}, created a userConnection`,
-        tracer: beeline,
         traceArgs: {
-            socketId: socket.id,
+            'socket.id': socket.id,
         },
     });
     redisSessions.getUserById(data.connection.acceptingUserId).then((response) => {
@@ -52,13 +50,12 @@ const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionDa
 
 const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionData, decodedAuthenticationToken: any) => {
     let requestingSocketId;
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${data.user?.userName} with socketId ${socket.id}, updated a userConnection`,
-        tracer: beeline,
         traceArgs: {
-            socketId: socket.id,
+            'socket.id': socket.id,
         },
     });
 
@@ -122,13 +119,12 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                 }
             }
         }).catch((err) => {
-            printLogs({
+            logSpan({
                 level: 'error',
                 messageOrigin: 'SOCKET_IO_LOGS',
                 messages: err.toString(),
-                tracer: beeline,
                 traceArgs: {
-                    errorMessage: err?.message,
+                    'error.message': err?.message,
                     source: 'userConnections-redisSessions.getUserById',
                 },
             });
@@ -164,13 +160,12 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
 
         return Promise.resolve(connection);
     }).catch((err) => {
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: err.toString(),
-            tracer: beeline,
             traceArgs: {
-                errorMessage: err?.message,
+                'error.message': err?.message,
                 source: 'userConnections',
             },
         });

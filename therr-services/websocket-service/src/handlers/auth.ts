@@ -1,8 +1,7 @@
 import moment from 'moment';
 import * as socketio from 'socket.io';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
-import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
 import notifyConnections from '../utilities/notify-connections';
 import { COMMON_DATE_FORMAT, UserStatus } from '../constants';
@@ -66,31 +65,29 @@ const login = ({
                 data: response,
             });
         }).catch((err: any) => {
-            printLogs({
+            logSpan({
                 level: 'error',
                 messageOrigin: 'REDIS_SESSION_ERROR',
                 messages: err.toString(),
-                tracer: beeline,
                 traceArgs: {
                     appName,
                     ip: (socket?.handshake.headers as any).host.split(':')[0],
-                    socketId: socket?.id,
-                    userName: data?.userName,
+                    'socket.id': socket?.id,
+                    'user.userName': data?.userName,
                 },
             });
         });
     }
 
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${data?.userName} with socketId ${socket.id}, has logged in.`,
-        tracer: beeline,
         traceArgs: {
             appName,
             ip: (socket.handshake.headers as any).host.split(':')[0],
-            socketId: socket.id,
-            userName: data?.userName,
+            'socket.id': socket.id,
+            'user.userName': data?.userName,
         },
     });
 
@@ -131,16 +128,15 @@ const logout = ({
     if (socket.handshake && (socket.handshake.headers as any) && (socket.handshake.headers as any).host) {
         Promise.all(promises).then(() => {
             redisSessions.remove(socket.id).catch((err: any) => {
-                printLogs({
+                logSpan({
                     level: 'info',
                     messageOrigin: 'REDIS_SESSION_ERROR',
                     messages: err.toString(),
-                    tracer: beeline,
                     traceArgs: {
                         ip: (socket.handshake.headers as any).host.split(':')[0],
-                        socketId: socket.id,
-                        userId: data && data.id,
-                        userName: data && data.userName,
+                        'socket.id': socket.id,
+                        'user.userId': data && data.id,
+                        'user.userName': data && data.userName,
                     },
                 });
             }).finally(() => {
@@ -165,15 +161,14 @@ const logout = ({
         },
     });
 
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${data?.userName || 'unknown'} with socketId ${socket.id}, has LOGGED OUT.`,
-        tracer: beeline,
         traceArgs: {
-            ip: (socket.handshake.headers as any).host.split(':')[0],
-            socketId: socket.id,
-            userName: data && data.userName,
+            'socket.ip': (socket.handshake.headers as any).host.split(':')[0],
+            'socket.id': socket.id,
+            'user.userName': data && data.userName,
         },
     });
 };

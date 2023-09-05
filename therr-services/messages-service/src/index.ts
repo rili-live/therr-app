@@ -1,13 +1,15 @@
 /* eslint-disable import/no-import-module-exports */
-import beeline from './beeline'; // eslint-disable-line import/order
+import tracing from './tracing'; // eslint-disable-line import/order
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import * as path from 'path';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import router from './routes';
-import honey from './middleware/honey';
+import reqLogDecorator from './middleware/reqLogDecorator';
 import { version as packageVersion } from '../package.json';
+
+tracing.start();
 
 const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
 const corsOptions = {
@@ -25,7 +27,7 @@ const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 const app = express();
 
 // Logging Middleware
-app.use(honey);
+app.use(reqLogDecorator);
 
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
@@ -48,14 +50,13 @@ app.use(API_BASE_ROUTE, router);
 const { MESSAGES_SERVICE_API_PORT } = process.env;
 
 const server = app.listen(MESSAGES_SERVICE_API_PORT, () => {
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'API_SERVER',
         messages: [`Server (messages service) running on port ${MESSAGES_SERVICE_API_PORT} with process id`, process.pid],
-        tracer: beeline,
         traceArgs: {
             port: MESSAGES_SERVICE_API_PORT,
-            processId: process.pid,
+            'process.id': process.pid,
         },
     });
 });
@@ -84,17 +85,16 @@ if (process.env.NODE_ENV === 'development' && module.hot) {
 }
 
 process.on('uncaughtExceptionMonitor', (err, origin) => {
-    printLogs({
+    logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
-        tracer: beeline,
         traceArgs: {
             port: MESSAGES_SERVICE_API_PORT,
-            processId: process.pid,
-            isUncaughtException: true,
-            errorMessage: err?.message,
-            errorOrigin: origin,
+            'process.id': process.pid,
+            'error.isUncaughtException': true,
+            'error.message': err?.message,
+            'error.origin': origin,
             source: origin,
         },
     });

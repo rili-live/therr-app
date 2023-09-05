@@ -1,7 +1,6 @@
 import { Socket } from 'socket.io';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
-import beeline from '../beeline';
 import globalConfig from '../../../../global-config';
 import restRequest from '../utilities/restRequest';
 
@@ -11,13 +10,12 @@ interface IUpdateNotificationData {
 }
 
 const updateNotification = (socket: Socket, data: IUpdateNotificationData, decodedAuthenticationToken: any) => {
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${data?.userName} with socketId ${socket.id}, updated a notification`,
-        tracer: beeline,
         traceArgs: {
-            socketId: socket.id,
+            'socket.id': socket.id,
         },
     });
     return restRequest({
@@ -35,13 +33,12 @@ const updateNotification = (socket: Socket, data: IUpdateNotificationData, decod
             },
         });
     }).catch((err) => {
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: err.toString(),
-            tracer: beeline,
             traceArgs: {
-                errorMessage: err?.message,
+                'error.message': err?.message,
                 source: 'updateNotification',
             },
         });
