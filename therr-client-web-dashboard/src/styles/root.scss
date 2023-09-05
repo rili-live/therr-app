@@ -82,7 +82,9 @@ body {
         height: 100%;
         flex: 1;
 
-        #page_login {
+        #page_login,
+        #page_register,
+        #page_create_profile {
             flex: 1;
         }
     }
@@ -91,4 +93,48 @@ body {
 .footer {
     padding-left: 1rem;
     padding-right: 1rem;
+}
+
+.PhoneInput {
+    position: relative;
+
+    .PhoneInputCountry {
+        color: #076d5f;
+        top: .75rem;
+        left: 1rem;
+        position: absolute;
+
+        svg {
+            position: absolute;
+        }
+    }
+
+    .PhoneInputCountrySelectArrow {
+        display: none;
+    }
+
+    input {
+        padding-left: 52px;
+    }
+}
+
+.PhoneInput input {
+    margin-bottom: 0.5rem;
+}
+
+.PhoneInputInput {
+    display: block;
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #66799e;
+    background-color: #ffffff;
+    background-clip: padding-box;
+    border: 0.0625rem solid #d1d7e0;
+    appearance: none;
+    border-radius: 0.5rem;
+    box-shadow: inset 0 1px 2px rgba(46, 54, 80, 0.075);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }

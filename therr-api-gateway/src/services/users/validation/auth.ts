@@ -17,6 +17,7 @@ export const authenticateUserValidation = [
         [
             body('isSSO').exists().isBoolean(),
             body('ssoProvider').exists().isString(),
+            body('ssoPlatform').optional().isString(),
             body('nonce').optional({
                 nullable: true,
             }),

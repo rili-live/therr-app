@@ -90,6 +90,7 @@ const login: RequestHandler = (req: any, res: any) => {
                 reqBody: {
                     isSSO: req.body.isSSO,
                     ssoProvider: req.body.ssoProvider,
+                    ssoPlatform: req.body.ssoPlatform,
                     nonce: req.body.nonce,
                     idToken: req.body.idToken,
                     password: req.body.password,

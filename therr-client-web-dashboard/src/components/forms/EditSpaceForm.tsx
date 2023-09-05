@@ -215,7 +215,7 @@ const EditSpaceForm = ({
                     </Row> */}
                     {/* <Row>
                         <Col md={6} className="mb-3">
-                            <Form.Group id="emal">
+                            <Form.Group id="email">
                                 <Form.Label>Email</Form.Label>
                                 <Form.Control required type="email" placeholder="name@company.com" />
                             </Form.Group>
