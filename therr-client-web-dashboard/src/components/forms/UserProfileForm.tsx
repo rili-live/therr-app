@@ -12,7 +12,10 @@ interface IUserProfileFormProps {
     email: string;
     phoneNumber: string;
     onPhoneInputChange: any;
+    onSubmit: any;
+    onInputChange: any;
     isPhoneNumberValid?: boolean;
+    isSubmitting?: boolean;
     translate: any;
 }
 
@@ -23,10 +26,21 @@ const UserProfileForm = ({
     email,
     phoneNumber,
     onPhoneInputChange,
+    onInputChange,
+    onSubmit,
     isPhoneNumberValid,
+    isSubmitting,
     translate,
 }: IUserProfileFormProps) => {
-    const [birthday, setBirthday] = useState('');
+    const onContinue = (e) => {
+        e.preventDefault();
+
+        return onSubmit({
+            firstName,
+            lastName,
+            userName,
+        });
+    };
 
     return (
         <Card border="light" className="bg-white shadow-sm mb-4">
@@ -39,13 +53,25 @@ const UserProfileForm = ({
                         <Col md={6} className="mb-3">
                             <Form.Group id="firstName">
                                 <Form.Label>First Name (optional)</Form.Label>
-                                <Form.Control value={firstName} type="text" placeholder="Your first name..." />
+                                <Form.Control
+                                    value={firstName}
+                                    name="firstName"
+                                    type="text"
+                                    placeholder="Your first name..."
+                                    onChange={onInputChange}
+                                />
                             </Form.Group>
                         </Col>
                         <Col md={6} className="mb-3">
                             <Form.Group id="lastName">
                                 <Form.Label>Last Name (optional)</Form.Label>
-                                <Form.Control value={lastName} type="text" placeholder="Your last name..." />
+                                <Form.Control
+                                    value={lastName}
+                                    name="lastName"
+                                    type="text"
+                                    placeholder="Your last name..."
+                                    onChange={onInputChange}
+                                />
                             </Form.Group>
                         </Col>
                     </Row>
@@ -53,7 +79,13 @@ const UserProfileForm = ({
                         <Col md={12} className="mb-3">
                             <Form.Group id="userName">
                                 <Form.Label>Username (required)</Form.Label>
-                                <Form.Control value={userName} required type="text" placeholder="Create a username..." />
+                                <Form.Control
+                                    value={userName}
+                                    name="userName"
+                                    required type="text"
+                                    placeholder="Create a username..."
+                                    onChange={onInputChange}
+                                />
                             </Form.Group>
                         </Col>
                     </Row>
@@ -123,7 +155,13 @@ const UserProfileForm = ({
                         </Col>
                     </Row>
                     <div className="mt-3 text-right">
-                        <Button variant="primary" type="submit">Continue</Button>
+                        <Button
+                            variant="primary"
+                            type="submit"
+                            disabled={!isPhoneNumberValid || !userName || isSubmitting}
+                            onClick={onContinue}
+                            onSubmit={onContinue}
+                        >Continue</Button>
                     </div>
                 </Form>
             </Card.Body>

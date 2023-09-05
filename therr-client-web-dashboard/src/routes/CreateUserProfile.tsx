@@ -21,6 +21,7 @@ import { getWebsiteName } from '../utilities/getHostContext';
 import UsersActions from '../redux/actions/UsersActions';
 import { routeAfterLogin } from './Login';
 import UserProfileForm from '../components/forms/UserProfileForm';
+import VerifyPhoneCodeForm from '../components/forms/VerifyPhoneCodeForm';
 
 interface ICreateUserProfileRouterProps {
     navigation: {
@@ -50,6 +51,10 @@ interface ICreateUserProfileState {
     isVerifyingPhone: boolean;
     phoneNumber: string;
     isPhoneNumberValid?: boolean;
+    firstName?: string;
+    lastName?: string;
+    userName?: string;
+    verificationCode: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -76,7 +81,13 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
             alertMessage: '',
             isSubmitting: false,
             isVerifyingPhone: false,
-            phoneNumber: '',
+            phoneNumber: props.user?.details?.phoneNumber && props.user?.details?.phoneNumber !== 'apple-sso'
+                ? props.user?.details?.phoneNumber
+                : '',
+            firstName: props.user?.details?.firstName,
+            lastName: props.user?.details?.lastName,
+            userName: props.user?.details?.userName,
+            verificationCode: '',
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -93,19 +104,46 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
         });
     };
 
+    onInputChange = (e) => {
+        e.preventDefault();
+
+        if (e.currentTarget.name === 'userName') {
+            this.setState({
+                userName: e.currentTarget.value.toLowerCase(),
+            });
+        } else {
+            const newInputChanges: any = {
+                [e.currentTarget.name]: e.currentTarget.value,
+            };
+            this.setState({
+                ...newInputChanges,
+            });
+        }
+
+        this.setState({
+            alertTitle: '',
+            alertMessage: '',
+            alertVariation: '',
+        });
+    };
+
+    onResendCode = (event: any) => {
+        event.preventDefault();
+
+        this.onSubmitVerifyPhone({});
+    };
+
     onSubmitVerifyPhone = (updateArgs: any) => {
         const { user, updateUser } = this.props;
+        const { phoneNumber } = this.state;
 
         this.setState({
             isSubmitting: true,
-            phoneNumber: updateArgs.phoneNumber,
+            phoneNumber,
         });
 
-        const argsWithoutPhone = { ...updateArgs };
-        delete argsWithoutPhone.phoneNumber;
-
-        updateUser(user.details.id, argsWithoutPhone).then((response: any) => {
-            ApiService.verifyPhone(updateArgs.phoneNumber).then(() => {
+        updateUser(user.details.id, updateArgs).then((response: any) => {
+            ApiService.verifyPhone(phoneNumber).then(() => {
                 ReactGA.event({
                     category: 'Registering',
                     action: 'Verify Phone',
@@ -159,11 +197,17 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
                 updateUser(user.details.id, {
                     phoneNumber: this.state.phoneNumber,
                 }).then(() => {
-                    navigation.navigate(routeAfterLogin, {
-                        state: {
-                            successMessage: this.translate('pages.createProfile.createProfileSuccess'),
-                        },
-                    });
+                    this.onValidationSuccess(
+                        'Successfully Verified',
+                        'Your phone number and code were successfully verified!',
+                    );
+                    setTimeout(() => {
+                        navigation.navigate(routeAfterLogin, {
+                            state: {
+                                successMessage: this.translate('pages.createProfile.createProfileSuccess'),
+                            },
+                        });
+                    }, 1500);
                 }).catch((error: any) => {
                     if (error.statusCode === 400) {
                         this.onValidationError(
@@ -214,6 +258,15 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
         this.toggleAlert(true);
     };
 
+    onValidationSuccess = (successTitle: string, successMsg: string) => {
+        this.setState({
+            alertTitle: successTitle,
+            alertMessage: successMsg,
+            alertVariation: 'success',
+        });
+        this.toggleAlert(true);
+    };
+
     public render(): JSX.Element | null {
         const { user } = this.props;
         const {
@@ -222,6 +275,12 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
             alertTitle,
             alertMessage,
             isPhoneNumberValid,
+            isVerifyingPhone,
+            userName,
+            firstName,
+            lastName,
+            phoneNumber,
+            verificationCode,
         } = this.state;
 
         return (
@@ -230,19 +289,35 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
                     <section className='d-flex align-items-center my-5 mt-lg-7 mb-lg-5'>
                         <Container>
                             <Row className="d-flex justify-content-around align-items-center py-4">
-                                <Col xs={12} xl={10} xxl={8}>
-                                    <UserProfileForm
-                                        userName={user?.details?.userName}
-                                        firstName={user?.details?.firstName}
-                                        lastName={user?.details?.lastName}
-                                        email={user?.details?.email}
-                                        phoneNumber={user?.details?.phoneNumber}
-                                        onPhoneInputChange={this.onPhoneInputChange}
-                                        isPhoneNumberValid={isPhoneNumberValid}
-                                        translate={this.translate}
-                                    />
-                                </Col>
-
+                                {
+                                    !isVerifyingPhone
+                                    && <Col xs={12} xl={10} xxl={8}>
+                                        <UserProfileForm
+                                            userName={userName}
+                                            firstName={firstName}
+                                            lastName={lastName}
+                                            email={user?.details?.email}
+                                            phoneNumber={phoneNumber}
+                                            onPhoneInputChange={this.onPhoneInputChange}
+                                            onInputChange={this.onInputChange}
+                                            isPhoneNumberValid={isPhoneNumberValid}
+                                            translate={this.translate}
+                                            onSubmit={this.onSubmitVerifyPhone}
+                                        />
+                                    </Col>
+                                }
+                                {
+                                    isVerifyingPhone
+                                    && <Col xs={12} xl={10} xxl={8}>
+                                        <VerifyPhoneCodeForm
+                                            verificationCode={verificationCode}
+                                            onInputChange={this.onInputChange}
+                                            onResendCode={this.onResendCode}
+                                            translate={this.translate}
+                                            onSubmit={this.onSubmitCode}
+                                        />
+                                    </Col>
+                                }
                                 {/* <Col xs={12} xl={4}>
                                     <Row>
                                         <Col xs={12}>

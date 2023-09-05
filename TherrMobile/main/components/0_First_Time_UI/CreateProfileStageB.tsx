@@ -71,7 +71,7 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
 
     onSubmitVerifyPhone = () => {
         const { phoneNumber } = this.state;
-        const { onSubmit, translate, user } = this.props;
+        const { translate, user } = this.props;
         this.setState({
             isSubmitting: true,
         });

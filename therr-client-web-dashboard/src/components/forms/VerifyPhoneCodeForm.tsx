@@ -1,103 +1,74 @@
-import * as React from 'react';
-import { isValidPhoneNumber } from 'react-phone-number-input';
+import React, { useState } from 'react';
 import {
-    ButtonPrimary,
-    Input,
-} from 'therr-react/components';
-import translator from '../../services/translator';
+    Col, Row, Card, Form, Button,
+} from 'react-bootstrap';
 
-// Regular component props
 interface IVerifyPhoneCodeFormProps {
-  isSubmitting: boolean;
-  onSubmit: Function;
-  onSubmitVerify: Function;
-  title: string;
+    verificationCode: string;
+    onSubmit: any;
+    onInputChange: any;
+    onResendCode: any;
+    isSubmitting?: boolean;
+    translate: any;
 }
 
-interface IVerifyPhoneCodeFormState {
-    inputs: any;
-}
+const VerifyPhoneCodeForm = ({
+    verificationCode,
+    onInputChange,
+    onResendCode,
+    onSubmit,
+    isSubmitting,
+    translate,
+}: IVerifyPhoneCodeFormProps) => {
+    const onSend = (e) => {
+        e.preventDefault();
 
-/**
- * VerifyPhoneCodeForm
- */
-export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCodeFormProps, IVerifyPhoneCodeFormState> {
-    private translate: Function;
-
-    constructor(props: IVerifyPhoneCodeFormProps) {
-        super(props);
-
-        this.state = {
-            inputs: {
-                phoneNumber: '',
-            },
-        };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
-    }
-
-    isFormDisabled() {
-        return this.props.isSubmitting || !this.state.inputs.verificationCode;
-    }
-
-    onSubmit = (event: any) => {
-        event.preventDefault();
-
-        if (!this.isFormDisabled()) {
-            const updateArgs = { ...this.state.inputs };
-            this.props.onSubmit(updateArgs);
-        }
-    };
-
-    onResendCode = (event: any) => {
-        event.preventDefault();
-
-        this.props.onSubmitVerify();
-    };
-
-    onInputChange = (name: string, value: string) => {
-        const newInputChanges = {
-            [name]: value,
-        };
-
-        this.setState({
-            inputs: {
-                ...this.state.inputs,
-                ...newInputChanges,
-            },
+        return onSubmit({
+            verificationCode,
         });
     };
 
-    public render(): JSX.Element | null {
-        return (
-            <div className="register-container">
-                <div className="flex fill">
-                    <h1 className="text-center">{this.props.title}</h1>
+    return (
+        <Card border="light" className="bg-white shadow-sm mb-4">
+            <Card.Body>
+                <h5 className="mb-4">Enter Verification Code</h5>
+                <Form>
+                    <Row>
+                        <Col md={6} className="mb-3">
+                            <Form.Group id="verification_code">
+                                <Form.Label>{translate('components.createProfileForm.labels.verificationCode')}</Form.Label>
+                                <Form.Control
+                                    value={verificationCode}
+                                    name="verificationCode"
+                                    required
+                                    type="text"
+                                    placeholder=""
+                                    onChange={onInputChange}
+                                />
+                            </Form.Group>
+                        </Col>
+                    </Row>
 
-                    <label className="required" htmlFor="verification_code">{this.translate('components.createProfileForm.labels.verificationCode')}:</label>
-                    <Input
-                        type="text"
-                        id="verification_code"
-                        name="verificationCode"
-                        value={this.state.inputs.verificationCode}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        validations={['isRequired']}
-                    />
-
-                    <div className="form-field flex-box space-between row">
-                        <ButtonPrimary
-                            id="resend_phone"
-                            text={this.translate('components.createProfileForm.buttons.resend')} onClick={this.onResendCode} />
-                        <ButtonPrimary
-                            id="verify_phone"
-                            text={this.translate('components.createProfileForm.buttons.submit')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
+                    <div className="mt-3 text-right">
+                        <Button
+                            variant="secondary"
+                            type="submit"
+                            disabled={isSubmitting}
+                            onClick={onResendCode}
+                            className="mx-3"
+                        >{translate('components.createProfileForm.buttons.resend')}</Button>
+                        <Button
+                            variant="primary"
+                            type="submit"
+                            disabled={!verificationCode || isSubmitting}
+                            onClick={onSend}
+                        >{translate('components.createProfileForm.buttons.submit')}</Button>
                     </div>
-                </div>
-            </div>
-        );
-    }
-}
 
-export default VerifyPhoneCodeFormComponent;
+                </Form>
+            </Card.Body>
+        </Card>
+    );
+};
+
+export default VerifyPhoneCodeForm;
