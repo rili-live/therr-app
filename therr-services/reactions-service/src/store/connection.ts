@@ -1,6 +1,5 @@
 import { Pool } from 'pg';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline'; // eslint-disable-line import/order
+import logSpan from 'therr-js-utilities/log-or-update-span';
 
 export interface IConnection {
     read: Pool;
@@ -32,39 +31,37 @@ const write: Pool = new Pool({
 });
 
 read.on('error', (err, client) => {
-    printLogs({
+    logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
-        tracer: beeline,
         traceArgs: {
-            dbHost: process.env.DB_HOST_MAIN_READ,
-            dbName: process.env.REACTIONS_SERVICE_DATABASE,
-            processId: process.pid,
-            isUncaughtException: true,
-            errorMessage: err?.message,
-            errorOrigin: 'connection',
+            'db.host': process.env.DB_HOST_MAIN_READ,
+            'db.name': process.env.REACTIONS_SERVICE_DATABASE,
+            'process.id': process.pid,
+            'error.isUncaughtException': true,
+            'error.message': err?.message,
+            'error.origin': 'connection',
             source: 'reactions-service',
-            hasDBConnectionError: true,
+            'db.hasDBConnectionError': true,
         },
     });
 });
 
 write.on('error', (err, client) => {
-    printLogs({
+    logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
-        tracer: beeline,
         traceArgs: {
-            dbHost: process.env.DB_HOST_MAIN_READ,
-            dbName: process.env.REACTIONS_SERVICE_DATABASE,
-            processId: process.pid,
-            isUncaughtException: true,
-            errorMessage: err?.message,
-            errorOrigin: 'connection',
+            'db.host': process.env.DB_HOST_MAIN_READ,
+            'db.name': process.env.REACTIONS_SERVICE_DATABASE,
+            'process.id': process.pid,
+            'error.isUncaughtException': true,
+            'error.message': err?.message,
+            'error.origin': 'connection',
             source: 'reactions-service',
-            hasDBConnectionError: true,
+            'db.hasDBConnectionError': true,
         },
     });
 });
