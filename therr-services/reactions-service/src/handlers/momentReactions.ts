@@ -1,7 +1,6 @@
 import { RequestHandler } from 'express';
 // import axios from 'axios';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline'; // eslint-disable-line import/order
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
@@ -37,14 +36,13 @@ const createOrUpdateMomentReaction = (req, res) => {
                 .then(([momentReaction]) => {
                     // TODO: Should this be a blocking request to ensure update?
                     sendUserCoinUpdateRequest(req, reactionsResponse[0]).catch((err) => {
-                        printLogs({
+                        logSpan({
                             level: 'error',
                             messageOrigin: 'API_SERVER',
                             messages: ['Failed to request coin update'],
-                            tracer: beeline,
                             traceArgs: {
-                                errorMessage: err?.message,
-                                errorOrigin: 'createOrUpdateMomentReaction-update',
+                                'error.message': err?.message,
+                                'error.origin': 'createOrUpdateMomentReaction-update',
                             },
                         });
                     });
@@ -55,14 +53,13 @@ const createOrUpdateMomentReaction = (req, res) => {
 
         // TODO: Should this be a blocking request to ensure update?
         sendUserCoinUpdateRequest(req, {}).catch((err) => {
-            printLogs({
+            logSpan({
                 level: 'error',
                 messageOrigin: 'API_SERVER',
                 messages: ['Failed to request coin update'],
-                tracer: beeline,
                 traceArgs: {
-                    errorMessage: err?.message,
-                    errorOrigin: 'createOrUpdateMomentReaction-create',
+                    'error.message': err?.message,
+                    'error.origin': 'createOrUpdateMomentReaction-create',
                 },
             });
         });
