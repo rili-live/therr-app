@@ -1,6 +1,5 @@
-import beeline from '../beeline'; // eslint-disable-line import/order
 import axios from 'axios';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../global-config';
 
 const getTier = (reactionBody) => {
@@ -42,13 +41,12 @@ const updateAchievements = (headers, reqBody, existingReaction?): Promise<any> =
             progressCount: 1,
         },
     }).catch((err) => {
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'API_SERVER',
             messages: ['Error while updating achievements'],
-            tracer: beeline,
             traceArgs: {
-                errMessage: err?.message,
+                'error.message': err?.message,
             },
         });
     });
