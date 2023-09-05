@@ -73,6 +73,7 @@ interface IManageSpacesState {
         pageNumber: number;
     };
     spacesInView: ISpace[]; // TODO: Move to Redux
+    isLoading: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -113,6 +114,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                 pageNumber: 1,
             },
             spacesInView: [],
+            isLoading: false,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -133,6 +135,10 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
     fetchSpaces = (pageNumber = 1, itemsPerPage = ItemsPerPage) => {
         const { latitude, longitude } = this.state;
         const { routeParams } = this.props;
+
+        this.setState({
+            isLoading: true,
+        });
 
         this.setState({
             pagination: {
@@ -160,7 +166,13 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                 this.setState({
                     spacesInView: response?.data?.results || [],
                 }, () => resolve(null));
-            }));
+            })).catch((err) => {
+                console.log(err);
+            }).finally(() => {
+                this.setState({
+                    isLoading: false,
+                });
+            });
         });
     };
 
@@ -300,6 +312,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
             alertMessage,
             pagination,
             spacesInView,
+            isLoading,
         } = this.state;
         const { map, routeParams, user } = this.props;
 
@@ -330,14 +343,15 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                     <Col xs={12} xl={12} xxl={10}>
                         <h1 className="text-center">Manage Your Spaces</h1>
                         {
-                            spacesInView?.length > 0
+                            (spacesInView?.length > 0 || isLoading)
                                 && <SpacesListTable
                                     spacesInView={spacesInView}
                                     editContext={routeParams.context}
+                                    isLoading={isLoading}
                                 />
                         }
                         {
-                            !spacesInView?.length
+                            !spacesInView?.length && !isLoading
                                 && <>
                                     <h3 className="text-center mt-5">
                                         <FontAwesomeIcon icon={faSearch} className="me-2" />We Found 0 Business Locations Associated with Your Account

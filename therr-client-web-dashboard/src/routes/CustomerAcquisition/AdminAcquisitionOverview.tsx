@@ -1,9 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { MapsService } from 'therr-react/services';
-import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import { MapsService, UsersService } from 'therr-react/services';
+import { IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
 import BaseAcquisitionDashboard from './BaseAcquisitionDashboard';
 import { DEFAULT_COORDINATES } from '../../constants/LocationDefaults';
@@ -89,10 +90,26 @@ export class AdminAcquisitionOverviewComponent extends React.Component<IAdminAcq
         return onInitMessaging && onInitMessaging(e, this.getConnectionDetails(connection), 'user-profile');
     };
 
+    /**
+     * Marketing agency admins must be subscribed to a monthly white-label plan to view campaigns
+    */
+    isSubscribed = () => {
+        const { user } = this.props;
+
+        return UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY],
+                isPublic: true,
+            },
+            user,
+        );
+    };
+
     // eslint-disable-next-line class-methods-use-this
     public render(): JSX.Element | null {
         return (
-            <BaseAcquisitionDashboard isSuperAdmin={true} />
+            <BaseAcquisitionDashboard isSuperAdmin={true} isSubscriber={this.isSubscribed()} />
         );
     }
 }

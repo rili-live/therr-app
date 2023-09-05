@@ -283,31 +283,12 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
 
         return (
             <div id="page_dashboard_overview" className="flex-box column">
-                <div className="d-flex justify-content-around justify-content-md-between flex-wrap flex-md-nowrap align-items-center py-4">
-                    {
-                        isSuperAdmin && <AdminManageSpacesMenu className="mb-2 mb-md-0" navigateHandler={this.navigateHandler} />
-                    }
-                    {
-                        !isSuperAdmin && <ManageSpacesMenu className="mb-2 mb-md-0" navigateHandler={this.navigateHandler} />
-                    }
-                    <ButtonGroup className="mb-2 mb-md-0">
-                        {
-                            currentSpaceIndex !== 0
-                                && <Button onClick={this.onPrevSpaceClick} variant="outline-primary" size="sm">
-                                    <FontAwesomeIcon icon={faChevronLeft} className="me-2" /> Prev. Space
-                                </Button>
-                        }
-                        {
-                            currentSpaceIndex < spacesInView.length - 1
-                                && <Button onClick={this.onNextSpaceClick} variant="outline-primary" size="sm">
-                                    Next Space <FontAwesomeIcon icon={faChevronRight} className="me-2" />
-                                </Button>
-                        }
-                    </ButtonGroup>
-                </div>
                 {
                     (spacesInView?.length > 0 || isLoadingSpaces)
                     && <OverviewOfSpaceMetrics
+                        navigateHandler={this.navigateHandler}
+                        onPrevSpaceClick={this.onPrevSpaceClick}
+                        onNextSpaceClick={this.onNextSpaceClick}
                         currentSpaceIndex={currentSpaceIndex}
                         overviewGraphLabels={overviewGraphLabels}
                         overviewGraphValues={overviewGraphValues}
@@ -319,6 +300,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         totalRating={totalRating}
                         fetchSpaceMetrics={this.fetchSpaceMetrics}
                         isLoading={isLoadingSpaces}
+                        isSuperAdmin={isSuperAdmin}
                     />
                 }
                 {
