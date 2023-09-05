@@ -1,7 +1,6 @@
 import * as socketio from 'socket.io';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
-import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
 import notifyConnections from '../utilities/notify-connections';
 import { UserStatus } from '../constants';
@@ -32,18 +31,17 @@ const update = ({
     const user = data.details;
     const socketDetails = data.socketDetails;
 
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${user.userName} with socketId ${socket.id}, has refreshed the page. Updating socket.`,
-        tracer: beeline,
         traceArgs: {
             ip: (socket.handshake.headers as any).host.split(':')[0],
-            socketId: socket.id,
-            userName: user.userName,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            previousSocketId: socketDetails.session.id,
+            'socket.id': socket.id,
+            'user.userName': user.userName,
+            'user.firstName': user.firstName,
+            'user.lastName': user.lastName,
+            'socket.previousSocketId': socketDetails.session.id,
         },
     });
 
@@ -80,16 +78,15 @@ const update = ({
                 },
             });
         }).catch((err: any) => {
-            printLogs({
+            logSpan({
                 level: 'verbose',
                 messageOrigin: 'REDIS_SESSION_ERROR',
                 messages: err.toString(),
-                tracer: beeline,
                 traceArgs: {
                     appName,
                     ip: (socket.handshake.headers as any).host.split(':')[0],
-                    socketId: socket.id,
-                    userName: user.userName,
+                    'socket.id': socket.id,
+                    'user.userName': user.userName,
                 },
             });
         });

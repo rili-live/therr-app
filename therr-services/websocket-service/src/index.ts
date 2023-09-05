@@ -1,5 +1,5 @@
 /* eslint-disable import/no-import-module-exports */
-import beeline from './beeline'; // eslint-disable-line import/order
+import tracing from './tracing'; // eslint-disable-line import/order
 import express from 'express';
 import * as http from 'http';
 import moment from 'moment';
@@ -9,7 +9,7 @@ import {
     SocketClientActionTypes,
     SOCKET_MIDDLEWARE_ACTION,
 } from 'therr-js-utilities/constants';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as socketHandlers from './handlers';
 import * as globalConfig from '../../../global-config';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
@@ -20,6 +20,8 @@ import authenticate from './utilities/authenticate';
 import notifyConnections from './utilities/notify-connections';
 import { UserStatus } from './constants';
 import { FORUM_PREFIX } from './handlers/rooms';
+
+tracing.start();
 
 export const rsAppName = 'therrChat';
 
@@ -52,14 +54,13 @@ const leaveAndNotifyRooms = (socket: Socket) => {
                 }
             });
         }).catch((err: any) => {
-            printLogs({
+            logSpan({
                 level: 'verbose',
                 messageOrigin: 'REDIS_SESSION_ERROR',
                 messages: err,
-                tracer: beeline,
                 traceArgs: {
-                    socketId: socket.id,
-                    activeRooms,
+                    'socket.id': socket.id,
+                    'socket.activeRooms': activeRooms,
                 },
             });
         });
@@ -72,14 +73,13 @@ const startExpressSocketIOServer = () => {
 
     const server = http.createServer(app);
     serverObj = server.listen(Number(SOCKET_PORT), () => {
-        printLogs({
+        logSpan({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `Server (websocket service) running on port, ${SOCKET_PORT}, with process id ${process.pid}`,
-            tracer: beeline,
             traceArgs: {
                 port: SOCKET_PORT,
-                processId: process.pid,
+                'process.id': process.pid,
             },
         });
     });
@@ -93,13 +93,12 @@ const startExpressSocketIOServer = () => {
     });
 
     io.on('connect_error', (errorMsg: string) => {
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: errorMsg,
-            tracer: beeline,
             traceArgs: {
-                errorMessage: errorMsg,
+                'error.message': errorMsg,
                 source: 'connect_error',
             },
         });
@@ -108,39 +107,36 @@ const startExpressSocketIOServer = () => {
     io.adapter(redisAdapter);
 
     io.of('/').adapter.on('error', (err) => {
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: err.toString(),
-            tracer: beeline,
             traceArgs: {
-                errorMessage: err?.message,
+                'error.message': err?.message,
                 source: 'adapter',
             },
         });
     });
 
     io.on('connection', async (socket: Socket) => {
-        printLogs({
+        logSpan({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: 'NEW CONNECTION...',
-            tracer: beeline,
             traceArgs: {
-                socketId: socket.id,
+                'socket.id': socket.id,
             },
         });
 
         const allRooms = await (io.of('/').adapter as any).allRooms();
         const roomsList = await getSocketRoomsList(io, allRooms);
 
-        printLogs({
+        logSpan({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `All Rooms: ${JSON.stringify(roomsList)}`,
-            tracer: beeline,
             traceArgs: {
-                socketId: socket.id,
+                'socket.id': socket.id,
             },
         });
 
@@ -246,13 +242,12 @@ const startExpressSocketIOServer = () => {
 
         socket.on('disconnecting', async (reason: string) => {
             // TODO: Use constants to mitigate disconnect reasons
-            printLogs({
+            logSpan({
                 level: 'info',
                 messageOrigin: 'SOCKET_IO_LOGS',
                 messages: `DISCONNECTING... ${reason}`,
-                tracer: beeline,
                 traceArgs: {
-                    socketId: socket.id,
+                    'socket.id': socket.id,
                 },
             });
             leaveAndNotifyRooms(socket);
@@ -274,9 +269,7 @@ const startExpressSocketIOServer = () => {
     });
 };
 
-connectToRedis({
-    tracer: beeline,
-}, startExpressSocketIOServer);
+connectToRedis({}, startExpressSocketIOServer);
 
 // Hot Module Reloading
 type ModuleId = string | number;
@@ -302,17 +295,16 @@ if (process.env.NODE_ENV === 'development' && module.hot) {
 }
 
 process.on('uncaughtExceptionMonitor', (err, origin) => {
-    printLogs({
+    logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
-        tracer: beeline,
         traceArgs: {
             port: process.env.SOCKET_PORT,
-            processId: process.pid,
-            isUncaughtException: true,
-            errorMessage: err?.message,
-            errorOrigin: origin,
+            'process.id': process.pid,
+            'error.isUncaughtException': true,
+            'error.message': err?.message,
+            'error.origin': origin,
             source: origin,
         },
     });

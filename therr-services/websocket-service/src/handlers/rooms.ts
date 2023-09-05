@@ -1,8 +1,7 @@
 import moment from 'moment';
 import * as socketio from 'socket.io';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
-import beeline from '../beeline';
 import { COMMON_DATE_FORMAT } from '../constants';
 
 export const FORUM_PREFIX = 'FORUM:';
@@ -20,16 +19,15 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData, decodedAuthenticatio
 
     socket.join(roomId);
 
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${data.userName} with socketId ${socket.id}, joined room ${data.roomName}`,
-        tracer: beeline,
         traceArgs: {
-            socketId: socket.id,
+            'socket.id': socket.id,
         },
     });
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `${data.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`,
@@ -109,13 +107,12 @@ const leaveRoom = (socket: socketio.Socket, data: IRoomData, decodedAuthenticati
         },
     });
 
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${data.userName} with socketId ${socket.id}, left room ${data.roomId}`,
-        tracer: beeline,
         traceArgs: {
-            socketId: socket.id,
+            'socket.id': socket.id,
         },
     });
 };

@@ -1,7 +1,6 @@
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import Redis from 'ioredis';
 import { LogLevelMap } from 'therr-js-utilities/constants';
-import beeline from '../beeline'; // eslint-disable-line import/order
 
 const nodes = [
     {
@@ -54,12 +53,11 @@ export const connectToRedis = (options, callback) => {
         if ((Number(process.env.LOG_LEVEL) || 2) <= LogLevelMap.verbose) {
             redisPub.monitor().then((monitor) => {
                 monitor.on('monitor', (time, args, source, database) => {
-                    printLogs({
+                    logSpan({
                         time,
                         level: 'verbose',
                         messageOrigin: 'REDIS_PUB_LOG',
                         messages: [`Source: ${source}, Database: ${database}`, ...args],
-                        tracer: options.tracer,
                         traceArgs: {},
                     });
                 });
@@ -70,11 +68,10 @@ export const connectToRedis = (options, callback) => {
         callback();
     }).catch((e) => {
         console.error(e);
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'REDIS_LOG',
             messages: [e.message],
-            tracer: options.tracer,
             traceArgs: {},
         });
 
@@ -101,41 +98,37 @@ export const connectToRedis = (options, callback) => {
 
 // Redis Error handling
 redisPub.on('error', (error: any) => {
-    printLogs({
+    logSpan({
         level: 'error',
         messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
         messages: error.toString(),
-        tracer: beeline,
         traceArgs: {},
     });
 });
 
 redisSub.on('error', (error: any) => {
-    printLogs({
+    logSpan({
         level: 'error',
         messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR',
         messages: error.toString(),
-        tracer: beeline,
         traceArgs: {},
     });
 });
 
 redisSub.on('subscribe', (channel: any, count: any) => {
-    printLogs({
+    logSpan({
         level: 'verbose',
         messageOrigin: 'REDIS_SUB_CLIENT',
         messages: `Subscribed to ${channel}. Now subscribed to ${count} channel(s).`,
-        tracer: beeline,
         traceArgs: {},
     });
 });
 
 redisSub.on('message', (channel: any, message: any) => {
-    printLogs({
+    logSpan({
         level: 'verbose',
         messageOrigin: 'REDIS_SUB_CLIENT',
         messages: `Message from channel ${channel}: ${message}`,
-        tracer: beeline,
         traceArgs: {},
     });
 });
