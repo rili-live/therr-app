@@ -1,6 +1,5 @@
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import Redis from 'ioredis';
-import beeline from '../beeline';
 
 const redisClient = new Redis({
     host: process.env.REDIS_GENERIC_HOST,
@@ -10,12 +9,14 @@ const redisClient = new Redis({
 
 // Redis Error handling
 redisClient.on('error', (error: any) => {
-    printLogs({
+    logSpan({
         level: 'verbose',
         messageOrigin: 'REDIS_CONNECTION_ERROR',
         messages: error.toString(),
-        tracer: beeline,
-        traceArgs: {},
+        traceArgs: {
+            'error.message': error?.message,
+            issue: 'redis-connection-error',
+        },
     });
 });
 

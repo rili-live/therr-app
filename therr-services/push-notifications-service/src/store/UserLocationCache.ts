@@ -2,8 +2,8 @@
 import { Location } from 'therr-js-utilities/constants';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import { IAreaType } from 'therr-js-utilities/types';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import redisClient from './redisClient';
-import beeline from '../beeline';
 
 export const USER_CACHE_TTL_SEC = 60 * 20; // 20 minutes
 
@@ -41,10 +41,16 @@ export default class UserLocationCache {
         pipeline.hset(this.spacesKeyPrefix, 'exists', 'true'); // arbitrary placeholder, allows us to expire all keys together
         pipeline.expire(this.spacesKeyPrefix, USER_CACHE_TTL_SEC);
         pipeline.exec().then(() => callback && callback()).catch((err) => {
-            beeline.addContext({
-                errorMessage: err?.stack,
-                context: 'redis',
-                source: 'UserLocationCache',
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [''],
+                traceArgs: {
+                    'error.message': err?.message,
+                    'error.stack': err?.stack,
+                    context: 'redis',
+                    source: 'UserLocationCache',
+                },
             });
         });
     }
@@ -58,10 +64,16 @@ export default class UserLocationCache {
         pipeline.expire(this.spacesGeoKeyPrefix, 0);
 
         return pipeline.exec().catch((err) => {
-            beeline.addContext({
-                errorMessage: err?.stack,
-                context: 'redis',
-                source: 'UserLocationCache.clearCache',
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [''],
+                traceArgs: {
+                    'error.message': err?.message,
+                    'error.stack': err?.stack,
+                    context: 'redis',
+                    source: 'UserLocationCache.clearCache',
+                },
             });
             return [];
         });
@@ -70,17 +82,29 @@ export default class UserLocationCache {
     // Stored on moments hset, although could just as well be stored on spaces hset
     getOrigin = () => redisClient.hget(this.momentsKeyPrefix, this.keys.origin)
         .then((response) => response && JSON.parse(response))
-        .catch((err) => beeline.addContext({
-            errorMessage: err?.stack,
-            context: 'redis',
-            source: 'UserLocationCache.getOrigin',
+        .catch((err) => logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [''],
+            traceArgs: {
+                'error.message': err?.message,
+                'error.stack': err?.stack,
+                context: 'redis',
+                source: 'UserLocationCache.getOrigin',
+            },
         }));
 
     // Stored on moments hset, although could just as well be stored on spaces hset
-    setOrigin = (origin: IOrigin) => redisClient.hset(this.momentsKeyPrefix, this.keys.origin, JSON.stringify(origin)).catch((err) => beeline.addContext({
-        errorMessage: err?.stack,
-        context: 'redis',
-        source: 'UserLocationCache.setOrigin',
+    setOrigin = (origin: IOrigin) => redisClient.hset(this.momentsKeyPrefix, this.keys.origin, JSON.stringify(origin)).catch((err) => logSpan({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: [''],
+        traceArgs: {
+            'error.message': err?.message,
+            'error.stack': err?.stack,
+            context: 'redis',
+            source: 'UserLocationCache.setOrigin',
+        },
     }));
 
     invalidateCache = () => {
@@ -89,10 +113,16 @@ export default class UserLocationCache {
         pipeline.del(this.momentsKeyPrefix);
         pipeline.del(this.spacesKeyPrefix);
 
-        return pipeline.exec().catch((err) => beeline.addContext({
-            errorMessage: err?.stack,
-            context: 'redis',
-            source: 'UserLocationCache.invalidateCache',
+        return pipeline.exec().catch((err) => logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [''],
+            traceArgs: {
+                'error.message': err?.message,
+                'error.stack': err?.stack,
+                context: 'redis',
+                source: 'UserLocationCache.invalidateCache',
+            },
         }));
     };
 
@@ -100,31 +130,54 @@ export default class UserLocationCache {
         .then((response) => response && Number(response))
         .catch((error) => {
             const areaTypeSingular = areaType === 'moments' ? 'moment' : 'space';
-            beeline.addContext({
-                errorMessage: error?.stack,
-                context: 'redis',
-                significance: `high error rate will cause excessive push notifications for location ${areaTypeSingular} activations`,
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [`high error rate will cause excessive push notifications for location ${areaTypeSingular} activations`],
+                traceArgs: {
+                    'error.message': error?.message,
+                    'error.stack': error?.stack,
+                    context: 'redis',
+                },
             });
         });
 
     setLastAreaNotificationDate = (keyPrefix: string) => redisClient.hset(keyPrefix, this.keys.lastNotificationDateMs, Date.now())
-        .catch((err) => beeline.addContext({
-            errorMessage: err?.stack,
-            context: 'redis',
-            source: 'UserLocationCache.setLastAreaNotificationDate',
+        .catch((error) => logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [],
+            traceArgs: {
+                'error.message': error?.message,
+                'error.stack': error?.stack,
+                context: 'redis',
+                source: 'UserLocationCache.setLastAreaNotificationDate',
+            },
         }));
 
-    getMaxAreaActivationDistance = (keyPrefix: string) => redisClient.get(`${keyPrefix}${this.keys.maxActivationDistance}`).catch((err) => beeline.addContext({
-        errorMessage: err?.stack,
-        context: 'redis',
-        source: 'UserLocationCache.getMaxAreaActivationDistance',
+    getMaxAreaActivationDistance = (keyPrefix: string) => redisClient.get(`${keyPrefix}${this.keys.maxActivationDistance}`).catch((error) => logSpan({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: [],
+        traceArgs: {
+            'error.message': error?.message,
+            'error.stack': error?.stack,
+            context: 'redis',
+            source: 'UserLocationCache.getMaxAreaActivationDistance',
+        },
     }));
 
     setMaxAreaActivationDistance = (keyPrefix: string, value) => redisClient.set(`${keyPrefix}${this.keys.maxActivationDistance}`, value)
-        .catch((err) => beeline.addContext({
-            errorMessage: err?.stack,
-            context: 'redis',
-            source: 'UserLocationCache.setMaxAreaActivationDistance',
+        .catch((error) => logSpan({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: [],
+            traceArgs: {
+                'error.message': error?.message,
+                'error.stack': error?.stack,
+                context: 'redis',
+                source: 'UserLocationCache.setMaxAreaActivationDistance',
+            },
         }));
 
     addAreas = (areaType: IAreaType, geoKeyPrefix: string, areas: any[], loggingDetails) => {
@@ -139,20 +192,35 @@ export default class UserLocationCache {
 
         return pipeline.exec()
             .then(() => {
-                beeline.addContext({
-                    message: `cached nearby ${areaType}`,
-                    context: 'redis',
-                    significance: `${areaType} are cached on user's first login and after they travel the minimum distance`,
-                    ...loggingDetails,
+                logSpan({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: [`${areaType} are cached on user's first login and after they travel the minimum distance`],
+                    traceArgs: {
+                        message: `cached nearby ${areaType}`,
+                        context: 'redis',
+                        source: 'UserLocationCache.setMaxAreaActivationDistance',
+                        'user.locale': loggingDetails.locale,
+                        'user.deviceToken': loggingDetails.userDeviceToken,
+                        'user.id': loggingDetails.userId,
+                    },
                 });
             })
             .catch((error) => {
                 this.clearCache(); // clear cache if having issues with caching geo coordinates
-                beeline.addContext({
-                    errorMessage: error?.stack,
-                    context: 'redis',
-                    significance: `failing to cache ${areaType} will cause excessive database pulls and poor performance`,
-                    ...loggingDetails,
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [`failing to cache ${areaType} will cause excessive database pulls and poor performance`],
+                    traceArgs: {
+                        'error.message': error?.message,
+                        'error.stack': error?.stack,
+                        message: `cached nearby ${areaType}`,
+                        context: 'redis',
+                        'user.locale': loggingDetails.locale,
+                        'user.deviceToken': loggingDetails.userDeviceToken,
+                        'user.id': loggingDetails.userId,
+                    },
                 });
             });
     };
@@ -167,11 +235,18 @@ export default class UserLocationCache {
 
         return pipeline.exec()
             .catch((error) => {
-                beeline.addContext({
-                    errorMessage: error?.stack,
-                    context: 'redis',
-                    significance: `failing to remove ${areaType} from the unactivated ${areaType} cache will prevent new ${areaType} from being activated`,
-                    ...loggingDetails,
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [`failing to remove ${areaType} from the unactivated ${areaType} cache will prevent new ${areaType} from being activated`],
+                    traceArgs: {
+                        'error.message': error?.message,
+                        'error.stack': error?.stack,
+                        context: 'redis',
+                        'user.locale': loggingDetails.locale,
+                        'user.deviceToken': loggingDetails.userDeviceToken,
+                        'user.id': loggingDetails.userId,
+                    },
                 });
             });
     };
@@ -204,11 +279,18 @@ export default class UserLocationCache {
                 doesRequireProximityToView: area.doesRequireProximityToView === 'true',
             }))) // TODO: Verify parsing correctly parses numbers
             .catch((error) => {
-                beeline.addContext({
-                    errorMessage: error?.stack,
-                    context: 'redis',
-                    significance: `failing to fetch ${areaType} from the cache`,
-                    ...loggingDetails,
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [`failing to fetch ${areaType} from the cache`],
+                    traceArgs: {
+                        'error.message': error?.message,
+                        'error.stack': error?.stack,
+                        context: 'redis',
+                        'user.locale': loggingDetails.locale,
+                        'user.deviceToken': loggingDetails.userDeviceToken,
+                        'user.id': loggingDetails.userId,
+                    },
                 });
             });
     };
