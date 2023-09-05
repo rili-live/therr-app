@@ -1,5 +1,4 @@
-import beeline from '../../beeline'; // eslint-disable-line import/order
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
 import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
@@ -266,13 +265,12 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                     progressCount: 0,
                 },
             ]).catch((err) => {
-                printLogs({
+                logSpan({
                     level: 'error',
                     messageOrigin: 'API_SERVER',
                     messages: ['Error while creating socialite achievements during registration'],
-                    tracer: beeline,
                     traceArgs: {
-                        errMessage: err?.message,
+                        'error.message': err?.message,
                     },
                 });
             });

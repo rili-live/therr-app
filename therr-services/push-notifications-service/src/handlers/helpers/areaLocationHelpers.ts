@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { distanceTo } from 'geolocation-utils';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import {
     Location,
     MetricNames,
@@ -11,7 +11,6 @@ import {
 import { getSearchQueryString } from 'therr-js-utilities/http';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import { IAreaType } from 'therr-js-utilities/types';
-import beeline from '../../beeline';
 import UserLocationCache from '../../store/UserLocationCache';
 import { predictAndSendNotification } from '../../api/firebaseAdmin';
 import * as globalConfig from '../../../../../global-config';
@@ -119,10 +118,15 @@ const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLo
         data,
     })
         .then((reactionsResponse) => {
-            beeline.addContext({
-                message: 'Start date cache lookup for last sent push notification',
-                context: 'redis',
-                significance: `helps prevent excessive push notifications for location ${areaTypeSingular} activations`,
+            logSpan({
+                level: 'info',
+                messageOrigin: 'API_SERVER',
+                messages: ['Start date cache lookup for last sent push notification'],
+                traceArgs: {
+                    message: 'Start date cache lookup for last sent push notification',
+                    context: 'redis',
+                    issue: `helps prevent excessive push notifications for location ${areaTypeSingular} activations`,
+                },
             });
 
             if (areaType === 'moments') {
@@ -369,13 +373,12 @@ const sendSpaceMetric = (headers: IHeaders, spaces: any[], userLocation: IUserlo
         longitude: userLocation.longitude,
     },
 }).catch((err) => {
-    printLogs({
+    logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
         messages: err.toString(),
-        tracer: beeline,
         traceArgs: {
-            errorMessage: err?.message,
+            'error.message': err?.message,
             source: 'areaLocationHelpers',
             issue: 'failed to create space metrics',
         },
@@ -509,13 +512,12 @@ const activateAreasAndNotify = (
         })
         .catch((err) => {
             console.log('WARNING WARNING WARNING: Moment activation is failing!', err);
-            printLogs({
+            logSpan({
                 level: 'error',
                 messageOrigin: 'API_SERVER',
                 messages: err.toString(),
-                tracer: beeline,
                 traceArgs: {
-                    errorMessage: err?.message,
+                    'error.message': err?.message,
                     source: 'areaLocationHelpers',
                 },
             });

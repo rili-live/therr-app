@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import beeline from '../beeline';
+import opentelemetry from '@opentelemetry/api';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
 import restRequest from '../utilities/restRequest';
 import isBlacklisted, { isBlacklistedEmail } from '../utilities/isBlacklisted';
@@ -67,10 +68,15 @@ const handleServiceRequest = ({
 
             if (!error.response) {
                 if (error?.message?.includes('ECONNREFUSED')) {
-                    beeline.addContext({
-                        hasConnectionError: true,
-                        targetHost: req.host,
-                        targetPath: basePath,
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['ECONNREFUSED'],
+                        traceArgs: {
+                            'request.hasConnectionError': true,
+                            'request.targetHost': req.host,
+                            'request.targetPath': basePath,
+                        },
                     });
                 }
                 console.log(error);

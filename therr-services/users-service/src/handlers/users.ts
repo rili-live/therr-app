@@ -1,8 +1,7 @@
 import { RequestHandler } from 'express';
 import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizeEmail from 'normalize-email';
-import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
@@ -65,14 +64,13 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         });
                     }
                 }).catch((err) => {
-                    printLogs({
+                    logSpan({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
                         messages: [`failed to reward invite code user, ${inviteCode}`],
-                        tracer: beeline,
                         traceArgs: {
-                            errorMessage: err?.message,
-                            errorResponse: err?.response?.data,
+                            'error.message': err?.message,
+                            'error.response': err?.response?.data,
                         },
                     });
                 });

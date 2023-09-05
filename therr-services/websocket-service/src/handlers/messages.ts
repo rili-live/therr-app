@@ -1,5 +1,5 @@
 import * as socketio from 'socket.io';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import moment from 'moment';
 import {
     Notifications,
@@ -7,7 +7,6 @@ import {
     SocketClientActionTypes,
     SOCKET_MIDDLEWARE_ACTION,
 } from 'therr-js-utilities/constants';
-import beeline from '../beeline';
 import restRequest from '../utilities/restRequest';
 import redisHelper from '../utilities/redisHelper';
 import globalConfig from '../../../../global-config';
@@ -76,36 +75,33 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
                                 fromUserName: data.userName,
                             },
                         }, socket, decodedAuthenticationToken).catch((err) => {
-                            printLogs({
+                            logSpan({
                                 level: 'error',
                                 messageOrigin: 'SOCKET_IO_LOGS',
                                 messages: err.toString(),
-                                tracer: beeline,
                                 traceArgs: {
-                                    errorMessage: err?.message,
+                                    'error.message': err?.message,
                                     source: 'messages.sendUserNotification',
                                 },
                             });
                         });
                     }
                 }).catch((err) => {
-                    printLogs({
+                    logSpan({
                         level: 'error',
                         messageOrigin: 'SOCKET_IO_LOGS',
                         messages: err.toString(),
-                        tracer: beeline,
                         traceArgs: {
-                            errorMessage: err?.message,
+                            'error.message': err?.message,
                             source: 'messages.throttleDmNotifications',
                         },
                     });
                 });
         }
-        // printLogs({
+        // logSpan({
         //     level: 'debug',
         //     messageOrigin: 'SOCKET_IO_LOGS',
         //     messages: `${data.userName} said: ${data.message}`,
-        //     tracer: beeline,
         //     traceArgs: {
         //         socketId: socket.id,
         //         userName: data.userName,
@@ -115,13 +111,12 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
         // });
     }).catch((err) => {
         // TODO: RSERV-36 - Emit error message
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: err.toString(),
-            tracer: beeline,
             traceArgs: {
-                errorMessage: err?.message,
+                'error.message': err?.message,
                 source: 'messages.sendDirectMessage',
             },
         });
@@ -129,7 +124,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
 };
 
 const sendForumMessage = (socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `${SocketClientActionTypes.SEND_MESSAGE}: ${data.toString()}`,
@@ -160,18 +155,6 @@ const sendForumMessage = (socket: socketio.Socket, data: any, decodedAuthenticat
                 time: now,
                 text: data.message,
             },
-        },
-    });
-    printLogs({
-        level: 'info',
-        messageOrigin: 'SOCKET_IO_LOGS',
-        messages: `${data.userName} said: ${data.message}`,
-        tracer: beeline,
-        traceArgs: {
-            socketId: socket.id,
-            userName: data.userName,
-            userImgSrc: data.userImgSrc,
-            messageText: data.message,
         },
     });
 };

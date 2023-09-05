@@ -1,9 +1,8 @@
 /* eslint-disable no-case-declarations */
 import * as admin from 'firebase-admin';
 import { PushNotifications } from 'therr-js-utilities/constants';
-import beeline from '../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import translate from '../utilities/translator';
-import Logger from './Logger';
 
 const serviceAccount = JSON.parse(Buffer.from(process.env.PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 || '', 'base64').toString());
 
@@ -318,25 +317,37 @@ const predictAndSendNotification = (
         })
         .then(() => {
             if (message) {
-                beeline.addContext({
-                    message: 'Push successfully sent',
-                    messageData: message.data,
-                    messageNotification: message.notification,
-                    userId: config.userId,
-                    ...metrics,
+                logSpan({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Push successfully sent'],
+                    traceArgs: {
+                        'pushNotification.message': 'Push successfully sent',
+                        'pushNotification.messageData': message.data,
+                        'pushNotification.messageNotification': message.notification,
+                        'user.id': config.userId,
+                        'pushNotification.lastMomentNotificationDate': metrics?.lastMomentNotificationDate,
+                        'pushNotification.lastSpaceNotificationDate': metrics?.lastSpaceNotificationDate,
+                    },
                 });
             }
         })
         .catch((error) => {
-            Logger.log({
-                errorMessage: error?.stack || 'Failed to send push notification',
-                messageData: message && message.data,
-                messageNotification: message && message.notification,
-                userId: config?.userId,
-                significance: 'failed to send push notification',
-                serviceName: 'push-notifications-service',
-                ...metrics,
-            }, process.env.LOGGING_DATASET);
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Failed to send push notification'],
+                traceArgs: {
+                    'error.message': error?.message,
+                    'error.stack': error?.stack,
+                    'pushNotification.messageData': message && message.data,
+                    'pushNotification.messageNotification': message && message.notification,
+                    'user.id': config?.userId,
+                    'pushNotification.lastMomentNotificationDate': metrics?.lastMomentNotificationDate,
+                    'pushNotification.lastSpaceNotificationDate': metrics?.lastSpaceNotificationDate,
+                    issue: 'failed to send push notification',
+                },
+            });
         });
 };
 

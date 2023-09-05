@@ -1,5 +1,5 @@
 import os from 'os';
-import beeline from '../beeline';
+import opentelemetry from '@opentelemetry/api';
 
 export default (req, res, next) => {
     const serializedBody = {
@@ -18,13 +18,12 @@ export default (req, res, next) => {
     if (req.query && req.query.idToken) {
         serializedQuery.idToken = 'XXXXX';
     }
-    beeline.addContext({
-        'request.app': req.app,
-        'request.ip': req.ip,
-        'request.body': serializedBody,
-        'request.query': serializedQuery,
-        'request.osHostname': os.hostname(),
-    });
+    const activeSpan = opentelemetry.trace.getActiveSpan();
+    activeSpan?.setAttribute('request.app', req.app);
+    activeSpan?.setAttribute('request.ip', req.ip);
+    activeSpan?.setAttribute('request.body', serializedBody.toString());
+    activeSpan?.setAttribute('request.query', serializedQuery);
+    activeSpan?.setAttribute('request.osHostname', os.hostname());
 
     return next();
 };

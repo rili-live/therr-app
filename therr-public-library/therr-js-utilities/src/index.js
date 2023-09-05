@@ -32,9 +32,9 @@ const utilities = [
     'localization',
     'promiser',
     'scroll-to',
-    'Logger',
     'normalize-phone-number',
     'print-logs',
+    'log-or-update-span',
 ];
 
 module.exports = utilities;

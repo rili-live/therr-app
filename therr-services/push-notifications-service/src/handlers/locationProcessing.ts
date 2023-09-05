@@ -1,9 +1,9 @@
 import { Location } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import { distanceTo } from 'geolocation-utils';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
 import UserLocationCache from '../store/UserLocationCache';
-import beeline from '../beeline';
 import { activateAreasAndNotify, getAllNearbyAreas } from './helpers/areaLocationHelpers';
 import { updateAchievements } from './helpers/updateAchievements';
 // import translate from '../utilities/translator';
@@ -72,15 +72,25 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                 }
 
                 if (momentIdsToActivate.length) {
-                    beeline.addContext({
-                        userId,
-                        momentIdsToActivate: JSON.stringify(momentIdsToActivate),
+                    logSpan({
+                        level: 'info',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Moments Activated'],
+                        traceArgs: {
+                            'user.id': userId,
+                            'location.momentIdsToActivate': JSON.stringify(momentIdsToActivate),
+                        },
                     });
                 }
                 if (spaceIdsToActivate.length) {
-                    beeline.addContext({
-                        userId,
-                        spaceIdsToActivate: JSON.stringify(spaceIdsToActivate),
+                    logSpan({
+                        level: 'info',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Spaces Activated'],
+                        traceArgs: {
+                            'user.id': userId,
+                            'location.spaceIdsToActivate': JSON.stringify(spaceIdsToActivate),
+                        },
                     });
                 }
 

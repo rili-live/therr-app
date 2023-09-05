@@ -1,7 +1,6 @@
 import { getSearchQueryString } from 'therr-js-utilities/http';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import restRequest from './restRequest';
 import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config';
@@ -72,13 +71,12 @@ export default (socket, userDetails, actionType, shouldReturnActiveConnections =
             });
         });
     }).catch((err) => {
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: err.toString(),
-            tracer: beeline,
             traceArgs: {
-                errorMessage: err?.message,
+                'error.message': err?.message,
                 source: 'notify-connections',
             },
         });

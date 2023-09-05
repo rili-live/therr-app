@@ -1,6 +1,5 @@
 import * as Redis from 'ioredis';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import { redisPub } from '../store/redisClient';
 import * as globalConfig from '../../../../global-config';
 
@@ -123,11 +122,10 @@ export class RedisHelper {
         return pipeline.exec().then((response) => {
             response.forEach(([err, stringifiedUser]) => {
                 if (err) {
-                    printLogs({
+                    logSpan({
                         level: 'info',
                         messageOrigin: 'REDIS_ERROR_LOGS',
                         messages: err.message,
-                        tracer: beeline,
                     });
                     return;
                 }

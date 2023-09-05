@@ -29,7 +29,7 @@ spec:
         image: therrapp/api-gateway:latest
         resources:
           limits:
-            memory: "128Mi"
+            memory: "256Mi"
             cpu: "75m"
         ports:
         - containerPort: 7770
@@ -43,6 +43,8 @@ spec:
             secretKeyRef:
               name: honeycomb-writekey
               key: HONEYCOMB
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "grpc"
         - name: MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64
           valueFrom:
             secretKeyRef:
@@ -71,8 +73,6 @@ spec:
               key: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
         - name: LOG_LEVEL
           value: "info"
-        - name: LOGGING_DATASET
-          value: "production"
         - name: REDIS_GENERIC_HOST
           value: "redis-cluster-ip-service"
         - name: REDIS_GENERIC_PORT

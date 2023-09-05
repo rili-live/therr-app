@@ -1,7 +1,6 @@
 import { RequestHandler } from 'express';
 import { ErrorCodes } from 'therr-js-utilities/constants';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import sendUserFeedbackEmail from '../api/email/admin/sendUserFeedbackEmail';
@@ -17,13 +16,12 @@ const createFeedback: RequestHandler = (req: any, res: any) => {
         fromUserId,
         feedback: req.body.feedback,
     }).catch((error) => {
-        printLogs({
+        logSpan({
             level: 'error',
             messageOrigin: 'API_SERVER',
             messages: ['Feedback message email failed', error?.message],
-            tracer: beeline,
             traceArgs: {
-                userEmail: req.body.email,
+                'user.email': req.body.email,
             },
         });
     }).then(() => res.status(201).send()).catch((err) => handleHttpError({
@@ -59,13 +57,12 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
                     subject: '[Therr] Subscribed to General Updates',
                     toAddresses: [req.body.email],
                 }, {}).catch((error) => {
-                    printLogs({
+                    logSpan({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
                         messages: [`New subscriber email notification failed for ${req.body.email}`, error?.message],
-                        tracer: beeline,
                         traceArgs: {
-                            userEmail: req.body.email,
+                            'user.email': req.body.email,
                         },
                     });
                 });
