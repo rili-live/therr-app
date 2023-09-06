@@ -331,7 +331,10 @@ export default class MomentsStore {
             : undefined;
 
         const mediaPromise: Promise<string | undefined> = params.media
-            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString())
+            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString()).catch((err) => {
+                console.log(err);
+                return '[]';
+            })
             : Promise.resolve(undefined);
 
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
@@ -392,7 +395,10 @@ export default class MomentsStore {
             : undefined;
 
         const mediaPromise: Promise<string | undefined> = params.media
-            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString())
+            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString()).catch((err) => {
+                console.log(err);
+                return '[]';
+            })
             : Promise.resolve(undefined);
 
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
@@ -410,7 +416,7 @@ export default class MomentsStore {
                 isMatureContent: isTextMature || !!params.isMatureContent,
                 message: params.message,
                 notificationMsg,
-                mediaIds: mediaIds || params.mediaIds || '',
+                mediaIds: mediaIds || params.mediaIds || undefined,
                 mentionsIds: params.mentionsIds || '',
                 hashTags: params.hashTags || '',
                 maxViews: params.maxViews || 0,

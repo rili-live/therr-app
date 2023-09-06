@@ -8,7 +8,7 @@ import { PushNotificationsService } from 'therr-react/services';
 import { ITherrMapViewState as ITherrMapViewReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { MapActions, ReactionActions } from 'therr-react/redux/actions';
 import { IAreaType, IContentState } from 'therr-js-utilities/types';
-import { distanceTo, insideCircle } from 'geolocation-utils';
+import { distanceTo, insideCircle, isLatLon } from 'geolocation-utils';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import getReadableDistance from '../../utilities/getReadableDistance';
 import { ILocationState } from '../../types/redux/location';
@@ -466,7 +466,10 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
         const { content, location } = this.props;
         const { areasInPreview, isPreviewBottomSheetVisible } = this.state;
 
-        if (isPreviewBottomSheetVisible && pressedAreaId) {
+        if ((isPreviewBottomSheetVisible && pressedAreaId) || !isLatLon({
+            lon: pressedCoords.longitude,
+            lat: pressedCoords.latitude,
+        })) {
             return;
         }
 
@@ -476,7 +479,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
             const { filteredSpaces } = this.props;
 
             // Label with user's location if available, but sort by distance from pressedCoord
-            const sortedAreasWithDistance = Object.values(filteredSpaces).map((area: any) => {
+            const sortedAreasWithDistance = Object.values(filteredSpaces).filter((a: any) => a.latitude && a.longitude).map((area: any) => {
                 const milesFromPress = distanceTo({
                     lon: pressedCoords.longitude,
                     lat: pressedCoords.latitude,
