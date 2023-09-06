@@ -11,7 +11,7 @@ const spaceCategories = [
     'restaurant/food',
     'music/concerts',
     'storefront/shop',
-    'artwork/idea',
+    'artwork/expression',
     'hotels/lodging',
     'marketplace/festival',
     'nature/parks',
