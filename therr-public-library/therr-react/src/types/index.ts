@@ -1,4 +1,8 @@
 import {
+    // Campaigns
+    ICampaignState,
+    CampaignActionTypes,
+
     // Content
     IContentState,
     ContentActionTypes,
@@ -76,6 +80,10 @@ export {
     AccessCheckType,
     IAccess,
     ISearchQuery,
+
+    // Campaigns
+    ICampaignState,
+    CampaignActionTypes,
 
     // Content
     IContentState,

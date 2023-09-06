@@ -1,4 +1,5 @@
 import ApiService from './ApiService';
+import CampaignsService from './CampaignsService';
 import ForumsService from './ForumsService';
 import MapsService, { IPlacesAutoCompleteArgs, IPlaceDetailsArgs } from './MapsService';
 import MessagesService from './MessagesService';
@@ -10,6 +11,7 @@ import UsersService from './UsersService';
 
 export {
     ApiService,
+    CampaignsService,
     ForumsService,
     MapsService,
     IPlacesAutoCompleteArgs,

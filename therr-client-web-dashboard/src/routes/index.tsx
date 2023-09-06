@@ -20,6 +20,7 @@ import AdminAcquisitionOverview from './CustomerAcquisition/AdminAcquisitionOver
 import CampaignsOverview from './Campaigns/CampaignsOverview';
 import AdminCampaignsOverview from './Campaigns/AdminCampaignsOverview';
 import CreateUserProfile from './CreateUserProfile';
+import CreateACampaign from './CreateACampaign';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -143,6 +144,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/claim-a-space',
         element: <AuthRoute
             component={ClaimASpace}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/create-a-campaign',
+        element: <AuthRoute
+            component={CreateACampaign}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
