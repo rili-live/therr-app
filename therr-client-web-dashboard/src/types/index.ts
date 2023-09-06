@@ -42,3 +42,30 @@ export interface ISpace {
     businessTransactionName?: string;
     isPointOfInterest?: boolean;
 }
+
+export interface ICampaign {
+  title: string;
+  description: string;
+  assetIds: string[]; // headlines, descriptions, media, etc.
+  status: 'active' | 'paused' | 'removed';
+  type: string;
+  businessSpaceIds: string[];
+  targetDailyBudget: number;
+  costBiddingStrategy: string;
+  targetLanguages: string[];
+  targetLocations: string[];
+  scheduleStartAt: Date;
+  scheduleStopAt: Date;
+}
+
+interface ICampaignAsset {
+  id: string;
+  status: string;
+  type: string;
+  performance: string; // worst, bad, good, best
+  mediaId?: string;
+  text?: string; // headlines, descriptions, etc.
+  clicks: string; // big int
+  impressions: string; // big int
+  ctr: number; // percentage
+}

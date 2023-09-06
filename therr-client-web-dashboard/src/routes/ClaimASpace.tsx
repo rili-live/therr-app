@@ -12,8 +12,14 @@ import {
     ToastContainer,
 } from 'react-bootstrap';
 import { MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { MapsService } from 'therr-react/services';
-import { IMapState as IMapReduxState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { MapsService, UsersService } from 'therr-react/services';
+import {
+    IMapState as IMapReduxState,
+    IUserState,
+    IUserConnectionsState,
+    AccessCheckType,
+} from 'therr-react/types';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
@@ -148,7 +154,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
         });
     };
 
-    onAddressTypeaheadSelect = (selected: Option[]) => {
+    onAddressTypeAheadSelect = (selected: Option[]) => {
         const result: any = selected[0];
 
         if (result) {
@@ -249,6 +255,23 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
         });
     };
 
+    isSubscribed = () => {
+        const { user } = this.props;
+
+        return UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ALL,
+                levels: [
+                    AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY],
+                isPublic: true,
+            },
+            user,
+        );
+    };
+
     public render(): JSX.Element | null {
         const {
             alertIsVisible,
@@ -264,6 +287,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
                 <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
                     <ManageSpacesMenu
                         navigateHandler={this.navigateHandler}
+                        user={user}
                     />
 
                     {/* <ButtonGroup>
@@ -282,7 +306,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
                             }}
                             isSubmitDisabled={this.isSubmitDisabled()}
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
-                            onAddressTypeaheadSelect={this.onAddressTypeaheadSelect}
+                            onAddressTypeAheadSelect={this.onAddressTypeAheadSelect}
                             onInputChange={this.onInputChange}
                             onSelectMedia={this.onSelectMedia}
                             onSubmit={this.onSubmitSpaceClaim}

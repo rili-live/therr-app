@@ -1,29 +1,33 @@
 import React, { useState } from 'react';
 import {
-    Col, Row, Card, Form, Button, Image,
+    Col, Row, Card, Form, Button, Image, InputGroup,
 } from 'react-bootstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
+import Datetime from 'react-datetime';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import moment, { Moment } from 'moment';
 import Dropzone from './Dropzone';
+import 'react-datetime/css/react-datetime.css';
 
-const spaceCategories = [
-    'uncategorized',
-    'menu',
-    'deals',
-    'storefront',
-    'idea',
-    'food',
-    'music',
-    'nature',
+const adTypeCategories = [
+    'local',
+    'awareness',
+    'acquisition',
+    'engagement',
 ];
 
-interface IEditSpaceFormProps {
+interface IEditCampaignFormProps {
     addressTypeAheadResults: any[],
     inputs: {
+        title: string;
+        description: string;
+        type: string;
+        scheduleStartAt: string;
+        scheduleEndAt: string;
         address?: Option[];
         category?: string;
-        spaceTitle: string;
-        spaceDescription: string;
         phoneNumber?: string;
         websiteUrl?: string;
         menuUrl?: string;
@@ -35,13 +39,14 @@ interface IEditSpaceFormProps {
     onAddressTypeaheadChange: (text: string, event: React.ChangeEvent<HTMLInputElement>) => void,
     onAddressTypeAheadSelect: (selected: Option[]) => void;
     onInputChange: React.ChangeEventHandler<HTMLInputElement>;
+    onDateTimeChange: (name: string, value: string | Moment) => void;
     onSubmit: (event: React.MouseEvent<HTMLInputElement>) => void;
     onSelectMedia: (files: any[]) => any;
     submitText: string;
     shouldShowAdvancedFields?: boolean;
 }
 
-const EditSpaceForm = ({
+const EditCampaignForm = ({
     addressTypeAheadResults,
     mediaUrl,
     inputs,
@@ -49,11 +54,12 @@ const EditSpaceForm = ({
     onAddressTypeAheadSelect,
     onAddressTypeaheadChange,
     onInputChange,
+    onDateTimeChange,
     onSubmit,
     onSelectMedia,
     submitText,
     shouldShowAdvancedFields,
-}: IEditSpaceFormProps) => {
+}: IEditCampaignFormProps) => {
     const [birthday, setBirthday] = useState('');
 
     return (
@@ -61,73 +67,55 @@ const EditSpaceForm = ({
             <Card.Body>
                 <Form>
                     <Row>
-                        <h5 className="my-4">Location / Address</h5>
-                        <Col sm={12} className="mb-3">
-                            {/* <Form.Group id="address">
-                                <Form.Label>Address</Form.Label>
-                                <InputGroup className="input-group-merge search-bar">
-                                    <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
-                                    <Form.Control required type="text" placeholder="Search an address..." />
-                                </InputGroup>
-                            </Form.Group> */}
-                            <Form.Group controlId="address">
-                                <Typeahead
-                                    id="address-search-typeahead"
-                                    options={addressTypeAheadResults.map((result) => ({
-                                        ...result,
-                                        label: result.description || '',
-                                    }))}
-                                    placeholder="Search an address..."
-                                    onInputChange={onAddressTypeaheadChange}
-                                    onChange={onAddressTypeAheadSelect}
-                                    selected={inputs.address}
-                                />
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col sm={4}>
-                            <h5 className="my-4">Images</h5>
-                            <Col sm={12} className="d-flex align-items-center justify-content-center">
-                                <Dropzone
-                                    dropZoneText={'Click here to upload image(s) for this space or drag and drop files'}
-                                    initialFileUrl={mediaUrl}
-                                    onMediaSelect={onSelectMedia}
-                                />
-                            </Col>
-                        </Col>
                         <Col sm={8}>
-                            <h5 className="my-4">General Information</h5>
+                            <h5 className="my-4">General Campaign Information</h5>
                             <Row>
                                 <Col md={6} className="mb-3">
-                                    <Form.Group controlId="spaceTitle">
-                                        <Form.Label className="required" aria-required>Space Title / Headline</Form.Label>
+                                    <Form.Group controlId="title">
+                                        <Form.Label className="required" aria-required>Campaign Name</Form.Label>
                                         <Form.Control
-                                            value={inputs.spaceTitle}
-                                            name="spaceTitle"
+                                            value={inputs.title}
+                                            name="title"
                                             onChange={onInputChange}
                                             type="text"
-                                            placeholder="The name or title of your space/business"
+                                            placeholder="The name or title of your campaign"
                                             required
                                             aria-required
                                         />
                                     </Form.Group>
                                 </Col>
                                 <Col md={6} className="mb-3">
-                                    <Form.Group controlId="category">
-                                        <Form.Label>Category</Form.Label>
+                                    <Form.Group controlId="type">
+                                        <Form.Label>Ad Type</Form.Label>
                                         <Form.Control
-                                            value={inputs.category}
-                                            name="category"
+                                            value={inputs.type}
+                                            name="type"
                                             onChange={onInputChange}
                                             as="select"
                                         >
                                             {
-                                                spaceCategories.map((cat, index) => (
+                                                adTypeCategories.map((cat, index) => (
                                                     <option key={index} value={cat}>{cat}</option>
                                                 ))
                                             }
                                         </Form.Control>
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col md={12} className="mb-3">
+                                    <Form.Group controlId="description">
+                                        <Form.Label>Campaign Description</Form.Label>
+                                        <Form.Control
+                                            value={inputs.description}
+                                            as="textarea"
+                                            required
+                                            type="text"
+                                            name="description"
+                                            onChange={onInputChange}
+                                            placeholder="Add a description of the campaign for future reference..."
+                                            maxLength={1000}
+                                        />
                                     </Form.Group>
                                 </Col>
                             </Row>
@@ -162,57 +150,87 @@ const EditSpaceForm = ({
                                     </Col>
                                 </Row>
                             }
-                            <Row>
-                                <Col md={12} className="mb-3">
-                                    <Form.Group controlId="spaceDescription">
-                                        <Form.Label>Description</Form.Label>
-                                        <Form.Control
-                                            value={inputs.spaceDescription}
-                                            as="textarea"
-                                            required
-                                            type="text"
-                                            name="spaceDescription"
-                                            onChange={onInputChange}
-                                            placeholder="Add a description of the space and what makes it unique..."
-                                            maxLength={1000}
-                                        />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
+                        </Col>
+                        <Col sm={4}>
+                            <h5 className="my-4">Assets (images/media)</h5>
+                            <Col sm={12} className="d-flex align-items-center justify-content-center">
+                                <Dropzone
+                                    dropZoneText={'Click here to upload image(s) for this space or drag and drop files'}
+                                    initialFileUrl={mediaUrl}
+                                    onMediaSelect={onSelectMedia}
+                                />
+                            </Col>
                         </Col>
                     </Row>
-                    {/* <Row className="align-items-center">
+                    <Row className="align-items-center">
                         <Col md={6} className="mb-3">
-                            <Form.Group id="birthday">
-                                <Form.Label>Birthday</Form.Label>
+                            <Form.Group id="scheduleStartAt">
+                                <Form.Label>Campaign Start Date/Time</Form.Label>
                                 <Datetime
-                                    timeFormat={false}
-                                    onChange={(value) => setBirthday(value.toString())}
+                                    timeFormat={true}
+                                    onChange={(value) => onDateTimeChange('scheduleStartAt', value)}
                                     renderInput={(props, openCalendar) => (
                                         <InputGroup>
                                             <InputGroup.Text><FontAwesomeIcon icon={faCalendarAlt} /></InputGroup.Text>
                                             <Form.Control
                                                 required
                                                 type="text"
-                                                value={birthday ? moment(birthday).format('MM/DD/YYYY') : ''}
+                                                value={inputs.scheduleStartAt ? moment(inputs.scheduleStartAt).format('MM/DD/YYYY h:mm A') : ''}
                                                 placeholder="mm/dd/yyyy"
                                                 onFocus={() => openCalendar()}
-                                                onChange={() => {}} />
+                                                onChange={() => null}
+                                            />
                                         </InputGroup>
                                     )} />
                             </Form.Group>
                         </Col>
                         <Col md={6} className="mb-3">
-                            <Form.Group id="gender">
-                                <Form.Label>Gender</Form.Label>
-                                <Form.Select defaultValue="0">
-                                    <option value="0">Gender</option>
-                                    <option value="1">Female</option>
-                                    <option value="2">Male</option>
-                                </Form.Select>
+                            <Form.Group id="scheduleEndAt">
+                                <Form.Label>Campaign End Date/Time</Form.Label>
+                                <Datetime
+                                    timeFormat={true}
+                                    onChange={(value) => onDateTimeChange('scheduleEndAt', value)}
+                                    renderInput={(props, openCalendar) => (
+                                        <InputGroup>
+                                            <InputGroup.Text><FontAwesomeIcon icon={faCalendarAlt} /></InputGroup.Text>
+                                            <Form.Control
+                                                required
+                                                type="text"
+                                                value={inputs.scheduleEndAt ? moment(inputs.scheduleEndAt).format('MM/DD/YYYY h:mm A') : ''}
+                                                placeholder="mm/dd/yyyy"
+                                                onFocus={() => openCalendar()}
+                                                onChange={() => null}
+                                            />
+                                        </InputGroup>
+                                    )} />
                             </Form.Group>
                         </Col>
-                    </Row> */}
+                    </Row>
+                    <Row>
+                        <h5 className="my-4">Ad Target Location / Address</h5>
+                        <Col sm={12} className="mb-3">
+                            {/* <Form.Group id="address">
+                                <Form.Label>Address</Form.Label>
+                                <InputGroup className="input-group-merge search-bar">
+                                    <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
+                                    <Form.Control required type="text" placeholder="Search an address..." />
+                                </InputGroup>
+                            </Form.Group> */}
+                            <Form.Group controlId="address">
+                                <Typeahead
+                                    id="address-search-typeahead"
+                                    options={addressTypeAheadResults.map((result) => ({
+                                        ...result,
+                                        label: result.description || '',
+                                    }))}
+                                    placeholder="Search an address or location..."
+                                    onInputChange={onAddressTypeaheadChange}
+                                    onChange={onAddressTypeAheadSelect}
+                                    selected={inputs.address}
+                                />
+                            </Form.Group>
+                        </Col>
+                    </Row>
                     {/* <Row>
                         <Col md={6} className="mb-3">
                             <Form.Group id="email">
@@ -242,4 +260,4 @@ const EditSpaceForm = ({
     );
 };
 
-export default EditSpaceForm;
+export default EditCampaignForm;
