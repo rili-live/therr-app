@@ -65,12 +65,11 @@ export default ({
     const [isModalVisible, setModalVisibility] = useState(false);
     const isBusinessAccount = user.details?.isBusinessAccount;
     const onShowModal = () => {
-        // if (user.details.loginCount && user.details.loginCount < 4) {
-        //     setModalVisibility(true);
-        // } else {
-        //     handleCreate('claim', isBusinessAccount);
-        // }
-        setModalVisibility(true);
+        if (user.details.loginCount && user.details.loginCount < 4) {
+            setModalVisibility(true);
+        } else {
+            handleCreate('claim', isBusinessAccount);
+        }
     };
     const confirmClaimModal = () => {
         setModalVisibility(false);

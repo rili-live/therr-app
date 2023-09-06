@@ -647,6 +647,32 @@ class HeaderMenuRight extends React.PureComponent<
                                             />
                                             <Button
                                                 buttonStyle={
+                                                    currentScreen === 'ExchangePointsDisclaimer'
+                                                        ? themeMenu.styles.buttonsActive
+                                                        : themeMenu.styles.buttons
+                                                }
+                                                titleStyle={
+                                                    currentScreen === 'ExchangePointsDisclaimer'
+                                                        ? themeMenu.styles.buttonsTitleActive
+                                                        : themeMenu.styles.buttonsTitle
+                                                }
+                                                title={this.translate('components.headerMenuRight.menuItems.wallet')}
+                                                icon={
+                                                    <TherrIcon
+                                                        style={
+                                                            currentScreen === 'ExchangePointsDisclaimer'
+                                                                ? themeMenu.styles.iconStyleActive
+                                                                : themeMenu.styles.iconStyle
+                                                        }
+                                                        name="wallet"
+                                                        size={24}
+                                                    />
+                                                }
+                                                iconRight
+                                                onPress={() => this.navTo('ExchangePointsDisclaimer')}
+                                            />
+                                            <Button
+                                                buttonStyle={
                                                     currentScreen === 'Home'
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons

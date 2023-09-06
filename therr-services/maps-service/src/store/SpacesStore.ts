@@ -395,7 +395,10 @@ export default class SpacesStore {
             : undefined;
 
         const mediaPromise: Promise<string | undefined> = params.media
-            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString())
+            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString()).catch((err) => {
+                console.log(err);
+                return '[]';
+            })
             : Promise.resolve(undefined);
 
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
@@ -462,7 +465,10 @@ export default class SpacesStore {
             : undefined;
 
         const mediaPromise: Promise<string | undefined> = params.media
-            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString())
+            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString()).catch((err) => {
+                console.log(err);
+                return '[]';
+            })
             : Promise.resolve(undefined);
 
         return mediaPromise.then((mediaIds: string | undefined) => {
@@ -480,7 +486,7 @@ export default class SpacesStore {
                 featuredIncentiveRewardKey: params.featuredIncentiveRewardKey,
                 featuredIncentiveRewardValue: params.featuredIncentiveRewardValue,
                 incentiveCurrencyId: params.incentiveCurrencyId,
-                mediaIds: mediaIds || params.mediaIds || '',
+                mediaIds: mediaIds || params.mediaIds || undefined,
                 phoneNumber: params.phoneNumber,
                 websiteUrl: params.websiteUrl,
                 menuUrl: params.menuUrl,

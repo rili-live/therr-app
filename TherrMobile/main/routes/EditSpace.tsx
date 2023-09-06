@@ -313,23 +313,18 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
 
     onSubmitBaseDetails = () => {
         const { navigation } = this.props;
-        const { isBusinessAccount } = this.state;
         this.setState({
             isEditingIncentives: true,
         });
 
 
-        if (isBusinessAccount) {
-            // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
-            // before preventDefault is called in the beforeRemove listener
-            navigation.setOptions({
-                // animation: 'none', // navigation v6
-                animationEnabled: false,
-                gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
-            });
-        } else {
-            this.onSubmitWithIncentives();
-        }
+        // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
+        // before preventDefault is called in the beforeRemove listener
+        navigation.setOptions({
+            // animation: 'none', // navigation v6
+            animationEnabled: false,
+            gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
+        });
     };
 
     onSubmitWithIncentives = () => {
@@ -370,8 +365,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             message,
             notificationMsg,
             hashTags: hashtags.join(','),
-            latitude,
-            longitude,
+            latitude: 39.779668,
+            longitude: -86.2975541,
             maxViews,
             radius,
             expiresAt,
