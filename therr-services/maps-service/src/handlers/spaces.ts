@@ -93,7 +93,6 @@ const createSpace = async (req, res) => {
                     'space.featuredIncentiveRewardKey': space.featuredIncentiveRewardKey,
                     'space.featuredIncentiveRewardValue': space.featuredIncentiveRewardValue,
                     'space.featuredIncentiveCurrencyId': space.featuredIncentiveCurrencyId,
-                    
                 },
             });
             // if condition could work for any incentive property
