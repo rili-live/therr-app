@@ -53,7 +53,7 @@ export const spaceCategories = [
     'storefront/shop',
     'restaurant/food',
     'marketplace/festival',
-    'artwork/idea',
+    'artwork/expression',
     'music/concerts',
     'nature/parks',
     'hotels/lodging',

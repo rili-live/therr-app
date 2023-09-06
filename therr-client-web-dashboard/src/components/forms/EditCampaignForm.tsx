@@ -9,7 +9,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import moment, { Moment } from 'moment';
 import Dropzone from './Dropzone';
-import 'react-datetime/css/react-datetime.css';
 
 const adTypeCategories = [
     'local',

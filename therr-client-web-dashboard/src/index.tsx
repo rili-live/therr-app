@@ -10,6 +10,7 @@ import store from './store';
 
 // Third Party Styles
 import 'react-phone-number-input/style.css';
+import 'react-datetime/css/react-datetime.css';
 
 // Brand Styles
 // Change the following import to alter theme
