@@ -6,6 +6,7 @@ import {
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const createAreaValidation = [
+    body('address').optional().isString(),
     body('areaType').optional(),
     body('category').optional(),
     body('expiresAt').optional(),
@@ -20,8 +21,8 @@ export const createAreaValidation = [
     body('hashTags').isString().optional(),
     body('maxViews').isNumeric().optional(),
     body('maxProximity').isDecimal().optional(),
-    body('latitude').isDecimal().exists(),
-    body('longitude').isDecimal().exists(),
+    body('latitude').isDecimal().exists().isNumeric(),
+    body('longitude').isDecimal().exists().isNumeric(),
     body('media').isArray().optional(), // TODO: Add granularity
     oneOf([
         body('radius').isDecimal().exists(),

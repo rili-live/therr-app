@@ -203,6 +203,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
     };
 
     onSubmitSpaceClaim = (event: React.MouseEvent<HTMLInputElement>) => {
+        const { user } = this.props;
         event.preventDefault();
         const {
             address: selectedAddresses,
@@ -218,12 +219,14 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
         });
 
         MapsService.requestClaim({
-            title: spaceTitle,
-            description: spaceDescription,
+            fromUserId: user.details.id,
+            notificationMsg: spaceTitle,
+            message: spaceDescription,
             address: selectedAddresses[0]?.description || selectedAddresses[0]?.label,
             category,
             latitude,
             longitude,
+            radius: 100,
         }).then(() => {
             this.setState({
                 alertTitle: 'Request Sent',

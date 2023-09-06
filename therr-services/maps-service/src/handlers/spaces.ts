@@ -382,8 +382,8 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
         address,
         longitude,
         latitude,
-        title,
-        description,
+        notificationMsg,
+        message,
 
         //
         category,
@@ -406,8 +406,8 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
             address,
             longitude,
             latitude,
-            title,
-            description,
+            title: notificationMsg,
+            message,
 
             //
             category,
@@ -418,7 +418,7 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
         },
     })
         .then(({ data }) => {
-            const isTextMature = isTextUnsafe([title, description, hashTags]);
+            const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
 
             Store.spaces.createSpace({
                 addressReadable: address,
@@ -427,8 +427,8 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                 locale,
                 isPublic,
                 isMatureContent: isTextMature,
-                message: description,
-                notificationMsg: title,
+                message,
+                notificationMsg,
                 media,
                 hashTags,
                 isClaimPending: true,

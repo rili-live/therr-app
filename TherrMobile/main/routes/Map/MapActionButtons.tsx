@@ -17,7 +17,7 @@ interface MapActionButtonsProps {
         filtersCategory: any[],
         filtersVisibility: any[],
     };
-    handleCreate: (action: ICreateAction) => any;
+    handleCreate: (action: ICreateAction, isBusinessAccount?: boolean) => any;
     handleGpsRecenter: () => any;
     handleOpenMapFilters: () => any;
     hasNotifications: boolean;
@@ -65,15 +65,16 @@ export default ({
     const [isModalVisible, setModalVisibility] = useState(false);
     const isBusinessAccount = user.details?.isBusinessAccount;
     const onShowModal = () => {
-        if (user.details.loginCount && user.details.loginCount < 4) {
-            setModalVisibility(true);
-        } else {
-            handleCreate('claim');
-        }
+        // if (user.details.loginCount && user.details.loginCount < 4) {
+        //     setModalVisibility(true);
+        // } else {
+        //     handleCreate('claim', isBusinessAccount);
+        // }
+        setModalVisibility(true);
     };
     const confirmClaimModal = () => {
         setModalVisibility(false);
-        handleCreate('claim');
+        handleCreate('claim', isBusinessAccount);
     };
     const renderImage = () => (
         <AnimatedLottieView
@@ -164,28 +165,25 @@ export default ({
                         {
                             shouldShowCreateActions &&
                                 <>
-                                    {
-                                        isBusinessAccount &&
-                                        <View style={themeButtons.styles.claimASpace}>
-                                            {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text> */}
-                                            <Button
-                                                containerStyle={themeButtons.styles.btnContainer}
-                                                buttonStyle={themeButtons.styles.btnLargeWithText}
-                                                icon={
-                                                    <TherrIcon
-                                                        name="map-marker-user"
-                                                        size={24}
-                                                        style={themeButtons.styles.btnIcon}
-                                                    />
-                                                }
-                                                iconRight
-                                                raised
-                                                title={translate('menus.mapActions.claimASpace')}
-                                                titleStyle={themeButtons.styles.btnMediumTitle}
-                                                onPress={onShowModal}
-                                            />
-                                        </View>
-                                    }
+                                    <View style={themeButtons.styles.claimASpace}>
+                                        {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text> */}
+                                        <Button
+                                            containerStyle={themeButtons.styles.btnContainer}
+                                            buttonStyle={themeButtons.styles.btnLargeWithText}
+                                            icon={
+                                                <TherrIcon
+                                                    name={isBusinessAccount ? 'map-marker-user' : 'map-marker-plus'}
+                                                    size={24}
+                                                    style={themeButtons.styles.btnIcon}
+                                                />
+                                            }
+                                            iconRight
+                                            raised
+                                            title={translate(isBusinessAccount ? 'menus.mapActions.claimASpace' : 'menus.mapActions.requestASpace')}
+                                            titleStyle={themeButtons.styles.btnMediumTitle}
+                                            onPress={onShowModal}
+                                        />
+                                    </View>
                                     <View style={themeButtons.styles.uploadMoment}>
                                         <Button
                                             containerStyle={themeButtons.styles.btnContainer}
@@ -209,12 +207,12 @@ export default ({
                     </>
             }
             <ConfirmModal
-                headerText={translate('modals.confirmModal.header.claimSpace')}
+                headerText={isBusinessAccount ? translate('modals.confirmModal.header.claimSpace') : translate('modals.confirmModal.header.requestSpace')}
                 isVisible={isModalVisible}
                 onCancel={() => setModalVisibility(false)}
                 onConfirm={confirmClaimModal}
                 renderImage={renderImage}
-                text={translate('modals.confirmModal.body.claimSpace')}
+                text={isBusinessAccount ? translate('modals.confirmModal.body.claimSpace') : translate('modals.confirmModal.body.requestSpace')}
                 textConfirm={translate('modals.confirmModal.continue')}
                 textCancel={translate('modals.confirmModal.notNow')}
                 translate={translate}
