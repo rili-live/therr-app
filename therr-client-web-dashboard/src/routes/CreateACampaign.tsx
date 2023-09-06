@@ -11,156 +11,100 @@ import {
     Toast,
     ToastContainer,
 } from 'react-bootstrap';
-import { MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import moment, { Moment } from 'moment';
+import { CampaignActions, MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService, UsersService } from 'therr-react/services';
-import { AccessLevels, Content } from 'therr-js-utilities/constants';
-import {
-    IContentState, IMapState as IMapReduxState, IUserState, IUserConnectionsState, AccessCheckType,
-} from 'therr-react/types';
+import { IMapState as IMapReduxState, IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
 import { Option } from 'react-bootstrap-typeahead/types/types';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
-import EditSpaceForm from '../components/forms/EditSpaceForm';
-import ManageSpacesMenu from '../components/ManageSpacesMenu';
-import { ISpace } from '../types';
-import { signAndUploadImage } from '../utilities/media';
+import EditCampaignForm from '../components/forms/EditCampaignForm';
 import { getWebsiteName } from '../utilities/getHostContext';
+import ManageCampaignsMenu from '../components/ManageCampaignsMenu';
 
-interface ICreateEditSpaceRouterProps {
-    location: {
-        state: {
-            space?: ISpace;
-        };
-    };
-    routeParams: any;
+interface ICreateACampaignRouterProps {
     navigation: {
         navigate: NavigateFunction;
     }
 }
 
-interface ICreateEditSpaceDispatchProps {
+interface ICreateACampaignDispatchProps {
+    createCampaign: Function;
     searchUserConnections: Function;
-    updateSpace: Function;
     getPlacesSearchAutoComplete: Function;
-    getSpaceDetails: Function;
     setSearchDropdownVisibility: Function;
 }
 
-interface IStoreProps extends ICreateEditSpaceDispatchProps {
-    content: IContentState;
+interface IStoreProps extends ICreateACampaignDispatchProps {
     map: IMapReduxState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
 
 // Regular component props
-interface ICreateEditSpaceProps extends ICreateEditSpaceRouterProps, IStoreProps {
+interface ICreateACampaignProps extends ICreateACampaignRouterProps, IStoreProps {
     onInitMessaging?: Function;
 }
 
-interface ICreateEditSpaceState {
+interface ICreateACampaignState {
     alertIsVisible: boolean;
     alertVariation: string;
     alertTitle: string;
     alertMessage: string;
-    fetchedSpace: any;
     files: any[];
     isSubmitting: boolean;
     inputs: {
         [key: string]: any;
     };
-    isEditing: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
-    content: state.content,
     map: state.map,
     user: state.user,
     userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    createCampaign: CampaignActions.create,
     searchUserConnections: UserConnectionsActions.search,
-    updateSpace: MapActions.updateSpace,
     getPlacesSearchAutoComplete: MapActions.getPlacesSearchAutoComplete,
-    getSpaceDetails: MapActions.getSpaceDetails,
     setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
 }, dispatch);
 
 /**
- * CreateEditSpace
+ * CreateACampaign
  */
-export class CreateEditSpaceComponent extends React.Component<ICreateEditSpaceProps, ICreateEditSpaceState> {
+export class CreateACampaignComponent extends React.Component<ICreateACampaignProps, ICreateACampaignState> {
     private translate: Function;
 
     private throttleTimeoutId: any;
 
-    constructor(props: ICreateEditSpaceProps) {
+    constructor(props: ICreateACampaignProps) {
         super(props);
-
-        const { space } = props.location?.state || {};
 
         this.state = {
             alertIsVisible: false,
             alertVariation: 'success',
             alertTitle: '',
             alertMessage: '',
-            fetchedSpace: space,
             files: [],
             isSubmitting: false,
             inputs: {
-                address: space?.addressReadable ? [
-                    {
-                        label: space?.addressReadable,
-                    },
-                ] : undefined,
-                category: space?.category || 'uncategorized',
-                isPublic: space?.isPublic,
-                spaceTitle: space?.notificationMsg || '',
-                spaceDescription: space?.message || '',
-                phoneNumber: space?.phoneNumber || '',
-                websiteUrl: space?.websiteUrl || '',
-                menuUrl: space?.menuUrl || '',
-                orderUrl: space?.orderUrl || '',
-                reservationUrl: space?.reservationUrl || '',
+                address: [],
+                type: 'local',
+                title: '',
+                description: '',
+                scheduleStartAt: '',
+                scheduleEndAt: '',
             },
-            isEditing: true,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() {
-        document.title = `${getWebsiteName()} | ${this.translate('pages.editSpace.pageTitle')}`;
-        const { getSpaceDetails, location } = this.props;
-        const { space } = location?.state || {};
-        const { spaceId } = this.props.routeParams;
-        const id = space?.id || spaceId;
-
-        if (id) {
-            getSpaceDetails(id, {
-                withMedia: true,
-            }).then((data) => {
-                this.setState({
-                    fetchedSpace: {
-                        ...this.state.fetchedSpace,
-                        ...data?.space,
-                    },
-                    inputs: {
-                        address: data?.space?.addressReadable ? [
-                            {
-                                label: data?.space?.addressReadable,
-                            },
-                        ] : undefined,
-                        category: data?.space?.category || 'uncategorized',
-                        spaceTitle: data?.space?.notificationMsg || '',
-                        spaceDescription: data?.space?.message || '',
-                    },
-                });
-            }).catch(() => {
-                // Happens when space is not yet activated, but that is OK
-            });
-        }
+        document.title = `${getWebsiteName()} | ${this.translate('pages.createACampaign.pageTitle')}`;
     }
 
     componentWillUnmount = () => {
@@ -171,14 +115,16 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
 
     isSubmitDisabled = () => {
         const { inputs, isSubmitting } = this.state;
-        if (isSubmitting) {
+        if (isSubmitting
+            || !inputs.title
+            || !inputs.description
+            || !inputs.type
+            || !inputs.scheduleStartAt
+            || !inputs.scheduleEndAt) {
             return true;
         }
-        if (inputs.address) {
-            return false;
-        }
 
-        return true;
+        return false;
     };
 
     onAddressTypeaheadChange = (text: string, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,7 +180,22 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
         }
     };
 
+    onDateTimeChange = (name: string, value: string | Moment) => {
+        this.toggleAlert(false);
+        const newInputChanges = {
+            [name]: typeof value === 'string' ? value : value.format('MM/DD/YYYY h:mm A'),
+        };
+
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                ...newInputChanges,
+            },
+        });
+    };
+
     onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.toggleAlert(false);
         event.preventDefault();
         const { name, value } = event.currentTarget;
         const newInputChanges = {
@@ -255,83 +216,60 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
         });
     };
 
-    onUpdateSpace = (event: React.MouseEvent<HTMLInputElement>) => {
-        const { files, fetchedSpace } = this.state;
-        const {
-            location,
-            navigation,
-            updateSpace,
-            routeParams,
-        } = this.props;
-        const { space } = location?.state || {};
-
+    onSubmitCampaign = (event: React.MouseEvent<HTMLInputElement>) => {
         event.preventDefault();
+        const { createCampaign } = this.props;
         const {
+            title,
+            description,
+            type,
+            scheduleStartAt,
+            scheduleEndAt,
             address: selectedAddresses,
-            category,
             latitude,
             longitude,
-            spaceTitle,
-            spaceDescription,
-            phoneNumber,
-            websiteUrl,
-            menuUrl,
-            orderUrl,
-            reservationUrl,
         } = this.state.inputs;
 
         this.setState({
             isSubmitting: true,
         });
 
-        const spaceInView = {
-            ...fetchedSpace,
-            ...space,
-        };
-
-        if (spaceInView?.id) {
-            const createUpdateArgs: any = {
-                ...spaceInView,
-                notificationMsg: spaceTitle,
-                message: spaceDescription,
-                category,
-                addressReadable: (selectedAddresses?.length && selectedAddresses[0]?.label) || spaceInView.addressReadable,
-                phoneNumber,
-                websiteUrl,
-                menuUrl,
-                orderUrl,
-                reservationUrl,
-            };
-            if (routeParams.context === 'admin') {
-                createUpdateArgs.overrideFromUserId = spaceInView.fromUserId;
-            }
-            (files.length > 0 ? signAndUploadImage(createUpdateArgs, files) : Promise.resolve(createUpdateArgs)).then((modifiedArgs) => {
-                updateSpace(spaceInView.id, modifiedArgs).then(() => {
-                    this.setState({
-                        alertTitle: 'Successfully Updated!',
-                        alertMessage: 'This space was updated without issue.',
-                        alertVariation: 'success',
-                    });
-                    this.toggleAlert(true);
-                    setTimeout(() => {
-                        this.setState({
-                            isSubmitting: false,
-                        });
-                        navigation.navigate(`/manage-spaces/${routeParams.context}`);
-                    }, 1500);
-                });
-            }).catch((error) => {
-                console.log(error);
-                this.onSubmitError('Unknown Error', 'Failed to process your request. Please try again later.');
-                this.setState({
-                    isSubmitting: false,
-                });
-            }).finally(() => {
-                this.setState({
-                    isSubmitting: false,
-                });
+        if (moment(scheduleEndAt).isSameOrBefore(moment(scheduleStartAt))) {
+            this.onSubmitError('Invalid Start/End Dates', 'Campaign start date must be before campaign end date');
+            this.setState({
+                isSubmitting: false,
             });
+            return;
         }
+
+        createCampaign({
+            title,
+            description,
+            type,
+            scheduleStartAt,
+            scheduleEndAt,
+            address: selectedAddresses[0]?.description || selectedAddresses[0]?.label,
+            latitude,
+            longitude,
+        }).then(() => {
+            this.setState({
+                alertTitle: 'Request Sent',
+                alertMessage: 'Success! Please allow 24-72 hours as we review your campaign.',
+                alertVariation: 'success',
+            });
+            this.toggleAlert(true);
+            setTimeout(() => {
+                this.setState({
+                    isSubmitting: false,
+                });
+                this.navigateHandler('/dashboard')();
+            }, 1000);
+        }).catch((error) => {
+            this.onSubmitError('Unknown Error', 'Failed to process your request. Please try again.');
+            this.setState({
+                isSubmitting: false,
+            });
+        });
     };
 
     onSubmitError = (errTitle: string, errMsg: string) => {
@@ -372,56 +310,43 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
             alertVariation,
             alertTitle,
             alertMessage,
-            fetchedSpace,
             inputs,
-            isEditing,
         } = this.state;
-        const { content, map, user } = this.props;
-        const mediaId = (fetchedSpace?.media && fetchedSpace?.media[0]?.id) || (fetchedSpace?.mediaIds?.length && fetchedSpace?.mediaIds?.split(',')[0]);
-        const spaceMediaUrl = content?.media[mediaId];
+        const { map, user } = this.props;
 
         return (
             <div id="page_settings" className="flex-box column">
                 <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
-                    <ManageSpacesMenu
+                    <ManageCampaignsMenu
                         navigateHandler={this.navigateHandler}
                         user={user}
                     />
 
-                    <ButtonGroup>
+                    {/* <ButtonGroup>
                         <Button variant="outline-primary" size="sm">Share</Button>
-                    </ButtonGroup>
+                    </ButtonGroup> */}
                 </div>
 
                 <Row className="d-flex justify-content-around align-items-center py-4">
                     <Col xs={12} xl={10} xxl={8}>
-                        {
-                            isEditing
-                                ? <h1 className="text-center">Edit Space</h1>
-                                : <h1 className="text-center">Create a Space</h1>
-                        }
-                        <EditSpaceForm
+                        <h1 className="text-center">Create a Marketing Campaign</h1>
+                        <EditCampaignForm
                             addressTypeAheadResults={map?.searchPredictions?.results || []}
                             inputs={{
-                                address: inputs.address,
-                                category: inputs.category,
-                                spaceTitle: inputs.spaceTitle,
-                                spaceDescription: inputs.spaceDescription,
-                                phoneNumber: inputs.phoneNumber,
-                                websiteUrl: inputs.websiteUrl,
-                                menuUrl: inputs.menuUrl,
-                                orderUrl: inputs.orderUrl,
-                                reservationUrl: inputs.reservationUrl,
+                                title: inputs.title,
+                                description: inputs.description,
+                                type: inputs.type,
+                                scheduleStartAt: inputs.scheduleStartAt,
+                                scheduleEndAt: inputs.scheduleEndAt,
                             }}
-                            mediaUrl={spaceMediaUrl}
                             isSubmitDisabled={this.isSubmitDisabled()}
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeAheadSelect={this.onAddressTypeAheadSelect}
+                            onDateTimeChange={this.onDateTimeChange}
                             onInputChange={this.onInputChange}
                             onSelectMedia={this.onSelectMedia}
-                            onSubmit={this.onUpdateSpace}
-                            submitText='Update Space'
-                            shouldShowAdvancedFields
+                            onSubmit={this.onSubmitCampaign}
+                            submitText='Save'
                         />
                     </Col>
 
@@ -454,4 +379,4 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(CreateEditSpaceComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(CreateACampaignComponent));

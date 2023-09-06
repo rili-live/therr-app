@@ -10,20 +10,20 @@ import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IUserState } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 
-interface IManageSpacesMenuProps {
+interface IManageCampaignsMenuProps {
     className?: string;
     navigateHandler: (routeName: string) => any;
     user: IUserState;
 }
 
-const ManageSpacesMenu = ({
+const ManageCampaignsMenu = ({
     className,
     navigateHandler,
     user,
-}: IManageSpacesMenuProps) => {
+}: IManageCampaignsMenuProps) => {
     const onClickUpgrade = () => {
         ReactGA.event('clicked_upgrade_btn', {
-            source: 'manage-spaces-menu',
+            source: 'manage-campaigns-menu',
             plan: 'basic',
         });
     };
@@ -44,16 +44,16 @@ const ManageSpacesMenu = ({
     return (
         <Dropdown className={`btn-toolbar ${className}`}>
             <Dropdown.Toggle as={Button} variant="primary" size="sm" className="me-2">
-                <FontAwesomeIcon icon={faTasks} className="me-2" />Manage Spaces
+                <FontAwesomeIcon icon={faTasks} className="me-2" />Manage Campaigns
             </Dropdown.Toggle>
             <Dropdown.Menu className="dashboard-dropdown dropdown-menu-left mt-2">
-                <Dropdown.Item className="fw-bold" onClick={navigateHandler('/claim-a-space')}>
-                    <FontAwesomeIcon icon={faPlus} className="me-2" /> Claim a Space
+                <Dropdown.Item className="fw-bold" onClick={navigateHandler('/create-a-campaign')}>
+                    <FontAwesomeIcon icon={faPlus} className="me-2" /> Create a Campaign
                 </Dropdown.Item>
-                <Dropdown.Item className="fw-bold" onClick={navigateHandler('/manage-spaces/me')}>
-                    <FontAwesomeIcon icon={faPencilRuler} className="me-2" /> Edit My Spaces
+                <Dropdown.Item className="fw-bold" onClick={navigateHandler('/manage-campaigns/me')}>
+                    <FontAwesomeIcon icon={faPencilRuler} className="me-2" /> Edit My Campaigns
                 </Dropdown.Item>
-                {/* <Dropdown.Item className="fw-bold" onClick={navigateHandler('/claim-a-space')}>
+                {/* <Dropdown.Item className="fw-bold" onClick={navigateHandler('/create-a-campaign')}>
                     <FontAwesomeIcon icon={faUserShield} className="me-2" /> Manage Access
                 </Dropdown.Item> */}
                 {
@@ -70,4 +70,4 @@ const ManageSpacesMenu = ({
     );
 };
 
-export default ManageSpacesMenu;
+export default ManageCampaignsMenu;

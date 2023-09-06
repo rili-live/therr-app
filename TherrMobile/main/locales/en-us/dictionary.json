@@ -16,6 +16,7 @@
     "errorWithAppleSSO": "Error With Apple SSO",
     "momentCreatedSuccess": "Moment Created  🎉",
     "spaceCreatedSuccess": "You Claimed a Space",
+    "spaceRequestSuccess": "Request Sent",
     "ssoLoginError": "Error With Single Sign-On",
     "walkCloser": "Too Far Away",
     "nameUnknown": "Anonymous User",
@@ -34,6 +35,7 @@
     "ssoLoginError": "Please try logging in with you account username/password",
     "momentCreatedSuccess": "Your moment was successfully posted!",
     "spaceCreatedSuccess": "You have successfully claimed this space!",
+    "spaceRequestSuccess": "You have successfully requested to add a new business space!",
     "pleaseTryAgain": "Connection error. Please try again later.",
     "walkCloser": "Walk closer to claim rewards. Check the map for details.",
     "newAreasActivated": "You recently activated {total} new moments/spaces.",
@@ -364,7 +366,16 @@
         "visibilityPrivate": "Visibility: Friends Only"
       },
       "categories": {
+    
+    
         "uncategorized": "Select a Category",
+        "storefront/shop": "Storefront / Shop",
+        "restaurant/food": "Restaurant / Food",
+        "marketplace/festival": "Marketplace / Festival",
+        "artwork/expression": "Artwork / Expression",
+        "music/concerts": "Music / Concerts",
+        "nature/parks": "Nature / Parks",
+        "hotels/lodging": "Hotels / Lodging",
         "art": "Art",
         "geocache": "Geocache",
         "menu": "Menu",
@@ -644,6 +655,7 @@
     "mapActions": {
       "create": "Create",
       "claimASpace": "Claim a Space",
+      "requestASpace": "Request a Space",
       "shareAThought": "Share a Thought",
       "uploadAMoment": "Create a Moment",
       "captureAMoment": "Capture a Moment"
@@ -796,6 +808,10 @@
       "headerTitle": "Claim a Space",
       "previewHeader": "Preview:"
     },
+    "requestSpace": {
+      "headerTitle": "Request a Space",
+      "previewHeader": "Preview:"
+    },
     "viewSpace": {
       "buttons": {
         "claimRewards": "Claim Rewards?",
@@ -895,12 +911,12 @@
         "signIn": "Sign In"
       },
       "carousel": {
-        "claimTitle": "Claim a Space",
-        "claimDescription": "that is exclusive and visible to all users.",
         "discoverTitle": "Discover Content",
-        "discoverDescription": "while on the move and find those hidden gems.",
+        "discoverDescription": "while on the move and find those hidden gems",
         "momentTitle": "Share Moments",
-        "momentDescription": "that are only visible to your connections and groups."
+        "momentDescription": "with friends or publicly and earn points",
+        "claimTitle": "Claim Rewards",
+        "claimDescription": "by exchanging points for cash, gift-cards, and in-app bonuses"
       }
     },
     "login": {
@@ -1079,11 +1095,12 @@
       "unconnect": "Remove connection with {userName}? (You will no longer be able to activate new content from this user)",
       "header": {
         "claimSpace": "Claim a Space",
+        "requestSpace": "Request a Space",
         "eula": "End-User License Agreement (EULA)"
-
       },
       "body": {
-        "claimSpace": "Spaces are for businesses and promoters. Content is public and helps you leverage custom push notifications, metrics, and location ownership."
+        "claimSpace": "Spaces are public business locations. Claiming a space on the map allows you to declare location ownership, incentivize customer loyalty, and moderate content.",
+        "requestSpace": "Request a public business space and earn points per request! We'll connect with the owner to add it to the map so they can start offering loyalty rewards."
       }
     },
     "contentOptions": {

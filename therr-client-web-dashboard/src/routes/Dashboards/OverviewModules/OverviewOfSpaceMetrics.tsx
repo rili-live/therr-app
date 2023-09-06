@@ -6,6 +6,7 @@ import {
     faChartLine, faChevronLeft, faChevronRight, faStar,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { IUserState } from 'therr-react/types';
 import { SpaceMetricsDisplay } from '../../../components/widgets/SpaceMetricsDisplay';
 import { ISpace } from '../../../types';
 import StarRatingDisplay from '../../../components/widgets/StarRatingDisplay';
@@ -26,9 +27,10 @@ interface OverviewOfSpaceMetrics {
     spanOfTime: 'week' | 'month';
     averageRating: number;
     totalRating: number;
-    fetchSpaceMetrics: any;
+    onChangeTimeSpan: any;
     isLoading: boolean;
     isSuperAdmin: boolean;
+    user: IUserState;
 }
 
 const OverviewOfSpaceMetrics = ({
@@ -45,8 +47,9 @@ const OverviewOfSpaceMetrics = ({
     spanOfTime,
     averageRating,
     totalRating,
-    fetchSpaceMetrics,
+    onChangeTimeSpan,
     isSuperAdmin,
+    user,
 }: OverviewOfSpaceMetrics) => {
     if (isLoading) {
         return (
@@ -61,7 +64,7 @@ const OverviewOfSpaceMetrics = ({
                     isSuperAdmin && <AdminManageSpacesMenu className="mb-2 mb-md-0" navigateHandler={navigateHandler} />
                 }
                 {
-                    !isSuperAdmin && <ManageSpacesMenu className="mb-2 mb-md-0" navigateHandler={navigateHandler} />
+                    !isSuperAdmin && <ManageSpacesMenu className="mb-2 mb-md-0" user={user} navigateHandler={navigateHandler} />
                 }
                 <ButtonGroup className="mb-2 mb-md-0">
                     {
@@ -86,7 +89,8 @@ const OverviewOfSpaceMetrics = ({
                         labels={overviewGraphLabels}
                         values={overviewGraphValues}
                         percentage={percentageChange}
-                        fetchSpaceMetrics={fetchSpaceMetrics}
+                        onChangeTimeSpan={onChangeTimeSpan}
+                        spanOfTime={spanOfTime}
                     />
                 </Col>
                 <Col xs={12} lg={9} className="mb-4 d-sm-none">
@@ -96,7 +100,8 @@ const OverviewOfSpaceMetrics = ({
                         labels={overviewGraphLabels}
                         values={overviewGraphValues}
                         percentage={percentageChange}
-                        fetchSpaceMetrics={fetchSpaceMetrics}
+                        onChangeTimeSpan={onChangeTimeSpan}
+                        spanOfTime={spanOfTime}
                     />
                 </Col>
                 <Col xs={12} lg={3} className="mb-4">

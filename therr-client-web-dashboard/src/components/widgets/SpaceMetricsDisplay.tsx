@@ -44,11 +44,11 @@ const MetricsSummary = ({
 
 const ChartActions = ({
     onTimeSpanChange,
-    timeSpan,
+    spanOfTime,
 }: any) => (
     <div className="d-flex ms-auto">
         <Button
-            variant={timeSpan === 'month' ? 'primary' : 'secondary'}
+            variant={spanOfTime === 'month' ? 'primary' : 'secondary'}
             size="sm"
             className="me-2"
             onClick={() => onTimeSpanChange('month')}
@@ -56,7 +56,7 @@ const ChartActions = ({
             Month
         </Button>
         <Button
-            variant={timeSpan === 'week' ? 'primary' : 'secondary'}
+            variant={spanOfTime === 'week' ? 'primary' : 'secondary'}
             size="sm"
             className="me-3"
             onClick={() => onTimeSpanChange('week')}
@@ -71,18 +71,17 @@ export const SpaceMetricsDisplay = (props: any) => {
     const {
         title,
         percentage,
-        fetchSpaceMetrics,
+        onChangeTimeSpan,
         isMobile,
         labels,
+        spanOfTime,
         values,
     } = props;
     const percentageIcon = percentage < 0 ? faAngleDown : faAngleUp;
     const percentageColor = percentage < 0 ? 'text-danger' : 'text-success';
-    const [timeSpan, setTimeSpan] = useState('week');
-    const onTimeSpanChange = (spanOfTime: 'week' | 'month') => {
-        setTimeSpan(spanOfTime);
-        if (spanOfTime !== timeSpan) {
-            fetchSpaceMetrics(spanOfTime);
+    const onTimeSpanChange = (timeSpan: 'week' | 'month') => {
+        if (timeSpan !== spanOfTime) {
+            onChangeTimeSpan(timeSpan);
         }
     };
     // TODO: Sum each individual metric
@@ -97,7 +96,7 @@ export const SpaceMetricsDisplay = (props: any) => {
                             title={title}
                             totalCount={totalMetricsCount}
                             metricLabel="Visits/Prospects/Impressions"
-                            previousTimespanLabel={timeSpan === 'week' ? 'Previous Week' : 'Previous Month'}
+                            previousTimespanLabel={spanOfTime === 'week' ? 'Previous Week' : 'Previous Month'}
                             percentage={percentage}
                             percentageIcon={percentageIcon}
                             percentageColor={percentageColor}
@@ -105,11 +104,11 @@ export const SpaceMetricsDisplay = (props: any) => {
                     </div>
                     <ChartActions
                         onTimeSpanChange={onTimeSpanChange}
-                        timeSpan={timeSpan}
+                        spanOfTime={spanOfTime}
                     />
                 </Card.Header>
                 <Card.Body className="p-2">
-                    <SpaceMetricsLineGraph isMobile={true} timeSpan={timeSpan} labels={labels} values={values} />
+                    <SpaceMetricsLineGraph isMobile={true} timeSpan={spanOfTime} labels={labels} values={values} />
                 </Card.Body>
             </Card>
         );
@@ -123,7 +122,7 @@ export const SpaceMetricsDisplay = (props: any) => {
                         title={title}
                         totalCount={totalMetricsCount}
                         metricLabel="Visits/Prospects/Impressions"
-                        previousTimespanLabel={timeSpan === 'week' ? 'Previous Week' : 'Previous Month'}
+                        previousTimespanLabel={spanOfTime === 'week' ? 'Previous Week' : 'Previous Month'}
                         percentage={percentage}
                         percentageIcon={percentageIcon}
                         percentageColor={percentageColor}
@@ -131,11 +130,11 @@ export const SpaceMetricsDisplay = (props: any) => {
                 </div>
                 <ChartActions
                     onTimeSpanChange={onTimeSpanChange}
-                    timeSpan={timeSpan}
+                    spanOfTime={spanOfTime}
                 />
             </Card.Header>
             <Card.Body className="p-2">
-                <SpaceMetricsLineGraph isMobile={false} timeSpan={timeSpan} labels={labels} values={values} />
+                <SpaceMetricsLineGraph isMobile={false} timeSpan={spanOfTime} labels={labels} values={values} />
             </Card.Body>
         </Card>
     );

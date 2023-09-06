@@ -21,7 +21,6 @@ import {
     getSpaceDetailsValidation,
     updateSpaceValidation,
 } from './validation/spaces';
-import { requestSpaceClaimValidation } from './validation/dashboard';
 import CacheStore from '../../store';
 
 const mapsServiceRouter = express.Router();
@@ -180,7 +179,7 @@ mapsServiceRouter.get('/space-metrics/:spaceId', validate, handleServiceRequest(
 }));
 
 // Dashboard
-mapsServiceRouter.post('/spaces/request-claim', requestSpaceClaimValidation, validate, handleServiceRequest({
+mapsServiceRouter.post('/spaces/request-claim', createAreaValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));

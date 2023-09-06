@@ -152,11 +152,11 @@ export class BaseCampaignsOverviewComponent extends React.Component<IBaseCampaig
                                     Ad campaigns are AI optimized marketing initiatives that can be scheduled, updated, and paused at any time.
                                     Create a campaign to start digital marketing of your business today.
                                 </p>
-                                {/* <div className="text-center mt-5">
+                                <div className="text-center mt-5">
                                     <Button variant="secondary" onClick={this.navigateHandler('/create-a-campaign')}>
                                         <FontAwesomeIcon icon={faBullhorn} className="me-1" /> Create a Campaign
                                     </Button>
-                                </div> */}
+                                </div>
                             </>
                         }
                     </>

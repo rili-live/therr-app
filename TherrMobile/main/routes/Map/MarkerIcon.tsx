@@ -68,7 +68,7 @@ const MarkerIcon = function MarkerIcon({
     theme,
 }) {
     // TODO: Add all categories
-    if (area.category === 'art') {
+    if (area.category === 'art' || area.category === 'artwork/idea') {
         return (
             <MarkerIconArt {...getMarkerConfigs(theme).art} />
         );
@@ -88,12 +88,12 @@ const MarkerIcon = function MarkerIcon({
             <MarkerIconFitness {...getMarkerConfigs(theme).fitness} />
         );
     }
-    if (area.category === 'food') {
+    if (area.category === 'food' || area.category === 'restaurant/food') {
         return (
             <MarkerIconFood {...getMarkerConfigs(theme).food} />
         );
     }
-    if (area.category === 'music') {
+    if (area.category === 'music' || area.category === 'music/concerts') {
         return (
             <MarkerIconMusic {...getMarkerConfigs(theme).music} />
         );
@@ -103,7 +103,9 @@ const MarkerIcon = function MarkerIcon({
             <MarkerIconSeasonal {...getMarkerConfigs(theme).seasonal} />
         );
     }
-    if (area.category === 'storefront') {
+    // TODO: Add hotel marker
+    if (area.category === 'storefront' || area.category === 'storefront/shop'
+        || area.category === 'marketplace/festival' || area.category === 'hotels/lodging') {
         return (
             <MarkerIconStorefront {...getMarkerConfigs(theme).storefront} />
         );
@@ -118,7 +120,7 @@ const MarkerIcon = function MarkerIcon({
             <MarkerIconGeocache {...getMarkerConfigs(theme).geocache} />
         );
     }
-    if (area.category === 'nature') {
+    if (area.category === 'nature' || area.category === 'nature/parks') {
         return (
             <MarkerIconNature {...getMarkerConfigs(theme).nature} />
         );

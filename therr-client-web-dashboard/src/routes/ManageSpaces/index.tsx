@@ -12,17 +12,26 @@ import {
     ToggleButtonGroup,
 } from 'react-bootstrap';
 import { MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { MapsService } from 'therr-react/services';
+import { MapsService, UsersService } from 'therr-react/services';
 import {
     IMapState as IMapReduxState,
     IUserState,
     IUserConnectionsState,
     ISearchQuery,
+    AccessCheckType,
 } from 'therr-react/types';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { AxiosResponse } from 'axios';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight, faMapMarked, faMapMarker, faMarker, faSearch } from '@fortawesome/free-solid-svg-icons';
+import {
+    faChevronLeft,
+    faChevronRight,
+    faMapMarked,
+    faMapMarker,
+    faMarker,
+    faSearch,
+} from '@fortawesome/free-solid-svg-icons';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
@@ -205,7 +214,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
         }, 500);
     };
 
-    onAddressTypeaheadSelect = (selected: Option[]) => {
+    onAddressTypeAheadSelect = (selected: Option[]) => {
         const result: any = selected[0];
         console.log(result);
 
@@ -304,6 +313,23 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
         });
     };
 
+    isSubscribed = () => {
+        const { user } = this.props;
+
+        return UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ALL,
+                levels: [
+                    AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY],
+                isPublic: true,
+            },
+            user,
+        );
+    };
+
     public render(): JSX.Element | null {
         const {
             alertIsVisible,
@@ -321,6 +347,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                 <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
                     <ManageSpacesMenu
                         navigateHandler={this.navigateHandler}
+                        user={user}
                     />
 
                     <ButtonGroup className="mb-2 mb-md-0">

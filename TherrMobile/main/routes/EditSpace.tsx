@@ -8,6 +8,7 @@ import RNFB from 'react-native-blob-util';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
+import { MapsService } from 'therr-react/services';
 import { Content, IncentiveRewardKeys, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
@@ -49,13 +50,13 @@ const { width: viewportWidth } = Dimensions.get('window');
 
 export const spaceCategories = [
     'uncategorized',
-    'menu',
-    'deals',
-    'storefront',
-    'idea',
-    'food',
-    'music',
-    'nature',
+    'storefront/shop',
+    'restaurant/food',
+    'marketplace/festival',
+    'artwork/expression',
+    'music/concerts',
+    'nature/parks',
+    'hotels/lodging',
 ];
 
 const hapticFeedbackOptions = {
@@ -83,6 +84,7 @@ interface IEditSpaceState {
     isBottomSheetVisible: boolean;
     isEditingIncentives: boolean;
     inputs: any;
+    isBusinessAccount: boolean;
     isSubmitting: boolean;
     previewLinkId?: string;
     previewStyleState: any;
@@ -98,7 +100,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createSpace: MapActions.createSpace,
 }, dispatch);
 
-export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState> {
+export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceState> {
     private categoryOptions: any[];
     private scrollViewRef;
     private incentiveRequirementKeys: {
@@ -125,12 +127,13 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         super(props);
 
         const { route } = props;
-        const { imageDetails } = route.params;
+        const { imageDetails, isBusinessAccount } = route.params;
 
         this.state = {
             errorMsg: '',
             hashtags: [],
             isBottomSheetVisible: false,
+            isBusinessAccount,
             isEditingIncentives: false,
             inputs: {
                 isPublic: true,
@@ -205,10 +208,11 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
     }
 
     componentDidMount() {
+        const { isBusinessAccount } = this.state;
         const { navigation } = this.props;
 
         navigation.setOptions({
-            title: this.translate('pages.editSpace.headerTitle'),
+            title: isBusinessAccount ? this.translate('pages.editSpace.headerTitle') : this.translate('pages.requestSpace.headerTitle'),
         });
 
         this.unsubscribeNavListener = navigation.addListener('beforeRemove', (e) => {
@@ -309,21 +313,27 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
 
     onSubmitBaseDetails = () => {
         const { navigation } = this.props;
+        const { isBusinessAccount } = this.state;
         this.setState({
             isEditingIncentives: true,
         });
 
-        // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
-        // before preventDefault is called in the beforeRemove listener
-        navigation.setOptions({
-            // animation: 'none', // navigation v6
-            animationEnabled: false,
-            gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
-        });
+
+        if (isBusinessAccount) {
+            // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
+            // before preventDefault is called in the beforeRemove listener
+            navigation.setOptions({
+                // animation: 'none', // navigation v6
+                animationEnabled: false,
+                gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
+            });
+        } else {
+            this.onSubmitWithIncentives();
+        }
     };
 
     onSubmitWithIncentives = () => {
-        const { hashtags, selectedImage } = this.state;
+        const { hashtags, isBusinessAccount, selectedImage } = this.state;
         const {
             category,
             featuredIncentiveKey,
@@ -378,24 +388,43 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                 isSubmitting: true,
             });
 
+            const createSpaceMethod = isBusinessAccount ? this.props.createSpace : MapsService.requestClaim;
+
             (selectedImage?.path ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
-                this.props
-                    .createSpace(modifiedCreateArgs)
+                createSpaceMethod(modifiedCreateArgs)
                     .then(() => {
-                        Toast.show({
-                            type: 'success',
-                            text1: this.translate('alertTitles.spaceCreatedSuccess'),
-                            text2: this.translate('alertMessages.spaceCreatedSuccess'),
-                            visibilityTime: 3500,
-                        });
-                        analytics().logEvent('space_create', {
-                            userId: user.details.id,
-                            momentLongitude: longitude,
-                            momentLatitude: latitude,
-                            radius,
-                            isPublic,
-                            category,
-                        }).catch((err) => console.log(err));
+                        if (isBusinessAccount) {
+                            Toast.show({
+                                type: 'success',
+                                text1: this.translate('alertTitles.spaceCreatedSuccess'),
+                                text2: this.translate('alertMessages.spaceCreatedSuccess'),
+                                visibilityTime: 3500,
+                            });
+                            analytics().logEvent('space_create', {
+                                userId: user.details.id,
+                                momentLongitude: longitude,
+                                momentLatitude: latitude,
+                                radius,
+                                isPublic,
+                                category,
+                            }).catch((err) => console.log(err));
+                        } else {
+                            Toast.show({
+                                type: 'success',
+                                text1: this.translate('alertTitles.spaceRequestSuccess'),
+                                text2: this.translate('alertMessages.spaceRequestSuccess'),
+                                visibilityTime: 3500,
+                            });
+                            analytics().logEvent('space_request', {
+                                userId: user.details.id,
+                                momentLongitude: longitude,
+                                momentLatitude: latitude,
+                                radius,
+                                isPublic,
+                                category,
+                            }).catch((err) => console.log(err));
+                        }
+
                         setTimeout(() => {
                             this.props.navigation.navigate('Map', {
                                 shouldShowPreview: true,
@@ -466,7 +495,11 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             } else if (value === 'make-a-purchase') {
                 newInputChanges.featuredIncentiveValue = '1';
             } else {
+                newInputChanges.featuredIncentiveKey = undefined;
                 newInputChanges.featuredIncentiveValue = undefined;
+                newInputChanges.featuredIncentiveCurrencyId = undefined;
+                newInputChanges.featuredIncentiveRewardKey = undefined;
+                newInputChanges.featuredIncentiveRewardValue = undefined;
             }
         }
 
@@ -620,9 +653,9 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         iconStyle: any,
         onPress: any,
     } => {
-        const { isEditingIncentives } = this.state;
+        const { isEditingIncentives, isBusinessAccount } = this.state;
 
-        if (!isEditingIncentives) {
+        if (!isEditingIncentives && isBusinessAccount) {
             return {
                 title: this.translate('forms.editSpace.buttons.next'),
                 icon: 'chevron-right',

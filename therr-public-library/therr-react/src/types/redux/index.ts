@@ -1,4 +1,8 @@
 import {
+    ICampaignState,
+    CampaignActionTypes,
+} from './campaigns';
+import {
     IContentState,
     ContentActionTypes,
 } from './content';
@@ -46,6 +50,10 @@ import {
 } from './userInterface';
 
 export {
+    // Campaigns
+    ICampaignState,
+    CampaignActionTypes,
+
     // Content
     IContentState,
     ContentActionTypes,

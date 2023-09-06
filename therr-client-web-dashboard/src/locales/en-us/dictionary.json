@@ -126,6 +126,9 @@
     "claimASpace": {
       "pageTitle": "Claim a Space"
     },
+    "createACampaign": {
+      "pageTitle": "Claim a Campaign"
+    },
     "editSpace": {
       "pageTitle": "Create/EditSpace"
     },

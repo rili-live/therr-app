@@ -17,9 +17,9 @@ import {
     Button,
     ButtonGroup,
 } from '@themesberg/react-bootstrap';
-import { MapsService, ReactionsService } from 'therr-react/services';
-import { IUserState, IUserConnectionsState } from 'therr-react/types';
-import { MetricNames } from 'therr-js-utilities/constants';
+import { MapsService, ReactionsService, UsersService } from 'therr-react/services';
+import { IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
+import { AccessLevels, MetricNames } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
@@ -229,6 +229,15 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
 
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
 
+    onChangeTimeSpan = (spanOfTime: 'week' | 'month') => {
+        if (spanOfTime !== this.state.spanOfTime) {
+            this.fetchSpaceMetrics(spanOfTime);
+        }
+        this.setState({
+            spanOfTime,
+        });
+    };
+
     onPrevSpaceClick = () => {
         const {
             currentSpaceIndex,
@@ -260,6 +269,23 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         }
     };
 
+    isSubscribed = () => {
+        const { user } = this.props;
+
+        return UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ALL,
+                levels: [
+                    AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY],
+                isPublic: true,
+            },
+            user,
+        );
+    };
+
     public render(): JSX.Element | null {
         const {
             currentSpaceIndex,
@@ -275,6 +301,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         } = this.state;
         const {
             isSuperAdmin,
+            user,
         } = this.props;
 
         const avgImpressions = spanOfTime === 'week'
@@ -298,9 +325,10 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         spanOfTime={spanOfTime}
                         averageRating={averageRating}
                         totalRating={totalRating}
-                        fetchSpaceMetrics={this.fetchSpaceMetrics}
+                        onChangeTimeSpan={this.onChangeTimeSpan}
                         isLoading={isLoadingSpaces}
                         isSuperAdmin={isSuperAdmin}
+                        user={user}
                     />
                 }
                 {
