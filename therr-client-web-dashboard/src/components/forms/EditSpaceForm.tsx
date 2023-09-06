@@ -8,13 +8,13 @@ import Dropzone from './Dropzone';
 
 const spaceCategories = [
     'uncategorized',
-    'menu',
-    'deals',
-    'storefront',
-    'idea',
-    'food',
-    'music',
-    'nature',
+    'restaurant/food',
+    'music/concerts',
+    'storefront/shop',
+    'artwork/idea',
+    'hotels/lodging',
+    'marketplace/festival',
+    'nature/parks',
 ];
 
 interface IEditSpaceFormProps {
