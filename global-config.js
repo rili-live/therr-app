@@ -78,7 +78,7 @@ module.exports = {
         googleAnalyticsKeyDashboard: 'G-Z8R2CE2Z7C',
         googleOAuth2WebClientId,
         // Implement these along with server side logic to select the corresponding "audience" (ie. android, ios, web client_id)
-        googleOAuth2WebClientIdAndroid: '718962923226-agdagas2o5h8t6jftmkujqp5fm39ccr2.apps.googleusercontent.com',
+        googleOAuth2WebClientIdAndroid: '718962923226-5j9334biiv6091k2raqdm4988d2sbr4p.apps.googleusercontent.com',
         googleOAuth2WebClientIdiOS: '718962923226-1rhet8adgsvuviutj7ja2006bhcncr87.apps.googleusercontent.com',
         host: hostProd,
         hostFull: `https://${hostProd}`,
