@@ -81,8 +81,8 @@ android {
         applicationId "app.therrmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 242
-        versionName "2.45.8"
+        versionCode 248
+        versionName "2.45.14"
         manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "$System.env.GOOGLE_APIS_ANDROID_KEY"]
         vectorDrawables.useSupportLibrary = true
     }
@@ -126,10 +126,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging'
 
     implementation 'androidx.core:core-splashscreen:1.0.0-beta01'
-
-    // 'react-native-location'
-    implementation "com.google.android.gms:play-services-base:16.0.1"
-    implementation "com.google.android.gms:play-services-location:16.0.0"
 
     // compile project(':react-native-maps')
 
