@@ -12,7 +12,7 @@ module.exports = {
         googleAnalyticsKey: '',
         googleAnalyticsKeyDashboard: '',
         googleOAuth2WebClientId,
-        googleOAuth2WebClientIdAndroid: '718962923226-1jre766n68je599ipnk1v6nj8qrgob2o.apps.googleusercontent.com',
+        googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',
         googleOAuth2WebClientIdiOS: '718962923226-os68t9a1pi6giap1l447r3vtshf2ie3c.apps.googleusercontent.com',
         host: hostDev,
         socket: {
@@ -29,7 +29,7 @@ module.exports = {
         googleAnalyticsKeyDashboard: '',
         googleOAuth2WebClientId,
         // Implement these along with server side logic to select the corresponding "audience" (ie. android, ios, web client_id)
-        googleOAuth2WebClientIdAndroid: '718962923226-agdagas2o5h8t6jftmkujqp5fm39ccr2.apps.googleusercontent.com',
+        googleOAuth2WebClientIdAndroid: '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com',
         googleOAuth2WebClientIdiOS: '718962923226-1rhet8adgsvuviutj7ja2006bhcncr87.apps.googleusercontent.com',
         host: hostProd,
         hostFull: `https://${hostProd}`,

@@ -10,9 +10,9 @@ const config = getConfig();
 
 let webClientId = config.googleOAuth2WebClientId;
 if (Platform.OS === 'android') {
-    webClientId = getConfig().googleOAuth2WebClientIdAndroid;
+    webClientId = config.googleOAuth2WebClientIdAndroid;
 } else if (Platform.OS === 'ios') {
-    webClientId = getConfig().googleOAuth2WebClientIdiOS;
+    webClientId = config.googleOAuth2WebClientIdiOS;
 }
 
 GoogleSignin.configure({

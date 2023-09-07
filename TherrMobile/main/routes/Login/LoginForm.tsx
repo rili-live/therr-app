@@ -98,13 +98,20 @@ export class LoginFormComponent extends React.Component<
                 text1: this.translate('alertTitles.errorWithAppleSSO'),
                 text2: this.translate('alertMessages.errorWithAppleSSO'),
             });
+        } else if (err?.message?.includes('RNGoogleSignInError')) {
+            Toast.show({
+                type: 'errorBig',
+                text1: this.translate('alertTitles.errorWithGoogleSSO'),
+                text2: this.translate('alertMessages.errorWithGoogleSSO'),
+            });
         } else {
             Toast.show({
                 type: 'errorBig',
-                text1: this.translate('alertTitles.phoneNumberAlreadyInUse'),
-                text2: this.translate('alertMessages.phoneNumberAlreadyInUse'),
+                text1: this.translate('alertTitles.backendErrorMessage'),
+                text2: this.translate('alertMessages.backendErrorMessage'),
             });
         }
+        // TODO: Handle bad Google SSO key
     };
 
     onSSOLoginSuccess = (idToken, user, additionalUserInfo, provider = 'google') => {
