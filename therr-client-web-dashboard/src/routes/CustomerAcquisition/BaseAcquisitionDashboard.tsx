@@ -125,7 +125,7 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
         });
 
         return (
-            <div id="page_campaigns_overview" className="flex-box column">
+            <div id="page_campaigns_overview" className={containerClassNames}>
                 {
                     isSubscriber && <>
                         {
