@@ -692,6 +692,7 @@ const searchMyMoments: RequestHandler = async (req: any, res: any) => {
         query,
         itemsPerPage,
         pageNumber,
+        withMedia,
     } = req.query;
     const {
         distanceOverride,
@@ -708,12 +709,22 @@ const searchMyMoments: RequestHandler = async (req: any, res: any) => {
     if (query.includes('public-only')) {
         requirements.isPublic = true;
     }
-    const searchPromise = Store.moments.searchMyMoments(userId, requirements, searchArgs[0], searchArgs[1], { distanceOverride });
+    const searchPromise = Store.moments.searchMyMoments(
+        userId,
+        requirements,
+        searchArgs[0],
+        searchArgs[1],
+        {
+            distanceOverride,
+            withMedia,
+        },
+    );
     const countPromise = Promise.resolve();
 
-    return Promise.all([searchPromise, countPromise]).then(([results]) => {
+    return Promise.all([searchPromise, countPromise]).then(([result]) => {
         const response = {
-            results,
+            results: result.moments,
+            media: result.media,
             pagination: {
                 itemsPerPage: Number(itemsPerPage),
                 pageNumber: Number(pageNumber),

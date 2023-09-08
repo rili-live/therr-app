@@ -54,6 +54,74 @@ interface IDeleteMomentsParams {
 
 const sanitizeNotificationMsg = (message = '') => message.replace(/\r?\n+|\r+/gm, ' ');
 
+const getMomentsToMediaAndUsers = (moments: any[], media?: any[], users?: any[]) => {
+    const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
+    const matchingUsers: any = {};
+    const signingPromises: any = [];
+
+    // TODO: Optimize
+    const mappedMoments = moments.map((moment) => {
+        const modifiedMoment = moment;
+        modifiedMoment.media = [];
+        modifiedMoment.user = {};
+
+        // MEDIA
+        if (media && moment.mediaIds) {
+            const ids = modifiedMoment.mediaIds.split(',');
+            modifiedMoment.media = media.filter((m) => {
+                if (ids.includes(m.id)) {
+                    const bucket = getBucket(m.type);
+                    if (bucket) {
+                        // TODO: Consider alternatives to cache these urls (per user) and their expire time
+                        const promise = storage
+                            .bucket(bucket)
+                            .file(m.path)
+                            .getSignedUrl({
+                                version: 'v4',
+                                action: 'read',
+                                expires: imageExpireTime,
+                            })
+                            .then((urls) => ({
+                                [m.id]: urls[0],
+                            }))
+                            .catch((err) => {
+                                console.log(err);
+                                return {};
+                            });
+                        signingPromises.push(promise);
+                    } else {
+                        console.log('MomentsStore.ts: bucket is undefined');
+                    }
+
+                    return true;
+                }
+
+                return false;
+            });
+        }
+
+        // USER
+        if (users) {
+            const matchingUser = users.find((user) => user.id === modifiedMoment.fromUserId);
+            if (matchingUser) {
+                matchingUsers[matchingUser.id] = matchingUser;
+                modifiedMoment.fromUserName = matchingUser.userName;
+                modifiedMoment.fromUserFirstName = matchingUser.firstName;
+                modifiedMoment.fromUserLastName = matchingUser.lastName;
+                modifiedMoment.fromUserMedia = matchingUser.media;
+            }
+        }
+
+        return modifiedMoment;
+    });
+
+    return {
+        matchingUsers,
+        mappedMoments,
+        signingPromises,
+    };
+};
+
 export default class MomentsStore {
     db: IConnection;
 
@@ -164,7 +232,13 @@ export default class MomentsStore {
     }
 
     // eslint-disable-next-line default-param-last
-    searchMyMoments(userId: string, requirements: any = {}, conditions: any = {}, returning?, overrides?: any) {
+    searchMyMoments(
+        userId: string,
+        requirements: any = {},
+        conditions: any = {},
+        returning: string | any[] = '*',
+        overrides: any = {},
+    ) {
         const modifiedConditions: any = {
             ...conditions,
             fromUserId: userId,
@@ -176,7 +250,7 @@ export default class MomentsStore {
             proximityMax = modifiedConditions.query;
         }
         let queryString: any = knexBuilder
-            .select(returning?.length ? returning : '*')
+            .select(returning)
             .from(MOMENTS_TABLE_NAME);
 
         if (modifiedConditions.longitude && modifiedConditions.latitude) {
@@ -193,9 +267,35 @@ export default class MomentsStore {
             .offset(offset)
             .toString();
 
-        return this.db.read.query(queryString).then((response) => {
-            const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
-            return configuredResponse;
+        return this.db.read.query(queryString).then(async (response) => {
+            const moments = formatSQLJoinAsJSON(response.rows, []);
+
+            if (overrides.withMedia) {
+                const mediaIds: string[] = [];
+                const momentDetailsPromises: Promise<any>[] = [];
+
+                moments.forEach((moment) => {
+                    if (overrides.withMedia && moment.mediaIds) {
+                        mediaIds.push(...moment.mediaIds.split(','));
+                    }
+                });
+                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
+                momentDetailsPromises.push(overrides.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+
+                const [media] = await Promise.all(momentDetailsPromises);
+
+                const momentsMedia = getMomentsToMediaAndUsers(moments, media);
+
+                return Promise.all(momentsMedia.signingPromises).then((signedUrlResponses) => ({
+                    moments: momentsMedia.mappedMoments,
+                    media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
+                }));
+            }
+
+            return {
+                moments,
+                media: {},
+            };
         });
     }
 
@@ -224,10 +324,7 @@ export default class MomentsStore {
             if (options.withMedia || options.withUser) {
                 const mediaIds: string[] = [];
                 const userIds: string[] = [];
-                const signingPromises: any = [];
-                const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
                 const momentDetailsPromises: Promise<any>[] = [];
-                const matchingUsers: any = {};
 
                 moments.forEach((moment) => {
                     if (options.withMedia && moment.mediaIds) {
@@ -243,66 +340,12 @@ export default class MomentsStore {
 
                 const [media, users] = await Promise.all(momentDetailsPromises);
 
-                // TODO: Optimize
-                const mappedMoments = moments.map((moment) => {
-                    const modifiedMoment = moment;
-                    modifiedMoment.media = [];
-                    modifiedMoment.user = {};
+                const momentsMediaUsers = getMomentsToMediaAndUsers(moments, media, users);
 
-                    // MEDIA
-                    if (options.withMedia && moment.mediaIds) {
-                        const ids = modifiedMoment.mediaIds.split(',');
-                        modifiedMoment.media = media.filter((m) => {
-                            if (ids.includes(m.id)) {
-                                const bucket = getBucket(m.type);
-                                if (bucket) {
-                                    // TODO: Consider alternatives to cache these urls (per user) and their expire time
-                                    const promise = storage
-                                        .bucket(bucket)
-                                        .file(m.path)
-                                        .getSignedUrl({
-                                            version: 'v4',
-                                            action: 'read',
-                                            expires: imageExpireTime,
-                                        })
-                                        .then((urls) => ({
-                                            [m.id]: urls[0],
-                                        }))
-                                        .catch((err) => {
-                                            console.log(err);
-                                            return {};
-                                        });
-                                    signingPromises.push(promise);
-                                } else {
-                                    console.log('MomentsStore.ts: bucket is undefined');
-                                }
-
-                                return true;
-                            }
-
-                            return false;
-                        });
-                    }
-
-                    // USER
-                    if (options.withUser) {
-                        const matchingUser = users.find((user) => user.id === modifiedMoment.fromUserId);
-                        if (matchingUser) {
-                            matchingUsers[matchingUser.id] = matchingUser;
-                            modifiedMoment.fromUserName = matchingUser.userName;
-                            modifiedMoment.fromUserFirstName = matchingUser.firstName;
-                            modifiedMoment.fromUserLastName = matchingUser.lastName;
-                            modifiedMoment.fromUserMedia = matchingUser.media;
-                        }
-                    }
-
-                    return modifiedMoment;
-                });
-
-                return Promise.all(signingPromises).then((signedUrlResponses) => ({
-                    moments: mappedMoments,
+                return Promise.all(momentsMediaUsers.signingPromises).then((signedUrlResponses) => ({
+                    moments: momentsMediaUsers.mappedMoments,
                     media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
-                    users: matchingUsers,
+                    users: momentsMediaUsers.matchingUsers,
                 }));
             }
 

@@ -146,7 +146,8 @@ const content = (state: IContentState = initialState, action: any) => {
         case ContentActionTypes.SEARCH_MY_DRAFTS:
             // Add next offset of spaces to end
             return state.setIn(['myDrafts'], [...action.data.results])
-                .setIn(['myDraftsPagination'], { ...action.data.pagination });
+                .setIn(['myDraftsPagination'], { ...action.data.pagination })
+                .setIn(['media'], { ...state.media, ...action.data.media });
         case ContentActionTypes.MOMENT_DRAFT_CREATED:
             modifiedDraftMoments.unshift(action.data);
             return state.setIn(['myDrafts'], modifiedDraftMoments);
