@@ -16,7 +16,7 @@ export const SPACES_TABLE_NAME = 'main.spaces';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 const maxNotificationMsgLength = 100;
-const DEFAULT_RADIUS_PRIVATE = 50;
+const DEFAULT_RADIUS_MEDIUM = 50;
 
 export interface ICreateSpaceParams {
     addressReadable?: string;
@@ -404,7 +404,7 @@ export default class SpacesStore {
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
 
         return mediaPromise.then((mediaIds: string | undefined) => {
-            const radius = params.radius || DEFAULT_RADIUS_PRIVATE;
+            const radius = params.radius || DEFAULT_RADIUS_MEDIUM;
             const sanitizedParams = {
                 addressReadable: params.addressReadable || '',
                 areaType: params.areaType || 'spaces',

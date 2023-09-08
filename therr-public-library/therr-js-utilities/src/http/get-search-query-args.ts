@@ -9,6 +9,7 @@ export interface IReqQuery {
   order?: string;
   longitude?: number;
   latitude?: number;
+  withMedia?: string;
 }
 
 export default (reqQuery: IReqQuery, numberColumns: string[]): [any, string[] | undefined] => {

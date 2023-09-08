@@ -1,8 +1,14 @@
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
+import ReactionsService, {
+    ISearchActiveAreasParams,
+    ICreateOrUpdateAreaReactionBody,
+    ISearchActiveAreasByIdsParams,
+    ICreateOrUpdateSpaceReactionBody,
+} from '../../services/ReactionsService';
 import { ContentActionTypes } from '../../types/redux/content';
-import ReactionsService, { ISearchActiveAreasParams, ICreateOrUpdateAreaReactionBody, ISearchActiveAreasByIdsParams, ICreateOrUpdateSpaceReactionBody } from '../../services/ReactionsService';
 import { ISearchAreasArgs } from '../../services/MapsService';
 import { MapsService } from '../../services';
+import { ISearchQuery } from '../../types';
 
 interface IActiveMomentsFilters {
     order: 'ASC' | 'DESC';
@@ -14,7 +20,8 @@ const Content = {
         type: ContentActionTypes.INSERT_ACTIVE_MOMENTS,
         data: newActiveMoments,
     }),
-    searchActiveMoments: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+    searchActiveMoments: (options: ISearchActiveAreasParams,
+        limit = 21) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {
             dispatch({
@@ -79,7 +86,7 @@ const Content = {
                 data: response?.data,
             });
         }),
-    searchMyDrafts: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
+    searchMyDrafts: (query: ISearchQuery, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
         .searchMyMoments(query, data).then((response: any) => {
             dispatch({
                 type: ContentActionTypes.SEARCH_MY_DRAFTS,
