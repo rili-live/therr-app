@@ -748,7 +748,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 134;
+				CURRENT_PROJECT_VERSION = 135;
 				DEVELOPMENT_TEAM = 22AN4MZ6H5;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 22AN4MZ6H5;
 				ENABLE_BITCODE = NO;
@@ -936,7 +936,7 @@
 					"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/toolbar-android\"",
 				);
-				MARKETING_VERSION = 1.49.4;
+				MARKETING_VERSION = 1.50.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -964,7 +964,7 @@
 				CODE_SIGN_ENTITLEMENTS = Therr/TherrRelease.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 134;
+				CURRENT_PROJECT_VERSION = 135;
 				DEVELOPMENT_TEAM = 22AN4MZ6H5;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 22AN4MZ6H5;
 				ENABLE_BITCODE = NO;
@@ -1140,7 +1140,7 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/rn-fetch-blob\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/toolbar-android\"",
 				);
-				MARKETING_VERSION = 1.49.4;
+				MARKETING_VERSION = 1.50.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",

@@ -28,7 +28,13 @@ const hapticFeedbackOptions = {
 };
 
 interface IUserDetails {
+    id?: string;
     userName: string;
+    media: {
+        profilePicture?: {
+            path: string;
+        };
+    },
 }
 
 interface IAreaDisplayMediumProps {
@@ -131,7 +137,13 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         onPress={() => goToViewUser(area.fromUserId)}
                     >
                         <Image
-                            source={{ uri: getUserImageUri({ details: { media: area.fromUserMedia, id: area.fromUserId } }, 52) }}
+                            source={{ uri: getUserImageUri({
+                                details: {
+                                    ...areaUserDetails,
+                                    media: area.fromUserMedia || areaUserDetails.media,
+                                    id: area.fromUserId || areaUserDetails.id,
+                                },
+                            }, 52) }}
                             style={themeViewArea.styles.areaUserAvatarImg}
                             containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
                             height={themeViewArea.styles.areaUserAvatarImg.height}

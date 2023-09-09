@@ -61,11 +61,18 @@ const renderItem = ({ item: post }, {
         fetchMedia(post.media[0]?.id);
     }
     const postMedia = media && media[post.media && post.media[0]?.id];
-    const userDetails = post.fromUserName ? {
-        userName: post.fromUserName,
-    } : {
-        userName: user.details.id === post.fromUserId ? user.details.userName : translate('alertTitles.nameUnknown'),
+    const isMe = user.details.id === post.fromUserId;
+    let userDetails = {
+        userName: post.fromUserName || (user.details.id === post.fromUserId ? user.details.userName : translate('alertTitles.nameUnknown')),
     };
+
+    if (isMe) {
+        userDetails = {
+            ...user.details,
+            ...userDetails,
+        };
+    }
+
 
     if (!post.areaType) {
         return (
