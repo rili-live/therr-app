@@ -141,25 +141,26 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
             getSpaceDetails(id, {
                 withMedia: true,
             }).then((data) => {
+                const mergedSpace = {
+                    ...this.state.fetchedSpace,
+                    ...data?.space,
+                };
                 this.setState({
-                    fetchedSpace: {
-                        ...this.state.fetchedSpace,
-                        ...data?.space,
-                    },
+                    fetchedSpace: mergedSpace,
                     inputs: {
-                        address: data?.space?.addressReadable ? [
+                        address: mergedSpace?.addressReadable ? [
                             {
-                                label: data?.space?.addressReadable,
+                                label: mergedSpace?.addressReadable,
                             },
                         ] : undefined,
-                        category: data?.space?.category || 'uncategorized',
-                        spaceTitle: data?.space?.notificationMsg || '',
-                        spaceDescription: data?.space?.message || '',
-                        phoneNumber: space?.phoneNumber || '',
-                        websiteUrl: space?.websiteUrl || '',
-                        menuUrl: space?.menuUrl || '',
-                        orderUrl: space?.orderUrl || '',
-                        reservationUrl: space?.reservationUrl || '',
+                        category: mergedSpace?.category || 'uncategorized',
+                        spaceTitle: mergedSpace?.notificationMsg || '',
+                        spaceDescription: mergedSpace?.message || '',
+                        phoneNumber: mergedSpace?.phoneNumber || '',
+                        websiteUrl: mergedSpace?.websiteUrl || '',
+                        menuUrl: mergedSpace?.menuUrl || '',
+                        orderUrl: mergedSpace?.orderUrl || '',
+                        reservationUrl: mergedSpace?.reservationUrl || '',
                     },
                 });
             }).catch(() => {
