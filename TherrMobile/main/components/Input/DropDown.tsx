@@ -4,6 +4,7 @@ import { Picker as ReactPicker } from '@react-native-picker/picker';
 interface IDropDownProps {
     onChange: (newValue: null | string) => any;
     options: any[];
+    initialValue?: string;
     formStyles: {
         pickerFlex: any;
         pickerItem: any;
@@ -14,10 +15,14 @@ interface IDropDownProps {
 export default ({
     onChange,
     options,
+    initialValue,
     style,
     formStyles,
 }: IDropDownProps) => {
-    const [value, setValue] = useState(null);
+    const [value, setValue] = useState<null|string>(null);
+    if (value == null && value !== '' && initialValue !== undefined) {
+        setValue(initialValue);
+    }
 
     return (
         <ReactPicker

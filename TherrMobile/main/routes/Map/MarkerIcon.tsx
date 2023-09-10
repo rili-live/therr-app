@@ -7,6 +7,7 @@ import MarkerIconDiscount from './MarkerIconDiscount';
 import MarkerIconDrinks from './MarkerIconDrinks';
 import MarkerIconFitness from './MarkerIconFitness';
 import MarkerIconFood from './MarkerIconFood';
+import MarkerIconHotel from './MarkerIconHotel';
 import MarkerIconMusic from './MarkerIconMusic';
 import MarkerIconNature from './MarkerIconNature';
 import MarkerIconStorefront from './MarkerIconStorefront';
@@ -39,6 +40,10 @@ const getMarkerConfigs = (theme: ITherrTheme) => ({
     },
     food: {
         fill: theme.colors.brandingBlack,
+    },
+    hotel: {
+        fill: theme.colors.accentBlue,
+        fillAlt: theme.colorVariations.primary3Darken,
     },
     music: {
         fill: theme.colors.brandingBlack,
@@ -103,11 +108,15 @@ const MarkerIcon = function MarkerIcon({
             <MarkerIconSeasonal {...getMarkerConfigs(theme).seasonal} />
         );
     }
-    // TODO: Add hotel marker
     if (area.category === 'storefront' || area.category === 'storefront/shop'
-        || area.category === 'marketplace/festival' || area.category === 'hotels/lodging') {
+        || area.category === 'marketplace/festival') {
         return (
             <MarkerIconStorefront {...getMarkerConfigs(theme).storefront} />
+        );
+    }
+    if (area.category === 'hotels/lodging') {
+        return (
+            <MarkerIconHotel {...getMarkerConfigs(theme).hotel} />
         );
     }
     if (area.category === 'idea') {

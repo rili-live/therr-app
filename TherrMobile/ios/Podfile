@@ -69,7 +69,7 @@ target 'Therr' do
   pod 'GoogleMaps'
 
   # Google SSO
-  pod 'GoogleSignIn', '~> 6.2.2'
+  pod 'GoogleSignIn', '~> 7.0'
 
   config = use_native_modules!
 

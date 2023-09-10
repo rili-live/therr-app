@@ -6,7 +6,7 @@ import { Button, Slider, Image } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
-import { IUserState } from 'therr-react/types';
+import { IUserState, IContentState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { Content, IncentiveRewardKeys, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
@@ -30,7 +30,7 @@ import userContentStyles from '../styles/user-content';
 import spacingStyles from '../styles/layouts/spacing';
 import {
     youtubeLinkRegex,
-    DEFAULT_RADIUS_PRIVATE,
+    DEFAULT_RADIUS_MEDIUM,
     MIN_RADIUS_PUBLIC,
     MAX_RADIUS_PUBLIC,
 } from '../constants';
@@ -69,6 +69,7 @@ interface IEditSpaceDispatchProps {
 }
 
 interface IStoreProps extends IEditSpaceDispatchProps {
+    content: IContentState;
     user: IUserState;
 }
 
@@ -93,6 +94,7 @@ interface IEditSpaceState {
 }
 
 const mapStateToProps = (state) => ({
+    content: state.content,
     user: state.user,
 });
 
@@ -126,8 +128,9 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     constructor(props) {
         super(props);
 
-        const { route } = props;
-        const { imageDetails, isBusinessAccount } = route.params;
+        const { content, route } = props;
+        const { area, imageDetails, isBusinessAccount } = route.params;
+        const initialMediaId = area?.mediaIds?.split(',')[0] || undefined;
 
         this.state = {
             errorMsg: '',
@@ -136,13 +139,21 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             isBusinessAccount,
             isEditingIncentives: false,
             inputs: {
+                isDraft: false,
                 isPublic: true,
-                radius: DEFAULT_RADIUS_PRIVATE,
+                radius: area?.radius || DEFAULT_RADIUS_MEDIUM,
+                category: area?.category || '',
+                message: area?.message || '',
+                notificationMsg: area?.notificationMsg || '',
+                hashTags: '',
+                maxViews: area?.maxViews,
             },
             isSubmitting: false,
             previewStyleState: {},
             selectedImage: imageDetails || {},
-            imagePreviewPath: getImagePreviewPath(imageDetails?.path),
+            imagePreviewPath: imageDetails?.path
+                ? getImagePreviewPath(imageDetails?.path)
+                : (initialMediaId && content?.media[initialMediaId] || ''),
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -699,7 +710,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                         disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         titleStyle={this.themeForms.styles.buttonTitle}
                         title={this.translate(
-                            'forms.editSpace.buttons.addImage'
+                            !!imagePreviewPath ? 'forms.editSpace.buttons.replaceImage' : 'forms.editSpace.buttons.addImage'
                         )}
                         icon={
                             <TherrIcon
@@ -745,6 +756,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             }
                             options={this.categoryOptions}
                             formStyles={this.themeForms.styles}
+                            initialValue={inputs.category}
                         />
                     </View>
                     <RoundInput
