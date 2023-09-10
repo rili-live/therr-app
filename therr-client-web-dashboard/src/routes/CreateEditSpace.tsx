@@ -155,6 +155,11 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                         category: data?.space?.category || 'uncategorized',
                         spaceTitle: data?.space?.notificationMsg || '',
                         spaceDescription: data?.space?.message || '',
+                        phoneNumber: space?.phoneNumber || '',
+                        websiteUrl: space?.websiteUrl || '',
+                        menuUrl: space?.menuUrl || '',
+                        orderUrl: space?.orderUrl || '',
+                        reservationUrl: space?.reservationUrl || '',
                     },
                 });
             }).catch(() => {
