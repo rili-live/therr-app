@@ -23,6 +23,15 @@ const styles = StyleSheet.create({
     fullWidth: {
         width: '100%',
     },
+    heightSm: {
+        height: 20,
+    },
+    heightMd: {
+        height: 34,
+    },
+    heightLg: {
+        height: 100,
+    },
 
     // PADDING
     padRtSm: {

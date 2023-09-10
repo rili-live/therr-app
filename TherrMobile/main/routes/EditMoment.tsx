@@ -7,7 +7,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import RNFB from 'react-native-blob-util';
 import Toast from 'react-native-toast-message';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
-import { IUserState } from 'therr-react/types';
+import { IUserState, IContentState } from 'therr-react/types';
 import { ReactionActions, MapActions } from 'therr-react/redux/actions';
 import { Content, ErrorCodes } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
@@ -85,6 +85,7 @@ interface IEditMomentDispatchProps {
 }
 
 interface IStoreProps extends IEditMomentDispatchProps {
+    content: IContentState;
     user: IUserState;
 }
 
@@ -111,6 +112,7 @@ interface IEditMomentState {
 }
 
 const mapStateToProps = (state) => ({
+    content: state.content,
     user: state.user,
 });
 
@@ -139,21 +141,22 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     constructor(props) {
         super(props);
 
-        const { route } = props;
+        const { content, route } = props;
         const { area, nearbySpaces, imageDetails } = route.params;
+        const initialMediaId = area?.mediaIds?.split(',')[0] || undefined;
 
         this.state = {
             errorMsg: '',
-            hashtags: [],
+            hashtags: area?.hashTags ? area?.hashTags?.split(',') : [],
             inputs: {
                 isDraft: false,
-                isPublic: area?.isPublic || true,
                 radius: area?.radius || DEFAULT_RADIUS,
                 category: area?.category || '',
                 message: area?.message || '',
                 notificationMsg: area?.notificationMsg || '',
-                hashTags: area?.hashtags || '',
+                hashTags: '',
                 maxViews: area?.maxViews,
+                spaceId: area?.spaceId && nearbySpaces.find(s => s.id === area?.spaceId) ? area?.spaceId : undefined,
             },
             isEditingNearbySpaces: false,
             isImageBottomSheetVisible: false,
@@ -163,7 +166,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             nearbySpaces: nearbySpaces || [],
             previewStyleState: {},
             selectedImage: imageDetails || {},
-            imagePreviewPath: getImagePreviewPath(imageDetails?.path),
+            imagePreviewPath: imageDetails?.path
+                ? getImagePreviewPath(imageDetails?.path)
+                : (initialMediaId && content?.media[initialMediaId] || ''),
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -272,8 +277,12 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     };
 
     onSubmitBaseDetails = () => {
-        // TODO: Consider saving draft
-        // Should show some UI that draft was created
+        this.onSubmit({
+            isDraft: true,
+            shouldSkipRewards: true,
+            shouldSkipNavigate: true,
+            shouldSkipDraftToast: true,
+        });
         const { navigation } = this.props;
 
         this.setState({
@@ -289,7 +298,12 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         });
     };
 
-    onSubmit = (isDraft = false, shouldSkipRewards = false) => {
+    onSubmit = ({
+        isDraft = false,
+        shouldSkipRewards = false,
+        shouldSkipNavigate = false,
+        shouldSkipDraftToast = false,
+    }) => {
         const { hashtags, nearbySpaces, selectedImage } = this.state;
         const {
             category,
@@ -345,7 +359,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
             // Note do not save image on 'create draft' otherwise we end up with duplicate images when finalizing draft
             // This is not the BEST user experience but prevents a lot of potential waste
-            ((selectedImage?.path && !isDraft) ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
+            ((selectedImage?.path) ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
                 const createOrUpdatePromise = route.params.area?.id
                     ? this.props.updateMoment(route.params.area.id, modifiedCreateArgs, !isDraft) // isCompletedDraft (when id and saving finalized)
                     : this.props.createMoment(modifiedCreateArgs);
@@ -356,40 +370,46 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
                 createOrUpdatePromise
                     .then((response) => {
-                        Toast.show({
-                            type: 'success',
-                            text1: this.translate('alertTitles.momentCreatedSuccess'),
-                            text2: this.translate('alertMessages.momentCreatedSuccess'),
-                            visibilityTime: 2500,
-                            position: 'top',
-                            onHide: () => {
-                                if (response?.therrCoinRewarded && response?.therrCoinRewarded > 0) {
-                                    // TODO: Only send toast is push notifications are disabled
-                                    sendForegroundNotification({
-                                        title: this.translate('alertTitles.coinsReceived'),
-                                        body: this.translate('alertMessages.coinsReceived', {
-                                            total: response.therrCoinRewarded,
-                                        }),
-                                        android: {
-                                            actions: [
-                                                {
-                                                    pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
-                                                    title: this.translate('alertActions.exchange'),
-                                                },
-                                            ],
-                                        },
-                                    }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
-                                    Toast.show({
-                                        type: 'success',
-                                        text1: this.translate('alertTitles.coinsReceived'),
-                                        text2: this.translate('alertMessages.coinsReceived', {
-                                            total: response.therrCoinRewarded,
-                                        }),
-                                        visibilityTime: 3500,
-                                    });
-                                }
-                            },
-                        });
+                        if (!shouldSkipDraftToast) {
+                            Toast.show({
+                                type: 'successBig',
+                                text1: isDraft
+                                    ? this.translate('alertTitles.momentDraftSuccess')
+                                    : this.translate('alertTitles.momentCreatedSuccess'),
+                                text2: isDraft
+                                    ? this.translate('alertMessages.momentDraftSuccess')
+                                    : this.translate('alertMessages.momentCreatedSuccess'),
+                                visibilityTime: 2500,
+                                position: 'top',
+                                onHide: () => {
+                                    if (response?.therrCoinRewarded && response?.therrCoinRewarded > 0) {
+                                        // TODO: Only send toast is push notifications are disabled
+                                        sendForegroundNotification({
+                                            title: this.translate('alertTitles.coinsReceived'),
+                                            body: this.translate('alertMessages.coinsReceived', {
+                                                total: response.therrCoinRewarded,
+                                            }),
+                                            android: {
+                                                actions: [
+                                                    {
+                                                        pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
+                                                        title: this.translate('alertActions.exchange'),
+                                                    },
+                                                ],
+                                            },
+                                        }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
+                                        Toast.show({
+                                            type: 'success',
+                                            text1: this.translate('alertTitles.coinsReceived'),
+                                            text2: this.translate('alertMessages.coinsReceived', {
+                                                total: response.therrCoinRewarded,
+                                            }),
+                                            visibilityTime: 3500,
+                                        });
+                                    }
+                                },
+                            });
+                        }
 
                         if (isDraft) {
                             const nowPlus = new Date();
@@ -418,11 +438,17 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             category,
                         }).catch((err) => console.log(err));
 
-                        setTimeout(() => {
-                            this.props.navigation.navigate('Map', {
-                                shouldShowPreview: false,
+                        if (!shouldSkipNavigate) {
+                            setTimeout(() => {
+                                this.props.navigation.navigate('Map', {
+                                    shouldShowPreview: false,
+                                });
+                            }, 250);
+                        } else {
+                            this.setState({
+                                isSubmitting: false,
                             });
-                        }, 500);
+                        }
                     })
                     .catch((error: any) => {
                         // TODO: Delete uploaded file on failure to create
@@ -626,7 +652,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         this.setState({
             isSubmitting: false,
             errorMsg: '',
-        }, () => this.onSubmit(false, true));
+        }, () => this.onSubmit({
+            isDraft: false,
+            shouldSkipRewards: true,
+            shouldSkipNavigate: false,
+        }));
     };
 
     toggleInfoModal = () => {
@@ -682,7 +712,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             icon: 'send',
             iconStyle: this.themeAccentForms.styles.submitButtonIcon,
             iconRight: false,
-            onPress: () => this.onSubmit(false),
+            onPress: () => this.onSubmit({
+                isDraft: false,
+                shouldSkipRewards: false,
+                shouldSkipNavigate: false,
+            }),
         };
     };
 
@@ -716,7 +750,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         titleStyle={this.themeForms.styles.buttonTitle}
                         title={this.translate(
-                            'forms.editMoment.buttons.addImage'
+                            !!imagePreviewPath ? 'forms.editMoment.buttons.replaceImage' : 'forms.editMoment.buttons.addImage'
                         )}
                         icon={
                             <TherrIcon
@@ -781,6 +815,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             }
                             options={this.categoryOptions}
                             formStyles={this.themeForms.styles}
+                            initialValue={inputs.category}
                         />
                     </View>
                     <Button
@@ -895,6 +930,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             }
                             options={this.nearbySpaceOptions}
                             formStyles={this.themeForms.styles}
+                            initialValue={inputs.spaceId}
                         />
                     </View>
                     {
@@ -996,7 +1032,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     style={this.themeAccentForms.styles.submitButtonIcon}
                                 />
                             }
-                            onPress={() => this.onSubmit(true)}
+                            onPress={() => this.onSubmit({
+                                isDraft: true,
+                                shouldSkipRewards: true,
+                                shouldSkipNavigate: true,
+                            })}
                             disabled={this.isFormDisabled()}
                         />
                         <Button

@@ -658,7 +658,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     <TabView
                         lazy
-                        lazyPreloadDistance={1}
+                        lazyPreloadDistance={0}
                         navigationState={{
                             index: activeTabIndex,
                             routes: tabRoutes,

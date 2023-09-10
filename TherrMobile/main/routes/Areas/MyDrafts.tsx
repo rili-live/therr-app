@@ -80,12 +80,13 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
     private themeMenu = buildMenuStyles();
     private themeMoments = buildMomentStyles();
     private themeReactionsModal = buildReactionsModalStyles();
+    private unsubscribeFocusListener;
 
     constructor(props) {
         super(props);
 
         this.state = {
-            activeTab: CAROUSEL_TABS.SOCIAL,
+            activeTab: CAROUSEL_TABS.DISCOVERIES,
             isLoading: true,
             areAreaOptionsVisible: false,
             selectedArea: {},
@@ -116,15 +117,30 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
                 isLoading: false,
             });
         });
+
+        this.unsubscribeFocusListener = navigation.addListener('focus', () => {
+            const draftMomentsPromise = this.handleRefresh();
+
+            Promise.all([draftMomentsPromise]).finally(() => {
+                this.setState({
+                    isLoading: false,
+                });
+            });
+        });
+    }
+
+    componentWillUnmount(): void {
+        if (this.unsubscribeFocusListener) {
+            this.unsubscribeFocusListener();
+        }
     }
 
 
-    handleRefresh = () => {
+    handleRefresh = (withMedia = true) => {
         const { searchMyDrafts } = this.props;
 
         searchMyDrafts({
-            withMedia: false,
-            withUser: false,
+            withMedia,
             pageNumber: 1,
             itemsPerPage: 50,
             query: 'drafts-only',
