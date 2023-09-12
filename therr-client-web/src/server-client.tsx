@@ -4,7 +4,7 @@ import express from 'express';
 import helmet from 'helmet';
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
-// import { matchPath } from 'react-router-dom';
+import { matchPath } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
 import ReactGA from 'react-ga4';
 import LogRocket from 'logrocket';
@@ -83,18 +83,31 @@ routeConfig.forEach((config) => {
             middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()),
         });
 
-        // getRoutes().some((route: IRoute) => {
-        //     const match = matchPath(req.url, route);
-        //     if (match && route.fetchData) {
-        //         const Comp = route.component.WrappedComponent;
-        //         const initData = (Comp && route.fetchData) || (() => Promise.resolve());
-        //         // fetchData calls a dispatch on the store updating the current state before render
-        //         promises.push(initData(store));
-        //     }
-        //     return !!match;
-        // });
+        getRoutes({
+            isAuthorized: () => true, // This is a noop since we don't need to check auth in order to fetch data
+        }).some((route: IRoute) => {
+            const match = matchPath(req.url, route.path);
+            if (match && route.fetchData) {
+                const Comp = route.element;
+                const initData = (Comp && route.fetchData) || (() => Promise.resolve());
+                // fetchData calls a dispatch on the store updating the current state before render
+                promises.push(initData(store)
+                    .catch((error) => {
+                        printLogs({
+                            level: 'error',
+                            messageOrigin: 'SERVER_CLIENT',
+                            messages: 'Failed to prefetch data',
+                            tracer: beeline,
+                            traceArgs: {
+                                errorMessage: error?.message,
+                            },
+                        });
+                    }));
+            }
+            return !!match;
+        });
 
-        Promise.all(promises).then(() => {
+        Promise.all(promises).then(([initialData]) => {
             const markup = ReactDOMServer.renderToString(
                 <Provider store={store}>
                     <StaticRouter location={req.url}>
