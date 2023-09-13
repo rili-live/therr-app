@@ -1,4 +1,5 @@
 import { Redis } from 'ioredis';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import { IAreaType } from 'therr-js-utilities/types';
 
 const MAPS_STORE_PREFIX = 'MAPS_STORE:';

@@ -251,6 +251,9 @@
       "pageTitle": "Go Mobile",
       "welcome": "Get the Mobile App",
       "info": "You must be looking for the mobile app! Find it below. For now, the desktop app only supports basic features like updating your password or account details."
+    },
+    "viewSpace": {
+      "pageTitle": ""
     }
   }
 }

@@ -5,9 +5,17 @@ import {
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 import { createAreaValidation } from './areas';
 
-export const getSpaceDetailsValidation = [
+export const getAsPostSpaceDetailsValidation = [
     header('authorization').exists(),
     header('x-userid').exists(),
+    param('spaceId').exists(),
+    body('withMedia').isBoolean().optional(),
+    body('withUser').isBoolean().optional(),
+];
+
+export const getSpaceDetailsValidation = [
+    header('authorization').optional(),
+    header('x-userid').optional(),
     param('spaceId').exists(),
     body('withMedia').isBoolean().optional(),
     body('withUser').isBoolean().optional(),
