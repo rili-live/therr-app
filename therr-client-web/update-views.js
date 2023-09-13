@@ -38,9 +38,12 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
 
         // Update view templates with the latest, hashed css file link
         if (fileNameRegex.test(file)) {
+            // TODO: Loop through all files in src/views and update the css file name
             const cssFileName = file.toString();
             const fileToUpdate = path.join(__dirname, 'src/views/index.hbs');
             replaceInFile(fileToUpdate, cssFileName);
+            const fileToUpdate2 = path.join(__dirname, 'src/views/spaces.hbs');
+            replaceInFile(fileToUpdate2, cssFileName);
         }
     });
 });
