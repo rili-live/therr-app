@@ -177,6 +177,7 @@ const getSpaceDetails = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
     const userAccessLevels = req.headers['x-user-access-levels'];
+    console.log(userAccessLevels);
     const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
 
     const { spaceId } = req.params;
