@@ -41,6 +41,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/spaces/:spaceId',
+        head: {
+            title: 'Space not Found',
+            description: 'No business space was found for the given ID.',
+        },
+        view: 'spaces',
+    },
+    {
         route: '*',
         head: {
             title: 'Not Found',

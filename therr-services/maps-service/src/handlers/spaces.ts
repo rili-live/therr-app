@@ -199,12 +199,20 @@ const getSpaceDetails = (req, res) => {
     })
         .then(({ spaces, media, users }) => {
             const space = spaces[0];
+            if (!space) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'spaces.notFound'),
+                    statusCode: 404,
+                    errorCode: ErrorCodes.NOT_FOUND,
+                });
+            }
             // Non-blocking
             areaMetricsService.uploadMetric({
                 name: MetricNames.SPACE_IMPRESSION,
                 value: '1',
                 valueType: MetricValueTypes.NUMBER,
-                userId,
+                userId: userId || undefined,
             }, {}, {
                 latitude: space.latitude,
                 longitude: space.longitude,
@@ -222,54 +230,51 @@ const getSpaceDetails = (req, res) => {
                     },
                 });
             });
-            userMetricsService.uploadMetric({
-                name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${space.category || 'uncategorized'}` as MetricNames,
-                value: '1',
-                valueType: MetricValueTypes.NUMBER,
-                userId,
-            }, {
-                spaceId: space.id,
-                isMatureContent: space.isMatureContent,
-                isPublic: space.isPublic,
-            }, {
-                contentUserId: space.fromUserId,
-                authorization: req.headers.authorization,
-                userId,
-                locale,
-            }).catch((err) => {
-                logSpan({
-                    level: 'error',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['failed to upload user metric'],
-                    traceArgs: {
-                        'error.message': err?.message,
-                        'error.response': err?.response?.data,
-                        'user.id': userId,
-                        'space.id': space.id,
-                    },
+            if (userId) {
+                // User ID is missing if un-authenticated
+                userMetricsService.uploadMetric({
+                    name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${space.category || 'uncategorized'}` as MetricNames,
+                    value: '1',
+                    valueType: MetricValueTypes.NUMBER,
+                    userId,
+                }, {
+                    spaceId: space.id,
+                    isMatureContent: space.isMatureContent,
+                    isPublic: space.isPublic,
+                }, {
+                    contentUserId: space.fromUserId,
+                    authorization: req.headers.authorization,
+                    userId,
+                    locale,
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['failed to upload user metric'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                            'error.response': err?.response?.data,
+                            'user.id': userId,
+                            'space.id': space.id,
+                        },
+                    });
                 });
-            });
+            }
             let userHasAccessPromise = () => Promise.resolve(true);
             // Verify that user has activated space and has access to view it
             // TODO: Verify space exists
-            if (space?.fromUserId !== userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+            if (userId && space?.fromUserId !== userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
                 userHasAccessPromise = () => getReactions('space', spaceId, {
                     'x-userid': userId,
                 });
             }
 
-            return userHasAccessPromise().then((isActivated) => {
-                if (!isActivated) {
-                    return handleHttpError({
-                        res,
-                        message: translate(locale, 'spaceReactions.spaceNotActivated'),
-                        statusCode: 400,
-                        errorCode: ErrorCodes.SPACE_ACCESS_RESTRICTED,
-                    });
-                }
-
-                return res.status(200).send({ space, media, users });
-            });
+            return userHasAccessPromise().then((isActivated) => res.status(200).send({
+                space,
+                media,
+                users,
+                isActivated,
+            }));
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 

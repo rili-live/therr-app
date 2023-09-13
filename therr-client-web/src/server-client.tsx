@@ -1,10 +1,11 @@
 import beeline from './beeline'; // eslint-disable-line import/order
+import axios from 'axios';
 import * as path from 'path';
 import express from 'express';
 import helmet from 'helmet';
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
-// import { matchPath } from 'react-router-dom';
+import { matchPath } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
 import ReactGA from 'react-ga4';
 import LogRocket from 'logrocket';
@@ -14,6 +15,10 @@ import printLogs from 'therr-js-utilities/print-logs';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
+import * as globalConfig from '../../global-config';
+
+axios.defaults.baseURL = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute;
+axios.defaults.headers['x-platform'] = 'desktop';
 
 // TODO: RFRONT-9: Fix window is undefined hack?
 /* eslint-disable */
@@ -72,7 +77,7 @@ routeConfig.forEach((config) => {
     app.get(routePath, (req, res) => {
         const promises: any = [];
         const staticContext: any = {};
-        const initialState = {
+        const initialState: any = {
             user: {
                 details: {},
             },
@@ -83,16 +88,29 @@ routeConfig.forEach((config) => {
             middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()),
         });
 
-        // getRoutes().some((route: IRoute) => {
-        //     const match = matchPath(req.url, route);
-        //     if (match && route.fetchData) {
-        //         const Comp = route.component.WrappedComponent;
-        //         const initData = (Comp && route.fetchData) || (() => Promise.resolve());
-        //         // fetchData calls a dispatch on the store updating the current state before render
-        //         promises.push(initData(store));
-        //     }
-        //     return !!match;
-        // });
+        getRoutes({
+            isAuthorized: () => true, // This is a noop since we don't need to check auth in order to fetch data
+        }).some((route: IRoute) => {
+            const match = matchPath(route.path, req.path);
+            if (match && route.fetchData) {
+                const Comp = route.element;
+                const initData = (Comp && route.fetchData) || (() => Promise.resolve());
+                // fetchData calls a dispatch on the store updating the current state before render
+                promises.push(initData(store.dispatch, match.params)
+                    .catch((error) => {
+                        printLogs({
+                            level: 'error',
+                            messageOrigin: 'SERVER_CLIENT',
+                            messages: 'Failed to prefetch data',
+                            tracer: beeline,
+                            traceArgs: {
+                                errorMessage: error?.message,
+                            },
+                        });
+                    }));
+            }
+            return !!match;
+        });
 
         Promise.all(promises).then(() => {
             const markup = ReactDOMServer.renderToString(
@@ -124,6 +142,21 @@ routeConfig.forEach((config) => {
                 res.end();
             } else {
                 ReactGA.send({ hitType: 'pageview', page: req.path, title });
+                console.log(req.params?.spacesId);
+                if (routeView === 'spaces') {
+                    // TODO: Mimic existing best SEO practices for a location page
+                    const spaceId = req.params?.spacesId;
+                    const space = initialState?.map?.spaces[spaceId];
+                    const spaceTitle = space ? space?.notificationMsg : title;
+                    const spaceDescription = space ? space?.message : description;
+                    return res.render(routeView, {
+                        title: spaceTitle,
+                        description: spaceDescription,
+                        markup,
+                        routePath,
+                        state,
+                    });
+                }
                 return res.render(routeView, {
                     title,
                     description,
