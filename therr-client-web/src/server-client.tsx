@@ -124,7 +124,7 @@ routeConfig.forEach((config) => {
             // This gets the initial state created after all dispatches are called in fetchData
             Object.assign(initialState, store.getState());
 
-            const state = JSON.stringify(initialState).replace(/</g, '\\u003c');
+            const state = JSON.stringify(initialState).replace(/</g, '\\u003c').replace(/\\n/g, '\\u0085').replace(/\\r/g, '\\u000D');
 
             if (staticContext.url) {
                 printLogs({
@@ -142,7 +142,6 @@ routeConfig.forEach((config) => {
                 res.end();
             } else {
                 ReactGA.send({ hitType: 'pageview', page: req.path, title });
-                console.log(req.params?.spacesId);
                 if (routeView === 'spaces') {
                     // TODO: Mimic existing best SEO practices for a location page
                     const spaceId = req.params?.spacesId;

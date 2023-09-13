@@ -85,6 +85,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 withUser: true,
             }).then(({ space: fetchedSpace }) => {
                 document.title = `${fetchedSpace?.notificationMsg} | Therr App`;
+            }).catch((err) => {
+                this.props.navigation.navigate('/');
             });
         } else {
             document.title = `${space.notificationMsg} | Therr App`;
@@ -101,24 +103,30 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         return (
             <div id="page_view_space" className="flex-box space-evenly center row wrap-reverse">
                 <div className="login-container info-container">
-                    <div className="flex fill max-wide-40">
-                        <h1 className="text-title-medium no-bot-margin fill">
-                            {space?.notificationMsg}
-                        </h1>
-                        <p className="info-text fill">{space?.message}</p>
-                    </div>
+                    {
+                        space
+                            && <div className="flex fill max-wide-40">
+                                <h1 className="text-title-medium no-bot-margin fill">
+                                    {space?.notificationMsg}
+                                </h1>
+                                <p className="info-text fill">{space?.message}</p>
+                            </div>
+                    }
                 </div>
                 <div className="login-container info-container">
-                    <div className="flex fill max-wide-30">
-                        <div className="space-image-container">
-                            {space.media.length > 0 && content.media[space.media[0].id]
-                            && <img
-                                className="space-image"
-                                src={content.media[space.media[0].id]}
-                                alt={space.notificationMsg}
-                            />}
-                        </div>
-                    </div>
+                    {
+                        space
+                            && <div className="flex fill max-wide-30">
+                                <div className="space-image-container">
+                                    {space?.media?.length > 0 && content?.media[space.media[0].id]
+                                    && <img
+                                        className="space-image"
+                                        src={content.media[space.media[0].id]}
+                                        alt={space.notificationMsg}
+                                    />}
+                                </div>
+                            </div>
+                    }
                 </div>
             </div>
         );
