@@ -118,7 +118,7 @@ routeConfig.forEach((config) => {
             // This gets the initial state created after all dispatches are called in fetchData
             Object.assign(initialState, store.getState());
 
-            const state = JSON.stringify(initialState).replace(/</g, '\\u003c');
+            const state = JSON.stringify(initialState).replace(/</g, '\\u003c').replace(/\\n/g, '\\u0085').replace(/\\r/g, '\\u000D');
 
             if (staticContext.url) {
                 printLogs({
