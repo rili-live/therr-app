@@ -1,4 +1,5 @@
 import beeline from './beeline'; // eslint-disable-line import/order
+import axios from 'axios';
 import * as path from 'path';
 import express from 'express';
 import helmet from 'helmet';
@@ -15,6 +16,10 @@ import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
 import { getBrandContext } from './utilities/getHostContext';
+import * as globalConfig from '../../global-config';
+
+axios.defaults.baseURL = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute;
+axios.defaults.headers['x-platform'] = 'desktop';
 
 // TODO: RFRONT-9: Fix window is undefined hack?
 /* eslint-disable */
@@ -80,12 +85,12 @@ routeConfig.forEach((config) => {
         getRoutes({
             isAuthorized: () => true, // This is a noop since we don't need to check auth in order to fetch data
         }).some((route: IRoute) => {
-            const match = matchPath(req.url, route.path);
+            const match = matchPath(route.path, req.path);
             if (match && route.fetchData) {
                 const Comp = route.element;
                 const initData = (Comp && route.fetchData) || (() => Promise.resolve());
                 // fetchData calls a dispatch on the store updating the current state before render
-                promises.push(initData(store)
+                promises.push(initData(store.dispatch, match.params)
                     .catch((error) => {
                         printLogs({
                             level: 'error',

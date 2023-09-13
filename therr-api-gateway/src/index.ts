@@ -55,18 +55,19 @@ app.use(express.static(path.join(__dirname, 'static')));
 app.use(authenticate.unless({
     path: [
         { url: '/', methods: ['GET'] }, // healthcheck
-        { url: /\/v1\/user-files\/.*/, methods: ['GET'] }, // image proxy
-        { url: /\/v1\/maps-service\/place\/*/, methods: ['GET'] }, // Google Maps: Places proxy
         { url: '/v1/users-service/subscribers/signup', methods: ['POST'] }, // email marketing subscribe
         { url: '/v1/users-service/auth', methods: ['POST'] }, // login
         { url: '/v1/users-service/payments/webhook', methods: ['POST'] }, // webhook
         { url: '/v1/users-service/users', methods: ['POST'] }, // register
         { url: '/v1/users-service/users/forgot-password', methods: ['POST'] }, // one time password
-        { url: /\/v1\/users-service\/users\/verify\/.*/, methods: ['POST'] }, // verify account
-        { url: /\/v1\/users-service\/users\/by-username\/.*/, methods: ['GET'] }, // Get public/private profile
         { url: '/v1/users-service/social-sync/oauth2-tiktok', methods: ['GET'] }, // TikTok OAuth
         { url: '/v1/users-service/social-sync/oauth2-facebook', methods: ['GET'] }, // Facebook OAuth
         { url: '/v1/users-service/social-sync/oauth2-instagram', methods: ['GET'] }, // Instagram OAuth
+        { url: /\/v1\/users-service\/users\/verify\/.*/, methods: ['POST'] }, // verify account
+        { url: /\/v1\/users-service\/users\/by-username\/.*/, methods: ['GET'] }, // Get public/private profile
+        { url: /\/v1\/user-files\/.*/, methods: ['GET'] }, // image proxy
+        { url: /\/v1\/maps-service\/place\/*/, methods: ['GET'] }, // Google Maps: Places proxy
+        { url: /\/v1\/maps-service\/spaces\/.*\/details/, methods: ['POST'] }, // Google Maps: Places proxy
     ],
 }));
 

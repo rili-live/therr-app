@@ -1,4 +1,5 @@
 import beeline from './beeline'; // eslint-disable-line import/order
+import axios from 'axios';
 import * as path from 'path';
 import express from 'express';
 import helmet from 'helmet';
@@ -14,6 +15,10 @@ import printLogs from 'therr-js-utilities/print-logs';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
+import * as globalConfig from '../../global-config';
+
+axios.defaults.baseURL = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute;
+axios.defaults.headers['x-platform'] = 'desktop';
 
 // TODO: RFRONT-9: Fix window is undefined hack?
 /* eslint-disable */
@@ -72,7 +77,7 @@ routeConfig.forEach((config) => {
     app.get(routePath, (req, res) => {
         const promises: any = [];
         const staticContext: any = {};
-        const initialState = {
+        const initialState: any = {
             user: {
                 details: {},
             },
@@ -86,12 +91,12 @@ routeConfig.forEach((config) => {
         getRoutes({
             isAuthorized: () => true, // This is a noop since we don't need to check auth in order to fetch data
         }).some((route: IRoute) => {
-            const match = matchPath(req.url, route.path);
+            const match = matchPath(route.path, req.path);
             if (match && route.fetchData) {
                 const Comp = route.element;
                 const initData = (Comp && route.fetchData) || (() => Promise.resolve());
                 // fetchData calls a dispatch on the store updating the current state before render
-                promises.push(initData(store)
+                promises.push(initData(store.dispatch, match.params)
                     .catch((error) => {
                         printLogs({
                             level: 'error',
@@ -107,7 +112,7 @@ routeConfig.forEach((config) => {
             return !!match;
         });
 
-        Promise.all(promises).then(([initialData]) => {
+        Promise.all(promises).then(() => {
             const markup = ReactDOMServer.renderToString(
                 <Provider store={store}>
                     <StaticRouter location={req.url}>
@@ -137,6 +142,21 @@ routeConfig.forEach((config) => {
                 res.end();
             } else {
                 ReactGA.send({ hitType: 'pageview', page: req.path, title });
+                console.log(req.params?.spacesId);
+                if (routeView === 'spaces') {
+                    // TODO: Mimic existing best SEO practices for a location page
+                    const spaceId = req.params?.spacesId;
+                    const space = initialState?.map?.spaces[spaceId];
+                    const spaceTitle = space ? space?.notificationMsg : title;
+                    const spaceDescription = space ? space?.message : description;
+                    return res.render(routeView, {
+                        title: spaceTitle,
+                        description: spaceDescription,
+                        markup,
+                        routePath,
+                        state,
+                    });
+                }
                 return res.render(routeView, {
                     title,
                     description,

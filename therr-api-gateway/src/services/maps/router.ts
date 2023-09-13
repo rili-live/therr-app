@@ -22,6 +22,7 @@ import {
     updateSpaceValidation,
 } from './validation/spaces';
 import CacheStore from '../../store';
+import authenticateOptional from '../../middleware/authenticateOptional';
 
 const mapsServiceRouter = express.Router();
 
@@ -124,7 +125,7 @@ mapsServiceRouter.put('/spaces/:spaceId', updateSpaceValidation, validate, async
     method: 'put',
 }));
 
-mapsServiceRouter.post('/spaces/:spaceId/details', getSpaceDetailsValidation, validate, async (req, res, next) => {
+mapsServiceRouter.post('/spaces/:spaceId/details', authenticateOptional, getSpaceDetailsValidation, validate, async (req, res, next) => {
     const momentDetails = await CacheStore.mapsService.getAreaDetails('spaces', req.params.spaceId);
 
     if (momentDetails) {

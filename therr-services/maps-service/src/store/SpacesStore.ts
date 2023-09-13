@@ -275,10 +275,13 @@ export default class SpacesStore {
         let query = knexBuilder
             .from(SPACES_TABLE_NAME)
             .orderBy(orderBy, order)
-            .where('createdAt', '<', filters.before || new Date())
-            .andWhere('isClaimPending', false)
+            .where('isClaimPending', false)
             .whereIn('id', spaceIds || [])
             .limit(restrictedLimit);
+
+        if (filters.before) {
+            query = query.andWhere('createdAt', '<', filters.before);
+        }
 
         if (options?.shouldHideMatureContent) {
             query = query.where({ isMatureContent: false });

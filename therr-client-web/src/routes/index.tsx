@@ -3,6 +3,8 @@ import { RouteObject } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
+import { MapsService } from 'therr-react/services';
+import { MapActions } from 'therr-react/redux/actions';
 import Forum from './Forum';
 import CreateForum from './CreateForum';
 import CreateProfile from './CreateProfile';
@@ -11,6 +13,7 @@ import PageNotFound from './PageNotFound';
 import Register from './Register';
 import ResetPassword from './ResetPassword';
 import Home from './Home';
+import ViewSpace from './ViewSpace';
 import Login from './Login';
 import UserProfile from './UserProfile';
 import ChangePassword from './ChangePassword';
@@ -19,7 +22,7 @@ import UnderConstruction from './UnderConstruction';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
-    fetchData?: Function;
+    fetchData?: (dispatch: any, params?: { [key: string]: any }) => Promise<any>;
     // Overriding this property allows us to add custom paramaters to React components
     redirectPath?: string;
 }
@@ -127,6 +130,14 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             })}
             redirectPath={'/create-profile'}
         />,
+    },
+    {
+        path: '/spaces/:spaceId',
+        element: <ViewSpace />,
+        fetchData: (dispatch: any, params: any) => MapActions.getSpaceDetails(params.spaceId, {
+            withMedia: true,
+            withUser: true,
+        })(dispatch),
     },
 
     // If no route matches, return NotFound component
