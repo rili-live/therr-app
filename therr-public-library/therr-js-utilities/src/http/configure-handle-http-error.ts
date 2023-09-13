@@ -31,7 +31,8 @@ const configureHandleHttpError = (beeline?: any) => ({
         });
     } else {
         const activeSpan = opentelemetry.trace.getActiveSpan();
-        activeSpan?.setAttribute('error.message', err ? err.stack : message);
+        activeSpan?.setAttribute('error.message', err?.message);
+        activeSpan?.setAttribute('error.stack', err?.stack);
     }
 
     return res.status(statusCode || 500).send({
