@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <title>{{title}} | Therr App</title>
-    <link rel="canonical" href="https://www.therr.com{{routePath}}" />
+    <link rel="canonical" href="https://www.therr.com{{requestPath}}" />
     
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
@@ -14,6 +14,7 @@
     <meta name="author" content="Therr">
     <meta name="keywords" content="therr, therr app, therr social network, social platform, small businesses, local businesses, mobile, therr startup, startup, geo-social, freelance, freelancer, meet people, communities,  app, social network, chat, therr chat, therr mobile, therr web, hosted chat, geofencing app, social, influencer marketing, create content, brick and mortar, local events, local first social network, TherrCoin, set group of people, geo targeting, geotargeting">
     
+    <meta property="og:site_name" content="Therr" />
     <meta property="og:title" content="{{title}} | Therr App" />
     <meta property="og:image" content="https://therr.com/assets/images/meta-image-logo.png" />
     <meta property="og:description" content="{{description}}" />
@@ -27,6 +28,24 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16x16.png">
     <link rel="mask-icon" href="/assets/images/safari-pinned-tab.svg" color="#5bbad5">
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "Restaurant",
+            "name": "{{title}}",
+            {{!-- "image": "", --}}
+            {{!-- "priceRange": "$11-30", --}}
+            "telephone": "{{spacePhoneNumber}}",
+            {{!-- "address": {
+                "streetAddress": "",
+                "addressLocality": "",
+                "addressCountry": "",
+                "addressRegion": "",
+                "postalCode": ""
+            } --}}
+        }
+    </script>
 
     <!-- Stylesheet -->
     <link rel="stylesheet" type="text/css" href="/app.css">
