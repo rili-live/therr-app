@@ -144,14 +144,18 @@ routeConfig.forEach((config) => {
                 ReactGA.send({ hitType: 'pageview', page: req.path, title });
                 if (routeView === 'spaces') {
                     // TODO: Mimic existing best SEO practices for a location page
-                    const spaceId = req.params?.spacesId;
+                    const spaceId = req.params?.spaceId;
                     const space = initialState?.map?.spaces[spaceId];
                     const spaceTitle = space ? space?.notificationMsg : title;
-                    const spaceDescription = space ? space?.message : description;
+                    const spaceDescription = (space?.message || description).replace(/\\n/g, ' ')
+                        .replace(/\\r/g, ' ').substring(0, 300);
+                    const spacePhoneNumber = space?.phoneNumber || '';
                     return res.render(routeView, {
                         title: spaceTitle,
                         description: spaceDescription,
+                        spacePhoneNumber,
                         markup,
+                        requestPath: req.path,
                         routePath,
                         state,
                     });
@@ -160,6 +164,7 @@ routeConfig.forEach((config) => {
                     title,
                     description,
                     markup,
+                    requestPath: req.path,
                     routePath,
                     state,
                 });

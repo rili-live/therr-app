@@ -268,7 +268,7 @@ export default class SpacesStore {
 
     findSpaces(spaceIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
-        const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
+        const restrictedLimit = (filters.limit > 1000) ? 1000 : filters.limit;
         const orderBy = filters.orderBy || `${SPACES_TABLE_NAME}.updatedAt`;
         const order = filters.order || 'DESC';
 
