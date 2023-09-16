@@ -66,7 +66,7 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
             id,
             addressReadable,
             notificationMsg,
-            isPublic,
+            mediaIds,
             message,
             category,
             region,
@@ -77,32 +77,6 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
 
         return (
             <tr>
-                <td className="fw-bold border-0">
-                    <Link to={`/edit-space/${id}/${editContext}`} state={{ space }}>{notificationMsg || '-'}</Link>
-                </td>
-                <td className="fw-bold border-0">
-                    {isPublic && '✓'}
-                </td>
-                <td className="fw-bold border-0">
-                    {category || '-'}
-                </td>
-                <td className="fw-bold border-0">
-                    {addressReadable || '-'}
-                </td>
-                <td className="border-0">
-                    <Card.Link href="#" className="d-flex align-items-center">
-                        {
-                            countryImage && <Image src={countryImage} className="image-small rounded-circle me-2" />
-                        }
-                        <div><span className="h6">{region}</span></div>
-                    </Card.Link>
-                </td>
-                {/* <td className="border-0">
-                    <ValueChange value={overallRankChange} />
-                </td> */}
-                <td className="fw-bold border-0">
-                    {updatedAt || '-'}
-                </td>
                 <td>
                     <Dropdown as={ButtonGroup}>
                         <Dropdown.Toggle as={Button} split variant="link" className="text-dark m-0 p-0">
@@ -123,6 +97,32 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
                         </Dropdown.Menu>
                     </Dropdown>
                 </td>
+                <td className="fw-bold border-0">
+                    <Link to={`/edit-space/${id}/${editContext}`} state={{ space }}>{notificationMsg || '-'}</Link>
+                </td>
+                <td className="fw-bold border-0">
+                    {!!mediaIds && '✓'}
+                </td>
+                <td className="fw-bold border-0">
+                    {category || '-'}
+                </td>
+                <td className="fw-bold border-0">
+                    {addressReadable || '-'}
+                </td>
+                {/* <td className="border-0">
+                    <ValueChange value={overallRankChange} />
+                </td> */}
+                <td className="fw-bold border-0">
+                    {updatedAt || '-'}
+                </td>
+                <td className="border-0">
+                    <Card.Link href="#" className="d-flex align-items-center">
+                        {
+                            countryImage && <Image src={countryImage} className="image-small rounded-circle me-2" />
+                        }
+                        <div><span className="h6">{region}</span></div>
+                    </Card.Link>
+                </td>
             </tr>
         );
     };
@@ -133,13 +133,13 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
                 <Table responsive className="table-centered table-nowrap rounded mb-0">
                     <thead className="thead-light">
                         <tr>
+                            <th className="border-0">Actions</th>
                             <th className="border-0">Name</th>
-                            <th className="border-0">Is Public?</th>
+                            <th className="border-0">Has Media?</th>
                             <th className="border-0">Category</th>
                             <th className="border-0">Address</th>
-                            <th className="border-0">Country</th>
                             <th className="border-0">Last Updated</th>
-                            <th className="border-0">Actions</th>
+                            <th className="border-0">Country/Region</th>
                         </tr>
                     </thead>
                     <tbody>
