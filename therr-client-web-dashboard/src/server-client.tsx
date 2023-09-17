@@ -12,6 +12,7 @@ import LogRocket from 'logrocket';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import printLogs from 'therr-js-utilities/print-logs';
+import serialize from 'serialize-javascript';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
@@ -118,7 +119,9 @@ routeConfig.forEach((config) => {
             // This gets the initial state created after all dispatches are called in fetchData
             Object.assign(initialState, store.getState());
 
-            const state = JSON.stringify(initialState).replace(/</g, '\\u003c').replace(/\\n/g, '\\u0085').replace(/\\r/g, '\\u000D');
+            const state = serialize(initialState, {
+                isJSON: true,
+            }).replace(/</g, '\\u003c').replace(/\\n/g, '\\u0085').replace(/\\r/g, '\\u000D');
 
             if (staticContext.url) {
                 printLogs({
