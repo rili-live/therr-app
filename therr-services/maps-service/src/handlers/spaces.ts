@@ -269,8 +269,13 @@ const getSpaceDetails = (req, res) => {
                 });
             }
 
+            const serializedSpace = {
+                ...space,
+                message: space.message?.replace(/"/g, '\\"'),
+            };
+
             return userHasAccessPromise().then((isActivated) => res.status(200).send({
-                space,
+                space: serializedSpace,
                 media,
                 users,
                 isActivated,
