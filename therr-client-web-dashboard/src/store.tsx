@@ -19,7 +19,7 @@ let preloadedState;
 function safelyParse(input: any) {
     if (input) {
         const doc = new DOMParser().parseFromString(input, 'text/html');
-        return JSON.parse(doc.documentElement?.textContent?.replace(/\\u0085/g, '\n').replace(/\\u000D/g, '\r') || '');
+        return JSON.parse(doc.documentElement?.textContent?.replace(/\\u0085/g, '\n').replace(/\\u000D/g, '\r') || '{}');
     }
     console.log('Warning: __PRELOADED_STATE__ is not defined on the respective view'); // eslint-disable-line no-console
     return {};
