@@ -24,6 +24,7 @@ export interface ICreateSpaceParams {
     category?: string;
     expiresAt?: any;
     fromUserId: string;
+    organizationId?: string;
     locale: string;
     isPublic?: boolean;
     isMatureContent?: boolean;

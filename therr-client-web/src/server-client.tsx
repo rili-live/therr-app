@@ -158,7 +158,7 @@ routeConfig.forEach((config) => {
                     const spaceCountry = space?.region || '';
                     const spaceAddressLocality = space?.addressLocality || '';
                     const spaceAddressRegion = space?.addressRegion || '';
-                    const spaceAddressStreet = space?.addressStreet || '';
+                    const spaceAddressStreet = space?.addressStreetAddress || '';
                     const spacePostalCode = space?.postalCode || '';
                     return res.render(routeView, {
                         title: spaceTitle,
