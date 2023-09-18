@@ -8,6 +8,7 @@ import {
     Button, ButtonGroup, Card, Dropdown, Image, Table,
 } from 'react-bootstrap';
 import { ISpace } from '../../types';
+import * as globalConfig from '../../../../global-config';
 
 const USAFlag = '/assets/img/flags/united-states-of-america.svg';
 const CanadaFlag = '/assets/img/flags/canada.svg';
@@ -107,7 +108,7 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
                     {category || '-'}
                 </td>
                 <td className="fw-bold border-0">
-                    {addressReadable || '-'}
+                    <Card.Link href={`${globalConfig[process.env.NODE_ENV].hostFull}/spaces/${id}`} target="_blank">{addressReadable || '-'}</Card.Link>
                 </td>
                 {/* <td className="border-0">
                     <ValueChange value={overallRankChange} />
