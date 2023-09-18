@@ -156,11 +156,19 @@ routeConfig.forEach((config) => {
                         .replace(/\\r/g, ' ').substring(0, 300);
                     const spacePhoneNumber = space?.phoneNumber || '';
                     const spaceCountry = space?.region || '';
+                    const spaceAddressLocality = space?.addressLocality || '';
+                    const spaceAddressRegion = space?.addressRegion || '';
+                    const spaceAddressStreet = space?.addressStreet || '';
+                    const spacePostalCode = space?.postalCode || '';
                     return res.render(routeView, {
                         title: spaceTitle,
                         description: spaceDescription,
                         spaceCountry,
                         spacePhoneNumber,
+                        spaceAddressLocality,
+                        spaceAddressStreet,
+                        spaceAddressRegion,
+                        spacePostalCode,
                         markup,
                         requestPath: req.path,
                         routePath,
