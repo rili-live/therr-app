@@ -8,7 +8,11 @@ enum AccessLevels {
   EMAIL_VERIFIED = 'user.verified.email',
   EMAIL_VERIFIED_MISSING_PROPERTIES = 'user.verified.email.missing.props',
   MOBILE_VERIFIED = 'user.verified.mobile',
-  SUPER_ADMIN = 'user.admin.super'
+  SUPER_ADMIN = 'user.admin.super',
+  ORGANIZATIONS_ADMIN = 'user.admin.organizations',
+  ORGANIZATIONS_BILLING = 'user.admin.billing',
+  ORGANIZATIONS_MANAGER = 'user.admin.manager',
+  ORGANIZATIONS_READ = 'user.admin.read',
 }
 
 export default AccessLevels;
