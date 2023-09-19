@@ -24,7 +24,7 @@ interface IEditCampaignFormProps {
         description: string;
         type: string;
         scheduleStartAt: string;
-        scheduleEndAt: string;
+        scheduleStopAt: string;
         address?: Option[];
         category?: string;
         phoneNumber?: string;
@@ -184,18 +184,18 @@ const EditCampaignForm = ({
                             </Form.Group>
                         </Col>
                         <Col md={6} className="mb-3">
-                            <Form.Group id="scheduleEndAt">
+                            <Form.Group id="scheduleStopAt">
                                 <Form.Label>Campaign End Date/Time</Form.Label>
                                 <Datetime
                                     timeFormat={true}
-                                    onChange={(value) => onDateTimeChange('scheduleEndAt', value)}
+                                    onChange={(value) => onDateTimeChange('scheduleStopAt', value)}
                                     renderInput={(props, openCalendar) => (
                                         <InputGroup>
                                             <InputGroup.Text><FontAwesomeIcon icon={faCalendarAlt} /></InputGroup.Text>
                                             <Form.Control
                                                 required
                                                 type="text"
-                                                value={inputs.scheduleEndAt ? moment(inputs.scheduleEndAt).format('MM/DD/YYYY h:mm A') : ''}
+                                                value={inputs.scheduleStopAt ? moment(inputs.scheduleStopAt).format('MM/DD/YYYY h:mm A') : ''}
                                                 placeholder="mm/dd/yyyy"
                                                 onFocus={() => openCalendar()}
                                                 onChange={() => null}

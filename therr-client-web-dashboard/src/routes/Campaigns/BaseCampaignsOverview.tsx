@@ -11,18 +11,22 @@ import {
 import { IUserState } from 'therr-react/types';
 import { faBullhorn, faMapMarked, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { CampaignActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 import PricingCards from '../../components/PricingCards';
-import OverviewOfCampaignMetrics from '../Dashboards/OverviewModules/OverviewOfCampaignMetrics';
+import CampaignsListTable from './CampaignsListTable';
+import { ICampaign } from '../../types';
 
 interface IBaseCampaignsOverviewRouterProps {
     navigation: {
         navigate: NavigateFunction;
-    }
+    },
+    routeParams: any;
 }
 
 interface IBaseCampaignsOverviewDispatchProps {
+    searchMyCampaigns: Function;
 }
 
 interface IStoreProps extends IBaseCampaignsOverviewDispatchProps {
@@ -38,9 +42,7 @@ interface IBaseCampaignsOverviewProps extends IBaseCampaignsOverviewRouterProps,
 interface IBaseCampaignsOverviewState {
     currentCampaignIndex: number;
     isLoadingCampaigns: boolean;
-    campaignsInView: any[]; // TODO: Move to Redux
-    // campaignsInView: ICampaign[]; // TODO: Move to Redux
-    spanOfTime: 'week' | 'month';
+    campaignsInView: ICampaign[]; // TODO: Move to Redux
 }
 
 const mapStateToProps = (state: any) => ({
@@ -48,6 +50,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    searchMyCampaigns: CampaignActions.searchMyCampaigns,
 }, dispatch);
 
 /**
@@ -63,44 +66,48 @@ export class BaseCampaignsOverviewComponent extends React.Component<IBaseCampaig
             currentCampaignIndex: 0,
             isLoadingCampaigns: false,
             campaignsInView: [],
-            spanOfTime: 'week',
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
+    componentDidMount(): void {
+        this.fetchCampaigns();
+    }
+
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
 
-    fetchCampaignMetrics = (timeSpan: 'week' | 'month') => {
-        const { campaignsInView } = this.state;
-        console.log(timeSpan, campaignsInView);
+    fetchCampaigns = () => {
+        const { searchMyCampaigns } = this.props;
+        this.setState({
+            isLoadingCampaigns: true,
+        });
+
+        searchMyCampaigns({
+            itemsPerPage: 50,
+            pageNumber: 1,
+        }).then((data) => {
+            this.setState({
+                campaignsInView: data.results,
+            });
+        }).catch((err) => {
+            console.log(err);
+        }).finally(() => {
+            this.setState({
+                isLoadingCampaigns: false,
+            });
+        });
     };
 
     onPrevCampaignClick = () => {
         const {
             currentCampaignIndex,
-            spanOfTime,
         } = this.state;
         if (currentCampaignIndex > 0) {
             this.setState({
                 currentCampaignIndex: currentCampaignIndex - 1,
             }, () => {
-                this.fetchCampaignMetrics(spanOfTime);
-            });
-        }
-    };
-
-    onNextCampaignClick = () => {
-        const {
-            currentCampaignIndex,
-            campaignsInView,
-            spanOfTime,
-        } = this.state;
-        if (currentCampaignIndex < campaignsInView.length - 1) {
-            this.setState({
-                currentCampaignIndex: currentCampaignIndex + 1,
-            }, () => {
-                this.fetchCampaignMetrics(spanOfTime);
+                this.fetchCampaigns();
             });
         }
     };
@@ -109,12 +116,12 @@ export class BaseCampaignsOverviewComponent extends React.Component<IBaseCampaig
         const {
             isSuperAdmin,
             isSubscriber,
+            routeParams,
         } = this.props;
         const {
             campaignsInView,
             currentCampaignIndex,
             isLoadingCampaigns,
-            spanOfTime,
         } = this.state;
         const containerClassNames = classNames({
             'flex-box': true,
@@ -130,17 +137,18 @@ export class BaseCampaignsOverviewComponent extends React.Component<IBaseCampaig
                     isSubscriber && <>
                         {
                             (campaignsInView?.length > 0 || isLoadingCampaigns)
-                            && <OverviewOfCampaignMetrics
-                                navigateHandler={this.navigateHandler}
-                                onPrevCampaignClick={this.onPrevCampaignClick}
-                                onNextCampaignClick={this.onNextCampaignClick}
-                                currentCampaignIndex={currentCampaignIndex}
-                                campaignsInView={campaignsInView}
-                                spanOfTime={spanOfTime}
-                                fetchCampaignMetrics={this.fetchCampaignMetrics}
-                                isLoading={isLoadingCampaigns}
-                                isSuperAdmin={isSuperAdmin}
-                            />
+                                && <>
+                                    <div className="text-center mt-5">
+                                        <Button variant="secondary" className="mb-4" onClick={this.navigateHandler('/create-a-campaign')}>
+                                            <FontAwesomeIcon icon={faBullhorn} className="me-1" /> Create a Campaign
+                                        </Button>
+                                    </div>
+                                    <CampaignsListTable
+                                        campaignsInView={campaignsInView}
+                                        editContext={routeParams.context}
+                                        isLoading={isLoadingCampaigns}
+                                    />
+                                </>
                         }
                         {
                             (!campaignsInView?.length && !isLoadingCampaigns)

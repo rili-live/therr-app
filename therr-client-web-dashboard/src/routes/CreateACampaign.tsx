@@ -96,7 +96,7 @@ export class CreateACampaignComponent extends React.Component<ICreateACampaignPr
                 title: '',
                 description: '',
                 scheduleStartAt: '',
-                scheduleEndAt: '',
+                scheduleStopAt: '',
             },
         };
 
@@ -120,7 +120,7 @@ export class CreateACampaignComponent extends React.Component<ICreateACampaignPr
             || !inputs.description
             || !inputs.type
             || !inputs.scheduleStartAt
-            || !inputs.scheduleEndAt) {
+            || !inputs.scheduleStopAt) {
             return true;
         }
 
@@ -224,7 +224,7 @@ export class CreateACampaignComponent extends React.Component<ICreateACampaignPr
             description,
             type,
             scheduleStartAt,
-            scheduleEndAt,
+            scheduleStopAt,
             address: selectedAddresses,
             latitude,
             longitude,
@@ -234,7 +234,7 @@ export class CreateACampaignComponent extends React.Component<ICreateACampaignPr
             isSubmitting: true,
         });
 
-        if (moment(scheduleEndAt).isSameOrBefore(moment(scheduleStartAt))) {
+        if (moment(scheduleStopAt).isSameOrBefore(moment(scheduleStartAt))) {
             this.onSubmitError('Invalid Start/End Dates', 'Campaign start date must be before campaign end date');
             this.setState({
                 isSubmitting: false,
@@ -247,7 +247,7 @@ export class CreateACampaignComponent extends React.Component<ICreateACampaignPr
             description,
             type,
             scheduleStartAt,
-            scheduleEndAt,
+            scheduleStopAt,
             address: selectedAddresses[0]?.description || selectedAddresses[0]?.label,
             latitude,
             longitude,
@@ -262,7 +262,7 @@ export class CreateACampaignComponent extends React.Component<ICreateACampaignPr
                 this.setState({
                     isSubmitting: false,
                 });
-                this.navigateHandler('/dashboard')();
+                this.navigateHandler('/campaigns/overview')();
             }, 1000);
         }).catch((error) => {
             this.onSubmitError('Unknown Error', 'Failed to process your request. Please try again.');
@@ -337,7 +337,7 @@ export class CreateACampaignComponent extends React.Component<ICreateACampaignPr
                                 description: inputs.description,
                                 type: inputs.type,
                                 scheduleStartAt: inputs.scheduleStartAt,
-                                scheduleEndAt: inputs.scheduleEndAt,
+                                scheduleStopAt: inputs.scheduleStopAt,
                             }}
                             isSubmitDisabled={this.isSubmitDisabled()}
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}

@@ -78,7 +78,8 @@ export default class CampaignsStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    searchCampaigns(userId, conditions: any = {}) {
+    // eslint-disable-next-line default-param-last
+    searchCampaigns(conditions: any = {}, returning: any, creatorId, overrides: any = {}) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
 
@@ -90,6 +91,7 @@ export default class CampaignsStore {
                 `${CAMPAIGNS_TABLE_NAME}.title`,
                 `${CAMPAIGNS_TABLE_NAME}.description`,
                 `${CAMPAIGNS_TABLE_NAME}.assetIds`,
+                `${CAMPAIGNS_TABLE_NAME}.type`,
                 `${CAMPAIGNS_TABLE_NAME}.status`,
                 `${CAMPAIGNS_TABLE_NAME}.businessSpaceIds`,
                 `${CAMPAIGNS_TABLE_NAME}.targetDailyBudget`,
@@ -102,7 +104,11 @@ export default class CampaignsStore {
                 `${CAMPAIGNS_TABLE_NAME}.updatedAt`,
             ])
             .from(CAMPAIGNS_TABLE_NAME)
-            .where(`${CAMPAIGNS_TABLE_NAME}.userId`, '=', userId);
+            .where(`${CAMPAIGNS_TABLE_NAME}.creatorId`, '=', creatorId);
+
+        if (overrides?.userOrganizations?.length) {
+            queryString = queryString.orWhereIn('organizationId', overrides?.userOrganizations);
+        }
 
         // if (conditions.filterBy && conditions.query) {
         //     const operator = conditions.filterOperator || '=';
