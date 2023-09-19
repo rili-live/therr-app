@@ -12,6 +12,7 @@ import rewardsRouter from './rewardsRouter';
 import thoughtsRouter from './thoughtsRouter';
 import userConnectionsRouter from './userConnectionsRouter';
 import userMetricsRouter from './userMetricsRouter';
+import userOrganizationsRouter from './userOrganizationsRouter';
 
 const router = express.Router();
 
@@ -27,6 +28,7 @@ router.use('/users/achievements', userAchievementsRouter);
 router.use('/users/connections', userConnectionsRouter);
 router.use('/users/notifications', notificationsRouter);
 router.use('/users/metrics', userMetricsRouter);
+router.use('/users/organizations', userOrganizationsRouter);
 router.use('/users', usersRouter);
 
 export default router;

@@ -7,6 +7,7 @@ import translate from '../utilities/translator';
 import Store from '../store';
 import { aggregateMetrics, getPercentageChange, getMetricsByName } from '../api/aggregations';
 import areaMetricsService from '../api/areaMetricsService';
+import getUserOrganizations from '../utilities/getUserOrganizations';
 // CREATE
 const createSpaceMetric = async (req, res) => {
     const authorization = req.headers.authorization;
@@ -96,76 +97,88 @@ const getSpaceMetrics = (req, res) => {
 
     const { spaceId } = req.params;
 
-    return Store.spaces.getByIdSimple(spaceId)
-        .then(([space]) => {
-            logSpan({
-                level: 'info',
-                messageOrigin: 'API_SERVER',
-                messages: ['Space Metrics Fetched'],
-                traceArgs: {
-                    // TODO: Add a sentiment analysis property
-                    logCategory: 'user-sentiment',
-                    action: 'fetch-space-metrics',
-                    'space.category': space?.category,
-                    'space.radius': space?.radius,
-                    'space.spaceId': space?.id,
-                    'space.isPublic': space?.isPublic,
-                    'space.region': space?.region,
-                    'space.isMatureContent': space?.isMatureContent,
-                    'user.locale': locale,
-                    'user.id': userId,
-                },
-            });
-            if (!space) {
-                return handleHttpError({
-                    res,
-                    message: translate(locale, 'spaces.notFound'),
-                    statusCode: 404,
-                    errorCode: ErrorCodes.NOT_FOUND,
-                });
-            }
-            if (space?.fromUserId !== userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
-                return handleHttpError({
-                    res,
-                    message: translate(locale, 'spaces.mustBeOwner'),
-                    statusCode: 400,
-                    errorCode: ErrorCodes.METRIC_ACCESS_RESTRICTED,
-                });
-            }
+    return getUserOrganizations({
+        'x-userid': userId,
+    }).then((orgResults) => {
+        const orgsWithReadAccess = orgResults.userOrganizations.filter((org) => (
+            org.accessLevels.includes(AccessLevels.ORGANIZATIONS_ADMIN)
+            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_BILLING)
+            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_MANAGER)
+            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_READ)
+        ));
 
-            const {
-                startDate,
-                endDate,
-            } = req.query;
-            return getFormattedMetrics(startDate, endDate, spaceId).then(([currMetrics, prevMetrics]) => {
-                const metricNames = [MetricNames.SPACE_PROSPECT, MetricNames.SPACE_IMPRESSION, MetricNames.SPACE_VISIT];
-                const groupedCurrentMetrics = getMetricsByName(
-                    currMetrics,
-                    metricNames,
-                );
-                const groupedPreviousMetrics = getMetricsByName(
-                    prevMetrics,
-                    metricNames,
-                );
-                const aggregations: any = {};
-                Object.keys(groupedCurrentMetrics).forEach((key) => {
-                    const previousSeriesPct = getPercentageChange(
-                        groupedCurrentMetrics[key] || [],
-                        groupedPreviousMetrics[key] || [],
+        return Store.spaces.getByIdSimple(spaceId)
+            .then(([space]) => {
+                logSpan({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Space Metrics Fetched'],
+                    traceArgs: {
+                        // TODO: Add a sentiment analysis property
+                        logCategory: 'user-sentiment',
+                        action: 'fetch-space-metrics',
+                        'space.category': space?.category,
+                        'space.radius': space?.radius,
+                        'space.spaceId': space?.id,
+                        'space.isPublic': space?.isPublic,
+                        'space.region': space?.region,
+                        'space.isMatureContent': space?.isMatureContent,
+                        'user.locale': locale,
+                        'user.id': userId,
+                    },
+                });
+                if (!space) {
+                    return handleHttpError({
+                        res,
+                        message: translate(locale, 'spaces.notFound'),
+                        statusCode: 404,
+                        errorCode: ErrorCodes.NOT_FOUND,
+                    });
+                }
+                if (space?.fromUserId !== userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)
+                    && !orgsWithReadAccess?.map((org) => org.organizationId)?.includes(space?.organizationId)) {
+                    return handleHttpError({
+                        res,
+                        message: translate(locale, 'spaces.mustBeOwner'),
+                        statusCode: 400,
+                        errorCode: ErrorCodes.METRIC_ACCESS_RESTRICTED,
+                    });
+                }
+
+                const {
+                    startDate,
+                    endDate,
+                } = req.query;
+                return getFormattedMetrics(startDate, endDate, spaceId).then(([currMetrics, prevMetrics]) => {
+                    const metricNames = [MetricNames.SPACE_PROSPECT, MetricNames.SPACE_IMPRESSION, MetricNames.SPACE_VISIT];
+                    const groupedCurrentMetrics = getMetricsByName(
+                        currMetrics,
+                        metricNames,
                     );
-                    aggregations[key] = {
-                        metrics: aggregateMetrics(groupedCurrentMetrics[key] || []),
-                        previousSeriesPct,
-                    };
-                });
+                    const groupedPreviousMetrics = getMetricsByName(
+                        prevMetrics,
+                        metricNames,
+                    );
+                    const aggregations: any = {};
+                    Object.keys(groupedCurrentMetrics).forEach((key) => {
+                        const previousSeriesPct = getPercentageChange(
+                            groupedCurrentMetrics[key] || [],
+                            groupedPreviousMetrics[key] || [],
+                        );
+                        aggregations[key] = {
+                            metrics: aggregateMetrics(groupedCurrentMetrics[key] || []),
+                            previousSeriesPct,
+                        };
+                    });
 
-                return res.status(200).send({
-                    space,
-                    metrics: groupedCurrentMetrics,
-                    aggregations,
+                    return res.status(200).send({
+                        space,
+                        metrics: groupedCurrentMetrics,
+                        aggregations,
+                    });
                 });
-            });
-        }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+            }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+    });
 };
 
 export {

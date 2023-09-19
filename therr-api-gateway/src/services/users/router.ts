@@ -291,6 +291,12 @@ usersServiceRouter.delete('/thoughts', deleteThoughtsValidation, validate, handl
     method: 'delete',
 }));
 
+// User Organizations
+usersServiceRouter.get('/users/organizations', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 // User Metrics
 usersServiceRouter.get('/metrics/:contentUserId', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,

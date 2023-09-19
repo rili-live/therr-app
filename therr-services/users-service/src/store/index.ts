@@ -9,6 +9,7 @@ import ThoughtsStore from './ThoughtsStore';
 import UserAchievementsStore from './UserAchievementsStore';
 import UserConnectionsStore from './UserConnectionsStore';
 import UserMetricsStore from './UserMetricsStore';
+import UserOrganizationsStore from './UserOrganizationsStore';
 import UsersStore from './UsersStore';
 import VerificationCodesStore from './VerificationCodesStore';
 
@@ -33,6 +34,8 @@ class Store {
 
     userMetrics: UserMetricsStore;
 
+    userOrganizations: UserOrganizationsStore;
+
     invites: InvitesStore;
 
     notifications: NotificationsStore;
@@ -48,6 +51,7 @@ class Store {
         this.userAchievements = new UserAchievementsStore(this.db);
         this.userConnections = new UserConnectionsStore(this.db);
         this.userMetrics = new UserMetricsStore(this.db);
+        this.userOrganizations = new UserOrganizationsStore(this.db);
         this.subscribers = new SubscribersStore(this.db);
         this.socialSyncs = new SocialSyncsStore(this.db);
         this.thoughts = new ThoughtsStore(this.db, this.users);
