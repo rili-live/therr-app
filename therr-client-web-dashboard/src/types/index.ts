@@ -44,6 +44,8 @@ export interface ISpace {
 }
 
 export interface ICampaign {
+  id?: string;
+  organizationId?: string;
   title: string;
   description: string;
   assetIds: string[]; // headlines, descriptions, media, etc.
@@ -56,6 +58,8 @@ export interface ICampaign {
   targetLocations: string[];
   scheduleStartAt: Date;
   scheduleStopAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface ICampaignAsset {

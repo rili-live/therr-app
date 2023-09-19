@@ -146,7 +146,7 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
                             (!campaignsInView?.length && !isLoadingCampaigns)
                             && <>
                                 <h3 className="text-center mt-5">
-                                    <FontAwesomeIcon icon={faSearch} className="me-2" />We Found 0 Campaigns Associated with Your Account
+                                    <FontAwesomeIcon icon={faSearch} className="me-2" />We Found 0 Campaign Metrics Associated with Your Account
                                 </h3>
                                 <p className="text-center mt-1">
                                     Ad campaigns are AI optimized marketing initiatives that can be scheduled, updated, and paused at any time.

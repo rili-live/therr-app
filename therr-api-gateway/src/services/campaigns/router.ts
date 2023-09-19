@@ -13,5 +13,9 @@ campaignsServiceRouter.post('/', createCampaignValidation, validate, handleServi
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns/`,
     method: 'post',
 }));
+campaignsServiceRouter.post('/search/me', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns/`,
+    method: 'post',
+}));
 
 export default campaignsServiceRouter;
