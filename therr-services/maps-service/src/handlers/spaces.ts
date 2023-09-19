@@ -19,6 +19,7 @@ import Store from '../store';
 import { checkIsMediaSafeForWork } from './helpers';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import userMetricsService from '../api/userMetricsService';
+import getUserOrganizations from '../utilities/getUserOrganizations';
 
 const MAX_DISTANCE_TO_ADDRESS_METERS = 2000;
 
@@ -367,20 +368,31 @@ const searchMySpaces: RequestHandler = async (req: any, res: any) => {
 
     const integerColumns = ['maxViews'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = Store.spaces.searchMySpaces(searchArgs[0], searchArgs[1], userId, true);
+    return getUserOrganizations({
+        'x-userid': userId,
+    }).then((orgResults) => {
+        const orgsWithReadAccess = orgResults.userOrganizations.filter((org) => (
+            org.accessLevels.includes(AccessLevels.ORGANIZATIONS_ADMIN)
+            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_BILLING)
+            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_MANAGER)
+            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_READ)
+        ));
+        const searchPromise = Store.spaces.searchMySpaces(searchArgs[0], searchArgs[1], userId, {
+            userOrganizations: orgsWithReadAccess.map((org) => org.organizationId),
+        }, true);
 
-    return searchPromise.then((results) => {
-        const response = {
-            results,
-            pagination: {
-                itemsPerPage: Number(itemsPerPage),
-                pageNumber: Number(pageNumber),
-            },
-        };
+        return searchPromise.then((results) => {
+            const response = {
+                results,
+                pagination: {
+                    itemsPerPage: Number(itemsPerPage),
+                    pageNumber: Number(pageNumber),
+                },
+            };
 
-        res.status(200).send(response);
-    })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+            return res.status(200).send(response);
+        });
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
 const requestSpace: RequestHandler = async (req: any, res: any) => {

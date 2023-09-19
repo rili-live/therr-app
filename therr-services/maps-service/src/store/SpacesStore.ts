@@ -120,6 +120,10 @@ export default class SpacesStore {
             });
         }
 
+        if (overrides?.userOrganizations?.length) {
+            queryString = queryString.orWhereIn('organizationId', overrides?.userOrganizations);
+        }
+
         queryString = queryString
             .limit(limit)
             .offset(offset)
@@ -169,6 +173,7 @@ export default class SpacesStore {
                 'id',
                 'category',
                 'fromUserId',
+                'organizationId',
                 'isPublic',
                 'isMatureContent',
                 'latitude',

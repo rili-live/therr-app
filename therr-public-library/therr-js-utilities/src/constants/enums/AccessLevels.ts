@@ -9,10 +9,10 @@ enum AccessLevels {
   EMAIL_VERIFIED_MISSING_PROPERTIES = 'user.verified.email.missing.props',
   MOBILE_VERIFIED = 'user.verified.mobile',
   SUPER_ADMIN = 'user.admin.super',
-  ORGANIZATIONS_ADMIN = 'user.admin.organizations',
-  ORGANIZATIONS_BILLING = 'user.admin.billing',
-  ORGANIZATIONS_MANAGER = 'user.admin.manager',
-  ORGANIZATIONS_READ = 'user.admin.read',
+  ORGANIZATIONS_ADMIN = 'user.organizations.admin',
+  ORGANIZATIONS_BILLING = 'user.organizations.billing',
+  ORGANIZATIONS_MANAGER = 'user.organizations.manager',
+  ORGANIZATIONS_READ = 'user.organizations.read',
 }
 
 export default AccessLevels;
