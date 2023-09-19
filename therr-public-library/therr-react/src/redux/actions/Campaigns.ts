@@ -1,4 +1,5 @@
 import { CampaignsService } from '../../services';
+import { ISearchQuery } from '../../types';
 import { CampaignActionTypes } from '../../types/redux/campaigns';
 
 const Campaigns = {
@@ -11,6 +12,15 @@ const Campaigns = {
 
         return response?.data;
     }),
+    searchMyCampaigns: (query: ISearchQuery, data: any = {}) => (dispatch: any) => CampaignsService.searchMyCampaigns(query, data)
+        .then((response: any) => {
+            dispatch({
+                type: CampaignActionTypes.SEARCH_MY_CAMPAIGNS,
+                data: response?.data,
+            });
+
+            return response?.data;
+        }),
 };
 
 export default Campaigns;
