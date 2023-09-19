@@ -18,7 +18,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('campaigns', (
     table.string('type').notNullable().defaultsTo('local'); // local, awareness, acquisition, engagement, etc.
     table.jsonb('businessSpaceIds').notNullable().defaultsTo(JSON.stringify([])); // optional related spaces
     table.float('targetDailyBudget', undefined, 2);
-    table.string('costBiddingStrategy'); // active, paused, removed, etc.
+    table.string('costBiddingStrategy'); // default, 'max-view', 'max-visits' etc.
     table.jsonb('targetLanguages').notNullable().defaultsTo(JSON.stringify(['en-us']));
     table.jsonb('targetLocations').notNullable().defaultsTo(JSON.stringify([])); // ex. [{ latitude: 123, longitude: 456, radiusMeters: 789 }]
     table.timestamp('scheduleStartAt', {
