@@ -20,7 +20,7 @@ const AdminManageSpacesMenu = ({
             <FontAwesomeIcon icon={faTasks} className="me-2" />Manage Spaces
         </Dropdown.Toggle>
         <Dropdown.Menu className="dashboard-dropdown dropdown-menu-left mt-2">
-            <Dropdown.Item className="fw-bold" onClick={navigateHandler('/manage-spaces/admin')}>
+            <Dropdown.Item className="fw-bold" onClick={navigateHandler('/spaces/admin')}>
                 <FontAwesomeIcon icon={faPencilRuler} className="me-2" /> Edit Spaces
             </Dropdown.Item>
         </Dropdown.Menu>

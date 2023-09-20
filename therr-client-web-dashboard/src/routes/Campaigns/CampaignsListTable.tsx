@@ -59,6 +59,7 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
             scheduleStopAt,
             updatedAt,
         } = campaign;
+        const campaignEditPath = editContext === 'admin' ? `/campaigns/${id}/edit/${editContext}` : `/campaigns/${id}/edit`;
 
         return (
             <tr>
@@ -73,8 +74,7 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
                             {/* <Dropdown.Item>
                                 <FontAwesomeIcon icon={faEye} className="me-2" /> View Details
                             </Dropdown.Item> */}
-                            {/* <Dropdown.Item as={Link} to={`/edit-campaign/${id}/${editContext}`} state={{ campaign }}> */}
-                            <Dropdown.Item as={Link} to={'/campaigns/overview'} state={{ campaign }}>
+                            <Dropdown.Item as={Link} to={campaignEditPath} state={{ campaign }}>
                                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Edit
                             </Dropdown.Item>
                             {/* <Dropdown.Item className="text-danger">
@@ -83,20 +83,19 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
                         </Dropdown.Menu>
                     </Dropdown>
                 </td>
-                <td className="fw-bold border-0">
-                    {/* <Link to={`/edit-campaign/${id}/${editContext}`} state={{ campaign }}>{title || '-'}</Link> */}
-                    <Link to={'/campaigns/overview'} state={{ campaign }}>{title || '-'}</Link>
+                <td className="fw-bold">
+                    <Link to={campaignEditPath} state={{ campaign }}>{title || '-'}</Link>
                 </td>
-                <td className="fw-bold border-0">
+                <td className="fw-bold">
                     {type || '-'}
                 </td>
-                <td className="fw-bold border-0">
+                <td className="fw-bold">
                     {scheduleStartAt.toString() || '-'}
                 </td>
-                <td className="fw-bold border-0">
+                <td className="fw-bold">
                     {scheduleStopAt.toString() || '-'}
                 </td>
-                <td className="fw-bold border-0">
+                <td className="fw-bold">
                     {updatedAt.toString() || '-'}
                 </td>
             </tr>

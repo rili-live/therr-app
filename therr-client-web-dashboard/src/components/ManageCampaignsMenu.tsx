@@ -47,13 +47,13 @@ const ManageCampaignsMenu = ({
                 <FontAwesomeIcon icon={faTasks} className="me-2" />Manage Campaigns
             </Dropdown.Toggle>
             <Dropdown.Menu className="dashboard-dropdown dropdown-menu-left mt-2">
-                <Dropdown.Item className="fw-bold" onClick={navigateHandler('/create-a-campaign')}>
+                <Dropdown.Item className="fw-bold" onClick={navigateHandler('/campaigns/create')}>
                     <FontAwesomeIcon icon={faPlus} className="me-2" /> Create a Campaign
                 </Dropdown.Item>
-                <Dropdown.Item className="fw-bold" onClick={navigateHandler('/manage-campaigns/me')}>
+                <Dropdown.Item className="fw-bold" onClick={navigateHandler('/campaigns/overview')}>
                     <FontAwesomeIcon icon={faPencilRuler} className="me-2" /> Edit My Campaigns
                 </Dropdown.Item>
-                {/* <Dropdown.Item className="fw-bold" onClick={navigateHandler('/create-a-campaign')}>
+                {/* <Dropdown.Item className="fw-bold" onClick={navigateHandler('/campaigns/edit')}>
                     <FontAwesomeIcon icon={faUserShield} className="me-2" /> Manage Access
                 </Dropdown.Item> */}
                 {
