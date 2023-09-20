@@ -199,21 +199,21 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
         .then(() => hashPassword(password))
         .then((hash) => {
             const isMissingUserProps = isUserProfileIncomplete(userDetails);
-            const userAccessLevels = [
+            const userAccessLevels = new Set([
                 AccessLevels.DEFAULT,
-            ];
+            ]);
             if (userDetails.isDashboardRegistration) {
-                userAccessLevels.push(AccessLevels.DASHBOARD_SIGNUP);
+                userAccessLevels.add(AccessLevels.DASHBOARD_SIGNUP);
             }
             if (isSSO) {
                 if (isMissingUserProps) {
-                    userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                    userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 } else {
-                    userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+                    userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
                 }
             }
             return Store.users.createUser({
-                accessLevels: JSON.stringify(userAccessLevels),
+                accessLevels: JSON.stringify([...userAccessLevels]),
                 email: userDetails.email,
                 firstName: userDetails.firstName || undefined,
                 hasAgreedToTerms,
@@ -428,13 +428,13 @@ const validateCredentials = (userSearchResults, {
 
             // Verify user because they are using email SSO
             const isMissingUserProps = isUserProfileIncomplete(userSearchResults[0], false);
-            const userAccessLevels = [
+            const userAccessLevels = new Set([
                 ...userSearchResults[0].accessLevels,
-            ];
-            if (isMissingUserProps && !userAccessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
-                userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
-            } else if (!userAccessLevels.includes(AccessLevels.EMAIL_VERIFIED)) {
-                userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+            ]);
+            if (isMissingUserProps && !userAccessLevels.has(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
+                userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+            } else if (!userAccessLevels.has(AccessLevels.EMAIL_VERIFIED)) {
+                userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
             }
 
             return [true, { ...userSearchResults[0], accessLevels: userAccessLevels }];

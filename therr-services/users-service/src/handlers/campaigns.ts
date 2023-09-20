@@ -53,7 +53,6 @@ const createCampaign = async (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
 
     const {
-        creatorId,
         organizationId,
         assetIds,
         businessSpaceIds,
@@ -65,23 +64,25 @@ const createCampaign = async (req, res) => {
         costBiddingStrategy,
         targetLanguages,
         targetLocations,
+        integrationTargets,
         scheduleStartAt,
         scheduleStopAt,
     } = req.body;
 
     return Store.campaigns.createCampaign({
         creatorId: userId,
-        // organizationId: , // TODO
-        // assetIds: , // TODO
-        // businessSpaceIds: , // TODO
+        organizationId, // TODO
+        assetIds, // TODO
+        businessSpaceIds, // TODO
         title,
         description,
         type,
-        status: 'paused',
-        targetDailyBudget: 0, // TODO
-        costBiddingStrategy: 'default',
-        targetLanguages: [locale],
-        // targetLocations: , // TODO
+        status: status || 'active',
+        targetDailyBudget: targetDailyBudget || 0, // TODO
+        costBiddingStrategy: costBiddingStrategy || 'default',
+        targetLanguages: targetLanguages || [locale],
+        targetLocations,
+        integrationTargets, // TODO
         scheduleStartAt,
         scheduleStopAt,
     }).then((results) => {

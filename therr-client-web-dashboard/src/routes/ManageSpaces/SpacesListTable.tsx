@@ -75,6 +75,7 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
             updatedAt,
         } = space;
         const countryImage = countryImageMap[region];
+        const editSpacePath = editContext === 'admin' ? `/spaces/${id}/edit/${editContext}` : `/spaces/${id}/edit`;
 
         return (
             <tr>
@@ -89,7 +90,7 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
                             {/* <Dropdown.Item>
                                 <FontAwesomeIcon icon={faEye} className="me-2" /> View Details
                             </Dropdown.Item> */}
-                            <Dropdown.Item as={Link} to={`/edit-space/${id}/${editContext}`} state={{ space }}>
+                            <Dropdown.Item as={Link} to={editSpacePath} state={{ space }}>
                                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Edit
                             </Dropdown.Item>
                             {/* <Dropdown.Item className="text-danger">
@@ -98,22 +99,22 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
                         </Dropdown.Menu>
                     </Dropdown>
                 </td>
-                <td className="fw-bold border-0">
-                    <Link to={`/edit-space/${id}/${editContext}`} state={{ space }}>{notificationMsg || '-'}</Link>
+                <td className="fw-bold">
+                    <Link to={editSpacePath} state={{ space }}>{notificationMsg || '-'}</Link>
                 </td>
-                <td className="fw-bold border-0">
+                <td className="fw-bold">
                     {!!mediaIds && '✓'}
                 </td>
-                <td className="fw-bold border-0">
+                <td className="fw-bold">
                     {category || '-'}
                 </td>
-                <td className="fw-bold border-0">
+                <td className="fw-bold">
                     <Card.Link href={`${globalConfig[process.env.NODE_ENV].hostFull}/spaces/${id}`} target="_blank">{addressReadable || '-'}</Card.Link>
                 </td>
                 {/* <td className="border-0">
                     <ValueChange value={overallRankChange} />
                 </td> */}
-                <td className="fw-bold border-0">
+                <td className="fw-bold">
                     {updatedAt || '-'}
                 </td>
                 <td className="border-0">

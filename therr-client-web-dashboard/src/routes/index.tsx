@@ -20,7 +20,7 @@ import AdminAcquisitionOverview from './CustomerAcquisition/AdminAcquisitionOver
 import CampaignsOverview from './Campaigns/CampaignsOverview';
 import AdminCampaignsOverview from './Campaigns/AdminCampaignsOverview';
 import CreateUserProfile from './CreateUserProfile';
-import CreateACampaign from './CreateACampaign';
+import CreateEditCampaign from './CreateEditCampaign';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -108,6 +108,39 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
+        path: '/campaigns/create',
+        element: <AuthRoute
+            component={CreateEditCampaign}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/campaigns/:spaceId/edit',
+        element: <AuthRoute
+            component={CreateEditCampaign}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/campaigns/:spaceId/edit/:context',
+        element: <AuthRoute
+            component={CreateEditCampaign}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
         path: '/customer-acquisition/overview',
         element: <AuthRoute
             component={AcquisitionOverview}
@@ -152,18 +185,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
-        path: '/create-a-campaign',
-        element: <AuthRoute
-            component={CreateACampaign}
-            isAuthorized={routePropsConfig.isAuthorized({
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
-            })}
-            redirectPath={'/create-profile'}
-        />,
-    },
-    {
-        path: '/edit-space/:spaceId/:context',
+        path: '/spaces/:spaceId/edit',
         element: <AuthRoute
             component={CreateEditSpace}
             isAuthorized={routePropsConfig.isAuthorized({
@@ -174,7 +196,29 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
-        path: '/manage-spaces/:context',
+        path: '/spaces/:spaceId/edit/:context',
+        element: <AuthRoute
+            component={CreateEditSpace}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/spaces',
+        element: <AuthRoute
+            component={ManageSpaces}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/spaces/:context',
         element: <AuthRoute
             component={ManageSpaces}
             isAuthorized={routePropsConfig.isAuthorized({
