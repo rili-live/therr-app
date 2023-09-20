@@ -139,7 +139,7 @@ export class BaseCampaignsOverviewComponent extends React.Component<IBaseCampaig
                             (campaignsInView?.length > 0 || isLoadingCampaigns)
                                 && <>
                                     <div className="text-center mt-5">
-                                        <Button variant="secondary" className="mb-4" onClick={this.navigateHandler('/create-a-campaign')}>
+                                        <Button variant="secondary" className="mb-4" onClick={this.navigateHandler('/campaigns/create')}>
                                             <FontAwesomeIcon icon={faBullhorn} className="me-1" /> Create a Campaign
                                         </Button>
                                     </div>
@@ -161,7 +161,7 @@ export class BaseCampaignsOverviewComponent extends React.Component<IBaseCampaig
                                     Create a campaign to start digital marketing of your business today.
                                 </p>
                                 <div className="text-center mt-5">
-                                    <Button variant="secondary" onClick={this.navigateHandler('/create-a-campaign')}>
+                                    <Button variant="secondary" onClick={this.navigateHandler('/campaigns/create')}>
                                         <FontAwesomeIcon icon={faBullhorn} className="me-1" /> Create a Campaign
                                     </Button>
                                 </div>

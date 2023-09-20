@@ -26,6 +26,7 @@ export interface ICreateCampaignParams {
     costBiddingStrategy: string;
     targetLanguages: string[];
     targetLocations?: ITargetLocations[];
+    integrationTargets?: string[]; // therr-rewards, fb-ads, ig-ads, google-ads, etc.
     scheduleStartAt: Date;
     scheduleStopAt: Date;
 }
@@ -98,6 +99,7 @@ export default class CampaignsStore {
                 `${CAMPAIGNS_TABLE_NAME}.costBiddingStrategy`,
                 `${CAMPAIGNS_TABLE_NAME}.targetLanguages`,
                 `${CAMPAIGNS_TABLE_NAME}.targetLocations`,
+                `${CAMPAIGNS_TABLE_NAME}.integrationTargets`,
                 `${CAMPAIGNS_TABLE_NAME}.scheduleStartAt`,
                 `${CAMPAIGNS_TABLE_NAME}.scheduleStopAt`,
                 `${CAMPAIGNS_TABLE_NAME}.createdAt`,
@@ -139,6 +141,7 @@ export default class CampaignsStore {
             businessSpaceIds: params.businessSpaceIds ? JSON.stringify(params.businessSpaceIds) : JSON.stringify([]),
             targetLanguages: JSON.stringify(params.targetLanguages),
             targetLocations: params.targetLocations ? JSON.stringify(params.targetLocations) : JSON.stringify([]),
+            integrationTargets: params.integrationTargets ? JSON.stringify(params.integrationTargets) : JSON.stringify([]),
         };
         const queryString = knexBuilder.insert(modifiedParams)
             .into(CAMPAIGNS_TABLE_NAME)

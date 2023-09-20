@@ -153,7 +153,7 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
                                     Create a campaign to start digital marketing of your business today.
                                 </p>
                                 {/* <div className="text-center mt-5">
-                                    <Button variant="secondary" onClick={this.navigateHandler('/create-a-campaign')}>
+                                    <Button variant="secondary" onClick={this.navigateHandler('/campaigns/edit')}>
                                         <FontAwesomeIcon icon={faBullhorn} className="me-1" /> Create a Campaign
                                     </Button>
                                 </div> */}

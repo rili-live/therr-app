@@ -23,31 +23,31 @@ import EditCampaignForm from '../components/forms/EditCampaignForm';
 import { getWebsiteName } from '../utilities/getHostContext';
 import ManageCampaignsMenu from '../components/ManageCampaignsMenu';
 
-interface ICreateACampaignRouterProps {
+interface ICreateEditCampaignRouterProps {
     navigation: {
         navigate: NavigateFunction;
     }
 }
 
-interface ICreateACampaignDispatchProps {
+interface ICreateEditCampaignDispatchProps {
     createCampaign: Function;
     searchUserConnections: Function;
     getPlacesSearchAutoComplete: Function;
     setSearchDropdownVisibility: Function;
 }
 
-interface IStoreProps extends ICreateACampaignDispatchProps {
+interface IStoreProps extends ICreateEditCampaignDispatchProps {
     map: IMapReduxState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
 
 // Regular component props
-interface ICreateACampaignProps extends ICreateACampaignRouterProps, IStoreProps {
+interface ICreateEditCampaignProps extends ICreateEditCampaignRouterProps, IStoreProps {
     onInitMessaging?: Function;
 }
 
-interface ICreateACampaignState {
+interface ICreateEditCampaignState {
     alertIsVisible: boolean;
     alertVariation: string;
     alertTitle: string;
@@ -73,14 +73,14 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 /**
- * CreateACampaign
+ * CreateEditCampaign
  */
-export class CreateACampaignComponent extends React.Component<ICreateACampaignProps, ICreateACampaignState> {
+export class CreateEditCampaignComponent extends React.Component<ICreateEditCampaignProps, ICreateEditCampaignState> {
     private translate: Function;
 
     private throttleTimeoutId: any;
 
-    constructor(props: ICreateACampaignProps) {
+    constructor(props: ICreateEditCampaignProps) {
         super(props);
 
         this.state = {
@@ -379,4 +379,4 @@ export class CreateACampaignComponent extends React.Component<ICreateACampaignPr
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(CreateACampaignComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(CreateEditCampaignComponent));
