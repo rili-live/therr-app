@@ -13,6 +13,10 @@ campaignsServiceRouter.post('/', createCampaignValidation, validate, handleServi
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns/`,
     method: 'post',
 }));
+campaignsServiceRouter.get('/:id', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns/`,
+    method: 'get',
+}));
 campaignsServiceRouter.post('/search/me', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns/`,
     method: 'post',

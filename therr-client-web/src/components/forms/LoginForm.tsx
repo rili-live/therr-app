@@ -31,7 +31,9 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
         super(props);
 
         this.state = {
-            inputs: {},
+            inputs: {
+                rememberMe: true,
+            },
             prevLoginError: '',
             isSubmitting: false,
         };

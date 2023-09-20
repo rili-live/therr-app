@@ -12,6 +12,14 @@ const Campaigns = {
 
         return response?.data;
     }),
+    get: (id: string) => (dispatch: any) => CampaignsService.get(id).then((response: any) => {
+        dispatch({
+            type: CampaignActionTypes.GET_CAMPAIGN,
+            data: response.data,
+        });
+
+        return response?.data;
+    }),
     searchMyCampaigns: (query: ISearchQuery, data: any = {}) => (dispatch: any) => CampaignsService.searchMyCampaigns(query, data)
         .then((response: any) => {
             dispatch({

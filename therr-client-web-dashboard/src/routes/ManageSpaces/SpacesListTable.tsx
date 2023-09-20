@@ -117,7 +117,7 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
                 <td className="fw-bold">
                     {updatedAt || '-'}
                 </td>
-                <td className="border-0">
+                <td className="">
                     <Card.Link href="#" className="d-flex align-items-center">
                         {
                             countryImage && <Image src={countryImage} className="image-small rounded-circle me-2" />

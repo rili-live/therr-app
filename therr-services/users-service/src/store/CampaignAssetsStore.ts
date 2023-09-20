@@ -10,8 +10,9 @@ export interface ICreateCampaignAssetParams {
     campaignId?: string;
     organizationId?: string;
     mediaId?: string;
+    spaceId?: string;
     status?: string;// processing and AI status (accepted, optimized, rejected, etc.)
-    type: string; // text, image, video, etc.
+    type: string; // text, image, video, space, etc.
     headline?: string; // if type is text
     longText?: string; // if type is text
 }

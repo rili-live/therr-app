@@ -26,6 +26,23 @@ import { ISpace } from '../types';
 import { signAndUploadImage } from '../utilities/media';
 import { getWebsiteName } from '../utilities/getHostContext';
 
+const getInputDefaults = (space: any) => ({
+    address: space?.addressReadable ? [
+        {
+            label: space?.addressReadable,
+        },
+    ] : undefined,
+    category: space?.category || 'uncategorized',
+    isPublic: space?.isPublic,
+    spaceTitle: space?.notificationMsg || '',
+    spaceDescription: space?.message || '',
+    phoneNumber: space?.phoneNumber || '',
+    websiteUrl: space?.websiteUrl || '',
+    menuUrl: space?.menuUrl || '',
+    orderUrl: space?.orderUrl || '',
+    reservationUrl: space?.reservationUrl || '',
+});
+
 interface ICreateEditSpaceRouterProps {
     location: {
         state: {
@@ -99,6 +116,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
         super(props);
 
         const { space } = props.location?.state || {};
+        const { spaceId } = props.routeParams;
 
         this.state = {
             alertIsVisible: false,
@@ -108,23 +126,8 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
             fetchedSpace: space,
             files: [],
             isSubmitting: false,
-            inputs: {
-                address: space?.addressReadable ? [
-                    {
-                        label: space?.addressReadable,
-                    },
-                ] : undefined,
-                category: space?.category || 'uncategorized',
-                isPublic: space?.isPublic,
-                spaceTitle: space?.notificationMsg || '',
-                spaceDescription: space?.message || '',
-                phoneNumber: space?.phoneNumber || '',
-                websiteUrl: space?.websiteUrl || '',
-                menuUrl: space?.menuUrl || '',
-                orderUrl: space?.orderUrl || '',
-                reservationUrl: space?.reservationUrl || '',
-            },
-            isEditing: true,
+            inputs: getInputDefaults(space),
+            isEditing: !!spaceId,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -147,21 +150,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                 };
                 this.setState({
                     fetchedSpace: mergedSpace,
-                    inputs: {
-                        address: mergedSpace?.addressReadable ? [
-                            {
-                                label: mergedSpace?.addressReadable,
-                            },
-                        ] : undefined,
-                        category: mergedSpace?.category || 'uncategorized',
-                        spaceTitle: mergedSpace?.notificationMsg || '',
-                        spaceDescription: mergedSpace?.message || '',
-                        phoneNumber: mergedSpace?.phoneNumber || '',
-                        websiteUrl: mergedSpace?.websiteUrl || '',
-                        menuUrl: mergedSpace?.menuUrl || '',
-                        orderUrl: mergedSpace?.orderUrl || '',
-                        reservationUrl: mergedSpace?.reservationUrl || '',
-                    },
+                    inputs: getInputDefaults(mergedSpace),
                 });
             }).catch(() => {
                 // Happens when space is not yet activated, but that is OK

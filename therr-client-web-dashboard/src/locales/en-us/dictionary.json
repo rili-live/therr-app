@@ -127,10 +127,10 @@
       "pageTitle": "Claim a Space"
     },
     "createACampaign": {
-      "pageTitle": "Claim a Campaign"
+      "pageTitle": "Create/Edit Campaign"
     },
     "editSpace": {
-      "pageTitle": "Create/EditSpace"
+      "pageTitle": "Create/Edit Space"
     },
     "emailVerification": {
       "buttons": {
