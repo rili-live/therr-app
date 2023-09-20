@@ -8,6 +8,28 @@ import userMetricsService from '../api/userMetricsService';
 import sendCampaignCreatedEmail from '../api/email/admin/sendCampaignCreatedEmail';
 
 // READ
+const getCampaign = async (req, res) => {
+    const userId = req.headers['x-userid'];
+
+    return Store.userOrganizations.get({
+        userId,
+    }).then((userOrgs) => {
+        const orgsWithReadAccess = userOrgs.filter((org) => (
+            org.accessLevels.includes(AccessLevels.ORGANIZATIONS_ADMIN)
+            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_BILLING)
+            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_MANAGER)
+            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_READ)
+        ));
+
+        return Store.campaigns.getCampaigns({
+            id: req.params.id,
+        }, {
+            creatorId: userId,
+            userOrganizations: orgsWithReadAccess.map((org) => org.organizationId),
+        }).then((campaigns) => res.status(200).send(campaigns[0] || {}));
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
+};
+
 const searchMyCampaigns = async (req, res) => {
     const userId = req.headers['x-userid'];
     const {
@@ -105,4 +127,5 @@ const createCampaign = async (req, res) => {
 export {
     createCampaign,
     searchMyCampaigns,
+    getCampaign,
 };

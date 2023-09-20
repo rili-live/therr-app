@@ -22,8 +22,24 @@ import withNavigation from '../wrappers/withNavigation';
 import EditCampaignForm from '../components/forms/EditCampaignForm';
 import { getWebsiteName } from '../utilities/getHostContext';
 import ManageCampaignsMenu from '../components/ManageCampaignsMenu';
+import { ICampaign } from '../types';
+
+const getInputDefaults = (campaign: any) => ({
+    address: [],
+    type: campaign?.type || 'local',
+    title: campaign?.title || '',
+    description: campaign?.description || '',
+    scheduleStartAt: campaign?.scheduleStartAt || '',
+    scheduleStopAt: campaign?.scheduleStopAt || '',
+});
 
 interface ICreateEditCampaignRouterProps {
+    location: {
+        state: {
+            campaign?: ICampaign;
+        };
+    };
+    routeParams: any;
     navigation: {
         navigate: NavigateFunction;
     }
@@ -31,6 +47,7 @@ interface ICreateEditCampaignRouterProps {
 
 interface ICreateEditCampaignDispatchProps {
     createCampaign: Function;
+    getCampaign: Function;
     searchUserConnections: Function;
     getPlacesSearchAutoComplete: Function;
     setSearchDropdownVisibility: Function;
@@ -52,11 +69,13 @@ interface ICreateEditCampaignState {
     alertVariation: string;
     alertTitle: string;
     alertMessage: string;
+    fetchedCampaign: any;
     files: any[];
     isSubmitting: boolean;
     inputs: {
         [key: string]: any;
     };
+    isEditing: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -67,6 +86,7 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createCampaign: CampaignActions.create,
+    getCampaign: CampaignActions.get,
     searchUserConnections: UserConnectionsActions.search,
     getPlacesSearchAutoComplete: MapActions.getPlacesSearchAutoComplete,
     setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
@@ -83,21 +103,19 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     constructor(props: ICreateEditCampaignProps) {
         super(props);
 
+        const { campaign } = props.location?.state || {};
+        const { campaignId } = props.routeParams;
+
         this.state = {
             alertIsVisible: false,
             alertVariation: 'success',
             alertTitle: '',
             alertMessage: '',
+            fetchedCampaign: campaign,
             files: [],
             isSubmitting: false,
-            inputs: {
-                address: [],
-                type: 'local',
-                title: '',
-                description: '',
-                scheduleStartAt: '',
-                scheduleStopAt: '',
-            },
+            inputs: getInputDefaults(campaign),
+            isEditing: !!campaignId,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -105,6 +123,27 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
     componentDidMount() {
         document.title = `${getWebsiteName()} | ${this.translate('pages.createACampaign.pageTitle')}`;
+        const { getCampaign, location } = this.props;
+        const { campaign } = location?.state || {};
+        const { campaignId } = this.props.routeParams;
+        const id = campaign?.id || campaignId;
+
+        if (id) {
+            getCampaign(id, {
+                withMedia: true,
+            }).then((data) => {
+                const mergedCampaign = {
+                    ...this.state.fetchedCampaign,
+                    ...data,
+                };
+                this.setState({
+                    fetchedCampaign: mergedCampaign,
+                    inputs: getInputDefaults(mergedCampaign),
+                });
+            }).catch(() => {
+                //
+            });
+        }
     }
 
     componentWillUnmount = () => {
@@ -114,8 +153,13 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
 
     isSubmitDisabled = () => {
+        const { getCampaign, location } = this.props;
+        const { campaign } = location?.state || {};
+        const { campaignId } = this.props.routeParams;
+        const id = campaign?.id || campaignId;
         const { inputs, isSubmitting } = this.state;
-        if (isSubmitting
+        // TODO: Remove id block after implementing update
+        if (id || isSubmitting
             || !inputs.title
             || !inputs.description
             || !inputs.type
@@ -311,6 +355,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             alertTitle,
             alertMessage,
             inputs,
+            isEditing,
         } = this.state;
         const { map, user } = this.props;
 
@@ -329,7 +374,11 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
                 <Row className="d-flex justify-content-around align-items-center py-4">
                     <Col xs={12} xl={10} xxl={8}>
-                        <h1 className="text-center">Create a Marketing Campaign</h1>
+                        {
+                            isEditing
+                                ? <h1 className="text-center">Edit Campaign</h1>
+                                : <h1 className="text-center">Create a Marketing Campaign</h1>
+                        }
                         <EditCampaignForm
                             addressTypeAheadResults={map?.searchPredictions?.results || []}
                             inputs={{

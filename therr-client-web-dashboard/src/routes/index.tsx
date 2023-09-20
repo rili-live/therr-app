@@ -119,7 +119,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
-        path: '/campaigns/:spaceId/edit',
+        path: '/campaigns/:campaignId/edit',
         element: <AuthRoute
             component={CreateEditCampaign}
             isAuthorized={routePropsConfig.isAuthorized({
@@ -130,7 +130,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
-        path: '/campaigns/:spaceId/edit/:context',
+        path: '/campaigns/:campaignId/edit/:context',
         element: <AuthRoute
             component={CreateEditCampaign}
             isAuthorized={routePropsConfig.isAuthorized({

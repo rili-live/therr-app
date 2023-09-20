@@ -9,6 +9,11 @@ class CampaignsService {
         data,
     });
 
+    get = (id: any) => axios({
+        method: 'get',
+        url: `/users-service/campaigns/${id}`,
+    });
+
     searchMyCampaigns = (query: ISearchQuery, data: any = {}) => {
         const queryString = getSearchQueryString(query);
 
