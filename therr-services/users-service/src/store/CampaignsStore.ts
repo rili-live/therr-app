@@ -71,12 +71,23 @@ export default class CampaignsStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    getCampaigns(conditions = {}) {
-        const queryString = knexBuilder.select('*')
+    getCampaigns(conditions = {}, overrides: any = {}) {
+        let queryString = knexBuilder.select('*')
             .from(CAMPAIGNS_TABLE_NAME)
-            .where(conditions)
-            .toString();
-        return this.db.read.query(queryString).then((response) => response.rows);
+            .where(conditions);
+
+        if (overrides?.userOrganizations?.length) {
+            queryString = queryString.where((builder) => {
+                builder.whereIn('organizationId', overrides?.userOrganizations)
+                    .orWhere({ creatorId: overrides.creatorId });
+            });
+        } else if (overrides?.creatorId) {
+            queryString = queryString.andWhere({
+                creatorId: overrides.creatorId,
+            });
+        }
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
     // eslint-disable-next-line default-param-last

@@ -18,8 +18,9 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('campaignAsset
         .onUpdate('CASCADE')
         .onDelete('CASCADE');
     table.uuid('mediaId'); // if type is image or video
+    table.uuid('spaceId'); // if type is space
     table.string('status').notNullable(); // processing and AI status (accepted, optimized, rejected, etc.)
-    table.string('type').notNullable(); // text, image, video, etc.
+    table.string('type').notNullable(); // text, image, video, space, etc.
     table.string('performance').notNullable(); // performance rating (worst, bad, learning, good, best)
     table.string('headline'); // if type is text
     table.string('longText'); // if type is text
