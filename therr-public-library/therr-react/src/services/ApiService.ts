@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import axios from 'axios';
 
 class ApiService {

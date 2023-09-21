@@ -4,9 +4,9 @@ import { isValidPhoneNumber } from 'react-phone-number-input';
 import {
     ButtonPrimary,
     Input,
+    PasswordRequirements,
 } from 'therr-react/components';
 import translator from '../../services/translator';
-import PasswordRequirements from './PasswordRequirements';
 
 // Regular component props
 interface IRegisterFormProps {

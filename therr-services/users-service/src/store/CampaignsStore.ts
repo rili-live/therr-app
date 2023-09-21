@@ -47,6 +47,7 @@ export interface IUpdateCampaignParams {
     costBiddingStrategy?: string;
     targetLanguages?: string[];
     targetLocations?: ITargetLocations[];
+    integrationTargets?: string[]; // therr-rewards, fb-ads, ig-ads, google-ads, etc.
     scheduleStartAt?: Date;
     scheduleStopAt?: Date;
 }

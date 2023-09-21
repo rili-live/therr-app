@@ -68,7 +68,7 @@ const searchMyCampaigns = async (req, res) => {
     });
 };
 
-// CREATE
+// SAVE
 const createCampaign = async (req, res) => {
     const userId = req.headers['x-userid'];
     const authorization = req.headers.authorization;
@@ -124,8 +124,66 @@ const createCampaign = async (req, res) => {
     });
 };
 
+const updateCampaign = async (req, res) => {
+    const userId = req.headers['x-userid'];
+    const authorization = req.headers.authorization;
+    const locale = req.headers['x-localecode'] || 'en-us';
+
+    const {
+        organizationId,
+        assetIds,
+        businessSpaceIds,
+        title,
+        description,
+        type,
+        status,
+        targetDailyBudget,
+        costBiddingStrategy,
+        targetLanguages,
+        targetLocations,
+        integrationTargets,
+        scheduleStartAt,
+        scheduleStopAt,
+    } = req.body;
+
+    return Store.campaigns.updateCampaign({
+        id: req.params.id,
+    }, {
+        organizationId, // TODO
+        assetIds, // TODO
+        businessSpaceIds, // TODO
+        title,
+        description,
+        type,
+        status,
+        targetDailyBudget, // TODO
+        costBiddingStrategy,
+        targetLanguages,
+        targetLocations,
+        integrationTargets, // TODO
+        scheduleStartAt,
+        scheduleStopAt,
+    }).then((results) => {
+        const campaign = results[0] || {};
+        // TODO: Automate and remove notification email
+        return sendCampaignCreatedEmail({
+            subject: '[Urgent Request] User Updated a Campaign',
+            toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+        }, {
+            userId,
+            campaignDetails: {
+                ...campaign,
+            },
+        }).then(() => res.status(201).send({
+            created: 1,
+            campaigns: results,
+        })).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
+    });
+};
+
 export {
     createCampaign,
     searchMyCampaigns,
     getCampaign,
+    updateCampaign,
 };
