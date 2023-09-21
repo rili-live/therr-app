@@ -3,6 +3,7 @@ import {
     createCampaign,
     getCampaign,
     searchMyCampaigns,
+    updateCampaign,
 } from '../handlers/campaigns';
 
 const router = express.Router();
@@ -11,5 +12,6 @@ const router = express.Router();
 router.post('/', createCampaign);
 router.get('/:id', getCampaign);
 router.post('/search/me', searchMyCampaigns);
+router.put('/:id', updateCampaign);
 
 export default router;

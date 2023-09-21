@@ -29,6 +29,14 @@ const Campaigns = {
 
             return response?.data;
         }),
+    update: (id: string, campaignDetails: any) => (dispatch: any) => CampaignsService.update(id, campaignDetails).then((response: any) => {
+        dispatch({
+            type: CampaignActionTypes.UPDATE_CAMPAIGN,
+            data: response.data,
+        });
+
+        return response?.data;
+    }),
 };
 
 export default Campaigns;

@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import axios from 'axios';
 import { getSearchQueryString } from 'therr-js-utilities/http';
 import { ISearchQuery } from '../types';
@@ -23,6 +24,12 @@ class CampaignsService {
             data,
         });
     };
+
+    update = (id: any, data: any) => axios({
+        method: 'put',
+        url: `/users-service/campaigns/${id}`,
+        data,
+    });
 }
 
 export default new CampaignsService();

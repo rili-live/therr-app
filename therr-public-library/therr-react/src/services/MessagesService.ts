@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import axios from 'axios';
 import { getSearchQueryString } from 'therr-js-utilities/http';
 import { ISearchQuery } from '../types';
@@ -14,7 +15,7 @@ class MessagesService {
             method: 'get',
             url: `/messages-service/direct-messages${queryString}`,
         });
-    }
+    };
 
     searchForumMessages = (query: ISearchQuery) => {
         const queryString = getSearchQueryString(query);
@@ -23,7 +24,7 @@ class MessagesService {
             method: 'get',
             url: `/messages-service/forum-messages${queryString}`,
         });
-    }
+    };
 }
 
 export default new MessagesService();
