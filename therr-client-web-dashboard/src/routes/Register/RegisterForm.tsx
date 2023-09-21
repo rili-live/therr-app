@@ -11,8 +11,10 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import * as yup from 'yup';
 import { VALIDATIONS } from 'therr-react/constants';
+import {
+    PasswordRequirements,
+} from 'therr-react/components';
 import translator from '../../services/translator';
-import PasswordRequirements from '../../components/forms/PasswordRequirements';
 
 const schema = yup.object().shape({
     email: yup.string().email().required(),

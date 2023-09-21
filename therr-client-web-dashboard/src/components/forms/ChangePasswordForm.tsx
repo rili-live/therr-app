@@ -4,7 +4,9 @@ import {
 } from 'react-bootstrap';
 import * as yup from 'yup';
 import { VALIDATIONS } from 'therr-react/constants';
-import PasswordRequirements from './PasswordRequirements';
+import {
+    PasswordRequirements,
+} from 'therr-react/components';
 
 interface IChangePasswordFormProps {
     onSubmit: (oldPassword, newPassword) => any;

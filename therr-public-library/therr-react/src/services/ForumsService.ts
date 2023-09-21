@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import axios from 'axios';
 import { getSearchQueryString } from 'therr-js-utilities/http';
 import { ISearchQuery } from '../types';
@@ -30,7 +31,7 @@ class ForumsService {
         method: 'post',
         url: '/messages-service/forums',
         data,
-    })
+    });
 
     searchCategories = (query: ISearchQuery) => {
         const queryString = getSearchQueryString(query);
@@ -39,7 +40,7 @@ class ForumsService {
             method: 'get',
             url: `/messages-service/forums/categories${queryString}`,
         });
-    }
+    };
 
     searchForums = (query: ISearchQuery, data: ISearchForumsArgs = {}) => {
         const queryString = getSearchQueryString(query);
@@ -49,7 +50,7 @@ class ForumsService {
             url: `/messages-service/forums/search${queryString}`,
             data,
         });
-    }
+    };
 }
 
 export default new ForumsService();

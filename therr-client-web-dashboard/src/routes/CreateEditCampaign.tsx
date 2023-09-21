@@ -47,6 +47,7 @@ interface ICreateEditCampaignRouterProps {
 
 interface ICreateEditCampaignDispatchProps {
     createCampaign: Function;
+    updateCampaign: Function;
     getCampaign: Function;
     searchUserConnections: Function;
     getPlacesSearchAutoComplete: Function;
@@ -90,6 +91,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     searchUserConnections: UserConnectionsActions.search,
     getPlacesSearchAutoComplete: MapActions.getPlacesSearchAutoComplete,
     setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
+    updateCampaign: CampaignActions.update,
 }, dispatch);
 
 /**
@@ -153,13 +155,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
 
     isSubmitDisabled = () => {
-        const { getCampaign, location } = this.props;
-        const { campaign } = location?.state || {};
-        const { campaignId } = this.props.routeParams;
-        const id = campaign?.id || campaignId;
         const { inputs, isSubmitting } = this.state;
         // TODO: Remove id block after implementing update
-        if (id || isSubmitting
+        if (isSubmitting
             || !inputs.title
             || !inputs.description
             || !inputs.type
@@ -262,7 +260,8 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
     onSubmitCampaign = (event: React.MouseEvent<HTMLInputElement>) => {
         event.preventDefault();
-        const { createCampaign } = this.props;
+        const { location, createCampaign, updateCampaign } = this.props;
+        const { fetchedCampaign } = this.state;
         const {
             title,
             description,
@@ -273,6 +272,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             latitude,
             longitude,
         } = this.state.inputs;
+        const { campaign } = location?.state || {};
 
         this.setState({
             isSubmitting: true,
@@ -286,7 +286,16 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             return;
         }
 
-        createCampaign({
+        const campaignInView = {
+            ...fetchedCampaign,
+            ...campaign,
+        };
+
+        const saveMethod = campaignInView?.id
+            ? (campaignDetails) => updateCampaign(campaignInView?.id, campaignDetails)
+            : createCampaign;
+
+        saveMethod({
             title,
             description,
             type,
