@@ -26,7 +26,17 @@ const getCampaign = async (req, res) => {
         }, {
             creatorId: userId,
             userOrganizations: orgsWithReadAccess.map((org) => org.organizationId),
-        }).then((campaigns) => res.status(200).send(campaigns[0] || {}));
+        }).then((campaigns) => {
+            const campaign = campaigns[0] || {};
+
+            const assetsPromise = campaign?.assetIds?.length
+                ? Store.campaignAssets.get({}, campaign.assetIds) : Promise.resolve([]);
+
+            return assetsPromise.then((campaignAssets) => {
+                campaign.assets = campaignAssets;
+                return res.status(200).send(campaign);
+            });
+        });
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
 };
 
@@ -89,6 +99,7 @@ const createCampaign = async (req, res) => {
         integrationTargets,
         scheduleStartAt,
         scheduleStopAt,
+        assets,
     } = req.body;
 
     return Store.campaigns.createCampaign({
@@ -109,19 +120,39 @@ const createCampaign = async (req, res) => {
         scheduleStopAt,
     }).then((results) => {
         const campaign = results[0] || {};
-        return sendCampaignCreatedEmail({
-            subject: '[Urgent Request] User Created a Campaign',
-            toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-        }, {
-            userId,
-            campaignDetails: {
-                ...campaign,
-            },
-        }).then(() => res.status(201).send({
-            created: 1,
-            campaigns: results,
-        })).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
-    });
+
+        const assetsPromise = assets?.length ? Store.campaignAssets.create(assets.map((asset) => ({
+            creatorId: userId,
+            organizationId: campaign.organizationId,
+            mediaId: asset.mediaId,
+            spaceId: asset.spaceId, // TODO
+            status: 'accepted',
+            type: asset.type,
+            headline: asset.headline,
+            longText: asset.longText,
+            performance: 'learning', // TODO
+        }))) : Promise.resolve([]);
+
+        return assetsPromise.then((campaignAssets) => {
+            sendCampaignCreatedEmail({
+                subject: '[Urgent Request] User Created a Campaign',
+                toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+            }, {
+                userId,
+                campaignDetails: {
+                    ...campaign,
+                },
+            });
+            return Store.campaigns.updateCampaign({
+                id: campaign.id,
+            }, {
+                assetIds: campaignAssets.map((asset) => asset.id),
+            });
+        }).then((campaigns) => res.status(201).send({
+            created: results.length,
+            campaigns,
+        }));
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
 };
 
 const updateCampaign = async (req, res) => {
@@ -144,6 +175,7 @@ const updateCampaign = async (req, res) => {
         integrationTargets,
         scheduleStartAt,
         scheduleStopAt,
+        assets,
     } = req.body;
 
     return Store.campaigns.updateCampaign({
@@ -165,20 +197,56 @@ const updateCampaign = async (req, res) => {
         scheduleStopAt,
     }).then((results) => {
         const campaign = results[0] || {};
-        // TODO: Automate and remove notification email
-        return sendCampaignCreatedEmail({
-            subject: '[Urgent Request] User Updated a Campaign',
-            toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-        }, {
-            userId,
-            campaignDetails: {
-                ...campaign,
-            },
-        }).then(() => res.status(201).send({
-            created: 1,
-            campaigns: results,
-        })).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
-    });
+        const existingAssets: any = [];
+        const newAssets: any = [];
+        assets?.forEach((asset) => {
+            if (asset.id) {
+                existingAssets.push(asset);
+            } else {
+                newAssets.push(asset);
+            }
+        });
+        const assetPromises = [
+            newAssets?.length ? Store.campaignAssets.create(newAssets.map((asset) => ({
+                creatorId: userId,
+                organizationId: campaign.organizationId,
+                mediaId: asset.mediaId,
+                spaceId: asset.spaceId, // TODO
+                status: 'accepted',
+                type: asset.type,
+                headline: asset.headline,
+                longText: asset.longText,
+                performance: 'learning', // TODO
+            }))) : Promise.resolve([]),
+            // TODO: Consider using transactions
+            existingAssets.length ? Promise.all(existingAssets.map((asset) => Store.campaignAssets.update(asset.id, {
+                organizationId: campaign.organizationId,
+                headline: asset.headline,
+                longText: asset.longText,
+            }))) : Promise.resolve([]),
+        ];
+
+        return Promise.all(assetPromises).then(([newCampaignAssets, updatedCampaignAssets]) => {
+            // TODO: Automate and remove notification email
+            sendCampaignCreatedEmail({
+                subject: '[Urgent Request] User Updated a Campaign',
+                toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+            }, {
+                userId,
+                campaignDetails: {
+                    ...campaign,
+                },
+            });
+            return Store.campaigns.updateCampaign({
+                id: req.params.id,
+            }, {
+                assetIds: newCampaignAssets.map((asset) => asset.id).concat(campaign.assetIds),
+            });
+        }).then((campaigns) => res.status(200).send({
+            updated: results.length,
+            campaigns,
+        }));
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
 };
 
 export {

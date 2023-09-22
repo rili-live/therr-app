@@ -22,7 +22,7 @@ import withNavigation from '../wrappers/withNavigation';
 import EditCampaignForm from '../components/forms/EditCampaignForm';
 import { getWebsiteName } from '../utilities/getHostContext';
 import ManageCampaignsMenu from '../components/ManageCampaignsMenu';
-import { ICampaign } from '../types';
+import { ICampaign, ICampaignAsset } from '../types';
 
 const getInputDefaults = (campaign: any) => ({
     address: [],
@@ -31,6 +31,8 @@ const getInputDefaults = (campaign: any) => ({
     description: campaign?.description || '',
     scheduleStartAt: campaign?.scheduleStartAt || '',
     scheduleStopAt: campaign?.scheduleStopAt || '',
+    headline1: campaign?.assets?.length > 0 ? campaign?.assets[0].headline : '',
+    headline2: campaign?.assets?.length > 1 ? campaign?.assets[1].headline : '',
 });
 
 interface ICreateEditCampaignRouterProps {
@@ -72,6 +74,8 @@ interface ICreateEditCampaignState {
     alertMessage: string;
     fetchedCampaign: any;
     files: any[];
+    formEditingStage: number;
+    hasFormChanged: boolean;
     isSubmitting: boolean;
     inputs: {
         [key: string]: any;
@@ -115,6 +119,8 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             alertMessage: '',
             fetchedCampaign: campaign,
             files: [],
+            formEditingStage: 1,
+            hasFormChanged: false,
             isSubmitting: false,
             inputs: getInputDefaults(campaign),
             isEditing: !!campaignId,
@@ -155,18 +161,39 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
 
     isSubmitDisabled = () => {
-        const { inputs, isSubmitting } = this.state;
+        const { inputs, isSubmitting, formEditingStage } = this.state;
         // TODO: Remove id block after implementing update
-        if (isSubmitting
-            || !inputs.title
-            || !inputs.description
-            || !inputs.type
-            || !inputs.scheduleStartAt
-            || !inputs.scheduleStopAt) {
-            return true;
+        if (formEditingStage === 1) {
+            if (isSubmitting
+                || !inputs.title
+                || !inputs.description
+                || !inputs.type
+                || !inputs.scheduleStartAt
+                || !inputs.scheduleStopAt) {
+                return true;
+            }
+        } else if (formEditingStage === 2) {
+            if (isSubmitting
+                || !inputs.headline1
+                || !inputs.headline2) {
+                return true;
+            }
         }
 
         return false;
+    };
+
+    goBackStage = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        const { formEditingStage } = this.state;
+
+        if (formEditingStage === 1) {
+            this.navigateHandler('/campaigns/overview')();
+        } else {
+            this.setState({
+                formEditingStage: formEditingStage - 1,
+            });
+        }
     };
 
     onAddressTypeaheadChange = (text: string, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -214,6 +241,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             });
 
             this.setState({
+                hasFormChanged: true,
                 inputs: {
                     ...this.state.inputs,
                     address: selected,
@@ -229,6 +257,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         };
 
         this.setState({
+            hasFormChanged: true,
             inputs: {
                 ...this.state.inputs,
                 ...newInputChanges,
@@ -245,6 +274,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         };
 
         this.setState({
+            hasFormChanged: true,
             inputs: {
                 ...this.state.inputs,
                 ...newInputChanges,
@@ -254,14 +284,17 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
     onSelectMedia = (files: any[]) => {
         this.setState({
+            hasFormChanged: true,
             files,
         });
     };
 
-    onSubmitCampaign = (event: React.MouseEvent<HTMLInputElement>) => {
+    onSubmitCampaign = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
+
         const { location, createCampaign, updateCampaign } = this.props;
-        const { fetchedCampaign } = this.state;
+        const { fetchedCampaign, formEditingStage, hasFormChanged } = this.state;
+
         const {
             title,
             description,
@@ -271,12 +304,28 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             address: selectedAddresses,
             latitude,
             longitude,
+            headline1,
+            headline2,
         } = this.state.inputs;
         const { campaign } = location?.state || {};
 
         this.setState({
             isSubmitting: true,
         });
+
+        if (!hasFormChanged) {
+            if (formEditingStage === 1) {
+                this.setState({
+                    isSubmitting: false,
+                    formEditingStage: 2,
+                });
+            } else {
+                this.setState({
+                    isSubmitting: false,
+                });
+                this.navigateHandler('/campaigns/overview')();
+            }
+        }
 
         if (moment(scheduleStopAt).isSameOrBefore(moment(scheduleStartAt))) {
             this.onSubmitError('Invalid Start/End Dates', 'Campaign start date must be before campaign end date');
@@ -287,36 +336,73 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         }
 
         const campaignInView = {
-            ...fetchedCampaign,
             ...campaign,
+            ...fetchedCampaign,
         };
 
         const saveMethod = campaignInView?.id
             ? (campaignDetails) => updateCampaign(campaignInView?.id, campaignDetails)
             : createCampaign;
-
-        saveMethod({
+        const requestBody: any = {
             title,
             description,
             type,
             scheduleStartAt,
             scheduleStopAt,
+            status: formEditingStage < 2 && !campaignInView?.id ? 'paused' : 'active',
             address: selectedAddresses[0]?.description || selectedAddresses[0]?.label,
             latitude,
             longitude,
-        }).then(() => {
-            this.setState({
-                alertTitle: 'Request Sent',
-                alertMessage: 'Success! Please allow 24-72 hours as we review your campaign.',
-                alertVariation: 'success',
+        };
+
+        if (!campaignInView?.status) {
+            requestBody.status = formEditingStage < 2 ? 'paused' : 'active';
+        }
+
+        // TODO: Make this more dynamic when we allow adding and deleting assets
+        const assets: ICampaignAsset[] = [];
+        if (headline1) {
+            assets.push({
+                id: campaignInView?.assets && campaignInView?.assets[0]?.id,
+                type: 'text',
+                headline: headline1,
             });
-            this.toggleAlert(true);
-            setTimeout(() => {
+        }
+        if (headline2) {
+            assets.push({
+                id: campaignInView?.assets && campaignInView?.assets[1]?.id,
+                type: 'text',
+                headline: headline2,
+            });
+        }
+        requestBody.assets = assets;
+
+        saveMethod(requestBody).then((response) => {
+            console.log(response);
+            if (formEditingStage === 1) {
                 this.setState({
                     isSubmitting: false,
+                    formEditingStage: 2,
+                    fetchedCampaign: {
+                        ...fetchedCampaign,
+                        ...response?.campaigns[0],
+                    },
                 });
-                this.navigateHandler('/campaigns/overview')();
-            }, 1000);
+            } else {
+                this.setState({
+                    alertTitle: 'Request Sent',
+                    alertMessage: 'Success! Please allow 24-72 hours as we review your campaign.',
+                    alertVariation: 'success',
+                });
+                this.toggleAlert(true);
+
+                setTimeout(() => {
+                    this.setState({
+                        isSubmitting: false,
+                    });
+                    this.navigateHandler('/campaigns/overview')();
+                }, 1000);
+            }
         }).catch((error) => {
             this.onSubmitError('Unknown Error', 'Failed to process your request. Please try again.');
             this.setState({
@@ -363,8 +449,10 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             alertVariation,
             alertTitle,
             alertMessage,
+            hasFormChanged,
             inputs,
             isEditing,
+            formEditingStage,
         } = this.state;
         const { map, user } = this.props;
 
@@ -390,12 +478,17 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                         }
                         <EditCampaignForm
                             addressTypeAheadResults={map?.searchPredictions?.results || []}
+                            formStage={formEditingStage}
+                            goBack={this.goBackStage}
+                            hasFormChanged={hasFormChanged}
                             inputs={{
                                 title: inputs.title,
                                 description: inputs.description,
                                 type: inputs.type,
                                 scheduleStartAt: inputs.scheduleStartAt,
                                 scheduleStopAt: inputs.scheduleStopAt,
+                                headline1: inputs.headline1,
+                                headline2: inputs.headline2,
                             }}
                             isSubmitDisabled={this.isSubmitDisabled()}
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
@@ -404,7 +497,6 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             onInputChange={this.onInputChange}
                             onSelectMedia={this.onSelectMedia}
                             onSubmit={this.onSubmitCampaign}
-                            submitText='Save'
                         />
                     </Col>
 

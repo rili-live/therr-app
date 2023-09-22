@@ -167,6 +167,11 @@ export default class CampaignsStore {
         const queryString = knexBuilder.update({
             ...params,
             updatedAt: new Date(),
+            assetIds: params.assetIds ? JSON.stringify(params.assetIds) : undefined,
+            businessSpaceIds: params.businessSpaceIds ? JSON.stringify(params.businessSpaceIds) : undefined,
+            targetLanguages: params.targetLanguages ? JSON.stringify(params.targetLanguages) : undefined,
+            targetLocations: params.targetLocations ? JSON.stringify(params.targetLocations) : undefined,
+            integrationTargets: params.integrationTargets ? JSON.stringify(params.integrationTargets) : undefined,
         })
             .into(CAMPAIGNS_TABLE_NAME)
             .where(conditions)

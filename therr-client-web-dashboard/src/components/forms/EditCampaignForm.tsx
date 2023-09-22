@@ -18,7 +18,10 @@ const adTypeCategories = [
 ];
 
 interface IEditCampaignFormProps {
+    formStage: number;
     addressTypeAheadResults: any[],
+    hasFormChanged: boolean;
+    goBack: (event: React.MouseEvent<HTMLButtonElement>) => void;
     inputs: {
         title: string;
         description: string;
@@ -32,6 +35,8 @@ interface IEditCampaignFormProps {
         menuUrl?: string;
         orderUrl?: string;
         reservationUrl?: string;
+        headline1: string;
+        headline2: string;
     }
     isSubmitDisabled: boolean;
     mediaUrl?: string;
@@ -39,15 +44,17 @@ interface IEditCampaignFormProps {
     onAddressTypeAheadSelect: (selected: Option[]) => void;
     onInputChange: React.ChangeEventHandler<HTMLInputElement>;
     onDateTimeChange: (name: string, value: string | Moment) => void;
-    onSubmit: (event: React.MouseEvent<HTMLInputElement>) => void;
+    onSubmit: (event: React.MouseEvent<HTMLButtonElement>) => void;
     onSelectMedia: (files: any[]) => any;
-    submitText: string;
     shouldShowAdvancedFields?: boolean;
 }
 
 const EditCampaignForm = ({
     addressTypeAheadResults,
+    formStage,
+    goBack,
     mediaUrl,
+    hasFormChanged,
     inputs,
     isSubmitDisabled,
     onAddressTypeAheadSelect,
@@ -56,7 +63,6 @@ const EditCampaignForm = ({
     onDateTimeChange,
     onSubmit,
     onSelectMedia,
-    submitText,
     shouldShowAdvancedFields,
 }: IEditCampaignFormProps) => {
     const [birthday, setBirthday] = useState('');
@@ -64,196 +70,216 @@ const EditCampaignForm = ({
     return (
         <Card border="light" className="bg-white shadow-sm mb-4">
             <Card.Body>
-                <Form>
-                    <Row>
-                        <Col sm={8}>
-                            <h5 className="my-4">General Campaign Information</h5>
-                            <Row>
-                                <Col md={6} className="mb-3">
-                                    <Form.Group controlId="title">
-                                        <Form.Label className="required" aria-required>Campaign Name</Form.Label>
-                                        <Form.Control
-                                            value={inputs.title}
-                                            name="title"
-                                            onChange={onInputChange}
-                                            type="text"
-                                            placeholder="The name or title of your campaign"
-                                            required
-                                            aria-required
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={6} className="mb-3">
-                                    <Form.Group controlId="type">
-                                        <Form.Label>Ad Type</Form.Label>
-                                        <Form.Control
-                                            value={inputs.type}
-                                            name="type"
-                                            onChange={onInputChange}
-                                            as="select"
-                                        >
-                                            {
-                                                adTypeCategories.map((cat, index) => (
-                                                    <option key={index} value={cat}>{cat}</option>
-                                                ))
-                                            }
-                                        </Form.Control>
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md={12} className="mb-3">
-                                    <Form.Group controlId="description">
-                                        <Form.Label>Campaign Description</Form.Label>
-                                        <Form.Control
-                                            value={inputs.description}
-                                            as="textarea"
-                                            required
-                                            type="text"
-                                            name="description"
-                                            onChange={onInputChange}
-                                            placeholder="Add a description of the campaign for future reference..."
-                                            maxLength={1000}
-                                        />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                            {
-                                shouldShowAdvancedFields
-                                && <Row>
+                {
+                    formStage === 1
+                    && <Form>
+                        <Row>
+                            <Col sm={8}>
+                                <h5 className="my-4">General Campaign Information</h5>
+                                <Row>
                                     <Col md={6} className="mb-3">
-                                        <Form.Group controlId="websiteUrl">
-                                            <Form.Label>Website URL (optional)</Form.Label>
+                                        <Form.Group controlId="title">
+                                            <Form.Label className="required" aria-required>Campaign Name</Form.Label>
                                             <Form.Control
-                                                value={inputs.websiteUrl}
-                                                name="websiteUrl"
+                                                value={inputs.title}
+                                                name="title"
                                                 onChange={onInputChange}
+                                                type="text"
+                                                placeholder="The name or title of your campaign"
                                                 required
-                                                type="url"
-                                                placeholder="ex.) https://my-restaurant.com/"
+                                                aria-required
                                             />
                                         </Form.Group>
                                     </Col>
                                     <Col md={6} className="mb-3">
-                                        <Form.Group controlId="orderUrl">
-                                            <Form.Label>Delivery/Pickup URL (optional)</Form.Label>
+                                        <Form.Group controlId="type">
+                                            <Form.Label>Ad Type</Form.Label>
                                             <Form.Control
-                                                value={inputs.orderUrl}
-                                                name="orderUrl"
+                                                value={inputs.type}
+                                                name="type"
                                                 onChange={onInputChange}
+                                                as="select"
+                                            >
+                                                {
+                                                    adTypeCategories.map((cat, index) => (
+                                                        <option key={index} value={cat}>{cat}</option>
+                                                    ))
+                                                }
+                                            </Form.Control>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col md={12} className="mb-3">
+                                        <Form.Group controlId="description">
+                                            <Form.Label>Campaign Description</Form.Label>
+                                            <Form.Control
+                                                value={inputs.description}
+                                                as="textarea"
                                                 required
-                                                type="url"
-                                                placeholder="ex.) https://my-restaurant.com/delivery/"
+                                                type="text"
+                                                name="description"
+                                                onChange={onInputChange}
+                                                placeholder="Add a description of the campaign for future reference..."
+                                                maxLength={1000}
                                             />
                                         </Form.Group>
                                     </Col>
                                 </Row>
-                            }
-                        </Col>
-                        <Col sm={4}>
-                            <h5 className="my-4">Assets (images/media)</h5>
-                            <Col sm={12} className="d-flex align-items-center justify-content-center">
-                                <Dropzone
-                                    dropZoneText={'Click here to upload image(s) for this space or drag and drop files'}
-                                    initialFileUrl={mediaUrl}
-                                    onMediaSelect={onSelectMedia}
-                                />
                             </Col>
-                        </Col>
-                    </Row>
-                    <Row className="align-items-center">
-                        <Col md={6} className="mb-3">
-                            <Form.Group id="scheduleStartAt">
-                                <Form.Label>Campaign Start Date/Time</Form.Label>
-                                <Datetime
-                                    timeFormat={true}
-                                    onChange={(value) => onDateTimeChange('scheduleStartAt', value)}
-                                    renderInput={(props, openCalendar) => (
-                                        <InputGroup>
-                                            <InputGroup.Text><FontAwesomeIcon icon={faCalendarAlt} /></InputGroup.Text>
+                            <Col sm={4}>
+                                <h5 className="my-4">Campaign Schedule</h5>
+                                <Row className="align-items-center">
+                                    <Col md={12} className="mb-3">
+                                        <Form.Group id="scheduleStartAt">
+                                            <Form.Label>Start Date/Time</Form.Label>
+                                            <Datetime
+                                                timeFormat={true}
+                                                onChange={(value) => onDateTimeChange('scheduleStartAt', value)}
+                                                renderInput={(props, openCalendar) => (
+                                                    <InputGroup>
+                                                        <InputGroup.Text><FontAwesomeIcon icon={faCalendarAlt} /></InputGroup.Text>
+                                                        <Form.Control
+                                                            required
+                                                            type="text"
+                                                            value={inputs.scheduleStartAt ? moment(inputs.scheduleStartAt).format('MM/DD/YYYY h:mm A') : ''}
+                                                            placeholder="mm/dd/yyyy"
+                                                            onFocus={() => openCalendar()}
+                                                            onChange={() => null}
+                                                        />
+                                                    </InputGroup>
+                                                )} />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row className="align-items-center">
+                                    <Col md={12} className="mb-3">
+                                        <Form.Group id="scheduleStopAt">
+                                            <Form.Label>End Date/Time</Form.Label>
+                                            <Datetime
+                                                timeFormat={true}
+                                                onChange={(value) => onDateTimeChange('scheduleStopAt', value)}
+                                                renderInput={(props, openCalendar) => (
+                                                    <InputGroup>
+                                                        <InputGroup.Text><FontAwesomeIcon icon={faCalendarAlt} /></InputGroup.Text>
+                                                        <Form.Control
+                                                            required
+                                                            type="text"
+                                                            value={inputs.scheduleStopAt ? moment(inputs.scheduleStopAt).format('MM/DD/YYYY h:mm A') : ''}
+                                                            placeholder="mm/dd/yyyy"
+                                                            onFocus={() => openCalendar()}
+                                                            onChange={() => null}
+                                                        />
+                                                    </InputGroup>
+                                                )} />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <h5 className="my-4">Ad Target Location / Address</h5>
+                            <Col sm={12} className="mb-3">
+                                {/* <Form.Group id="address">
+                                    <Form.Label>Address</Form.Label>
+                                    <InputGroup className="input-group-merge search-bar">
+                                        <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
+                                        <Form.Control required type="text" placeholder="Search an address..." />
+                                    </InputGroup>
+                                </Form.Group> */}
+                                <Form.Group controlId="address">
+                                    <Typeahead
+                                        id="address-search-typeahead"
+                                        options={addressTypeAheadResults.map((result) => ({
+                                            ...result,
+                                            label: result.description || '',
+                                        }))}
+                                        placeholder="Search an address or location..."
+                                        onInputChange={onAddressTypeaheadChange}
+                                        onChange={onAddressTypeAheadSelect}
+                                        selected={inputs.address}
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <div className="mt-3 d-flex justify-content-end">
+                            <Button
+                                variant="primary"
+                                type="submit"
+                                onClick={onSubmit}
+                                onSubmit={onSubmit}
+                                disabled={isSubmitDisabled}
+                            >{hasFormChanged ? 'Save' : 'Next'}</Button>
+                        </div>
+                    </Form>
+                }
+                {
+                    formStage === 2
+                    && <Form>
+                        <Row>
+                            <Col sm={4}>
+                                <h5 className="my-4">Assets (images/media/etc)</h5>
+                                <Col sm={12} className="d-flex align-items-center justify-content-center">
+                                    <Dropzone
+                                        dropZoneText={'Click here to upload image(s) for this space or drag and drop files'}
+                                        initialFileUrl={mediaUrl}
+                                        onMediaSelect={onSelectMedia}
+                                    />
+                                </Col>
+                            </Col>
+                            <Col sm={8}>
+                                <Row>
+                                    <h5 className="my-4">Edit Headlines</h5>
+                                    <Col md={12} className="mb-3">
+                                        <Form.Group controlId="headline1">
+                                            <Form.Label className="required" aria-required>Headline 1</Form.Label>
                                             <Form.Control
-                                                required
+                                                value={inputs.headline1}
+                                                name="headline1"
+                                                onChange={onInputChange}
                                                 type="text"
-                                                value={inputs.scheduleStartAt ? moment(inputs.scheduleStartAt).format('MM/DD/YYYY h:mm A') : ''}
-                                                placeholder="mm/dd/yyyy"
-                                                onFocus={() => openCalendar()}
-                                                onChange={() => null}
+                                                placeholder="A headline for your ad"
+                                                required
+                                                aria-required
+                                                maxLength={160}
                                             />
-                                        </InputGroup>
-                                    )} />
-                            </Form.Group>
-                        </Col>
-                        <Col md={6} className="mb-3">
-                            <Form.Group id="scheduleStopAt">
-                                <Form.Label>Campaign End Date/Time</Form.Label>
-                                <Datetime
-                                    timeFormat={true}
-                                    onChange={(value) => onDateTimeChange('scheduleStopAt', value)}
-                                    renderInput={(props, openCalendar) => (
-                                        <InputGroup>
-                                            <InputGroup.Text><FontAwesomeIcon icon={faCalendarAlt} /></InputGroup.Text>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-3">
+                                        <Form.Group controlId="headline2">
+                                            <Form.Label className="required" aria-required>Headline 2</Form.Label>
                                             <Form.Control
-                                                required
+                                                value={inputs.headline2}
+                                                name="headline2"
+                                                onChange={onInputChange}
                                                 type="text"
-                                                value={inputs.scheduleStopAt ? moment(inputs.scheduleStopAt).format('MM/DD/YYYY h:mm A') : ''}
-                                                placeholder="mm/dd/yyyy"
-                                                onFocus={() => openCalendar()}
-                                                onChange={() => null}
+                                                placeholder="Another headline for your ad"
+                                                required
+                                                aria-required
+                                                maxLength={160}
                                             />
-                                        </InputGroup>
-                                    )} />
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <h5 className="my-4">Ad Target Location / Address</h5>
-                        <Col sm={12} className="mb-3">
-                            {/* <Form.Group id="address">
-                                <Form.Label>Address</Form.Label>
-                                <InputGroup className="input-group-merge search-bar">
-                                    <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
-                                    <Form.Control required type="text" placeholder="Search an address..." />
-                                </InputGroup>
-                            </Form.Group> */}
-                            <Form.Group controlId="address">
-                                <Typeahead
-                                    id="address-search-typeahead"
-                                    options={addressTypeAheadResults.map((result) => ({
-                                        ...result,
-                                        label: result.description || '',
-                                    }))}
-                                    placeholder="Search an address or location..."
-                                    onInputChange={onAddressTypeaheadChange}
-                                    onChange={onAddressTypeAheadSelect}
-                                    selected={inputs.address}
-                                />
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    {/* <Row>
-                        <Col md={6} className="mb-3">
-                            <Form.Group id="email">
-                                <Form.Label>Email</Form.Label>
-                                <Form.Control required type="email" placeholder="name@company.com" />
-                            </Form.Group>
-                        </Col>
-                        <Col md={6} className="mb-3">
-                            <Form.Group id="phone">
-                                <Form.Label>Phone</Form.Label>
-                                <Form.Control required type="string" placeholder="+12-345 678 910" />
-                            </Form.Group>
-                        </Col>
-                    </Row> */}
-                    <div className="mt-3 d-flex justify-content-end">
-                        <Button
-                            variant="primary"
-                            type="submit"
-                            onClick={onSubmit}
-                            onSubmit={onSubmit}
-                            disabled={isSubmitDisabled}
-                        >{submitText}</Button>
-                    </div>
-                </Form>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Col>
+                        </Row>
+                        <div className="mt-3 d-flex justify-content-end">
+                            <Button
+                                variant="secondary"
+                                type="submit"
+                                onClick={goBack}
+                                className="mx-3"
+                            >{'Back'}</Button>
+                            <Button
+                                variant="primary"
+                                type="submit"
+                                onClick={onSubmit}
+                                onSubmit={onSubmit}
+                                disabled={isSubmitDisabled}
+                            >{hasFormChanged ? 'Save' : 'Continue'}</Button>
+                        </div>
+                    </Form>
+                }
             </Card.Body>
         </Card>
     );
