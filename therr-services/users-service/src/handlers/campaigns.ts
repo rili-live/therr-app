@@ -134,6 +134,7 @@ const createCampaign = async (req, res) => {
         }))) : Promise.resolve([]);
 
         return assetsPromise.then((campaignAssets) => {
+            // Fire off request to create integrations (on third party platforms)
             sendCampaignCreatedEmail({
                 subject: '[Urgent Request] User Created a Campaign',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
@@ -228,6 +229,7 @@ const updateCampaign = async (req, res) => {
 
         return Promise.all(assetPromises).then(([newCampaignAssets, updatedCampaignAssets]) => {
             // TODO: Automate and remove notification email
+            // Fire off request to update integrations (on third party platforms)
             sendCampaignCreatedEmail({
                 subject: '[Urgent Request] User Updated a Campaign',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
