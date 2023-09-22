@@ -7,7 +7,6 @@ export const CAMPAIGN_ASSETS_TABLE_NAME = 'main.campaignAssets';
 
 export interface ICreateCampaignAssetParams {
     creatorId: string;
-    campaignId?: string;
     organizationId?: string;
     mediaId?: string;
     spaceId?: string;
@@ -15,15 +14,16 @@ export interface ICreateCampaignAssetParams {
     type: string; // text, image, video, space, etc.
     headline?: string; // if type is text
     longText?: string; // if type is text
+    performance: string; // performance rating (worst, bad, learning, good, best)
 }
 
 export interface IUpdateCampaignAssetParams {
-    campaignId?: string;
     organizationId?: string;
     status?: string;// processing and AI status (accepted, optimized, rejected, etc.)
     type?: string; // text, image, video, etc.
     headline?: string; // if type is text
     longText?: string; // if type is text
+    performance?: string; // performance rating (worst, bad, learning, good, best)
 }
 
 export default class CampaignAssetsStore {
@@ -33,13 +33,16 @@ export default class CampaignAssetsStore {
         this.db = dbConnection;
     }
 
-    get(conditions: { userId?: string, organizationId?: string }) {
-        const queryString = knexBuilder.select()
+    get(conditions: { id?: string, userId?: string, organizationId?: string }, ids?: string[]) {
+        let queryString = knexBuilder.select()
             .from(CAMPAIGN_ASSETS_TABLE_NAME)
-            .where(conditions)
-            .toString();
+            .where(conditions);
 
-        return this.db.read.query(queryString).then((response) => response.rows);
+        if (ids) {
+            queryString = queryString.whereIn('id', ids);
+        }
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
     getById(id: string) {

@@ -62,14 +62,14 @@ export interface ICampaign {
   updatedAt: Date;
 }
 
-interface ICampaignAsset {
-  id: string;
-  status: string;
-  type: string;
-  performance: string; // worst, bad, good, best
+export interface ICampaignAsset {
+  id?: string;
+  creatorId?: string;
+  organizationId?: string;
   mediaId?: string;
-  text?: string; // headlines, descriptions, etc.
-  clicks: string; // big int
-  impressions: string; // big int
-  ctr: number; // percentage
+  spaceId?: string;
+  status?: string;// processing and AI status (accepted, optimized, rejected, etc.)
+  type: string; // text, image, video, space, etc.
+  headline?: string; // if type is text
+  longText?: string; // if type is text
 }
