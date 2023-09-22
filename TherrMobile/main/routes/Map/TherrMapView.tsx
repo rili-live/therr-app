@@ -27,6 +27,7 @@ import {
     SECONDARY_LONGITUDE_DELTA,
     MAX_ANIMATION_LATITUDE_DELTA,
     MAX_ANIMATION_LONGITUDE_DELTA,
+    MAX_DISTANCE_TO_NEARBY_SPACE,
 } from '../../constants';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildBottomSheetStyles } from '../../styles/bottom-sheet';
@@ -128,7 +129,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewState> {
+class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapViewState> {
     static getDerivedStateFromProps(nextProps: ITherrMapViewProps, nextState: ITherrMapViewState) {
         if (nextProps.areMapActionsVisible && nextState.isPreviewBottomSheetVisible) {
             return {
@@ -465,6 +466,9 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
     togglePreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }, pressedAreaId?: any) => {
         const { content, location } = this.props;
         const { areasInPreview, isPreviewBottomSheetVisible } = this.state;
+        // Reset to zero to review marker highlight
+        this.removeAnimation();
+        this.addAnimationListener();
 
         if ((isPreviewBottomSheetVisible && pressedAreaId) || !isLatLon({
             lon: pressedCoords.longitude,
@@ -508,11 +512,10 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
             let featuredAreas: any[] = [];
             let missingMediaIds: any[] = [];
 
-            // TODO: Only select spaces within distance of the current map view?
             sortedAreasWithDistance.some((area: any, index: number) => {
                 // Prevent loading spaces from too far away to be relevant
-                // Stop after 200 miles
-                if (index >= 10 && area.distanceFromUser && area.distanceFromUser > 200) {
+                // Stop after 100 miles
+                if (index >= 10 && area.distanceFromUser && area.distanceFromUser > 100) {
                     return true;
                 }
 
@@ -526,7 +529,11 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
 
                 if (pressedAreaId && area.id === pressedAreaId) {
                     pressedAreas.push(area);
-                } else if (area.featuredIncentiveRewardKey) {
+                } else if (pressedAreas.length < 1 && (area.distanceFromPress / 1609.34) < MAX_DISTANCE_TO_NEARBY_SPACE) {
+                    // Prioritize area over featured when approximate press/click or search specific area by name
+                    pressedAreas.push(area);
+                } else if (area.featuredIncentiveRewardKey && featuredAreas.length < 2) {
+                    // TODO: Prioritize top 2 with highest rewards nearby
                     featuredAreas.push(area);
                 } else {
                     areasArray.push(area);
@@ -547,9 +554,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
             }
         } else {
             this.props.onPreviewBottomSheetClose();
-            // Reset to zero to review marker highlight
             this.removeAnimation();
-            this.addAnimationListener();
         }
 
         this.setState({
@@ -793,6 +798,8 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
             shouldRenderMapCircles,
         } = this.props;
         const { areasInPreview, isPreviewBottomSheetVisible, isMapReady } = this.state;
+        const filteredMomentValues = Object.values(filteredMoments);
+        const filteredSpaceValues = Object.values(filteredSpaces);
 
         return (
             <>
@@ -841,7 +848,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                         />
                     }
                     {
-                        isMapReady && Object.values(filteredMoments).map((moment: any) => {
+                        isMapReady && filteredMomentValues.map((moment: any) => {
                             return (
                                 <Marker
                                     anchor={{
@@ -865,7 +872,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                         })
                     }
                     {
-                        !areasInPreview?.length && Object.values(filteredSpaces).map((space: any) => {
+                        !areasInPreview?.length && filteredSpaceValues.map((space: any) => {
                             return (
                                 <Marker
                                     anchor={{
@@ -957,7 +964,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                         })
                     }
                     {
-                        isMapReady && shouldRenderMapCircles && Object.values(filteredMoments).map((moment: any) => {
+                        isMapReady && shouldRenderMapCircles && filteredMomentValues.map((moment: any) => {
                             return (
                                 <Circle
                                     key={moment.id}
@@ -975,7 +982,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                         })
                     }
                     {
-                        isMapReady && shouldRenderMapCircles && Object.values(filteredSpaces).map((space: any) => {
+                        isMapReady && shouldRenderMapCircles && filteredSpaceValues.map((space: any) => {
                             return (
                                 <Circle
                                     key={space.id}
@@ -1000,7 +1007,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                     }]}>
                         <Animated.ScrollView
                             horizontal
-                            scrollEventThrottle={20}
+                            scrollEventThrottle={40}
                             showsHorizontalScrollIndicator={false}
                             snapToInterval={CARD_WIDTH}
                             onScroll={Animated.event(

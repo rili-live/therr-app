@@ -129,7 +129,7 @@ routeConfig.forEach((config) => {
             // https://github.com/yahoo/serialize-javascript ?
             const state = serialize(initialState, {
                 isJSON: true,
-            }).replace(/</g, '\\u003c').replace(/\\n/g, '\\u0085').replace(/\\r/g, '\\u000D');
+            }).replace(/</g, '\\u003c').replace(/\\n/g, ' ').replace(/\\r/g, ' ');
 
             if (staticContext.url) {
                 printLogs({

@@ -172,6 +172,13 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 type="outline"
                 onPress={onPress}
                 raised={false}
+                icon={
+                    <TherrIcon
+                        name={item.icon}
+                        size={16}
+                        style={[themeForms.styles.buttonIconAltSmall,spacingStyles.marginLtNone ]}
+                    />
+                }
             />
         );
     };
@@ -276,6 +283,11 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 title: translate('pages.viewSpace.actionLinks.order'),
             },
             {
+                url: area.phoneNumber,
+                icon: 'phone',
+                title: translate('pages.viewSpace.actionLinks.phone'),
+            },
+            {
                 url: area.reservationUrl,
                 icon: 'calendar',
                 title: translate('pages.viewSpace.actionLinks.reserve'),
@@ -341,15 +353,13 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 </View>
                 {
                     isExpanded && actionLinks.length > 0
-                    && <View style={{ width: '100%', height: 50 }}>
-                        <FlatList
-                            horizontal
-                            data={actionLinks}
-                            renderItem={this.renderActionLink}
-                            keyExtractor={item => item.url}
-                            contentContainerStyle={{}}
-                        />
-                    </View>
+                    && <FlatList
+                        horizontal
+                        data={actionLinks}
+                        renderItem={this.renderActionLink}
+                        keyExtractor={item => item.url}
+                        contentContainerStyle={{ width: '100%' }}
+                    />
                 }
                 <PresssableWithDoubleTap
                     style={{}}

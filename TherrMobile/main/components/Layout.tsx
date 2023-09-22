@@ -494,7 +494,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const { user } = this.props;
         const urlSplit = url?.split('?') || [];
         const viewMomentRegex = RegExp('moments/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/view', 'i');
-        const viewSpaceRegex = RegExp('spaces/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/view', 'i');
+        const viewMomentFromDesktopRegex = RegExp('moments/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
+        const viewSpaceRegex = RegExp('spaces/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/view', 'i');
+        const viewSpaceFromDesktopRegex = RegExp('spaces/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
 
         // Route for 3rd party OAuth (Facebook, Instagram, etc.)
         if (url?.includes('https://therr.com/?access_token=')) {
@@ -528,10 +530,24 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }
             }
-        } else if (url?.match(viewMomentRegex)) {
-            // TODO: Link to view moment
-        } else if (url?.match(viewSpaceRegex)) {
-            // TODO: Link to view space
+        } else if (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex)) {
+            const momentId = (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex))[1];
+            if (momentId) {
+                RootNavigation.navigate('ViewMoment', {
+                    moment: {
+                        id: momentId,
+                    },
+                });
+            }
+        } else if (url?.match(viewSpaceRegex) || url?.match(viewSpaceFromDesktopRegex)) {
+            const spaceId = (url?.match(viewSpaceRegex) || url?.match(viewSpaceFromDesktopRegex))[1];
+            if (spaceId) {
+                RootNavigation.navigate('ViewSpace', {
+                    space: {
+                        id: spaceId,
+                    },
+                });
+            }
         } else if (Platform.OS !== 'ios') {
             // IOS will use the notifee foreground listener instead
             this.handleOpenByNotifeeNotification();
