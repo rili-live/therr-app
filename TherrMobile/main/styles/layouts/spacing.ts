@@ -27,7 +27,8 @@ const styles = StyleSheet.create({
         height: 20,
     },
     heightMd: {
-        height: 34,
+        height: 38,
+        lineHeight: 38,
     },
     heightLg: {
         height: 100,
@@ -107,6 +108,9 @@ const styles = StyleSheet.create({
     },
     marginRtLg: {
         marginRight: large,
+    },
+    marginLtNone: {
+        marginLeft: 0,
     },
     marginLtSm: {
         marginLeft: small,

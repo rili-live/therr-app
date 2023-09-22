@@ -822,6 +822,7 @@
         "website": "Website",
         "menu": "Menu",
         "order": "Order",
+        "phone": "Call",
         "reserve": "Reserve"
       },
       "buttons": {

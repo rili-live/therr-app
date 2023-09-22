@@ -110,6 +110,12 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                     {space?.notificationMsg}
                                 </h1>
                                 {
+                                    space?.addressReadable
+                                        && <h2 className="text-title-small no-bot-margin fill">
+                                            {space?.addressReadable}
+                                        </h2>
+                                }
+                                {
                                     space?.websiteUrl
                                         && <h3 className="text-title-small no-bot-margin fill">
                                             <a href={space?.websiteUrl} target="_blank">Website</a>

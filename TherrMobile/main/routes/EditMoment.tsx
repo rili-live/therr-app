@@ -96,6 +96,7 @@ export interface IEditMomentProps extends IStoreProps {
 }
 
 interface IEditMomentState {
+    areaId?: string;
     errorMsg: string;
     hashtags: string[];
     isImageBottomSheetVisible: boolean;
@@ -146,10 +147,12 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         const initialMediaId = area?.mediaIds?.split(',')[0] || undefined;
 
         this.state = {
+            areaId: area?.id,
             errorMsg: '',
             hashtags: area?.hashTags ? area?.hashTags?.split(',') : [],
             inputs: {
                 isDraft: false,
+                isPublic: area?.isPublic == null ? true : area?.isPublic,
                 radius: area?.radius || DEFAULT_RADIUS,
                 category: area?.category || '',
                 message: area?.message || '',
@@ -304,7 +307,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         shouldSkipNavigate = false,
         shouldSkipDraftToast = false,
     }) => {
-        const { hashtags, nearbySpaces, selectedImage } = this.state;
+        const { areaId, hashtags, nearbySpaces, selectedImage } = this.state;
         const {
             category,
             message,
@@ -360,8 +363,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             // Note do not save image on 'create draft' otherwise we end up with duplicate images when finalizing draft
             // This is not the BEST user experience but prevents a lot of potential waste
             ((selectedImage?.path) ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
-                const createOrUpdatePromise = route.params.area?.id
-                    ? this.props.updateMoment(route.params.area.id, modifiedCreateArgs, !isDraft) // isCompletedDraft (when id and saving finalized)
+                const createOrUpdatePromise = areaId
+                    ? this.props.updateMoment(areaId, modifiedCreateArgs, !isDraft) // isCompletedDraft (when id and saving finalized)
                     : this.props.createMoment(modifiedCreateArgs);
 
                 if (spaceId && rating !== null) {
@@ -446,6 +449,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             }, 250);
                         } else {
                             this.setState({
+                                areaId: response.id, // so subsequent saves do not create a new area
                                 isSubmitting: false,
                             });
                         }
