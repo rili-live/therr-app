@@ -263,8 +263,8 @@ const getSpaceDetails = (req, res) => {
             }
             let userHasAccessPromise = () => Promise.resolve(true);
             // Verify that user has activated space and has access to view it
-            // TODO: Verify space exists
             if (userId && space?.fromUserId !== userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+                // TODO: Check if user is part of organization and has access to view
                 userHasAccessPromise = () => getReactions('space', spaceId, {
                     'x-userid': userId,
                 });

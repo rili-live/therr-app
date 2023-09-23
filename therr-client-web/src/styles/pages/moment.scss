@@ -1,0 +1,30 @@
+$profileImgWidth: rem-calc(100px);
+
+#page_view_moment {
+    .store-image-links {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        flex-wrap: wrap;
+    }
+
+    .moment-image-container {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+
+        .moment-image {
+            width: 100%;
+            height: 100%;
+            border-radius: rem-calc(16px);
+        }
+    }
+}
+
+@media only screen and (min-width: $screen-small) {
+    
+}

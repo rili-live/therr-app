@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as countryGeo from 'country-reverse-geocoding';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import {
+    AccessLevels,
     Content,
     ErrorCodes,
     IncentiveRequirementKeys,
@@ -495,6 +496,8 @@ const updateMoment = (req, res) => {
 const getMomentDetails = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
+    const userAccessLevels = req.headers['x-user-access-levels'];
+    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
 
     const { momentId } = req.params;
 
@@ -516,13 +519,32 @@ const getMomentDetails = (req, res) => {
         .then(({ moments, media, users }) => {
             const moment = moments[0];
             let userHasAccessPromise = () => Promise.resolve(true);
-            const isOwnMoment = userId === moment.fromUserId;
+            const isOwnMoment = userId === moment?.fromUserId;
+
+            if (!moment) {
+                return handleHttpError({
+                    res,
+                    message: 'Moment not found',
+                    statusCode: 404,
+                });
+            }
 
             // TODO: Verify moment exists
             if (!isOwnMoment) {
-                userHasAccessPromise = () => getReactions('moment', momentId, {
-                    'x-userid': userId,
-                });
+                userHasAccessPromise = () => {
+                    if (moment.isPublic) {
+                        return Promise.resolve(true);
+                    }
+
+                    // Private moments require a reactions/activation
+                    if (!accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+                        return getReactions('moment', momentId, {
+                            'x-userid': userId,
+                        });
+                    }
+
+                    return Promise.resolve(false);
+                };
 
                 userMetricsService.uploadMetric({
                     name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${moment.category || 'uncategorized'}` as MetricNames,

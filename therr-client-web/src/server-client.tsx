@@ -147,11 +147,51 @@ routeConfig.forEach((config) => {
                 res.end();
             } else {
                 ReactGA.send({ hitType: 'pageview', page: req.path, title });
+
+                if (routeView === 'moments') {
+                    // TODO: Mimic existing best SEO practices for a location page
+                    const momentId = req.params?.momentId;
+                    const content = initialState?.content || {};
+                    const moment = initialState?.map?.moments[momentId];
+                    const momentTitle = moment ? moment?.notificationMsg : title;
+                    const momentDescription = (moment?.message || description).replace(/\\n/g, ' ')
+                        .replace(/\\r/g, ' ').substring(0, 300);
+                    const authorName = moment?.fromUserFirstName && moment?.fromUserLastName ? `${moment?.fromUserFirstName} ${moment?.fromUserLastName}` : '';
+
+                    let metaImgUrl;
+
+                    // TODO: Use an image optimized for meta image
+                    if (moment?.media?.length > 0 && content?.media[moment.media[0].id]) {
+                        const url = content.media[moment.media[0].id];
+                        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
+                            metaImgUrl = content.media[moment.media[0].id];
+                        }
+                    }
+
+                    return res.render(routeView, {
+                        title: momentTitle,
+                        description: momentDescription,
+                        datePublished: moment.createdAt,
+                        authorName,
+                        metaImgUrl,
+                        markup,
+                        requestPath: req.path,
+                        routePath,
+                        state,
+                    });
+                }
+
                 if (routeView === 'spaces') {
                     // TODO: Mimic existing best SEO practices for a location page
                     const spaceId = req.params?.spaceId;
+                    const momentId = req.params?.momentId;
+                    const content = initialState?.content || {};
+                    const moment = initialState?.map?.moments[momentId];
                     const space = initialState?.map?.spaces[spaceId];
+                    const momentTitle = moment ? moment?.notificationMsg : title;
                     const spaceTitle = space ? space?.notificationMsg : title;
+                    const momentDescription = (moment?.message || description).replace(/\\n/g, ' ')
+                        .replace(/\\r/g, ' ').substring(0, 300);
                     const spaceDescription = (space?.message || description).replace(/\\n/g, ' ')
                         .replace(/\\r/g, ' ').substring(0, 300);
                     const spacePhoneNumber = space?.phoneNumber || '';
@@ -160,9 +200,26 @@ routeConfig.forEach((config) => {
                     const spaceAddressRegion = space?.addressRegion || '';
                     const spaceAddressStreet = space?.addressStreetAddress || '';
                     const spacePostalCode = space?.postalCode || '';
+
+                    let metaImgUrl;
+
+                    // TODO: Use an image optimized for meta image
+                    if (space?.media?.length > 0 && content?.media[space.media[0].id]) {
+                        const url = content.media[space.media[0].id];
+                        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
+                            metaImgUrl = content.media[space.media[0].id];
+                        }
+                    } else if (moment?.media?.length > 0 && content?.media[moment.media[0].id]) {
+                        const url = content.media[moment.media[0].id];
+                        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
+                            metaImgUrl = content.media[moment.media[0].id];
+                        }
+                    }
+
                     return res.render(routeView, {
-                        title: spaceTitle,
-                        description: spaceDescription,
+                        title: spaceTitle || momentTitle,
+                        description: spaceDescription || momentDescription,
+                        metaImgUrl,
                         spaceCountry,
                         spacePhoneNumber,
                         spaceAddressLocality,
@@ -175,6 +232,7 @@ routeConfig.forEach((config) => {
                         state,
                     });
                 }
+
                 return res.render(routeView, {
                     title,
                     description,

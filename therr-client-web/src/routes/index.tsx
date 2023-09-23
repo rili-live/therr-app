@@ -19,6 +19,7 @@ import UserProfile from './UserProfile';
 import ChangePassword from './ChangePassword';
 import Discovered from './Discovered';
 import UnderConstruction from './UnderConstruction';
+import ViewMoment from './ViewMoment';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -130,6 +131,14 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             })}
             redirectPath={'/create-profile'}
         />,
+    },
+    {
+        path: '/moments/:momentId',
+        element: <ViewMoment />,
+        fetchData: (dispatch: any, params: any) => MapActions.getMomentDetails(params.momentId, {
+            withMedia: true,
+            withUser: true,
+        })(dispatch),
     },
     {
         path: '/spaces/:spaceId',
