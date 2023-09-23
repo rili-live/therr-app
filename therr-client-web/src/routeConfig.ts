@@ -41,6 +41,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/moments/:momentId',
+        head: {
+            title: 'Moment not Found',
+            description: 'No moment was found for the given ID.',
+        },
+        view: 'moments',
+    },
+    {
         route: '/spaces/:spaceId',
         head: {
             title: 'Space not Found',

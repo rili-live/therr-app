@@ -62,7 +62,7 @@ mapsServiceRouter.get('/moments/integrated/:userId', validate, handleServiceRequ
     method: 'get',
 }));
 
-mapsServiceRouter.post('/moments/:momentId/details', getMomentDetailsValidation, validate, async (req, res, next) => {
+mapsServiceRouter.post('/moments/:momentId/details', authenticateOptional, getMomentDetailsValidation, validate, async (req, res, next) => {
     const momentDetails = await CacheStore.mapsService.getAreaDetails('moments', req.params.momentId);
 
     if (momentDetails) {
