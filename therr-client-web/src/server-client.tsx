@@ -171,7 +171,7 @@ routeConfig.forEach((config) => {
                     return res.render(routeView, {
                         title: momentTitle,
                         description: momentDescription,
-                        datePublished: moment.createdAt,
+                        datePublished: moment?.createdAt,
                         authorName,
                         metaImgUrl,
                         markup,
