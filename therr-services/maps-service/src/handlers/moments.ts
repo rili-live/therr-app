@@ -536,42 +536,44 @@ const getMomentDetails = (req, res) => {
                     }
 
                     // Private moments require a reactions/activation
-                    if (!accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+                    if (userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
                         return getReactions('moment', momentId, {
-                            'x-userid': userId,
+                            'x-userid': userId || undefined,
                         });
                     }
 
                     return Promise.resolve(false);
                 };
 
-                userMetricsService.uploadMetric({
-                    name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${moment.category || 'uncategorized'}` as MetricNames,
-                    value: '1',
-                    valueType: MetricValueTypes.NUMBER,
-                    userId,
-                }, {
-                    momentId: moment.id,
-                    isMatureContent: moment.isMatureContent,
-                    isPublic: moment.isPublic,
-                }, {
-                    contentUserId: moment.fromUserId,
-                    authorization: req.headers.authorization,
-                    userId,
-                    locale,
-                }).catch((err) => {
-                    logSpan({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['failed to upload user metric'],
-                        traceArgs: {
-                            'error.message': err?.message,
-                            'error.response': err?.response?.data,
-                            'user.id': userId,
-                            'moment.id': moment.id,
-                        },
+                if (userId) {
+                    userMetricsService.uploadMetric({
+                        name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${moment.category || 'uncategorized'}` as MetricNames,
+                        value: '1',
+                        valueType: MetricValueTypes.NUMBER,
+                        userId,
+                    }, {
+                        momentId: moment.id,
+                        isMatureContent: moment.isMatureContent,
+                        isPublic: moment.isPublic,
+                    }, {
+                        contentUserId: moment.fromUserId,
+                        authorization: req.headers.authorization,
+                        userId,
+                        locale,
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['failed to upload user metric'],
+                            traceArgs: {
+                                'error.message': err?.message,
+                                'error.response': err?.response?.data,
+                                'user.id': userId,
+                                'moment.id': moment.id,
+                            },
+                        });
                     });
-                });
+                }
             }
 
             // Verify that user has activated moment and has access to view it
