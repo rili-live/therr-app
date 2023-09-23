@@ -44,6 +44,8 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
             replaceInFile(fileToUpdate, cssFileName);
             const fileToUpdate2 = path.join(__dirname, 'src/views/spaces.hbs');
             replaceInFile(fileToUpdate2, cssFileName);
+            const fileToUpdate3 = path.join(__dirname, 'src/views/moments.hbs');
+            replaceInFile(fileToUpdate3, cssFileName);
         }
     });
 });
