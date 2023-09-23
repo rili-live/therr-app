@@ -31,19 +31,16 @@
 
     <script type="application/ld+json">
         {
-            "@context": "https://schema.org",
-            "@type": "Restaurant",
-            "name": "{{title}}",
-            "image": "",
-            "priceRange": "",
-            "telephone": "{{spacePhoneNumber}}",
-            "address": {
-                "streetAddress": "{{spaceAddressStreet}}",
-                "addressLocality": "{{spaceAddressLocality}}",
-                "addressCountry": "{{spaceCountry}}",
-                "addressRegion": "{{spaceAddressRegion}}",
-                "postalCode": "{{spacePostalCode}}"
-            }
+            "@context":"https://schema.org",
+            "@type":"SocialMediaPosting",
+            "@id":"https://www.therr.com{{requestPath}}",
+            "datePublished":"{{datePublished}}",
+            "author":{
+                "@type":"Person",
+                "name":"{{authorName}}",
+                "url":""
+            },
+            "headline":"{{title}}"
         }
     </script>
 

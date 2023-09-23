@@ -29,7 +29,7 @@ const RootComponent = () => (
     </Provider>
 );
 
-LogRocket.init('pibaqj/therr-web-app');
+LogRocket.init('pibaqj/business-dashboard-web-app');
 // after calling LogRocket.init()
 setupLogRocketReact(LogRocket);
 if (process.env.NODE_ENV === 'development') {
