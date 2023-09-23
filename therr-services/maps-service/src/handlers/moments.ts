@@ -529,7 +529,6 @@ const getMomentDetails = (req, res) => {
                 });
             }
 
-            // TODO: Verify moment exists
             if (!isOwnMoment) {
                 userHasAccessPromise = () => {
                     if (moment.isPublic) {
