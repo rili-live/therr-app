@@ -311,7 +311,6 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeAheadSelect={this.onAddressTypeAheadSelect}
                             onInputChange={this.onInputChange}
-                            onSelectMedia={this.onSelectMedia}
                             onSubmit={this.onSubmitSpaceClaim}
                             submitText='Claim this Space'
                         />

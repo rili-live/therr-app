@@ -1,4 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
+import { CampaignAssetTypes } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
@@ -8,10 +9,12 @@ export const CAMPAIGN_ASSETS_TABLE_NAME = 'main.campaignAssets';
 export interface ICreateCampaignAssetParams {
     creatorId: string;
     organizationId?: string;
-    mediaId?: string;
+    media?: {
+        [key: string]: any;
+    };
     spaceId?: string;
     status?: string;// processing and AI status (accepted, optimized, rejected, etc.)
-    type: string; // text, image, video, space, etc.
+    type: CampaignAssetTypes; // text, image, video, space, etc.
     headline?: string; // if type is text
     longText?: string; // if type is text
     performance: string; // performance rating (worst, bad, learning, good, best)
@@ -20,7 +23,7 @@ export interface ICreateCampaignAssetParams {
 export interface IUpdateCampaignAssetParams {
     organizationId?: string;
     status?: string;// processing and AI status (accepted, optimized, rejected, etc.)
-    type?: string; // text, image, video, etc.
+    type?: CampaignAssetTypes; // text, image, video, etc.
     headline?: string; // if type is text
     longText?: string; // if type is text
     performance?: string; // performance rating (worst, bad, learning, good, best)
@@ -55,7 +58,11 @@ export default class CampaignAssetsStore {
     }
 
     create(paramsList: ICreateCampaignAssetParams[]) {
-        const queryString = knexBuilder.insert(paramsList)
+        const modifiedParamsList = paramsList.map((params) => ({
+            ...params,
+            media: params.media ? JSON.stringify(params.media) : JSON.stringify({}),
+        }));
+        const queryString = knexBuilder.insert(modifiedParamsList)
             .into(CAMPAIGN_ASSETS_TABLE_NAME)
             .returning('*')
             .toString();

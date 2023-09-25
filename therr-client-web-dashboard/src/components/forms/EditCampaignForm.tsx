@@ -9,6 +9,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import moment, { Moment } from 'moment';
 import Dropzone from './Dropzone';
+import { ICampaignAsset } from '../../types';
+import getUserContentUri from '../../utilities/getUserContentUri';
 
 const adTypeCategories = [
     'local',
@@ -37,9 +39,12 @@ interface IEditCampaignFormProps {
         reservationUrl?: string;
         headline1: string;
         headline2: string;
+        longText1: string;
+        longText2: string;
     }
     isSubmitDisabled: boolean;
     mediaUrl?: string;
+    mediaAssets: ICampaignAsset[] ;
     onAddressTypeaheadChange: (text: string, event: React.ChangeEvent<HTMLInputElement>) => void,
     onAddressTypeAheadSelect: (selected: Option[]) => void;
     onInputChange: React.ChangeEventHandler<HTMLInputElement>;
@@ -54,6 +59,7 @@ const EditCampaignForm = ({
     formStage,
     goBack,
     mediaUrl,
+    mediaAssets,
     hasFormChanged,
     inputs,
     isSubmitDisabled,
@@ -219,13 +225,30 @@ const EditCampaignForm = ({
                         <Row>
                             <Col sm={4}>
                                 <h5 className="my-4">Assets (images/media/etc)</h5>
-                                <Col sm={12} className="d-flex align-items-center justify-content-center">
-                                    <Dropzone
-                                        dropZoneText={'Click here to upload image(s) for this space or drag and drop files'}
-                                        initialFileUrl={mediaUrl}
-                                        onMediaSelect={onSelectMedia}
-                                    />
-                                </Col>
+                                <Row>
+                                    <Col sm={12} className="d-flex align-items-center justify-content-center">
+                                        <Dropzone
+                                            dropZoneText={'Click here to upload image(s) for this campaign or drag and drop files'}
+                                            initialFileUrl={mediaUrl}
+                                            onMediaSelect={onSelectMedia}
+                                            multiple
+                                            disabled={mediaAssets.length > 4}
+                                        />
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col sm={12} className="d-flex align-items-center justify-content-center">
+                                        <Row>
+                                            {
+                                                mediaAssets.map((asset) => (
+                                                    <Col key={asset.id} xs="6" sm="12" md="6" className="my-2">
+                                                        <img src={getUserContentUri(asset.media)} className="rounded" alt="" />
+                                                    </Col>
+                                                ))
+                                            }
+                                        </Row>
+                                    </Col>
+                                </Row>
                             </Col>
                             <Col sm={8}>
                                 <Row>
@@ -256,7 +279,39 @@ const EditCampaignForm = ({
                                                 placeholder="Another headline for your ad"
                                                 required
                                                 aria-required
-                                                maxLength={160}
+                                                maxLength={40}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-3">
+                                        <Form.Group controlId="longText1">
+                                            <Form.Label className="required" aria-required>Description 1</Form.Label>
+                                            <Form.Control
+                                                as="textarea"
+                                                value={inputs.longText1}
+                                                name="longText1"
+                                                onChange={onInputChange}
+                                                type="text"
+                                                placeholder="A description with more details"
+                                                required
+                                                aria-required
+                                                maxLength={100}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-3">
+                                        <Form.Group controlId="longText2">
+                                            <Form.Label className="required" aria-required>Description 2 (optional)</Form.Label>
+                                            <Form.Control
+                                                as="textarea"
+                                                value={inputs.longText2}
+                                                name="longText2"
+                                                onChange={onInputChange}
+                                                type="text"
+                                                placeholder="An alternate description"
+                                                required
+                                                aria-required
+                                                maxLength={100}
                                             />
                                         </Form.Group>
                                     </Col>

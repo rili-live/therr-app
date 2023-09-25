@@ -86,6 +86,7 @@ export class BaseCampaignsOverviewComponent extends React.Component<IBaseCampaig
         searchMyCampaigns({
             itemsPerPage: 50,
             pageNumber: 1,
+            order: 'desc',
         }).then((data) => {
             this.setState({
                 campaignsInView: data.results,
