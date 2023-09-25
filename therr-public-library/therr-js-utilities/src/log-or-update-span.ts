@@ -37,6 +37,13 @@ const logOrUpdateSpan = ({
         const includeTime = time !== 0;
         const currentTime = includeTime ? `<at:${time || new Date()}>` : '';
         const messageList = Array.isArray(messages) ? messages : [messages];
+        if (traceArgs['error.message']) {
+            if (messageOrigin) {
+                console.error(`${messageOrigin}${currentTime}:`, traceArgs['error.message']); // eslint-disable-line no-console
+            } else {
+                console.error(`LOG${currentTime}:`, traceArgs['error.message']); // eslint-disable-line no-console
+            }
+        }
         for (let i = 0; i < messageList.length; i += 1) {
             if (messageOrigin) {
                 console.info(`${messageOrigin}${currentTime}:`, messageList[i]); // eslint-disable-line no-console

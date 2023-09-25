@@ -36,7 +36,7 @@ interface IEditSpaceFormProps {
     onAddressTypeAheadSelect: (selected: Option[]) => void;
     onInputChange: React.ChangeEventHandler<HTMLInputElement>;
     onSubmit: (event: React.MouseEvent<HTMLInputElement>) => void;
-    onSelectMedia: (files: any[]) => any;
+    onSelectMedia?: (files: any[]) => any;
     submitText: string;
     shouldShowAdvancedFields?: boolean;
 }
@@ -86,17 +86,20 @@ const EditSpaceForm = ({
                         </Col>
                     </Row>
                     <Row>
-                        <Col sm={4}>
-                            <h5 className="my-4">Images</h5>
-                            <Col sm={12} className="d-flex align-items-center justify-content-center">
-                                <Dropzone
-                                    dropZoneText={'Click here to upload image(s) for this space or drag and drop files'}
-                                    initialFileUrl={mediaUrl}
-                                    onMediaSelect={onSelectMedia}
-                                />
+                        {
+                            onSelectMedia
+                            && <Col sm={4}>
+                                <h5 className="my-4">Images</h5>
+                                <Col sm={12} className="d-flex align-items-center justify-content-center">
+                                    <Dropzone
+                                        dropZoneText={'Click here to upload image(s) for this space or drag and drop files'}
+                                        initialFileUrl={mediaUrl}
+                                        onMediaSelect={onSelectMedia}
+                                    />
+                                </Col>
                             </Col>
-                        </Col>
-                        <Col sm={8}>
+                        }
+                        <Col sm={onSelectMedia ? 8 : 12}>
                             <h5 className="my-4">General Information</h5>
                             <Row>
                                 <Col md={6} className="mb-3">

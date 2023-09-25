@@ -36,7 +36,7 @@ const fileToBuffer = (file) => new Promise((resolve, reject) => {
     reader.readAsArrayBuffer(file);
 });
 
-const signAndUploadImage = (createArgs: any, files: any[]) => {
+const signAndUploadImage = (createArgs: any, files: any[], directory = 'content/') => {
     const modifiedCreateArgs = { ...createArgs };
     const firstFile = files[0];
     const fileNameSplit = firstFile?.name?.split('.');
@@ -44,7 +44,7 @@ const signAndUploadImage = (createArgs: any, files: any[]) => {
 
     return signImageUrl(createArgs.isPublic, {
         action: 'write',
-        filename: `content/${fileNameSplit[0].replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
+        filename: `${directory}${fileNameSplit[0].replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
         overrideFromUserId: modifiedCreateArgs.overrideFromUserId,
     }).then((response) => {
         const signedUrl = response?.data?.url && response?.data?.url[0];
@@ -52,7 +52,6 @@ const signAndUploadImage = (createArgs: any, files: any[]) => {
         modifiedCreateArgs.media[0].type = createArgs.isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
         modifiedCreateArgs.media[0].path = response?.data?.path;
 
-        // TODO: Upload the file to Google Cloud
         return fileToBuffer(firstFile).then((buffer: string) => fetch(
             signedUrl,
             {

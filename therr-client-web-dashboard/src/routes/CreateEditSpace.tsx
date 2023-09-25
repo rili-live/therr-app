@@ -300,7 +300,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
             if (routeParams.context === 'admin') {
                 createUpdateArgs.overrideFromUserId = spaceInView.fromUserId;
             }
-            (files.length > 0 ? signAndUploadImage(createUpdateArgs, files) : Promise.resolve(createUpdateArgs)).then((modifiedArgs) => {
+            (files.length > 0 ? signAndUploadImage(createUpdateArgs, files, 'content/') : Promise.resolve(createUpdateArgs)).then((modifiedArgs) => {
                 updateSpace(spaceInView.id, modifiedArgs).then(() => {
                     this.setState({
                         alertTitle: 'Successfully Updated!',

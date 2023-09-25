@@ -13,6 +13,13 @@
             font-weight:$font-weight-bold;
         }
     }
+    &.disabled {
+        cursor: no-drop;
+
+        p {
+            color: #b9b9b9;
+        }
+    }
 }
 
 .dropzone-files {

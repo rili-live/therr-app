@@ -130,7 +130,7 @@ export default class CampaignsStore {
         //     queryString = queryString.andWhere(conditions.filterBy, operator, query);
         // }
 
-        queryString = queryString.orderBy(`${CAMPAIGNS_TABLE_NAME}.updatedAt`, conditions.order || 'asc');
+        queryString = queryString.orderBy(`${CAMPAIGNS_TABLE_NAME}.updatedAt`, conditions.order || 'desc');
 
         queryString = queryString
             .limit(limit)

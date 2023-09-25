@@ -66,7 +66,9 @@ export interface ICampaignAsset {
   id?: string;
   creatorId?: string;
   organizationId?: string;
-  mediaId?: string;
+  media?: {
+    path: string;
+  };
   spaceId?: string;
   status?: string;// processing and AI status (accepted, optimized, rejected, etc.)
   type: string; // text, image, video, space, etc.
