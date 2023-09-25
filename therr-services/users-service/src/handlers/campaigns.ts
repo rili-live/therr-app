@@ -4,7 +4,6 @@ import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/htt
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
-import userMetricsService from '../api/userMetricsService';
 import sendCampaignCreatedEmail from '../api/email/admin/sendCampaignCreatedEmail';
 
 // READ
@@ -124,7 +123,7 @@ const createCampaign = async (req, res) => {
         const assetsPromise = assets?.length ? Store.campaignAssets.create(assets.map((asset) => ({
             creatorId: userId,
             organizationId: campaign.organizationId,
-            mediaId: asset.mediaId,
+            media: asset.media,
             spaceId: asset.spaceId, // TODO
             status: 'accepted',
             type: asset.type,
@@ -211,7 +210,7 @@ const updateCampaign = async (req, res) => {
             newAssets?.length ? Store.campaignAssets.create(newAssets.map((asset) => ({
                 creatorId: userId,
                 organizationId: campaign.organizationId,
-                mediaId: asset.mediaId,
+                media: asset.media,
                 spaceId: asset.spaceId, // TODO
                 status: 'accepted',
                 type: asset.type,

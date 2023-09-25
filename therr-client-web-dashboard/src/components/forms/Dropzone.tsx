@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React, {
     useCallback,
 } from 'react';
@@ -10,12 +11,16 @@ interface IDropzoneProps {
     dropZoneText: string;
     onMediaSelect: (files: any[]) => any;
     initialFileUrl?: string;
+    disabled?: boolean;
+    multiple?: boolean;
 }
 
 const Dropzone = ({
     dropZoneText,
     onMediaSelect,
     initialFileUrl,
+    disabled,
+    multiple,
 }: IDropzoneProps) => {
     const [files, setFiles] = React.useState([]);
 
@@ -48,11 +53,21 @@ const Dropzone = ({
             'image/webp': ['.webp'],
         },
         onDrop,
-        multiple: false,
+        disabled,
+        multiple,
+    });
+
+    const dropzoneClassNames = classNames({
+        dropzone: true,
+        rounded: true,
+        'd-flex': true,
+        'align-items-center': true,
+        'justify-content-center': true,
+        disabled,
     });
 
     return (
-        <div {...getRootProps()} className="dropzone rounded d-flex align-items-center justify-content-center">
+        <div {...getRootProps()} className={dropzoneClassNames}>
             {
                 (files.length > 0 || initialFileUrl)
                     ? <div className="dropzone-square">

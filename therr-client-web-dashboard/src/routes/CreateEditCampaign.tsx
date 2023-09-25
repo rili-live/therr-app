@@ -16,24 +16,59 @@ import { CampaignActions, MapActions, UserConnectionsActions } from 'therr-react
 import { MapsService, UsersService } from 'therr-react/services';
 import { IMapState as IMapReduxState, IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
 import { Option } from 'react-bootstrap-typeahead/types/types';
-import { AccessLevels } from 'therr-js-utilities/constants';
+import { AccessLevels, CampaignAssetTypes } from 'therr-js-utilities/constants';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
 import EditCampaignForm from '../components/forms/EditCampaignForm';
 import { getWebsiteName } from '../utilities/getHostContext';
 import ManageCampaignsMenu from '../components/ManageCampaignsMenu';
 import { ICampaign, ICampaignAsset } from '../types';
+import { signAndUploadImage } from '../utilities/media';
 
-const getInputDefaults = (campaign: any) => ({
-    address: [],
-    type: campaign?.type || 'local',
-    title: campaign?.title || '',
-    description: campaign?.description || '',
-    scheduleStartAt: campaign?.scheduleStartAt || '',
-    scheduleStopAt: campaign?.scheduleStopAt || '',
-    headline1: campaign?.assets?.length > 0 ? campaign?.assets[0].headline : '',
-    headline2: campaign?.assets?.length > 1 ? campaign?.assets[1].headline : '',
-});
+const partitionAssets = (campaign) => {
+    const headlineAssets = [];
+    const longTextAssets = [];
+    const mediaAssets = [];
+
+    campaign?.assets?.forEach((asset) => {
+        if (asset.type === CampaignAssetTypes.TEXT) {
+            if (asset.headline) {
+                headlineAssets.push(asset);
+            } else if (asset.longText) {
+                longTextAssets.push(asset);
+            }
+        } else if (asset.type === CampaignAssetTypes.MEDIA) {
+            mediaAssets.push(asset);
+        }
+    });
+
+    return {
+        headlineAssets,
+        longTextAssets,
+        mediaAssets,
+    };
+};
+
+const getInputDefaults = (campaign: any) => {
+    const {
+        headlineAssets,
+        longTextAssets,
+        mediaAssets,
+    } = partitionAssets(campaign);
+
+    return {
+        address: [],
+        type: campaign?.type || 'local',
+        title: campaign?.title || '',
+        description: campaign?.description || '',
+        scheduleStartAt: campaign?.scheduleStartAt || '',
+        scheduleStopAt: campaign?.scheduleStopAt || '',
+        headline1: headlineAssets.length > 0 ? headlineAssets[0].headline : '',
+        headline2: headlineAssets.length > 1 ? headlineAssets[1].headline : '',
+        longText1: longTextAssets.length > 0 ? longTextAssets[0].longText : '',
+        longText2: longTextAssets.length > 1 ? longTextAssets[1].longText : '',
+    };
+};
 
 interface ICreateEditCampaignRouterProps {
     location: {
@@ -81,6 +116,7 @@ interface ICreateEditCampaignState {
         [key: string]: any;
     };
     isEditing: boolean;
+    mediaPendingUpload: string[];
 }
 
 const mapStateToProps = (state: any) => ({
@@ -124,6 +160,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             isSubmitting: false,
             inputs: getInputDefaults(campaign),
             isEditing: !!campaignId,
+            mediaPendingUpload: [],
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -175,7 +212,8 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         } else if (formEditingStage === 2) {
             if (isSubmitting
                 || !inputs.headline1
-                || !inputs.headline2) {
+                || !inputs.headline2
+                || !inputs.longText1) {
                 return true;
             }
         }
@@ -293,7 +331,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         event.preventDefault();
 
         const { location, createCampaign, updateCampaign } = this.props;
-        const { fetchedCampaign, formEditingStage, hasFormChanged } = this.state;
+        const {
+            files, fetchedCampaign, formEditingStage, hasFormChanged,
+        } = this.state;
 
         const {
             title,
@@ -306,6 +346,8 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             longitude,
             headline1,
             headline2,
+            longText1,
+            longText2,
         } = this.state.inputs;
         const { campaign } = location?.state || {};
 
@@ -340,6 +382,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             ...fetchedCampaign,
         };
 
+        // TODO: Upload if new image asset(s) are added
         const saveMethod = campaignInView?.id
             ? (campaignDetails) => updateCampaign(campaignInView?.id, campaignDetails)
             : createCampaign;
@@ -361,54 +404,88 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
         // TODO: Make this more dynamic when we allow adding and deleting assets
         const assets: ICampaignAsset[] = [];
+        const {
+            headlineAssets,
+            longTextAssets,
+            mediaAssets,
+        } = partitionAssets(campaignInView);
         if (headline1) {
             assets.push({
-                id: campaignInView?.assets && campaignInView?.assets[0]?.id,
-                type: 'text',
+                id: headlineAssets && headlineAssets[0]?.id,
+                type: CampaignAssetTypes.TEXT,
                 headline: headline1,
             });
         }
         if (headline2) {
             assets.push({
-                id: campaignInView?.assets && campaignInView?.assets[1]?.id,
-                type: 'text',
+                id: headlineAssets && headlineAssets[1]?.id,
+                type: CampaignAssetTypes.TEXT,
                 headline: headline2,
+            });
+        }
+        if (longText1) {
+            assets.push({
+                id: longTextAssets && longTextAssets[0]?.id,
+                type: CampaignAssetTypes.TEXT,
+                longText: longText1,
+            });
+        }
+        if (longText2) {
+            assets.push({
+                id: longTextAssets && longTextAssets[1]?.id,
+                type: CampaignAssetTypes.TEXT,
+                longText: longText2,
             });
         }
         requestBody.assets = assets;
 
-        saveMethod(requestBody).then((response) => {
-            console.log(response);
-            if (formEditingStage === 1) {
+        (files.length > 0 ? signAndUploadImage({ ...requestBody, isPublic: true }, files, 'campaigns/') : Promise.resolve(requestBody))
+            .then((modifiedRequest) => {
+                const newMediaAssets = (modifiedRequest.media || []).map((media) => ({
+                    type: CampaignAssetTypes.MEDIA,
+                    media,
+                }));
+                const reformattedRequest = {
+                    ...modifiedRequest,
+                    assets: assets.concat(newMediaAssets),
+                };
+
+                delete reformattedRequest.media;
+                delete reformattedRequest.isPublic;
+
+                return saveMethod(reformattedRequest)
+                    .then((response) => {
+                        if (formEditingStage === 1) {
+                            this.setState({
+                                isSubmitting: false,
+                                formEditingStage: 2,
+                                fetchedCampaign: {
+                                    ...fetchedCampaign,
+                                    ...response?.campaigns[0],
+                                },
+                            });
+                        } else {
+                            this.setState({
+                                alertTitle: 'Request Sent',
+                                alertMessage: 'Success! Please allow 24-72 hours as we review your campaign.',
+                                alertVariation: 'success',
+                            });
+                            this.toggleAlert(true);
+
+                            setTimeout(() => {
+                                this.setState({
+                                    isSubmitting: false,
+                                });
+                                this.navigateHandler('/campaigns/overview')();
+                            }, 1000);
+                        }
+                    });
+            }).catch((error) => {
+                this.onSubmitError('Unknown Error', 'Failed to process your request. Please try again.');
                 this.setState({
                     isSubmitting: false,
-                    formEditingStage: 2,
-                    fetchedCampaign: {
-                        ...fetchedCampaign,
-                        ...response?.campaigns[0],
-                    },
                 });
-            } else {
-                this.setState({
-                    alertTitle: 'Request Sent',
-                    alertMessage: 'Success! Please allow 24-72 hours as we review your campaign.',
-                    alertVariation: 'success',
-                });
-                this.toggleAlert(true);
-
-                setTimeout(() => {
-                    this.setState({
-                        isSubmitting: false,
-                    });
-                    this.navigateHandler('/campaigns/overview')();
-                }, 1000);
-            }
-        }).catch((error) => {
-            this.onSubmitError('Unknown Error', 'Failed to process your request. Please try again.');
-            this.setState({
-                isSubmitting: false,
             });
-        });
     };
 
     onSubmitError = (errTitle: string, errMsg: string) => {
@@ -449,12 +526,16 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             alertVariation,
             alertTitle,
             alertMessage,
+            fetchedCampaign,
             hasFormChanged,
             inputs,
             isEditing,
             formEditingStage,
         } = this.state;
         const { map, user } = this.props;
+        const {
+            mediaAssets,
+        } = partitionAssets(fetchedCampaign);
 
         return (
             <div id="page_settings" className="flex-box column">
@@ -470,7 +551,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 </div>
 
                 <Row className="d-flex justify-content-around align-items-center py-4">
-                    <Col xs={12} xl={10} xxl={8}>
+                    <Col md={12} xl={10}>
                         {
                             isEditing
                                 ? <h1 className="text-center">Edit Campaign</h1>
@@ -489,8 +570,11 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 scheduleStopAt: inputs.scheduleStopAt,
                                 headline1: inputs.headline1,
                                 headline2: inputs.headline2,
+                                longText1: inputs.longText1,
+                                longText2: inputs.longText2,
                             }}
                             isSubmitDisabled={this.isSubmitDisabled()}
+                            mediaAssets={mediaAssets}
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeAheadSelect={this.onAddressTypeAheadSelect}
                             onDateTimeChange={this.onDateTimeChange}
