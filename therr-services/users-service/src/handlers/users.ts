@@ -421,13 +421,13 @@ const updatePhoneVerification = (req, res) => Store.users.findUser({ id: req.par
             });
         }
 
-        const userAccessLevels = [...(userSearchResults[0].accessLevels || [])];
-        userAccessLevels.push(AccessLevels.MOBILE_VERIFIED);
+        const userAccessLevels = new Set(userSearchResults[0].accessLevels || []);
+        userAccessLevels.add(AccessLevels.MOBILE_VERIFIED);
 
         return Store.users
             .updateUser({
                 // remove duplicates using Set()
-                accessLevels: JSON.stringify([...new Set([...userAccessLevels])]),
+                accessLevels: JSON.stringify([...userAccessLevels]),
                 phoneNumber: req.body.phoneNumber,
             }, {
                 id: userId,
@@ -758,17 +758,17 @@ const verifyUserAccount = (req, res) => {
                         userVerificationCodes[codeResults[0].type] = {}; // clear out used code
 
                         const isMissingUserProps = isUserProfileIncomplete(userSearchResults[0]);
-                        const userAccessLevels = [
-                            ...userSearchResults[0].accessLevels,
-                        ];
+                        const userAccessLevels = new Set(
+                            userSearchResults[0].accessLevels,
+                        );
                         if (isMissingUserProps) {
-                            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                            userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                         } else {
-                            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+                            userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
                         }
 
                         await Store.users.updateUser({
-                            accessLevels: JSON.stringify(userAccessLevels),
+                            accessLevels: JSON.stringify([...userAccessLevels]),
                             verificationCodes: JSON.stringify(userVerificationCodes),
                         }, {
                             email: decodedToken.email,
