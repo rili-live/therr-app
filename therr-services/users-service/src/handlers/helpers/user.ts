@@ -428,16 +428,16 @@ const validateCredentials = (userSearchResults, {
 
             // Verify user because they are using email SSO
             const isMissingUserProps = isUserProfileIncomplete(userSearchResults[0], false);
-            const userAccessLevels = new Set([
-                ...userSearchResults[0].accessLevels,
-            ]);
+            const userAccessLevels = new Set(
+                userSearchResults[0].accessLevels,
+            );
             if (isMissingUserProps && !userAccessLevels.has(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
                 userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
             } else if (!userAccessLevels.has(AccessLevels.EMAIL_VERIFIED)) {
                 userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
             }
 
-            return [true, { ...userSearchResults[0], accessLevels: userAccessLevels }];
+            return [true, { ...userSearchResults[0], accessLevels: [...userAccessLevels] }];
         });
     }
 
