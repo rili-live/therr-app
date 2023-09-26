@@ -26,6 +26,7 @@ interface IAreaDisplayCardProps {
     translate: Function;
     date: string;
     cardWidth: number;
+    cardHeight: number;
     isDarkMode: boolean;
     onPress: (area: any) => any;
     area: any;
@@ -111,6 +112,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
             area,
             areaMedia,
             cardWidth,
+            cardHeight,
             onPress,
             theme,
             themeViewArea,
@@ -125,6 +127,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
 
         return (
             <View key={area.id} style={[themeViewArea.styles.cardContainer, {
+                height: cardHeight,
                 width: cardWidth,
             }]}>
                 <Pressable onPress={() => onPress(area)} style={[

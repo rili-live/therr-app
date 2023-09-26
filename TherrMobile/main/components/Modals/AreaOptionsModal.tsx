@@ -6,7 +6,7 @@ import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 
 
-export type ISelectionType = 'getDirections' | 'like' | 'superLike' | 'dislike' | 'superDislike' | 'report' | 'delete';
+export type ISelectionType = 'getDirections' | 'shareALink' | 'like' | 'superLike' | 'dislike' | 'superDislike' | 'report' | 'delete';
 
 interface IAreaOptionsModal {
     children?: React.ReactNode,
@@ -21,7 +21,8 @@ interface IAreaOptionsModal {
         colors: ITherrThemeColors;
         styles: any;
     };
-    onSelect: (type: ISelectionType) => any
+    onSelect: (type: ISelectionType) => any;
+    shouldIncludeShareButton?: boolean;
 }
 
 export const ModalButton = ({ title, iconName, onPress, themeButtons }) => (
@@ -51,6 +52,7 @@ export default ({
     onSelect,
     themeButtons,
     themeReactionsModal,
+    shouldIncludeShareButton,
 }: IAreaOptionsModal) => {
     return (
         <Modal
@@ -72,6 +74,14 @@ export default ({
                                 onPress={() => onSelect('getDirections')}
                                 themeButtons={themeButtons}
                             />
+                            {
+                                shouldIncludeShareButton && <ModalButton
+                                    iconName="share"
+                                    title={translate('modals.contentOptions.buttons.shareALink')}
+                                    onPress={() => onSelect('shareALink')}
+                                    themeButtons={themeButtons}
+                                />
+                            }
                             <ModalButton
                                 iconName="thumb-up"
                                 title={translate('modals.contentOptions.buttons.superLike')}

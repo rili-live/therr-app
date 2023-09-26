@@ -823,7 +823,8 @@
         "menu": "Menu",
         "order": "Order",
         "phone": "Call",
-        "reserve": "Reserve"
+        "reserve": "Reserve",
+        "share": "Share"
       },
       "buttons": {
         "claimRewards": "Claim Rewards?",
@@ -1122,7 +1123,14 @@
         "delete": "Delete?",
         "dislike": "'Dislike' this",
         "superDislike": "'Super-Dislike' this",
-        "report": "Report this content..."
+        "report": "Report this content...",
+        "shareALink": "Share a Link"
+      },
+      "shareLink": {
+        "message": "You can find this location on Therr App: https://www.therr.com/spaces/{spaceId}",
+        "messageMoment": "You can find this moment on Therr App: https://www.therr.com/moments/{momentId}",
+        "title": "{spaceTitle} | Therr App",
+        "titleMoment": "{momentTitle} | Therr App"
       }
     },
     "deleteAccountModal": {
