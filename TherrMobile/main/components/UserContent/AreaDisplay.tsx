@@ -6,6 +6,7 @@ import {
     FlatList,
     Linking,
     Pressable,
+    Share,
     Text,
     TouchableWithoutFeedbackComponent,
     View,
@@ -158,9 +159,33 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     };
 
     renderActionLink = ({ item }) => {
-        const { themeForms } = this.props;
+        const { area, themeForms, translate } = this.props;
 
-        const onPress = () => Linking.openURL(item.url);
+        let onPress = () => Linking.openURL(item.url);
+
+        if (item.icon === 'share') {
+            onPress = () => Share.share({
+                message: translate('modals.contentOptions.shareLink.message', {
+                    spaceId: area.id,
+                }),
+                url: `https://www.therr.com/spaces/${area.id}`,
+                title: translate('modals.contentOptions.shareLink.title', {
+                    spaceTitle: area.notificationMsg,
+                }),
+            }).then((response) => {
+                if (response.action === Share.sharedAction) {
+                    if (response.activityType) {
+                        // shared with activity type of response.activityType
+                    } else {
+                        // shared
+                    }
+                } else if (response.action === Share.dismissedAction) {
+                    // dismissed
+                }
+            }).catch((err) => {
+                console.error(err);
+            });
+        }
 
         return (
             <Button
@@ -266,7 +291,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         const shouldDisplayRelatedSpaceBanner = isExpanded && area.spaceId;
         const toggleOptions = () => toggleAreaOptions(area);
         const isSpace = area.areaType === 'spaces';
-        const actionLinks = [
+        const actionLinks = !isSpace ? [] : [
             {
                 url: area.websiteUrl,
                 icon: 'globe',
@@ -283,17 +308,25 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 title: translate('pages.viewSpace.actionLinks.order'),
             },
             {
-                url: area.phoneNumber,
-                icon: 'phone',
-                title: translate('pages.viewSpace.actionLinks.phone'),
-            },
-            {
                 url: area.reservationUrl,
                 icon: 'calendar',
                 title: translate('pages.viewSpace.actionLinks.reserve'),
             },
+            {
+                url: isSpace ? `https://www.therr.com/spaces/${area.id}` : undefined,
+                icon: 'share',
+                title: translate('pages.viewSpace.actionLinks.share'),
+            },
         ]
             .filter(item => !!item?.url);
+
+        if (isSpace && area.phoneNumber) {
+            actionLinks.push({
+                url:`tel:${area.phoneNumber}`,
+                icon: 'phone',
+                title: translate('pages.viewSpace.actionLinks.phone'),
+            });
+        }
 
         return (
             <>
@@ -358,7 +391,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         data={actionLinks}
                         renderItem={this.renderActionLink}
                         keyExtractor={item => item.url}
-                        contentContainerStyle={{ width: '100%' }}
+                        style={{ width: '100%' }}
+                        showsHorizontalScrollIndicator={false}
                     />
                 }
                 <PresssableWithDoubleTap

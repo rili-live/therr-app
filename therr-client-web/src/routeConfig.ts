@@ -57,6 +57,14 @@ export default [
         view: 'spaces',
     },
     {
+        route: '/users/:userId',
+        head: {
+            title: 'User not Found',
+            description: 'No user was found for the given ID.',
+        },
+        view: 'users',
+    },
+    {
         route: '*',
         head: {
             title: 'Not Found',

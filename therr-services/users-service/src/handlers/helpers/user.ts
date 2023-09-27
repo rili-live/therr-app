@@ -144,6 +144,15 @@ const getUserHelper = ({
         }
 
         const userResult = results[0];
+
+        if (!isAuthorized && !userResult.settingsIsProfilePublic) {
+            return handleHttpError({
+                res,
+                message: 'NotAuthorized to view non-public users',
+                statusCode: 400,
+            });
+        }
+
         const isMe = Boolean(isAuthorized && requestingUserId && requestingUserId === userResult.id);
 
         const userPromises: Promise<any>[] = [];

@@ -125,10 +125,11 @@ const getMe = (req, res) => {
 
 // READ
 const getUser = (req, res) => {
+    const authHeader = req.headers.authorization; // undefined if user is not logged in
     const userId = req.headers['x-userid'];
 
     return getUserHelper({
-        isAuthorized: true,
+        isAuthorized: !!authHeader,
         requestingUserId: userId,
         targetUserParams: {
             id: req.params.id,

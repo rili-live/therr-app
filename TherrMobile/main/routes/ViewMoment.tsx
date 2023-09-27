@@ -1,6 +1,7 @@
 import React from 'react';
 import {
     SafeAreaView,
+    Share,
     View,
 } from 'react-native';
 import { connect } from 'react-redux';
@@ -233,6 +234,28 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 latitude: selectedMoment.latitude,
                 longitude: selectedMoment.longitude,
                 title: selectedMoment.notificationMsg,
+            });
+        } else if (type === 'shareALink') {
+            Share.share({
+                message: this.translate('modals.contentOptions.shareLink.messageMoment', {
+                    momentId: selectedMoment.id,
+                }),
+                url: `https://www.therr.com/moments/${selectedMoment.id}`,
+                title: this.translate('modals.contentOptions.shareLink.titleMoment', {
+                    momentTitle: selectedMoment.notificationMsg,
+                }),
+            }).then((response) => {
+                if (response.action === Share.sharedAction) {
+                    if (response.activityType) {
+                        // shared with activity type of response.activityType
+                    } else {
+                        // shared
+                    }
+                } else if (response.action === Share.dismissedAction) {
+                    // dismissed
+                }
+            }).catch((err) => {
+                console.error(err);
             });
         } else {
             const requestArgs: any = getReactionUpdateArgs(type);
@@ -472,6 +495,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                     onSelect={this.onMomentOptionSelect}
                     themeButtons={this.themeButtons}
                     themeReactionsModal={this.themeReactionsModal}
+                    shouldIncludeShareButton={true}
                 />
             </>
         );

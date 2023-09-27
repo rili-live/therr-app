@@ -10,7 +10,7 @@ export default ({
     const passwordRequirements2 = translate('pages.register.passwordRequirements2');
     const passwordRequirements3 = translate('pages.register.passwordRequirements3');
     const passwordRequirements4 = translate('pages.register.passwordRequirements4');
-    const p1Bullet = /([0-9]+[a-z]|[a-z]+[0-9])/i.test(password) ? '✓' : '*';
+    const p1Bullet = /[0-9]/i.test(password) && /[a-z]/i.test(password) ? '✓' : '*';
     const p2Bullet = /[A-Z]/.test(password) ? '✓' : '*';
     const p3Bullet = /[!@#$%^&*]/.test(password) ? '✓' : '*';
     const p4Bullet = password?.length >= 8 ? '✓' : '*';

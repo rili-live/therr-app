@@ -2,6 +2,7 @@ import React from 'react';
 import {
     Platform,
     SafeAreaView,
+    Share,
     Text,
     View,
 } from 'react-native';
@@ -271,6 +272,28 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                 latitude: selectedSpace.latitude,
                 longitude: selectedSpace.longitude,
                 title: selectedSpace.notificationMsg,
+            });
+        } else if (type === 'shareALink') {
+            Share.share({
+                message: this.translate('modals.contentOptions.shareLink.message', {
+                    spaceId: selectedSpace.id,
+                }),
+                url: `https://www.therr.com/spaces/${selectedSpace.id}`,
+                title: this.translate('modals.contentOptions.shareLink.title', {
+                    spaceTitle: selectedSpace.notificationMsg,
+                }),
+            }).then((response) => {
+                if (response.action === Share.sharedAction) {
+                    if (response.activityType) {
+                        // shared with activity type of response.activityType
+                    } else {
+                        // shared
+                    }
+                } else if (response.action === Share.dismissedAction) {
+                    // dismissed
+                }
+            }).catch((err) => {
+                console.error(err);
             });
         } else {
             const requestArgs: any = getReactionUpdateArgs(type);
@@ -737,6 +760,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                     onSelect={this.onSpaceOptionSelect}
                     themeButtons={this.themeButtons}
                     themeReactionsModal={this.themeReactionsModal}
+                    shouldIncludeShareButton={true}
                 />
             </>
         );

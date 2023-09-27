@@ -73,6 +73,8 @@
 		<string>nmap</string>
 		<string>dgis</string>
 		<string>lftgpas</string>
+		<string>tel</string>
+  		<string>telprompt</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
