@@ -31,17 +31,16 @@
 
     <script type="application/ld+json">
         {
-            "@context":"https://schema.org",
-            "@type":"SocialMediaPosting",
-            "@id":"https://www.therr.com{{requestPath}}",
-            "datePublished":"{{datePublished}}",
-            "image": "{{#if metaImgUrl}}{{metaImgUrl}}{{else}}{{/if}}",
-            "author":{
-                "@type":"Person",
-                "name":"{{authorName}}",
-                "url":"{{#if authorId}}https://therr.com/users/{{authorId}}{{else}}{{/if}}"
-            },
-            "headline":"{{title}}"
+            "@context" : "https://schema.org",
+            "@type" : "Person",
+            "name" : "{{title}}",
+            "url" : "https://www.therr.com{{requestPath}}"
+            {{!-- "sameAs" : [
+                "http://www.facebook.com/your-profile",
+                "http://instagram.com/yourProfile",
+                "http://www.linkedin.com/in/yourprofile",
+                "http://plus.google.com/your_profile"
+            ] --}}
         }
     </script>
 

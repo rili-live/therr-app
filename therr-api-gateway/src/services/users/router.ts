@@ -151,7 +151,7 @@ usersServiceRouter.get('/users/me', handleServiceRequest({
     method: 'get',
 }));
 
-usersServiceRouter.get('/users/:id', handleServiceRequest({
+usersServiceRouter.get('/users/:id', authenticateOptional, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
