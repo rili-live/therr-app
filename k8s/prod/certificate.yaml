@@ -20,5 +20,9 @@ spec:
     # Whitelabel
     - 'dashboard.appymeal.com'
     - 'www.dashboard.appymeal.com'
+    - 'adsorchestra.com'
+    - 'www.adsorchestra.com'
+    - 'adsorchestrator.com'
+    - 'www.adsorchestrator.com'
   duration: 4320h # 180d
   renewBefore: 720h # 30d
