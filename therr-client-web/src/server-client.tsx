@@ -177,8 +177,6 @@ const renderUserView = (req, res, config, {
         || 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
 
     // TODO: Mimic existing best SEO practices for a location page
-    const userId = req.params?.userId;
-    const content = initialState?.content || {};
     const user = initialState?.user?.userInView;
     const userName = user ? `${user.firstName} ${user.lastName}` : '';
 
@@ -186,15 +184,17 @@ const renderUserView = (req, res, config, {
 
     // TODO: Use an image optimized for meta image
     if (user?.media?.profilePicture) {
-        const url = getUserImageUri(user);
+        const url = getUserImageUri({
+            details: user,
+        });
         if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
             metaImgUrl = url;
         }
     }
 
     return res.render(routeView, {
-        title: userName,
-        description: user?.settingsBio,
+        title: userName || title,
+        description: user?.settingsBio || description,
         metaImgUrl,
         markup,
         requestPath: req.path,

@@ -64,16 +64,62 @@ const brandConfigs: IBrandConfigs = {
         metaImageFileName: 'meta-image-appymeal.png',
         mobileLogoFileName: 'appymeal-logo.svg',
     },
+    'adsorchestra.com': {
+        brandName: 'Ads Orchestra',
+        websiteName: 'Ads Orchestra AI',
+        host: 'adsorchestra.com',
+        contactEmail: 'info@therr.com',
+        instagramHandle: 'therr.for.business',
+        facebookHandle: 'therr.for.business',
+        twitterHandle: 'therr_app',
+        parentHomepageName: 'Ads Orchestra',
+        parentHomepageUrl: 'https://business.therr.com',
+        parentAboutUrl: 'https://business.therr.com/about',
+        parentBlogUrl: 'https://business.therr.com/blog',
+        parentBlogName: 'The Official \'Therr For Business\' Blog',
+        parentAppUrl: 'https://www.therr.app/',
+        parentAppName: 'Therr App',
+        parentContactUrl: 'https://business.therr.com/contact',
+        faviconFileName: 'favicon.ico',
+        metaImageFileName: 'therr-for-business-logo.png',
+        mobileLogoFileName: 'therr-logo.svg',
+    },
+    'adsorchestrator.com': {
+        brandName: 'Ads Orchestrator',
+        websiteName: 'Ads Orchestrator AI',
+        host: 'adsorchestrator.com',
+        contactEmail: 'info@therr.com',
+        instagramHandle: 'therr.for.business',
+        facebookHandle: 'therr.for.business',
+        twitterHandle: 'therr_app',
+        parentHomepageName: 'Ads Orchestrator',
+        parentHomepageUrl: 'https://business.therr.com',
+        parentAboutUrl: 'https://business.therr.com/about',
+        parentBlogUrl: 'https://business.therr.com/blog',
+        parentBlogName: 'The Official \'Therr For Business\' Blog',
+        parentAppUrl: 'https://www.therr.app/',
+        parentAppName: 'Therr App',
+        parentContactUrl: 'https://business.therr.com/contact',
+        faviconFileName: 'favicon.ico',
+        metaImageFileName: 'therr-for-business-logo.png',
+        mobileLogoFileName: 'therr-logo.svg',
+    },
 };
 
 const getWebsiteName = () => {
     if (typeof (window) !== 'undefined') {
         if (window?.location?.hostname === 'dashboard.appymeal.com') {
-            return 'AppyMeal Marketing';
+            return brandConfigs['dashboard.appymeal.com'].websiteName;
+        }
+        if (window?.location?.hostname === 'adsorchestra.com') {
+            return brandConfigs['adsorchestra.com'].websiteName;
+        }
+        if (window?.location?.hostname === 'adsorchestrator.com') {
+            return brandConfigs['adsorchestrator.com'].websiteName;
         }
     }
 
-    return 'Therr for Business';
+    return brandConfigs['dashboard.therr.com'].websiteName;
 };
 
 const getBrandContext = (hostname?: string): IBrandConfig => {

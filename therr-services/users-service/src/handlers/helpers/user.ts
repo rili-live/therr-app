@@ -92,6 +92,14 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
     }
 
     // Private User Profile
+    const media = {
+        ...(sanitizedUserResult?.media || {}),
+    };
+
+    if (media?.profilePicture?.altText) {
+        media.profilePicture.altText = '';
+    }
+
     return {
         id: sanitizedUserResult.id,
         userName: sanitizedUserResult.userName,
@@ -99,6 +107,7 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
         lastName: sanitizedUserResult.settingsIsProfilePublic ? sanitizedUserResult.lastName : '',
         settingsBio: sanitizedUserResult.settingsBio,
         settingsIsProfilePublic: sanitizedUserResult.settingsIsProfilePublic,
+        media,
 
         // More details
         isNotConnected: true,
