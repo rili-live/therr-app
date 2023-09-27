@@ -80,12 +80,12 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
 
         if (!userInView) {
             getUser(this.state.userId).then((fetchedUser) => {
-                document.title = `${fetchedUser?.settingsBio} | Therr App`;
+                document.title = `${fetchedUser?.firstName} ${fetchedUser?.lastName} | Therr App`;
             }).catch((err) => {
                 this.props.navigation.navigate('/');
             });
         } else {
-            document.title = `${userInView.settingsBio} | Therr App`;
+            document.title = `${userInView.firstName} ${userInView?.lastName} | Therr App`;
         }
     }
 
@@ -95,7 +95,9 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         const { user } = this.props;
         const { userId } = this.state;
         const userInView = user.userInView;
-        const userImageUri = getUserImageUri(user);
+        const userImageUri = getUserImageUri({
+            details: userInView,
+        });
 
         return (
             <div id="page_view_moment" className="flex-box space-evenly center row wrap-reverse">
@@ -106,7 +108,30 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                                 <h1 className="text-title-medium no-bot-margin fill">
                                     {`${userInView.firstName} ${userInView.lastName}`}
                                 </h1>
+                                <h2>
+                                    Username: {userInView.userName}
+                                </h2>
                                 <p className="info-text fill">{userInView?.settingsBio}</p>
+                                <div className="flex-box row">
+                                    {
+                                        userInView?.socialSyncs?.tiktok?.link
+                                        && <h3 className="text-title-small no-bot-margin fill">
+                                            <a href={userInView?.socialSyncs?.tiktok?.link} target="_blank">TikTok</a>
+                                        </h3>
+                                    }
+                                    {
+                                        userInView?.socialSyncs?.twitter?.link
+                                            && <h3 className="text-title-small no-bot-margin fill">
+                                                <a href={userInView?.socialSyncs?.twitter?.link} target="_blank">Twitter</a>
+                                            </h3>
+                                    }
+                                    {
+                                        userInView?.socialSyncs?.youtube?.link
+                                            && <h3 className="text-title-small no-bot-margin fill">
+                                                <a href={userInView?.socialSyncs?.youtube?.link} target="_blank">YouTube</a>
+                                            </h3>
+                                    }
+                                </div>
                             </div>
                     }
                 </div>
