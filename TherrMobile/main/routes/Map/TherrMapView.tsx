@@ -41,8 +41,10 @@ import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
 
 const { width: viewPortWidth, height: viewPortHeight } = Dimensions.get('window');
 
+const IS_SMALL_SCREEN = viewPortWidth < 400;
 const CARD_HEIGHT = viewPortHeight / 4;
-const CARD_WIDTH = CARD_HEIGHT - 70;
+const CARD_WIDTH = IS_SMALL_SCREEN ? viewPortWidth / 3 : CARD_HEIGHT - 70;
+// const CARD_WIDTH = viewPortWidth / 4;
 const spaceBubbleWidth = viewPortWidth / 8;
 const MAX_CIRCLE_DIAMETER_SCALE = 2;
 
@@ -800,6 +802,8 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         const { areasInPreview, isPreviewBottomSheetVisible, isMapReady } = this.state;
         const filteredMomentValues = Object.values(filteredMoments);
         const filteredSpaceValues = Object.values(filteredSpaces);
+        const animatedOverlayHeight = CARD_HEIGHT
+            + this.themeBottomSheet.styles.scrollViewOuterContainer.bottom;
 
         return (
             <>
@@ -1003,7 +1007,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 {
                     isPreviewBottomSheetVisible &&
                     <View style={[this.themeBottomSheet.styles.scrollViewOuterContainer, {
-                        height: CARD_HEIGHT + (3 * this.themeBottomSheet.styles.scrollViewOuterContainer.bottom),
+                        height: animatedOverlayHeight,
                     }]}>
                         <Animated.ScrollView
                             horizontal
@@ -1032,6 +1036,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             ]}
                             contentContainerStyle={[this.themeBottomSheet.styles.scrollViewContainer, {
                                 paddingRight: viewPortWidth - CARD_WIDTH,
+                                height: animatedOverlayHeight,
                             }]}
                         // snapToAlignment="start"
                         >
@@ -1046,6 +1051,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                             area={area}
                                             areaMedia={areaMedia}
                                             cardWidth={CARD_WIDTH}
+                                            cardHeight={CARD_HEIGHT}
                                             date={formattedDate}
                                             isDarkMode={false}
                                             key={area.id}

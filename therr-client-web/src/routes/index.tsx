@@ -5,6 +5,7 @@ import { AccessLevels } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
 import { MapsService } from 'therr-react/services';
 import { MapActions } from 'therr-react/redux/actions';
+import UsersActions from '../redux/actions/UsersActions';
 import Forum from './Forum';
 import CreateForum from './CreateForum';
 import CreateProfile from './CreateProfile';
@@ -20,6 +21,7 @@ import ChangePassword from './ChangePassword';
 import Discovered from './Discovered';
 import UnderConstruction from './UnderConstruction';
 import ViewMoment from './ViewMoment';
+import ViewUser from './ViewUser';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -147,6 +149,11 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             withMedia: true,
             withUser: true,
         })(dispatch),
+    },
+    {
+        path: '/users/:userId',
+        element: <ViewUser />,
+        fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
     },
 
     // If no route matches, return NotFound component

@@ -42,6 +42,10 @@ spec:
       - www.websocket-service.therr.com
       - dashboard.appymeal.com
       - www.dashboard.appymeal.com
+      - adsorchestrator.com
+      - www.adsorchestrator.com
+      - adsorchestra.com
+      - www.adsorchestra.com
     secretName: therr-network-secret
   rules:
   - host: therr.com
@@ -137,6 +141,46 @@ spec:
               number: 7071
         pathType: ImplementationSpecific
   - host: www.dashboard.appymeal.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7071
+        pathType: ImplementationSpecific
+  - host: adsorchestrator.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7071
+        pathType: ImplementationSpecific
+  - host: www.adsorchestrator.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7071
+        pathType: ImplementationSpecific
+  - host: adsorchestra.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7071
+        pathType: ImplementationSpecific
+  - host: www.adsorchestra.com
     http:
       paths:
       - path: /?(.*)

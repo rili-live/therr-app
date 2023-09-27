@@ -16,6 +16,7 @@ import serialize from 'serialize-javascript';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
+import getUserImageUri from './utilities/getUserImageUri';
 import * as globalConfig from '../../global-config';
 
 axios.defaults.baseURL = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute;
@@ -66,6 +67,141 @@ const appLinksJson = {
 // Apple universal link (Opens ios app when clicking therr URLs from mobile)
 app.get('/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
 // app.get('/.well-known/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
+
+const renderMomentView = (req, res, config, {
+    markup,
+    state,
+}, initialState) => {
+    const routePath = config.route;
+    const routeView = config.view;
+    const title = config.head.title;
+    const description = config.head.description
+        // eslint-disable-next-line max-len
+        || 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
+
+    // TODO: Mimic existing best SEO practices for a location page
+    const momentId = req.params?.momentId;
+    const content = initialState?.content || {};
+    const moment = initialState?.map?.moments[momentId];
+    const momentTitle = moment ? moment?.notificationMsg : title;
+    const momentDescription = (moment?.message || description).replace(/\\n/g, ' ')
+        .replace(/\\r/g, ' ').substring(0, 300);
+    const authorName = moment?.fromUserFirstName && moment?.fromUserLastName ? `${moment?.fromUserFirstName} ${moment?.fromUserLastName}` : '';
+    const authorId = moment?.fromUserId || '';
+
+    let metaImgUrl;
+
+    // TODO: Use an image optimized for meta image
+    if (moment?.media?.length > 0 && content?.media[moment.media[0].id]) {
+        const url = content.media[moment.media[0].id];
+        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
+            metaImgUrl = url;
+        }
+    }
+
+    return res.render(routeView, {
+        title: momentTitle,
+        description: momentDescription,
+        datePublished: moment?.createdAt,
+        authorName,
+        authorId,
+        metaImgUrl,
+        markup,
+        requestPath: req.path,
+        routePath,
+        state,
+    });
+};
+
+const renderSpaceView = (req, res, config, {
+    markup,
+    state,
+}, initialState) => {
+    const routePath = config.route;
+    const routeView = config.view;
+    const title = config.head.title;
+    const description = config.head.description
+        // eslint-disable-next-line max-len
+        || 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
+
+    // TODO: Mimic existing best SEO practices for a location page
+    const spaceId = req.params?.spaceId;
+    const content = initialState?.content || {};
+    const space = initialState?.map?.spaces[spaceId];
+    const spaceTitle = space ? space?.notificationMsg : title;
+    const spaceDescription = (space?.message || description).replace(/\\n/g, ' ')
+        .replace(/\\r/g, ' ').substring(0, 300);
+    const spacePhoneNumber = space?.phoneNumber || '';
+    const spaceCountry = space?.region || '';
+    const spaceAddressLocality = space?.addressLocality || '';
+    const spaceAddressRegion = space?.addressRegion || '';
+    const spaceAddressStreet = space?.addressStreetAddress || '';
+    const spacePostalCode = space?.postalCode || '';
+
+    let metaImgUrl;
+
+    // TODO: Use an image optimized for meta image
+    if (space?.media?.length > 0 && content?.media[space.media[0].id]) {
+        const url = content.media[space.media[0].id];
+        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
+            metaImgUrl = url;
+        }
+    }
+
+    return res.render(routeView, {
+        title: spaceTitle,
+        description: spaceDescription,
+        metaImgUrl,
+        spaceCountry,
+        spacePhoneNumber,
+        spaceAddressLocality,
+        spaceAddressStreet,
+        spaceAddressRegion,
+        spacePostalCode,
+        markup,
+        requestPath: req.path,
+        routePath,
+        state,
+    });
+};
+
+const renderUserView = (req, res, config, {
+    markup,
+    state,
+}, initialState) => {
+    const routePath = config.route;
+    const routeView = config.view;
+    const title = config.head.title;
+    const description = config.head.description
+        // eslint-disable-next-line max-len
+        || 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
+
+    // TODO: Mimic existing best SEO practices for a location page
+    const userId = req.params?.userId;
+    const content = initialState?.content || {};
+    const user = initialState?.user?.userInView;
+    const userName = user ? `${user.firstName} ${user.lastName}` : '';
+
+    let metaImgUrl;
+
+    // TODO: Use an image optimized for meta image
+    if (user?.media?.profilePicture) {
+        const url = getUserImageUri(user);
+        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
+            metaImgUrl = url;
+        }
+    }
+
+    return res.render(routeView, {
+        title: userName,
+        description: user?.settingsBio,
+        metaImgUrl,
+        markup,
+        requestPath: req.path,
+        routePath,
+        state,
+    });
+};
 
 // Universal routing and rendering for SEO
 routeConfig.forEach((config) => {
@@ -149,88 +285,24 @@ routeConfig.forEach((config) => {
                 ReactGA.send({ hitType: 'pageview', page: req.path, title });
 
                 if (routeView === 'moments') {
-                    // TODO: Mimic existing best SEO practices for a location page
-                    const momentId = req.params?.momentId;
-                    const content = initialState?.content || {};
-                    const moment = initialState?.map?.moments[momentId];
-                    const momentTitle = moment ? moment?.notificationMsg : title;
-                    const momentDescription = (moment?.message || description).replace(/\\n/g, ' ')
-                        .replace(/\\r/g, ' ').substring(0, 300);
-                    const authorName = moment?.fromUserFirstName && moment?.fromUserLastName ? `${moment?.fromUserFirstName} ${moment?.fromUserLastName}` : '';
-
-                    let metaImgUrl;
-
-                    // TODO: Use an image optimized for meta image
-                    if (moment?.media?.length > 0 && content?.media[moment.media[0].id]) {
-                        const url = content.media[moment.media[0].id];
-                        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
-                            metaImgUrl = content.media[moment.media[0].id];
-                        }
-                    }
-
-                    return res.render(routeView, {
-                        title: momentTitle,
-                        description: momentDescription,
-                        datePublished: moment?.createdAt,
-                        authorName,
-                        metaImgUrl,
+                    return renderMomentView(req, res, config, {
                         markup,
-                        requestPath: req.path,
-                        routePath,
                         state,
-                    });
+                    }, initialState);
                 }
 
                 if (routeView === 'spaces') {
-                    // TODO: Mimic existing best SEO practices for a location page
-                    const spaceId = req.params?.spaceId;
-                    const momentId = req.params?.momentId;
-                    const content = initialState?.content || {};
-                    const moment = initialState?.map?.moments[momentId];
-                    const space = initialState?.map?.spaces[spaceId];
-                    const momentTitle = moment ? moment?.notificationMsg : title;
-                    const spaceTitle = space ? space?.notificationMsg : title;
-                    const momentDescription = (moment?.message || description).replace(/\\n/g, ' ')
-                        .replace(/\\r/g, ' ').substring(0, 300);
-                    const spaceDescription = (space?.message || description).replace(/\\n/g, ' ')
-                        .replace(/\\r/g, ' ').substring(0, 300);
-                    const spacePhoneNumber = space?.phoneNumber || '';
-                    const spaceCountry = space?.region || '';
-                    const spaceAddressLocality = space?.addressLocality || '';
-                    const spaceAddressRegion = space?.addressRegion || '';
-                    const spaceAddressStreet = space?.addressStreetAddress || '';
-                    const spacePostalCode = space?.postalCode || '';
-
-                    let metaImgUrl;
-
-                    // TODO: Use an image optimized for meta image
-                    if (space?.media?.length > 0 && content?.media[space.media[0].id]) {
-                        const url = content.media[space.media[0].id];
-                        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
-                            metaImgUrl = content.media[space.media[0].id];
-                        }
-                    } else if (moment?.media?.length > 0 && content?.media[moment.media[0].id]) {
-                        const url = content.media[moment.media[0].id];
-                        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
-                            metaImgUrl = content.media[moment.media[0].id];
-                        }
-                    }
-
-                    return res.render(routeView, {
-                        title: spaceTitle || momentTitle,
-                        description: spaceDescription || momentDescription,
-                        metaImgUrl,
-                        spaceCountry,
-                        spacePhoneNumber,
-                        spaceAddressLocality,
-                        spaceAddressStreet,
-                        spaceAddressRegion,
-                        spacePostalCode,
+                    return renderSpaceView(req, res, config, {
                         markup,
-                        requestPath: req.path,
-                        routePath,
                         state,
-                    });
+                    }, initialState);
+                }
+
+                if (routeView === 'users') {
+                    return renderUserView(req, res, config, {
+                        markup,
+                        state,
+                    }, initialState);
                 }
 
                 return res.render(routeView, {

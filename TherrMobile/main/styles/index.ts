@@ -75,6 +75,10 @@ const hasCutoutCamera = (): boolean => {
 };
 
 const getHeaderHeight = () => {
+    const model = DeviceInfo.getModel();
+    if (model === 'iPhone SE') {
+        return IOS_STATUS_HEIGHT + HEADER_HEIGHT;
+    }
     if (Platform.OS === 'ios') {
         return (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT);
     }
