@@ -278,7 +278,7 @@ const getThoughtDetails = (req, res) => {
                 // Users are only allowed to see their own reactions
                 if (isOwnThought) {
                     const reactions = reactionResponse?.data?.reactions;
-                    const reactionCounts = reactions.reduce((acc, reaction) => {
+                    const reactionCounts = (reactions || []).reduce((acc, reaction) => {
                         if (reaction.userHasLiked) {
                             acc.likeCount += 1;
                         }
