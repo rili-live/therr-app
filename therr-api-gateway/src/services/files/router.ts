@@ -25,10 +25,11 @@ filesRouter.get('/*', validate, async (req, res) => {
         // res.setHeader('Content-Encoding', meta.contentEncoding);
         // use streams if >~ 2MB/s to lower memory usage.
         // if (meta.size > 2000000) {
+        //     probably requires the fronend to readout the stream before loading the image
         //     return res.status(200).send(file.createReadStream());
         // }
 
-        // downloading seems like a faster method.
+        // downloading seems like a faster method (but uses more memory on container and could clog nodejs).
         return file.download()
             .then(([fileData]) => {
                 if (shouldCacheImages) {
