@@ -22,6 +22,7 @@ const searchActiveMoments = async (req: any, res: any) => {
         userLatitude,
         userLongitude, // TODO: Fetch coords from user redis store instead?
         lastContentCreatedAt,
+        authorId,
     } = req.body;
 
     const conditions: any = {
@@ -51,6 +52,7 @@ const searchActiveMoments = async (req: any, res: any) => {
             reactions = reactionsResponse;
             const momentIds = reactions?.map((reaction) => reaction.momentId) || [];
 
+            // TODO: Add way to search by authorId
             return axios({
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/moments/find`,
@@ -66,6 +68,7 @@ const searchActiveMoments = async (req: any, res: any) => {
                     withMedia,
                     withUser,
                     lastContentCreatedAt,
+                    authorId,
                 },
             });
         })
