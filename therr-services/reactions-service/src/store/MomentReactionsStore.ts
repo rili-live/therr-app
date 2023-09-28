@@ -92,6 +92,7 @@ export default class MomentReactionsStore {
         let queryString = knexBuilder.update({
             ...params,
             updatedAt: new Date(),
+            updateCount: knexBuilder.raw('"updateCount" + 1'),
         })
             .into(MOMENT_REACTIONS_TABLE_NAME)
             .where(conditions)

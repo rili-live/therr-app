@@ -312,6 +312,12 @@ export default class MomentsStore {
             .whereIn('id', momentIds || [])
             .limit(restrictedLimit);
 
+        if (filters.isDraft != null) {
+            query = query.andWhere({
+                isDraft: filters.isDraft,
+            });
+        }
+
         if (filters.authorId) {
             query = query.andWhere('fromUserId', filters.authorId);
         }
