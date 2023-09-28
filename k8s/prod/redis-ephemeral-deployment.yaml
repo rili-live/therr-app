@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-ephemeral-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: redis-ephemeral
+  template:
+    metadata:
+      labels:
+        component: redis-ephemeral
+        type: db
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: cloud.google.com/gke-preemptible
+                operator: Exists
+            weight: 100
+      containers:
+      - name: redis
+        image: redis:7
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "100m"
+          requests:
+            memory: "512Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 6379

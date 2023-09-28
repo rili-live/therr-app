@@ -52,6 +52,10 @@ spec:
               key: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
         - name: LOG_LEVEL
           value: "info"
+        - name: REDIS_EPHEMERAL_HOST
+          value: "redis-ephemeral-cluster-ip-service"
+        - name: REDIS_EPHEMERAL_PORT
+          value: "6379"
         - name: REDIS_GENERIC_HOST
           value: "redis-cluster-ip-service"
         - name: REDIS_GENERIC_PORT
