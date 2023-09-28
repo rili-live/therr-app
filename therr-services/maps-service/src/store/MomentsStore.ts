@@ -312,6 +312,10 @@ export default class MomentsStore {
             .whereIn('id', momentIds || [])
             .limit(restrictedLimit);
 
+        if (filters.authorId) {
+            query = query.andWhere('fromUserId', filters.authorId);
+        }
+
         if (filters?.fromUserId) {
             query = query.where({ fromUserId: filters.fromUserId });
         }

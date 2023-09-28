@@ -17,6 +17,7 @@ export const searchActiveAreasValidation = [
     body('userLatitude').isNumeric().optional(),
     body('userLongitude').isNumeric().optional(),
     body('lastContentCreatedAt').optional(),
+    body('authorId').optional(),
 ];
 
 export const searchActiveAreasByIdsValidation = [
