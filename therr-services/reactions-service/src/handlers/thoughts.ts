@@ -67,6 +67,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
                     withReplies,
                     lastContentCreatedAt,
                     authorId,
+                    isDraft: false,
                 },
             });
         })

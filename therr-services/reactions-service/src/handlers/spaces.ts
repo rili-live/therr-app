@@ -67,6 +67,7 @@ const searchActiveSpaces = async (req: any, res: any) => {
                     withMedia,
                     withUser,
                     lastContentCreatedAt,
+                    isDraft: false,
                 },
             });
         })
