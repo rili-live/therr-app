@@ -396,6 +396,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         withReplies,
         lastContentCreatedAt,
         authorId,
+        isDraft,
     } = req.body;
 
     return Store.thoughts.find(thoughtIds, {
@@ -404,6 +405,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         order,
         offset,
         before: lastContentCreatedAt,
+        isDraft,
     }, {
         withUser: !!withUser,
         withReplies: !!withReplies,

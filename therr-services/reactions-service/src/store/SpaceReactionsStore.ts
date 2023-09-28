@@ -107,6 +107,7 @@ export default class SpaceReactionsStore {
         let queryString = knexBuilder.update({
             ...params,
             updatedAt: new Date(),
+            updateCount: knexBuilder.raw('"updateCount" + 1'),
         })
             .into(SPACE_REACTIONS_TABLE_NAME)
             .where(conditions)

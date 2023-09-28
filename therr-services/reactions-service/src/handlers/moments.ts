@@ -69,6 +69,7 @@ const searchActiveMoments = async (req: any, res: any) => {
                     withUser,
                     lastContentCreatedAt,
                     authorId,
+                    isDraft: false,
                 },
             });
         })
