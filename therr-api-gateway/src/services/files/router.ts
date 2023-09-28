@@ -2,11 +2,17 @@ import express from 'express';
 import handleHttpError from '../../utilities/handleHttpError';
 import { storage } from '../../api/aws';
 import { validate } from '../../validation';
+import CacheStore from '../../store';
 
 const filesRouter = express.Router();
 
 filesRouter.get('/*', validate, async (req, res) => {
     try {
+        const shouldCacheImages = (process.env.SHOULD_CACHE_IMAGES || '').toLowerCase() === 'true';
+        const cachedFileData = shouldCacheImages && await CacheStore.filesService.getFile(req.path);
+        if (cachedFileData) {
+            return res.status(200).send(cachedFileData);
+        }
         const sanitizedPath = req.path.substring(1);
         const file = storage
             .bucket(process.env.BUCKET_PUBLIC_USER_DATA || '')
@@ -24,7 +30,12 @@ filesRouter.get('/*', validate, async (req, res) => {
 
         // downloading seems like a faster method.
         return file.download()
-            .then(([fileData]) => res.status(200).send(fileData))
+            .then(([fileData]) => {
+                if (shouldCacheImages) {
+                    CacheStore.filesService.setFile(req.path, fileData);
+                }
+                return res.status(200).send(fileData);
+            })
             .catch(() => res.status(404).send());
     } catch (err: any) {
         if (err.message?.includes('No such object')) {

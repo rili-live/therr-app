@@ -24,6 +24,22 @@ const redisClient = new Redis({
     maxRetriesPerRequest: null,
 });
 
+const redisEphemeralClient = new Redis({
+    host: process.env.REDIS_EPHEMERAL_HOST,
+    port: Number(process.env.REDIS_EPHEMERAL_PORT),
+    keyPrefix: 'api-gateway:',
+    lazyConnect: true,
+    retryStrategy(times) {
+        const delay = Math.min(times * 50, 5000);
+        return delay;
+    },
+    /**
+     * Redis is a single point of failure because we rely on rate limiting.
+     * This config property causes it to retry indefinitely until Redis is back online
+     */
+    maxRetriesPerRequest: null,
+});
+
 // Redis Error handling
 redisClient.on('error', (error: any) => {
     logSpan({
@@ -33,15 +49,23 @@ redisClient.on('error', (error: any) => {
         traceArgs: {},
     });
 });
+redisEphemeralClient.on('error', (error: any) => {
+    logSpan({
+        level: 'error',
+        messageOrigin: 'REDIS_EPHEMERAL_CONNECTION_ERROR',
+        messages: error.toString(),
+        traceArgs: {},
+    });
+});
 
 /**
  * Connects and reconnects to Redis with custom exponential backoff
  */
-const connectToRedis = (options, callback) => {
-    redisClient.disconnect();
+const connectToRedis = (client: Redis.Redis, options, callback) => {
+    client.disconnect();
     // We must connect manually since lazyConnect is true
     const redisConnectPromises = [
-        redisClient.connect()
+        client.connect()
             .catch((e) => { console.log('Handled error thrown after attempting to connect to Redis'); }),
     ];
 
@@ -66,7 +90,7 @@ const connectToRedis = (options, callback) => {
 
             connectionTimerId = setTimeout(() => {
                 connectionRetryCount += 1;
-                connectToRedis(options, callback);
+                connectToRedis(client, options, callback);
 
                 if (connectionWaitTime === 0) {
                     connectionWaitTime = 50;
@@ -83,7 +107,8 @@ const connectToRedis = (options, callback) => {
 };
 
 // TODO: Consider moving this to the server start. For now, let's fail fast.
-connectToRedis({}, () => { console.log('Attempting to connect to Redis...'); });
+connectToRedis(redisClient, {}, () => { console.log('Attempting to connect to Redis...'); });
+connectToRedis(redisEphemeralClient, {}, () => { console.log('Attempting to connect to ephemeral Redis...'); });
 
 /**
  * This must be instantiated after the redisClient connects because it also calls connect which causes an error otherwise
@@ -99,5 +124,13 @@ redisClient.on('connect', () => {
     console.log('Connected to Redis');
     RateLimiterRedisStore.loadScript();
 });
+
+redisEphemeralClient.on('connect', () => {
+    console.log('Connected to ephemeral Redis');
+});
+
+export {
+    redisEphemeralClient,
+};
 
 export default redisClient;

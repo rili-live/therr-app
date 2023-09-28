@@ -1,5 +1,6 @@
 import { Redis } from 'ioredis';
-import redisClient from './redisClient';
+import redisClient, { redisEphemeralClient } from './redisClient';
+import FilesServiceStore from './FilesService';
 import UsersServiceStore from './UsersService';
 import MapsServiceStore from './MapsService';
 
@@ -7,15 +8,21 @@ import MapsServiceStore from './MapsService';
 class CacheStore {
     private cache: Redis;
 
-    public usersService: any;
+    private ephemeralCache: Redis;
 
-    public mapsService: any;
+    public filesService: FilesServiceStore;
 
-    constructor(cacheClient) {
+    public usersService: UsersServiceStore;
+
+    public mapsService: MapsServiceStore;
+
+    constructor(cacheClient, ephemeralClient) {
         this.cache = cacheClient;
+        this.ephemeralCache = ephemeralClient;
+        this.filesService = new FilesServiceStore(this.ephemeralCache);
         this.usersService = new UsersServiceStore(this.cache);
         this.mapsService = new MapsServiceStore(this.cache);
     }
 }
 
-export default new CacheStore(redisClient);
+export default new CacheStore(redisClient, redisEphemeralClient);
