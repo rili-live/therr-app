@@ -44,6 +44,7 @@ const getCardStyles = (therrTheme: ITherrTheme): any => ({
         height: -2,
     },
     overflow: 'hidden',
+    marginBottom: 3,
 });
 
 const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
@@ -262,7 +263,7 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         cardFocused: {
             ...getCardStyles(therrTheme),
             borderColor: 'rgba(170,10,170, 0.15)',
-            borderWidth: 1,
+            borderWidth: 2,
         },
         cardFeatured: {
             // borderColor: therrTheme.colors.brandingBlueGreen,

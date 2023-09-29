@@ -1,5 +1,5 @@
 import React, { Ref } from 'react';
-import { Animated, Dimensions, Platform, View } from 'react-native';
+import { Animated, Dimensions, View } from 'react-native';
 import MapView from 'react-native-map-clustering';
 import { PROVIDER_GOOGLE, Circle, Marker, MapPressEvent, MarkerPressEvent } from 'react-native-maps';
 import { connect } from 'react-redux';
@@ -47,8 +47,8 @@ const IS_SMALL_SCREEN = viewPortWidth < 400;
 const CARD_HEIGHT = viewPortHeight / 4;
 const CARD_WIDTH = IS_SMALL_SCREEN ? viewPortWidth / 3 : CARD_HEIGHT - 70;
 // const CARD_WIDTH = viewPortWidth / 4;
-const spaceBubbleWidth = viewPortWidth / 8;
-const MAX_CIRCLE_DIAMETER_SCALE = 2;
+// const spaceBubbleWidth = viewPortWidth / 8;
+// const MAX_CIRCLE_DIAMETER_SCALE = 2;
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
@@ -531,7 +531,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             sortedAreasWithDistance.some((area: any, index: number) => {
                 // Prevent loading spaces from too far away to be relevant
                 // Stop after 100 miles
-                if (index >= 10 && area.distanceFromUser && area.distanceFromUser > 100) {
+                if (index >= 20 && area.distanceFromUser && area.distanceFromUser > 100) {
                     return true;
                 }
 
@@ -603,13 +603,18 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             shouldFollowUserLocation,
             updateUserCoordinates,
             updateCircleCenter,
+            location,
         } = this.props;
         const coords = {
             latitude: event.nativeEvent.coordinate.latitude,
             longitude: event.nativeEvent.coordinate.longitude,
         };
+
+        if (coords.latitude !== location?.user?.latitude || coords.longitude !== location?.user?.longitude) {
+            updateUserCoordinates(coords);
+        }
+
         // TODO: Add throttle
-        updateUserCoordinates(coords);
         updateCircleCenter(coords);
 
         if (shouldFollowUserLocation) {
@@ -653,14 +658,16 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             }
         }
 
-        // Send location to backend for processing
-        PushNotificationsService.postLocationChange({
-            longitude: coords.longitude,
-            latitude: coords.latitude,
-            lastLocationSendForProcessing,
-            radiusOfAwareness: map.radiusOfAwareness,
-            radiusOfInfluence: map.radiusOfInfluence,
-        });
+        if (coords.latitude !== location?.user?.latitude || coords.longitude !== location?.user?.longitude) {
+            // Send location to backend for processing
+            PushNotificationsService.postLocationChange({
+                longitude: coords.longitude,
+                latitude: coords.latitude,
+                lastLocationSendForProcessing,
+                radiusOfAwareness: map.radiusOfAwareness,
+                radiusOfInfluence: map.radiusOfInfluence,
+            });
+        }
 
         this.setState({
             lastLocationSendForProcessing: Date.now(),
@@ -894,7 +901,8 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         })
                     }
                     {
-                        (!areasInPreview?.length || Platform.OS === 'android') && isMapReady && filteredSpaceValues.map((space: any) => {
+                        // (!areasInPreview?.length || Platform.OS === 'android') &&
+                        isMapReady && filteredSpaceValues.map((space: any) => {
                             return (
                                 <Marker
                                     anchor={{
@@ -917,7 +925,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             );
                         })
                     }
-                    {
+                    {/* {
                         isMapReady && Platform.OS !== 'android' && areasInPreview.map((space: any, index) => {
                             const inputRange = [
                                 (index - 1) * CARD_WIDTH,
@@ -965,7 +973,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                     <Animated.View style={[{
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        /* transform: [{ translateY: 0 }] */
                                         width: (spaceBubbleWidth * MAX_CIRCLE_DIAMETER_SCALE),
                                         height: (spaceBubbleWidth * MAX_CIRCLE_DIAMETER_SCALE),
                                         zIndex: index + 1,
@@ -984,11 +991,10 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                 </Marker>
                             );
                         })
-                    }
+                    } */}
                     {
                         isMapReady
-                            && Platform.OS === 'android'
-                            && areasInPreview?.length > 0
+                            // && Platform.OS === 'android'
                             && areasInPreview.map((space: any, idx) => {
                                 return (
                                     <Circle
@@ -1046,11 +1052,11 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 {
                     isPreviewBottomSheetVisible &&
                     <View style={[this.themeBottomSheet.styles.scrollViewOuterContainer, {
-                        height: animatedOverlayHeight,
+                        height: animatedOverlayHeight + 3, // Add for box shadow
                     }]}>
                         <Animated.ScrollView
                             horizontal
-                            scrollEventThrottle={20}
+                            scrollEventThrottle={0}
                             showsHorizontalScrollIndicator={false}
                             snapToInterval={CARD_WIDTH}
                             onScroll={Animated.event(

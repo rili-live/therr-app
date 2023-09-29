@@ -206,8 +206,8 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
 
         this.throttleTimeoutId = setTimeout(() => {
             getPlacesSearchAutoComplete({
-                longitude: map?.longitude || '33.7673401', // defaults to Atlanta, GA
-                latitude: map?.latitude || '-84.5025305', // defaults to Atlanta, GA
+                latitude: map?.latitude || DEFAULT_COORDINATES.latitude,
+                longitude: map?.longitude || DEFAULT_COORDINATES.longitude,
                 // radius,
                 input: text,
             });

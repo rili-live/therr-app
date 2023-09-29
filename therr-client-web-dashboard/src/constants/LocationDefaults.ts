@@ -1,6 +1,6 @@
 const DEFAULT_COORDINATES = {
-    latitude: 33.7673401, // defaults to Atlanta, GA
-    longitude: -84.5025305, // defaults to Atlanta, GA
+    latitude: 30.3076576, // defaults to Austin, TX
+    longitude: -97.9205478, // defaults to Austin, TX
 };
 
 export {
