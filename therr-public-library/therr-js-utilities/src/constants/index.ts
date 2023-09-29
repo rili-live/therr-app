@@ -1,5 +1,6 @@
 import Content from './Content';
 import ErrorCodes from './ErrorCodes';
+import FilePaths from './FilePaths';
 import Location from './Location';
 import LogLevelMap, { ILogLevel } from './LogLevelMap';
 import {
@@ -37,6 +38,7 @@ export {
     CampaignAssetTypes,
     Content,
     ErrorCodes,
+    FilePaths,
     IncentiveRequirementKeys,
     IncentiveRewardKeys,
     MetricNames,

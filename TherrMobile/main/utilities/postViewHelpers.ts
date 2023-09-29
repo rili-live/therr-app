@@ -119,25 +119,28 @@ const loadMorePosts = ({
     }
 };
 
-const navToViewContent = (content, user, navigate) => {
+const navToViewContent = (content, user, navigate, previousView = 'Areas', previousViewParams = {}) => {
     if (content.areaType === 'spaces') {
         navigate('ViewSpace', {
             isMyContent: isMyContent(content, user),
-            previousView: 'Areas',
+            previousView,
+            previousViewParams,
             space: content,
             spaceDetails: {},
         });
     } else if (content.areaType === 'moments') {
         navigate('ViewMoment', {
             isMyContent: isMyContent(content, user),
-            previousView: 'Areas',
+            previousView,
+            previousViewParams,
             moment: content,
             momentDetails: {},
         });
     } else {
         navigate('ViewThought', {
             isMyContent: isMyContent(content, user),
-            previousView: 'Areas',
+            previousView,
+            previousViewParams,
             thought: content,
             thoughtDetails: {},
         });
