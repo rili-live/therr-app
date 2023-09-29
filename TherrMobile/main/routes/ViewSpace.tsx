@@ -16,7 +16,7 @@ import Toast from 'react-native-toast-message';
 import { IContentState, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 // import { MapsService } from 'therr-react/services';
-import { IncentiveRequirementKeys } from 'therr-js-utilities/constants';
+import { Content, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -38,7 +38,7 @@ import { youtubeLinkRegex } from '../constants';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
-import { isMyContent as checkIsMySpace } from '../utilities/content';
+import { isMyContent as checkIsMySpace, getUserContentUri } from '../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
@@ -615,7 +615,12 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         };
         const spaceUserName = isMyContent ? user.details.userName : spaceInView.fromUserName;
         const mediaId = (spaceInView.media && spaceInView.media[0]?.id) || (spaceInView.mediaIds?.length && spaceInView.mediaIds?.split(',')[0]);
-        const spaceMedia = content?.media[mediaId];
+        // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
+        const mediaPath = (spaceInView.media && spaceInView.media[0]?.path);
+        const mediaType = (spaceInView.media && spaceInView.media[0]?.type);
+        const spaceMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+            ? getUserContentUri(spaceInView.media[0])
+            : content?.media[mediaId];
         let areaUserName = spaceUserName || this.translate('alertTitles.nameUnknown');
         if (areaUserName === 'therr_it_is') {
             // This allows us to hide the user name/image when space is create by (essentially) our admin account

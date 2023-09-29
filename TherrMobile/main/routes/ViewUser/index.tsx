@@ -46,10 +46,12 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 import LazyPlaceholder from './components/LazyPlaceholder';
 import AreaCarousel from '../Areas/AreaCarousel';
 import { isMyContent } from '../../utilities/content';
-import ThoughtOptionsModal, { ISelectionType } from '../../components/Modals/ThoughtOptionsModal';
-import { handleThoughtReaction } from '../../utilities/postViewHelpers';
+import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
+import ThoughtOptionsModal from '../../components/Modals/ThoughtOptionsModal';
+import { handleAreaReaction, handleThoughtReaction, navToViewContent } from '../../utilities/postViewHelpers';
 import ListEmpty from '../../components/ListEmpty';
 import TherrIcon from '../../components/TherrIcon';
+import getDirections from '../../utilities/getDirections';
 
 const { width: viewportWidth } = Dimensions.get('window');
 const imageWidth = viewportWidth / 3;
@@ -63,7 +65,9 @@ interface IViewUserDispatchProps {
     blockUser: Function;
     getIntegratedMoments: Function;
     getUser: Function;
+    createOrUpdateMomentReaction: Function;
     createOrUpdateThoughtReaction: Function;
+    createOrUpdateSpaceReaction: Function;
     searchThoughts: Function;
     updateUserInView: Function;
     createUserConnection: Function;
@@ -83,15 +87,19 @@ export interface IViewUserProps extends IStoreProps {
 }
 
 interface IViewUserState {
+    areAreaOptionsVisible: boolean;
     areThoughtOptionsVisible: boolean;
     confirmModalText: string;
     activeConfirmModal: '' | 'report-user' | 'block-user' | 'remove-connection-request' | 'send-connection-request';
     activeTabIndex: number;
     isLoading: boolean;
     isRefreshingUserMedia: boolean;
+    isRefreshingUserMoments: boolean;
     isRefreshingUserThoughts: boolean;
+    selectedArea: any;
     selectedThought: any;
     tabRoutes: { key: string; title: string }[];
+    userInViewsMoments: any[];
     userInViewsThoughts: any[];
 }
 
@@ -105,7 +113,9 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     blockUser: UsersActions.block,
     getIntegratedMoments: MapActions.getIntegratedMoments,
     getUser: UsersActions.get,
+    createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
     createOrUpdateThoughtReaction: ContentActions.createOrUpdateThoughtReaction,
+    createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
     searchThoughts: UsersActions.searchThoughts,
     updateUserInView: UsersActions.updateUserInView,
     createUserConnection: UserConnectionsActions.create,
@@ -116,6 +126,7 @@ class ViewUser extends React.Component<
     IViewUserProps,
     IViewUserState
 > {
+    private carouselMomentsRef;
     private carouselThoughtsRef;
     private flatListRef: any;
     private loaderId;
@@ -137,21 +148,31 @@ class ViewUser extends React.Component<
             translator('en-us', key, params);
 
         const { route } = props;
+        const { userInView } = route.params;
         const activeTabIndex = route.params?.activeTab === 'media' ? 1 : 0;
+        const isMe = userInView?.id === props.user.details.id;
+        const tabRoutes = [
+            { key: 'thoughts', title: this.translate('menus.headerTabs.thoughts') },
+            { key: 'media', title: this.translate('menus.headerTabs.media') },
+        ];
+        if (isMe) {
+            tabRoutes.unshift({ key: 'moments', title: this.translate('menus.headerTabs.moments') });
+        }
 
         this.state = {
+            areAreaOptionsVisible: false,
             areThoughtOptionsVisible: false,
             activeTabIndex,
             confirmModalText: '',
             activeConfirmModal: '',
             isLoading: true,
             isRefreshingUserMedia: false,
+            isRefreshingUserMoments: false,
             isRefreshingUserThoughts: false,
+            selectedArea: {},
             selectedThought: {},
-            tabRoutes: [
-                { key: 'thoughts', title: this.translate('menus.headerTabs.thoughts') },
-                { key: 'media', title: this.translate('menus.headerTabs.media') },
-            ],
+            tabRoutes,
+            userInViewsMoments: [],
             userInViewsThoughts: [],
         };
 
@@ -182,6 +203,17 @@ class ViewUser extends React.Component<
 
     componentDidUpdate(prevProps) {
         if (prevProps.route?.params?.userInView?.id !== this.props.route?.params?.userInView?.id) {
+            const isMe = this.props.route?.params?.userInView?.id === this.props.user.details.id;
+            const tabRoutes = [
+                { key: 'thoughts', title: this.translate('menus.headerTabs.thoughts') },
+                { key: 'media', title: this.translate('menus.headerTabs.media') },
+            ];
+            if (isMe) {
+                tabRoutes.unshift({ key: 'moments', title: this.translate('menus.headerTabs.moments') });
+            }
+            this.setState({
+                tabRoutes,
+            });
             this.fetchUser();
         }
     }
@@ -194,8 +226,13 @@ class ViewUser extends React.Component<
             navigation.setOptions({
                 title: response?.userName || this.translate('pages.viewUser.headerTitle'),
             });
+            this.setState({
+                isLoading: false,
+            });
             if (response?.id) {
+                // Media
                 getIntegratedMoments(response?.id); // TODO: Maybe only load after clicking tab
+                this.fetchMoments();
                 this.fetchThoughts();
             }
         }).catch((error) => {
@@ -203,14 +240,13 @@ class ViewUser extends React.Component<
             if (error?.statusCode === 404) {
                 navigation?.goBack();
             }
-        }).finally(() => {
             this.setState({
                 isLoading: false,
             });
         });
     };
 
-    goToContent = (content) => {
+    gotToThought = (content) => {
         const { navigation, route, user } = this.props;
         const { userInView } = route.params;
 
@@ -222,6 +258,15 @@ class ViewUser extends React.Component<
             },
             thought: content,
             thoughtDetails: {},
+        });
+    };
+
+    goToContent = (content) => {
+        const { navigation, user, route } = this.props;
+        const { userInView } = route.params;
+
+        navToViewContent(content, user, navigation.navigate, 'ViewUser', {
+            userInView,
         });
     };
 
@@ -239,11 +284,46 @@ class ViewUser extends React.Component<
         this.flatListRef?.scrollToOffset({ animated: true, offset: 0 });
     };
 
+    toggleAreaOptions = (area) => {
+        const { areAreaOptionsVisible } = this.state;
+        this.setState({
+            areAreaOptionsVisible: !areAreaOptionsVisible,
+            areThoughtOptionsVisible: false,
+            selectedArea: areAreaOptionsVisible ? {} : area,
+            selectedThought: {},
+        });
+    };
+
     toggleThoughtOptions = (thought) => {
         const { areThoughtOptionsVisible } = this.state;
         this.setState({
             areThoughtOptionsVisible: !areThoughtOptionsVisible,
             selectedThought: areThoughtOptionsVisible ? {} : thought,
+        });
+    };
+
+    // TODO: This is so damn ugly. Refactor this!
+    createUpdateMomentReaction = (
+        momentId: number,
+        params: any,
+        momentUserId: string,
+        reactorUserName: string,
+    ) => {
+        const { createOrUpdateMomentReaction } = this.props;
+        const { userInViewsMoments } = this.state;
+
+        createOrUpdateMomentReaction(momentId, params, momentUserId, reactorUserName).then((reaction) => {
+            const modifiedMoments = userInViewsMoments.map((moment) => {
+                if (moment.id === momentId) {
+                    moment.reaction = reaction;
+                }
+
+                return moment;
+            });
+
+            this.setState({
+                userInViewsMoments: modifiedMoments,
+            });
         });
     };
 
@@ -270,8 +350,6 @@ class ViewUser extends React.Component<
                 userInViewsThoughts: modifiedThoughts,
             });
         });
-
-        createOrUpdateThoughtReaction(thoughtId, params, thoughtUserId, reactorUserName);
     };
 
     handleRefresh = () => {
@@ -289,6 +367,16 @@ class ViewUser extends React.Component<
         }) : null;
     };
 
+    handleUserMomentsRefresh = () => {
+        const { user } = this.props;
+
+        this.setState({ isRefreshingUserMoments: true });
+
+        return user.userInView ? this.fetchMoments().then(() => {
+            this.setState({ isRefreshingUserMoments: false });
+        }) : null;
+    };
+
     handleUserThoughtsRefresh = () => {
         const { user } = this.props;
 
@@ -297,6 +385,30 @@ class ViewUser extends React.Component<
         return user.userInView ? this.fetchThoughts().then(() => {
             this.setState({ isRefreshingUserThoughts: false });
         }) : null;
+    };
+
+    fetchMoments = () => {
+        const { user } = this.props;
+        const isMe = user.userInView?.id === user.details.id;
+
+        // TODO: Change this to a service request rather than redux action to prevent altering redux state
+        return ReactionsService.searchActiveMoments(
+            {
+                authorId: user.userInView?.id,
+                withUser: true,
+                withMedia: true,
+                offset: 0,
+                // ...content.activeAreasFilters,
+                blockedUsers: user.details.blockedUsers,
+                shouldHideMatureContent: isMe ? false : user.details.shouldHideMatureContent,
+            },
+            63, // NOTE: SQL Query includes moment replies, so use (21 * 3) for more results per request
+        ).then(({ data }) => {
+            // TODO: Store these on userInView? or nearby
+            this.setState({
+                userInViewsMoments: data?.moments || [],
+            });
+        });
     };
 
     fetchThoughts = () => {
@@ -316,7 +428,7 @@ class ViewUser extends React.Component<
             },
             63, // NOTE: SQL Query includes thought replies, so use (21 * 3) for more results per request
         ).then(({ data }) => {
-            // TODO: Store these on userInView?
+            // TODO: Store these on userInView? or nearby
             this.setState({
                 userInViewsThoughts: data?.thoughts || [],
             });
@@ -329,6 +441,25 @@ class ViewUser extends React.Component<
         navigation.navigate('EditThought', {});
     };
 
+    onAreaOptionSelect = (type: ISelectionType) => {
+        const { selectedArea } = this.state;
+        const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
+
+        if (type === 'getDirections') {
+            getDirections({
+                latitude: selectedArea.latitude,
+                longitude: selectedArea.longitude,
+                title: selectedArea.notificationMsg,
+            });
+        } else {
+            handleAreaReaction(selectedArea, type, {
+                user,
+                createOrUpdateMomentReaction,
+                createOrUpdateSpaceReaction,
+                toggleAreaOptions: this.toggleAreaOptions,
+            });
+        }
+    };
 
     onThoughtOptionSelect = (type: ISelectionType) => {
         const { selectedThought } = this.state;
@@ -437,6 +568,8 @@ class ViewUser extends React.Component<
 
     onTabSelect = (index: number) => {
         if (index === 0) {
+            this.carouselMomentsRef?.scrollToOffset({ animated: true, offset: 0 });
+        } else if (index === 1) {
             this.carouselThoughtsRef?.scrollToOffset({ animated: true, offset: 0 });
         }
         this.setState({
@@ -464,18 +597,48 @@ class ViewUser extends React.Component<
     };
 
     renderSceneMap = ({ route }) => {
-        const { isRefreshingUserMedia, userInViewsThoughts } = this.state;
+        const { isRefreshingUserMedia, userInViewsThoughts, userInViewsMoments } = this.state;
         const {
             content,
             user,
         } = this.props;
         const userInView = user.userInView || {};
+        const isMe = user.userInView?.id === user.details.id;
 
         // TODO: Fetch missing media
         const fetchMedia = () => {};
         const noop = () => {};
 
         switch (route.key) {
+            case 'moments':
+                const momentsData = userInViewsMoments;
+                return (
+                    <AreaCarousel
+                        activeData={momentsData}
+                        content={content}
+                        inspectContent={this.goToContent}
+                        isLoading={isRefreshingUserMedia}
+                        fetchMedia={fetchMedia}
+                        goToViewMap={noop}
+                        goToViewUser={this.goToViewUser}
+                        toggleAreaOptions={this.toggleAreaOptions}
+                        toggleThoughtOptions={noop}
+                        translate={this.translate}
+                        containerRef={(component) => { this.carouselMomentsRef = component; }}
+                        handleRefresh={this.handleUserMomentsRefresh}
+                        onEndReached={noop} // TODO
+                        updateMomentReaction={this.createUpdateMomentReaction}
+                        updateSpaceReaction={noop}
+                        updateThoughtReaction={noop}
+                        emptyListMessage={this.translate(isMe ? 'user.profile.text.noMeMoments' : 'user.profile.text.noMoments')}
+                        renderHeader={() => null}
+                        renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                        user={user}
+                        rootStyles={this.theme.styles}
+                        // viewportHeight={viewportHeight}
+                        // viewportWidth={viewportWidth}
+                    />
+                );
             case 'thoughts':
                 const thoughtsData = userInViewsThoughts;
                 return (
@@ -496,7 +659,7 @@ class ViewUser extends React.Component<
                         updateMomentReaction={noop}
                         updateSpaceReaction={noop}
                         updateThoughtReaction={this.createUpdateThoughtReaction}
-                        emptyListMessage={this.translate('user.profile.text.noThoughts')}
+                        emptyListMessage={this.translate(isMe ? 'user.profile.text.noMeThoughts' : 'user.profile.text.noThoughts')}
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
                         user={user}
@@ -553,8 +716,10 @@ class ViewUser extends React.Component<
             activeTabIndex,
             activeConfirmModal,
             areThoughtOptionsVisible,
+            areAreaOptionsVisible,
             confirmModalText,
             isLoading,
+            selectedArea,
             selectedThought,
             tabRoutes,
         } = this.state;
@@ -625,6 +790,14 @@ class ViewUser extends React.Component<
                             onPress={this.handleEditThought}
                         />
                 }
+                <AreaOptionsModal
+                    isVisible={areAreaOptionsVisible}
+                    onRequestClose={() => this.toggleAreaOptions(selectedArea)}
+                    translate={this.translate}
+                    onSelect={this.onAreaOptionSelect}
+                    themeButtons={this.themeButtons}
+                    themeReactionsModal={this.themeReactionsModal}
+                />
                 <ThoughtOptionsModal
                     isVisible={areThoughtOptionsVisible}
                     onRequestClose={() => this.toggleThoughtOptions(selectedThought)}

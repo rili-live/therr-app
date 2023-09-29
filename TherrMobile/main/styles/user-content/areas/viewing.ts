@@ -27,6 +27,25 @@ const getAreaDistanceStyle = (therrTheme: ITherrTheme, isDarkMode = true): any =
     textAlign: 'left',
 });
 
+const getCardStyles = (therrTheme: ITherrTheme): any => ({
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+    padding: 0,
+    elevation: 2,
+    backgroundColor: therrTheme.colors.backgroundWhite,
+    borderRadius: 5,
+    paddingBottom: 5,
+    marginHorizontal: 7,
+    shadowRadius: 5,
+    shadowOpacity: 0.3,
+    shadowOffset: {
+        width: 2,
+        height: -2,
+    },
+    overflow: 'hidden',
+});
+
 const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
     const therrTheme = getTheme(themeName);
 
@@ -238,22 +257,12 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             padding: 0,
         },
         card: {
-            display: 'flex',
-            flexDirection: 'column',
-            flex: 1,
-            padding: 0,
-            elevation: 2,
-            backgroundColor: therrTheme.colors.backgroundWhite,
-            borderRadius: 5,
-            paddingBottom: 5,
-            marginHorizontal: 7,
-            shadowRadius: 5,
-            shadowOpacity: 0.3,
-            shadowOffset: {
-                width: 2,
-                height: -2,
-            },
-            overflow: 'hidden',
+            ...getCardStyles(therrTheme),
+        },
+        cardFocused: {
+            ...getCardStyles(therrTheme),
+            borderColor: 'rgba(170,10,170, 0.15)',
+            borderWidth: 1,
         },
         cardFeatured: {
             // borderColor: therrTheme.colors.brandingBlueGreen,

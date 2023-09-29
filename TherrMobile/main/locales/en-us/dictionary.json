@@ -646,8 +646,9 @@
       }
     },
     "headerTabs": {
-      "discoveries": "Discoveries",
-      "connections": "My Connections",
+      "discoveries": "Moments",
+      "moments": "Moments",
+      "connections": "Connections",
       "people": "People",
       "search": "Search",
       "social": "Social",
@@ -1368,7 +1369,10 @@
       },
       "text": {
         "noMedia": "No media to display. Users can sync their socials to showcase their best content creations.",
-        "noThoughts": "No thoughts to display. User can create thoughts from the 'Discovered' page."
+        "noMeMoments": "No moments to display. You can create moments from the map.",
+        "noMoments": "No moments to display. Travel where they travel to activate nearby moments.",
+        "noMeThoughts": "No thoughts to display. You can create thoughts from the 'Discovered' page.",
+        "noThoughts": "This user has not shared any thoughts yet."
       }
     }
   }

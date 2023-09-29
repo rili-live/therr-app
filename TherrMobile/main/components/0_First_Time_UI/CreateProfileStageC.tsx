@@ -2,6 +2,7 @@ import React from 'react';
 import { GestureResponderEvent, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import RNFB from 'react-native-blob-util';
+import { FilePaths } from 'therr-js-utilities/constants';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import Alert from '../Alert';
 import UserImage from '../UserContent/UserImage';
@@ -65,7 +66,7 @@ class CreateProfileStageC extends React.Component<ICreateProfileStageCProps, ICr
         const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
         return signImageUrl(true, {
             action: 'write',
-            filename: `profile/user_profile.${fileExtension}`,
+            filename: `${FilePaths.PROFILE_Picture}.${fileExtension}`,
         }).then((response) => {
             const signedUrl = response?.data?.url && response?.data?.url[0];
 

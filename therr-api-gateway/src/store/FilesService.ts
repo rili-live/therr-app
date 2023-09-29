@@ -1,7 +1,8 @@
 import { Redis } from 'ioredis';
 
 const FILES_STORE_PREFIX = 'FILES_STORE:';
-const DEFAULT_TTL_SECONDS = 1800;
+const DEFAULT_TTL_SECONDS = 60 * 60; // 1 hour
+const MAX_REQUEST_TIME = 2000;
 
 class FilesServiceCache {
     private cache: Redis;
@@ -11,14 +12,20 @@ class FilesServiceCache {
     }
 
     public getFile(path: string) {
-        return this.cache.get(`${FILES_STORE_PREFIX}${path}`).then((response) => {
-            if (!response) {
-                return undefined;
-            }
+        return new Promise((resolve) => {
+            // Prevent hang when Redis connection timeout
+            setTimeout(() => resolve(undefined), MAX_REQUEST_TIME);
 
-            return Buffer.from(response, 'base64');
-        }).catch((error) => {
-            console.error(`Error getting image with path ${path} from cache`, error);
+            this.cache.get(`${FILES_STORE_PREFIX}${path}`).then((response) => {
+                if (!response) {
+                    return resolve(undefined);
+                }
+
+                return resolve(Buffer.from(response, 'base64'));
+            }).catch((error) => {
+                console.error(`Error getting image with path ${path} from cache`, error);
+                return resolve(undefined);
+            });
         });
     }
 

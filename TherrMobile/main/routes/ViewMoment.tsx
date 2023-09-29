@@ -12,6 +12,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
+import { Content } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
@@ -28,7 +29,7 @@ import { youtubeLinkRegex } from '../constants';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
-import { isMyContent as checkIsMyMoment } from '../utilities/content';
+import { isMyContent as checkIsMyMoment, getUserContentUri } from '../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
@@ -362,7 +363,12 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         };
         const momentUserName = isMyContent ? user.details.userName : momentInView.fromUserName;
         const mediaId = (momentInView.media && momentInView.media[0]?.id) || (momentInView.mediaIds?.length && momentInView.mediaIds?.split(',')[0]);
-        const momentMedia = content?.media[mediaId];
+        // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
+        const mediaPath = (momentInView.media && momentInView.media[0]?.path);
+        const mediaType = (momentInView.media && momentInView.media[0]?.type);
+        const momentMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+            ? getUserContentUri(momentInView.media[0])
+            : content?.media[mediaId];
 
         return (
             <>

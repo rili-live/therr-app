@@ -7,6 +7,8 @@ const isMyContent = (content, user) => {
     return String(content.fromUserId) === String(user.details.id);
 };
 
+const getUserContentUri = (media) => `${globalConfig.baseApiGatewayRoute}/user-files/${media.path}`;
+
 const getUserImageUri = (user, size = 200) => {
     if (user.details?.media?.profilePicture) {
         return `${globalConfig.baseApiGatewayRoute}/user-files/${user.details.media.profilePicture.path}`;
@@ -30,6 +32,7 @@ const signImageUrl = (isPublic: boolean, {
 };
 
 export {
+    getUserContentUri,
     getUserImageUri,
     isMyContent,
     signImageUrl,

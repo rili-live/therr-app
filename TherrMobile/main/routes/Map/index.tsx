@@ -1327,9 +1327,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     updateCircleCenter = (center: { longitude: number, latitude: number }) => {
-        this.setState({
-            circleCenter: center,
-        });
+        const { circleCenter } = this.state;
+
+        if (circleCenter.latitude !== center.latitude || circleCenter.longitude !== center.longitude) {
+            this.setState({
+                circleCenter: center,
+            });
+        }
     };
 
     updateMapRef = (ref: Ref<MapView>) => { this.mapRef = ref; };
