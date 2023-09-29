@@ -1,7 +1,7 @@
 import { Redis } from 'ioredis';
 
 const FILES_STORE_PREFIX = 'FILES_STORE:';
-const DEFAULT_TTL_SECONDS = 60 * 60; // 1 hour
+const DEFAULT_TTL_SECONDS = 60 * 60 * 24 * 7; // 1 week
 const MAX_REQUEST_TIME = 2000;
 
 class FilesServiceCache {

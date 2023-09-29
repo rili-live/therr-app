@@ -397,7 +397,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
     };
 
     positionSuccessCallback = (position) => {
-        const { shouldDisableLocationSendEvent, map, updateUserCoordinates } = this.props;
+        const { shouldDisableLocationSendEvent, map, updateUserCoordinates, location } = this.props;
         const { isFirstLoad } = this.state;
         // TODO: Throttle to prevent too many requests
         // Only update when Map is not already handling this in the background
@@ -406,14 +406,16 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
             };
-            updateUserCoordinates(coords);
-            PushNotificationsService.postLocationChange({
-                longitude: position.coords.longitude,
-                latitude: position.coords.latitude,
-                // lastLocationSendForProcessing,
-                radiusOfAwareness: map.radiusOfAwareness,
-                radiusOfInfluence: map.radiusOfInfluence,
-            });
+            if (coords.latitude !== location?.user?.latitude || coords.longitude !== location?.user?.longitude) {
+                updateUserCoordinates(coords);
+                PushNotificationsService.postLocationChange({
+                    longitude: position.coords.longitude,
+                    latitude: position.coords.latitude,
+                    // lastLocationSendForProcessing,
+                    radiusOfAwareness: map.radiusOfAwareness,
+                    radiusOfInfluence: map.radiusOfInfluence,
+                });
+            }
         }
     };
 

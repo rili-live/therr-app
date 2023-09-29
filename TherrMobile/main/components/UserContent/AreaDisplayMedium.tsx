@@ -200,6 +200,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                                 style={{
                                     width: mediaWidth,
                                     height: mediaWidth,
+                                    borderRadius: 7,
                                 }}
                                 resizeMode='contain'
                                 PlaceholderContent={<ActivityIndicator />}
