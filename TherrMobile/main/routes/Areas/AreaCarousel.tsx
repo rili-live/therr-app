@@ -1,6 +1,9 @@
 import React from 'react';
 import { RefreshControl, View, /* Platform, */ FlatList, Pressable } from 'react-native';
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import {
+    Content,
+} from 'therr-js-utilities/constants';
 // import Carousel from 'react-native-snap-carousel';
 import { buildStyles as buildRootStyles } from '../../styles';
 import { buildStyles } from '../../styles/user-content/areas';
@@ -12,6 +15,7 @@ import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import formatDate from '../../utilities/formatDate';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 import ListEmpty from '../../components/ListEmpty';
+import { getUserContentUri } from '../../utilities/content';
 
 interface IAreaCarouselProps {
     activeData: any;
@@ -57,10 +61,19 @@ const renderItem = ({ item: post }, {
     updateReaction,
     user,
 }) => {
-    if (post.media && (!media || !media[post.media[0]?.id])) {
+    const mediaPath = (post.media && post.media[0]?.path);
+    const mediaType = (post.media && post.media[0]?.type);
+
+    if (post.media && (!media || !media[post.media[0]?.id])
+        && (!mediaPath || mediaType !== Content.mediaTypes.USER_IMAGE_PUBLIC)) {
+        // Only fetch when we need signed urls
         fetchMedia(post.media[0]?.id);
     }
-    const postMedia = media && media[post.media && post.media[0]?.id];
+
+    // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
+    const postMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+        ? getUserContentUri(post.media[0])
+        : media && media[post.media && post.media[0]?.id];
     const isMe = user.details.id === post.fromUserId;
     let userDetails = {
         userName: post.fromUserName || (user.details.id === post.fromUserId ? user.details.userName : translate('alertTitles.nameUnknown')),

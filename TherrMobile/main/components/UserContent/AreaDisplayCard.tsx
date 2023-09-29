@@ -28,6 +28,7 @@ interface IAreaDisplayCardProps {
     cardWidth: number;
     cardHeight: number;
     isDarkMode: boolean;
+    isFocused: boolean;
     onPress: (area: any) => any;
     area: any;
     areaMedia?: any;
@@ -113,6 +114,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
             areaMedia,
             cardWidth,
             cardHeight,
+            isFocused,
             onPress,
             theme,
             themeViewArea,
@@ -131,7 +133,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                 width: cardWidth,
             }]}>
                 <Pressable onPress={() => onPress(area)} style={[
-                    themeViewArea.styles.card,
+                    isFocused ? themeViewArea.styles.cardFocused : themeViewArea.styles.card,
                     featuredStyle,
                 ]}>
                     <View style={[themeViewArea.styles.cardImageContainer]}>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import LogRocket from '@logrocket/react-native';
+import analytics from '@react-native-firebase/analytics';
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
 import { enableLatestRenderer } from 'react-native-maps';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
@@ -11,6 +12,9 @@ import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import spacingStyles from './styles/layouts/spacing';
 import { HEADER_HEIGHT_MARGIN } from './styles';
+
+// Disable in development
+analytics().setAnalyticsCollectionEnabled(!__DEV__);
 
 enableLatestRenderer();
 

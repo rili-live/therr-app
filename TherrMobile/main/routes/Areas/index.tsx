@@ -153,8 +153,8 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             selectedThought: {},
             tabRoutes: [
                 { key: CAROUSEL_TABS.DISCOVERIES, title: this.translate('menus.headerTabs.discoveries') },
-                { key: CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
                 { key: CAROUSEL_TABS.EVENTS, title: this.translate('menus.headerTabs.events') },
+                { key: CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
                 // { key: CAROUSEL_TABS.NEWS, title: this.translate('menus.headerTabs.news') },
             ],
         };

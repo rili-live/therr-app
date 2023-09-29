@@ -301,7 +301,8 @@ export default class MomentsStore {
 
     findMoments(momentIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
-        const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
+        let restrictedLimit = filters?.limit || 1000;
+        restrictedLimit = restrictedLimit > 1000 ? 1000 : restrictedLimit;
         const orderBy = filters.orderBy || `${MOMENTS_TABLE_NAME}.updatedAt`;
         const order = filters.order || 'DESC';
 

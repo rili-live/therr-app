@@ -8,6 +8,7 @@ import { PushNotificationsService } from 'therr-react/services';
 import { ITherrMapViewState as ITherrMapViewReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { MapActions, ReactionActions } from 'therr-react/redux/actions';
 import { IAreaType, IContentState } from 'therr-js-utilities/types';
+import { Content } from 'therr-js-utilities/constants';
 import { distanceTo, insideCircle, isLatLon } from 'geolocation-utils';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import getReadableDistance from '../../utilities/getReadableDistance';
@@ -15,6 +16,7 @@ import { ILocationState } from '../../types/redux/location';
 import translator from '../../services/translator';
 import {
     ANIMATE_TO_REGION_DURATION_FAST,
+    ANIMATE_TO_REGION_DURATION_VERY_FAST,
     ANIMATE_TO_REGION_DURATION_RAPID,
     INITIAL_LATITUDE_DELTA,
     INITIAL_LONGITUDE_DELTA,
@@ -35,7 +37,7 @@ import { buildStyles as buildViewAreaStyles } from '../../styles/user-content/ar
 import mapStyles from '../../styles/map';
 import mapCustomStyle from '../../styles/map/googleCustom';
 import MarkerIcon from './MarkerIcon';
-import { isMyContent } from '../../utilities/content';
+import { getUserContentUri, isMyContent } from '../../utilities/content';
 import formatDate from '../../utilities/formatDate';
 import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
 
@@ -101,6 +103,7 @@ interface ITherrMapViewState {
     activeSpace: any;
     activeSpaceDetails: any;
     areasInPreview: any[];
+    areaInPreviewIndex: number;
     isMapReady: boolean;
     isPreviewBottomSheetVisible: boolean;
     lastLocationSendForProcessing?: number,
@@ -136,6 +139,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         if (nextProps.areMapActionsVisible && nextState.isPreviewBottomSheetVisible) {
             return {
                 isPreviewBottomSheetVisible: false,
+                areaInPreviewIndex: -1,
             };
         }
         return {};
@@ -162,6 +166,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             activeSpace: {},
             activeSpaceDetails: {},
             areasInPreview: [],
+            areaInPreviewIndex: -1,
             isMapReady: false,
             isPreviewBottomSheetVisible: false,
         };
@@ -173,7 +178,9 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
     componentDidMount = () => {
         const { navigation } = this.props;
-        this.previewAnimation = new Animated.Value(0);
+        this.previewAnimation = new Animated.Value(0, {
+            useNativeDriver: true,
+        });
         this.addAnimationListener();
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {});
@@ -181,6 +188,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         this.unsubscribeBlurListener = navigation.addListener('blur', () => {
             this.setState({
                 isPreviewBottomSheetVisible: false,
+                areaInPreviewIndex: -1,
             });
         });
     };
@@ -221,7 +229,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         this.previewAnimation.addListener(({ value }) => {
             const { areasInPreview } = this.state;
             if (areasInPreview.length && value) {
-                clearTimeout(this.timeoutIdPreviewRegion);
                 let index = Math.floor(value / CARD_WIDTH + 0.2); // animate 20% away from landing on the next item
                 if (index >= areasInPreview.length) {
                     index = areasInPreview.length - 1;
@@ -230,9 +237,13 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     index = 0;
                 }
 
-                this.timeoutIdPreviewRegion = setTimeout(() => {
-                    if (this.previewScrollIndex !== index) {
-                        this.previewScrollIndex = index;
+                if (this.previewScrollIndex !== index) {
+                    this.previewScrollIndex = index;
+                    clearTimeout(this.timeoutIdPreviewRegion);
+                    this.timeoutIdPreviewRegion = setTimeout(() => {
+                        this.setState({
+                            areaInPreviewIndex: index,
+                        });
                         const { latitude, longitude } = areasInPreview[index] || {};
                         if (latitude && longitude) {
                             const { map } = this.props;
@@ -253,18 +264,20 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                 longitudeDelta: animationLongitudeDelta,
                             };
                             this.props.animateToWithHelp(
-                                () => this.mapViewRef && this.mapViewRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_RAPID)
+                                () => this.mapViewRef && this.mapViewRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_VERY_FAST)
                             );
                         }
-                    }
-                }, 50);
+                    }, 50);
+                }
             }
         });
     };
 
     removeAnimation = () => {
         // removes the listener
-        this.previewAnimation = new Animated.Value(0);
+        this.previewAnimation = new Animated.Value(0, {
+            useNativeDriver: true,
+        });
         clearTimeout(this.timeoutIdPreviewRegion);
         this.previewScrollIndex = 0;
     };
@@ -462,6 +475,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     openPreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }) => {
         this.setState({
             isPreviewBottomSheetVisible: false,
+            areaInPreviewIndex: -1,
         }, () => this.togglePreviewBottomSheet(pressedCoords));
     };
 
@@ -798,12 +812,16 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             isScrollEnabled,
             shouldFollowUserLocation,
             shouldRenderMapCircles,
+            map,
         } = this.props;
-        const { areasInPreview, isPreviewBottomSheetVisible, isMapReady } = this.state;
+        const { areasInPreview, areaInPreviewIndex, isPreviewBottomSheetVisible, isMapReady } = this.state;
         const filteredMomentValues = Object.values(filteredMoments);
         const filteredSpaceValues = Object.values(filteredSpaces);
         const animatedOverlayHeight = CARD_HEIGHT
             + this.themeBottomSheet.styles.scrollViewOuterContainer.bottom;
+        // This converts degrees to miles then miles to meters (divided by 10)
+        const focusedAreaRadius = ((map?.longitudeDelta || 0) * 69 * 1609.34) / 12;
+        const unfocusedAreaRadius = focusedAreaRadius / 2;
 
         return (
             <>
@@ -876,7 +894,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         })
                     }
                     {
-                        !areasInPreview?.length && filteredSpaceValues.map((space: any) => {
+                        (!areasInPreview?.length || Platform.OS === 'android') && isMapReady && filteredSpaceValues.map((space: any) => {
                             return (
                                 <Marker
                                     anchor={{
@@ -900,7 +918,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         })
                     }
                     {
-                        isMapReady && areasInPreview.map((space: any, index) => {
+                        isMapReady && Platform.OS !== 'android' && areasInPreview.map((space: any, index) => {
                             const inputRange = [
                                 (index - 1) * CARD_WIDTH,
                                 index * CARD_WIDTH,
@@ -968,6 +986,27 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         })
                     }
                     {
+                        isMapReady
+                            && Platform.OS === 'android'
+                            && areasInPreview?.length > 0
+                            && areasInPreview.map((space: any, idx) => {
+                                return (
+                                    <Circle
+                                        key={space.id}
+                                        center={{
+                                            longitude: space.longitude,
+                                            latitude: space.latitude,
+                                        }}
+                                        radius={idx === areaInPreviewIndex ? focusedAreaRadius : unfocusedAreaRadius} /* meters */
+                                        strokeWidth={idx === areaInPreviewIndex ? 2 : 1}
+                                        strokeColor={idx === areaInPreviewIndex ? 'rgba(170,10,170, 0.5)' : 'rgba(170,10,170, 0.12)'}
+                                        fillColor={idx === areaInPreviewIndex ? 'rgba(170,10,170, 0.35)' : 'rgba(170,10,170, 0.08)'}
+                                        zIndex={1}
+                                    />
+                                );
+                            })
+                    }
+                    {
                         isMapReady && shouldRenderMapCircles && filteredMomentValues.map((moment: any) => {
                             return (
                                 <Circle
@@ -1011,7 +1050,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     }]}>
                         <Animated.ScrollView
                             horizontal
-                            scrollEventThrottle={40}
+                            scrollEventThrottle={20}
                             showsHorizontalScrollIndicator={false}
                             snapToInterval={CARD_WIDTH}
                             onScroll={Animated.event(
@@ -1041,11 +1080,17 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         // snapToAlignment="start"
                         >
                             {
-                                areasInPreview.map((area) => {
+                                areasInPreview.map((area, idx) => {
                                     const formattedDate = formatDate(area.createdAt);
                                     const mediaIdsSplit = (area.mediaIds || '').split(',');
-                                    const areaMedia = content.media
-                                        && (content.media[area.media && area.media[0]?.id] || content.media[mediaIdsSplit && mediaIdsSplit[0]]);
+                                    const mediaId = content.media
+                                        && (area.media && area.media[0]?.id || mediaIdsSplit && mediaIdsSplit[0]);
+                                    // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
+                                    const mediaPath = (area.media && area.media[0]?.path);
+                                    const mediaType = (area.media && area.media[0]?.type);
+                                    const areaMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+                                        ? getUserContentUri(area.media[0])
+                                        : content?.media[mediaId];
                                     return (
                                         <AreaDisplayCard
                                             area={area}
@@ -1055,6 +1100,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                             date={formattedDate}
                                             isDarkMode={false}
                                             key={area.id}
+                                            isFocused={areaInPreviewIndex === idx}
                                             onPress={this.goToSpace}
                                             theme={this.theme}
                                             themeViewArea={this.themeViewArea}

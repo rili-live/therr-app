@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IUserState } from 'therr-react/types';
-import { Content, PasswordRegex } from 'therr-js-utilities/constants';
+import { Content, FilePaths, PasswordRegex } from 'therr-js-utilities/constants';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import RNFB from 'react-native-blob-util';
@@ -297,7 +297,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
         return signImageUrl(true, {
             action: 'write',
-            filename: `profile/user_profile.${fileExtension}`,
+            filename: `${FilePaths.PROFILE_Picture}.${fileExtension}`,
         }).then((response) => {
             const signedUrl = response?.data?.url && response?.data?.url[0];
 
