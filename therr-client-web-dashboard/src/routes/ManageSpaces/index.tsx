@@ -37,7 +37,7 @@ import withNavigation from '../../wrappers/withNavigation';
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
 import SpacesListTable from './SpacesListTable';
 import { ISpace } from '../../types';
-import { DEFAULT_COORDINATES } from '../../constants/LocationDefaults';
+import { DEFAULT_COORDINATES, DEFAULT_QUERY_LOCALES } from '../../constants/LocationDefaults';
 import { getWebsiteName } from '../../utilities/getHostContext';
 
 const ItemsPerPage = 10;
@@ -156,14 +156,23 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                 itemsPerPage,
             },
         }, () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryLocation = urlParams.get('location');
+            let searchLatitude = latitude || DEFAULT_COORDINATES.latitude;
+            let searchLongitude = longitude || DEFAULT_COORDINATES.longitude;
+            if (DEFAULT_QUERY_LOCALES[queryLocation]?.latitude && DEFAULT_QUERY_LOCALES[queryLocation]?.longitude) {
+                searchLatitude = DEFAULT_QUERY_LOCALES[queryLocation]?.latitude;
+                searchLongitude = DEFAULT_QUERY_LOCALES[queryLocation]?.longitude;
+            }
+
             const searchSpacesPromise: Promise<AxiosResponse<any, any>> = routeParams.context === 'admin'
                 ? MapsService.searchSpaces({
                     query: 'connections',
                     itemsPerPage,
                     pageNumber,
                     filterBy: 'fromUserIds',
-                    latitude: latitude || DEFAULT_COORDINATES.latitude,
-                    longitude: longitude || DEFAULT_COORDINATES.longitude,
+                    latitude: searchLatitude,
+                    longitude: searchLongitude,
                 }, {
                     distanceOverride: 160934, // ~ 100 miles
                 })
