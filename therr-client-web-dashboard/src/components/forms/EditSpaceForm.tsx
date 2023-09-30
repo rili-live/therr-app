@@ -13,6 +13,7 @@ const spaceCategories = [
     'storefront/shop',
     'artwork/expression',
     'hotels/lodging',
+    'bar/drinks',
     'marketplace/festival',
     'nature/parks',
 ];
