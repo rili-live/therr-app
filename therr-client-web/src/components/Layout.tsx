@@ -289,22 +289,35 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         );
     };
 
-    renderHeader = (isLandingStylePage?: boolean) => (
-        <Header
-            goHome={this.goHome}
-            isAuthorized={
-                UsersService.isAuthorized(
-                    {
-                        type: AccessCheckType.ALL,
-                        levels: ['user.default'],
-                    },
-                    this.props.user,
-                )
+    renderHeader = (isLandingStylePage?: boolean) => {
+        if (document?.getElementsByTagName) {
+            if (document.getElementsByTagName('html')[0] && document.getElementsByTagName('header')[0]) {
+                const headerBackground = getComputedStyle(document.getElementsByTagName('header')[0]).backgroundColor;
+                if (isLandingStylePage) {
+                    document.getElementsByTagName('html')[0].style.backgroundColor = headerBackground;
+                } else {
+                    document.getElementsByTagName('html')[0].style.backgroundColor = 'initial';
+                }
             }
-            toggleNavMenu={this.toggleNavMenu}
-            isLandingStylePage={isLandingStylePage}
-        />
-    );
+        }
+
+        return (
+            <Header
+                goHome={this.goHome}
+                isAuthorized={
+                    UsersService.isAuthorized(
+                        {
+                            type: AccessCheckType.ALL,
+                            levels: ['user.default'],
+                        },
+                        this.props.user,
+                    )
+                }
+                toggleNavMenu={this.toggleNavMenu}
+                isLandingStylePage={isLandingStylePage}
+            />
+        );
+    };
 
     renderFooter = (isLandingStylePage?: boolean) => {
         const { isMessagingOpen, isMsgContainerOpen, messagingContext } = this.state;
