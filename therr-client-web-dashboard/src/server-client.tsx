@@ -51,6 +51,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Define the folder that will be used for static assets
 app.use(express.static(path.join(__dirname, '/../build/static/')));
+app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 
 // Universal routing and rendering for SEO
 // TODO: Factor in whitelist config
