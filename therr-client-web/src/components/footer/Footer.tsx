@@ -103,15 +103,16 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                             className="info-button"
                             onClick={this.handleInfoClick}
                             buttonType="primary"
+                            aria-label="Open Therr App landing page and info"
                         />
                     </AccessControl>
                 </div>
                 <div className="footer-menu-item">
                     <AccessControl isAuthorized={isAuthorized}>
-                        <SvgButton id="footer_home" name="dashboard" className="home-button" onClick={goHome} buttonType="primary" />
+                        <SvgButton id="footer_home" name="dashboard" className="home-button" onClick={goHome} buttonType="primary" aria-label="Go home" />
                     </AccessControl>
                     <AccessControl publicOnly={true} isAuthorized={isAuthorized}>
-                        <SvgButton id="footer_home" name="home" className="home-button" onClick={goHome} buttonType="primary" />
+                        <SvgButton id="footer_home" name="home" className="home-button" onClick={goHome} buttonType="primary" aria-label="Go home" />
                     </AccessControl>
                 </div>
                 <div className="footer-menu-item">
@@ -125,6 +126,7 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                             className="messages-button"
                             onClick={(e) => toggleNavMenu(e, INavMenuContext.FOOTER_MESSAGES)}
                             buttonType="primary"
+                            aria-label="Open Messages"
                         />
                     </AccessControl>
                 </div>

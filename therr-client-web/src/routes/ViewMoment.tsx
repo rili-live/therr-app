@@ -5,10 +5,10 @@ import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
 import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
+import { Content } from 'therr-js-utilities/constants';
 import translator from '../services/translator';
-import LoginForm from '../components/forms/LoginForm';
-import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
+import getUserContentUri from '../utilities/getUserContentUri';
 
 interface IViewMomentRouterProps {
     navigation: {
@@ -99,6 +99,13 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         const { content, map } = this.props;
         const { momentId } = this.state;
         const moment = map?.moments[momentId];
+        const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
+        // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
+        const mediaPath = (moment.media && moment.media[0]?.path);
+        const mediaType = (moment.media && moment.media[0]?.type);
+        const momentMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+            ? getUserContentUri(moment.media[0])
+            : content?.media[mediaId];
 
         return (
             <div id="page_view_moment" className="flex-box space-evenly center row wrap-reverse">
@@ -119,10 +126,10 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
                         moment
                             && <div className="flex fill max-wide-30">
                                 <div className="moment-image-container">
-                                    {moment?.media?.length > 0 && content?.media[moment.media[0].id]
+                                    {momentMedia
                                     && <img
                                         className="moment-image"
-                                        src={content.media[moment.media[0].id]}
+                                        src={momentMedia}
                                         alt={moment.notificationMsg}
                                     />}
                                 </div>

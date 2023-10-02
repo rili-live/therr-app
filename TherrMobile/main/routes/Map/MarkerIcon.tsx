@@ -83,7 +83,7 @@ const MarkerIcon = function MarkerIcon({
             <MarkerIconDiscount {...getMarkerConfigs(theme).deals} />
         );
     }
-    if (area.category === 'drinks') {
+    if (area.category === 'drinks' || area.category === 'bar/drinks') {
         return (
             <MarkerIconDrinks {...getMarkerConfigs(theme).drinks} />
         );

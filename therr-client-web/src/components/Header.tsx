@@ -97,6 +97,7 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                         name="therr"
                         onClick={() => goHome()}
                         buttonType="primary"
+                        aria-label="Therr logo home link"
                     />
                     <SvgButton
                         id="therr_text_svg_button"
@@ -104,6 +105,7 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                         name="therr-text"
                         onClick={() => goHome()}
                         buttonType="primary"
+                        aria-label="Therr logo text home link"
                     />
                 </div>
                 <AccessControl isAuthorized={isAuthorized} publicOnly>
