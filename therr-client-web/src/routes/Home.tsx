@@ -87,10 +87,10 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                         <p className="info-text fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info2')}</p>
                         <div className="store-image-links margin-top-lg">
                             <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
-                                <img src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
+                                <img aria-label="apple store link" className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
                             </a>
                             <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
-                                <img src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" />
+                                <img aria-label="play store link" className="max-100" src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" />
                             </a>
                         </div>
                         <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>

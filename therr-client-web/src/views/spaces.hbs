@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
@@ -28,6 +28,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16x16.png">
     <link rel="mask-icon" href="/assets/images/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="preload" as="image" href="{{#if metaImgUrl}}{{metaImgUrl}}{{else}}https://therr.com/assets/images/meta-image-logo.png{{/if}}">
 
     <script type="application/ld+json">
         {
@@ -47,8 +48,7 @@
         }
     </script>
 
-    <!-- Stylesheet -->
-    <link rel="stylesheet" type="text/css" href="/app.css">
+    
 </head>
 
 <body>
@@ -56,7 +56,9 @@
     <script>
         window.__PRELOADED_STATE__ = "{{state}}"
     </script>
-    <script src="/app.js"></script>
+    <!-- Stylesheet -->
+    <link rel="stylesheet" type="text/css" href="/app.css">
+    <script defer src="/app.js"></script>
 </body>
 
 </html>

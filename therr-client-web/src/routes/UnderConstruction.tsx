@@ -78,10 +78,10 @@ export class UnderConstructionAppComponent extends React.Component<IUnderConstru
                         <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info2')}</p>
                         <div className="store-image-links flex-box row space-around margin-top-lg">
                             <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
-                                <img src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
+                                <img className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
                             </a>
                             <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
-                                <img src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" />
+                                <img className="max-100" src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" />
                             </a>
                         </div>
                     </div>
