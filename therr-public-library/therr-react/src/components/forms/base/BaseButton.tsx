@@ -8,6 +8,7 @@ export interface IBaseButtonProps {
     disabled?: boolean;
     onClick: any;
     text?: string;
+    'aria-label'?: string;
 }
 
 class BaseButton extends React.Component<IBaseButtonProps> {
@@ -28,7 +29,7 @@ class BaseButton extends React.Component<IBaseButtonProps> {
         } = this.props;
 
         return (
-            <button id={id} className={className} onClick={onClick} type="button" disabled={disabled}>
+            <button aria-label={this.props['aria-label']} id={id} className={className} onClick={onClick} type="button" disabled={disabled}>
                 {text || children}
             </button>
         );

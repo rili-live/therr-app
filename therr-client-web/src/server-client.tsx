@@ -13,11 +13,13 @@ import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import printLogs from 'therr-js-utilities/print-logs';
 import serialize from 'serialize-javascript';
+import { Content } from 'therr-js-utilities/constants';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
 import getUserImageUri from './utilities/getUserImageUri';
 import * as globalConfig from '../../global-config';
+import getUserContentUri from './utilities/getUserContentUri';
 
 axios.defaults.baseURL = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute;
 axios.defaults.headers['x-platform'] = 'desktop';
@@ -92,11 +94,18 @@ const renderMomentView = (req, res, config, {
 
     let metaImgUrl;
 
+    const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
+    // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
+    const mediaPath = (moment.media && moment.media[0]?.path);
+    const mediaType = (moment.media && moment.media[0]?.type);
+    const momentMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+        ? getUserContentUri(moment.media[0])
+        : content?.media[mediaId];
+
     // TODO: Use an image optimized for meta image
-    if (moment?.media?.length > 0 && content?.media[moment.media[0].id]) {
-        const url = content.media[moment.media[0].id];
-        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
-            metaImgUrl = url;
+    if (momentMediaUri) {
+        if (momentMediaUri.includes('.jpg') || momentMediaUri.includes('.jpeg') || momentMediaUri.includes('.png')) {
+            metaImgUrl = momentMediaUri;
         }
     }
 
@@ -141,11 +150,18 @@ const renderSpaceView = (req, res, config, {
 
     let metaImgUrl;
 
-    // TODO: Use an image optimized for meta image
-    if (space?.media?.length > 0 && content?.media[space.media[0].id]) {
-        const url = content.media[space.media[0].id];
-        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
-            metaImgUrl = url;
+    const mediaId = (space.media && space.media[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
+    // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
+    const mediaPath = (space.media && space.media[0]?.path);
+    const mediaType = (space.media && space.media[0]?.type);
+    const spaceMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+        ? getUserContentUri(space.media[0])
+        : content?.media[mediaId];
+
+    // TODO: Use an image optimized for meta image (ImageKit)
+    if (spaceMediaUri) {
+        if (spaceMediaUri.includes('.jpg') || spaceMediaUri.includes('.jpeg') || spaceMediaUri.includes('.png')) {
+            metaImgUrl = spaceMediaUri;
         }
     }
 

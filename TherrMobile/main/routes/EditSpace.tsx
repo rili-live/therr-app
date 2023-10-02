@@ -55,6 +55,7 @@ export const spaceCategories = [
     'marketplace/festival',
     'artwork/expression',
     'music/concerts',
+    'bar/drinks',
     'nature/parks',
     'hotels/lodging',
 ];

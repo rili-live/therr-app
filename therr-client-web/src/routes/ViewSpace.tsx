@@ -5,10 +5,10 @@ import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
 import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
+import { Content } from 'therr-js-utilities/constants';
 import translator from '../services/translator';
-import LoginForm from '../components/forms/LoginForm';
-import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
+import getUserContentUri from '../utilities/getUserContentUri';
 
 interface IViewSpaceRouterProps {
     navigation: {
@@ -100,6 +100,14 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         const { spaceId } = this.state;
         const space = map?.spaces[spaceId];
 
+        const mediaId = (space.media && space.media[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
+        // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
+        const mediaPath = (space.media && space.media[0]?.path);
+        const mediaType = (space.media && space.media[0]?.type);
+        const spaceMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+            ? getUserContentUri(space.media[0])
+            : content?.media[mediaId];
+
         return (
             <div id="page_view_space" className="flex-box space-evenly center row wrap-reverse">
                 <div className="login-container info-container">
@@ -148,10 +156,10 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         space
                             && <div className="flex fill max-wide-30">
                                 <div className="space-image-container">
-                                    {space?.media?.length > 0 && content?.media[space.media[0].id]
+                                    {spaceMedia
                                     && <img
                                         className="space-image"
-                                        src={content.media[space.media[0].id]}
+                                        src={spaceMedia}
                                         alt={space.notificationMsg}
                                     />}
                                 </div>
