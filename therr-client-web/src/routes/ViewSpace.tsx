@@ -130,6 +130,12 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                         </h3>
                                 }
                                 {
+                                    space?.menuUrl
+                                        && <h3 className="text-title-small no-bot-margin fill">
+                                            <a href={space?.menuUrl} target="_blank">Menu</a>
+                                        </h3>
+                                }
+                                {
                                     space?.phoneNumber
                                     && <h3 className="text-title-small no-bot-margin fill">
                                         <a href={`tel:${space?.phoneNumber}`} target="_blank">Phone</a>
@@ -142,9 +148,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                         </h3>
                                 }
                                 {
-                                    space?.reserveUrl
+                                    space?.reservationUrl
                                         && <h3 className="text-title-small no-bot-margin fill">
-                                            <a href={space?.reserveUrl} target="_blank">Make Reservations</a>
+                                            <a href={space?.reservationUrl} target="_blank">Make Reservations</a>
                                         </h3>
                                 }
                                 <p className="info-text fill">{space?.message}</p>
