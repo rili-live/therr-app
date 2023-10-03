@@ -11,6 +11,17 @@ filesRouter.get('/*', validate, async (req, res) => {
         const shouldCacheImages = (process.env.SHOULD_CACHE_IMAGES || '').toLowerCase() === 'true';
         const cachedFileData = shouldCacheImages && await CacheStore.filesService.getFile(req.path);
         if (cachedFileData) {
+            // Content-Type will otherwise default to `application/octet-stream`
+            // which is generic and triggers download when going to the url
+            if (req.path?.endsWith('.png')) {
+                res.setHeader('Content-Type', 'image/png');
+            } else if (req.path?.endsWith('.jpg')) {
+                res.setHeader('Content-Type', 'image/jpg');
+            } else if (req.path?.endsWith('.jpeg')) {
+                res.setHeader('Content-Type', 'image/jpeg');
+            } else if (req.path?.endsWith('.webp')) {
+                res.setHeader('Content-Type', 'image/webp');
+            }
             res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
             return res.status(200).send(cachedFileData);
         }
