@@ -11,6 +11,7 @@ filesRouter.get('/*', validate, async (req, res) => {
         const shouldCacheImages = (process.env.SHOULD_CACHE_IMAGES || '').toLowerCase() === 'true';
         const cachedFileData = shouldCacheImages && await CacheStore.filesService.getFile(req.path);
         if (cachedFileData) {
+            res.setHeader('Cache-Control', 'public, max-age=2592000'); // 30 days
             return res.status(200).send(cachedFileData);
         }
         const sanitizedPath = req.path.substring(1);
@@ -22,6 +23,7 @@ filesRouter.get('/*', validate, async (req, res) => {
         const backupFileType = `image/${pathSplit[pathSplit.length - 1]}`;
         res.setHeader('Content-Type', meta.contentType || backupFileType);
         res.setHeader('Content-Length', meta.size);
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
         // res.setHeader('Content-Encoding', meta.contentEncoding);
         // use streams if >~ 2MB/s to lower memory usage.
         // if (meta.size > 2000000) {
