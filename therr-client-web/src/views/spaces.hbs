@@ -30,25 +30,7 @@
     <link rel="mask-icon" href="/assets/images/safari-pinned-tab.svg" color="#5bbad5">
     <link rel="preload" as="image" href="{{#if metaImgUrl}}{{metaImgUrl}}{{else}}https://therr.com/assets/images/meta-image-logo.png{{/if}}">
 
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "Restaurant",
-            "name": "{{title}}",
-            "image": "",
-            "priceRange": "",
-            "telephone": "{{spacePhoneNumber}}",
-            "address": {
-                "streetAddress": "{{spaceAddressStreet}}",
-                "addressLocality": "{{spaceAddressLocality}}",
-                "addressCountry": "{{spaceCountry}}",
-                "addressRegion": "{{spaceAddressRegion}}",
-                "postalCode": "{{spacePostalCode}}"
-            }
-        }
-    </script>
-
-    
+    <script type="application/ld+json">{{{spaceSchema}}}</script>
 </head>
 
 <body>

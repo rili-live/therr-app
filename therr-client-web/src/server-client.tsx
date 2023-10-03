@@ -147,6 +147,9 @@ const renderSpaceView = (req, res, config, {
     const spaceAddressRegion = space?.addressRegion || '';
     const spaceAddressStreet = space?.addressStreetAddress || '';
     const spacePostalCode = space?.postalCode || '';
+    const spaceWebsiteUrl = space?.websiteUrl || '';
+    const spacePriceRange = space.priceRange || 0; // TODO: add to data model
+    const spaceFoodGenre = space.foodStyle || ''; // TODO: add to data model
 
     let metaImgUrl;
 
@@ -165,6 +168,46 @@ const renderSpaceView = (req, res, config, {
         }
     }
 
+    const spaceSchema: any = {
+        context: 'https://schema.org',
+        '@type': 'Restaurant',
+        name: spaceTitle,
+        image: metaImgUrl || '',
+        priceRange: '$'.repeat(spacePriceRange || 2),
+        telephone: spacePhoneNumber || '',
+        address: {
+            '@type': 'PostalAddress',
+            streetAddress: spaceAddressStreet,
+            addressLocality: spaceAddressLocality,
+            addressCountry: spaceCountry,
+            addressRegion: spaceAddressRegion,
+            postalCode: spacePostalCode,
+        },
+        url: spaceWebsiteUrl || '',
+        servesCuisine: spaceFoodGenre,
+    };
+
+    if (space?.aggregateRating) { // TODO: add to request details
+        spaceSchema.aggregateRating = {
+            '@type': 'AggregateRating',
+            ratingValue: space?.aggregateRating.rating,
+            reviewCount: space?.aggregateRating.total,
+        };
+    }
+
+    spaceSchema.openingHours = space?.openingHours?.schema || [];
+
+    if (space?.reviews) { // TODO: add to request details
+        spaceSchema.review = space?.reviews.slice(0, 10).map((review) => ({
+            author: review.author,
+            datePublished: review.createdAt,
+            reviewRating: {
+                ratingValue: review.rating,
+            },
+            description: review.text,
+        }));
+    }
+
     return res.render(routeView, {
         title: spaceTitle,
         description: spaceDescription,
@@ -175,6 +218,9 @@ const renderSpaceView = (req, res, config, {
         spaceAddressStreet,
         spaceAddressRegion,
         spacePostalCode,
+        spaceWebsiteUrl,
+        spacePriceRange,
+        spaceSchema: JSON.stringify(spaceSchema),
         markup,
         requestPath: req.path,
         routePath,
