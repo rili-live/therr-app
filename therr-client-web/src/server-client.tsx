@@ -148,8 +148,8 @@ const renderSpaceView = (req, res, config, {
     const spaceAddressStreet = space?.addressStreetAddress || '';
     const spacePostalCode = space?.postalCode || '';
     const spaceWebsiteUrl = space?.websiteUrl || '';
-    const spacePriceRange = space.priceRange || 0; // TODO: add to data model
-    const spaceFoodGenre = space.foodStyle || ''; // TODO: add to data model
+    const spacePriceRange = space.priceRange || 0;
+    const spaceFoodGenre = space.foodStyle || '';
 
     let metaImgUrl;
 
