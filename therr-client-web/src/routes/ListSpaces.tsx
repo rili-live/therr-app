@@ -10,7 +10,7 @@ import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
 // import * as globalConfig from '../../../global-config';
 
-export const DEFAULT_ITEMS_PER_PAGE = 5;
+export const DEFAULT_ITEMS_PER_PAGE = 50;
 export const DEFAULT_LATITUDE = 37.1261664; // Middle of U.S. - TODO: Use browser location
 export const DEFAULT_LONGITUDE = -106.2447206; // Middle of U.S. - TODO: Use browser location
 
