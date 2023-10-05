@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import {
@@ -10,6 +11,7 @@ import { UsersService } from 'therr-react/services';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { bindActionCreators } from 'redux';
 import MessagingContainer, { IMessagingContext } from './MessagingContainer';
+import translator from '../../services/translator';
 import { INavMenuContext } from '../../types';
 import UsersActions from '../../redux/actions/UsersActions';
 
@@ -45,10 +47,13 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class FooterComponent extends React.Component<IFooterProps, IFooterState> {
+    private translate: any;
+
     constructor(props) {
         super(props);
 
         this.state = {};
+        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     handleLogout = () => {
@@ -128,6 +133,16 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                             buttonType="primary"
                             aria-label="Open Messages"
                         />
+                    </AccessControl>
+                    <AccessControl isAuthorized={UsersService.isAuthorized({
+                        type: AccessCheckType.ALL,
+                        levels: [AccessLevels.EMAIL_VERIFIED],
+                    }, user)} publicOnly>
+                        <div className="locations-link">
+                            <Link aria-label="View locations on Therr App" to="/locations">
+                                {this.translate('components.footer.buttons.locations')}
+                            </Link>
+                        </div>
                     </AccessControl>
                 </div>
             </footer>

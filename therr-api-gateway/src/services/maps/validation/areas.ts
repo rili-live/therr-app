@@ -49,8 +49,32 @@ export const createAreaValidation = [
 ];
 
 export const updateAreaValidation = [
-    ...createAreaValidation,
     param('momentId'),
+    body('address').optional().isString(),
+    body('category').optional(),
+    body('expiresAt').optional(),
+    body('spaceId').isString().optional(),
+    body('isPublic').isBoolean().optional(),
+    body('isDraft').isBoolean().optional(),
+    body('message').isString().optional(),
+    body('notificationMsg').isString().optional(),
+    body('mediaIds').isString().optional(),
+    body('mentionsIds').isString().optional(),
+    body('hashTags').isString().optional(),
+    body('maxViews').isNumeric().optional(),
+    body('maxProximity').isDecimal().optional(),
+    body('latitude').isDecimal().optional().isNumeric(),
+    body('longitude').isDecimal().optional().isNumeric(),
+    body('media').isArray().optional(), // TODO: Add granularity
+    body('addressStreetAddress').isString().optional(),
+    body('addressRegion').isString().optional(),
+    body('addressLocality').isString().optional(),
+    body('postalCode').isString().optional(),
+    body('phoneNumber').isString().optional(),
+    body('websiteUrl').isString().optional(),
+    body('priceRange').isNumeric().optional(),
+    body('thirdPartyRatings').optional(),
+    body('openingHours').optional(),
 ];
 
 export const searchAreasValidation = [

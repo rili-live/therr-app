@@ -175,6 +175,16 @@ class MapsService {
 
     getSpaceDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('spaces', id, args);
 
+    listSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => {
+        const queryString = getSearchQueryString(query);
+
+        return axios({
+            method: 'post',
+            url: `/maps-service/spaces/list${queryString}`,
+            data,
+        });
+    };
+
     searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('spaces', query, data);
 
     searchMySpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('spaces', query, data);

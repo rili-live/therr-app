@@ -155,6 +155,26 @@ ul {
     max-width: 40rem;
 }
 
+.max-wide-50 {
+    max-width: 50rem;
+}
+
+.max-tall-25 {
+    max-height: 25vh;
+}
+
+.max-tall-50 {
+    max-height: 50vh;
+}
+
+.max-tall-60 {
+    max-height: 60vh;
+}
+
+.max-tall-75 {
+    max-height: 75vh;
+}
+
 @media only screen and (min-width: rem-calc(540px)) {
     .desktop-only {
         display: unset;

@@ -16,6 +16,7 @@ import ResetPassword from './ResetPassword';
 import Home from './Home';
 import ViewSpace from './ViewSpace';
 import Login from './Login';
+import ListSpaces, { DEFAULT_ITEMS_PER_PAGE, DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from './ListSpaces';
 import UserProfile from './UserProfile';
 import ChangePassword from './ChangePassword';
 import Discovered from './Discovered';
@@ -140,6 +141,34 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         fetchData: (dispatch: any, params: any) => MapActions.getMomentDetails(params.momentId, {
             withMedia: true,
             withUser: true,
+        })(dispatch),
+    },
+    {
+        path: '/locations',
+        element: <ListSpaces />,
+        fetchData: (dispatch: any, params: any) => MapActions.listSpaces({
+            // query: '',
+            itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+            pageNumber: 1,
+            filterBy: 'distance',
+            latitude: DEFAULT_LATITUDE,
+            longitude: DEFAULT_LONGITUDE,
+        }, {
+            distanceOverride: 40075 * (1000 / 2), // estimated half distance around world in meters
+        })(dispatch),
+    },
+    {
+        path: '/locations/:pageNumber',
+        element: <ListSpaces />,
+        fetchData: (dispatch: any, params: any) => MapActions.listSpaces({
+            // query: '',
+            itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+            pageNumber: 1,
+            filterBy: 'distance',
+            latitude: DEFAULT_LATITUDE,
+            longitude: DEFAULT_LONGITUDE,
+        }, {
+            distanceOverride: 40075 * (1000 / 2), // estimated half distance around world in meters
         })(dispatch),
     },
     {

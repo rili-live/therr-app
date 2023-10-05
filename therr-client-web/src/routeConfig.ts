@@ -49,6 +49,22 @@ export default [
         view: 'moments',
     },
     {
+        route: '/locations',
+        head: {
+            title: 'Business Locations',
+            description: 'Local business directory of business spaces on Therr App',
+        },
+        view: 'index',
+    },
+    {
+        route: '/locations/:pageNumber',
+        head: {
+            title: 'Business Locations',
+            description: 'Local business directory of business spaces on Therr App',
+        },
+        view: 'index',
+    },
+    {
         route: '/spaces/:spaceId',
         head: {
             title: 'Space not Found',

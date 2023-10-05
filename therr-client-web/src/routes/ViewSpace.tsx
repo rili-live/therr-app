@@ -79,7 +79,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         const { spaceId } = this.state;
         const space = map?.spaces[spaceId];
 
-        if (!space) {
+        if (!space || !space?.message) {
             getSpaceDetails(this.state.spaceId, {
                 withMedia: true,
                 withUser: true,

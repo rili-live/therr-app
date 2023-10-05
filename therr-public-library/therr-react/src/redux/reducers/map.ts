@@ -83,6 +83,12 @@ const map = (state: IMapState = initialState, action: any) => {
             delete modifiedMoments[action.data.id];
             return state.setIn(['moments'], modifiedMoments);
         // // // // // // // // // // // //
+        case MapActionTypes.LIST_SPACES:
+            return state.setIn(['spaces'], action.data.results
+                .reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), {}));
         case MapActionTypes.GET_SPACES:
         case MapActionTypes.GET_MY_SPACES:
             return state.setIn(['spaces'], action.data.results.filter((a) => a.longitude && a.latitude)

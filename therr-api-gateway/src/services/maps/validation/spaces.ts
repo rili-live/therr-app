@@ -3,7 +3,7 @@ import {
     header,
     param,
 } from 'express-validator/check'; // eslint-disable-line import/extensions
-import { createAreaValidation } from './areas';
+import { createAreaValidation, updateAreaValidation } from './areas';
 
 export const getAsPostSpaceDetailsValidation = [
     header('authorization').exists(),
@@ -32,6 +32,6 @@ export const createSpaceValidation = [
 ];
 
 export const updateSpaceValidation = [
-    ...createAreaValidation,
+    ...updateAreaValidation,
     param('spaceId'),
 ];

@@ -40,7 +40,9 @@ export interface ICreateSpaceParams {
     latitude: number;
     longitude: number;
     radius?: string;
-    polygonCoords?: string;
+    polygonCoords?: any;
+    thirdPartyRatings?: any;
+    openingHours?: any;
     featuredIncentiveKey?: string;
     featuredIncentiveValue?: number;
     featuredIncentiveRewardKey?: string;
@@ -54,6 +56,11 @@ export interface ICreateSpaceParams {
     businessTransactionId?: string;
     businessTransactionName?: string;
     isPointOfInterest?: boolean;
+    addressStreetAddress?: string;
+    addressRegion?: string;
+    addressLocality?: string;
+    postalCode?: number;
+    priceRange?: number;
 }
 
 interface IDeleteSpacesParams {
@@ -227,8 +234,12 @@ export default class SpacesStore {
         if ((conditions.filterBy && conditions.filterBy === 'distance') && conditions.query) {
             proximityMax = conditions.query;
         }
+        let returningMod = ((returning && returning.length) ? returning : '*');
+        returningMod = overrides?.shouldLimitDetail
+            ? ['id', 'addressReadable', 'category', 'websiteUrl', 'notificationMsg']
+            : returningMod;
         let queryString: any = knexBuilder
-            .select((returning && returning.length) ? returning : '*')
+            .select(returningMod)
             .from(SPACES_TABLE_NAME)
             // TODO: Determine a better way to select spaces that are most relevant to the user
             // .orderBy(`${SPACES_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
@@ -415,7 +426,7 @@ export default class SpacesStore {
 
         return mediaPromise.then((mediaIds: string | undefined) => {
             const radius = params.radius || DEFAULT_RADIUS_MEDIUM;
-            const sanitizedParams = {
+            const sanitizedParams: any = {
                 addressReadable: params.addressReadable || '',
                 areaType: params.areaType || 'spaces',
                 category: params.category || 'uncategorized',
@@ -437,6 +448,7 @@ export default class SpacesStore {
                 radius,
                 region: region.code,
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
+                thirdPartyRatings: params.thirdPartyRatings ? JSON.stringify(params.thirdPartyRatings) : JSON.stringify({}),
                 featuredIncentiveKey: params.featuredIncentiveKey,
                 featuredIncentiveValue: params.featuredIncentiveValue,
                 featuredIncentiveRewardKey: params.featuredIncentiveRewardKey,
@@ -450,9 +462,18 @@ export default class SpacesStore {
                 businessTransactionId: params.businessTransactionId,
                 businessTransactionName: params.businessTransactionName,
                 isPointOfInterest: params.isPointOfInterest,
+                addressStreetAddress: params.addressStreetAddress,
+                addressRegion: params.addressRegion,
+                addressLocality: params.addressLocality,
+                postalCode: params.postalCode,
+                priceRange: params.priceRange,
                 // eslint-disable-next-line max-len
                 geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${radius})::geometry, 4326)`),
             };
+
+            if (params.openingHours) {
+                sanitizedParams.openingHours = JSON.stringify(sanitizedParams.openingHours);
+            }
 
             const queryString = knexBuilder.insert(sanitizedParams)
                 .into(SPACES_TABLE_NAME)
@@ -484,7 +505,7 @@ export default class SpacesStore {
         return mediaPromise.then((mediaIds: string | undefined) => {
             const isTextMature = isTextUnsafe([params.notificationMsg, params.message, params.hashTags || '']);
 
-            const sanitizedParams = {
+            const sanitizedParams: any = {
                 addressReadable: params.addressReadable,
                 notificationMsg: params.notificationMsg,
                 message: params.message,
@@ -506,7 +527,20 @@ export default class SpacesStore {
                 businessTransactionName: params.businessTransactionName,
                 isPointOfInterest: params.isPointOfInterest,
                 updatedAt: new Date(),
+                addressStreetAddress: params.addressStreetAddress,
+                addressRegion: params.addressRegion,
+                addressLocality: params.addressLocality,
+                postalCode: params.postalCode,
+                priceRange: params.priceRange,
             };
+
+            if (params.thirdPartyRatings) {
+                sanitizedParams.thirdPartyRatings = JSON.stringify(sanitizedParams.thirdPartyRatings);
+            }
+
+            if (params.openingHours) {
+                sanitizedParams.openingHours = JSON.stringify(sanitizedParams.openingHours);
+            }
 
             const queryString = knexBuilder.update(sanitizedParams)
                 .into(SPACES_TABLE_NAME)

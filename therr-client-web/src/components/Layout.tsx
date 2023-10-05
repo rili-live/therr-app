@@ -354,6 +354,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         const isLandingStylePage = location.pathname === '/'
             || location.pathname === '/create-profile'
             || location.pathname === '/login'
+            || location.pathname.includes('/locations')
             || location.pathname.includes('/spaces')
             || location.pathname.includes('/users')
             || location.pathname === '/register'
