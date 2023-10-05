@@ -21,6 +21,7 @@ router.put('/:spaceId', updateSpace);
 // SEARCH
 router.post('/:spaceId/details', getSpaceDetails);
 router.post('/request-claim', requestSpace);
+router.post('/list', searchSpaces);
 router.post('/search', searchSpaces);
 router.post('/search/me', searchMySpaces);
 router.post('/find', findSpaces);

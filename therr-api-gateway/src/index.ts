@@ -69,6 +69,7 @@ app.use(authenticate.unless({
         { url: /\/v1\/user-files\/.*/, methods: ['GET'] }, // image proxy
         { url: /\/v1\/maps-service\/place\/*/, methods: ['GET'] }, // Google Maps: Places proxy
         { url: /\/v1\/maps-service\/moments\/.*\/details/, methods: ['POST'] },
+        { url: '/v1/maps-service/spaces/list', methods: ['POST'] },
         { url: /\/v1\/maps-service\/spaces\/.*\/details/, methods: ['POST'] },
     ],
 }));

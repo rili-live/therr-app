@@ -5,6 +5,11 @@
     @return #{$remSize}rem;
 }
 
+// Scroll
+.overflow-scroll {
+    overflow-y: scroll;
+}
+
 .mb-2 {
     margin-bottom: 1rem;
 }

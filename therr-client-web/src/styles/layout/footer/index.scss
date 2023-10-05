@@ -30,6 +30,23 @@ footer {
             justify-content: flex-end;
         }
     }
+
+    .locations-link {
+        margin-right: 1rem;
+        cursor: pointer;
+
+        a {
+            color: $therr-white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    }
+
+    .locations-link {
+        a {
+            font-weight: 400;
+        }
+    }
 }
 
 button {
