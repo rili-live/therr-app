@@ -10,7 +10,7 @@ import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
 // import * as globalConfig from '../../../global-config';
 
-export const DEFAULT_ITEMS_PER_PAGE = 50;
+export const DEFAULT_ITEMS_PER_PAGE = 5;
 export const DEFAULT_LATITUDE = 37.1261664; // Middle of U.S. - TODO: Use browser location
 export const DEFAULT_LONGITUDE = -106.2447206; // Middle of U.S. - TODO: Use browser location
 
@@ -189,31 +189,33 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     </div>
                 </div>
                 <div className="login-container info-container">
-                    <div className="flex fill max-wide-50 max-tall-60 overflow-scroll">
+                    <div className="flex fill max-wide-50">
                         <h1 className="text-title-medium no-bot-margin fill">
                             {this.translate('pages.spaces.header1')}
                         </h1>
-                        {
-                            spacesArray.map((space) => (
-                                <section key={space.id}>
-                                    <h2>
-                                        <span>
-                                            <Link to={`/spaces/${space.id}`}>
-                                                {space.notificationMsg}
-                                            </Link>
-                                        </span>
+                        <div className="flex fill max-tall-60 overflow-scroll">
+                            {
+                                spacesArray.map((space) => (
+                                    <section key={space.id}>
+                                        <h2>
+                                            <span>
+                                                <Link to={`/spaces/${space.id}`}>
+                                                    {space.notificationMsg}
+                                                </Link>
+                                            </span>
+                                            {
+                                                space.websiteUrl && <span> • <a href={space.websiteUrl}>website</a></span>
+                                            }
+                                        </h2>
                                         {
-                                            space.websiteUrl && <span> • <a href={space.websiteUrl}>website</a></span>
+                                            space.addressReadable && <h4 style={{
+                                                marginLeft: '1rem',
+                                            }}>{space.addressReadable}</h4>
                                         }
-                                    </h2>
-                                    {
-                                        space.addressReadable && <h4 style={{
-                                            marginLeft: '1rem',
-                                        }}>{space.addressReadable}</h4>
-                                    }
-                                </section>
-                            ))
-                        }
+                                    </section>
+                                ))
+                            }
+                        </div>
                         <div className="flex-box row fill space-around">
                             {
                                 pageNumber > 1
