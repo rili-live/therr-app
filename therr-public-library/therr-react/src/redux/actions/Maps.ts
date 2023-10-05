@@ -170,6 +170,16 @@ const Maps = {
 
             return response.data;
         }),
+    listSpaces: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
+        .listSpaces(query, data).then((response: any) => {
+            dispatch({
+                type: MapActionTypes.LIST_SPACES,
+                data: response.data,
+            });
+
+            // Return so we can react by searching for associated reactions
+            return Promise.resolve(response.data);
+        }),
     searchSpaces: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
         .searchSpaces(query, data).then((response: any) => {
             if (query.query === 'connections') {

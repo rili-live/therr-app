@@ -25,6 +25,15 @@ $profileImgWidth: rem-calc(100px);
     }
 }
 
+#page_view_spaces {
+    .store-image-links {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        flex-wrap: wrap;
+    }
+}
+
 @media only screen and (min-width: $screen-small) {
     
 }

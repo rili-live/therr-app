@@ -16,6 +16,11 @@
         "login": "Login"
       }
     },
+    "footer": {
+      "buttons": {
+        "locations": "Locations"
+      }
+    },
     "createProfileForm": {
       "buttons": {
         "backToLogin": "Back to Login",
@@ -160,6 +165,12 @@
       "pageTitle": "Reset Password",
       "returnToLogin": "Return to login page",
       "successMessage": "Check your e-mail for a link to reset your password"
+    },
+    "spaces": {
+      "pageTitle": "Business Locations",
+      "header1": "Local Business Directory",
+      "previousPage": "Back To Page {pageNumber}",
+      "nextPage": "To Page {pageNumber}"
     },
     "home": {
       "pageTitle": "Home",

@@ -286,7 +286,9 @@ const getSpaceDetails = (req, res) => {
 };
 
 const searchSpaces: RequestHandler = async (req: any, res: any) => {
+    const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
+    const shouldLimitDetail = !authorization || req.path === '/list';
     const {
         // filterBy,
         query,
@@ -333,7 +335,7 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
         fromUserIds = connectionsResponse.data.results
             .map((connection: any) => connection.users.filter((user: any) => user.id != userId)[0].id); // eslint-disable-line eqeqeq
     }
-    const searchPromise = Store.spaces.searchSpaces(searchArgs[0], searchArgs[1], fromUserIds, { distanceOverride }, query !== 'me');
+    const searchPromise = Store.spaces.searchSpaces(searchArgs[0], searchArgs[1], fromUserIds, { distanceOverride, shouldLimitDetail }, query !== 'me');
     // const countPromise = Store.spaces.countRecords({
     //     filterBy,
     //     query,

@@ -142,6 +142,12 @@ mapsServiceRouter.post('/spaces/:spaceId/details', authenticateOptional, getSpac
     }
 }));
 
+// Public version of search
+mapsServiceRouter.post('/spaces/list', searchAreasValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
 mapsServiceRouter.post('/spaces/search', searchAreasValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
