@@ -3,7 +3,7 @@ export default [
     {
         route: '/',
         head: {
-            title: 'Local Social Network',
+            title: 'Local Loyalty Rewards',
             description: 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
         },
         view: 'index',

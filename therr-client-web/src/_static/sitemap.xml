@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.therr.com/</loc>
+    <lastmod>2023-10-06</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.therr.com/login</loc>
+    <lastmod>2023-10-06</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.therr.com/register</loc>
+    <lastmod>2023-10-06</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.therr.com/reset-password</loc>
+    <lastmod>2023-10-06</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.therr.com/locations</loc>
+    <lastmod>2023-10-06</lastmod>
+    <priority>0.8</priority>
+  </url>
+</urlset>
