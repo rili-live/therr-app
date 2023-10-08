@@ -1,10 +1,15 @@
 import * as globalConfig from '../../../global-config';
 
-const envVars = globalConfig[process.env.NODE_ENV];
+const BASE_ENDPOINT = globalConfig.baseImageKitEndpoint ? globalConfig.baseImageKitEndpoint : `${globalConfig.baseApiGatewayRoute}/user-files/`;
 
-const IMAGE_KIT_URL = 'https://ik.imagekit.io/qmtvldd7sl/';
-
-// const getUserContentUri = (media) => `${envVars.baseApiGatewayRoute}/user-files/${media.path}`; // PRE-IMAGE_KIT
-const getUserContentUri = (media) => `${IMAGE_KIT_URL}${media.path}`; // POST-IMAGE_KIT
+const getUserContentUri = (media, height = 1048, width = 1048, autocrop = false) => {
+    let url = `${BASE_ENDPOINT}${media.path}`;
+    url = `${url}?tr=h-${height},w-${width}`;
+    if (!autocrop) {
+        // Preserve original image dimensions
+        url = `${url},c-at_max`;
+    }
+    return url;
+};
 
 export default getUserContentUri;

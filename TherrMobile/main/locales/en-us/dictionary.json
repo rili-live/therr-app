@@ -945,6 +945,8 @@
     "map": {
       "headerTitle": " ",
       "areaAlerts": {
+        "enableSpaceLocation": "Enable location to claim a space",
+        "enableMomentLocation": "Enable location to create a moment",
         "walkCloser": "Enable location and/or walk closer to activate this moment/space"
       },
       "bottomSheet": {

@@ -22,8 +22,10 @@ interface MapActionButtonsProps {
     handleOpenMapFilters: () => any;
     hasNotifications: boolean;
     toggleCreateActions: Function;
+    toggleFollow: () => any;
     isAuthorized: any;
-    isGpsEnabled: any;
+    isGpsEnabled: boolean;
+    isFollowEnabled: boolean;
     translate: Function;
     goToMap?: any;
     goToMoments?: any;
@@ -50,9 +52,11 @@ export default ({
     handleGpsRecenter,
     handleOpenMapFilters,
     toggleCreateActions,
+    toggleFollow,
     // hasNotifications,
-    isAuthorized,
+    // isAuthorized,
     isGpsEnabled,
+    isFollowEnabled,
     translate,
     // goToNotifications,
     shouldShowCreateActions,
@@ -61,7 +65,7 @@ export default ({
     themeConfirmModal,
     user,
 }: MapActionButtonsProps) => {
-    const shouldShowCreateButton = isAuthorized() && isGpsEnabled;
+    // const shouldShowCreateButton = isAuthorized() && isGpsEnabled;
     const [isModalVisible, setModalVisibility] = useState(false);
     const isBusinessAccount = user.details?.isBusinessAccount;
     const onShowModal = () => {
@@ -95,6 +99,23 @@ export default ({
 
     return (
         <>
+            {
+                isGpsEnabled && <View style={themeButtons.styles.toggleFollow}>
+                    <Button
+                        containerStyle={themeButtons.styles.btnContainer}
+                        buttonStyle={themeButtons.styles.btnMediumSecondary}
+                        icon={
+                            <TherrIcon
+                                name={isFollowEnabled ? 'compass' : 'walking'}
+                                size={22}
+                                style={themeButtons.styles.btnIcon}
+                            />
+                        }
+                        raised={true}
+                        onPress={toggleFollow}
+                    />
+                </View>
+            }
             <View style={themeButtons.styles.locationEnable}>
                 <Button
                     containerStyle={themeButtons.styles.btnContainer}
@@ -103,12 +124,12 @@ export default ({
                         isGpsEnabled ?
                             <TherrIcon
                                 name={'map-follow-filled'}
-                                size={32}
+                                size={28}
                                 style={themeButtons.styles.btnIcon}
                             /> :
                             <MaterialIcon
                                 name={ isGpsEnabled ? 'gps-fixed' : 'gps-off' }
-                                size={32}
+                                size={28}
                                 style={themeButtons.styles.btnIcon}
                             />
                     }
@@ -123,7 +144,7 @@ export default ({
                     icon={
                         <TherrIcon
                             name="filters"
-                            size={30}
+                            size={28}
                             style={themeButtons.styles.btnIcon}
                         />
                     }
@@ -143,68 +164,60 @@ export default ({
                     />
                 </View>
             }
-            {
-                shouldShowCreateButton &&
-                    <>
-                        <Button
-                            containerStyle={themeButtons.styles.addAMoment}
-                            buttonStyle={themeButtons.styles.btnLargeWithText}
-                            icon={
-                                <TherrIcon
-                                    name={ shouldShowCreateActions ? 'minus' : 'plus' }
-                                    size={22}
-                                    style={themeButtons.styles.btnIcon}
-                                />
-                            }
-                            title={shouldShowCreateActions ? null : translate('menus.mapActions.create')}
-                            titleStyle={themeButtons.styles.btnLargeTitle}
-                            raised={true}
-                            onPress={() => toggleCreateActions()}
+            <Button
+                containerStyle={themeButtons.styles.addAMoment}
+                buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLarge : themeButtons.styles.btnLargeWithText}
+                icon={
+                    <TherrIcon
+                        name={shouldShowCreateActions ? 'minus' : 'plus'}
+                        size={22}
+                        style={themeButtons.styles.btnIcon}
+                    />
+                }
+                iconRight
+                title={shouldShowCreateActions ? null : translate('menus.mapActions.create')}
+                titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                raised={true}
+                onPress={() => toggleCreateActions()}
+            />
+            <View style={themeButtons.styles.claimASpace}>
+                {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text> */}
+                <Button
+                    containerStyle={themeButtons.styles.btnContainer}
+                    buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
+                    icon={
+                        <TherrIcon
+                            // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
+                            name="road-map"
+                            size={22}
+                            style={themeButtons.styles.btnIcon}
                         />
-                        {
-                            shouldShowCreateActions &&
-                                <>
-                                    <View style={themeButtons.styles.claimASpace}>
-                                        {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text> */}
-                                        <Button
-                                            containerStyle={themeButtons.styles.btnContainer}
-                                            buttonStyle={themeButtons.styles.btnLargeWithText}
-                                            icon={
-                                                <TherrIcon
-                                                    name={isBusinessAccount ? 'map-marker-user' : 'map-marker-plus'}
-                                                    size={24}
-                                                    style={themeButtons.styles.btnIcon}
-                                                />
-                                            }
-                                            iconRight
-                                            raised
-                                            title={translate(isBusinessAccount ? 'menus.mapActions.claimASpace' : 'menus.mapActions.requestASpace')}
-                                            titleStyle={themeButtons.styles.btnMediumTitle}
-                                            onPress={onShowModal}
-                                        />
-                                    </View>
-                                    <View style={themeButtons.styles.uploadMoment}>
-                                        <Button
-                                            containerStyle={themeButtons.styles.btnContainer}
-                                            buttonStyle={themeButtons.styles.btnLargeWithText}
-                                            icon={
-                                                <TherrIcon
-                                                    name="map-marker-clock"
-                                                    size={24}
-                                                    style={themeButtons.styles.btnIcon}
-                                                />
-                                            }
-                                            iconRight
-                                            raised
-                                            title={translate('menus.mapActions.uploadAMoment')}
-                                            titleStyle={themeButtons.styles.btnMediumTitle}
-                                            onPress={() => handleCreate('moment')}
-                                        />
-                                    </View>
-                                </>
-                        }
-                    </>
-            }
+                    }
+                    iconRight
+                    raised
+                    title={shouldShowCreateActions && translate(isBusinessAccount ? 'menus.mapActions.claimASpace' : 'menus.mapActions.requestASpace')}
+                    titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                    onPress={onShowModal}
+                />
+            </View>
+            <View style={themeButtons.styles.uploadMoment}>
+                <Button
+                    containerStyle={themeButtons.styles.btnContainer}
+                    buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
+                    icon={
+                        <TherrIcon
+                            name="map-marker-plus"
+                            size={22}
+                            style={themeButtons.styles.btnIcon}
+                        />
+                    }
+                    iconRight
+                    raised
+                    title={shouldShowCreateActions && translate('menus.mapActions.uploadAMoment')}
+                    titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                    onPress={() => handleCreate('moment')}
+                />
+            </View>
             <ConfirmModal
                 headerText={isBusinessAccount ? translate('modals.confirmModal.header.claimSpace') : translate('modals.confirmModal.header.requestSpace')}
                 isVisible={isModalVisible}
