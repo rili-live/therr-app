@@ -85,6 +85,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                         </h2>
                         <p className="info-text fill">{this.translate('pages.home.info')}</p>
                         <p className="info-text fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info2')}</p>
+                        <p className="info-text fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info3')}</p>
                         <div className="store-image-links margin-top-lg">
                             <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
                                 <img aria-label="apple store link" className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
