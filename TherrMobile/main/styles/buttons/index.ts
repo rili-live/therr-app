@@ -50,8 +50,14 @@ const getLeftSmallButton1ViewStyles = (theme: ITherrTheme): any => ({
 
 const getLeftSmallButton2ViewStyles = (theme: ITherrTheme): any => ({
     ...getFloatingBtnContainer(theme),
-    left: 90,
+    left: 80,
     bottom: 60 + buttonMenuHeight - collapseOffset,
+});
+
+const getLeftMiniButton1ViewStyles = (theme: ITherrTheme): any => ({
+    ...getFloatingBtnContainer(theme),
+    left: 18,
+    bottom: 120 + buttonMenuHeight - collapseOffset,
 });
 
 const getFloatingBtnContainer = (theme: ITherrTheme): any => ({
@@ -163,12 +169,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         claimASpace: {
             ...getFloatingBtnContainer(therrTheme),
             right: 24,
-            bottom: 200 + buttonMenuHeight - collapseOffset,
+            bottom: 180 + buttonMenuHeight - collapseOffset,
         },
         uploadMoment: {
             ...getFloatingBtnContainer(therrTheme),
             right: 24,
-            bottom: 130 + buttonMenuHeight - collapseOffset,
+            bottom: 120 + buttonMenuHeight - collapseOffset,
         },
         addAMoment: {
             ...getFloatingBtnContainer(therrTheme),
@@ -219,7 +225,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             padding: 0,
         },
         toggleFollow: {
-            ...getLeftSmallButton1ViewStyles(therrTheme),
+            ...getLeftMiniButton1ViewStyles(therrTheme),
         },
         locationEnable: {
             ...getLeftSmallButton1ViewStyles(therrTheme),
@@ -345,6 +351,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: 34,
             width: 34,
         },
+        btnMediumSecondary: {
+            ...btnStyles,
+            backgroundColor: therrTheme.colors.secondary,
+            height: 36,
+            width: 36,
+        },
         btnMediumWithText: {
             ...btnStyles,
             backgroundColor: therrTheme.colors.accent1,
@@ -354,26 +366,34 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         btnMediumTitle: {
             paddingRight: 12,
             fontFamily: therrFontFamily,
+            fontSize: 14,
         },
         btnMediumTitleRight: {
             paddingLeft: 12,
             fontFamily: therrFontFamily,
+            fontSize: 14,
         },
         btnLarge: {
             ...btnStyles,
             backgroundColor: therrTheme.colors.secondary,
-            height: 44,
-            width: 44,
+            height: 42,
+            width: 42,
         },
         btnLargeWithText: {
             ...btnStyles,
             backgroundColor: therrTheme.colors.secondary,
-            height: 44,
-            paddingHorizontal: 15,
+            height: 42,
+            paddingHorizontal: 14,
         },
         btnLargeTitle: {
-            paddingLeft: 10,
+            paddingLeft: 7,
             fontFamily: therrFontFamily,
+            fontSize: 15,
+        },
+        btnLargeTitleLeft: {
+            paddingRight: 6,
+            fontFamily: therrFontFamily,
+            fontSize: 15,
         },
         btnClear: {
             ...btnStyles,

@@ -9,6 +9,7 @@ module.exports = {
     development: {
         baseApiGatewayRoute: `http://${hostDev}:${apiGatewayPort}/v1`,
         baseSocketUrl: `http://${hostDev}:${websocketPort}`,
+        baseImageKitEndpoint: '',
         googleAnalyticsKey: '',
         googleAnalyticsKeyDashboard: '',
         googleOAuth2WebClientId,
@@ -25,6 +26,7 @@ module.exports = {
     production: {
         baseApiGatewayRoute: `https://api.${hostProd}/v1`,
         baseSocketUrl: `https://websocket-service.${hostProd}`,
+        baseImageKitEndpoint: 'https://ik.imagekit.io/qmtvldd7sl/',
         googleAnalyticsKey: '',
         googleAnalyticsKeyDashboard: '',
         googleOAuth2WebClientId,

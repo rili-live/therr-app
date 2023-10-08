@@ -1,13 +1,14 @@
 import * as globalConfig from '../../../global-config';
 
-const envVars = globalConfig[process.env.NODE_ENV];
-
-const IMAGE_KIT_URL = 'https://ik.imagekit.io/qmtvldd7sl/';
+const BASE_ENDPOINT = globalConfig.baseImageKitEndpoint ? globalConfig.baseImageKitEndpoint : `${globalConfig.baseApiGatewayRoute}/user-files/`;
 
 const getUserImageUri = (user, size = 200) => {
     if (user.details?.media?.profilePicture) {
-        // return `${envVars.baseApiGatewayRoute}/user-files/${user.details.media.profilePicture.path}`; // PRE-IMAGE_KIT
-        return `${IMAGE_KIT_URL}${user.details.media.profilePicture.path}`; // POST-IMAGE_KIT
+        /**
+         * In the max-size crop strategy, whole image content is preserved (no cropping),
+         * the aspect ratio is preserved, but one of the dimensions (height or width) is adjusted.
+         */
+        return `${BASE_ENDPOINT}${user.details.media.profilePicture.path}?tr=${size},${size}`;
     }
 
     return `https://robohash.org/${user.details?.id}?set=set1&size=${size}x${size}`;

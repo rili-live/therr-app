@@ -43,6 +43,8 @@ spec:
             secretKeyRef:
               name: honeycomb-writekey
               key: HONEYCOMB
+        - name: IMAGE_KIT_URL
+          value: "https://ik.imagekit.io/qmtvldd7sl/"
         - name: OTEL_EXPORTER_OTLP_PROTOCOL
           value: "grpc"
         - name: MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64
