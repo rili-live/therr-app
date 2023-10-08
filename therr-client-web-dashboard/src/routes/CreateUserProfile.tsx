@@ -146,7 +146,7 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
             ApiService.verifyPhone(phoneNumber).then(() => {
                 ReactGA.event({
                     category: 'Registering',
-                    action: 'Verify Phone',
+                    action: 'verify_phone_dashboard_desktop',
                 });
                 this.setState({
                     isVerifyingPhone: true,
@@ -160,7 +160,7 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
                 } else {
                     ReactGA.event({
                         category: 'Registering',
-                        action: 'Verify Phone Error',
+                        action: 'verify_phone_dashboard_desktop_error',
                     });
                     this.onValidationError(
                         'Something Went Wrong',

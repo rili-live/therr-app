@@ -76,6 +76,7 @@ export class UnderConstructionAppComponent extends React.Component<IUnderConstru
                         </h2>
                         <p className="info-text text-center fill">{this.translate('pages.underConstruction.info')}</p>
                         <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info2')}</p>
+                        <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info3')}</p>
                         <div className="store-image-links flex-box row space-around margin-top-lg">
                             <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
                                 <img className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
