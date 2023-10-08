@@ -129,13 +129,17 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
     };
 
     onSubmitCode = () => {
-        const { onSubmit, translate } = this.props;
+        const { onSubmit, translate, user } = this.props;
         const { verificationCode } = this.state;
         this.setState({
             isSubmitting: true,
         });
         ApiService.validateCode(verificationCode)
             .then(() => {
+                analytics().logEvent('phone_verify_code_success', {
+                    userId: user?.details?.id,
+                    platform: 'mobile',
+                }).catch((err) => console.log(err));
                 onSubmit && onSubmit();
                 Toast.show({
                     type: 'success',

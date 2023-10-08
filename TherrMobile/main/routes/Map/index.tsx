@@ -142,6 +142,7 @@ export interface IMapProps extends IStoreProps {
 }
 
 interface IMapState {
+    alertMessage: string;
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
     bottomSheetContentType: IMapSheetContentTypes;
@@ -245,6 +246,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         const routeLatitude = props.route?.params?.latitude;
 
         this.state = {
+            alertMessage: 'Error',
             areButtonsVisible: true,
             areLayersVisible: false,
             bottomSheetContentType: 'nearby',
@@ -537,6 +539,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     cancelAreaAlert = () => {
+        clearTimeout(this.timeoutIdShowMomentAlert);
         this.setState({
             isAreaAlertVisible: false,
         });
@@ -679,7 +682,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         } else {
             // TODO: Alert that GPS is required to create a moment
-            this.showAreaAlert();
+            const alertMsg = action === 'claim'
+                ? this.translate('pages.map.areaAlerts.enableSpaceLocation')
+                : this.translate('pages.map.areaAlerts.enableMomentLocation');
+            this.showAreaAlert(alertMsg);
         }
     };
 
@@ -873,6 +879,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, duration || ANIMATE_TO_REGION_DURATION));
         this.setState({
             areLayersVisible: false,
+            shouldFollowUserLocation: false,
+            isScrollEnabled: true,
         });
     };
 
@@ -1165,8 +1173,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
-    showAreaAlert = () => {
+    showAreaAlert = (message?: string) => {
+        const alertMsg = message || this.translate('pages.map.areaAlerts.walkCloser');
         this.setState({
+            alertMessage: alertMsg,
             isAreaAlertVisible: true,
         });
 
@@ -1208,15 +1218,40 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldFollowUserLocation,
             isScrollEnabled,
         } = this.state;
-        const { map } = this.props;
+        const { location } = this.props;
 
-        if (shouldFollowUserLocation === false) {
+        if (shouldFollowUserLocation === false && location?.user?.longitude && location?.user?.latitude) {
+            // Zoom in
+            // TODO: Find way to keep pitch while following
+            // this.animateToWithHelp(() => {
+            //     this.mapRef && this.mapRef.animateCamera({
+            //         heading: 0,
+            //         pitch: 90,
+            //         center: {
+            //             longitude: location?.user?.longitude,
+            //             latitude: location?.user?.latitude,
+            //         },
+            //         zoom: 17,
+            //     }, {
+            //         duration: ANIMATE_TO_REGION_DURATION,
+            //     });
+            // });
             this.animateToWithHelp(() => {
                 this.mapRef && this.mapRef.animateToRegion({
-                    longitude: map.longitude,
-                    latitude: map.latitude,
+                    longitude: location?.user?.longitude,
+                    latitude: location?.user?.latitude,
                     latitudeDelta: PRIMARY_LATITUDE_DELTA,
                     longitudeDelta: PRIMARY_LONGITUDE_DELTA,
+                }, ANIMATE_TO_REGION_DURATION);
+            });
+        } else {
+            // Zoom out
+            this.animateToWithHelp(() => {
+                this.mapRef && this.mapRef.animateToRegion({
+                    longitude: location?.user?.longitude,
+                    latitude: location?.user?.latitude,
+                    latitudeDelta: PRIMARY_LATITUDE_DELTA + (PRIMARY_LATITUDE_DELTA * 0.1),
+                    longitudeDelta: PRIMARY_LONGITUDE_DELTA + (PRIMARY_LONGITUDE_DELTA * 0.1),
                 }, ANIMATE_TO_REGION_DURATION);
             });
         }
@@ -1263,6 +1298,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.setState({
             areButtonsVisible: true,
             areLayersVisible: false,
+            shouldFollowUserLocation: false,
+            isScrollEnabled: true,
         });
     };
 
@@ -1270,6 +1307,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.setState({
             areButtonsVisible: false,
             areLayersVisible: false,
+            shouldFollowUserLocation: false,
+            isScrollEnabled: true,
         });
     };
 
@@ -1357,6 +1396,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     render() {
         const {
+            alertMessage,
             areButtonsVisible,
             areLayersVisible,
             bottomSheetContentType,
@@ -1454,7 +1494,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 <Alert
                                     containerStyles={{}}
                                     isVisible={isAreaAlertVisible}
-                                    message={this.translate('pages.map.areaAlerts.walkCloser')}
+                                    message={alertMessage}
                                     type="error"
                                     themeAlerts={this.themeAlerts}
                                 />
@@ -1485,8 +1525,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 handleGpsRecenter={this.handleGpsRecenterPress}
                                 handleOpenMapFilters={this.handleOpenMapFiltersPress}
                                 toggleCreateActions={this.toggleCreateActions}
+                                toggleFollow={this.toggleMapFollow}
                                 shouldShowCreateActions={shouldShowCreateActions}
                                 isAuthorized={this.isAuthorized}
+                                isFollowEnabled={shouldFollowUserLocation}
                                 isGpsEnabled={location?.settings?.isGpsEnabled}
                                 translate={this.translate}
                                 theme={this.theme}

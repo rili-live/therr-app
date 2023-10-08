@@ -704,7 +704,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         buttonStyle={this.themeButtons.styles.btnLarge}
                         icon={
                             <TherrIcon
-                                name={'map-marker-clock'}
+                                name={'map-marker-plus'}
                                 size={27}
                                 style={this.themeButtons.styles.btnIcon}
                             />

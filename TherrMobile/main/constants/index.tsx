@@ -3,8 +3,8 @@ import { AndroidChannel, AndroidImportance } from "@notifee/react-native";
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
     DISCOVERIES: 'discoveries',
-    THOUGHTS: 'thoughts',
     EVENTS: 'events',
+    THOUGHTS: 'thoughts',
     NEWS: 'news',
 };
 

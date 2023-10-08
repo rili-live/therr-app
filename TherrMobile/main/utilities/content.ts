@@ -2,16 +2,29 @@ import { MapsService } from 'therr-react/services';
 import getConfig from './getConfig';
 
 const globalConfig = getConfig();
+const BASE_ENDPOINT = globalConfig.baseImageKitEndpoint ? globalConfig.baseImageKitEndpoint : `${globalConfig.baseApiGatewayRoute}/user-files/`;
 
 const isMyContent = (content, user) => {
     return String(content.fromUserId) === String(user.details.id);
 };
 
-const getUserContentUri = (media) => `${globalConfig.baseApiGatewayRoute}/user-files/${media.path}`;
+const getUserContentUri = (media, height = 1048, width = 1048, autocrop = false) => {
+    let url = `${BASE_ENDPOINT}${media.path}`;
+    url = `${url}?tr=h-${height},w-${width}`;
+    if (!autocrop) {
+        // Preserve original image dimensions
+        url = `${url},c-at_max`;
+    }
+    return url;
+};
 
 const getUserImageUri = (user, size = 200) => {
     if (user.details?.media?.profilePicture) {
-        return `${globalConfig.baseApiGatewayRoute}/user-files/${user.details.media.profilePicture.path}`;
+        /**
+         * In the max-size crop strategy, whole image content is preserved (no cropping),
+         * the aspect ratio is preserved, but one of the dimensions (height or width) is adjusted.
+         */
+        return `${BASE_ENDPOINT}${user.details.media.profilePicture.path}?tr=h-${size},w-${size}`;
     }
 
     return `https://robohash.org/${user.details?.id}?set=set5&size=${size}x${size}`;
