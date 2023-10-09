@@ -104,7 +104,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         const mediaPath = (moment.media && moment.media[0]?.path);
         const mediaType = (moment.media && moment.media[0]?.type);
         const momentMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri(moment.media[0])
+            ? getUserContentUri(moment.media[0], 480, 480, true)
             : content?.media[mediaId];
 
         return (
@@ -131,6 +131,8 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
                                         className="moment-image"
                                         src={momentMedia}
                                         alt={moment.notificationMsg}
+                                        height={480}
+                                        width={480}
                                     />}
                                 </div>
                             </div>

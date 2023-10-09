@@ -26,7 +26,7 @@ module.exports = {
         baseReactionsServiceRoute: `http://${hostDev}:${apiReactionsPort}/v1`,
         baseSocketUrl: `http://${hostDev}:${websocketPort}`,
         baseUsersServiceRoute: `http://${hostDev}:${apiUsersPort}/v1`,
-        baseImageKitEndpoint: '',
+        baseImageKitEndpoint: 'https://ik.imagekit.io/qmtvldd7sl/dev/',
         googleAnalyticsKey: 'G-WNB4XQ8W1Z',
         googleAnalyticsKeyDashboard: 'G-Z8R2CE2Z7C',
         googleOAuth2WebClientId,
