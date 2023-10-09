@@ -9,7 +9,7 @@ const getUserContentUri = (media, height = 1048, width = 1048, autocrop = false)
     url = `${url}?tr=h-${height},w-${width}`;
     if (!autocrop) {
         // Preserve original image dimensions
-        url = `${url},c-at_max`;
+        url = `${url},c-at_least`;
     }
     return url;
 };

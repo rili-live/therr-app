@@ -4,7 +4,7 @@ import * as globalConfig from '../../../../global-config';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
 import { createMomentLimiter, createSpaceLimiter } from './limitation/map';
-import { getSignedUrlValidation } from './validation';
+import { createCheckInValidation, getSignedUrlValidation } from './validation';
 import {
     createAreaValidation,
     updateAreaValidation,
@@ -180,6 +180,10 @@ mapsServiceRouter.delete('/spaces', deleteAreasValidation, validate, (req, res, 
 }));
 
 // Space Metrics
+mapsServiceRouter.post('/space-metrics/check-in', createCheckInValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
 mapsServiceRouter.get('/space-metrics/:spaceId', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'get',

@@ -1,6 +1,6 @@
 import { MapActionTypes } from '../../types/redux/maps';
 import { UserActionTypes } from '../../types/redux/user';
-import MapsService, { IPlacesAutoCompleteArgs, ISearchAreasArgs } from '../../services/MapsService';
+import MapsService, { ICreateSpaceCheckInMetricsArgs, IGetSpaceMetricsArgs, IPlacesAutoCompleteArgs, ISearchAreasArgs } from '../../services/MapsService';
 import { ContentActionTypes } from '../../types';
 
 interface IMapFilters {
@@ -250,6 +250,13 @@ const Maps = {
             data,
         });
     },
+
+    // Map Metrics
+    getSpaceMetrics: (spaceId: string, args: IGetSpaceMetricsArgs) => (dispatch: any) => MapsService
+        .getSpaceMetrics(spaceId, args).then((response) => response.data),
+
+    createSpaceCheckInMetrics: (args: ICreateSpaceCheckInMetricsArgs) => (dispatch: any) => MapsService
+        .createSpaceCheckInMetrics(args).then((response) => response.data),
 
     // Google API
     getPlacesSearchAutoComplete: (args: IPlacesAutoCompleteArgs) => (dispatch: any) => MapsService.getPlacesSearchAutoComplete(args)

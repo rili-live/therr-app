@@ -686,6 +686,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             errorMsg,
             hashtags,
             inputs,
+            isBusinessAccount,
             previewLinkId,
             previewStyleState,
             imagePreviewPath,
@@ -778,26 +779,28 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                         onHashtagPress={this.handleHashtagPress}
                         styles={this.themeForms.styles}
                     />
-                    <View style={this.themeForms.styles.inputSliderContainer}>
-                        <Slider
-                            value={inputs.radius}
-                            onValueChange={(value) => this.onSliderChange('radius', value)}
-                            maximumValue={MAX_RADIUS_PUBLIC}
-                            minimumValue={MIN_RADIUS_PUBLIC}
-                            step={1}
-                            thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
-                            thumbTouchSize={{ width: 30, height: 30 }}
-                            minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
-                            maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
-                            onSlidingStart={Keyboard.dismiss}
-                        />
-                        <Text style={this.themeForms.styles.inputLabelDark}>
-                            {`${this.translate('forms.editSpace.labels.radius', { meters: inputs.radius })}`}
-                        </Text>
-                        <Text style={this.themeForms.styles.inputLabelDark}>
-                            {`${this.translate('forms.editSpace.labels.cost', { pointCost: 0 })}`}
-                        </Text>
-                    </View>
+                    {
+                        isBusinessAccount && <View style={this.themeForms.styles.inputSliderContainer}>
+                            <Slider
+                                value={inputs.radius}
+                                onValueChange={(value) => this.onSliderChange('radius', value)}
+                                maximumValue={MAX_RADIUS_PUBLIC}
+                                minimumValue={MIN_RADIUS_PUBLIC}
+                                step={1}
+                                thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
+                                thumbTouchSize={{ width: 30, height: 30 }}
+                                minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
+                                maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
+                                onSlidingStart={Keyboard.dismiss}
+                            />
+                            <Text style={this.themeForms.styles.inputLabelDark}>
+                                {`${this.translate('forms.editSpace.labels.radius', { meters: inputs.radius })}`}
+                            </Text>
+                            <Text style={this.themeForms.styles.inputLabelDark}>
+                                {`${this.translate('forms.editSpace.labels.cost', { pointCost: 0 })}`}
+                            </Text>
+                        </View>
+                    }
                     <Alert
                         containerStyles={addMargins({
                             marginBottom: 24,

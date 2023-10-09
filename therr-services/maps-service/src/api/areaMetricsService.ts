@@ -18,6 +18,8 @@ export class UserMetricsProvider {
         value: metric.value, // Replying to a should is weighted more than viewing or liking
         valueType: metric.valueType,
         userId: metric.userId,
+        userLatitude: metric.userLatitude,
+        userLongitude: metric.userLongitude,
         spaceId: uniqueDbProperties.spaceId,
         region: uniqueDbProperties.region,
         dimensions,
@@ -35,6 +37,8 @@ export class UserMetricsProvider {
             value: metric.value, // Replying to a should is weighted more than viewing or liking
             valueType: metric.valueType,
             userId: metric.userId,
+            userLatitude: metric.userLatitude,
+            userLongitude: metric.userLongitude,
             spaceId: metric.uniqueDbProperties.spaceId,
             region: metric.uniqueDbProperties.region,
             dimensions: metric.dimensions,

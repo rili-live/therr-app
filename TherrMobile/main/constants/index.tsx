@@ -10,11 +10,11 @@ const CAROUSEL_TABS = {
 
 // Area Constants
 const DEFAULT_RADIUS = 10;
-const DEFAULT_RADIUS_MEDIUM = 50;
+const DEFAULT_RADIUS_MEDIUM = 10;
 const MIN_RADIUS_PRIVATE = 3;
 const MAX_RADIUS_PRIVATE = 50;
 const MIN_RADIUS_PUBLIC = 3;
-const MAX_RADIUS_PUBLIC = 200;
+const MAX_RADIUS_PUBLIC = 50;
 
 
 // MAP Constants

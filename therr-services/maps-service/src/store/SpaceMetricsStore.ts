@@ -19,6 +19,8 @@ export interface ICreateSpaceMetricsParams {
         [key: string]: string;
     } | string,
     region?: string;
+    userLatitude?: number;
+    userLongitude?: number;
 }
 
 interface ILongLat {
@@ -64,6 +66,12 @@ export default class SpaceMetricsStore {
 
             if (insert.dimensions && typeof insert.dimensions !== 'string') {
                 insert.dimensions = JSON.stringify(insert.dimensions);
+            }
+
+            if (p.userLatitude != null && p.userLongitude != null) {
+                insert.userLatitude = p.userLatitude;
+                insert.userLongitude = p.userLongitude;
+                (insert as any).userLocation = knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${p.userLongitude}, ${p.userLatitude}), 4326)`);
             }
 
             return insert;
