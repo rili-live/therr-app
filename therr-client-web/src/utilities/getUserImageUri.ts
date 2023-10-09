@@ -1,6 +1,8 @@
 import * as globalConfig from '../../../global-config';
 
-const BASE_ENDPOINT = globalConfig.baseImageKitEndpoint ? globalConfig.baseImageKitEndpoint : `${globalConfig.baseApiGatewayRoute}/user-files/`;
+const BASE_ENDPOINT = globalConfig[process.env.NODE_ENV].baseImageKitEndpoint
+    ? globalConfig[process.env.NODE_ENV].baseImageKitEndpoint
+    : `${globalConfig[process.env.NODE_ENV].baseApiGatewayRoute}/user-files/`;
 
 const getUserImageUri = (user, size = 200) => {
     if (user.details?.media?.profilePicture) {
