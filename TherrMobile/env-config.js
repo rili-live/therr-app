@@ -9,7 +9,7 @@ module.exports = {
     development: {
         baseApiGatewayRoute: `http://${hostDev}:${apiGatewayPort}/v1`,
         baseSocketUrl: `http://${hostDev}:${websocketPort}`,
-        baseImageKitEndpoint: '',
+        baseImageKitEndpoint: 'https://ik.imagekit.io/qmtvldd7sl/dev/',
         googleAnalyticsKey: '',
         googleAnalyticsKeyDashboard: '',
         googleOAuth2WebClientId,

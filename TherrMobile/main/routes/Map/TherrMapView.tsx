@@ -1095,7 +1095,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                     const mediaPath = (area.media && area.media[0]?.path);
                                     const mediaType = (area.media && area.media[0]?.type);
                                     const areaMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-                                        ? getUserContentUri(area.media[0])
+                                        ? getUserContentUri(area.media[0], CARD_HEIGHT,  CARD_WIDTH)
                                         : content?.media[mediaId];
                                     return (
                                         <AreaDisplayCard

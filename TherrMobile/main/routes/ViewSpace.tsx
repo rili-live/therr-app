@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+    Dimensions,
     Platform,
     SafeAreaView,
     Share,
@@ -47,6 +48,8 @@ import requestLocationServiceActivation from '../utilities/requestLocationServic
 import { isLocationPermissionGranted } from '../utilities/requestOSPermissions';
 import getNearbySpaces from '../utilities/getNearbySpaces';
 // import AccentInput from '../components/Input/Accent';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 interface IViewSpaceDispatchProps {
     getSpaceDetails: Function;
@@ -619,7 +622,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         const mediaPath = (spaceInView.media && spaceInView.media[0]?.path);
         const mediaType = (spaceInView.media && spaceInView.media[0]?.type);
         const spaceMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri(spaceInView.media[0])
+            ? getUserContentUri(spaceInView.media[0], screenWidth, screenWidth)
             : content?.media[mediaId];
         let areaUserName = spaceUserName || this.translate('alertTitles.nameUnknown');
         if (areaUserName === 'therr_it_is') {

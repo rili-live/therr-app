@@ -55,6 +55,7 @@ app.use(express.static(path.join(__dirname, 'static')));
 app.use(authenticate.unless({
     path: [
         { url: '/', methods: ['GET'] }, // healthcheck
+        // { url: '/favicon.ico', methods: ['GET'] }, // favicon
         { url: '/v1/users-service/subscribers/signup', methods: ['POST'] }, // email marketing subscribe
         { url: '/v1/users-service/auth', methods: ['POST'] }, // login
         { url: '/v1/users-service/payments/webhook', methods: ['POST'] }, // webhook

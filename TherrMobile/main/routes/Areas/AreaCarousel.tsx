@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshControl, View, /* Platform, */ FlatList, Pressable } from 'react-native';
+import { RefreshControl, View, /* Platform, */ FlatList, Pressable, Dimensions } from 'react-native';
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import {
     Content,
@@ -16,6 +16,8 @@ import formatDate from '../../utilities/formatDate';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 import ListEmpty from '../../components/ListEmpty';
 import { getUserContentUri } from '../../utilities/content';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 interface IAreaCarouselProps {
     activeData: any;
@@ -72,7 +74,7 @@ const renderItem = ({ item: post }, {
 
     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
     const postMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(post.media[0])
+        ? getUserContentUri(post.media[0], screenWidth, screenWidth)
         : media && media[post.media && post.media[0]?.id];
     const isMe = user.details.id === post.fromUserId;
     let userDetails = {

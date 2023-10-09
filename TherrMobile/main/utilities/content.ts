@@ -1,5 +1,8 @@
+import { Dimensions } from 'react-native';
 import { MapsService } from 'therr-react/services';
 import getConfig from './getConfig';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 const globalConfig = getConfig();
 const BASE_ENDPOINT = globalConfig.baseImageKitEndpoint ? globalConfig.baseImageKitEndpoint : `${globalConfig.baseApiGatewayRoute}/user-files/`;
@@ -8,7 +11,7 @@ const isMyContent = (content, user) => {
     return String(content.fromUserId) === String(user.details.id);
 };
 
-const getUserContentUri = (media, height = 1048, width = 1048, autocrop = false) => {
+const getUserContentUri = (media, height = screenWidth, width = screenWidth, autocrop = false) => {
     let url = `${BASE_ENDPOINT}${media.path}`;
     url = `${url}?tr=h-${height},w-${width}`;
     if (!autocrop) {
