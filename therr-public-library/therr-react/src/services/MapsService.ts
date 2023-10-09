@@ -16,7 +16,13 @@ interface IGetAreaDetailsArgs {
     withUser?: boolean;
 }
 
-interface IGetSpaceMetricsArgs {
+export interface ICreateSpaceCheckInMetricsArgs {
+    spaceId: string;
+    latitude: number;
+    longitude: number;
+}
+
+export interface IGetSpaceMetricsArgs {
     startDate: string;
     endDate: string;
 }
@@ -212,6 +218,12 @@ class MapsService {
             data: args,
         });
     };
+
+    createSpaceCheckInMetrics = (args: ICreateSpaceCheckInMetricsArgs) => axios({
+        method: 'post',
+        url: '/maps-service/space-metrics/check-in',
+        data: args,
+    });
 
     // Media
     getSignedUrlPublicBucket = (args: ISignedUrlArgs) => {

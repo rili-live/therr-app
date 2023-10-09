@@ -8,8 +8,10 @@ import Store from '../store';
 import { aggregateMetrics, getPercentageChange, getMetricsByName } from '../api/aggregations';
 import areaMetricsService from '../api/areaMetricsService';
 import getUserOrganizations from '../utilities/getUserOrganizations';
+
 // CREATE
 const createSpaceMetric = async (req, res) => {
+    const reqPath = req.path;
     const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
@@ -33,21 +35,27 @@ const createSpaceMetric = async (req, res) => {
     }
 
     const params = spaceIds ? spaceIds.map((id) => ({
-        name,
+        // Security measure to ensure this endpoint isn't used to hijack the private metrics create route
+        name: reqPath.includes('/check-in') ? MetricNames.SPACE_USER_CHECK_IN : name,
         spaceId: id,
         value,
         valueType,
         userId,
+        userLatitude: latitude,
+        userLongitude: longitude,
         dimensions: {
             userLatitude: latitude,
             userLongitude: longitude,
         },
     })) : [{
-        name,
+        // Security measure to ensure this endpoint isn't used to hijack the private metrics create route
+        name: reqPath.includes('/check-in') ? MetricNames.SPACE_USER_CHECK_IN : name,
         spaceId,
         value,
         valueType,
         userId,
+        userLatitude: latitude,
+        userLongitude: longitude,
         dimensions: {
             userLatitude: latitude,
             userLongitude: longitude,
@@ -55,12 +63,15 @@ const createSpaceMetric = async (req, res) => {
     }];
 
     return areaMetricsService.uploadMetrics(params.map((param) => ({
-        name: MetricNames.SPACE_IMPRESSION,
-        value: '1',
-        valueType: MetricValueTypes.NUMBER,
+        name: param.name || MetricNames.SPACE_IMPRESSION,
+        value: param.value || '1',
+        valueType: param.valueType || MetricValueTypes.NUMBER,
         userId,
         dimensions: param.dimension,
+        userLatitude: param.userLatitude,
+        userLongitude: param.userLongitude,
         uniqueDbProperties: {
+            spaceId: param.spaceId,
             latitude: param.userLatitude,
             longitude: param.userLongitude,
         },
