@@ -7,6 +7,7 @@ import {
 const router = express.Router();
 
 // CREATE
+router.post('/check-in', createSpaceMetric);
 router.post('/', createSpaceMetric);
 
 // SEARCH

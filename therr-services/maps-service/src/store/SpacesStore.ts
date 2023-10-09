@@ -16,7 +16,7 @@ export const SPACES_TABLE_NAME = 'main.spaces';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 const maxNotificationMsgLength = 100;
-const DEFAULT_RADIUS_MEDIUM = 50;
+const DEFAULT_RADIUS_MEDIUM = 10; // Small radius default to prevent overlap db constraint
 
 export interface ICreateSpaceParams {
     addressReadable?: string;

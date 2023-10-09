@@ -8,6 +8,7 @@ import { bindActionCreators } from 'redux';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
+// import { MetricNames } from 'therr-js-utilities/constants';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
@@ -118,6 +119,7 @@ interface IMapDispatchProps {
     setInitialUserLocation: Function;
     setSearchDropdownVisibility: Function;
     deleteMoment: Function;
+    createSpaceCheckInMetrics: Function;
     updateGpsStatus: Function;
     updateLocationDisclosure: Function;
     updateLocationPermissions: Function;
@@ -196,6 +198,7 @@ const mapDispatchToProps = (dispatch: any) =>
             setInitialUserLocation: MapActions.setInitialUserLocation,
             setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
             deleteMoment: MapActions.deleteMoment,
+            createSpaceCheckInMetrics: MapActions.createSpaceCheckInMetrics,
             createOrUpdateMomentReaction: ReactionActions.createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction: ReactionActions.createOrUpdateSpaceReaction,
             findMomentReactions: ReactionActions.findMomentReactions,

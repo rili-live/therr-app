@@ -12,16 +12,21 @@ const isMyContent = (content, user) => {
 };
 
 const getUserContentUri = (media, height = screenWidth, width = screenWidth, autocrop = false) => {
+    // 25 increase for higher quality resolution
+    // Round to 100s increase odds of device overlap being cached
+    const minImageHeight = Math.ceil((height * 1.25) / 100) * 100;
+    const minImageWidth = Math.ceil((width * 1.25) / 100) * 100;
+
     let url = `${BASE_ENDPOINT}${media.path}`;
-    url = `${url}?tr=h-${height},w-${width}`;
+    url = `${url}?tr=h-${minImageHeight},w-${minImageWidth}`;
     if (!autocrop) {
         // Preserve original image dimensions
-        url = `${url},c-at_max`;
+        url = `${url},c-at_least`;
     }
     return url;
 };
 
-const getUserImageUri = (user, size = 200) => {
+const getUserImageUri = (user, size = screenWidth) => {
     if (user.details?.media?.profilePicture) {
         /**
          * In the max-size crop strategy, whole image content is preserved (no cropping),

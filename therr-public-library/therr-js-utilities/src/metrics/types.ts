@@ -13,6 +13,8 @@ export interface IMetric {
     value: any;
     valueType: MetricValueTypes;
     userId: string;
+    userLatitude?: number;
+    userLongitude?: number;
 }
 
 export interface IMetricCombined extends IMetric {

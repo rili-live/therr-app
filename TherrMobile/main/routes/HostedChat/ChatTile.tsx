@@ -56,7 +56,7 @@ export default (onChatTilePress, theme, themeChatTile) => {
                 <View style={themeChatTile.style.avatarContainer}>
                     <Image
                         style={themeChatTile.style.avatarStyle}
-                        source={{ uri: getUserImageUri({ details: { id: chat.authorId } }) }}
+                        source={{ uri: getUserImageUri({ details: { id: chat.authorId } }, 50) }}
                         PlaceholderContent={<ActivityIndicator size="large" color={theme.colors.primary} />}
                     />
                 </View>
