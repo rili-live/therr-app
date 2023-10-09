@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+    Dimensions,
     SafeAreaView,
     Share,
     View,
@@ -35,6 +36,8 @@ import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
 import TherrIcon from '../components/TherrIcon';
 // import AccentInput from '../components/Input/Accent';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 interface IViewMomentDispatchProps {
     getMomentDetails: Function;
@@ -367,7 +370,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         const mediaPath = (momentInView.media && momentInView.media[0]?.path);
         const mediaType = (momentInView.media && momentInView.media[0]?.type);
         const momentMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri(momentInView.media[0])
+            ? getUserContentUri(momentInView.media[0], screenWidth, screenWidth)
             : content?.media[mediaId];
 
         return (

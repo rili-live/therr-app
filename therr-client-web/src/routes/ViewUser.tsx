@@ -95,7 +95,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         const userInView = user.userInView;
         const userImageUri = getUserImageUri({
             details: userInView,
-        });
+        }, 480);
 
         return (
             <div id="page_view_moment" className="flex-box space-evenly center row wrap-reverse">
@@ -143,6 +143,8 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                                         className="moment-image"
                                         src={userImageUri}
                                         alt={`${userInView.firstName} ${userInView.lastName}`}
+                                        height={480}
+                                        width={480}
                                     />}
                                 </div>
                             </div>

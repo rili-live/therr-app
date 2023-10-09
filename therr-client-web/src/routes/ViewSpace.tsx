@@ -105,7 +105,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         const mediaPath = (space.media && space.media[0]?.path);
         const mediaType = (space.media && space.media[0]?.type);
         const spaceMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri(space.media[0])
+            ? getUserContentUri(space.media[0], 480, 480, true)
             : content?.media[mediaId];
 
         return (
@@ -167,6 +167,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                         className="space-image"
                                         src={spaceMedia}
                                         alt={space.notificationMsg}
+                                        height={480}
+                                        width={480}
                                     />}
                                 </div>
                             </div>
