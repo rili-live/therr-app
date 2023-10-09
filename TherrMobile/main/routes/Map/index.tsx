@@ -5,10 +5,11 @@ import MapView from 'react-native-map-clustering';
 import AnimatedOverlay from 'react-native-modal-overlay';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import Toast from 'react-native-toast-message';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
-// import { MetricNames } from 'therr-js-utilities/constants';
+import { MetricNames } from 'therr-js-utilities/constants';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
@@ -36,6 +37,9 @@ import {
     MAX_ANIMATION_LATITUDE_DELTA,
     ANIMATE_TO_REGION_DURATION_FAST,
     MAX_ANIMATION_LONGITUDE_DELTA,
+    getAndroidChannel,
+    AndroidChannelIds,
+    PressActionIds,
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
@@ -70,6 +74,7 @@ import MapBottomSheetContent, { IMapSheetContentTypes } from '../../components/B
 import TherrMapView from './TherrMapView';
 import { isMyContent } from '../../utilities/content';
 import getNearbySpaces from '../../utilities/getNearbySpaces';
+import { sendForegroundNotification } from '../../utilities/pushNotifications';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -166,6 +171,10 @@ interface IMapState {
     isMapReady: boolean;
     isMinLoadTimeComplete: boolean;
     isSearchThisLocationBtnVisible: boolean;
+    nearbySpaces: {
+        id: string;
+        title: string;
+    }[];
     shouldIgnoreSearchThisAreaButton: boolean;
     shouldRenderMapCircles: boolean;
     shouldShowCreateActions: boolean;
@@ -266,6 +275,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isMapReady: false,
             isMinLoadTimeComplete: false,
             isSearchThisLocationBtnVisible: false,
+            nearbySpaces: [],
             shouldIgnoreSearchThisAreaButton: false,
             shouldRenderMapCircles: false,
             shouldShowCreateActions: false,
@@ -584,8 +594,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     handleCreate = (action: ICreateMomentAction = 'moment', isBusinessAccount = false) => {
-        const { location, navigation, map, reactions, user } = this.props;
-        const { circleCenter } = this.state;
+        const { createSpaceCheckInMetrics, location, navigation } = this.props;
+        const { circleCenter, nearbySpaces } = this.state;
 
         this.setState({
             shouldShowCreateActions: false,
@@ -595,9 +605,49 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             // TODO: Store permissions in redux
             const storePermissions = () => {};
 
-            if (action === 'moment') {
-                const nearbySpaces = getNearbySpaces(circleCenter, user, reactions, map.spaces);
+            if (action === 'check-in') {
+                if (nearbySpaces?.length) {
+                    createSpaceCheckInMetrics({
+                        name: MetricNames.SPACE_USER_CHECK_IN,
+                        spaceId: nearbySpaces[0].id,
+                        latitude: circleCenter.latitude,
+                        longitude: circleCenter.longitude,
+                    }).then((response) => {
+                        // TODO: Only send toast if push notifications are disabled
+                        // TODO: Include space title somewhere in message
+                        if (response?.therrCoinRewarded) {
+                            sendForegroundNotification({
+                                title: this.translate('alertTitles.coinsReceived'),
+                                body: this.translate('alertMessages.coinsReceived', {
+                                    // TODO: Replace with response
+                                    total: response?.therrCoinRewarded || '1',
+                                }),
+                                android: {
+                                    actions: [
+                                        {
+                                            pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
+                                            title: this.translate('alertActions.exchange'),
+                                        },
+                                    ],
+                                },
+                            }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
+                            Toast.show({
+                                type: 'success',
+                                text1: this.translate('alertTitles.coinsReceived'),
+                                text2: this.translate('alertMessages.coinsReceived', {
+                                    // TODO: Replace with response
+                                    total: response?.therrCoinRewarded || '1',
+                                }),
+                                visibilityTime: 2500,
+                            });
+                        }
+                    }).catch((err) => console.error(err));
+                }
 
+                return;
+            }
+
+            if (action === 'moment') {
                 navigation.reset({
                     index: 1,
                     routes: [
@@ -1376,8 +1426,15 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         const { circleCenter } = this.state;
 
         if (circleCenter.latitude !== center.latitude || circleCenter.longitude !== center.longitude) {
+            const { user, reactions, map } = this.props;
+            const nearbySpaces = getNearbySpaces({
+                latitude: circleCenter.latitude,
+                longitude: circleCenter.longitude,
+            }, user, reactions, map.spaces);
+
             this.setState({
                 circleCenter: center,
+                nearbySpaces,
             });
         }
     };
@@ -1415,6 +1472,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isSearchThisLocationBtnVisible,
             isSearchLoading,
             isScrollEnabled,
+            nearbySpaces,
             shouldFollowUserLocation,
             shouldRenderMapCircles,
         } = this.state;
@@ -1533,6 +1591,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 isAuthorized={this.isAuthorized}
                                 isFollowEnabled={shouldFollowUserLocation}
                                 isGpsEnabled={location?.settings?.isGpsEnabled}
+                                nearbySpaces={nearbySpaces}
                                 translate={this.translate}
                                 theme={this.theme}
                                 themeButtons={this.themeButtons}

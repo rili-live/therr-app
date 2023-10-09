@@ -18,7 +18,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             display: 'flex',
             justifyContent: 'flex-start',
             alignItems: 'center',
-            maxHeight: '50%',
+            maxHeight: '60%',
             width: '75%',
             backgroundColor: therrTheme.colors.backgroundGray,
             elevation: 5,

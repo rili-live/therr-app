@@ -662,6 +662,7 @@
     "mapActions": {
       "create": "Create",
       "claimASpace": "Claim a Space",
+      "addACheckIn": "Check In",
       "requestASpace": "Request a Space",
       "shareAThought": "Share a Thought",
       "uploadAMoment": "Create a Moment",
@@ -1103,6 +1104,7 @@
     "confirmModal": {
       "agree": "Agree",
       "confirm": "Yes",
+      "checkIn": "Check In",
       "continue": "Continue",
       "cancel": "Cancel",
       "notNow": "Not Now",
@@ -1111,11 +1113,13 @@
       "reportUser": "Are you sure you want to report {userName}?",
       "unconnect": "Remove connection with {userName}? (You will no longer be able to activate new content from this user)",
       "header": {
+        "checkIn": "Check In",
         "claimSpace": "Claim a Space",
         "requestSpace": "Request a Space",
         "eula": "End-User License Agreement (EULA)"
       },
       "body": {
+        "checkIn": "Check in at a local business to earn rewards",
         "claimSpace": "Spaces are public business locations. Claiming a space on the map allows you to declare location ownership, incentivize customer loyalty, and moderate content.",
         "requestSpace": "Request a public business space and earn points per request! We'll connect with the owner to add it to the map so they can start offering loyalty rewards."
       }

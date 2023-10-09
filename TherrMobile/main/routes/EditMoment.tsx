@@ -386,7 +386,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 position: 'top',
                                 onHide: () => {
                                     if (response?.therrCoinRewarded && response?.therrCoinRewarded > 0) {
-                                        // TODO: Only send toast is push notifications are disabled
+                                        // TODO: Only send toast if push notifications are disabled
+                                        // TODO: Include title of checkin
                                         sendForegroundNotification({
                                             title: this.translate('alertTitles.coinsReceived'),
                                             body: this.translate('alertMessages.coinsReceived', {
@@ -401,6 +402,14 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                                 ],
                                             },
                                         }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
+                                        Toast.show({
+                                            type: 'success',
+                                            text1: this.translate('alertTitles.coinsReceived'),
+                                            text2: this.translate('alertMessages.coinsReceived', {
+                                                total: response.therrCoinRewarded,
+                                            }),
+                                            visibilityTime: 3500,
+                                        });
                                         Toast.show({
                                             type: 'success',
                                             text1: this.translate('alertTitles.coinsReceived'),

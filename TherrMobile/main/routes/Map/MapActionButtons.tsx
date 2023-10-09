@@ -7,9 +7,10 @@ import AnimatedLottieView from 'lottie-react-native';
 import { ITherrThemeColors } from '../../styles/themes';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import TherrIcon from '../../components/TherrIcon';
+import checkIn from '../../assets/coin-wallet.json';
 import claimASpace from '../../assets/claim-a-space.json';
 
-export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment';
+export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in';
 
 interface MapActionButtonsProps {
     filters: {
@@ -26,6 +27,10 @@ interface MapActionButtonsProps {
     isAuthorized: any;
     isGpsEnabled: boolean;
     isFollowEnabled: boolean;
+    nearbySpaces: {
+        id: string;
+        title: string;
+    }[];
     translate: Function;
     goToMap?: any;
     goToMoments?: any;
@@ -57,6 +62,7 @@ export default ({
     // isAuthorized,
     isGpsEnabled,
     isFollowEnabled,
+    nearbySpaces,
     translate,
     // goToNotifications,
     shouldShowCreateActions,
@@ -67,6 +73,7 @@ export default ({
 }: MapActionButtonsProps) => {
     // const shouldShowCreateButton = isAuthorized() && isGpsEnabled;
     const [isModalVisible, setModalVisibility] = useState(false);
+    const [isCheckInModalVisible, setCheckInModalVisibility] = useState(false);
     const isBusinessAccount = user.details?.isBusinessAccount;
     const onShowModal = () => {
         if (user.details.loginCount && user.details.loginCount < 4) {
@@ -75,9 +82,16 @@ export default ({
             handleCreate('claim', isBusinessAccount);
         }
     };
+    const onShowCheckInModal = () => {
+        setCheckInModalVisibility(true);
+    };
     const confirmClaimModal = () => {
         setModalVisibility(false);
         handleCreate('claim', isBusinessAccount);
+    };
+    const confirmCheckInModal = () => {
+        setCheckInModalVisibility(false);
+        handleCreate('check-in');
     };
     const renderImage = () => (
         <AnimatedLottieView
@@ -86,6 +100,17 @@ export default ({
             resizeMode="contain"
             speed={1}
             autoPlay={false}
+            loop
+            style={themeConfirmModal.styles.graphic}
+        />
+    );
+    const renderCheckInImage = () => (
+        <AnimatedLottieView
+            source={checkIn}
+            // resizeMode="cover"
+            resizeMode="contain"
+            speed={1}
+            autoPlay={true}
             loop
             style={themeConfirmModal.styles.graphic}
         />
@@ -180,6 +205,28 @@ export default ({
                 raised={true}
                 onPress={() => toggleCreateActions()}
             />
+            {
+                !isBusinessAccount && isGpsEnabled && nearbySpaces?.length > 0 &&
+                <View style={themeButtons.styles.addACheckIn}>
+                    <Button
+                        containerStyle={themeButtons.styles.btnContainer}
+                        buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
+                        icon={
+                            <TherrIcon
+                                // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
+                                name="map-marker-clock"
+                                size={22}
+                                style={themeButtons.styles.btnIcon}
+                            />
+                        }
+                        iconRight
+                        raised
+                        title={shouldShowCreateActions && translate('menus.mapActions.addACheckIn')}
+                        titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                        onPress={onShowCheckInModal}
+                    />
+                </View>
+            }
             <View style={themeButtons.styles.claimASpace}>
                 {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text> */}
                 <Button
@@ -226,6 +273,20 @@ export default ({
                 renderImage={renderImage}
                 text={isBusinessAccount ? translate('modals.confirmModal.body.claimSpace') : translate('modals.confirmModal.body.requestSpace')}
                 textConfirm={translate('modals.confirmModal.continue')}
+                textCancel={translate('modals.confirmModal.notNow')}
+                translate={translate}
+                theme={theme}
+                themeButtons={themeButtons}
+                themeModal={themeConfirmModal}
+            />
+            <ConfirmModal
+                headerText={translate('modals.confirmModal.header.checkIn')}
+                isVisible={isCheckInModalVisible}
+                onCancel={() => setCheckInModalVisibility(false)}
+                onConfirm={confirmCheckInModal}
+                renderImage={renderCheckInImage}
+                text={translate('modals.confirmModal.body.checkIn')}
+                textConfirm={translate('modals.confirmModal.checkIn')}
                 textCancel={translate('modals.confirmModal.notNow')}
                 translate={translate}
                 theme={theme}

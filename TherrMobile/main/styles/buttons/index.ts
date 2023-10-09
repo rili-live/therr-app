@@ -166,6 +166,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             lineHeight: 13,
             fontWeight: '500',
         },
+        addACheckIn: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 24,
+            bottom: 240 + buttonMenuHeight - collapseOffset,
+        },
         claimASpace: {
             ...getFloatingBtnContainer(therrTheme),
             right: 24,

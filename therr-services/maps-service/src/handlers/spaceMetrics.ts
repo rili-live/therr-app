@@ -78,6 +78,8 @@ const createSpaceMetric = async (req, res) => {
     })))
         .then((metrics) => res.status(201).send({
             metrics,
+            // TODO: Transfer coins from space/business owner
+            therrCoinRewarded: 0,
         }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
