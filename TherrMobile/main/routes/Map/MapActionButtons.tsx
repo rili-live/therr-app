@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Badge, Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
 import AnimatedLottieView from 'lottie-react-native';
@@ -9,10 +9,13 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 import TherrIcon from '../../components/TherrIcon';
 import checkIn from '../../assets/coin-wallet.json';
 import claimASpace from '../../assets/claim-a-space.json';
+import { MIN_TIME_BTW_CHECK_INS_MS } from '../../constants';
+import numberToCurrencyStr from '../../utilities/numberToCurrencyStr';
 
 export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in';
 
 interface MapActionButtonsProps {
+    exchangeRate: number;
     filters: {
         filtersAuthor: any[],
         filtersCategory: any[],
@@ -31,6 +34,13 @@ interface MapActionButtonsProps {
         id: string;
         title: string;
     }[];
+    recentEngagements: {
+        [id: string]: {
+            spaceId: string;
+            engagementType: string;
+            timestamp: number;
+        }
+    }
     translate: Function;
     goToMap?: any;
     goToMoments?: any;
@@ -52,6 +62,7 @@ interface MapActionButtonsProps {
 }
 
 export default ({
+    exchangeRate,
     filters,
     handleCreate,
     handleGpsRecenter,
@@ -63,6 +74,7 @@ export default ({
     isGpsEnabled,
     isFollowEnabled,
     nearbySpaces,
+    recentEngagements,
     translate,
     // goToNotifications,
     shouldShowCreateActions,
@@ -91,8 +103,13 @@ export default ({
     };
     const confirmCheckInModal = () => {
         setCheckInModalVisibility(false);
-        handleCreate('check-in');
+        setTimeout(() => handleCreate('check-in'));
     };
+    const validSpaces = nearbySpaces.filter((space) => {
+        return !recentEngagements[space.id]
+            || recentEngagements[space.id].engagementType !== 'check-in'
+            || Date.now() - recentEngagements[space.id].timestamp >= MIN_TIME_BTW_CHECK_INS_MS;
+    });
     const renderImage = () => (
         <AnimatedLottieView
             source={claimASpace}
@@ -121,6 +138,7 @@ export default ({
             filterCount += 1;
         }
     });
+    const checkinValue =  numberToCurrencyStr(Math.round((Number(2 * exchangeRate) + Number.EPSILON) * 100) / 100);
 
     return (
         <>
@@ -180,11 +198,17 @@ export default ({
             {
                 filterCount > 0 &&
                 <View style={themeButtons.styles.mapFiltersCount}>
-                    <Button
+                    {/* <Button
                         containerStyle={themeButtons.styles.btnContainer}
                         buttonStyle={[themeButtons.styles.btnSmall, { backgroundColor: themeButtons.colors.tertiary }]}
                         raised={true}
                         title={filterCount.toString()}
+                        onPress={handleOpenMapFilters}
+                    /> */}
+                    <Badge
+                        value={filterCount}
+                        badgeStyle={themeButtons.styles.mapFiltersBadge}
+                        containerStyle={themeButtons.styles.mapFiltersBadgeContainer}
                         onPress={handleOpenMapFilters}
                     />
                 </View>
@@ -207,25 +231,38 @@ export default ({
             />
             {
                 !isBusinessAccount && isGpsEnabled && nearbySpaces?.length > 0 &&
-                <View style={themeButtons.styles.addACheckIn}>
-                    <Button
-                        containerStyle={themeButtons.styles.btnContainer}
-                        buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
-                        icon={
-                            <TherrIcon
-                                // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
-                                name="map-marker-clock"
-                                size={22}
-                                style={themeButtons.styles.btnIcon}
+                <>
+                    {
+                        validSpaces?.length > 0 && !shouldShowCreateActions &&
+                        <View style={themeButtons.styles.addACheckInBadge}>
+                            <Badge
+                                value={`$${checkinValue}`}
+                                badgeStyle={themeButtons.styles.checkInRewardsBadge}
+                                containerStyle={themeButtons.styles.checkInRewardsBadgeContainer}
+                                onPress={onShowCheckInModal}
                             />
-                        }
-                        iconRight
-                        raised
-                        title={shouldShowCreateActions && translate('menus.mapActions.addACheckIn')}
-                        titleStyle={themeButtons.styles.btnLargeTitleLeft}
-                        onPress={onShowCheckInModal}
-                    />
-                </View>
+                        </View>
+                    }
+                    <View style={themeButtons.styles.addACheckIn}>
+                        <Button
+                            containerStyle={themeButtons.styles.btnContainer}
+                            buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
+                            icon={
+                                <TherrIcon
+                                    // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
+                                    name="map-marker-clock"
+                                    size={22}
+                                    style={themeButtons.styles.btnIcon}
+                                />
+                            }
+                            iconRight
+                            raised
+                            title={shouldShowCreateActions && translate('menus.mapActions.addACheckIn')}
+                            titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                            onPress={onShowCheckInModal}
+                        />
+                    </View>
+                </>
             }
             <View style={themeButtons.styles.claimASpace}>
                 {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text> */}

@@ -80,6 +80,7 @@ export interface ITherrMapViewProps extends IStoreProps {
     areMapActionsVisible: boolean;
     animateToWithHelp: (doAnimate: any) => any;
     circleCenter: { longitude: number, latitude: number };
+    exchangeRate: number;
     expandBottomSheet: any;
     filteredMoments: any;
     filteredSpaces: any;
@@ -814,6 +815,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         const {
             circleCenter,
             content,
+            exchangeRate,
             filteredMoments,
             filteredSpaces,
             isScrollEnabled,
@@ -1111,6 +1113,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                             theme={this.theme}
                                             themeViewArea={this.themeViewArea}
                                             translate={this.translate}
+                                            exchangeRate={exchangeRate}
                                         />
                                     );
                                 })

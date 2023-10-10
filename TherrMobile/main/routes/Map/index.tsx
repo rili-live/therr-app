@@ -9,7 +9,7 @@ import Toast from 'react-native-toast-message';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
-import { MetricNames } from 'therr-js-utilities/constants';
+import { ErrorCodes, MetricNames } from 'therr-js-utilities/constants';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
@@ -40,6 +40,7 @@ import {
     getAndroidChannel,
     AndroidChannelIds,
     PressActionIds,
+    MIN_TIME_BTW_CHECK_INS_MS,
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
@@ -155,6 +156,7 @@ interface IMapState {
     bottomSheetContentType: IMapSheetContentTypes;
     bottomSheetIsTransparent: boolean;
     bottomSheetSnapPoints: (string | number)[];
+    exchangeRate: number;
     region: {
         latitude?: number,
         longitude?: number,
@@ -174,6 +176,7 @@ interface IMapState {
     nearbySpaces: {
         id: string;
         title: string;
+        featuredIncentiveRewardValue?: number;
     }[];
     shouldIgnoreSearchThisAreaButton: boolean;
     shouldRenderMapCircles: boolean;
@@ -264,6 +267,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             bottomSheetContentType: 'nearby',
             bottomSheetIsTransparent: false,
             bottomSheetSnapPoints: defaultSnapPoints,
+            exchangeRate: 0.25,
             region: {},
             shouldFollowUserLocation: false,
             isConfirmModalVisible: false,
@@ -294,6 +298,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     componentDidMount = async () => {
         const { navigation, setSearchDropdownVisibility, updateFirstTimeUI, updateTour, route, user } = this.props;
+        UsersService.getExchangeRate().then((response) => {
+            this.setState({
+                exchangeRate: response.data?.exchangeRate,
+            });
+        }).catch((err) => console.log(`Failed to get exchange rate: ${err.message}`));
 
         if (user.details?.loginCount < 3 && !user.settings?.hasCompletedFTUI) {
             updateTour(user.details.id, {
@@ -607,20 +616,28 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
             if (action === 'check-in') {
                 if (nearbySpaces?.length) {
+                    const { map } = this.props;
+                    const firstSpace = nearbySpaces[0];
+                    if (map.recentEngagements
+                        && map.recentEngagements[firstSpace.id]
+                        && map.recentEngagements[firstSpace.id].engagementType === 'check-in'
+                        && (Date.now() - map.recentEngagements[firstSpace.id].timestamp) < (MIN_TIME_BTW_CHECK_INS_MS)) {
+                        // Require at least 30 minutes between check-ins
+                        const alertMsg = this.translate('pages.map.areaAlerts.tooManyCheckIns');
+                        return this.showAreaAlert(alertMsg);
+                    }
                     createSpaceCheckInMetrics({
                         name: MetricNames.SPACE_USER_CHECK_IN,
-                        spaceId: nearbySpaces[0].id,
+                        spaceId: firstSpace.id,
                         latitude: circleCenter.latitude,
                         longitude: circleCenter.longitude,
                     }).then((response) => {
                         // TODO: Only send toast if push notifications are disabled
-                        // TODO: Include space title somewhere in message
                         if (response?.therrCoinRewarded) {
                             sendForegroundNotification({
                                 title: this.translate('alertTitles.coinsReceived'),
                                 body: this.translate('alertMessages.coinsReceived', {
-                                    // TODO: Replace with response
-                                    total: response?.therrCoinRewarded || '1',
+                                    total: response?.therrCoinRewarded || '2',
                                 }),
                                 android: {
                                     actions: [
@@ -635,13 +652,25 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 type: 'success',
                                 text1: this.translate('alertTitles.coinsReceived'),
                                 text2: this.translate('alertMessages.coinsReceived', {
-                                    // TODO: Replace with response
-                                    total: response?.therrCoinRewarded || '1',
+                                    total: response?.therrCoinRewarded || '2',
                                 }),
                                 visibilityTime: 2500,
                             });
+                        } else {
+                            const alertMsg = response?.isMySpace
+                                ? this.translate('pages.map.areaAlerts.ownSpaceCheckIn')
+                                : this.translate('pages.map.areaAlerts.unknownError');
+                            return this.showAreaAlert(alertMsg);
                         }
-                    }).catch((err) => console.error(err));
+                    }).catch((err) => {
+                        if (err.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
+                            const alertMsg = this.translate('pages.map.areaAlerts.lowFunds', 4000);
+                            return this.showAreaAlert(alertMsg);
+                        } else {
+                            const alertMsg = this.translate('pages.map.areaAlerts.unknownError');
+                            return this.showAreaAlert(alertMsg);
+                        }
+                    });
                 }
 
                 return;
@@ -1226,7 +1255,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
-    showAreaAlert = (message?: string) => {
+    showAreaAlert = (message?: string, timeout = 2000) => {
         const alertMsg = message || this.translate('pages.map.areaAlerts.walkCloser');
         this.setState({
             alertMessage: alertMsg,
@@ -1237,7 +1266,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             this.setState({
                 isAreaAlertVisible: false,
             });
-        }, 2000);
+        }, timeout);
     };
 
     hideCreateActions = () => this.toggleCreateActions(true);
@@ -1463,6 +1492,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             bottomSheetIsTransparent,
             bottomSheetSnapPoints,
             circleCenter,
+            exchangeRate,
             shouldShowCreateActions,
             isConfirmModalVisible,
             isLocationReady,
@@ -1522,6 +1552,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 animateToWithHelp={this.animateToWithHelp}
                                 circleCenter={circleCenter}
                                 expandBottomSheet={this.expandBottomSheet}
+                                exchangeRate={exchangeRate}
                                 route={route}
                                 filteredMoments={filteredMoments}
                                 filteredSpaces={filteredSpaces}
@@ -1578,6 +1609,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                         {
                             !areLayersVisible &&
                             <MapActionButtons
+                                exchangeRate={exchangeRate}
                                 filters={mapFilters}
                                 goToMoments={this.goToMoments}
                                 goToNotifications={this.goToNotifications}
@@ -1592,6 +1624,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 isFollowEnabled={shouldFollowUserLocation}
                                 isGpsEnabled={location?.settings?.isGpsEnabled}
                                 nearbySpaces={nearbySpaces}
+                                recentEngagements={map.recentEngagements}
                                 translate={this.translate}
                                 theme={this.theme}
                                 themeButtons={this.themeButtons}

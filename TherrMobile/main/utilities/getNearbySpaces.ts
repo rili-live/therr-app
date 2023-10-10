@@ -35,6 +35,6 @@ const getNearbySpaces = (center: ILatLon, user, reactions, spaces) => Object.val
     });
 
     return distanceToNearbySpace < MAX_DISTANCE_TO_NEARBY_SPACE;
-}).map((space: any) => ({ id: space.id, title: space.notificationMsg }));
+}).map((space: any) => ({ id: space.id, title: space.notificationMsg, featuredIncentiveRewardValue: space.featuredIncentiveRewardValue }));
 
 export default getNearbySpaces;

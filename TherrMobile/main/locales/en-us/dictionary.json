@@ -831,7 +831,8 @@
       },
       "buttons": {
         "claimRewards": "Claim Rewards?",
-        "coinReward": "Earn {count} TherrCoin(s)"
+        "coinReward": "Earn {count} TherrCoin(s)",
+        "coinRewardDollars": "Earn ~${amount}"
       },
       "h2": {
         "claimRewards": "Claim Your Rewards",
@@ -948,6 +949,10 @@
       "areaAlerts": {
         "enableSpaceLocation": "Enable location to claim a space",
         "enableMomentLocation": "Enable location to create a moment",
+        "tooManyCheckIns": "Too Many Check-Ins: Try again later",
+        "unknownError": "Oops! Something went wrong. Try again later",
+        "ownSpaceCheckIn": "Cannot check in to own spaces",
+        "lowFunds": "Business owner has insufficient funds. We will contact them to request refill",
         "walkCloser": "Enable location and/or walk closer to activate this moment/space"
       },
       "bottomSheet": {

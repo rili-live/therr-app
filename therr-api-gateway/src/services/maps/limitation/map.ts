@@ -23,8 +23,8 @@ const buildRateLimiter = (msg, count = 1, minutes = 1, keySuffix = '') => RateLi
 });
 
 // User should only check in when actually stopping at a location
-const createCheckInLimiter = buildRateLimiter(checkInLimitReachedMessage, 1, 5, '-2');
-const createMomentLimiter = buildRateLimiter(momentsLimitReachedMessage, 5, 60 * 24);
+const createCheckInLimiter = buildRateLimiter(checkInLimitReachedMessage, 2, 30, '-2'); // 2 per 30 minutes
+const createMomentLimiter = buildRateLimiter(momentsLimitReachedMessage, 5, 60 * 24); // 5 per day
 // TODO: Reduce this or limit to admin users
 const createSpaceLimiter = buildRateLimiter(spacesLimitReachedMessage, 100, 60 * 24);
 
