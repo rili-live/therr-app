@@ -1,6 +1,8 @@
 import { MapActionTypes } from '../../types/redux/maps';
 import { UserActionTypes } from '../../types/redux/user';
-import MapsService, { ICreateSpaceCheckInMetricsArgs, IGetSpaceMetricsArgs, IPlacesAutoCompleteArgs, ISearchAreasArgs } from '../../services/MapsService';
+import MapsService, {
+    ICreateSpaceCheckInMetricsArgs, IGetSpaceMetricsArgs, IPlacesAutoCompleteArgs, ISearchAreasArgs,
+} from '../../services/MapsService';
 import { ContentActionTypes } from '../../types';
 
 interface IMapFilters {
@@ -8,6 +10,8 @@ interface IMapFilters {
     filtersCategory: any[],
     filtersVisibility: any[],
 }
+
+export type IEngagementTypes = 'check-in' | 'moment';
 
 const Maps = {
     // Media
@@ -31,6 +35,17 @@ const Maps = {
             dispatch({
                 type: MapActionTypes.MOMENT_CREATED,
                 data: response.data,
+            });
+        }
+
+        if (data.spaceId) {
+            dispatch({
+                type: MapActionTypes.UPDATE_RECENT_ENGAGEMENTS,
+                data: {
+                    spaceId: data.spaceId,
+                    engagementType: 'moment',
+                    timestamp: Date.now(),
+                },
             });
         }
 
@@ -256,7 +271,17 @@ const Maps = {
         .getSpaceMetrics(spaceId, args).then((response) => response.data),
 
     createSpaceCheckInMetrics: (args: ICreateSpaceCheckInMetricsArgs) => (dispatch: any) => MapsService
-        .createSpaceCheckInMetrics(args).then((response) => response.data),
+        .createSpaceCheckInMetrics(args).then((response) => {
+            dispatch({
+                type: MapActionTypes.UPDATE_RECENT_ENGAGEMENTS,
+                data: {
+                    spaceId: args.spaceId,
+                    engagementType: 'check-in',
+                    timestamp: Date.now(),
+                },
+            });
+            return response.data;
+        }),
 
     // Google API
     getPlacesSearchAutoComplete: (args: IPlacesAutoCompleteArgs) => (dispatch: any) => MapsService.getPlacesSearchAutoComplete(args)

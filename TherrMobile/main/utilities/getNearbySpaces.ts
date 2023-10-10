@@ -3,6 +3,11 @@ import { IAreaType } from 'therr-js-utilities/types';
 import { isMyContent } from './content';
 import { MAX_DISTANCE_TO_NEARBY_SPACE } from '../constants';
 
+interface ILatLon {
+    latitude: number;
+    longitude: number;
+}
+
 const isAreaActivated = (type: IAreaType, area, user, reactions) => {
     if (isMyContent(area, user)) {
         return true;
@@ -15,7 +20,7 @@ const isAreaActivated = (type: IAreaType, area, user, reactions) => {
     return !!reactions?.mySpaceReactions[area.id];
 };
 
-const getNearbySpaces = (center, user, reactions, spaces) => Object.values(spaces || {}).filter((space: any) => {
+const getNearbySpaces = (center: ILatLon, user, reactions, spaces) => Object.values(spaces || {}).filter((space: any) => {
     if (!isAreaActivated('spaces', space, user, reactions)) {
         return false;
     }
@@ -30,6 +35,6 @@ const getNearbySpaces = (center, user, reactions, spaces) => Object.values(space
     });
 
     return distanceToNearbySpace < MAX_DISTANCE_TO_NEARBY_SPACE;
-}).map((space: any) => ({ id: space.id, title: space.notificationMsg }));
+}).map((space: any) => ({ id: space.id, title: space.notificationMsg, featuredIncentiveRewardValue: space.featuredIncentiveRewardValue }));
 
 export default getNearbySpaces;

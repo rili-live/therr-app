@@ -1,5 +1,6 @@
+import axios from 'axios';
 import {
-    AccessLevels, ErrorCodes, MetricNames, MetricValueTypes,
+    AccessLevels, CurrentCheckInValuations, ErrorCodes, MetricNames, MetricValueTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
@@ -8,6 +9,7 @@ import Store from '../store';
 import { aggregateMetrics, getPercentageChange, getMetricsByName } from '../api/aggregations';
 import areaMetricsService from '../api/areaMetricsService';
 import getUserOrganizations from '../utilities/getUserOrganizations';
+import * as globalConfig from '../../../../global-config';
 
 // CREATE
 const createSpaceMetric = async (req, res) => {
@@ -16,6 +18,7 @@ const createSpaceMetric = async (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
 
+    const checkInCount = 1;
     const {
         name,
         spaceId,
@@ -31,6 +34,16 @@ const createSpaceMetric = async (req, res) => {
             res,
             message: 'requires spaceId or spaceIds',
             statusCode: 400,
+        });
+    }
+
+    const space = spaceId ? await Store.spaces.getById(spaceId).then((response) => response[0]) : {};
+
+    if (spaceId && !space.id) {
+        return handleHttpError({
+            res,
+            message: 'space not found',
+            statusCode: 404,
         });
     }
 
@@ -62,24 +75,75 @@ const createSpaceMetric = async (req, res) => {
         },
     }];
 
-    return areaMetricsService.uploadMetrics(params.map((param) => ({
-        name: param.name || MetricNames.SPACE_IMPRESSION,
-        value: param.value || '1',
-        valueType: param.valueType || MetricValueTypes.NUMBER,
-        userId,
-        dimensions: param.dimension,
-        userLatitude: param.userLatitude,
-        userLongitude: param.userLongitude,
-        uniqueDbProperties: {
-            spaceId: param.spaceId,
-            latitude: param.userLatitude,
-            longitude: param.userLongitude,
-        },
-    })))
-        .then((metrics) => res.status(201).send({
+    const rewardUserPromise = (spaceId && space.fromUserId && name === MetricNames.SPACE_USER_CHECK_IN && userId !== space.fromUserId)
+        ? axios({ // Create companion reaction for user's own moment
+            method: 'post',
+            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/rewards/transfer-coins`,
+            headers: {
+                authorization,
+                'x-localecode': locale,
+                'x-userid': userId,
+            },
+            data: {
+                fromUserId: space.fromUserId,
+                toUserId: userId,
+                amount: CurrentCheckInValuations[checkInCount],
+            },
+        }) : Promise.resolve({
+            data: {
+                transactionStatus: 'success',
+                skippedTransfer: true,
+            },
+        });
+
+    return rewardUserPromise.catch((error) => {
+        // Catch and handle insufficient funds error so we can pass this error along to the frontend
+        if (error?.response?.data?.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
+            return {
+                data: {
+                    transactionStatus: error?.response?.data?.message || 'insufficient-funds',
+                },
+            };
+        }
+
+        // Let the error trickle down to our catch 500 block
+        throw error;
+    }).then((response) => {
+        if (response?.data?.transactionStatus !== 'success') {
+            // 3. If unsuccessful, return response with error. Frontend will show dialog
+            // to user to confirm they want to create the space without the reward
+
+            // TODO: Send e-mail to space owner to purchase more coins
+            return handleHttpError({
+                res,
+                message: 'Business owner has insufficient funds',
+                statusCode: 400,
+                errorCode: ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS,
+            });
+        }
+
+        // TODO: Send more descriptive messaging for reasons that transfer is skipped
+        return areaMetricsService.uploadMetrics(params.map((param) => ({
+            name: param.name || MetricNames.SPACE_IMPRESSION,
+            value: param.value || '1',
+            valueType: param.valueType || MetricValueTypes.NUMBER,
+            userId,
+            dimensions: param.dimension,
+            userLatitude: param.userLatitude,
+            userLongitude: param.userLongitude,
+            uniqueDbProperties: {
+                spaceId: param.spaceId,
+                latitude: param.userLatitude,
+                longitude: param.userLongitude,
+            },
+        }))).then((metrics) => res.status(201).send({
             metrics,
-        }))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+            therrCoinRewarded: response?.data?.skippedTransfer
+                ? 0
+                : CurrentCheckInValuations[checkInCount],
+            isMySpace: userId === space.fromUserId,
+        }));
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
 const getFormattedMetrics = (startDate, endDate, spaceId) => {

@@ -10,7 +10,21 @@ const CurrentMomentValuations = {
     perSquareFoot: 0.001,
 };
 
+const CurrentCheckInValuations = {
+    1: 2,
+    2: 2,
+    3: 3,
+    4: 3,
+    5: 3,
+    6: 4,
+    7: 4,
+    8: 4,
+    9: 5,
+    10: 10,
+};
+
 export {
     CurrentSocialValuations,
     CurrentMomentValuations,
+    CurrentCheckInValuations,
 };

@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Badge, Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
 import AnimatedLottieView from 'lottie-react-native';
 import { ITherrThemeColors } from '../../styles/themes';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import TherrIcon from '../../components/TherrIcon';
+import checkIn from '../../assets/coin-wallet.json';
 import claimASpace from '../../assets/claim-a-space.json';
+import { MIN_TIME_BTW_CHECK_INS_MS } from '../../constants';
+import numberToCurrencyStr from '../../utilities/numberToCurrencyStr';
 
-export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment';
+export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in';
 
 interface MapActionButtonsProps {
+    exchangeRate: number;
     filters: {
         filtersAuthor: any[],
         filtersCategory: any[],
@@ -26,6 +30,17 @@ interface MapActionButtonsProps {
     isAuthorized: any;
     isGpsEnabled: boolean;
     isFollowEnabled: boolean;
+    nearbySpaces: {
+        id: string;
+        title: string;
+    }[];
+    recentEngagements: {
+        [id: string]: {
+            spaceId: string;
+            engagementType: string;
+            timestamp: number;
+        }
+    }
     translate: Function;
     goToMap?: any;
     goToMoments?: any;
@@ -47,6 +62,7 @@ interface MapActionButtonsProps {
 }
 
 export default ({
+    exchangeRate,
     filters,
     handleCreate,
     handleGpsRecenter,
@@ -57,6 +73,8 @@ export default ({
     // isAuthorized,
     isGpsEnabled,
     isFollowEnabled,
+    nearbySpaces,
+    recentEngagements,
     translate,
     // goToNotifications,
     shouldShowCreateActions,
@@ -67,6 +85,7 @@ export default ({
 }: MapActionButtonsProps) => {
     // const shouldShowCreateButton = isAuthorized() && isGpsEnabled;
     const [isModalVisible, setModalVisibility] = useState(false);
+    const [isCheckInModalVisible, setCheckInModalVisibility] = useState(false);
     const isBusinessAccount = user.details?.isBusinessAccount;
     const onShowModal = () => {
         if (user.details.loginCount && user.details.loginCount < 4) {
@@ -75,10 +94,22 @@ export default ({
             handleCreate('claim', isBusinessAccount);
         }
     };
+    const onShowCheckInModal = () => {
+        setCheckInModalVisibility(true);
+    };
     const confirmClaimModal = () => {
         setModalVisibility(false);
         handleCreate('claim', isBusinessAccount);
     };
+    const confirmCheckInModal = () => {
+        setCheckInModalVisibility(false);
+        setTimeout(() => handleCreate('check-in'));
+    };
+    const validSpaces = nearbySpaces.filter((space) => {
+        return !recentEngagements[space.id]
+            || recentEngagements[space.id].engagementType !== 'check-in'
+            || Date.now() - recentEngagements[space.id].timestamp >= MIN_TIME_BTW_CHECK_INS_MS;
+    });
     const renderImage = () => (
         <AnimatedLottieView
             source={claimASpace}
@@ -90,12 +121,24 @@ export default ({
             style={themeConfirmModal.styles.graphic}
         />
     );
+    const renderCheckInImage = () => (
+        <AnimatedLottieView
+            source={checkIn}
+            // resizeMode="cover"
+            resizeMode="contain"
+            speed={1}
+            autoPlay={true}
+            loop
+            style={themeConfirmModal.styles.graphic}
+        />
+    );
     let filterCount = 0;
     Object.keys(filters).forEach(key => {
         if (filters[key]?.length && !filters[key][0].isChecked) {
             filterCount += 1;
         }
     });
+    const checkinValue =  numberToCurrencyStr(Math.round((Number(2 * exchangeRate) + Number.EPSILON) * 100) / 100);
 
     return (
         <>
@@ -155,11 +198,17 @@ export default ({
             {
                 filterCount > 0 &&
                 <View style={themeButtons.styles.mapFiltersCount}>
-                    <Button
+                    {/* <Button
                         containerStyle={themeButtons.styles.btnContainer}
                         buttonStyle={[themeButtons.styles.btnSmall, { backgroundColor: themeButtons.colors.tertiary }]}
                         raised={true}
                         title={filterCount.toString()}
+                        onPress={handleOpenMapFilters}
+                    /> */}
+                    <Badge
+                        value={filterCount}
+                        badgeStyle={themeButtons.styles.mapFiltersBadge}
+                        containerStyle={themeButtons.styles.mapFiltersBadgeContainer}
                         onPress={handleOpenMapFilters}
                     />
                 </View>
@@ -180,6 +229,41 @@ export default ({
                 raised={true}
                 onPress={() => toggleCreateActions()}
             />
+            {
+                !isBusinessAccount && isGpsEnabled && nearbySpaces?.length > 0 &&
+                <>
+                    {
+                        validSpaces?.length > 0 && !shouldShowCreateActions &&
+                        <View style={themeButtons.styles.addACheckInBadge}>
+                            <Badge
+                                value={`$${checkinValue}`}
+                                badgeStyle={themeButtons.styles.checkInRewardsBadge}
+                                containerStyle={themeButtons.styles.checkInRewardsBadgeContainer}
+                                onPress={onShowCheckInModal}
+                            />
+                        </View>
+                    }
+                    <View style={themeButtons.styles.addACheckIn}>
+                        <Button
+                            containerStyle={themeButtons.styles.btnContainer}
+                            buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
+                            icon={
+                                <TherrIcon
+                                    // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
+                                    name="map-marker-clock"
+                                    size={22}
+                                    style={themeButtons.styles.btnIcon}
+                                />
+                            }
+                            iconRight
+                            raised
+                            title={shouldShowCreateActions && translate('menus.mapActions.addACheckIn')}
+                            titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                            onPress={onShowCheckInModal}
+                        />
+                    </View>
+                </>
+            }
             <View style={themeButtons.styles.claimASpace}>
                 {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text> */}
                 <Button
@@ -226,6 +310,20 @@ export default ({
                 renderImage={renderImage}
                 text={isBusinessAccount ? translate('modals.confirmModal.body.claimSpace') : translate('modals.confirmModal.body.requestSpace')}
                 textConfirm={translate('modals.confirmModal.continue')}
+                textCancel={translate('modals.confirmModal.notNow')}
+                translate={translate}
+                theme={theme}
+                themeButtons={themeButtons}
+                themeModal={themeConfirmModal}
+            />
+            <ConfirmModal
+                headerText={translate('modals.confirmModal.header.checkIn')}
+                isVisible={isCheckInModalVisible}
+                onCancel={() => setCheckInModalVisibility(false)}
+                onConfirm={confirmCheckInModal}
+                renderImage={renderCheckInImage}
+                text={translate('modals.confirmModal.body.checkIn')}
+                textConfirm={translate('modals.confirmModal.checkIn')}
                 textCancel={translate('modals.confirmModal.notNow')}
                 translate={translate}
                 theme={theme}

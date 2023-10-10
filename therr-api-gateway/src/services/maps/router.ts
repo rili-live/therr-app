@@ -3,7 +3,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import * as globalConfig from '../../../../global-config';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
-import { createMomentLimiter, createSpaceLimiter } from './limitation/map';
+import { createCheckInLimiter, createMomentLimiter, createSpaceLimiter } from './limitation/map';
 import { createCheckInValidation, getSignedUrlValidation } from './validation';
 import {
     createAreaValidation,
@@ -33,6 +33,8 @@ mapsServiceRouter.post('/media/signed-urls', validate, handleServiceRequest({
 }));
 
 // Moments
+// Limited to prevent abuse
+// TODO: We should add backend logic to ensure user location isn't being spoofed (rapidly changing location)
 mapsServiceRouter.post('/moments', createMomentLimiter, createAreaValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
@@ -180,7 +182,9 @@ mapsServiceRouter.delete('/spaces', deleteAreasValidation, validate, (req, res, 
 }));
 
 // Space Metrics
-mapsServiceRouter.post('/space-metrics/check-in', createCheckInValidation, validate, handleServiceRequest({
+// Limited to prevent abuse
+// TODO: We should add backend logic to ensure user location isn't being spoofed (rapidly changing location)
+mapsServiceRouter.post('/space-metrics/check-in', createMomentLimiter, createCheckInLimiter, createCheckInValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));

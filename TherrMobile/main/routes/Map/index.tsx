@@ -5,10 +5,11 @@ import MapView from 'react-native-map-clustering';
 import AnimatedOverlay from 'react-native-modal-overlay';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import Toast from 'react-native-toast-message';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
-// import { MetricNames } from 'therr-js-utilities/constants';
+import { ErrorCodes, MetricNames } from 'therr-js-utilities/constants';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
@@ -36,6 +37,10 @@ import {
     MAX_ANIMATION_LATITUDE_DELTA,
     ANIMATE_TO_REGION_DURATION_FAST,
     MAX_ANIMATION_LONGITUDE_DELTA,
+    getAndroidChannel,
+    AndroidChannelIds,
+    PressActionIds,
+    MIN_TIME_BTW_CHECK_INS_MS,
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
@@ -70,6 +75,7 @@ import MapBottomSheetContent, { IMapSheetContentTypes } from '../../components/B
 import TherrMapView from './TherrMapView';
 import { isMyContent } from '../../utilities/content';
 import getNearbySpaces from '../../utilities/getNearbySpaces';
+import { sendForegroundNotification } from '../../utilities/pushNotifications';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -150,6 +156,7 @@ interface IMapState {
     bottomSheetContentType: IMapSheetContentTypes;
     bottomSheetIsTransparent: boolean;
     bottomSheetSnapPoints: (string | number)[];
+    exchangeRate: number;
     region: {
         latitude?: number,
         longitude?: number,
@@ -166,6 +173,11 @@ interface IMapState {
     isMapReady: boolean;
     isMinLoadTimeComplete: boolean;
     isSearchThisLocationBtnVisible: boolean;
+    nearbySpaces: {
+        id: string;
+        title: string;
+        featuredIncentiveRewardValue?: number;
+    }[];
     shouldIgnoreSearchThisAreaButton: boolean;
     shouldRenderMapCircles: boolean;
     shouldShowCreateActions: boolean;
@@ -255,6 +267,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             bottomSheetContentType: 'nearby',
             bottomSheetIsTransparent: false,
             bottomSheetSnapPoints: defaultSnapPoints,
+            exchangeRate: 0.25,
             region: {},
             shouldFollowUserLocation: false,
             isConfirmModalVisible: false,
@@ -266,6 +279,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isMapReady: false,
             isMinLoadTimeComplete: false,
             isSearchThisLocationBtnVisible: false,
+            nearbySpaces: [],
             shouldIgnoreSearchThisAreaButton: false,
             shouldRenderMapCircles: false,
             shouldShowCreateActions: false,
@@ -284,6 +298,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     componentDidMount = async () => {
         const { navigation, setSearchDropdownVisibility, updateFirstTimeUI, updateTour, route, user } = this.props;
+        UsersService.getExchangeRate().then((response) => {
+            this.setState({
+                exchangeRate: response.data?.exchangeRate,
+            });
+        }).catch((err) => console.log(`Failed to get exchange rate: ${err.message}`));
 
         if (user.details?.loginCount < 3 && !user.settings?.hasCompletedFTUI) {
             updateTour(user.details.id, {
@@ -584,8 +603,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     handleCreate = (action: ICreateMomentAction = 'moment', isBusinessAccount = false) => {
-        const { location, navigation, map, reactions, user } = this.props;
-        const { circleCenter } = this.state;
+        const { createSpaceCheckInMetrics, location, navigation } = this.props;
+        const { circleCenter, nearbySpaces } = this.state;
 
         this.setState({
             shouldShowCreateActions: false,
@@ -595,9 +614,69 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             // TODO: Store permissions in redux
             const storePermissions = () => {};
 
-            if (action === 'moment') {
-                const nearbySpaces = getNearbySpaces(circleCenter, user, reactions, map.spaces);
+            if (action === 'check-in') {
+                if (nearbySpaces?.length) {
+                    const { map } = this.props;
+                    const firstSpace = nearbySpaces[0];
+                    if (map.recentEngagements
+                        && map.recentEngagements[firstSpace.id]
+                        && map.recentEngagements[firstSpace.id].engagementType === 'check-in'
+                        && (Date.now() - map.recentEngagements[firstSpace.id].timestamp) < (MIN_TIME_BTW_CHECK_INS_MS)) {
+                        // Require at least 30 minutes between check-ins
+                        const alertMsg = this.translate('pages.map.areaAlerts.tooManyCheckIns');
+                        return this.showAreaAlert(alertMsg);
+                    }
+                    createSpaceCheckInMetrics({
+                        name: MetricNames.SPACE_USER_CHECK_IN,
+                        spaceId: firstSpace.id,
+                        latitude: circleCenter.latitude,
+                        longitude: circleCenter.longitude,
+                    }).then((response) => {
+                        // TODO: Only send toast if push notifications are disabled
+                        if (response?.therrCoinRewarded) {
+                            sendForegroundNotification({
+                                title: this.translate('alertTitles.coinsReceived'),
+                                body: this.translate('alertMessages.coinsReceived', {
+                                    total: response?.therrCoinRewarded || '2',
+                                }),
+                                android: {
+                                    actions: [
+                                        {
+                                            pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
+                                            title: this.translate('alertActions.exchange'),
+                                        },
+                                    ],
+                                },
+                            }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
+                            Toast.show({
+                                type: 'success',
+                                text1: this.translate('alertTitles.coinsReceived'),
+                                text2: this.translate('alertMessages.coinsReceived', {
+                                    total: response?.therrCoinRewarded || '2',
+                                }),
+                                visibilityTime: 2500,
+                            });
+                        } else {
+                            const alertMsg = response?.isMySpace
+                                ? this.translate('pages.map.areaAlerts.ownSpaceCheckIn')
+                                : this.translate('pages.map.areaAlerts.unknownError');
+                            return this.showAreaAlert(alertMsg);
+                        }
+                    }).catch((err) => {
+                        if (err.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
+                            const alertMsg = this.translate('pages.map.areaAlerts.lowFunds', 4000);
+                            return this.showAreaAlert(alertMsg);
+                        } else {
+                            const alertMsg = this.translate('pages.map.areaAlerts.unknownError');
+                            return this.showAreaAlert(alertMsg);
+                        }
+                    });
+                }
 
+                return;
+            }
+
+            if (action === 'moment') {
                 navigation.reset({
                     index: 1,
                     routes: [
@@ -1176,7 +1255,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
-    showAreaAlert = (message?: string) => {
+    showAreaAlert = (message?: string, timeout = 2000) => {
         const alertMsg = message || this.translate('pages.map.areaAlerts.walkCloser');
         this.setState({
             alertMessage: alertMsg,
@@ -1187,7 +1266,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             this.setState({
                 isAreaAlertVisible: false,
             });
-        }, 2000);
+        }, timeout);
     };
 
     hideCreateActions = () => this.toggleCreateActions(true);
@@ -1376,8 +1455,15 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         const { circleCenter } = this.state;
 
         if (circleCenter.latitude !== center.latitude || circleCenter.longitude !== center.longitude) {
+            const { user, reactions, map } = this.props;
+            const nearbySpaces = getNearbySpaces({
+                latitude: circleCenter.latitude,
+                longitude: circleCenter.longitude,
+            }, user, reactions, map.spaces);
+
             this.setState({
                 circleCenter: center,
+                nearbySpaces,
             });
         }
     };
@@ -1406,6 +1492,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             bottomSheetIsTransparent,
             bottomSheetSnapPoints,
             circleCenter,
+            exchangeRate,
             shouldShowCreateActions,
             isConfirmModalVisible,
             isLocationReady,
@@ -1415,6 +1502,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isSearchThisLocationBtnVisible,
             isSearchLoading,
             isScrollEnabled,
+            nearbySpaces,
             shouldFollowUserLocation,
             shouldRenderMapCircles,
         } = this.state;
@@ -1464,6 +1552,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 animateToWithHelp={this.animateToWithHelp}
                                 circleCenter={circleCenter}
                                 expandBottomSheet={this.expandBottomSheet}
+                                exchangeRate={exchangeRate}
                                 route={route}
                                 filteredMoments={filteredMoments}
                                 filteredSpaces={filteredSpaces}
@@ -1520,6 +1609,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                         {
                             !areLayersVisible &&
                             <MapActionButtons
+                                exchangeRate={exchangeRate}
                                 filters={mapFilters}
                                 goToMoments={this.goToMoments}
                                 goToNotifications={this.goToNotifications}
@@ -1533,6 +1623,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 isAuthorized={this.isAuthorized}
                                 isFollowEnabled={shouldFollowUserLocation}
                                 isGpsEnabled={location?.settings?.isGpsEnabled}
+                                nearbySpaces={nearbySpaces}
+                                recentEngagements={map.recentEngagements}
                                 translate={this.translate}
                                 theme={this.theme}
                                 themeButtons={this.themeButtons}

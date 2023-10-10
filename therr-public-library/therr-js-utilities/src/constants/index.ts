@@ -6,6 +6,7 @@ import LogLevelMap, { ILogLevel } from './LogLevelMap';
 import {
     CurrentSocialValuations,
     CurrentMomentValuations,
+    CurrentCheckInValuations,
 } from './Currencies';
 import {
     DefaultUserResources,
@@ -51,6 +52,7 @@ export {
     PasswordRegex,
     CurrentSocialValuations,
     CurrentMomentValuations,
+    CurrentCheckInValuations,
     DefaultUserResources,
     ResourceExchangeRates,
     SocketClientActionTypes,
