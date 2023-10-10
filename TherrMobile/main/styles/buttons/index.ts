@@ -16,6 +16,8 @@ const btnStyles: any = {
     boxSizing: 'border-box',
 };
 
+const btnLargeWidth = 42;
+
 const btnContainerStyles: any = {
     borderRadius: 100,
 };
@@ -166,6 +168,24 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             lineHeight: 13,
             fontWeight: '500',
         },
+        addACheckIn: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 24,
+            bottom: 240 + buttonMenuHeight - collapseOffset,
+        },
+        addACheckInBadge: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 24 + (btnLargeWidth - 10),
+            bottom: 240 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
+            zIndex: 20,
+        },
+        checkInRewardsBadgeContainer: {
+            position: 'absolute',
+            right: 0,
+        },
+        checkInRewardsBadge: {
+            backgroundColor: therrTheme.colors.tertiary,
+        },
         claimASpace: {
             ...getFloatingBtnContainer(therrTheme),
             right: 24,
@@ -235,8 +255,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         mapFiltersCount: {
             ...getLeftSmallButton2ViewStyles(therrTheme),
-            left: 120,
-            bottom: 90 + buttonMenuHeight - collapseOffset,
+            left: getLeftSmallButton2ViewStyles(therrTheme).left + btnLargeWidth,
+            bottom: getLeftSmallButton2ViewStyles(therrTheme).bottom + btnLargeWidth,
+        },
+        mapFiltersBadgeContainer: {
+            position: 'absolute',
+            right: 0,
+        },
+        mapFiltersBadge: {
+            backgroundColor: therrTheme.colors.tertiary,
         },
         recenter: {
             position: 'absolute',
@@ -376,13 +403,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         btnLarge: {
             ...btnStyles,
             backgroundColor: therrTheme.colors.secondary,
-            height: 42,
-            width: 42,
+            height: btnLargeWidth,
+            width: btnLargeWidth,
         },
         btnLargeWithText: {
             ...btnStyles,
             backgroundColor: therrTheme.colors.secondary,
-            height: 42,
+            height: btnLargeWidth,
             paddingHorizontal: 14,
         },
         btnLargeTitle: {

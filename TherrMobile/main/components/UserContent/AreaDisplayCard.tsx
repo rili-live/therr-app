@@ -18,11 +18,13 @@ import missingImageStorefront from '../../assets/missing-image-storefront.json';
 import missingImageIdea from '../../assets/missing-image-idea.json';
 import missingImageMusic from '../../assets/missing-image-music.json';
 import missingImageNature from '../../assets/missing-image-nature.json';
+import numberToCurrencyStr from '../../utilities/numberToCurrencyStr';
 
 const { width: viewportWidth } = Dimensions.get('window');
 const placeholderMedia = require('../../assets/placeholder-content-media.png');
 
 interface IAreaDisplayCardProps {
+    exchangeRate: number;
     translate: Function;
     date: string;
     cardWidth: number;
@@ -114,6 +116,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
             areaMedia,
             cardWidth,
             cardHeight,
+            exchangeRate,
             isFocused,
             onPress,
             theme,
@@ -126,6 +129,8 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
         const featuredStyle = shouldDisplayRewardsBanner
             ? themeViewArea.styles.cardFeatured
             : {};
+        const rewardValue = shouldDisplayRewardsBanner
+            && numberToCurrencyStr(Math.round((Number(area.featuredIncentiveRewardValue) * exchangeRate + Number.EPSILON) * 100) / 100);
 
         return (
             <View key={area.id} style={[themeViewArea.styles.cardContainer, {
@@ -175,8 +180,8 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                                             color={theme.colors.accentYellow}
                                         />
                                         <Text numberOfLines={1} style={themeViewArea.styles.bannerTitleTextSmall}>
-                                            {translate('pages.viewSpace.buttons.coinReward', {
-                                                count: area.featuredIncentiveRewardValue,
+                                            {translate('pages.viewSpace.buttons.coinRewardDollars', {
+                                                amount: rewardValue,
                                             })}
                                         </Text>
                                     </View>

@@ -8,6 +8,7 @@ export interface IMapState extends Immutable.ImmutableObject<any> {
     spaces: { [id: string]: any };
     radiusOfAwareness: number,
     radiusOfInfluence: number,
+    recentEngagements: { [id: string]: any };
     searchPredictions: any;
     filtersAuthor: any,
     filtersCategory: any,
@@ -40,6 +41,9 @@ export enum MapActionTypes {
 
     // Filters
     SET_MAP_FILTERS = 'SET_MAP_FILTERS',
+
+    // Rewards
+    UPDATE_RECENT_ENGAGEMENTS = 'UPDATE_RECENT_ENGAGEMENTS',
 
     // Google API
     AUTOCOMPLETE_UPDATE = 'AUTOCOMPLETE_UPDATE',

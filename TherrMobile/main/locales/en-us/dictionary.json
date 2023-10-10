@@ -662,6 +662,7 @@
     "mapActions": {
       "create": "Create",
       "claimASpace": "Claim a Space",
+      "addACheckIn": "Check In",
       "requestASpace": "Request a Space",
       "shareAThought": "Share a Thought",
       "uploadAMoment": "Create a Moment",
@@ -830,7 +831,8 @@
       },
       "buttons": {
         "claimRewards": "Claim Rewards?",
-        "coinReward": "Earn {count} TherrCoin(s)"
+        "coinReward": "Earn {count} TherrCoin(s)",
+        "coinRewardDollars": "Earn ~${amount}"
       },
       "h2": {
         "claimRewards": "Claim Your Rewards",
@@ -947,6 +949,10 @@
       "areaAlerts": {
         "enableSpaceLocation": "Enable location to claim a space",
         "enableMomentLocation": "Enable location to create a moment",
+        "tooManyCheckIns": "Too Many Check-Ins: Try again later",
+        "unknownError": "Oops! Something went wrong. Try again later",
+        "ownSpaceCheckIn": "Cannot check in to own spaces",
+        "lowFunds": "Business owner has insufficient funds. We will contact them to request refill",
         "walkCloser": "Enable location and/or walk closer to activate this moment/space"
       },
       "bottomSheet": {
@@ -1103,6 +1109,7 @@
     "confirmModal": {
       "agree": "Agree",
       "confirm": "Yes",
+      "checkIn": "Check In",
       "continue": "Continue",
       "cancel": "Cancel",
       "notNow": "Not Now",
@@ -1111,11 +1118,13 @@
       "reportUser": "Are you sure you want to report {userName}?",
       "unconnect": "Remove connection with {userName}? (You will no longer be able to activate new content from this user)",
       "header": {
+        "checkIn": "Check In",
         "claimSpace": "Claim a Space",
         "requestSpace": "Request a Space",
         "eula": "End-User License Agreement (EULA)"
       },
       "body": {
+        "checkIn": "Check in at a local business to earn rewards",
         "claimSpace": "Spaces are public business locations. Claiming a space on the map allows you to declare location ownership, incentivize customer loyalty, and moderate content.",
         "requestSpace": "Request a public business space and earn points per request! We'll connect with the owner to add it to the map so they can start offering loyalty rewards."
       }

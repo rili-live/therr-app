@@ -9,6 +9,7 @@ const initialState: IMapState = Immutable.from({
     searchPredictions: Immutable.from({}),
     radiusOfAwareness: (Location.MAX_RADIUS_OF_AWARENESS - Location.MIN_RADIUS_OF_AWARENESS) / 2,
     radiusOfInfluence: (Location.MAX_RADIUS_OF_INFLUENCE - Location.MIN_RADIUS_OF_INFLUENCE) / 2,
+    recentEngagements: Immutable.from({}),
 
     // Filters
     filtersAuthor: Immutable.from([]),
@@ -131,6 +132,11 @@ const map = (state: IMapState = initialState, action: any) => {
         case MapActionTypes.SPACE_DELETED:
             delete modifiedSpaces[action.data.id];
             return state.setIn(['spaces'], modifiedSpaces);
+        case MapActionTypes.UPDATE_RECENT_ENGAGEMENTS:
+            return state.setIn(['recentEngagements'], {
+                ...state.recentEngagements,
+                [action.data.spaceId]: action.data,
+            });
         // // // // // // // // // // // //
         case MapActionTypes.UPDATE_MAP_VIEW_COORDS:
             return state
