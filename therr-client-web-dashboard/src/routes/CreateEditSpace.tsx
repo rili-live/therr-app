@@ -183,8 +183,8 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
 
         this.throttleTimeoutId = setTimeout(() => {
             getPlacesSearchAutoComplete({
-                longitude: map?.longitude || '37.76999',
-                latitude: map?.latitude || '-122.44696',
+                longitude: map?.longitude || '-122.44696',
+                latitude: map?.latitude || '37.76999',
                 // radius,
                 input: text,
             });

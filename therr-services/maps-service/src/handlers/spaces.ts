@@ -405,8 +405,15 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
 
     const {
         address,
+        addressReadable,
+        addressStreetAddress,
+        addressRegion,
+        addressLocality,
+        postalCode,
         longitude,
         latitude,
+
+        //
         notificationMsg,
         message,
 
@@ -417,6 +424,12 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
         isPublic,
         maxViews,
         maxProximity,
+
+        //
+        websiteUrl,
+        phoneNumber,
+        openingHours,
+        thirdPartyRatings,
     } = req.body;
 
     return axios({
@@ -446,7 +459,11 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
             const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
 
             Store.spaces.createSpace({
-                addressReadable: address,
+                addressReadable: address || addressReadable,
+                addressStreetAddress,
+                addressRegion,
+                addressLocality,
+                postalCode,
                 category,
                 fromUserId: userId,
                 locale,
@@ -461,6 +478,10 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                 maxProximity,
                 longitude,
                 latitude,
+                websiteUrl,
+                phoneNumber,
+                openingHours,
+                thirdPartyRatings,
             }).then(([space]) => axios({ // Create companion reaction for user's own space
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/space-reactions/${space.id}`,
