@@ -75,6 +75,7 @@ export interface IPlacesAutoCompleteArgs {
     longitude: string;
     latitude: string;
     radius?: number | string;
+    types?: string;
     apiKey: string;
     input: string;
     sessiontoken?: string;
@@ -84,6 +85,10 @@ export interface IPlaceDetailsArgs {
     placeId: string;
     sessiontoken?: string;
     fieldsGroup?: 'basic'|'contact'|'atmosphere';
+    shouldIncludeWebsite?: boolean;
+    shouldIncludeIntlPhone?: boolean;
+    shouldIncludeOpeningHours?: boolean;
+    shouldIncludeRating?: boolean;
 }
 
 export interface ISignedUrlArgs {
@@ -258,6 +263,7 @@ class MapsService {
         longitude,
         latitude,
         radius,
+        types,
         input,
         sessiontoken,
     }: IPlacesAutoCompleteArgs) => {
@@ -267,6 +273,10 @@ class MapsService {
 
         if (radius) {
             url = `${url}&radius=${radius}`;
+        }
+
+        if (types) {
+            url = `${url}&types=${types}`;
         }
 
         url = `${url}&sessiontoken=${sessiontoken || googleDynamicSessionToken}`;
@@ -282,6 +292,10 @@ class MapsService {
         placeId,
         sessiontoken,
         fieldsGroup,
+        shouldIncludeWebsite,
+        shouldIncludeIntlPhone,
+        shouldIncludeOpeningHours,
+        shouldIncludeRating,
     }: IPlaceDetailsArgs) => {
         let groupFields = 'geometry';
         switch (fieldsGroup) {
@@ -301,6 +315,19 @@ class MapsService {
                 groupFields = 'geometry';
         }
         let url = `/maps-service/place/details/json?place_id=${placeId}&`;
+
+        if (shouldIncludeWebsite) {
+            groupFields = `${groupFields},website`;
+        }
+        if (shouldIncludeIntlPhone) {
+            groupFields = `${groupFields},international_phone_number`;
+        }
+        if (shouldIncludeOpeningHours) {
+            groupFields = `${groupFields},opening_hours`;
+        }
+        if (shouldIncludeRating) {
+            groupFields = `${groupFields},rating,user_ratings_total`;
+        }
 
         url = `${url}sessiontoken=${sessiontoken || googleDynamicSessionToken}&fields=${groupFields || 'geometry'}`;
 
