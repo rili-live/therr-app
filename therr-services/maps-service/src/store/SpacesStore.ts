@@ -448,7 +448,6 @@ export default class SpacesStore {
                 radius,
                 region: region.code,
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
-                thirdPartyRatings: params.thirdPartyRatings ? JSON.stringify(params.thirdPartyRatings) : JSON.stringify({}),
                 featuredIncentiveKey: params.featuredIncentiveKey,
                 featuredIncentiveValue: params.featuredIncentiveValue,
                 featuredIncentiveRewardKey: params.featuredIncentiveRewardKey,
@@ -472,7 +471,11 @@ export default class SpacesStore {
             };
 
             if (params.openingHours) {
-                sanitizedParams.openingHours = JSON.stringify(sanitizedParams.openingHours);
+                sanitizedParams.openingHours = JSON.stringify(params.openingHours);
+            }
+
+            if (params.thirdPartyRatings) {
+                sanitizedParams.thirdPartyRatings = params.thirdPartyRatings ? JSON.stringify(params.thirdPartyRatings) : JSON.stringify({});
             }
 
             const queryString = knexBuilder.insert(sanitizedParams)
@@ -535,11 +538,11 @@ export default class SpacesStore {
             };
 
             if (params.thirdPartyRatings) {
-                sanitizedParams.thirdPartyRatings = JSON.stringify(sanitizedParams.thirdPartyRatings);
+                sanitizedParams.thirdPartyRatings = JSON.stringify(params.thirdPartyRatings);
             }
 
             if (params.openingHours) {
-                sanitizedParams.openingHours = JSON.stringify(sanitizedParams.openingHours);
+                sanitizedParams.openingHours = JSON.stringify(params.openingHours);
             }
 
             const queryString = knexBuilder.update(sanitizedParams)
