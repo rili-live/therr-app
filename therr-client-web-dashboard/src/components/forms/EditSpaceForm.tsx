@@ -16,6 +16,7 @@ const spaceCategories = [
     'bar/drinks',
     'marketplace/festival',
     'nature/parks',
+    'event/space',
 ];
 
 interface IEditSpaceFormProps {
