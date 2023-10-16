@@ -60,6 +60,19 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = `Therr | ${this.translate('pages.register.pageTitle')}`;
+
+        if (window?.location) {
+            // eslint-disable-next-line no-inner-declarations
+            function isIpadOS() {
+                return navigator?.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform);
+            }
+            if (navigator?.userAgent?.toLowerCase()?.indexOf('android') > -1 && (navigator as any).brave?.isBrave?.name !== 'isBrave') {
+                // window.location.href = 'https://play.google.com/store/apps/details?id=app.therrmobile';
+                window.location.href = 'market://details?id=app.therrmobile';
+            } else if (navigator?.userAgent?.toLowerCase()?.indexOf('iphone') > -1 || isIpadOS()) {
+                window.location.href = 'https://apps.apple.com/us/app/therr/id1569988763?platform=iphone';
+            }
+        }
     }
 
     register = (credentials: any) => {
