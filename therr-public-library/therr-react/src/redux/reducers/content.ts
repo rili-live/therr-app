@@ -113,30 +113,44 @@ const content = (state: IContentState = initialState, action: any) => {
         }
     }
 
+    const modifiedActiveMomentsMap = {};
+    const modifiedActiveSpacesMap = {};
+    const modifiedActiveThoughtsMap = {};
+
     // TODO: consider storing as Set to prevent duplicates
     switch (action.type) {
         // Moments
         case ContentActionTypes.INSERT_ACTIVE_MOMENTS:
             // Add latest moments to start
-            return state.setIn(['activeMoments'], [...new Set(action.data.concat(state.activeMoments))]);
+            return state.setIn(['activeMoments'], action.data.concat(modifiedActiveMoments));
         case ContentActionTypes.REMOVE_ACTIVE_MOMENTS:
             // Remove (reported) moments
-            return state.setIn(['activeMoments'], [...new Set(modifiedActiveMoments)]);
+            return state.setIn(['activeMoments'], modifiedActiveMoments);
         case ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION:
             return state.setIn(['activeMoments'], modifiedActiveMoments)
                 .setIn(['bookmarkedMoments'], modifiedBookmarkedMoments);
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS_BY_IDS:
             // Add newly activated moments to the top
-            return state.setIn(['activeMoments'], [...new Set(action.data.moments.concat(state.activeMoments))])
+            action.data.moments.concat(modifiedActiveMoments).forEach((m) => {
+                if (!modifiedActiveMomentsMap[m.id]) {
+                    modifiedActiveMomentsMap[m.id] = m;
+                }
+            });
+            return state.setIn(['activeMoments'], Object.values(modifiedActiveMomentsMap))
                 .setIn(['media'], { ...state.media, ...action.data.media });
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS:
             // Add next offset of moments to end
-            return state.setIn(['activeMoments'], [...new Set(state.activeMoments.concat(action.data.moments))])
+            action.data.moments.concat(modifiedActiveMoments).forEach((m) => {
+                if (!modifiedActiveMomentsMap[m.id]) {
+                    modifiedActiveMomentsMap[m.id] = m;
+                }
+            });
+            return state.setIn(['activeMoments'], Object.values(modifiedActiveMomentsMap))
                 .setIn(['media'], { ...state.media, ...action.data.media })
                 .setIn(['activeMomentsPagination'], { ...action.data.pagination });
         case ContentActionTypes.UPDATE_ACTIVE_MOMENTS:
             // Reset moments from scratch
-            return state.setIn(['activeMoments'], [...new Set(action.data.moments)])
+            return state.setIn(['activeMoments'], action.data.moments)
                 .setIn(['media'], { ...state.media, ...action.data.media }) // local cache existing media
                 .setIn(['activeMomentsPagination'], { ...action.data.pagination });
         case ContentActionTypes.SEARCH_BOOKMARKED_MOMENTS:
@@ -161,7 +175,7 @@ const content = (state: IContentState = initialState, action: any) => {
         // Spaces
         case ContentActionTypes.INSERT_ACTIVE_SPACES:
             // Add latest spaces to start
-            return state.setIn(['activeSpaces'], [...new Set(action.data.concat(state.activeSpaces))]);
+            return state.setIn(['activeSpaces'], [...new Set(action.data.concat(modifiedActiveSpaces))]);
         case ContentActionTypes.REMOVE_ACTIVE_SPACES:
             // Remove (reported) spaces
             return state.setIn(['activeSpaces'], [...new Set(modifiedActiveSpaces)]);
@@ -170,16 +184,26 @@ const content = (state: IContentState = initialState, action: any) => {
                 .setIn(['bookmarkedSpaces'], modifiedBookmarkedSpaces);
         case ContentActionTypes.SEARCH_ACTIVE_SPACES_BY_IDS:
             // Add newly activated space to the top
-            return state.setIn(['activeSpaces'], [...new Set(action.data.space.concat(state.activeSpaces))])
+            action.data.spaces.concat(modifiedActiveSpaces).forEach((m) => {
+                if (!modifiedActiveSpacesMap[m.id]) {
+                    modifiedActiveSpacesMap[m.id] = m;
+                }
+            });
+            return state.setIn(['activeSpaces'], Object.values(modifiedActiveSpacesMap))
                 .setIn(['media'], { ...state.media, ...action.data.media });
         case ContentActionTypes.SEARCH_ACTIVE_SPACES:
             // Add next offset of spaces to end
-            return state.setIn(['activeSpaces'], [...new Set(state.activeSpaces.concat(action.data.spaces))])
+            action.data.spaces.concat(modifiedActiveSpaces).forEach((m) => {
+                if (!modifiedActiveSpacesMap[m.id]) {
+                    modifiedActiveSpacesMap[m.id] = m;
+                }
+            });
+            return state.setIn(['activeSpaces'], Object.values(modifiedActiveSpacesMap))
                 .setIn(['media'], { ...state.media, ...action.data.media })
                 .setIn(['activeSpacesPagination'], { ...action.data.pagination });
         case ContentActionTypes.UPDATE_ACTIVE_SPACES:
             // Reset spaces from scratch
-            return state.setIn(['activeSpaces'], [...new Set(action.data.spaces)])
+            return state.setIn(['activeSpaces'], action.data.spaces)
                 .setIn(['media'], { ...state.media, ...action.data.media }) // local cache existing media
                 .setIn(['activeSpacesPagination'], { ...action.data.pagination });
         case ContentActionTypes.SEARCH_BOOKMARKED_SPACES:
@@ -190,16 +214,21 @@ const content = (state: IContentState = initialState, action: any) => {
         // Thoughts
         case ContentActionTypes.INSERT_ACTIVE_THOUGHTS:
             // Add latest thoughts to start
-            return state.setIn(['activeThoughts'], [...action.data, ...state.activeThoughts]);
+            return state.setIn(['activeThoughts'], [...new Set([...action.data, ...modifiedActiveThoughts])]);
         case ContentActionTypes.REMOVE_ACTIVE_THOUGHTS:
             // Remove (reported) thoughts
-            return state.setIn(['activeThoughts'], modifiedActiveThoughts);
+            return state.setIn(['activeThoughts'], [...new Set(modifiedActiveThoughts)]);
         case ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION:
-            return state.setIn(['activeThoughts'], modifiedActiveThoughts)
+            return state.setIn(['activeThoughts'], [...new Set(modifiedActiveThoughts)])
                 .setIn(['bookmarkedThoughts'], modifiedBookmarkedThoughts);
         case ContentActionTypes.SEARCH_ACTIVE_THOUGHTS:
             // Add next offset of thoughts to end
-            return state.setIn(['activeThoughts'], [...state.activeThoughts, ...action.data.thoughts])
+            action.data.thoughts.concat(modifiedActiveThoughts).forEach((m) => {
+                if (!modifiedActiveThoughtsMap[m.id]) {
+                    modifiedActiveThoughtsMap[m.id] = m;
+                }
+            });
+            return state.setIn(['activeThoughts'], Object.values(modifiedActiveThoughtsMap))
                 .setIn(['activeThoughtsPagination'], { ...action.data.pagination });
         case ContentActionTypes.UPDATE_ACTIVE_THOUGHTS:
             // Reset thoughts from scratch
