@@ -72,6 +72,7 @@ export interface INearbyWrapperProps extends IStoreProps {
     displaySize: 'small' | 'medium' | 'large';
     navigation: any;
     shouldDisableLocationSendEvent: boolean;
+    isInMapView?: boolean;
 }
 
 interface INearbyWrapperState {
@@ -601,6 +602,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             createOrUpdateSpaceReaction,
             content,
             displaySize,
+            isInMapView,
             location,
             user,
         } = this.props;
@@ -652,6 +654,11 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                             renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
                             user={user}
                             rootStyles={this.theme.styles}
+                            renderFooter={
+                                isInMapView
+                                    ? () => <View style={this.theme.styles.nearbyWrapperFooter} />
+                                    : null
+                            }
                             // viewportHeight={viewportHeight}
                             // viewportWidth={viewportWidth}
                         />

@@ -114,7 +114,7 @@ const createCampaign = async (req, res) => {
         costBiddingStrategy: costBiddingStrategy || 'default',
         targetLanguages: targetLanguages || [locale],
         targetLocations,
-        integrationTargets, // TODO
+        integrationTargets,
         scheduleStartAt,
         scheduleStopAt,
     }).then((results) => {
@@ -192,7 +192,7 @@ const updateCampaign = async (req, res) => {
         costBiddingStrategy,
         targetLanguages,
         targetLocations,
-        integrationTargets, // TODO
+        integrationTargets,
         scheduleStartAt,
         scheduleStopAt,
     }).then((results) => {

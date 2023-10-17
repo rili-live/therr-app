@@ -1,7 +1,8 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, StyleProp, Text, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { ITherrThemeColors } from '../styles/themes';
+import { ViewStyle } from 'react-native';
 
 interface ISearchTypeAheadProps {
     handleSelect: Function;
@@ -10,6 +11,8 @@ interface ISearchTypeAheadProps {
         colors: ITherrThemeColors;
         styles: any;
     };
+    disableScroll?: boolean;
+    containerStyles?: StyleProp<ViewStyle>;
 }
 
 const renderListItem = (item, { handleSelect, styles }) => {
@@ -28,6 +31,8 @@ const renderListItem = (item, { handleSelect, styles }) => {
 };
 
 const SearchTypeAheadResults = ({
+    containerStyles,
+    disableScroll,
     handleSelect,
     searchPredictionResults,
     themeSearch,
@@ -35,7 +40,7 @@ const SearchTypeAheadResults = ({
 
     return (
         <View
-            style={themeSearch.styles.container}
+            style={[themeSearch.styles.container, containerStyles || {}]}
             // childrenWrapperStyle={mapStyles.momentAlertOverlayContainer}
         >
             <FlatList
@@ -47,6 +52,7 @@ const SearchTypeAheadResults = ({
                 // ref={(component) => (this.flatListRef = component)}
                 // style={styles.stretch}
                 // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
+                scrollEnabled={!disableScroll}
             />
         </View>
     );

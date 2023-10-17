@@ -51,6 +51,7 @@ $fa-font-path: '../../../node_modules/@fortawesome/fontawesome-free/webfonts';
 
 // Components
 @import "volt/components";
+@import "components";
 
 // Pages
 @import 'pages';
@@ -142,3 +143,17 @@ body {
 .table-responsive {
     padding-bottom: 3rem;
 }
+
+.form-control::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: rgb(102 121 158 / 58%);
+    opacity: 1; /* Firefox */
+}
+
+.form-control:-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: rgb(102 121 158 / 58%);
+}
+
+.form-control::-ms-input-placeholder { /* Microsoft Edge */
+    color: rgb(102 121 158 / 58%);
+}
+

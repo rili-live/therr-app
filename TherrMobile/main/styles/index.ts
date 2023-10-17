@@ -377,6 +377,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             width: '100%',
             flex: 1,
         },
+        nearbyWrapperFooter: {
+            height: buttonMenuHeight,
+        },
     });
 
     return ({

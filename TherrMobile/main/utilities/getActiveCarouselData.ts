@@ -19,8 +19,10 @@ interface IArea extends IPost {
  */
 const mergeAreas = (moments: IArea[], spaces: IArea[], sortBy = 'createdAt', shouldIncludeDrafts = false) => {
     // TODO: This is groooosssss....sorting should happen on the server side
+    const filteredMoments = shouldIncludeDrafts ? moments : moments.filter((a) => !a.isDraft);
+    const filteredSpaces = shouldIncludeDrafts ? spaces : spaces.filter((a) => !a.isDraft);
     if (sortBy === 'distance') {
-        return [...moments, ...spaces].sort((a, b) => {
+        return [...filteredMoments, ...filteredSpaces].sort((a, b) => {
             let aDist = a.distance;
             let bDist = b.distance;
             let aSplit;
@@ -44,44 +46,20 @@ const mergeAreas = (moments: IArea[], spaces: IArea[], sortBy = 'createdAt', sho
             return aDist - bDist;
         });
     } else {
-        return mergeSortByCreatedAt(moments, spaces, shouldIncludeDrafts);
+        return mergeSortByCreatedAt(filteredMoments, filteredSpaces, sortBy === 'reaction.createdAt');
     }
 };
 
-const mergeSortByCreatedAt = (leftPosts: IPost[], rightPosts: IPost[], shouldIncludeDrafts = false) => {
-    let mergedAreas: any[] = [];
-    let lIndex = 0;
-    let rIndex = 0;
-
-    while (leftPosts[lIndex] || rightPosts[rIndex]) {
-        if (!leftPosts[lIndex]) {
-            if (!rightPosts[rIndex].isDraft || shouldIncludeDrafts) {
-                mergedAreas.push(rightPosts[rIndex]);
-            }
-            rIndex++;
-        } else if (!rightPosts[rIndex]) {
-            if (!leftPosts[lIndex].isDraft || shouldIncludeDrafts) {
-                mergedAreas.push(leftPosts[lIndex]);
-            }
-            lIndex++;
-        } else {
-            const momentOrderByVal = new Date(leftPosts[lIndex].createdAt).getTime();
-            const spaceOrderByVal = new Date(rightPosts[rIndex].createdAt).getTime();
-            if (momentOrderByVal > spaceOrderByVal) {
-                if (!leftPosts[lIndex].isDraft || shouldIncludeDrafts) {
-                    mergedAreas.push(leftPosts[lIndex]);
-                }
-                lIndex++;
-            } else {
-                if (!rightPosts[rIndex].isDraft) {
-                    mergedAreas.push(rightPosts[rIndex]);
-                }
-                rIndex++;
-            }
-        }
-    }
-
-    return mergedAreas;
+const mergeSortByCreatedAt = (leftPosts: IPost[], rightPosts: IPost[], shouldSortByReaction = false) => {
+    return [...leftPosts, ...rightPosts].sort((a, b) => {
+        const aOrderByVal = shouldSortByReaction
+            ? new Date(a.reaction?.createdAt || a.createdAt).getTime()
+            : new Date(a.createdAt).getTime();
+        const bOrderByVal = shouldSortByReaction
+            ? new Date(b.reaction?.createdAt || b.createdAt).getTime()
+            : new Date(b.createdAt).getTime();
+        return bOrderByVal - aOrderByVal;
+    });
 };
 
 interface IGetActiveDataArgs {
@@ -125,18 +103,17 @@ export default ({
 
     if (isForDrafts) {
         const drafts = [...content.myDrafts].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-        return mergeAreas(drafts, [], sortBy, isForDrafts);
+        return drafts.sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
     }
 
     let sortedData = mergeAreas(
         shouldIncludeMoments ? content.activeMoments : [],
         shouldIncludeSpaces ? content.activeSpaces : [],
         sortBy,
-        isForDrafts,
     );
 
     if (shouldIncludeThoughts) {
-        sortedData = mergeSortByCreatedAt(sortedData, content.activeThoughts, isForDrafts);
+        sortedData = mergeSortByCreatedAt(sortedData, content.activeThoughts, sortBy === 'reaction.createdAt');
     }
 
     // TODO: performance optimize to prevent loading unnecessary data

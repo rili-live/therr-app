@@ -510,7 +510,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     shouldIncludeMoments: true,
                     // TODO: Include promoted spaces in discoveries
                     shouldIncludeSpaces: !content?.activeMoments?.length,
-                }, 'createdAt', categoriesFilter);
+                }, 'reaction.createdAt', categoriesFilter);
 
                 return (
                     <AreaCarousel
