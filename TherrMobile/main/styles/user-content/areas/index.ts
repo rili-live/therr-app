@@ -53,6 +53,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         areaCarouselFooter: {
             marginTop: dividerHeight / 2,
         },
+        areaCarouselFooterWrapped: {
+            marginTop: dividerHeight / 2,
+        },
         areaContainer: {
             flex: 1,
             overflow: 'hidden',

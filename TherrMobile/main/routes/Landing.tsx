@@ -92,6 +92,11 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         this.cachedUserDetails = props.user?.details;
         this.ftuiData = [
             {
+                title: this.translate('pages.landing.carousel.claimTitle'),
+                subtitle: this.translate('pages.landing.carousel.claimDescription'),
+                source: props.user?.settings?.mobileThemeName === 'light' ? ftuiClaimLight : ftuiClaim,
+            },
+            {
                 title: this.translate('pages.landing.carousel.discoverTitle'),
                 subtitle: this.translate('pages.landing.carousel.discoverDescription'),
                 source: props.user?.settings?.mobileThemeName === 'light' ? ftuiDiscoverLight : ftuiDiscover,
@@ -100,11 +105,6 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                 title: this.translate('pages.landing.carousel.momentTitle'),
                 subtitle: this.translate('pages.landing.carousel.momentDescription'),
                 source: props.user?.settings?.mobileThemeName === 'light' ? ftuiMomentLight : ftuiMoment,
-            },
-            {
-                title: this.translate('pages.landing.carousel.claimTitle'),
-                subtitle: this.translate('pages.landing.carousel.claimDescription'),
-                source: props.user?.settings?.mobileThemeName === 'light' ? ftuiClaimLight : ftuiClaim,
             },
         ];
     }

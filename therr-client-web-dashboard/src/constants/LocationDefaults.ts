@@ -12,6 +12,10 @@ const DEFAULT_QUERY_LOCALES = {
         latitude: 40.6973709,
         longitude: -74.144485,
     },
+    sanantonio: {
+        latitude: 29.458472,
+        longitude: -98.6791819,
+    },
     sanfrancisco: {
         latitude: 37.7576743,
         longitude: -122.5155383,

@@ -39,7 +39,7 @@ export interface ICreateSpaceParams {
     maxProximity?: number;
     latitude: number;
     longitude: number;
-    radius?: string;
+    radius?: number;
     polygonCoords?: any;
     thirdPartyRatings?: any;
     openingHours?: any;

@@ -1,3 +1,4 @@
+import AdIntegrationTargets from './AdIntegrationTargets';
 import Content from './Content';
 import ErrorCodes from './ErrorCodes';
 import FilePaths from './FilePaths';
@@ -36,6 +37,7 @@ export const SOCKET_MIDDLEWARE_ACTION = 'action';
 
 export {
     AccessLevels,
+    AdIntegrationTargets,
     CampaignAssetTypes,
     Content,
     ErrorCodes,

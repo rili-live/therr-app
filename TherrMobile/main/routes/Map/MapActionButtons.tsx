@@ -9,7 +9,7 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 import TherrIcon from '../../components/TherrIcon';
 import checkIn from '../../assets/coin-wallet.json';
 import claimASpace from '../../assets/claim-a-space.json';
-import { MIN_TIME_BTW_CHECK_INS_MS } from '../../constants';
+import { MIN_TIME_BTW_CHECK_INS_MS, MIN_TIME_BTW_MOMENTS_MS } from '../../constants';
 import numberToCurrencyStr from '../../utilities/numberToCurrencyStr';
 
 export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in';
@@ -33,6 +33,7 @@ interface MapActionButtonsProps {
     nearbySpaces: {
         id: string;
         title: string;
+        featuredIncentiveRewardValue?: number;
     }[];
     recentEngagements: {
         [id: string]: {
@@ -105,10 +106,15 @@ export default ({
         setCheckInModalVisibility(false);
         setTimeout(() => handleCreate('check-in'));
     };
-    const validSpaces = nearbySpaces.filter((space) => {
-        return !recentEngagements[space.id]
-            || recentEngagements[space.id].engagementType !== 'check-in'
-            || Date.now() - recentEngagements[space.id].timestamp >= MIN_TIME_BTW_CHECK_INS_MS;
+    const validCheckInSpaces = nearbySpaces.filter((space) => {
+        return !(recentEngagements[space.id]
+            && recentEngagements[space.id].engagementType === 'check-in'
+            && Date.now() - recentEngagements[space.id].timestamp < MIN_TIME_BTW_CHECK_INS_MS);
+    });
+    const validRewardMoments = nearbySpaces.filter((space) => {
+        return space?.featuredIncentiveRewardValue &&!(recentEngagements[space.id]
+            && recentEngagements[space.id].engagementType === 'moment'
+            && Date.now() - recentEngagements[space.id].timestamp < MIN_TIME_BTW_MOMENTS_MS);
     });
     const renderImage = () => (
         <AnimatedLottieView
@@ -138,7 +144,11 @@ export default ({
             filterCount += 1;
         }
     });
-    const checkinValue =  numberToCurrencyStr(Math.round((Number(2 * exchangeRate) + Number.EPSILON) * 100) / 100);
+    const checkinValue = numberToCurrencyStr(Math.round((Number(2 * exchangeRate) + Number.EPSILON) * 100) / 100);
+    const checkInBusName = validCheckInSpaces?.length > 0 ? validCheckInSpaces[0].title : '';
+    const momentRewardValue = validRewardMoments?.length > 0
+        ? numberToCurrencyStr(Math.round((Number((validRewardMoments[0].featuredIncentiveRewardValue || 0) * exchangeRate) + Number.EPSILON) * 100) / 100)
+        : 0;
 
     return (
         <>
@@ -233,7 +243,7 @@ export default ({
                 !isBusinessAccount && isGpsEnabled && nearbySpaces?.length > 0 &&
                 <>
                     {
-                        validSpaces?.length > 0 && !shouldShowCreateActions &&
+                        validCheckInSpaces?.length > 0 && !shouldShowCreateActions &&
                         <View style={themeButtons.styles.addACheckInBadge}>
                             <Badge
                                 value={`$${checkinValue}`}
@@ -284,6 +294,17 @@ export default ({
                     onPress={onShowModal}
                 />
             </View>
+            {
+                validRewardMoments?.length > 0 && !shouldShowCreateActions &&
+                <View style={themeButtons.styles.uploadMomentBadge}>
+                    <Badge
+                        value={`$${momentRewardValue}`}
+                        badgeStyle={themeButtons.styles.momentRewardsBadge}
+                        containerStyle={themeButtons.styles.momentRewardsBadgeContainer}
+                        onPress={onShowCheckInModal}
+                    />
+                </View>
+            }
             <View style={themeButtons.styles.uploadMoment}>
                 <Button
                     containerStyle={themeButtons.styles.btnContainer}
@@ -323,6 +344,9 @@ export default ({
                 onConfirm={confirmCheckInModal}
                 renderImage={renderCheckInImage}
                 text={translate('modals.confirmModal.body.checkIn')}
+                text2={translate('modals.confirmModal.body.checkInVisiting', {
+                    spaceName: checkInBusName,
+                })}
                 textConfirm={translate('modals.confirmModal.checkIn')}
                 textCancel={translate('modals.confirmModal.notNow')}
                 translate={translate}

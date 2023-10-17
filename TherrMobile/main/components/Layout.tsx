@@ -497,6 +497,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const viewMomentFromDesktopRegex = RegExp('moments/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewSpaceRegex = RegExp('spaces/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/view', 'i');
         const viewSpaceFromDesktopRegex = RegExp('spaces/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
+        const viewUserRegex = RegExp('users/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/view', 'i');
+        const viewUserFromDesktopRegex = RegExp('users/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
 
         // Route for 3rd party OAuth (Facebook, Instagram, etc.)
         if (url?.includes('https://therr.com/?access_token=')) {
@@ -545,6 +547,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 RootNavigation.navigate('ViewSpace', {
                     space: {
                         id: spaceId,
+                    },
+                });
+            }
+        } else if (url?.match(viewUserRegex) || url?.match(viewUserFromDesktopRegex)) {
+            const userId = (url?.match(viewUserRegex) || url?.match(viewUserFromDesktopRegex))[1];
+            if (userId) {
+                RootNavigation.navigate('ViewUser', {
+                    userInView: {
+                        id: userId,
                     },
                 });
             }

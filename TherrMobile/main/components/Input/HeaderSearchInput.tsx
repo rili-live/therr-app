@@ -11,6 +11,7 @@ import RoundInput from './';
 import translator from '../../services/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
+import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from '../../constants';
 
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -94,8 +95,8 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
 
         this.throttleTimeoutId = setTimeout(() => {
             getPlacesSearchAutoComplete({
-                longitude: map?.longitude || '37.76999',
-                latitude: map?.latitude || '-122.44696',
+                longitude: map?.longitude || DEFAULT_LONGITUDE.toString(),
+                latitude: map?.latitude || DEFAULT_LATITUDE.toString(),
                 // radius,
                 input: text,
             });

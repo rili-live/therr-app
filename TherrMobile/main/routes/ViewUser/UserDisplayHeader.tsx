@@ -1,6 +1,6 @@
 import BottomSheet from '../../components/BottomSheet/BottomSheet';
 import React, { useState } from 'react';
-import { ActivityIndicator, Text, View, Pressable } from 'react-native';
+import { ActivityIndicator, Text, View, Pressable, Share, Platform } from 'react-native';
 import { Button, Image } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
@@ -32,30 +32,36 @@ const actionMenuOptions: IActionItem[] = [
     // },
     {
         id: '2',
+        name: 'share-a-link',
+        icon: 'share',
+        title: 'user.profile.actions.shareALink',
+    },
+    {
+        id: '3',
         name: 'sync-socials',
         icon: 'sync',
         title: 'user.profile.actions.syncSocials',
     },
     {
-        id: '3',
+        id: '4',
         name: 'remove-connection-request',
         icon: 'send',
         title: 'user.profile.actions.unconnect',
     },
     // {
-    //     id: '4',
+    //     id: '5',
     //     name: 'pending-connection-request',
     //     icon: 'schedule',
     //     title: 'user.profile.actions.pendingConnection',
     // },
     {
-        id: '5',
+        id: '6',
         name: 'report-user',
         icon: 'flag',
         title: 'user.profile.actions.report',
     },
     {
-        id: '6',
+        id: '7',
         name: 'block-user',
         icon: 'report',
         title: 'user.profile.actions.block',
@@ -135,6 +141,30 @@ const ListItem = ({
             contextOnPress = (context, userDetails) => {
                 onToggleMoreBottomSheet(false);
                 onReportUser(context, userDetails);
+            };
+            break;
+        case 'share-a-link':
+            contextOnPress = (context, userDetails) => {
+                onToggleMoreBottomSheet(false);
+                Share.share({
+                    message: Platform.OS === 'ios' ? undefined : `https://www.therr.com/users/${userDetails.id}`,
+                    url: `https://www.therr.com/users/${userDetails.id}`,
+                    title: translate('modals.contentOptions.shareLink.titleUser', {
+                        userName: userDetails.userName,
+                    }),
+                }).then((response) => {
+                    if (response.action === Share.sharedAction) {
+                        if (response.activityType) {
+                            // shared with activity type of response.activityType
+                        } else {
+                            // shared
+                        }
+                    } else if (response.action === Share.dismissedAction) {
+                        // dismissed
+                    }
+                }).catch((err) => {
+                    console.error(err);
+                });
             };
             break;
         default:

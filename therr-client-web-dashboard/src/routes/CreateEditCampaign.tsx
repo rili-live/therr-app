@@ -16,7 +16,7 @@ import { CampaignActions, MapActions, UserConnectionsActions } from 'therr-react
 import { MapsService, UsersService } from 'therr-react/services';
 import { IMapState as IMapReduxState, IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
 import { Option } from 'react-bootstrap-typeahead/types/types';
-import { AccessLevels, CampaignAssetTypes } from 'therr-js-utilities/constants';
+import { AccessLevels, AdIntegrationTargets, CampaignAssetTypes } from 'therr-js-utilities/constants';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
 import EditCampaignForm from '../components/forms/EditCampaignForm';
@@ -67,6 +67,7 @@ const getInputDefaults = (campaign: any) => {
         headline2: headlineAssets.length > 1 ? headlineAssets[1].headline : '',
         longText1: longTextAssets.length > 0 ? longTextAssets[0].longText : '',
         longText2: longTextAssets.length > 1 ? longTextAssets[1].longText : '',
+        integrationTargets: campaign?.integrationTargets || [AdIntegrationTargets.THERR_REWARDS],
     };
 };
 
@@ -327,7 +328,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         });
     };
 
-    onSubmitCampaign = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onSubmitCampaign = (event: React.MouseEvent<HTMLButtonElement>, modifiedIntegrationTargets: string[]) => {
         event.preventDefault();
 
         const { location, createCampaign, updateCampaign } = this.props;
@@ -396,6 +397,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             address: selectedAddresses[0]?.description || selectedAddresses[0]?.label,
             latitude,
             longitude,
+            integrationTargets: modifiedIntegrationTargets,
         };
 
         if (!campaignInView?.status) {
@@ -572,6 +574,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 headline2: inputs.headline2,
                                 longText1: inputs.longText1,
                                 longText2: inputs.longText2,
+                                integrationTargets: inputs.integrationTargets,
                             }}
                             isSubmitDisabled={this.isSubmitDisabled()}
                             mediaAssets={mediaAssets}
