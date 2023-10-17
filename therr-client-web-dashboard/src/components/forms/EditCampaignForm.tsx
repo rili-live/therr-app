@@ -4,10 +4,14 @@ import {
 } from 'react-bootstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
+import { AdIntegrationTargets } from 'therr-js-utilities/constants';
 import Datetime from 'react-datetime';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import moment, { Moment } from 'moment';
+import {
+    faFacebook, faGoogle, faInstagram, faLinkedin, faTwitter,
+} from '@fortawesome/free-brands-svg-icons';
 import Dropzone from './Dropzone';
 import { ICampaignAsset } from '../../types';
 import getUserContentUri from '../../utilities/getUserContentUri';
@@ -41,6 +45,7 @@ interface IEditCampaignFormProps {
         headline2: string;
         longText1: string;
         longText2: string;
+        integrationTargets: string[];
     }
     isSubmitDisabled: boolean;
     mediaUrl?: string;
@@ -49,7 +54,7 @@ interface IEditCampaignFormProps {
     onAddressTypeAheadSelect: (selected: Option[]) => void;
     onInputChange: React.ChangeEventHandler<HTMLInputElement>;
     onDateTimeChange: (name: string, value: string | Moment) => void;
-    onSubmit: (event: React.MouseEvent<HTMLButtonElement>) => void;
+    onSubmit: (event: React.MouseEvent<HTMLButtonElement>|React.FormEvent<HTMLButtonElement>, integrationTargets: string[]) => void;
     onSelectMedia: (files: any[]) => any;
     shouldShowAdvancedFields?: boolean;
 }
@@ -71,7 +76,19 @@ const EditCampaignForm = ({
     onSelectMedia,
     shouldShowAdvancedFields,
 }: IEditCampaignFormProps) => {
-    const [birthday, setBirthday] = useState('');
+    const [isTherrSelected, setProviderTherr] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.THERR_REWARDS));
+    const [isGoogleSelected, setProviderGoogle] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.GOOGLE_ADS));
+    const [isFacebookSelected, setProviderFacebook] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.FB_ADS));
+    const [isInstagramSelected, setProviderInstagram] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.IG_ADS));
+    const [isTwitterSelected, setProviderTwitter] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.TWITTER_ADS));
+    const [isLinkedInSelected, setProviderLinkedIn] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.LINKED_IN_ADS));
+    const modifiedIntegrationTargets = [];
+    if (isTherrSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.THERR_REWARDS); }
+    if (isGoogleSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.GOOGLE_ADS); }
+    if (isFacebookSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.FB_ADS); }
+    if (isInstagramSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.IG_ADS); }
+    if (isTwitterSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.TWITTER_ADS); }
+    if (isLinkedInSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.LINKED_IN_ADS); }
 
     return (
         <Card border="light" className="bg-white shadow-sm mb-4">
@@ -79,6 +96,79 @@ const EditCampaignForm = ({
                 {
                     formStage === 1
                     && <Form>
+                        <Row>
+                            <Col sm={12}>
+                                <h5 className="my-4">Ad Provider Targets</h5>
+                            </Col>
+                            <Row>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={isTherrSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
+                                        onClick={() => setProviderTherr(!isTherrSelected)}>
+                                        <Card.Body className="text-center">
+                                            <Card.Img
+                                                src={'/assets/img/therr-logo-dark.svg'}
+                                                alt="Therr Ads"
+                                                className=""
+                                                height={20}
+                                                width={20}
+                                            />
+                                            <Card.Text>Therr</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={isGoogleSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
+                                        onClick={() => setProviderGoogle(!isGoogleSelected)}>
+                                        <Card.Body className="text-center">
+                                            <FontAwesomeIcon icon={faGoogle} />
+                                            <Card.Text>Google</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={isFacebookSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
+                                        onClick={() => setProviderFacebook(!isFacebookSelected)}>
+                                        <Card.Body className="text-center">
+                                            <FontAwesomeIcon icon={faFacebook} />
+                                            <Card.Text>Facebook</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={isInstagramSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
+                                        onClick={() => setProviderInstagram(!isInstagramSelected)}>
+                                        <Card.Body className="text-center">
+                                            <FontAwesomeIcon icon={faInstagram} />
+                                            <Card.Text>Instagram</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={isTwitterSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
+                                        onClick={() => setProviderTwitter(!isTwitterSelected)}>
+                                        <Card.Body className="text-center">
+                                            <FontAwesomeIcon icon={faTwitter} />
+                                            <Card.Text>Twitter</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={isLinkedInSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
+                                        onClick={() => setProviderLinkedIn(!isLinkedInSelected)}>
+                                        <Card.Body className="text-center">
+                                            <FontAwesomeIcon icon={faLinkedin} />
+                                            <Card.Text>LinkedIn</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            </Row>
+                        </Row>
                         <Row>
                             <Col sm={8}>
                                 <h5 className="my-4">General Campaign Information</h5>
@@ -212,8 +302,8 @@ const EditCampaignForm = ({
                             <Button
                                 variant="primary"
                                 type="submit"
-                                onClick={onSubmit}
-                                onSubmit={onSubmit}
+                                onClick={(e) => onSubmit(e, modifiedIntegrationTargets)}
+                                onSubmit={(e) => onSubmit(e, modifiedIntegrationTargets)}
                                 disabled={isSubmitDisabled}
                             >{hasFormChanged ? 'Save' : 'Next'}</Button>
                         </div>
@@ -328,8 +418,8 @@ const EditCampaignForm = ({
                             <Button
                                 variant="primary"
                                 type="submit"
-                                onClick={onSubmit}
-                                onSubmit={onSubmit}
+                                onClick={(e) => onSubmit(e, modifiedIntegrationTargets)}
+                                onSubmit={(e) => onSubmit(e, modifiedIntegrationTargets)}
                                 disabled={isSubmitDisabled}
                             >{hasFormChanged ? 'Save' : 'Continue'}</Button>
                         </div>

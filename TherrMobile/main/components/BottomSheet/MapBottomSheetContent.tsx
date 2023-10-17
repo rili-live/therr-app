@@ -30,7 +30,7 @@ const MapBottomSheetContent = ({
         <>
             {/* <Text>{translate('pages.map.bottomSheet.noResults')}</Text> */}
             {/* TODO: Add a last element to prevent cuttoff of final item in scroll view */}
-            <NearbyWrapper displaySize="medium" navigation={navigation} shouldDisableLocationSendEvent />
+            <NearbyWrapper isInMapView displaySize="medium" navigation={navigation} shouldDisableLocationSendEvent />
         </>
     );
 };

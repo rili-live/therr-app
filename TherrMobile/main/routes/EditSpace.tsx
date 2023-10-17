@@ -1,12 +1,13 @@
 import React from 'react';
-import { Dimensions, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
+import { Dimensions, Pressable, SafeAreaView, Keyboard, Text, View, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Slider, Image } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
+import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
-import { IUserState, IContentState } from 'therr-react/types';
+import { IUserState, IMapState, IContentState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { Content, IncentiveRewardKeys, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
@@ -26,6 +27,7 @@ import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
 import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
+import { buildStyles as buildSearchStyles } from '../styles/modal/typeAhead';
 import userContentStyles from '../styles/user-content';
 import spacingStyles from '../styles/layouts/spacing';
 import {
@@ -33,6 +35,8 @@ import {
     DEFAULT_RADIUS_MEDIUM,
     MIN_RADIUS_PUBLIC,
     MAX_RADIUS_PUBLIC,
+    DEFAULT_LONGITUDE,
+    DEFAULT_LATITUDE,
 } from '../constants';
 import Alert from '../components/Alert';
 import formatHashtags from '../utilities/formatHashtags';
@@ -45,8 +49,9 @@ import { signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
 import BottomSheet from '../components/BottomSheet/BottomSheet';
 import TherrIcon from '../components/TherrIcon';
+import SearchTypeAheadResults from '../components/SearchTypeAheadResults';
 
-const { width: viewportWidth } = Dimensions.get('window');
+const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 
 export const spaceCategories = [
     'uncategorized',
@@ -58,6 +63,7 @@ export const spaceCategories = [
     'bar/drinks',
     'nature/parks',
     'hotels/lodging',
+    'event/space',
 ];
 
 const hapticFeedbackOptions = {
@@ -67,10 +73,12 @@ const hapticFeedbackOptions = {
 
 interface IEditSpaceDispatchProps {
     createSpace: Function;
+    getPlacesSearchAutoComplete: Function;
 }
 
 interface IStoreProps extends IEditSpaceDispatchProps {
     content: IContentState;
+    map: IMapState;
     user: IUserState;
 }
 
@@ -81,8 +89,10 @@ export interface IEditSpaceProps extends IStoreProps {
 }
 
 interface IEditSpaceState {
+    addressInputText: string;
     errorMsg: string;
     hashtags: string[];
+    isAddressDropdownVisible: boolean;
     isBottomSheetVisible: boolean;
     isEditingIncentives: boolean;
     inputs: any;
@@ -96,11 +106,13 @@ interface IEditSpaceState {
 
 const mapStateToProps = (state) => ({
     content: state.content,
+    map: state.map,
     user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createSpace: MapActions.createSpace,
+    getPlacesSearchAutoComplete: MapActions.getPlacesSearchAutoComplete,
 }, dispatch);
 
 export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceState> {
@@ -117,6 +129,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         value: any;
     }[];
     private translate: Function;
+    private throttleAddressTimeoutId: any;
     private unsubscribeNavListener;
     private theme;
     private themeAlerts = buildAlertStyles();
@@ -125,6 +138,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     private themeMoments = buildMomentStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
+    private themeSearch = buildSearchStyles({ viewPortHeight });
 
     constructor(props) {
         super(props);
@@ -134,8 +148,10 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         const initialMediaId = area?.mediaIds?.split(',')[0] || undefined;
 
         this.state = {
+            addressInputText: '',
             errorMsg: '',
             hashtags: [],
+            isAddressDropdownVisible: false,
             isBottomSheetVisible: false,
             isBusinessAccount,
             isEditingIncentives: false,
@@ -164,6 +180,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
+        this.themeSearch = buildSearchStyles({ viewPortHeight }, props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         // TODO: Make these IDs and values constants from shared config
@@ -240,6 +257,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     }
 
     componentWillUnmount() {
+        clearTimeout(this.throttleAddressTimeoutId);
         this.unsubscribeNavListener();
     }
 
@@ -342,6 +360,13 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     onSubmitWithIncentives = () => {
         const { hashtags, isBusinessAccount, selectedImage } = this.state;
         const {
+            addressReadable,
+            addressLatitude,
+            addressLongitude,
+            addressWebsite,
+            addressIntlPhone,
+            addressOpeningHours,
+            addressRating,
             category,
             featuredIncentiveKey,
             featuredIncentiveValue,
@@ -377,8 +402,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             message,
             notificationMsg,
             hashTags: hashtags.join(','),
-            latitude,
-            longitude,
+            latitude: addressLatitude || latitude,
+            longitude: addressLongitude || longitude,
             maxViews,
             radius,
             expiresAt,
@@ -394,6 +419,69 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             this.setState({
                 isSubmitting: true,
             });
+
+            if (addressReadable) {
+                createArgs.addressReadable = addressReadable;
+                if (addressReadable.endsWith('USA')) {
+                    const split = addressReadable.split(', ');
+                    const stateNZip = split[split.length - 2];
+                    const state = stateNZip.split(' ')[0];
+                    const zip = stateNZip.split(' ')[1];
+                    createArgs.postalCode = zip;
+                    createArgs.addressStreetAddress = split[0];
+                    createArgs.addressRegion = state;
+                    createArgs.addressLocality = split[split.length - 3];
+                }
+            }
+            if (addressWebsite) {
+                createArgs.websiteUrl = addressWebsite;
+            }
+            if (addressIntlPhone) {
+                createArgs.phoneNumber = addressIntlPhone;
+            }
+            if (addressOpeningHours) {
+                const mapped = {};
+                addressOpeningHours.forEach((day) => {
+                    const split = day.split(': ');
+                    if (split[1] !== 'Closed') {
+                        const timeEntry = split[1] === 'Open 24 hours' ? '00:00 AM – 11:59 PM' : split[1];
+                        if (!mapped[timeEntry]) {
+                            mapped[timeEntry] = split[0].substring(0,2);
+                        } else {
+                            mapped[timeEntry] = [mapped[timeEntry], split[0].substring(0,2)].join(',');
+                        }
+                    }
+                });
+                const schema: string[] = [];
+                for (const [key, value] of Object.entries(mapped)) {
+                    let keyLeft = key.split(' – ')[0];
+                    let keyRight = key.split(' – ')[1];
+                    if (keyLeft == null || keyRight == null) {
+                        console.log(key);
+                    }
+                    const isLeftPM = keyLeft.endsWith('PM');
+                    const isRightPM = keyRight.endsWith('PM');
+                    keyLeft = keyLeft.replace(' AM', '').replace(' PM', '');
+                    keyRight = keyRight.replace(' AM', '').replace(' PM', '');
+                    if (isLeftPM) {
+                        const leftSplit = keyLeft.split(':');
+                        keyLeft = `${Number(leftSplit[0]) + 12}:${leftSplit[1]}`;
+                    }
+                    if (isRightPM) {
+                        const rightSplit = keyRight.split(':');
+                        keyRight = `${Number(rightSplit[0]) + 12}:${rightSplit[1]}`;
+                    }
+                    schema.push(`${value} ${keyLeft}-${keyRight}`);
+                };
+                createArgs.openingHours = {
+                    schema,
+                    timezone: 'UTC',
+                    isConfirmed: true,
+                };
+            }
+            if (addressRating) {
+                createArgs.thirdPartyRatings = addressRating;
+            }
 
             const createSpaceMethod = isBusinessAccount ? this.props.createSpace : MapsService.requestClaim;
 
@@ -547,6 +635,98 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         });
     };
 
+    onAddressInputChange = (text: string, invoker: string = 'input') => {
+        const { getPlacesSearchAutoComplete, map } = this.props;
+        const { addressInputText } = this.state;
+
+        clearTimeout(this.throttleAddressTimeoutId);
+        this.setState({
+            addressInputText: text,
+        });
+
+        this.throttleAddressTimeoutId = setTimeout(() => {
+            getPlacesSearchAutoComplete({
+                longitude: map?.longitude || DEFAULT_LONGITUDE.toString(),
+                latitude: map?.latitude || DEFAULT_LATITUDE.toString(),
+                // radius,
+                input: text,
+                types: 'establishment',
+            });
+        }, 500);
+
+        if (invoker === 'input' && text === addressInputText) {
+            return;
+        }
+        this.setSearchDropdownVisibility(!!text?.length);
+    };
+
+    handleAddressInputPress = (invoker: string) => {
+        const { addressInputText } = this.state;
+
+        this.setSearchDropdownVisibility(!!addressInputText?.length);
+
+        this.onAddressInputChange(addressInputText || '', invoker);
+    };
+
+    handleSearchSelect = (selection) => {
+        Keyboard.dismiss();
+
+        this.setSearchDropdownVisibility(false);
+
+        MapsService.getPlaceDetails({
+            apiKey: Platform.OS === 'ios' ? GOOGLE_APIS_IOS_KEY : GOOGLE_APIS_ANDROID_KEY,
+            placeId: selection?.place_id,
+            fieldsGroup: 'basic',
+            shouldIncludeWebsite: true,
+            shouldIncludeIntlPhone: true,
+            shouldIncludeOpeningHours: true,
+            shouldIncludeRating: true,
+        }).then((response) => {
+            const result = response.data?.result;
+            const geometry = result?.geometry;
+            const formatted_address = result?.formatted_address;
+            const modifiedInputs = {
+                ...this.state.inputs,
+            };
+            if (formatted_address) {
+                modifiedInputs.addressReadable = formatted_address;
+            }
+            if (!modifiedInputs.notificationMsg && result?.name) {
+                modifiedInputs.notificationMsg = result.name;
+            }
+            if (geometry?.location) {
+                modifiedInputs.addressLatitude = geometry.location.lat;
+                modifiedInputs.addressLongitude = geometry.location.lng;
+            }
+            if (result?.website) {
+                modifiedInputs.addressWebsite = result?.website;
+            }
+            if (result?.rating) {
+                modifiedInputs.addressRating = {
+                    rating: result?.rating,
+                    total: result?.user_ratings_total || 0,
+                };
+            }
+            if (result?.opening_hours?.weekday_text) {
+                modifiedInputs.addressOpeningHours = result?.opening_hours?.weekday_text;
+            }
+            if (result?.international_phone_number) {
+                modifiedInputs.addressIntlPhone = result?.international_phone_number.replace(/\s/g, '').replace(/-/g, '');
+            }
+            this.setState({
+                inputs: modifiedInputs,
+            });
+        }).catch((error) => {
+            console.log(error);
+        });
+    };
+
+    setSearchDropdownVisibility = (shouldShow: boolean) => {
+        this.setState({
+            isAddressDropdownVisible: shouldShow,
+        });
+    };
+
     handleHashTagsBlur = () => {
         const { hashtags, inputs } = this.state;
 
@@ -651,6 +831,12 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         this.setState({
             previewStyleState,
         });
+
+        this.setSearchDropdownVisibility(false);
+    };
+
+    onOuterContainerPress = () => {
+        Keyboard.dismiss();
     };
 
     getContinueButtonConfig = (): {
@@ -687,14 +873,16 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             hashtags,
             inputs,
             isBusinessAccount,
+            isAddressDropdownVisible,
             previewLinkId,
             previewStyleState,
             imagePreviewPath,
         } = this.state;
+        const { map } = this.props;
 
         return (
             <>
-                <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
+                <Pressable style={this.themeAccentLayout.styles.container} onPress={this.onOuterContainerPress}>
                     {
                         !!imagePreviewPath &&
                         <View style={this.themeMoments.styles.mediaContainer}>
@@ -727,58 +915,101 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                     <Text style={this.theme.styles.sectionDescriptionNote}>
                         {this.translate('forms.editSpace.labels.addImageNote')}
                     </Text>
-                    <RoundInput
-                        autoFocus
-                        maxLength={100}
-                        placeholder={this.translate(
-                            'forms.editSpace.labels.notificationMsg'
-                        )}
-                        value={inputs.notificationMsg}
-                        onChangeText={(text) =>
-                            this.onInputChange('notificationMsg', text)
+                    <View style={{
+                        position: 'relative',
+                    }}>
+                        {
+                            !isBusinessAccount &&
+                            <>
+                                <RoundInput
+                                    autoFocus
+                                    maxLength={100}
+                                    placeholder={this.translate(
+                                        'forms.editSpace.labels.address'
+                                    )}
+                                    value={inputs.address}
+                                    onChangeText={(text) =>
+                                        this.onAddressInputChange(text)
+                                    }
+                                    onFocus={() => this.handleAddressInputPress('onfocus')}
+                                    onBlur={() => this.setSearchDropdownVisibility(false)}
+                                    rightIcon={
+                                        <TherrIcon
+                                            name={'search'}
+                                            size={18}
+                                            color={this.theme.colors.primary3}
+                                            onPress={() => this.handleAddressInputPress('onpress')}
+                                        />
+                                    }
+                                    themeForms={this.themeForms}
+                                />
+                                {
+                                    isAddressDropdownVisible &&
+                                    <SearchTypeAheadResults
+                                        containerStyles={{
+                                            top: this.themeForms.styles.inputContainerRound.height,
+                                        }}
+                                        handleSelect={this.handleSearchSelect}
+                                        searchPredictionResults={map?.searchPredictions?.results || []}
+                                        themeSearch={this.themeSearch}
+                                        disableScroll
+                                    />
+                                }
+                            </>
                         }
-                        themeForms={this.themeForms}
-                    />
-                    <RoundTextInput
-                        placeholder={this.translate(
-                            'forms.editSpace.labels.message'
-                        )}
-                        value={inputs.message}
-                        onChangeText={(text) =>
-                            this.onInputChange('message', text)
-                        }
-                        minHeight={150}
-                        numberOfLines={7}
-                        themeForms={this.themeForms}
-                    />
-                    <View style={[this.themeForms.styles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
-                        <DropDown
-                            onChange={(newValue) =>
-                                this.onInputChange('category', newValue || 'uncategorized')
+                        <RoundInput
+                            autoFocus={isBusinessAccount}
+                            maxLength={100}
+                            placeholder={this.translate(
+                                'forms.editSpace.labels.notificationMsg'
+                            )}
+                            value={inputs.notificationMsg}
+                            onChangeText={(text) =>
+                                this.onInputChange('notificationMsg', text)
                             }
-                            options={this.categoryOptions}
-                            formStyles={this.themeForms.styles}
-                            initialValue={inputs.category}
+                            themeForms={this.themeForms}
+                        />
+                        <RoundTextInput
+                            placeholder={this.translate(
+                                'forms.editSpace.labels.message'
+                            )}
+                            value={inputs.message}
+                            onChangeText={(text) =>
+                                this.onInputChange('message', text)
+                            }
+                            minHeight={150}
+                            numberOfLines={7}
+                            themeForms={this.themeForms}
+                        />
+                        <View style={[this.themeForms.styles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
+                            <DropDown
+                                onChange={(newValue) =>
+                                    this.onInputChange('category', newValue || 'uncategorized')
+                                }
+                                options={this.categoryOptions}
+                                formStyles={this.themeForms.styles}
+                                initialValue={inputs.category}
+                            />
+                        </View>
+                        <RoundInput
+                            autoCorrect={false}
+                            errorStyle={this.theme.styles.displayNone}
+                            placeholder={this.translate(
+                                'forms.editSpace.labels.hashTags'
+                            )}
+                            value={inputs.hashTags}
+                            onChangeText={(text) =>
+                                this.onInputChange('hashTags', text)
+                            }
+                            onBlur={this.handleHashTagsBlur}
+                            themeForms={this.themeForms}
+                        />
+                        <HashtagsContainer
+                            hashtags={hashtags}
+                            onHashtagPress={this.handleHashtagPress}
+                            styles={this.themeForms.styles}
                         />
                     </View>
-                    <RoundInput
-                        autoCorrect={false}
-                        errorStyle={this.theme.styles.displayNone}
-                        placeholder={this.translate(
-                            'forms.editSpace.labels.hashTags'
-                        )}
-                        value={inputs.hashTags}
-                        onChangeText={(text) =>
-                            this.onInputChange('hashTags', text)
-                        }
-                        onBlur={this.handleHashTagsBlur}
-                        themeForms={this.themeForms}
-                    />
-                    <HashtagsContainer
-                        hashtags={hashtags}
-                        onHashtagPress={this.handleHashtagPress}
-                        styles={this.themeForms.styles}
-                    />
                     {
                         isBusinessAccount && <View style={this.themeForms.styles.inputSliderContainer}>
                             <Slider
@@ -953,7 +1184,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 {this.translate('forms.editSpace.labels.featuredIncentiveCurrencyId')}:
                             </Text>
                             <RoundInput
-                                autoFocus
                                 disabled
                                 maxLength={100}
                                 placeholder={this.translate(

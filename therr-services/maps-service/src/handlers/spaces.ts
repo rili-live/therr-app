@@ -482,6 +482,7 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                 phoneNumber,
                 openingHours,
                 thirdPartyRatings,
+                radius: 5, // small radius to prevent overlaps
             }).then(([space]) => axios({ // Create companion reaction for user's own space
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/space-reactions/${space.id}`,

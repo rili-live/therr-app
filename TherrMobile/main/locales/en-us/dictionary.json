@@ -381,6 +381,7 @@
         "music/concerts": "Music / Concerts",
         "nature/parks": "Nature / Parks",
         "hotels/lodging": "Hotels / Lodging",
+        "event/space": "Events Space",
         "art": "Art",
         "geocache": "Geocache",
         "menu": "Menu",
@@ -442,6 +443,7 @@
         "percentageDiscount": "Percent Discount"
       },
       "labels": {
+        "address": "Search address...",
         "addIncentivesNote": "Add incentives to encourage people to visit your space.",
         "addIncentivesNote2": "*Unlock customer metrics from each visit or point-of-sale transaction.",
         "addIncentivesNoteEx": "(ie. free coffee, $2 off, 10% off, etc...)",
@@ -490,6 +492,7 @@
         "travel": "Travel / Tourism",
         "storefront": "Storefront Promotion",
         "idea": "Idea / Observation",
+        "event/space": "Events Space",
         "food": "Food",
         "nature": "Nature / Park",
         "warning": "Warning / Alert",
@@ -929,11 +932,11 @@
       },
       "carousel": {
         "discoverTitle": "Discover Content",
-        "discoverDescription": "while on the move and find those hidden gems",
+        "discoverDescription": "on the move, find hidden gems, and plan hangouts",
         "momentTitle": "Share Moments",
-        "momentDescription": "with friends or publicly and earn points",
+        "momentDescription": "with friends or earn bonus points as a local influencer",
         "claimTitle": "Claim Rewards",
-        "claimDescription": "by exchanging points for cash, gift-cards, and in-app bonuses"
+        "claimDescription": "by checking in at local businesses, posting content, or leaving a review"
       }
     },
     "login": {
@@ -1124,7 +1127,8 @@
         "eula": "End-User License Agreement (EULA)"
       },
       "body": {
-        "checkIn": "Check in at a local business to earn rewards",
+        "checkIn": "Check in at a local business to earn rewards:",
+        "checkInVisiting": "{spaceName}",
         "claimSpace": "Spaces are public business locations. Claiming a space on the map allows you to declare location ownership, incentivize customer loyalty, and moderate content.",
         "requestSpace": "Request a public business space and earn points per request! We'll connect with the owner to add it to the map so they can start offering loyalty rewards."
       }
@@ -1143,7 +1147,8 @@
         "message": "You can find this location on Therr App: https://www.therr.com/spaces/{spaceId}",
         "messageMoment": "You can find this moment on Therr App: https://www.therr.com/moments/{momentId}",
         "title": "{spaceTitle} | Therr App",
-        "titleMoment": "{momentTitle} | Therr App"
+        "titleMoment": "{momentTitle} | Therr App",
+        "titleUser": "{userName} | Therr App"
       }
     },
     "deleteAccountModal": {
@@ -1367,6 +1372,7 @@
         "pendingConnection": "Request Pending",
         "report": "Report This User?",
         "syncSocials": "Sync Socials",
+        "shareALink": "Copy Profile Link",
         "unconnect": "Remove Connection?"
       },
       "buttons": {

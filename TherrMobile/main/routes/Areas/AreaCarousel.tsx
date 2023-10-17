@@ -40,6 +40,7 @@ interface IAreaCarouselProps {
     updateThoughtReaction?: any;
     emptyListMessage: any;
     renderHeader: any;
+    renderFooter?: any;
     renderLoader: any;
     rootStyles: any;
     user: any;
@@ -92,6 +93,7 @@ const renderItem = ({ item: post }, {
     if (!post.areaType) {
         return (
             <Pressable
+                key={post.id}
                 style={theme.styles.areaContainer}
                 onPress={() => inspectContent(post)}
             >
@@ -119,6 +121,7 @@ const renderItem = ({ item: post }, {
 
     return (
         <Pressable
+            key={post.id}
             style={theme.styles.areaContainer}
             onPress={() => inspectContent(post)}
         >
@@ -195,6 +198,7 @@ const AreaCarousel = ({
     updateThoughtReaction,
     emptyListMessage,
     renderHeader,
+    renderFooter,
     renderLoader,
     rootStyles,
     user,
@@ -280,7 +284,11 @@ const AreaCarousel = ({
                 initialNumToRender={1}
                 ListEmptyComponent={<ListEmpty iconName={emptyIconName} text={emptyListMessage} theme={themeRoot} />}
                 ListHeaderComponent={renderHeader()}
-                ListFooterComponent={<View style={theme.styles.areaCarouselFooter} />}
+                ListFooterComponent={
+                    renderFooter
+                        ? renderFooter()
+                        : <View style={theme.styles.areaCarouselFooter} />
+                }
                 ref={(component) => {
                     containerRef && containerRef(component);
                     return component;

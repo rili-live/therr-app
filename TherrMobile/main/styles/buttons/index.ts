@@ -196,6 +196,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 24,
             bottom: 120 + buttonMenuHeight - collapseOffset,
         },
+        uploadMomentBadge: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 24 + (btnLargeWidth - 10),
+            bottom: 120 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
+            zIndex: 20,
+        },
+        momentRewardsBadgeContainer: {
+            position: 'absolute',
+            right: 0,
+        },
+        momentRewardsBadge: {
+            backgroundColor: therrTheme.colors.tertiary,
+        },
         addAMoment: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,

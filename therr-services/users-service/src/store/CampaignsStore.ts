@@ -26,7 +26,7 @@ export interface ICreateCampaignParams {
     costBiddingStrategy: string;
     targetLanguages: string[];
     targetLocations?: ITargetLocations[];
-    integrationTargets?: string[]; // therr-rewards, fb-ads, ig-ads, google-ads, etc.
+    integrationTargets?: string[]; // AdIntegrationTargets ... therr-rewards, fb-ads, ig-ads, google-ads, etc.
     scheduleStartAt: Date;
     scheduleStopAt: Date;
 }
