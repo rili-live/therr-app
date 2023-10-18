@@ -69,18 +69,21 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
                     )}
                 </Text>
                 <ReactPicker
-                    selectedValue={inputs.isBusinessAccount}
+                    selectedValue={inputs.accountType}
                     style={themeForms.styles.picker}
                     itemStyle={themeForms.styles.pickerItem}
                     onValueChange={(itemValue) =>
-                        onPickerChange('isBusinessAccount', itemValue)
+                        onPickerChange('accountType', itemValue)
                     }>
                     <ReactPicker.Item label={translate(
                         'forms.settings.labels.personalAccount'
-                    )} value={false} />
+                    )} value={'personal'} />
+                    <ReactPicker.Item label={translate(
+                        'forms.settings.labels.creatorAccount'
+                    )} value={'creator'} />
                     <ReactPicker.Item label={translate(
                         'forms.settings.labels.businessAccount'
-                    )} value={true} />
+                    )} value={'business'} />
                 </ReactPicker>
             </View>
             <SquareInput

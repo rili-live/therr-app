@@ -74,6 +74,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             password: credentials.password,
             website: credentials.website,
             isBusinessAccount: true,
+            isCreatorAccount: false,
             isDashboardRegistration: true,
         }).then((response: any) => {
             this.props.navigation.navigate('/login', {

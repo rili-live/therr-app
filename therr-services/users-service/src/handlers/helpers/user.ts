@@ -30,6 +30,7 @@ interface IRequiredUserDetails {
     phoneNumber?: string;
     userName?: string;
     isBusinessAccount?: boolean;
+    isCreatorAccount?: boolean;
     isDashboardRegistration?: boolean;
 }
 
@@ -64,6 +65,7 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
         firstName: userResult.firstName,
         lastName: userResult.lastName,
         isBusinessAccount: userResult.isBusinessAccount,
+        isCreatorAccount: userResult.isCreatorAccount,
         isBlocked: userResult.isBlocked,
         media: userResult.media, // TODO: Hide alt text if it includes first/lastname
         createdAt: userResult.createdAt,
@@ -236,6 +238,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                 firstName: userDetails.firstName || undefined,
                 hasAgreedToTerms,
                 isBusinessAccount: userDetails.isBusinessAccount,
+                isCreatorAccount: userDetails.isCreatorAccount,
                 lastName: userDetails.lastName || undefined,
                 password: hash,
                 phoneNumber: userDetails.phoneNumber || undefined,
@@ -315,6 +318,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                             inviterEmail: userByInviteDetails?.fromEmail || '',
                         }, {
                             isBusinessAccount: userDetails.isBusinessAccount,
+                            isCreatorAccount: userDetails.isCreatorAccount,
                             isDashboardRegistration: userDetails.isDashboardRegistration,
                         });
 
@@ -350,6 +354,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
             }, {
                 isBusinessAccount: userDetails.isBusinessAccount,
+                isCreatorAccount: userDetails.isCreatorAccount,
                 isDashboardRegistration: userDetails.isDashboardRegistration,
             });
 

@@ -81,6 +81,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 password: req.body.password,
                 firstName: req.body.firstName,
                 isBusinessAccount: req.body.isBusinessAccount,
+                isCreatorAccount: req.body.isCreatorAccount,
                 isDashboardRegistration: req.body.isDashboardRegistration,
                 lastName: req.body.lastName,
                 phoneNumber: req.body.phoneNumber,
@@ -147,7 +148,7 @@ const getUserByPhoneNumber = (req, res) => {
     const userId = req.headers['x-userid'];
     const { phoneNumber } = req.params;
 
-    return Store.users.getUserById(userId, ['email', 'phoneNumber', 'isBusinessAccount']).then((userSearchResults) => {
+    return Store.users.getUserById(userId, ['email', 'phoneNumber', 'isBusinessAccount', 'isCreatorAccount']).then((userSearchResults) => {
         if (!userSearchResults.length) {
             return handleHttpError({
                 res,
@@ -162,15 +163,34 @@ const getUserByPhoneNumber = (req, res) => {
                 // 1st account with this phone number
                 return res.status(200).send({
                     isSecondAccount: false,
+                    isThirdAccount: false,
                     existingUsers: results,
                 });
             }
-            if (results.length === 1 && results[0].isBusinessAccount !== requestingUser.isBusinessAccount) {
+            if (results.length === 1 && (
+                results[0].isBusinessAccount !== requestingUser.isBusinessAccount
+                || results[0].isCreatorAccount !== requestingUser.isCreatorAccount)
+            ) {
                 // 2nd account with this phone number
                 return res.status(200).send({
                     isSecondAccount: true,
+                    isThirdAccount: false,
                     existingUsers: results,
                 });
+            }
+            // TODO: Unit test
+            if (results.length > 1) {
+                const hasExistingBusAccount = results.find((result) => result.isBusinessAccount);
+                const hasExistingCreatorAccount = results.find((result) => result.isCreatorAccount);
+                if ((requestingUser.isBusinessAccount && !hasExistingBusAccount)
+                    || (requestingUser.isCreatorAccount && !hasExistingCreatorAccount)) {
+                    // 3rd account with this phone number
+                    return res.status(200).send({
+                        isSecondAccount: false,
+                        isThirdAccount: true,
+                        existingUsers: results,
+                    });
+                }
             }
 
             return res.status(400).send({
@@ -309,6 +329,17 @@ const updateUser = (req, res) => {
                     },
                     newPassword: password,
                     userId,
+                }).catch((e) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['bad password update'],
+                        traceArgs: {
+                            'error.message': e?.message,
+                            'error.response': e?.response?.data,
+                        },
+                    });
+                    throw new Error('bad-password');
                 });
             }
 
@@ -320,6 +351,7 @@ const updateUser = (req, res) => {
                 phoneNumber: req.body.phoneNumber,
                 hasAgreedToTerms: req.body.hasAgreedToTerms,
                 isBusinessAccount: req.body.isBusinessAccount,
+                isCreatorAccount: req.body.isCreatorAccount,
                 userName: req.body.userName,
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
                 settingsBio: req.body.settingsBio,
@@ -345,12 +377,7 @@ const updateUser = (req, res) => {
                 updateArgs.accessLevels = JSON.stringify([...userAccessLevels]);
             }
 
-            passwordPromise
-                .catch((e) => handleHttpError({
-                    res,
-                    message: translate(locale, 'User/password combination is incorrect'),
-                    statusCode: 400,
-                }))
+            return passwordPromise
                 .then(() => mediaPromise)
                 .then((isMediaSafeForWork) => {
                     if (!isMediaSafeForWork) {
@@ -376,7 +403,17 @@ const updateUser = (req, res) => {
                         });
                 });
         })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+        .catch((err) => {
+            if (err?.message === 'bad-password') {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'User/password combination is incorrect'),
+                    statusCode: 400,
+                });
+            }
+
+            return handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' });
+        });
 };
 
 const updateLastKnownLocation = (req, res) => {
@@ -482,6 +519,17 @@ const updateUserCoins = (req, res) => {
                     },
                     newPassword: password,
                     userId,
+                }).catch((e) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['bad password update'],
+                        traceArgs: {
+                            'error.message': e?.message,
+                            'error.response': e?.response?.data,
+                        },
+                    });
+                    throw new Error('bad-password');
                 });
             }
 

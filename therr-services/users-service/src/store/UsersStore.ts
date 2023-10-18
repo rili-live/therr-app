@@ -13,6 +13,7 @@ export interface ICreateUserParams {
     firstName?: string;
     hasAgreedToTerms: boolean;
     isBusinessAccount?: boolean;
+    isCreatorAccount?: boolean;
     lastName?: string;
     password: string;
     phoneNumber?: string;
@@ -97,7 +98,7 @@ export default class UsersStore {
 
     getByPhoneNumber = (phoneNumber: string) => {
         const normalizedPhone = normalizePhoneNumber(phoneNumber as string);
-        let queryString: any = knexBuilder.select(['email', 'phoneNumber', 'isBusinessAccount']).from(USERS_TABLE_NAME)
+        let queryString: any = knexBuilder.select(['email', 'phoneNumber', 'isBusinessAccount', 'isCreatorAccount']).from(USERS_TABLE_NAME)
             .where({ phoneNumber: normalizedPhone });
 
         queryString = queryString.toString();
@@ -277,6 +278,10 @@ export default class UsersStore {
 
         if (params.isBusinessAccount || params.isBusinessAccount === false) {
             modifiedParams.isBusinessAccount = params.isBusinessAccount;
+        }
+
+        if (params.isCreatorAccount || params.isCreatorAccount === false) {
+            modifiedParams.isCreatorAccount = params.isCreatorAccount;
         }
 
         if (params.media) {
