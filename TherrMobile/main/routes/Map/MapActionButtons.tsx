@@ -21,7 +21,7 @@ interface MapActionButtonsProps {
         filtersCategory: any[],
         filtersVisibility: any[],
     };
-    handleCreate: (action: ICreateAction, isBusinessAccount?: boolean) => any;
+    handleCreate: (action: ICreateAction, isBusinessAccount?: boolean, isCreatorAccount?: boolean) => any;
     handleGpsRecenter: () => any;
     handleOpenMapFilters: () => any;
     hasNotifications: boolean;
@@ -88,11 +88,12 @@ export default ({
     const [isModalVisible, setModalVisibility] = useState(false);
     const [isCheckInModalVisible, setCheckInModalVisibility] = useState(false);
     const isBusinessAccount = user.details?.isBusinessAccount;
+    const isCreatorAccount = user.details?.isCreatorAccount;
     const onShowModal = () => {
         if (user.details.loginCount && user.details.loginCount < 4) {
             setModalVisibility(true);
         } else {
-            handleCreate('claim', isBusinessAccount);
+            handleCreate('claim', isBusinessAccount, isCreatorAccount);
         }
     };
     const onShowCheckInModal = () => {
@@ -100,7 +101,7 @@ export default ({
     };
     const confirmClaimModal = () => {
         setModalVisibility(false);
-        handleCreate('claim', isBusinessAccount);
+        handleCreate('claim', isBusinessAccount, isCreatorAccount);
     };
     const confirmCheckInModal = () => {
         setCheckInModalVisibility(false);

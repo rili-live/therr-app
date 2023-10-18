@@ -97,6 +97,7 @@ interface IEditSpaceState {
     isEditingIncentives: boolean;
     inputs: any;
     isBusinessAccount: boolean;
+    isCreatorAccount?: boolean;
     isSubmitting: boolean;
     previewLinkId?: string;
     previewStyleState: any;
@@ -144,7 +145,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         super(props);
 
         const { content, route } = props;
-        const { area, imageDetails, isBusinessAccount } = route.params;
+        const { area, imageDetails, isBusinessAccount, isCreatorAccount } = route.params;
         const initialMediaId = area?.mediaIds?.split(',')[0] || undefined;
 
         this.state = {
@@ -154,6 +155,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             isAddressDropdownVisible: false,
             isBottomSheetVisible: false,
             isBusinessAccount,
+            isCreatorAccount,
             isEditingIncentives: false,
             inputs: {
                 isDraft: false,

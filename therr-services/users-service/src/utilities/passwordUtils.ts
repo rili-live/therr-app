@@ -44,11 +44,7 @@ const validatePassword = async ({
             isOtPasswordValid = false;
         }
         if (isOtPasswordValid && msExpiresAt <= Date.now()) {
-            return handleHttpError({
-                res,
-                message: translate(locale, 'errorMessages.auth.oneTimeExpired'),
-                statusCode: 403,
-            });
+            return Promise.reject(new Error(translate(locale, 'errorMessages.auth.oneTimeExpired')));
         }
     }
 
@@ -91,7 +87,7 @@ const updatePassword = ({
                     })));
         }
 
-        return Promise.reject();
+        return Promise.reject(new Error(translate(locale, 'errorMessages.auth.incorrectUserPass')));
     });
 
 export {

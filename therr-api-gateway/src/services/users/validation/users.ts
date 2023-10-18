@@ -10,6 +10,7 @@ export const createUserValidation = [
     body('password').exists().isString().isLength({ min: 8 }), // TODO: RMOBILE-26: Centralize password requirements
     body('userName').optional().isString(),
     body('isBusinessAccount').optional().isBoolean(),
+    body('isCreatorAccount').optional().isBoolean(),
     body('isDashboardRegistration').optional().isBoolean(),
     body('inviteCode').optional().isString(),
 ];

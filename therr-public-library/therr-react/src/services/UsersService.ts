@@ -39,6 +39,7 @@ interface IUpdateUser {
     firstName: string;
     lastName: string;
     isBusinessAccount: boolean;
+    isCreatorAccount?: boolean;
     phoneNumber: string;
     userName: string;
     password?: string;

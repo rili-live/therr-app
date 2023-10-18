@@ -595,6 +595,7 @@
         "showReportedContent": "Show Mature Content",
         "bio": "Your bio...",
         "businessAccount": "Business",
+        "creatorAccount": "Creator",
         "personalAccount": "Personal"
       },
       "giftCardProviders": {
@@ -1046,8 +1047,9 @@
         "businessAccount": "Log in With Facebook"
       },
       "labels": {
+        "creatorAccount": "Creator",
         "personalAccount": "Personal",
-        "businessAccount": "Business / Creator"
+        "businessAccount": "Business"
       },
       "modals": {
         "accountTypeModalTitle": "Instagram Account Type"

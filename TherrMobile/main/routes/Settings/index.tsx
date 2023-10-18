@@ -208,7 +208,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             ) {
                 Toast.show({
                     type: 'errorBig',
-                    text1: this.translate('forms.pages.alertTitles.backendErrorMessage'),
+                    text1: this.translate('forms.settings.alertTitles.backendErrorMessage'),
                     text2: `${error.message}${
                         error.parameters
                             ? '(' + error.parameters.toString() + ')'
@@ -218,7 +218,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             } else if (error.statusCode >= 500) {
                 Toast.show({
                     type: 'errorBig',
-                    text1: this.translate('forms.pages.alertTitles.backendErrorMessage'),
+                    text1: this.translate('forms.settings.alertTitles.backendErrorMessage'),
                     text2: this.translate('forms.settings.backendErrorMessage'),
                 });
             }
@@ -624,6 +624,14 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         />
                                     }
                                     themeForms={this.themeForms}
+                                />
+                                <Button
+                                    type="clear"
+                                    titleStyle={this.themeForms.styles.buttonLink}
+                                    title={this.translate(
+                                        'forms.loginForm.buttons.forgotPassword'
+                                    )}
+                                    onPress={() => navigation.navigate('ForgotPassword')}
                                 />
                             </View>
                         </View>
