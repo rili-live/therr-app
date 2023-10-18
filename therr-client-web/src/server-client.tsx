@@ -141,7 +141,7 @@ const renderSpaceView = (req, res, config, {
     const space = initialState?.map?.spaces[spaceId];
     const spaceTitle = space ? space?.notificationMsg : title;
     // eslint-disable-next-line prefer-template
-    const spaceDescription = `${space?.notificationMsg || ''} - ` + (space?.message || description).replace(/\\n/g, ' ')
+    const spaceDescription = `${space?.notificationMsg ? space.notificationMsg + ' - ' : ''}` + (space?.message || description).replace(/\\n/g, ' ')
         .replace(/\\r/g, ' ').substring(0, 300);
     const spacePhoneNumber = space?.phoneNumber || '';
     const spaceCountry = space?.region || '';
