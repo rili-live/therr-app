@@ -16,6 +16,7 @@ export interface ITemplateParams {
 
 export interface IAccountTypeParams {
     isBusinessAccount: boolean | undefined;
+    isCreatorAccount?: boolean | undefined;
     isDashboardRegistration: boolean | undefined;
 }
 

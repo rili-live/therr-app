@@ -238,11 +238,6 @@ const routes: RouteConfig<
         component: ForgotPassword,
         options: () => ({
             title: 'Password Reset',
-            access: {
-                type: AccessCheckType.NONE,
-                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                isPublic: true,
-            },
         }),
     },
     // {

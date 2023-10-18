@@ -602,7 +602,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }
     };
 
-    handleCreate = (action: ICreateMomentAction = 'moment', isBusinessAccount = false) => {
+    handleCreate = (action: ICreateMomentAction = 'moment', isBusinessAccount = false, isCreatorAccount = false) => {
         const { createSpaceCheckInMetrics, location, navigation } = this.props;
         const { circleCenter, nearbySpaces } = this.state;
 
@@ -717,6 +717,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 imageDetails: {},
                                 area: {},
                                 isBusinessAccount,
+                                isCreatorAccount,
                             },
                         },
                     ],
