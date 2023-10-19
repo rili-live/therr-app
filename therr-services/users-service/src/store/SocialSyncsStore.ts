@@ -44,8 +44,18 @@ export default class SocialSyncsStore {
         const queryString = knexBuilder.select('*')
             .from(SOCIAL_SYNCS_TABLE_NAME)
             .where({ userId })
+            .orderBy('updatedAt')
             .toString();
 
         return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    deleteSync(userId: string, platform: string) {
+        const queryString = knexBuilder.delete()
+            .from(SOCIAL_SYNCS_TABLE_NAME)
+            .where({ userId, platform })
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
     }
 }
