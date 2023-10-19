@@ -29,15 +29,26 @@ const socialPlatformApis = {
             },
         })),
     },
+    // Legacy
+    // instagram: {
+    //     getProfile: (params: { userId: string, accessToken: string }) => axios({
+    //         method: 'get',
+    //         url: `https://graph.instagram.com/v14.0/${params.userId}?fields=id,username,account_type,media_count,media&access_token=${params.accessToken}`,
+    //     }).catch((err) => ({
+    //         data: {
+    //             errors: err.response?.data?.error,
+    //         },
+    //     })),
+    // },
+    // Simplified
     instagram: {
-        getProfile: (params: { userId: string, accessToken: string }) => axios({
-            method: 'get',
-            url: `https://graph.instagram.com/v14.0/${params.userId}?fields=id,username,account_type,media_count,media&access_token=${params.accessToken}`,
-        }).catch((err) => ({
+        getProfile: (params: { username: string }) => Promise.resolve({
             data: {
-                errors: err.response?.data?.error,
+                username: params.username,
+                media_count: 5001,
+                id: params.username,
             },
-        })),
+        }),
     },
     tiktok: {
         getProfile: (params: { username: string, accessToken: string }) => axios({
@@ -202,7 +213,11 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
                         instagramMedia = responses[index]?.data?.data[0]?.instagram_business_account?.media;
                     }
 
-                    dbRecords.push(record);
+                    if (record.platformUsername) {
+                        dbRecords.push(record);
+                    } else if (platform) {
+                        Store.socialSyncs.deleteSync(userId, platform)
+                    }
                 } else {
                     errors[platform] = responses[index].data?.errors;
                 }
