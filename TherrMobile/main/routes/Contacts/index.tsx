@@ -295,7 +295,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
     navToInvite = () => {
         this.setState({
-            activeTabIndex: 1,
+            activeTabIndex: 2,
         });
     };
 

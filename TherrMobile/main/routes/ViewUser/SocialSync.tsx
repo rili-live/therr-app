@@ -96,6 +96,8 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         this.state = {
             activeProvider: 'instagram',
             inputs: {
+                instagramHandle: userInView?.socialSyncs?.instagram?.platformUsername
+                    || userInView?.socialSyncs?.['facebook-instagram']?.platformUsername,
                 twitterHandle: userInView?.socialSyncs?.twitter?.platformUsername,
                 youtubeChannelId: userInView?.socialSyncs?.youtube?.platformUsername,
             },
@@ -250,8 +252,18 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         this.onSubmit(syncs);
     };
 
-    onSaveInstagram = (syncs) => {
+    onSaveInstagramLegacy = (syncs) => {
         this.onSubmit(syncs);
+    };
+
+    onSaveInstagram = () => {
+        const { inputs } = this.state;
+
+        this.onSubmit({
+            instagram: {
+                username: inputs.instagramHandle,
+            },
+        });
     };
 
     onSaveTwitter = () => {
@@ -353,7 +365,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         const { activeProvider } = this.state;
         this.onCloseOAuthModal();
         if (activeProvider === 'instagram') {
-            return this.onSaveInstagram({
+            return this.onSaveInstagramLegacy({
                 instagram: {
                     accessToken: results.access_token,
                     userId: results.user_id,
@@ -435,6 +447,45 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                         userInView={userInView}
                                     />
                                 </View>
+                                <SquareInput
+                                    containerStyle={spacingStyles.flexOne}
+                                    labelStyle={this.themeForms.styles.inputLabelLightFaded}
+                                    value={inputs.instagramHandle}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('instagramHandle', text)
+                                    }
+                                    placeholder={this.translate(
+                                        'forms.socialSync.placeholders.instagramHandle'
+                                    )}
+                                    themeForms={this.themeForms}
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                />
+                                <Button
+                                    containerStyle={[]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                    title={this.translate('forms.socialSync.buttons.sync')}
+                                    // icon={
+                                    //     <FontAwesome5Icon
+                                    //         name="sync"
+                                    //         size={22}
+                                    //         style={this.themeForms.styles.buttonIconAlt}
+                                    //     />
+                                    // }
+                                    onPress={this.onSaveInstagram}
+                                />
+                            </View>
+                            {/* <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
+                                <View style={spacingStyles.padRtLg}>
+                                    <SocialIconLink
+                                        iconName="instagram"
+                                        isMe={true}
+                                        navigation={navigation}
+                                        themeUser={this.themeUser}
+                                        userInView={userInView}
+                                    />
+                                </View>
                                 <Button
                                     containerStyle={[spacingStyles.flexOne]}
                                     buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
@@ -450,7 +501,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     raised={false}
                                     onPress={() => this.onSocialLogin('instagram')}
                                 />
-                            </View>
+                            </View> */}
                             <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
                                 <View style={spacingStyles.padRtLg}>
                                     <SocialIconLink

@@ -17,6 +17,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/influencer-pairings',
+        head: {
+            title: 'Dashboard',
+            description: 'Your personalized selection of local influencers who would be perfect pairing for your business',
+        },
+        view: 'index',
+    },
+    {
         route: '/login',
         head: {
             title: 'Login',

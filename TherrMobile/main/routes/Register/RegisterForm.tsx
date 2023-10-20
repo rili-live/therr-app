@@ -281,6 +281,26 @@ export class RegisterFormComponent extends React.Component<
                     }
                     themeForms={themeForms}
                 />
+                <RoundInput
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholder={this.translate(
+                        'forms.registerForm.labels.inviteCode'
+
+                    )}
+                    value={this.state.inputs.inviteCode}
+                    onChangeText={(text) =>
+                        this.onInputChange('inviteCode', text)
+                    }
+                    rightIcon={
+                        <TherrIcon
+                            name="gift"
+                            size={26}
+                            color={themeAlerts.colors.placeholderTextColorAlt}
+                        />
+                    }
+                    themeForms={themeForms}
+                />
                 {
                     isPasswordEntryDirty &&
                         <PasswordRequirements translate={this.translate} password={this.state.inputs.password} themeForms={themeForms} />
