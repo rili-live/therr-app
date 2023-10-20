@@ -101,7 +101,7 @@ describe('handlers/helpers/user', () => {
                 .value(new UsersStore(mockUserStoreConnection));
             const awsStub = sinon.stub(awsSES, 'sendEmail').yields(null, {});
 
-            createUserHelper(mockUserDetails).then((result) => {
+            createUserHelper(mockUserDetails, false, undefined, true).then((result) => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`insert into "main"."verificationCodes" ("code", "type") values (`))
                     .to.be.equal(true);
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))

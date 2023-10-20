@@ -35,6 +35,8 @@ import {
     faTimes,
     faRocket,
     faTasks,
+    faNetworkWired,
+    faPeopleArrows,
 } from '@fortawesome/free-solid-svg-icons';
 import {
     Nav,
@@ -169,6 +171,7 @@ const Sidebar = (props: ISidebarProps) => {
                             </AccessControl>
                             <NavItem title="Claim a Space" link={'/claim-a-space'} icon={faMapMarked} />
                             <NavItem title="My Campaigns" icon={faBullhorn} link={'/campaigns/overview'} />
+                            <NavItem title="Influencer Pairings" icon={faPeopleArrows} link={'/influencers/search'} />
 
                             {/* <CollapsableNavItem eventKey="tables/" title="Tables" icon={faTable}>
                                 <NavItem title="Bootstrap Table" link={'/'} />

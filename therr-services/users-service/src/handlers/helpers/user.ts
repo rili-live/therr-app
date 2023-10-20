@@ -14,6 +14,7 @@ import sendNewUserAdminNotificationEmail from '../../api/email/admin/sendNewUser
 import * as globalConfig from '../../../../../global-config';
 import handleHttpError from '../../utilities/handleHttpError';
 import { getMappedSocialSyncResults } from '../socialSync';
+import { createOrUpdateAchievement } from './achievements';
 
 const googleOAuth2ClientId = `${globalConfig[process.env.NODE_ENV].googleOAuth2WebClientId}`;
 const googleOAuth2Client = new OAuth2Client(googleOAuth2ClientId);
@@ -206,7 +207,14 @@ const isUserProfileIncomplete = (updateArgs, existingUser?) => {
 };
 
 // eslint-disable-next-line default-param-last
-const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, userByInviteDetails?: IUserByInviteDetails, locale = 'en-us') => {
+const createUserHelper = (
+    userDetails: IRequiredUserDetails,
+    // eslint-disable-next-line default-param-last
+    isSSO = false,
+    userByInviteDetails?: IUserByInviteDetails,
+    hasInviteCode = false,
+    locale = 'en-us',
+) => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
@@ -254,6 +262,26 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
         .then((results) => {
             user = results[0];
             delete user.password;
+
+            if (hasInviteCode) {
+                createOrUpdateAchievement({
+                    userId: user.id,
+                    locale,
+                }, {
+                    achievementClass: 'communityLeader',
+                    achievementTier: '1_1',
+                    progressCount: 1,
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while crediting new user for invite signup'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    });
+                });
+            }
 
             // Fire and forget: Create initial achievement so user is aware of invite rewards
             Store.userAchievements.create([
@@ -446,7 +474,7 @@ const validateCredentials = (userSearchResults, {
                     firstName: reqBody.userFirstName,
                     lastName: reqBody.userLastName,
                     phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
-                }, true, undefined, locale).then((user) => [true, user]);
+                }, true, undefined, false, locale).then((user) => [true, user]);
             }
 
             // Verify user because they are using email SSO

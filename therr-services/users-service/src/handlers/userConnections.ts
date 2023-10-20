@@ -105,7 +105,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                         fromName: fromUserFullName,
                         fromEmail: requestingUserEmail,
                         toEmail: acceptingUserEmail,
-                    }, locale);
+                    }, false, locale);
                 } else {
                     return handleHttpError({
                         res,
