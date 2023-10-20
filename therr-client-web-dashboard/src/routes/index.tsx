@@ -21,6 +21,7 @@ import CampaignsOverview from './Campaigns/CampaignsOverview';
 import AdminCampaignsOverview from './Campaigns/AdminCampaignsOverview';
 import CreateUserProfile from './CreateUserProfile';
 import CreateEditCampaign from './CreateEditCampaign';
+import InfluencerPairings from './InfluencerPairings';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -182,6 +183,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
             })}
             redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/influencer-pairings',
+        element: <AuthRoute
+            component={InfluencerPairings}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/login'}
         />,
     },
     {

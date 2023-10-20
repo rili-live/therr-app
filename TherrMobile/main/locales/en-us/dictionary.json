@@ -544,7 +544,8 @@
         "mobilePhone": "Mobile Phone #",
         "password": "Password",
         "repeatPassword": "Repeat Password",
-        "userName": "Username"
+        "userName": "Username",
+        "inviteCode": "Invite Code (optional)"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "subtitles": {
@@ -633,9 +634,11 @@
         "oops": "Oops!"
       },
       "labels": {
+        "instagramHandle": "Instagram Handle",
         "twitterHandle": "Twitter Handle"
       },
       "placeholders": {
+        "instagramHandle": "username",
         "twitterHandle": "username",
         "youtubeChannelId": "channel ID"
       }

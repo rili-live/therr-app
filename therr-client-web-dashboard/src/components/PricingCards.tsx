@@ -40,6 +40,11 @@ const PricingCards = ({
                             </h3>
                         </Row>
                         <Row className="flex-row justify-content-center align-items-center">
+                            <h5 className="text-center pb-4">
+                                Contact support for a 30% on annual payments.
+                            </h5>
+                        </Row>
+                        <Row className="flex-row justify-content-center align-items-center">
                             <Col xs={12} xl={6} xxl={4} className="text-center">
                                 <Row className="justify-content-center align-items-center mx-2 mb-4">
                                     <Card className="bg-basic-card pricing-card-basic">
@@ -61,6 +66,7 @@ const PricingCards = ({
                                             <ul className="list-unstyled text-white text-left">
                                                 <li><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
                                                 <li><i className="fas fa-check"></i> Additional customer metrics</li>
+                                                <li><i className="fas fa-check"></i> AI Influencer Pairings</li>
                                                 <li><i className="fas fa-check"></i> 24/7 Tech Support</li>
                                             </ul>
                                         </Card.Body>
@@ -88,6 +94,7 @@ const PricingCards = ({
                                             <ul className="list-unstyled text-white text-left">
                                                 <li><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
                                                 <li><i className="fas fa-check"></i> Enhanced customer metrics</li>
+                                                <li><i className="fas fa-check"></i> AI Influencer Pairings</li>
                                                 <li><i className="fas fa-check"></i> 24/7 Tech Support</li>
                                                 <li><i className="fas fa-check"></i> Automated & Configurable Marketing Campaigns (S.O.M.)</li>
                                                 <li><i className="fas fa-check"></i> Customer & Micro-influencer incentives (for reviews, shout-outs, promos, etc.)</li>
@@ -117,6 +124,7 @@ const PricingCards = ({
                                             <ul className="list-unstyled text-white text-left">
                                                 <li><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
                                                 <li><i className="fas fa-check"></i> Additional customer metrics</li>
+                                                <li><i className="fas fa-check"></i> AI Influencer Pairings</li>
                                                 <li><i className="fas fa-check"></i> 24/7 Tech Support</li>
                                                 <li><i className="fas fa-check"></i> Automated & Configurable Marketing Campaigns (S.O.M.)</li>
                                                 <li><i className="fas fa-check"></i> Customer & influencer incentives (for reviews, shout-outs, promos, etc.)</li>
