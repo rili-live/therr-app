@@ -216,7 +216,7 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
                     if (record.platformUsername) {
                         dbRecords.push(record);
                     } else if (platform) {
-                        Store.socialSyncs.deleteSync(userId, platform)
+                        Store.socialSyncs.deleteSync(userId, platform);
                     }
                 } else {
                     errors[platform] = responses[index].data?.errors;
