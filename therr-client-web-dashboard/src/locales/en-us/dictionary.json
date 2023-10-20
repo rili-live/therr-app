@@ -185,6 +185,9 @@
       "pageHeader": "Sign in to your dashboard",
       "pageSubheader": "...to view customer metrics"
     },
+    "influencerPairingResults": {
+      "pageTitle": "Influencer Pairings"
+    },
     "manageSpaces": {
       "pageTitle": "Manage Spaces"
     },
