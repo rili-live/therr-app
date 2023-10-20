@@ -32,7 +32,6 @@ const createUser: RequestHandler = (req: any, res: any) => {
         });
     }
 
-    // TODO: Find inviter by inviteCode (userName) and credit both for signup
     const {
         inviteCode,
     } = req.body;
@@ -86,7 +85,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 lastName: req.body.lastName,
                 phoneNumber: req.body.phoneNumber,
                 userName: req.body.userName,
-            }, false, undefined, req.headers['x-localecode']).then((user) => res.status(201).send(user));
+            }, false, undefined, !!inviteCode, req.headers['x-localecode']).then((user) => res.status(201).send(user));
         })
         .catch((err) => handleHttpError({
             err,
