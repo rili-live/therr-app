@@ -1,7 +1,11 @@
 import { MapActionTypes } from '../../types/redux/maps';
 import { UserActionTypes } from '../../types/redux/user';
 import MapsService, {
-    ICreateSpaceCheckInMetricsArgs, IGetSpaceMetricsArgs, IPlacesAutoCompleteArgs, ISearchAreasArgs,
+    ICreateSpaceCheckInMetricsArgs,
+    IGetSpaceEngagementArgs,
+    IGetSpaceMetricsArgs,
+    IPlacesAutoCompleteArgs,
+    ISearchAreasArgs,
 } from '../../services/MapsService';
 import { ContentActionTypes } from '../../types';
 
@@ -267,6 +271,9 @@ const Maps = {
     },
 
     // Map Metrics
+    getSpaceEngagement: (spaceId: string, args: IGetSpaceEngagementArgs) => (dispatch: any) => MapsService
+        .getSpaceEngagement(spaceId, args).then((response) => response.data),
+
     getSpaceMetrics: (spaceId: string, args: IGetSpaceMetricsArgs) => (dispatch: any) => MapsService
         .getSpaceMetrics(spaceId, args).then((response) => response.data),
 

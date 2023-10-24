@@ -17,9 +17,16 @@ import {
     Button,
     ButtonGroup,
 } from '@themesberg/react-bootstrap';
-import { MapsService, ReactionsService, UsersService } from 'therr-react/services';
+import {
+    MapsService,
+    ReactionsService,
+    UsersService,
+    IGetSpaceMetricsArgs,
+    IGetSpaceEngagementArgs,
+} from 'therr-react/services';
 import { IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
 import { AccessLevels, MetricNames } from 'therr-js-utilities/constants';
+import { MapActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 import ManageSpacesMenu from '../../components/ManageSpacesMenu';
@@ -73,6 +80,8 @@ interface IStoreProps extends IBaseDashboardDispatchProps {
 
 // Regular component props
 interface IBaseDashboardProps extends IBaseDashboardRouterProps, IStoreProps {
+    getSpaceEngagement: (spaceId: string, args: IGetSpaceEngagementArgs) => any;
+    getSpaceMetrics: (spaceId: string, args: IGetSpaceMetricsArgs) => any;
     fetchSpaces: (latitude?: number, longitude?: number) => Promise<AxiosResponse<any, any>>;
     isSuperAdmin: boolean;
 }
@@ -97,6 +106,8 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    getSpaceEngagement: MapActions.getSpaceEngagement,
+    getSpaceMetrics: MapActions.getSpaceMetrics,
 }, dispatch);
 
 /**
@@ -164,6 +175,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
     };
 
     fetchSpaceMetrics = (timeSpan: 'week' | 'month') => {
+        const { getSpaceMetrics, getSpaceEngagement } = this.props;
         this.setState({
             spanOfTime: timeSpan,
         });
@@ -184,8 +196,16 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             const { currentSpaceIndex, spacesInView: updatedSpacesInView } = this.state;
 
             if (updatedSpacesInView.length) {
+                // TODO: Full implement this and show a graph
+                getSpaceEngagement(updatedSpacesInView[currentSpaceIndex].id, {
+                    startDate,
+                    endDate,
+                }).catch((err) => {
+                    console.log(err);
+                });
                 // TODO: get current user spaces
-                MapsService.getSpaceMetrics(updatedSpacesInView[currentSpaceIndex].id, {
+                // This should be on the backend. Verify it is working as expected
+                getSpaceMetrics(updatedSpacesInView[currentSpaceIndex].id, {
                     startDate,
                     endDate,
                 }).then((response) => {

@@ -147,6 +147,7 @@ export default class SpacesStore {
             .select([
                 `${SPACES_TABLE_NAME}.id`,
                 `${SPACES_TABLE_NAME}.fromUserId`,
+                `${SPACES_TABLE_NAME}.notificationMsg`,
             ])
             .from(SPACES_TABLE_NAME)
             .leftJoin(SPACE_INCENTIVES_TABLE_NAME, `${SPACES_TABLE_NAME}.id`, `${SPACE_INCENTIVES_TABLE_NAME}.spaceId`)

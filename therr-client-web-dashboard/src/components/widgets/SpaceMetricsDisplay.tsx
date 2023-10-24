@@ -23,9 +23,9 @@ const MetricsSummary = ({
     percentageColor,
 }: any) => (
     <>
-        <h3 className="fw-normal mb-2">
-            Location Name: <span className="fw-bold">{title}</span>
-        </h3>
+        {/* <h3 className="fw-normal mb-2">
+            Location: <span className="fw-bold">{title}</span>
+        </h3> */}
         {
             totalCount != null
             && <>

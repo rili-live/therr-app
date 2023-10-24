@@ -1,5 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
-import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
+import { AccessLevels, CurrencyTransactionMessages, UserConnectionTypes } from 'therr-js-utilities/constants';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
 import { IConnection } from './connection';
@@ -393,7 +393,7 @@ export default class UsersStore {
                 })
                 .then((decrementedUser) => {
                     if (decrementedUser?.settingsTherrCoinTotal < 0) {
-                        return client.query('ROLLBACK').then(() => ({ transactionStatus: 'insufficient-funds', user: {} }));
+                        return client.query('ROLLBACK').then(() => ({ transactionStatus: CurrencyTransactionMessages.INSUFFICIENT_FUNDS, user: {} }));
                     }
 
                     // 2. Attempt to increment the toUserId's coin total
