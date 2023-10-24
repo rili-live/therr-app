@@ -18,7 +18,6 @@ import {
     ButtonGroup,
 } from '@themesberg/react-bootstrap';
 import {
-    MapsService,
     ReactionsService,
     UsersService,
     IGetSpaceMetricsArgs,
@@ -29,9 +28,7 @@ import { AccessLevels, MetricNames } from 'therr-js-utilities/constants';
 import { MapActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
-import ManageSpacesMenu from '../../components/ManageSpacesMenu';
 import { ISpace } from '../../types';
-import AdminManageSpacesMenu from '../../components/AdminManageSpacesMenu';
 import OverviewOfSpaceMetrics from './OverviewModules/OverviewOfSpaceMetrics';
 
 const populateEmptyMetrics = (timeSpan: 'week' | 'month') => {
@@ -91,9 +88,13 @@ interface IBaseDashboardState {
     latitude?: number;
     longitude?: number;
     isLoadingSpaces: boolean;
-    overviewGraphLabels: string[] | undefined;
-    overviewGraphValues: number[][] | undefined;
-    percentageChange: number;
+    baseMetricsGraphLabels: string[] | undefined;
+    baseMetricsGraphValues: number[][] | undefined;
+    baseMetricsPercentChange: number;
+    engagementMetricsGraphLabels: string[] | undefined;
+    engagementMetricsGraphValues: number[][] | undefined;
+    engagementMetricsPercentChange: number;
+    totalEngagements: number;
     totalImpressions: number;
     spacesInView: ISpace[]; // TODO: Move to Redux
     spanOfTime: 'week' | 'month';
@@ -121,10 +122,14 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
 
         this.state = {
             currentSpaceIndex: 0,
-            overviewGraphLabels: undefined,
-            overviewGraphValues: undefined,
+            baseMetricsGraphLabels: undefined,
+            baseMetricsGraphValues: undefined,
+            baseMetricsPercentChange: 0,
+            engagementMetricsGraphLabels: undefined,
+            engagementMetricsGraphValues: undefined,
+            engagementMetricsPercentChange: 0,
             isLoadingSpaces: false,
-            percentageChange: 0,
+            totalEngagements: 0,
             totalImpressions: 0,
             spacesInView: [],
             spanOfTime: 'week',
@@ -137,7 +142,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
     }
 
     componentDidMount() {
-        if (!this.state.overviewGraphValues?.length) {
+        if (!this.state.baseMetricsGraphValues?.length) {
             this.fetchSpaceMetrics('week');
         }
         this.fetchSpaceReactions();
@@ -190,28 +195,31 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
         let formattedProspects = emptyMetrics;
         let formattedImpressions = emptyMetrics;
         let formattedVisits = emptyMetrics;
+        let formattedLikes = emptyMetrics;
+        let formattedCheckIns = emptyMetrics;
+        let formattedMoments = emptyMetrics;
         const prefetchPromise: Promise<any> = !spacesInView.length ? this.fetchDashboardSpaces(latitude, longitude) : Promise.resolve();
 
         prefetchPromise.then(() => {
             const { currentSpaceIndex, spacesInView: updatedSpacesInView } = this.state;
 
             if (updatedSpacesInView.length) {
-                // TODO: Full implement this and show a graph
-                getSpaceEngagement(updatedSpacesInView[currentSpaceIndex].id, {
-                    startDate,
-                    endDate,
-                }).catch((err) => {
-                    console.log(err);
-                });
-                // TODO: get current user spaces
-                // This should be on the backend. Verify it is working as expected
-                getSpaceMetrics(updatedSpacesInView[currentSpaceIndex].id, {
-                    startDate,
-                    endDate,
-                }).then((response) => {
-                    const prospects = response?.data?.aggregations?.[MetricNames.SPACE_PROSPECT] || {};
-                    const impressions = response?.data?.aggregations?.[MetricNames.SPACE_IMPRESSION] || {};
-                    const visits = response?.data?.aggregations?.[MetricNames.SPACE_VISIT] || {};
+                // TODO: get current user spaces and organization spaces. This should be on the backend. Verify it is working as expected
+                Promise.all(
+                    [
+                        getSpaceMetrics(updatedSpacesInView[currentSpaceIndex].id, {
+                            startDate,
+                            endDate,
+                        }),
+                        getSpaceEngagement(updatedSpacesInView[currentSpaceIndex].id, {
+                            startDate,
+                            endDate,
+                        }),
+                    ],
+                ).then(([metricsResponse, engagementsResponse]) => {
+                    const prospects = metricsResponse?.aggregations?.[MetricNames.SPACE_PROSPECT] || {};
+                    const impressions = metricsResponse?.aggregations?.[MetricNames.SPACE_IMPRESSION] || {};
+                    const visits = metricsResponse?.aggregations?.[MetricNames.SPACE_VISIT] || {};
                     formattedProspects = {
                         ...formattedProspects,
                         ...prospects.metrics,
@@ -225,14 +233,49 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         ...visits.metrics,
                     };
 
+                    const likes = engagementsResponse?.aggregations?.[MetricNames.SPACE_LIKE] || {};
+                    const checkIns = engagementsResponse?.aggregations?.[MetricNames.SPACE_USER_CHECK_IN] || {};
+                    const moments = engagementsResponse?.aggregations?.[MetricNames.SPACE_MOMENT_CREATED] || {};
+                    formattedLikes = {
+                        ...formattedLikes,
+                        ...likes.metrics,
+                    };
+                    formattedCheckIns = {
+                        ...formattedCheckIns,
+                        ...checkIns.metrics,
+                    };
+                    formattedMoments = {
+                        ...formattedMoments,
+                        ...moments.metrics,
+                    };
+                    const totalImpressions = impressions.metrics
+                        ? Object.values(impressions.metrics as { [key: string]: number })
+                            .reduce((acc: number, cur: number) => acc + cur, 0)
+                        : 0;
+                    const totalCheckIns = checkIns.metrics
+                        ? Object.values(checkIns.metrics as { [key: string]: number })
+                            .reduce((acc: number, cur: number) => acc + cur, 0)
+                        : 0;
+                    const totalLikes = likes.metrics
+                        ? Object.values(likes.metrics as { [key: string]: number })
+                            .reduce((acc: number, cur: number) => acc + cur, 0)
+                        : 0;
+                    const totalMoments = moments.metrics
+                        ? Object.values(moments.metrics as { [key: string]: number })
+                            .reduce((acc: number, cur: number) => acc + cur, 0)
+                        : 0;
+
                     this.setState({
-                        percentageChange: impressions.previousSeriesPct,
-                        totalImpressions: impressions.metrics
-                            ? Object.values(impressions.metrics as { [key: string]: number })
-                                .reduce((acc: number, cur: number) => acc + cur, 0)
-                            : 0,
-                        overviewGraphLabels: Object.keys(emptyMetrics),
-                        overviewGraphValues: [Object.values(formattedVisits), Object.values(formattedImpressions), Object.values(formattedProspects)],
+                        totalEngagements: totalCheckIns + totalLikes + totalMoments,
+                        totalImpressions,
+                        baseMetricsGraphLabels: Object.keys(emptyMetrics),
+                        baseMetricsGraphValues: [Object.values(formattedVisits), Object.values(formattedImpressions), Object.values(formattedProspects)],
+                        baseMetricsPercentChange: impressions.previousSeriesPct,
+                        engagementMetricsGraphLabels: Object.keys(emptyMetrics),
+                        engagementMetricsGraphValues: [Object.values(formattedLikes), Object.values(formattedCheckIns), Object.values(formattedMoments)],
+                        engagementMetricsPercentChange: Math.ceil((
+                            (likes.previousSeriesPct || 0) + (checkIns.previousSeriesPct || 0) + (moments.previousSeriesPct || 0)
+                        ) / 3),
                     });
                 }).catch((err) => {
                     console.log(err);
@@ -311,11 +354,15 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             currentSpaceIndex,
             spacesInView,
             isLoadingSpaces,
-            overviewGraphLabels,
-            overviewGraphValues,
-            percentageChange,
+            baseMetricsGraphLabels,
+            baseMetricsGraphValues,
+            baseMetricsPercentChange,
+            engagementMetricsGraphLabels,
+            engagementMetricsGraphValues,
+            engagementMetricsPercentChange,
             averageRating,
             totalRating,
+            totalEngagements,
             totalImpressions,
             spanOfTime,
         } = this.state;
@@ -328,6 +375,10 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
             ? Math.ceil(totalImpressions / 7)
             : Math.ceil(totalImpressions / 30);
 
+        const avgEngagements = spanOfTime === 'week'
+            ? Math.ceil(totalEngagements / 7)
+            : Math.ceil(totalEngagements / 30);
+
         return (
             <div id="page_dashboard_overview" className="flex-box column">
                 {
@@ -337,9 +388,17 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
                         onPrevSpaceClick={this.onPrevSpaceClick}
                         onNextSpaceClick={this.onNextSpaceClick}
                         currentSpaceIndex={currentSpaceIndex}
-                        overviewGraphLabels={overviewGraphLabels}
-                        overviewGraphValues={overviewGraphValues}
-                        percentageChange={percentageChange}
+                        baseEngagements={{
+                            graphLabels: engagementMetricsGraphLabels,
+                            graphValues: engagementMetricsGraphValues,
+                            percentageChange: engagementMetricsPercentChange,
+                        }}
+                        baseMetrics={{
+                            graphLabels: baseMetricsGraphLabels,
+                            graphValues: baseMetricsGraphValues,
+                            percentageChange: baseMetricsPercentChange,
+                        }}
+                        avgEngagements={avgEngagements}
                         avgImpressions={avgImpressions}
                         spacesInView={spacesInView}
                         spanOfTime={spanOfTime}

@@ -8,7 +8,8 @@ interface ISpaceMetricsLineGraphProps {
     isMobile: boolean,
     timeSpan: string,
     labels: string[],
-    values: number[][], // [[Visits],[Prospects],[Impressions]]
+    values: number[][], // [[Visits],[Prospects],[Impressions]] // [[Likes],[CheckIns],[Moments]] etc.
+    hoverLabels: string[],
 }
 
 export const SpaceMetricsLineGraph = ({
@@ -16,6 +17,7 @@ export const SpaceMetricsLineGraph = ({
     timeSpan,
     labels,
     values,
+    hoverLabels,
 }: ISpaceMetricsLineGraphProps) => {
     const labelsOrDefault = labels || (timeSpan === 'week' ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Week 1', 'Week 2', 'Week 3', 'Week 4']);
     const valuesOrDefault = values || (timeSpan === 'week'
@@ -52,15 +54,15 @@ export const SpaceMetricsLineGraph = ({
         labels: labelsOrDefault,
         series: [
             {
-                name: 'Visits',
+                name: hoverLabels[0],
                 data: valuesOrDefault[0],
             },
             {
-                name: 'Impressions',
+                name: hoverLabels[1],
                 data: valuesOrDefault[1],
             },
             {
-                name: 'Prospects',
+                name: hoverLabels[2],
                 data: valuesOrDefault[2],
             },
         ],
@@ -69,15 +71,15 @@ export const SpaceMetricsLineGraph = ({
         labels: sampledLabels,
         series: [
             {
-                name: 'Visits',
+                name: hoverLabels[0],
                 data: sampledValues[0],
             },
             {
-                name: 'Impressions',
+                name: hoverLabels[1],
                 data: sampledValues[1],
             },
             {
-                name: 'Prospects',
+                name: hoverLabels[2],
                 data: sampledValues[2],
             },
         ],
