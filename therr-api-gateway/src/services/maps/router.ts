@@ -192,6 +192,10 @@ mapsServiceRouter.get('/space-metrics/:spaceId', validate, handleServiceRequest(
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'get',
 }));
+mapsServiceRouter.get('/space-metrics/:spaceId/engagement', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}));
 
 // Dashboard
 mapsServiceRouter.post('/spaces/request-claim', createAreaValidation, validate, handleServiceRequest({

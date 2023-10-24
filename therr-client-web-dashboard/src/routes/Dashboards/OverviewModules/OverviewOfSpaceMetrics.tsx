@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    Button, ButtonGroup, Col, Row,
+    Button, ButtonGroup, Card, Col, Row,
 } from 'react-bootstrap';
 import {
     faChartLine, faChevronLeft, faChevronRight, faStar,
@@ -57,6 +57,8 @@ const OverviewOfSpaceMetrics = ({
         );
     }
 
+    const spaceTitle = `${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`;
+
     return (
         <>
             <div className="d-flex justify-content-around justify-content-md-between flex-wrap flex-md-nowrap align-items-center py-4">
@@ -66,6 +68,9 @@ const OverviewOfSpaceMetrics = ({
                 {
                     !isSuperAdmin && <ManageSpacesMenu className="mb-2 mb-md-0" user={user} navigateHandler={navigateHandler} />
                 }
+                <h3 className="fw-normal mb-2 d-none d-xl-block" style={{ maxWidth: '30rem' }}>
+                    <span className="fw-bolder">{spaceTitle}</span>
+                </h3>
                 <ButtonGroup className="mb-2 mb-md-0">
                     {
                         currentSpaceIndex !== 0
@@ -81,11 +86,18 @@ const OverviewOfSpaceMetrics = ({
                     }
                 </ButtonGroup>
             </div>
+            <Card className="bg-white shadow-sm d-xl-none mb-3 mb-xl-4">
+                <Card.Header className="d-flex flex-row align-items-center flex-0">
+                    <h3 className="fw-bold text-center">
+                        Location: <span className="fw-bolder">{spaceTitle}</span>
+                    </h3>
+                </Card.Header>
+            </Card>
             <Row className="justify-content-md-center">
-                <Col xs={12} lg={9} className="mb-4 d-none d-sm-block">
+                <Col xs={12} xl={8} xxl={9} className="mb-3 mb-xl-4 d-none d-sm-block">
                     <SpaceMetricsDisplay
                         isMobile={false}
-                        title={`${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
+                        title={spaceTitle}
                         labels={overviewGraphLabels}
                         values={overviewGraphValues}
                         percentage={percentageChange}
@@ -93,10 +105,10 @@ const OverviewOfSpaceMetrics = ({
                         spanOfTime={spanOfTime}
                     />
                 </Col>
-                <Col xs={12} lg={9} className="mb-4 d-sm-none">
+                <Col xs={12} xl={8} xxl={9} className="mb-3 mb-xl-4 d-sm-none">
                     <SpaceMetricsDisplay
                         isMobile={true}
-                        title={`${spacesInView[currentSpaceIndex] ? spacesInView[currentSpaceIndex].notificationMsg : 'No Data'}`}
+                        title={spaceTitle}
                         labels={overviewGraphLabels}
                         values={overviewGraphValues}
                         percentage={percentageChange}
@@ -104,9 +116,9 @@ const OverviewOfSpaceMetrics = ({
                         spanOfTime={spanOfTime}
                     />
                 </Col>
-                <Col xs={12} lg={3} className="mb-4">
+                <Col xs={12} xl={4} xxl={3} className="mb-3 mb-xl-4">
                     <Row className="justify-content-md-center">
-                        <Col xs={12} className="mb-4">
+                        <Col xs={12} sm={6} xl={12} className="mb-3 mb-xl-4">
                             <StarRatingDisplay
                                 averageRating={averageRating}
                                 totalRating={totalRating}
@@ -116,7 +128,7 @@ const OverviewOfSpaceMetrics = ({
                                 iconColor="shape-secondary"
                             />
                         </Col>
-                        <Col xs={12} className="mb-4">
+                        <Col xs={12} sm={6} xl={12} className="mb-3 mb-xl-4">
                             <CounterWidget
                                 period={spanOfTime}
                                 percentage={percentageChange}

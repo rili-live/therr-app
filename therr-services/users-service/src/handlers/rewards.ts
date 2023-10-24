@@ -1,10 +1,11 @@
-import { ErrorCodes } from 'therr-js-utilities/constants';
+import { CurrencyTransactionMessages, ErrorCodes } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import sendRewardsExchangeEmail from '../api/email/admin/sendRewardsExchangeEmail';
 import { parseConfigValue } from './config';
 import sendCoinsReceivedEmail from '../api/email/sendCoinsReceivedEmail';
+import sendInsufficientFundsEmail from '../api/email/admin/sendInsufficientFundsEmail';
 
 const calculateExchangeRate = (totalCoins, therrDollarReserves = 100) => {
     // Ensure we don't divide by zero
@@ -96,7 +97,9 @@ const getCurrentExchangeRate = (req, res) => {
 };
 
 const transferCoins = (req, res) => {
-    const { fromUserId, toUserId, amount } = req.body;
+    const {
+        fromUserId, toUserId, amount, spaceId, spaceName,
+    } = req.body;
 
     return Store.users.getUsers({ id: fromUserId }, { id: toUserId }, {}, ['id', 'email', 'userName']).then((usersResult) => {
         if (!usersResult || !usersResult.length) {
@@ -111,7 +114,19 @@ const transferCoins = (req, res) => {
         return Store.users.transferTherrCoin(fromUserId, toUserId, amount)
             .then((result) => {
                 if (result?.transactionStatus !== 'success') {
-                    if (result.transactionStatus === 'insufficient-funds') {
+                    if (result.transactionStatus === CurrencyTransactionMessages.INSUFFICIENT_FUNDS) {
+                        if (spaceId && process.env.AWS_FEEDBACK_EMAIL_ADDRESS) {
+                            const { userName, email } = usersResult.find((user) => user.id === fromUserId);
+                            sendInsufficientFundsEmail({
+                                subject: `[Insufficient Coins] Request for ${amount} TherrCoin(s) rejected!`,
+                                toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS],
+                            }, {
+                                coinTotal: amount,
+                                userName,
+                                email,
+                                spaceName,
+                            });
+                        }
                         return handleHttpError({
                             res,
                             message: result.transactionStatus,

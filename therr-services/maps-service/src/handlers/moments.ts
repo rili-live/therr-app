@@ -4,6 +4,7 @@ import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/htt
 import {
     AccessLevels,
     Content,
+    CurrencyTransactionMessages,
     ErrorCodes,
     IncentiveRequirementKeys,
     IncentiveRewardKeys,
@@ -27,9 +28,112 @@ import {
 import updateAchievements from './helpers/updateAchievements';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import userMetricsService from '../api/userMetricsService';
+import areaMetricsService from '../api/areaMetricsService';
 
 const MAX_INTERGRATIONS_PER_USER = 50;
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
+
+const rewardMomentPosted = ({
+    authorization,
+    locale,
+}, {
+    spaceId,
+    userId,
+}): Promise<number> => Store.spaces.getById(spaceId)
+    .then((spaces) => {
+        const space = spaces[0];
+
+        if (userId !== space?.fromUserId && space?.incentives?.length) {
+            // 1. Attempt to create a transaction (only if user has not exceeded limits)
+            const therrCoinIncentive = space.incentives
+                .find((incentive) => (
+                    incentive.incentiveKey === IncentiveRequirementKeys.SHARE_A_MOMENT
+                    && incentive.incentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD
+                ));
+
+            if (therrCoinIncentive) {
+                // This prevents spamming and claiming a reward for every post
+                return Store.spaceIncentiveCoupons.get(userId, therrCoinIncentive.id)
+                    .then((existingCoupons) => ({
+                        isClaimable: !existingCoupons.length || existingCoupons[0].useCount < therrCoinIncentive.maxUseCount,
+                        space,
+                        therrCoinIncentive,
+                    }));
+            }
+
+            return {
+                isClaimable: false,
+                space,
+
+                therrCoinIncentive,
+            };
+        }
+
+        return {
+            isClaimable: false,
+            space,
+
+        };
+    }).then(({
+        isClaimable,
+        space,
+        therrCoinIncentive,
+    }) => {
+        logSpan({
+            level: 'info',
+            messageOrigin: 'API_SERVER',
+            messages: ['User attempted to claim rewards'],
+            traceArgs: {
+                'space.incentive': therrCoinIncentive,
+                'space.isIncentiveClaimable': isClaimable,
+                'space.incentiveAmount': therrCoinIncentive.incentiveRewardValue,
+                'user.id': userId,
+                'space.region': space?.region,
+            },
+        });
+
+        if (isClaimable) {
+            return axios({ // Create companion reaction for user's own moment
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/rewards/transfer-coins`,
+                headers: {
+                    authorization,
+                    'x-localecode': locale,
+                    'x-userid': userId,
+                },
+                data: {
+                    fromUserId: space.fromUserId,
+                    toUserId: userId,
+                    amount: therrCoinIncentive.incentiveRewardValue,
+                    spaceId,
+                    spaceName: space?.notificationMsg,
+                },
+            }).then(({ data }) => {
+                if (data.transactionStatus === 'success') {
+                    return Store.spaceIncentiveCoupons.upsert({
+                        spaceIncentiveId: therrCoinIncentive.id,
+                        userId,
+                        useCount: 1,
+                        region: therrCoinIncentive.region,
+                    }).then(() => therrCoinIncentive.incentiveRewardValue);
+                }
+
+                // 3. If unsuccessful, return response with error. Frontend will show dialog
+                // to user to confirm they want to create the space without the reward
+                throw new Error(CurrencyTransactionMessages.INSUFFICIENT_FUNDS);
+            });
+        }
+
+        return 0;
+    })
+    .catch((err) => {
+        if (err?.message === CurrencyTransactionMessages.INSUFFICIENT_FUNDS
+            || err?.response?.data?.message === CurrencyTransactionMessages.INSUFFICIENT_FUNDS) {
+            throw new Error(CurrencyTransactionMessages.INSUFFICIENT_FUNDS);
+        }
+
+        throw new Error(`An error occurred while attempting to transfer Therr Coins: ${err?.message}`);
+    });
 
 // CREATE
 const createMoment = async (req, res) => {
@@ -56,190 +160,145 @@ const createMoment = async (req, res) => {
 
     const region = countryReverseGeo.get_country(req.body.latitude, req.body.longitude);
 
-    if (req.body.spaceId && !req.body.skipReward) {
-        try {
-            const spaces = await Store.spaces.getById(req.body.spaceId);
-            const space = spaces[0];
+    const rewardsPromise = req.body.spaceId && !req.body.skipReward && !req.body.isDraft
+        ? rewardMomentPosted({
+            authorization,
+            locale,
+        }, {
+            spaceId: req.body.spaceId,
+            userId,
+        }).then((coinRewardValue) => {
+            therrCoinRewarded = coinRewardValue;
+        })
+        : Promise.resolve();
 
-            if (userId !== space.fromUserId && space?.incentives?.length) {
-                // 1. Attempt to create a transaction (only if user has not exceeded limits)
-                const therrCoinIncentive = space.incentives
-                    .find((incentive) => (
-                        incentive.incentiveKey === IncentiveRequirementKeys.SHARE_A_MOMENT
-                        && incentive.incentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD
-                    ));
+    return rewardsPromise.then(() => {
+        // 2. If successful, create the moment
+        const {
+            hashTags,
+            media,
+            message,
+            notificationMsg,
+            spaceId,
+        } = req.body;
 
-                if (therrCoinIncentive) {
-                    // This prevents spamming and claiming a reward for every post
-                    const existingCoupon = await Store.spaceIncentiveCoupons.get(userId, therrCoinIncentive.id);
-                    const isClaimable = !existingCoupon.length || existingCoupon[0].useCount < therrCoinIncentive.maxUseCount;
-                    logSpan({
-                        level: 'info',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['User attempted to claim rewards'],
-                        traceArgs: {
-                            'space.incentive': therrCoinIncentive,
-                            'space.isIncentiveClaimable': isClaimable,
-                            'space.incentiveAmount': therrCoinIncentive.incentiveRewardValue,
-                            'user.id': userId,
-                            'space.region': region,
-                        },
-                    });
-                    if (isClaimable) {
-                        const { data } = await axios({ // Create companion reaction for user's own moment
-                            method: 'post',
-                            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/rewards/transfer-coins`,
-                            headers: {
-                                authorization,
-                                'x-localecode': locale,
-                                'x-userid': userId,
+        const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
+
+        return Store.moments.createMoment({
+            ...req.body,
+            locale,
+            fromUserId: userId,
+        })
+            .then(([moment]) => axios({ // Create companion reaction for user's own moment
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/${moment.id}`,
+                headers: {
+                    authorization,
+                    'x-localecode': locale,
+                    'x-userid': userId,
+                },
+                data: {
+                    userHasActivated: true,
+                },
+            }).then(({ data: reaction }) => {
+                logSpan({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Moment Created'],
+                    traceArgs: {
+                        // TODO: Add a sentiment analysis property
+                        action: 'create-moment',
+                        logCategory: 'user-sentiment',
+                        'moment.category': moment.category,
+                        'moment.radius': moment.radius,
+                        'moment.spaceId': moment.spaceId,
+                        'moment.isPublic': moment.isPublic,
+                        'moment.isDraft': moment.isDraft,
+                        'moment.region': moment.region,
+                        'moment.hashTags': moment.hashTags,
+                        'moment.hasMedia': media?.length > 0,
+                        'moment.isMatureContent': moment.isMatureContent,
+                        'user.id': userId,
+                        'user.locale': locale,
+                    },
+                });
+                if (spaceId) {
+                    areaMetricsService.uploadMetric({
+                        name: MetricNames.SPACE_MOMENT_CREATED,
+                        value: '1',
+                        valueType: MetricValueTypes.NUMBER,
+                        userId: userId || undefined,
+                    }, {}, {
+                        latitude: moment.latitude,
+                        longitude: moment.longitude,
+                        spaceId,
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['failed to upload space moment metric'],
+                            traceArgs: {
+                                'error.message': err?.message,
+                                'error.response': err?.response?.data,
+                                'user.id': userId,
+                                'space.id': spaceId,
                             },
-                            data: {
-                                fromUserId: space.fromUserId,
-                                toUserId: userId,
-                                amount: therrCoinIncentive.incentiveRewardValue,
-                            },
-                        }).catch((error) => {
-                            // Catch and handle insufficient funds error so we can pass this error along to the frontend
-                            if (error?.response?.data?.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
-                                return {
-                                    data: {
-                                        transactionStatus: error?.response?.data?.message || 'insufficient-funds',
-                                    },
-                                };
-                            }
-
-                            // Let the error trickle down to our catch 500 block
-                            throw error;
                         });
-
-                        if (data.transactionStatus !== 'success') {
-                            // 3. If unsuccessful, return response with error. Frontend will show dialog
-                            // to user to confirm they want to create the space without the reward
-
-                            // TODO: Send e-mail to space owner to purchase more coins
-                            return handleHttpError({
-                                res,
-                                message: 'Space owner does not have enough Therr Coins to reward you.',
-                                statusCode: 400,
-                                errorCode: ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS,
+                    });
+                }
+                // TODO: This technically leaves room for a gap of time where users may find
+                // explicit content before it's flag has been updated. We should solve this by
+                // marking the content pending before making it available to search.
+                // This check is redundant and unnecessary if the text already marked the content as "mature"
+                // Async - fire and forget to prevent slow request
+                if (!isTextMature) {
+                    checkIsMediaSafeForWork(media).then((isSafeForWork) => {
+                        if (!isSafeForWork) {
+                            const momentArgs = {
+                                ...moment,
+                                isMatureContent: true,
+                                isPublic: false, // NOTE: For now make this content private to reduce public, mature content
+                            };
+                            return Store.moments.updateMoment(moment.id, momentArgs).catch((err) => {
+                                logSpan({
+                                    level: 'error',
+                                    messageOrigin: 'API_SERVER',
+                                    messages: ['failed to update moment after sightengine check'],
+                                    traceArgs: {
+                                        'error.message': err?.message,
+                                        'error.response': err?.response?.data,
+                                        'moment.region': region,
+                                    },
+                                });
                             });
                         }
-
-                        // Handles incrementing if coupon already exists
-                        await Store.spaceIncentiveCoupons.upsert({
-                            spaceIncentiveId: therrCoinIncentive.id,
-                            userId,
-                            useCount: 1,
-                            region: therrCoinIncentive.region,
-                        });
-
-                        therrCoinRewarded = therrCoinIncentive.incentiveRewardValue;
-                    }
+                    });
                 }
-            }
-        } catch (err: any) {
-            // TODO: If coins were transferred, but spaceIncentiveCoupons failed,
-            // we should mitigate this to prevent claiming a reward multiple times
+
+                updateAchievements({
+                    authorization,
+                    locale,
+                    userId,
+                }, req.body);
+
+                return res.status(201).send({
+                    ...moment,
+                    reaction,
+                    therrCoinRewarded,
+                });
+            }));
+    }).catch((err) => {
+        if (err?.message === CurrencyTransactionMessages.INSUFFICIENT_FUNDS) {
             return handleHttpError({
                 res,
-                message: `An error occurred while attempting to transfer Therr Coins: ${err?.message}`,
-                statusCode: 500,
-                errorCode: ErrorCodes.UNKNOWN_ERROR,
+                message: 'Space owner does not have enough Therr Coins to reward you.',
+                statusCode: 400,
+                errorCode: ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS,
             });
         }
-    }
 
-    // 2. If successful, create the moment
-    const {
-        hashTags,
-        media,
-        message,
-        notificationMsg,
-    } = req.body;
-
-    const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
-
-    return Store.moments.createMoment({
-        ...req.body,
-        locale,
-        fromUserId: userId,
-    })
-        .then(([moment]) => axios({ // Create companion reaction for user's own moment
-            method: 'post',
-            url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/${moment.id}`,
-            headers: {
-                authorization,
-                'x-localecode': locale,
-                'x-userid': userId,
-            },
-            data: {
-                userHasActivated: true,
-            },
-        }).then(({ data: reaction }) => {
-            logSpan({
-                level: 'info',
-                messageOrigin: 'API_SERVER',
-                messages: ['Moment Created'],
-                traceArgs: {
-                    // TODO: Add a sentiment analysis property
-                    action: 'create-moment',
-                    logCategory: 'user-sentiment',
-                    'moment.category': moment.category,
-                    'moment.radius': moment.radius,
-                    'moment.spaceId': moment.spaceId,
-                    'moment.isPublic': moment.isPublic,
-                    'moment.isDraft': moment.isDraft,
-                    'moment.region': moment.region,
-                    'moment.hashTags': moment.hashTags,
-                    'moment.hasMedia': media?.length > 0,
-                    'moment.isMatureContent': moment.isMatureContent,
-                    'user.id': userId,
-                    'user.locale': locale,
-                },
-            });
-            // TODO: This technically leaves room for a gap of time where users may find
-            // explicit content before it's flag has been updated. We should solve this by
-            // marking the content pending before making it available to search.
-            // This check is redundant and unnecessary if the text already marked the content as "mature"
-            // Async - fire and forget to prevent slow request
-            if (!isTextMature) {
-                checkIsMediaSafeForWork(media).then((isSafeForWork) => {
-                    if (!isSafeForWork) {
-                        const momentArgs = {
-                            ...moment,
-                            isMatureContent: true,
-                            isPublic: false, // NOTE: For now make this content private to reduce public, mature content
-                        };
-                        return Store.moments.updateMoment(moment.id, momentArgs).catch((err) => {
-                            logSpan({
-                                level: 'error',
-                                messageOrigin: 'API_SERVER',
-                                messages: ['failed to update moment after sightengine check'],
-                                traceArgs: {
-                                    'error.message': err?.message,
-                                    'error.response': err?.response?.data,
-                                    'moment.region': region,
-                                },
-                            });
-                        });
-                    }
-                });
-            }
-
-            updateAchievements({
-                authorization,
-                locale,
-                userId,
-            }, req.body);
-
-            return res.status(201).send({
-                ...moment,
-                reaction,
-                therrCoinRewarded,
-            });
-        }))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
+        return handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' });
+    });
 };
 
 const createIntegratedMomentBase = ({
@@ -479,16 +538,76 @@ const updateMoment = (req, res) => {
             });
         }
 
-        const [moment] = moments;
+        const {
+            isDraft,
+            spaceId,
+        } = req.body;
 
-        return Store.moments.updateMoment(momentId, {
+        const [moment] = moments;
+        let therrCoinRewarded = 0;
+        let rewardsPromise: Promise<number> = Promise.resolve(therrCoinRewarded);
+
+        if (moment.isDraft && isDraft === false) {
+            if (spaceId) {
+                areaMetricsService.uploadMetric({
+                    name: MetricNames.SPACE_MOMENT_CREATED,
+                    value: '1',
+                    valueType: MetricValueTypes.NUMBER,
+                    userId: userId || undefined,
+                }, {}, {
+                    latitude: moment.latitude,
+                    longitude: moment.longitude,
+                    spaceId,
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['failed to upload space moment metric'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                            'error.response': err?.response?.data,
+                            'user.id': userId,
+                            'space.id': spaceId,
+                        },
+                    });
+                });
+
+                if (!req.body.skipReward) {
+                    rewardsPromise = rewardMomentPosted({
+                        authorization: req.headers.authorization,
+                        locale,
+                    }, {
+                        spaceId: req.body.spaceId,
+                        userId,
+                    }).then((coinRewardValue) => {
+                        therrCoinRewarded = coinRewardValue;
+                        return therrCoinRewarded;
+                    });
+                }
+            }
+        }
+
+        return rewardsPromise.then(() => Store.moments.updateMoment(momentId, {
             ...moment,
             ...req.body,
             locale,
             fromUserId: userId,
         })
-            .then(([response]) => res.status(201).send(response))
-            .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
+            .then(([response]) => res.status(201).send({
+                ...response,
+                therrCoinRewarded,
+            })))
+            .catch((err) => {
+                if (err?.message === CurrencyTransactionMessages.INSUFFICIENT_FUNDS) {
+                    return handleHttpError({
+                        res,
+                        message: 'Space owner does not have enough Therr Coins to reward you.',
+                        statusCode: 400,
+                        errorCode: ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS,
+                    });
+                }
+                return handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' });
+            });
     });
 };
 

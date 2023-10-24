@@ -17,6 +17,7 @@ import {
 // Enums
 import AccessLevels from './enums/AccessLevels';
 import CampaignAssetTypes from './enums/CampaignAssetTypes';
+import CurrencyTransactionMessages from './enums/CurrencyTransactionMessages';
 import IncentiveRequirementKeys from './enums/IncentiveRequirementKeys';
 import IncentiveRewardKeys from './enums/IncentiveRewardKeys';
 import MetricNames from './enums/MetricNames';
@@ -39,6 +40,7 @@ export {
     AccessLevels,
     AdIntegrationTargets,
     CampaignAssetTypes,
+    CurrencyTransactionMessages,
     Content,
     ErrorCodes,
     FilePaths,

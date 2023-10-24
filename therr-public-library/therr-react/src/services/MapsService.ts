@@ -22,6 +22,11 @@ export interface ICreateSpaceCheckInMetricsArgs {
     longitude: number;
 }
 
+export interface IGetSpaceEngagementArgs {
+    startDate: string;
+    endDate: string;
+}
+
 export interface IGetSpaceMetricsArgs {
     startDate: string;
     endDate: string;
@@ -214,6 +219,16 @@ class MapsService {
     };
 
     // Map Metrics
+    getSpaceEngagement = (spaceId: string, args: IGetSpaceEngagementArgs) => {
+        const url = `/maps-service/space-metrics/${spaceId}/engagement?startDate=${args.startDate}&endDate=${args.endDate}`;
+
+        return axios({
+            method: 'get',
+            url,
+            data: args,
+        });
+    };
+
     getSpaceMetrics = (spaceId: string, args: IGetSpaceMetricsArgs) => {
         const url = `/maps-service/space-metrics/${spaceId}?startDate=${args.startDate}&endDate=${args.endDate}`;
 

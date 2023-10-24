@@ -217,7 +217,13 @@ export const SpaceMetricsLineGraph = ({
     }
 
     return (
-        <Chartist data={desktopData} options={{ ...chartistOptions, plugins }} type="Line" className="ct-double-octave" />
+        <Chartist
+            data={desktopData}
+            options={{ ...chartistOptions, height: '300px', plugins }}
+            style={{ height: '300px' }}
+            type="Line"
+            className="ct-double-octave"
+        />
     );
 
     // Uncomment after fixing dependency compilation error

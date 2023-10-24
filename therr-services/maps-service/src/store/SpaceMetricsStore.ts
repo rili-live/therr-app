@@ -44,11 +44,12 @@ export default class SpaceMetricsStore {
         return this.db.read.query(query.toString()).then((response) => response.rows);
     }
 
-    getForDateRange(startDate, endDate, filters) {
+    getForDateRange(startDate, endDate, filters, metricNames = [MetricNames.SPACE_VISIT, MetricNames.SPACE_IMPRESSION, MetricNames.SPACE_PROSPECT]) {
         // hard limit to prevent overloading client
         const query = knexBuilder
             .from(SPACE_METRICS_TABLE_NAME)
             .where(filters)
+            .whereIn('name', metricNames)
             .andWhere('createdAt', '>=', startDate)
             .andWhere('createdAt', '<=', endDate);
 
