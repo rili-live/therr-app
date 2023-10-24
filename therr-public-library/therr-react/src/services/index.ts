@@ -1,7 +1,13 @@
 import ApiService from './ApiService';
 import CampaignsService from './CampaignsService';
 import ForumsService from './ForumsService';
-import MapsService, { IPlacesAutoCompleteArgs, IPlaceDetailsArgs } from './MapsService';
+import MapsService,
+{
+    IPlacesAutoCompleteArgs,
+    IPlaceDetailsArgs,
+    IGetSpaceEngagementArgs,
+    IGetSpaceMetricsArgs,
+} from './MapsService';
 import MessagesService from './MessagesService';
 import NotificationsService from './NotificationsService';
 import PushNotificationsService from './PushNotificationsService';
@@ -14,6 +20,8 @@ export {
     CampaignsService,
     ForumsService,
     MapsService,
+    IGetSpaceEngagementArgs,
+    IGetSpaceMetricsArgs,
     IPlacesAutoCompleteArgs,
     IPlaceDetailsArgs,
     MessagesService,

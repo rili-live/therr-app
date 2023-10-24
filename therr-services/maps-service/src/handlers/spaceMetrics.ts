@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {
-    AccessLevels, CurrentCheckInValuations, ErrorCodes, MetricNames, MetricValueTypes,
+    AccessLevels, CurrencyTransactionMessages, CurrentCheckInValuations, ErrorCodes, MetricNames, MetricValueTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
@@ -101,7 +101,7 @@ const createSpaceMetric = async (req, res) => {
         if (error?.response?.data?.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
             return {
                 data: {
-                    transactionStatus: error?.response?.data?.message || 'insufficient-funds',
+                    transactionStatus: error?.response?.data?.message || CurrencyTransactionMessages.INSUFFICIENT_FUNDS,
                 },
             };
         }
@@ -146,14 +146,14 @@ const createSpaceMetric = async (req, res) => {
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
-const getFormattedMetrics = (startDate, endDate, spaceId) => {
+const getFormattedMetrics = (startDate, endDate, spaceId, metricNames) => {
     const startDateTime = new Date(startDate).getTime();
     const endDateTime = new Date(endDate).getTime();
     const range = endDateTime - startDateTime - 1;
     const previousSeriesStartDate = new Date(startDateTime - range);
     const previousSeriesEndDate = startDate;
-    const currentSeriesPromise = Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId, valueType: 'NUMBER' });
-    const prevSeriesPromise = Store.spaceMetrics.getForDateRange(previousSeriesStartDate, previousSeriesEndDate, { spaceId, valueType: 'NUMBER' });
+    const currentSeriesPromise = Store.spaceMetrics.getForDateRange(startDate, endDate, { spaceId, valueType: 'NUMBER' }, metricNames);
+    const prevSeriesPromise = Store.spaceMetrics.getForDateRange(previousSeriesStartDate, previousSeriesEndDate, { spaceId, valueType: 'NUMBER' }, metricNames);
 
     return Promise.all(
         [
@@ -163,12 +163,12 @@ const getFormattedMetrics = (startDate, endDate, spaceId) => {
     );
 };
 
-// READ
 const getSpaceMetrics = (req, res) => {
     const userId = req.headers['x-userid'];
     const userAccessLevels = req.headers['x-user-access-levels'];
     const locale = req.headers['x-localecode'] || 'en-us';
     const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const shouldTargetEngagements = req.path.includes('/engagement');
 
     const { spaceId } = req.params;
 
@@ -224,8 +224,11 @@ const getSpaceMetrics = (req, res) => {
                     startDate,
                     endDate,
                 } = req.query;
-                return getFormattedMetrics(startDate, endDate, spaceId).then(([currMetrics, prevMetrics]) => {
-                    const metricNames = [MetricNames.SPACE_PROSPECT, MetricNames.SPACE_IMPRESSION, MetricNames.SPACE_VISIT];
+                let metricNames = [MetricNames.SPACE_PROSPECT, MetricNames.SPACE_IMPRESSION, MetricNames.SPACE_VISIT];
+                if (shouldTargetEngagements) {
+                    metricNames = [MetricNames.SPACE_LIKE, MetricNames.SPACE_USER_CHECK_IN, MetricNames.SPACE_MOMENT_CREATED];
+                }
+                return getFormattedMetrics(startDate, endDate, spaceId, metricNames).then(([currMetrics, prevMetrics]) => {
                     const groupedCurrentMetrics = getMetricsByName(
                         currMetrics,
                         metricNames,
