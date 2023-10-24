@@ -19,10 +19,18 @@ interface OverviewOfSpaceMetrics {
     onPrevSpaceClick: any;
     onNextSpaceClick: any;
     currentSpaceIndex: number;
-    overviewGraphLabels: string[] | undefined;
-    overviewGraphValues: number[][] | undefined;
-    percentageChange: number;
+    baseEngagements: {
+        graphLabels: string[] | undefined;
+        graphValues: number[][] | undefined;
+        percentageChange: number;
+    },
+    baseMetrics: {
+        graphLabels: string[] | undefined;
+        graphValues: number[][] | undefined;
+        percentageChange: number;
+    },
     avgImpressions: number;
+    avgEngagements: number;
     spacesInView: ISpace[]; // TODO: Move to Redux
     spanOfTime: 'week' | 'month';
     averageRating: number;
@@ -39,10 +47,10 @@ const OverviewOfSpaceMetrics = ({
     onNextSpaceClick,
     currentSpaceIndex,
     isLoading,
-    overviewGraphLabels,
-    overviewGraphValues,
-    percentageChange,
+    baseEngagements,
+    baseMetrics,
     avgImpressions,
+    avgEngagements,
     spacesInView,
     spanOfTime,
     averageRating,
@@ -98,22 +106,26 @@ const OverviewOfSpaceMetrics = ({
                     <SpaceMetricsDisplay
                         isMobile={false}
                         title={spaceTitle}
-                        labels={overviewGraphLabels}
-                        values={overviewGraphValues}
-                        percentage={percentageChange}
+                        labels={baseMetrics.graphLabels}
+                        values={baseMetrics.graphValues}
+                        percentage={baseMetrics.percentageChange}
+                        metricLabel="Visits/Prospects/Impressions"
                         onChangeTimeSpan={onChangeTimeSpan}
                         spanOfTime={spanOfTime}
+                        hoverLabels={['Visits', 'Prospects', 'Impressions']}
                     />
                 </Col>
                 <Col xs={12} xl={8} xxl={9} className="mb-3 mb-xl-4 d-sm-none">
                     <SpaceMetricsDisplay
                         isMobile={true}
                         title={spaceTitle}
-                        labels={overviewGraphLabels}
-                        values={overviewGraphValues}
-                        percentage={percentageChange}
+                        labels={baseMetrics.graphLabels}
+                        values={baseMetrics.graphValues}
+                        percentage={baseMetrics.percentageChange}
+                        metricLabel="Visits/Prospects/Impressions"
                         onChangeTimeSpan={onChangeTimeSpan}
                         spanOfTime={spanOfTime}
+                        hoverLabels={['Visits', 'Prospects', 'Impressions']}
                     />
                 </Col>
                 <Col xs={12} xl={4} xxl={3} className="mb-3 mb-xl-4">
@@ -131,9 +143,51 @@ const OverviewOfSpaceMetrics = ({
                         <Col xs={12} sm={6} xl={12} className="mb-3 mb-xl-4">
                             <CounterWidget
                                 period={spanOfTime}
-                                percentage={percentageChange}
+                                percentage={baseMetrics.percentageChange}
                                 category="Daily Impressions"
                                 title={`~${avgImpressions} per day`}
+                                icon={faChartLine}
+                                iconColor="shape-secondary"
+                            />
+                        </Col>
+                    </Row>
+                </Col>
+            </Row>
+            <Row className="justify-content-md-center">
+                <Col xs={12} xl={8} xxl={9} className="mb-3 mb-xl-4 d-none d-sm-block">
+                    <SpaceMetricsDisplay
+                        isMobile={false}
+                        title={spaceTitle}
+                        labels={baseEngagements.graphLabels}
+                        values={baseEngagements.graphValues}
+                        percentage={baseEngagements.percentageChange}
+                        metricLabel="Likes/CheckIns/Moments"
+                        onChangeTimeSpan={onChangeTimeSpan}
+                        spanOfTime={spanOfTime}
+                        hoverLabels={['Likes', 'Check-Ins', 'Moments']}
+                    />
+                </Col>
+                <Col xs={12} xl={8} xxl={9} className="mb-3 mb-xl-4 d-sm-none">
+                    <SpaceMetricsDisplay
+                        isMobile={true}
+                        title={spaceTitle}
+                        labels={baseEngagements.graphLabels}
+                        values={baseEngagements.graphValues}
+                        percentage={baseEngagements.percentageChange}
+                        metricLabel="Likes/CheckIns/Moments"
+                        onChangeTimeSpan={onChangeTimeSpan}
+                        spanOfTime={spanOfTime}
+                        hoverLabels={['Likes', 'Check-Ins', 'Moments']}
+                    />
+                </Col>
+                <Col xs={12} xl={4} xxl={3} className="mb-3 mb-xl-4">
+                    <Row className="justify-content-md-center">
+                        <Col xs={12} sm={12} xl={12} className="mb-3 mb-xl-4">
+                            <CounterWidget
+                                period={spanOfTime}
+                                percentage={baseEngagements.percentageChange}
+                                category="Daily Engagements"
+                                title={`~${avgEngagements} per day`}
                                 icon={faChartLine}
                                 iconColor="shape-secondary"
                             />
