@@ -74,8 +74,10 @@ export const SpaceMetricsDisplay = (props: any) => {
         onChangeTimeSpan,
         isMobile,
         labels,
+        metricLabel,
         spanOfTime,
         values,
+        hoverLabels,
     } = props;
     const percentageIcon = percentage < 0 ? faAngleDown : faAngleUp;
     const percentageColor = percentage < 0 ? 'text-danger' : 'text-success';
@@ -95,7 +97,7 @@ export const SpaceMetricsDisplay = (props: any) => {
                         <MetricsSummary
                             title={title}
                             totalCount={totalMetricsCount}
-                            metricLabel="Visits/Prospects/Impressions"
+                            metricLabel={metricLabel}
                             previousTimespanLabel={spanOfTime === 'week' ? 'Previous Week' : 'Previous Month'}
                             percentage={percentage}
                             percentageIcon={percentageIcon}
@@ -108,7 +110,7 @@ export const SpaceMetricsDisplay = (props: any) => {
                     />
                 </Card.Header>
                 <Card.Body className="p-2">
-                    <SpaceMetricsLineGraph isMobile={true} timeSpan={spanOfTime} labels={labels} values={values} />
+                    <SpaceMetricsLineGraph isMobile={true} timeSpan={spanOfTime} labels={labels} values={values} hoverLabels={hoverLabels} />
                 </Card.Body>
             </Card>
         );
@@ -121,7 +123,7 @@ export const SpaceMetricsDisplay = (props: any) => {
                     <MetricsSummary
                         title={title}
                         totalCount={totalMetricsCount}
-                        metricLabel="Visits/Prospects/Impressions"
+                        metricLabel={metricLabel}
                         previousTimespanLabel={spanOfTime === 'week' ? 'Previous Week' : 'Previous Month'}
                         percentage={percentage}
                         percentageIcon={percentageIcon}
@@ -134,7 +136,7 @@ export const SpaceMetricsDisplay = (props: any) => {
                 />
             </Card.Header>
             <Card.Body className="p-2">
-                <SpaceMetricsLineGraph isMobile={false} timeSpan={spanOfTime} labels={labels} values={values} />
+                <SpaceMetricsLineGraph isMobile={false} timeSpan={spanOfTime} labels={labels} values={values} hoverLabels={hoverLabels} />
             </Card.Body>
         </Card>
     );
