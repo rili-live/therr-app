@@ -8,7 +8,7 @@ import TherrIcon from './TherrIcon';
 interface IQuickFiltersListProps {
     activeButtonId: string;
     filterButtons: {
-        id: string;
+        index: string;
         icon: string;
         title: string;
     }[];
@@ -22,10 +22,10 @@ interface IQuickFiltersListProps {
 const renderFilterButton = (item, props) => {
     const { activeButtonId, onSelect, themeButtons } = props;
 
-    let onPress = () => onSelect(item.id);
-    const buttonStyle = activeButtonId === item.id ? themeButtons.styles.quickFiltersButtonTinyActive : themeButtons.styles.quickFiltersButtonTiny;
-    const buttonTitleStyle = activeButtonId === item.id ? themeButtons.styles.quickFiltersButtonTitleActive : themeButtons.styles.quickFiltersButtonTitle;
-    const buttonIconStyle = activeButtonId === item.id ? themeButtons.styles.quickFiltersButtonIconActive : themeButtons.styles.quickFiltersButtonIcon;
+    let onPress = () => onSelect(item.index);
+    const buttonStyle = activeButtonId === item.index ? themeButtons.styles.quickFiltersButtonTinyActive : themeButtons.styles.quickFiltersButtonTiny;
+    const buttonTitleStyle = activeButtonId === item.index ? themeButtons.styles.quickFiltersButtonTitleActive : themeButtons.styles.quickFiltersButtonTitle;
+    const buttonIconStyle = activeButtonId === item.index ? themeButtons.styles.quickFiltersButtonIconActive : themeButtons.styles.quickFiltersButtonIcon;
 
     return (
         <Button
@@ -55,7 +55,6 @@ const QuickFiltersList = ({
     onSelect,
     themeButtons,
 }: IQuickFiltersListProps) => {
-
     return (
         <FlatList
             horizontal
@@ -65,7 +64,7 @@ const QuickFiltersList = ({
                 onSelect,
                 themeButtons,
             })}
-            keyExtractor={item => item.id}
+            keyExtractor={item => item.index}
             style={themeButtons.styles.buttonListTopContainer}
             contentContainerStyle={themeButtons.styles.buttonListTopContent}
             showsHorizontalScrollIndicator={false}
