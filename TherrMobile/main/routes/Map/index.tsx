@@ -76,6 +76,7 @@ import TherrMapView from './TherrMapView';
 import { isMyContent } from '../../utilities/content';
 import getNearbySpaces from '../../utilities/getNearbySpaces';
 import { sendForegroundNotification } from '../../utilities/pushNotifications';
+import QuickFiltersList from '../../components/QuickFiltersList';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -150,6 +151,7 @@ export interface IMapProps extends IStoreProps {
 }
 
 interface IMapState {
+    activeQuickFilterId: string;
     alertMessage: string;
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
@@ -253,6 +255,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private unsubscribeFocusListener: any;
     private unsubscribeNavigationListener: any;
     private previewScrollIndex: number = 0;
+    private quickFilterButtons: {
+        id: string;
+        icon: string;
+        title: string;
+    }[];
 
     constructor(props) {
         super(props);
@@ -261,6 +268,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         const routeLatitude = props.route?.params?.latitude;
 
         this.state = {
+            activeQuickFilterId: '1',
             alertMessage: 'Error',
             areButtonsVisible: true,
             areLayersVisible: false,
@@ -294,6 +302,33 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
+        this.quickFilterButtons = [
+            {
+                id: '1',
+                icon: 'globe',
+                title: this.translate('pages.map.filterButtons.all'),
+            },
+            {
+                id: '2',
+                icon: 'group',
+                title: this.translate('pages.map.filterButtons.people'),
+            },
+            {
+                id: '3',
+                icon: 'utensils',
+                title: this.translate('pages.map.filterButtons.places'),
+            },
+            {
+                id: '4',
+                icon: 'calendar',
+                title: this.translate('pages.map.filterButtons.events'),
+            },
+            {
+                id: '5',
+                icon: 'music',
+                title: this.translate('pages.map.filterButtons.music'),
+            },
+        ];
     }
 
     componentDidMount = async () => {
@@ -1147,6 +1182,12 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
+    handleQuickFilterSelect = (id: string) => {
+        this.setState({
+            activeQuickFilterId: id,
+        });
+    };
+
     handleSearchThisLocation = (searchRadius?, latitude?, longitude?): Promise<any> => {
         const { region } = this.state;
         this.setState({
@@ -1486,6 +1527,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     render() {
         const {
+            activeQuickFilterId,
             alertMessage,
             areButtonsVisible,
             areLayersVisible,
@@ -1594,6 +1636,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             </AnimatedOverlay>
                         </>
                     )}
+                    <QuickFiltersList
+                        activeButtonId={activeQuickFilterId}
+                        filterButtons={this.quickFilterButtons}
+                        onSelect={this.handleQuickFilterSelect}
+                        translate={this.translate}
+                        themeButtons={this.themeButtons}
+                    />
                     {
                         ((isSearchThisLocationBtnVisible || isSearchLoading) && !isDropdownVisible) &&
                         <SearchThisAreaButtonGroup

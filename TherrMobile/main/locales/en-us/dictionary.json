@@ -964,6 +964,13 @@
       },
       "bottomSheet": {
         "noResults": "No Results"
+      },
+      "filterButtons": {
+        "all": "All",
+        "people": "People",
+        "places": "Places",
+        "events": "Events",
+        "music": "Music"
       }
     },
     "mapFilteredSearch": {
