@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IMapState, IUserState } from 'therr-react/types';
+import { ListItem } from 'react-native-elements';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
@@ -14,11 +15,11 @@ import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { allCategories, SELECT_ALL } from '../../utilities/categories';
-import { ListItem } from 'react-native-elements';
+import { getInitialAuthorFilters, getInitialCategoryFilters, getInitialVisibilityFilters } from '../../utilities/getInitialFilters';
 
-const authorOptions: { name: string; isChecked?: boolean }[] = [{ name: SELECT_ALL }, { name: 'me' }, { name: 'notMe' }];
+export const authorOptions: { name: string; isChecked?: boolean }[] = [{ name: SELECT_ALL }, { name: 'me' }, { name: 'notMe' }];
 
-const categoryOptions: { name: string; isChecked?: boolean }[] = allCategories.map(cat => ({ name: cat, data: [] }));
+export const categoryOptions: { name: string; isChecked?: boolean }[] = allCategories.map(cat => ({ name: cat, data: [] }));
 
 export const visibilityOptions: { name: string; isChecked?: boolean }[] = [{ name: SELECT_ALL }, { name: 'public' }, { name: 'private' }];
 
@@ -75,17 +76,9 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
 
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
-        this.initialAuthorFilters = authorOptions.map(a => ({ ...a, title: this.translate(`pages.mapFilteredSearch.labels.${a.name}`), isChecked: false }));
-        this.initialCategoryFilters = [{
-            title:  this.translate('pages.mapFilteredSearch.labels.selectAll'),
-            name: SELECT_ALL,
-        }].concat(categoryOptions.map(c => ({
-            ...c,
-            title: c.name === 'uncategorized'
-                ? this.translate('pages.mapFilteredSearch.labels.uncategorized')
-                : this.translate(`forms.editMoment.categories.${c.name}`),
-        })));
-        this.initialVisibilityFilters = visibilityOptions.map(v => ({ ...v, title: this.translate(`pages.mapFilteredSearch.labels.${v.name}`) }));
+        this.initialAuthorFilters = getInitialAuthorFilters(this.translate);
+        this.initialCategoryFilters = getInitialCategoryFilters(this.translate);
+        this.initialVisibilityFilters = getInitialVisibilityFilters(this.translate);
         const filtersArePopulated = props.map.filtersAuthor?.length && props.map.filtersCategory?.length && props.map.filtersVisibility?.length;
 
         this.state = {

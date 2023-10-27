@@ -22,6 +22,8 @@ const btnContainerStyles: any = {
     borderRadius: 100,
 };
 
+const btnContainerTopHeight = 50;
+
 const getBtnIconStyle = (theme: ITherrTheme) => ({
     color: theme.colors.ternary,
     padding: 0,
@@ -88,6 +90,22 @@ const buttonGroupStyles: any = {
     paddingVertical: 4,
 };
 
+const getQuickFiltersButtonTiny = (theme: ITherrTheme): any => ({
+    backgroundColor: theme.colors.backgroundGray,
+    // borderColor: therrTheme.colors.primary3,
+    display: 'flex',
+    alignItems: 'center',
+    borderRadius: 8,
+    height: 24,
+    paddingVertical: 2,
+});
+const getQuickFiltersButtonTitle = (theme: ITherrTheme): any => ({
+    fontWeight: '500',
+    fontFamily: therrFontFamily,
+    color: theme.colors.primary3,
+    paddingLeft: 4,
+});
+
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
@@ -96,9 +114,25 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...buttonGroupStyles,
             bottom: 40 + buttonMenuHeight - collapseOffset,
         },
+        buttonListTopContainer: {
+            position: 'absolute',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'row',
+            paddingVertical: 4,
+            top: 5,
+            height: btnContainerTopHeight,
+        },
+        buttonListTopContent: {
+            // justifyContent: 'center',
+            // alignItems: 'center',
+            // flexDirection: 'row',
+            paddingVertical: 4,
+            zIndex: 100,
+        },
         buttonGroupTop: {
             ...buttonGroupStyles,
-            top: 10,
+            top: 10 + btnContainerTopHeight,
             zIndex: 100,
         },
         buttonGroupFilterList: {
@@ -161,6 +195,26 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingLeft: 5,
             fontSize: 14,
             lineHeight: 18,
+        },
+        quickFiltersButtonTiny: {
+            ...getQuickFiltersButtonTiny(therrTheme),
+        },
+        quickFiltersButtonTinyActive: {
+            ...getQuickFiltersButtonTiny(therrTheme),
+            backgroundColor: therrTheme.colors.primary3,
+        },
+        quickFiltersButtonTitle: {
+            ...getQuickFiltersButtonTitle(therrTheme),
+        },
+        quickFiltersButtonTitleActive: {
+            ...getQuickFiltersButtonTitle(therrTheme),
+            color: therrTheme.colors.brandingWhite,
+        },
+        quickFiltersButtonIcon: {
+            color: therrTheme.colors.primary3,
+        },
+        quickFiltersButtonIconActive: {
+            color: therrTheme.colors.backgroundGray,
         },
         searchThisAreaTitle: {
             color: therrTheme.colors.brandingWhite,

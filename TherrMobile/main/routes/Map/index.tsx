@@ -76,6 +76,8 @@ import TherrMapView from './TherrMapView';
 import { isMyContent } from '../../utilities/content';
 import getNearbySpaces from '../../utilities/getNearbySpaces';
 import { sendForegroundNotification } from '../../utilities/pushNotifications';
+import QuickFiltersList from '../../components/QuickFiltersList';
+import { getInitialAuthorFilters, getInitialCategoryFilters, getInitialVisibilityFilters } from '../../utilities/getInitialFilters';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -120,6 +122,7 @@ interface IMapDispatchProps {
     findSpaceReactions: Function;
     updateUserCoordinates: Function;
     updateMapViewCoordinates: Function;
+    setMapFilters: Function;
     searchMoments: Function;
     searchSpaces: Function;
     setInitialUserLocation: Function;
@@ -150,6 +153,7 @@ export interface IMapProps extends IStoreProps {
 }
 
 interface IMapState {
+    activeQuickFilterId: string;
     alertMessage: string;
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
@@ -209,6 +213,7 @@ const mapDispatchToProps = (dispatch: any) =>
             searchSpaces: MapActions.searchSpaces,
             setInitialUserLocation: MapActions.setInitialUserLocation,
             setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
+            setMapFilters: MapActions.setMapFilters,
             deleteMoment: MapActions.deleteMoment,
             createSpaceCheckInMetrics: MapActions.createSpaceCheckInMetrics,
             createOrUpdateMomentReaction: ReactionActions.createOrUpdateMomentReaction,
@@ -229,6 +234,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private bottomSheetRef: React.RefObject<BottomSheetMethods> | undefined;
     private scrollAnimationRef;
     private localeShort = 'en-US'; // TODO: Derive from user locale
+    private initialAuthorFilters;
+    private initialCategoryFilters;
+    private initialVisibilityFilters;
     private mapRef: any;
     private mapWatchId;
     private theme = buildStyles();
@@ -253,6 +261,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private unsubscribeFocusListener: any;
     private unsubscribeNavigationListener: any;
     private previewScrollIndex: number = 0;
+    private quickFilterButtons: {
+        index: string;
+        icon: string;
+        title: string;
+    }[];
 
     constructor(props) {
         super(props);
@@ -261,6 +274,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         const routeLatitude = props.route?.params?.latitude;
 
         this.state = {
+            activeQuickFilterId: '0',
             alertMessage: 'Error',
             areButtonsVisible: true,
             areLayersVisible: false,
@@ -294,6 +308,36 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
+        this.initialAuthorFilters = getInitialAuthorFilters(this.translate);
+        this.initialCategoryFilters = getInitialCategoryFilters(this.translate);
+        this.initialVisibilityFilters = getInitialVisibilityFilters(this.translate);
+        this.quickFilterButtons = [
+            {
+                index: '0',
+                icon: 'globe',
+                title: this.translate('pages.map.filterButtons.all'),
+            },
+            {
+                index: '1',
+                icon: 'group',
+                title: this.translate('pages.map.filterButtons.people'),
+            },
+            {
+                index: '2',
+                icon: 'utensils',
+                title: this.translate('pages.map.filterButtons.places'),
+            },
+            {
+                index: '3',
+                icon: 'calendar',
+                title: this.translate('pages.map.filterButtons.events'),
+            },
+            {
+                index: '4',
+                icon: 'music',
+                title: this.translate('pages.map.filterButtons.music'),
+            },
+        ];
     }
 
     componentDidMount = async () => {
@@ -456,7 +500,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }
     };
 
-    hasNoMapfilters = () => {
+    hasNoMapFilters = () => {
         const { map } = this.props;
         const mapFilters = {
             filtersAuthor: map.filtersAuthor,
@@ -470,7 +514,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     getFilteredAreas = (areas, mapFilters) => {
         // Filter for duplicates
-        if (this.hasNoMapfilters()) {
+        if (this.hasNoMapFilters()) {
             return areas;
         }
 
@@ -524,7 +568,18 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         // Filters have been populated and "Select All" is not checked
         if (mapFilters.filtersVisibility.length && !mapFilters.filtersVisibility[0]?.isChecked) {
-            passesFilterVisibility = mapFilters.filtersVisibility.some(filter => {
+            const shouldHide = mapFilters.filtersVisibility.some(filter => {
+                if (filter.isChecked) {
+                    if (filter.name === 'moments' && area.areaType !== 'moments') {
+                        return true;
+                    }
+
+                    if (filter.name === 'spaces' && area.areaType !== 'spaces') {
+                        return true;
+                    }
+                }
+            });
+            passesFilterVisibility = !shouldHide && mapFilters.filtersVisibility.some(filter => {
                 if (!filter.isChecked) {
                     return false;
                 }
@@ -1147,6 +1202,66 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
+    handleQuickFilterSelect = (index: string) => {
+        const { setMapFilters } = this.props;
+
+        this.expandBottomSheet(0, true);
+
+        let authorFilters = this.initialAuthorFilters.map(x => ({ ...x, isChecked: true}));
+        let categoryFilters = this.initialCategoryFilters.map(x => ({ ...x, isChecked: true}));
+        let visibilityFilters = this.initialVisibilityFilters.map(x => ({ ...x, isChecked: true}));
+
+        if (this.quickFilterButtons[index].title === this.translate('pages.map.filterButtons.all')) {
+            setMapFilters({
+                filtersAuthor: authorFilters,
+                filtersCategory: categoryFilters,
+                filtersVisibility: visibilityFilters,
+            });
+        }
+
+        if (this.quickFilterButtons[index].title === this.translate('pages.map.filterButtons.people')) {
+            setMapFilters({
+                filtersAuthor: authorFilters,
+                filtersCategory: categoryFilters,
+                filtersVisibility: this.initialVisibilityFilters.map(x => ({
+                    ...x,
+                    isChecked: x.name === 'moments' || x.name === 'public' || x.name === 'private',
+                })),
+            });
+        }
+
+        if (this.quickFilterButtons[index].title === this.translate('pages.map.filterButtons.places')) {
+            setMapFilters({
+                filtersAuthor: authorFilters,
+                filtersCategory: categoryFilters,
+                filtersVisibility: this.initialVisibilityFilters.map(x => ({
+                    ...x,
+                    isChecked: x.name === 'spaces' || x.name === 'public' || x.name === 'private',
+                })),
+            });
+        }
+
+        if (this.quickFilterButtons[index].title === this.translate('pages.map.filterButtons.events')) {
+            setMapFilters({
+                filtersAuthor: authorFilters,
+                filtersCategory: this.initialCategoryFilters.map(x => ({ ...x, isChecked: x.name === 'event/space'})),
+                filtersVisibility: visibilityFilters,
+            });
+        }
+
+        if (this.quickFilterButtons[index].title === this.translate('pages.map.filterButtons.music')) {
+            setMapFilters({
+                filtersAuthor: authorFilters,
+                filtersCategory: this.initialCategoryFilters.map(x => ({ ...x, isChecked: x.name === 'music' || x.name === 'music/concerts'})),
+                filtersVisibility: visibilityFilters,
+            });
+        }
+
+        this.setState({
+            activeQuickFilterId: index,
+        });
+    };
+
     handleSearchThisLocation = (searchRadius?, latitude?, longitude?): Promise<any> => {
         const { region } = this.state;
         this.setState({
@@ -1486,6 +1601,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     render() {
         const {
+            activeQuickFilterId,
             alertMessage,
             areButtonsVisible,
             areLayersVisible,
@@ -1594,6 +1710,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             </AnimatedOverlay>
                         </>
                     )}
+                    <QuickFiltersList
+                        activeButtonId={activeQuickFilterId}
+                        filterButtons={this.quickFilterButtons}
+                        onSelect={this.handleQuickFilterSelect}
+                        translate={this.translate}
+                        themeButtons={this.themeButtons}
+                    />
                     {
                         ((isSearchThisLocationBtnVisible || isSearchLoading) && !isDropdownVisible) &&
                         <SearchThisAreaButtonGroup
