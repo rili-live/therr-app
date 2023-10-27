@@ -964,6 +964,13 @@
       },
       "bottomSheet": {
         "noResults": "No Results"
+      },
+      "filterButtons": {
+        "all": "All",
+        "people": "People",
+        "places": "Places",
+        "events": "Events",
+        "music": "Music"
       }
     },
     "mapFilteredSearch": {
@@ -976,6 +983,8 @@
       "labels": {
         "public": "Public",
         "private": "Private",
+        "moments": "Moments",
+        "spaces": "Spaces",
         "showAll": "Show All Categories",
         "selectAll": "Select / Unselect All",
         "uncategorized": "Uncategorized",

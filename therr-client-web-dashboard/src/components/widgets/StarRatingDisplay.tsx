@@ -13,7 +13,6 @@ interface StarRatingDisplayProps {
     icon: IconProp;
     iconColor: string;
     category: string;
-    title: string;
 }
 
 const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({
@@ -22,7 +21,6 @@ const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({
     icon,
     iconColor,
     category,
-    title,
 }) => (
     <Card border="light" className="shadow-sm">
         <Card.Body>
@@ -33,17 +31,16 @@ const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({
                     </div>
                     <div className="d-sm-none">
                         <h5>{category}</h5>
-                        <h3 className="mb-1">{title}</h3>
                     </div>
                 </Col>
                 <Col xs={12} xl={7} className="px-xl-0">
                     <div className="d-none d-sm-block">
                         <h5>{category}</h5>
-                        <h3 className="mb-1">{title}</h3>
+                        <h3 className="mb-1 fs-1 fw-bolder">{averageRating || 'N/A'}</h3>
                     </div>
                     <StarRating value={averageRating} />
                     <div className="small mt-2">
-                        <p>Based on {Intl.NumberFormat().format(totalRating)} ratings</p>
+                        <p>Based on <span className="fw-bold">{Intl.NumberFormat().format(totalRating)}</span> ratings</p>
                     </div>
                 </Col>
             </Row>

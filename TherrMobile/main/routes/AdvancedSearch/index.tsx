@@ -15,9 +15,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import CategoryPills from '../../components/CategoryPills';
 import { Button } from 'react-native-elements';
 import TherrIcon from '../../components/TherrIcon';
-import { allCategories, SELECT_ALL } from '../../utilities/categories';
-
-const categoryOptions: { name: string; isChecked?: boolean }[] = allCategories.map(cat => ({ name: cat, data: [] }));
+import { getInitialCategoryFilters } from '../../utilities/getInitialFilters';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
@@ -76,15 +74,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
 
         this.translate = (key: string, params?: any) =>
             translator('en-us', key, params);
-        this.initialCategoryFilters = [{
-            title:  this.translate('pages.mapFilteredSearch.labels.selectAll'),
-            name: SELECT_ALL,
-        }].concat(categoryOptions.map(c => ({
-            ...c,
-            title: c.name === 'uncategorized'
-                ? this.translate('pages.mapFilteredSearch.labels.uncategorized')
-                : this.translate(`forms.editMoment.categories.${c.name}`),
-        })));
+        this.initialCategoryFilters = getInitialCategoryFilters(this.translate);
 
         const filtersArePopulated = props.map.filtersCategory?.length;
 

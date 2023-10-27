@@ -134,8 +134,7 @@ const OverviewOfSpaceMetrics = ({
                             <StarRatingDisplay
                                 averageRating={averageRating}
                                 totalRating={totalRating}
-                                category="Space Rating"
-                                title={`Avg. Rating: ${averageRating || 'N/A'}`}
+                                category="Average Rating"
                                 icon={faStar}
                                 iconColor="shape-secondary"
                             />
