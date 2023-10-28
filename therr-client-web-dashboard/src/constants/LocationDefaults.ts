@@ -8,6 +8,10 @@ const DEFAULT_QUERY_LOCALES = {
         latitude: 33.7673401,
         longitude: -84.5025305,
     },
+    detroit: {
+        latitude: 42.3526815,
+        longitude: -83.1816047,
+    },
     newyork: {
         latitude: 40.6973709,
         longitude: -74.144485,

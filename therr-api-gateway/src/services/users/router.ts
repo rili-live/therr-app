@@ -251,7 +251,7 @@ usersServiceRouter.get('/social-sync/oauth2-facebook', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
-usersServiceRouter.get('/social-sync-dashboard/oauth2-facebook', handleServiceRequest({
+usersServiceRouter.get('/social-sync/oauth2-dashboard-facebook', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));

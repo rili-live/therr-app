@@ -259,7 +259,9 @@ const getSocialSyncs: RequestHandler = (req: any, res: any) => {
 const facebookAppAuth: RequestHandler = (req: any, res: any) => {
     const appId = process.env.FACEBOOK_APP_ID || '';
     const appSecret = process.env.FACEBOOK_APP_SECRET || '';
-    const redirectUrl = 'https://api.therr.com/v1/users-service/social-sync/oauth2-facebook';
+    const redirectUrl = req.path.includes('dashboard')
+        ? 'https://api.therr.com/v1/users-service/social-sync/oauth2-dashboard-facebook'
+        : 'https://api.therr.com/v1/users-service/social-sync/oauth2-facebook';
     const frontendRedirectUrl = req.path.includes('dashboard') ? 'https://dashboard.therr.com' : 'https://therr.com';
     const {
         code,
