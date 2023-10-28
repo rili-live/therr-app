@@ -35,7 +35,7 @@
     },
     "loginForm": {
       "buttons": {
-        "login": "Log In",
+        "login": "Sign In",
         "signUp": "Create Account",
         "forgotPassword": "Forgot Password?",
         "privacyPolicy": "Privacy Policy",
