@@ -12,7 +12,11 @@ import {
     Toast,
     ToastContainer,
     ToastProps,
+    Button,
 } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFacebookF, faGithub, faTwitter } from '@fortawesome/free-brands-svg-icons';
+import { v4 as uuidv4 } from 'uuid';
 import LoginForm from './LoginForm';
 import translator from '../../services/translator';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -53,6 +57,7 @@ interface ILoginState {
     alertVariation: ToastProps['bg'];
     alertIsVisible: boolean;
     inputs: any;
+    requestId: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -96,6 +101,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             alertVariation: 'success',
             alertIsVisible: location.state && (location.state as any).successMessage,
             inputs: {},
+            requestId: uuidv4().toString(),
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -122,6 +128,35 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     };
 
     login = (credentials: any) => this.props.login(credentials);
+
+    // eslint-disable-next-line class-methods-use-this
+    onFBLoginPress = () => {
+        const { requestId } = this.state;
+        // TODO: Use scopes needed for meta ads/campaigns
+        const scopes = [
+            'public_profile',
+            'instagram_basic',
+            //
+            'ads_management',
+            'pages_show_list',
+            'pages_read_engagement',
+            //
+            'ads_read',
+            //
+            'pages_manage_ads',
+            'pages_show_list',
+            //
+            'read_insights',
+            'instagram_manage_insights',
+            'instagram_graph_user_profile',
+        ];
+        const backendRedirectUrl = 'https://api.therr.com/v1/users-service/social-sync-dashboard/oauth2-facebook';
+        const responseType = 'code';
+        const appId = '1384683965734062';
+        // eslint-disable-next-line max-len
+        const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
+        window.open(authUrl);
+    };
 
     public render(): JSX.Element | null {
         const {
@@ -155,21 +190,20 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                                             alert={alertMessage}
                                             toggleAlert={this.toggleAlert}
                                         />
-
-                                        {/* <div className='mt-3 mb-4 text-center'>
-                                            <span className='fw-normal'>or login with</span>
+                                        <div className="mt-3 mb-4 text-center">
+                                            <span className="fw-normal">or login with</span>
                                         </div>
                                         <div className='d-flex justify-content-center my-4'>
-                                            <Button variant='outline-light' className='btn-icon-only btn-pill text-facebook me-2'>
+                                            <Button variant='outline-light' className='btn-icon-only btn-pill text-facebook me-2' onClick={this.onFBLoginPress}>
                                                 <FontAwesomeIcon icon={faFacebookF} />
                                             </Button>
-                                            <Button variant='outline-light' className='btn-icon-only btn-pill text-twitter me-2'>
+                                            {/* <Button variant='outline-light' className='btn-icon-only btn-pill text-twitter me-2'>
                                                 <FontAwesomeIcon icon={faTwitter} />
                                             </Button>
                                             <Button variant='outline-light' className='btn-icon-only btn-pil text-dark'>
                                                 <FontAwesomeIcon icon={faGithub} />
-                                            </Button>
-                                        </div> */}
+                                            </Button> */}
+                                        </div>
                                         <div className='d-flex justify-content-center align-items-center mt-4'>
                                             <span className='fw-normal'>
                                                 {/* eslint-disable-next-line no-trailing-spaces */}
