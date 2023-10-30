@@ -89,6 +89,7 @@ const login: RequestHandler = (req: any, res: any) => {
                 locale,
                 reqBody: {
                     isSSO: req.body.isSSO,
+                    isDashboard: req.body.isDashboard,
                     ssoProvider: req.body.ssoProvider,
                     ssoPlatform: req.body.ssoPlatform,
                     nonce: req.body.nonce,
@@ -99,12 +100,16 @@ const login: RequestHandler = (req: any, res: any) => {
                     userFirstName: req.body.userFirstName,
                     userLastName: req.body.userLastName,
                 },
-            }, res).then(([isValid, userDetails]) => {
+            }, res).then(([isValid, userDetails, oauthResponseData]) => {
                 if (isValid) {
                     const user = {
                         ...userDetails,
                         isSSO: !!req.body.isSSO,
+                        integrations: {},
                     };
+                    if (oauthResponseData?.access_token) {
+                        user.integrations.fbAccessToken = oauthResponseData?.access_token;
+                    }
                     const idToken = createUserToken(user, req.body.rememberMe);
 
                     logSpan({

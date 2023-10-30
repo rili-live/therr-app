@@ -24,6 +24,7 @@ import withNavigation from '../wrappers/withNavigation';
 import { getWebsiteName } from '../utilities/getHostContext';
 
 interface IEmailVerificationRouterProps {
+    location: Location;
     navigation: {
         navigate: NavigateFunction;
     }
@@ -67,9 +68,10 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
+        const { location } = this.props;
         document.title = `${getWebsiteName()} | ${this.translate('pages.emailVerification.pageTitle')}`;
 
-        const queryParams = new URLSearchParams(window.location.search);
+        const queryParams = new URLSearchParams(location.search);
         const verificationToken = queryParams.get('token');
         VerificationCodesService.verifyEmail(verificationToken)
             .then(() => {

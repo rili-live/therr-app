@@ -22,7 +22,7 @@ const socialPlatformApis = {
         getProfile: (params: { userId: string, accessToken: string }) => axios({
             method: 'get',
             // eslint-disable-next-line max-len
-            url: `https://graph.facebook.com/v14.0/me/accounts?fields=id,name,instagram_business_account{username,media,followers_count,media_count}&access_token=${params.accessToken}`,
+            url: `https://graph.facebook.com/v18.0/me/accounts?fields=id,name,instagram_business_account{username,media,followers_count,media_count}&access_token=${params.accessToken}`,
         }).catch((err) => ({
             data: {
                 errors: err.response?.data?.error,
@@ -270,6 +270,8 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
         error_description,
     } = req.query;
 
+    // TODO: Verify requestId
+
     if (error) {
         logSpan({
             level: 'error',
@@ -301,10 +303,11 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
     form.append('response_type', 'code');
     form.append('code', userAuthCode);
 
+    // TODO: Replace with oAuthFacebook
     // Success response should redirect back to this same endpoint
     return axios({
         method: 'post',
-        url: 'https://graph.facebook.com/v14.0/oauth/access_token',
+        url: 'https://graph.facebook.com/v18.0/oauth/access_token',
         headers: form.getHeaders(),
         data: form,
     }).then((response) => {
@@ -324,6 +327,7 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
                 })}`,
             });
         }
+
         return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, provider: 'facebook-instagram' })}` });
     }).catch((errResponse) => {
         const {
@@ -338,8 +342,8 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
             traceArgs: {
                 'error.message': error_message,
                 'error.type': error_type,
-                'facebook.theHell1': errResponse?.toString(),
-                'facebook.theHell2': errResponse?.response?.toString(),
+                'facebook.errorStr': errResponse?.toString(),
+                'facebook.errorResString': errResponse?.response?.toString(),
             },
         });
 

@@ -45,6 +45,7 @@ interface ILayoutRouterProps {
 
 interface ILayoutDispatchProps {
     // Add your dispatcher properties here
+    login: Function;
     logout: Function;
     refreshConnection: Function;
     searchDms: Function;
@@ -82,6 +83,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
+    login: UsersActions.login,
     logout: UsersActions.logout,
     searchDms: MessageActions.searchDMs,
     refreshConnection: SocketActions.refreshConnection,
@@ -147,6 +149,52 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 refreshConnection(user);
             }
         });
+
+        const { location, login } = this.props;
+
+        const urlParams = new URLSearchParams(location?.search);
+        const oauthProvider = urlParams.get('oauth2-provider');
+
+        if (oauthProvider) {
+            if (oauthProvider === 'facebook') {
+                const searchParams = [...urlParams.entries()].reduce((a, c) => ({
+                    ...a,
+                    [c[0]]: c[1],
+                }), {});
+
+                if (urlParams.get('error') || !urlParams.get('code')) {
+                    console.log(urlParams.get('error'));
+                    console.log(urlParams.get('error_reason'));
+                    console.log(urlParams.get('error_description'));
+                }
+
+                const userAuthCodeSplit = (urlParams.get('code') || '').split('#_');
+                const userAuthCode = userAuthCodeSplit[0] || urlParams.get('code') || '';
+
+                login({
+                    ...searchParams,
+                    isSSO: true,
+                    ssoProvider: 'facebook-instagram',
+                    ssoPlatform: 'web',
+                    idToken: userAuthCode,
+                    isDashboard: true,
+                }).catch((error: any) => {
+                    console.log(error);
+                    // if (error.statusCode === 401 || error.statusCode === 404) {
+                    //     toggleAlert(true, 'Error Authenticating', 'danger', error.message);
+                    // } else if (error.statusCode === 403 && error.message === 'One-time password has expired') {
+                    //     toggleAlert(true, 'Token Expired', 'danger', this.translate('components.loginForm.oneTimePasswordExpired'));
+                    // } else if (error.statusCode === 429 && error.message === 'Too many login attempts, please try again later.') {
+                    //     toggleAlert(true, 'Too Many Requests', 'danger', this.translate('components.loginForm.tooManyRequests'));
+                    // } else {
+                    //     toggleAlert(true, 'Oops! Something went wrong', 'danger', this.translate('components.loginForm.backendErrorMessage'));
+                    // }
+                    // this.setState({
+                    //     isSubmitting: false,
+                    // });
+                });
+            }
+        }
     }
 
     componentDidUpdate() {
