@@ -13,7 +13,7 @@ const oAuthFacebook = (authCode: string, isDashboard = false, isSocialSync = fal
     const redirectUrl = isDashboard
         ? 'https://api.therr.com/v1/users-service/social-sync/oauth2-dashboard-facebook'
         : 'https://api.therr.com/v1/users-service/social-sync/oauth2-facebook';
-    const frontendRedirectUrl = isDashboard ? 'https://dashboard.therr.com/login' : 'https://therr.com/login';
+    const frontendRedirectUrl = isDashboard ? 'https://dashboard.therr.com/oauth2/facebook-instagram' : 'https://therr.com/oauth2/facebook-instagram';
     const redirectMatchUrl = isSocialSync ? redirectUrl : frontendRedirectUrl;
 
     form.append('client_id', appId);
