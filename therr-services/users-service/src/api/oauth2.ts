@@ -36,7 +36,7 @@ const oAuthFacebook = (authCode: string, isDashboard = false, isSocialSync = fal
             error_type,
         } = response.data;
 
-        if (error_type) {
+        if (error_type && !isSocialSync) {
             console.error({
                 access_token,
                 error_message,
@@ -48,6 +48,10 @@ const oAuthFacebook = (authCode: string, isDashboard = false, isSocialSync = fal
         return response?.data;
     }).catch((error) => {
         console.error(error);
+        if (isSocialSync) {
+            return Promise.reject(error);
+        }
+
         return Promise.reject(new Error('Facebook auth failed'));
     });
 };
