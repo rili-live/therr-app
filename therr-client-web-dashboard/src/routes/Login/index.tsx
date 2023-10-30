@@ -157,7 +157,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         const appId = '1384683965734062';
         // eslint-disable-next-line max-len
         const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
-        window?.open(authUrl);
+        window?.open(authUrl, '_self');
     };
 
     public render(): JSX.Element | null {

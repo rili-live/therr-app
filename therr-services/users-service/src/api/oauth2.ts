@@ -47,7 +47,6 @@ const oAuthFacebook = (authCode: string, isDashboard = false, isSocialSync = fal
 
         return response?.data;
     }).catch((error) => {
-        console.error(error);
         if (isSocialSync) {
             return Promise.reject(error);
         }
