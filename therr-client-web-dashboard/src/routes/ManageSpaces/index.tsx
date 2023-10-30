@@ -156,7 +156,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                 itemsPerPage,
             },
         }, () => {
-            const urlParams = new URLSearchParams(window.location.search);
+            const urlParams = new URLSearchParams(window?.location?.search);
             const queryLocation = urlParams.get('location');
             let searchLatitude = latitude || DEFAULT_COORDINATES.latitude;
             let searchLongitude = longitude || DEFAULT_COORDINATES.longitude;

@@ -70,7 +70,7 @@ const getSupportedIntegrations = (platform, {
 
     if (platform === 'facebook-instagram') {
         // eslint-disable-next-line max-len
-        return `https://graph.facebook.com/v14.0/${mediaId}?fields=id,media_type,media_url,thumbnail_url,caption,permalink,username,timestamp&access_token=${accessToken}`;
+        return `https://graph.facebook.com/v18.0/${mediaId}?fields=id,media_type,media_url,thumbnail_url,caption,permalink,username,timestamp&access_token=${accessToken}`;
     }
 
     return '';

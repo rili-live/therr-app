@@ -134,6 +134,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         const { requestId } = this.state;
         // TODO: Use scopes needed for meta ads/campaigns
         const scopes = [
+            'email',
             'public_profile',
             'instagram_basic',
             //
@@ -142,20 +143,21 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             'pages_read_engagement',
             //
             'ads_read',
-            //
+            // //
             'pages_manage_ads',
             'pages_show_list',
-            //
+            // //
             'read_insights',
             'instagram_manage_insights',
-            'instagram_graph_user_profile',
+            // 'instagram_graph_user_profile',
         ];
-        const backendRedirectUrl = 'https://api.therr.com/v1/users-service/social-sync-dashboard/oauth2-facebook';
+        // const redirectUri = 'https://api.therr.com/v1/users-service/social-sync/oauth2-dashboard-facebook';
+        const redirectUri = 'https://dashboard.therr.com/login';
         const responseType = 'code';
         const appId = '1384683965734062';
         // eslint-disable-next-line max-len
-        const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
-        window.open(authUrl);
+        const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
+        window?.open(authUrl);
     };
 
     public render(): JSX.Element | null {
