@@ -24,7 +24,7 @@ export const authenticateUserValidation = [
             body('idToken').exists().isString(),
             body('userFirstName').optional().isString(),
             body('userLastName').optional().isString(),
-            body('userEmail').exists().isString().isEmail()
+            body('userEmail').optional().isString().isEmail()
                 .normalizeEmail(),
         ],
     ]),

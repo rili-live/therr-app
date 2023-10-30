@@ -64,11 +64,6 @@ routeConfig.forEach((config) => {
     || 'Access your local business dashboard for single origin marketing';
 
     app.get(routePath, (req, res) => {
-        if (req.originalUrl?.includes('facebook') && req.url?.includes('oauth2-provider')) {
-            const requestedUrl = new URL(req.url);
-            requestedUrl.searchParams.append('oauth2-provider', 'facebook');
-            return res.redirect(requestedUrl.href);
-        }
         const brandContext = getBrandContext(req.hostname);
         const brandName = brandContext.brandName;
         const host = brandContext.host;

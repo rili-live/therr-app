@@ -152,7 +152,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             // 'instagram_graph_user_profile',
         ];
         // const redirectUri = 'https://api.therr.com/v1/users-service/social-sync/oauth2-dashboard-facebook';
-        const redirectUri = 'https://dashboard.therr.com/login';
+        const redirectUri = 'https://dashboard.therr.com/oauth2/facebook-instagram';
         const responseType = 'code';
         const appId = '1384683965734062';
         // eslint-disable-next-line max-len

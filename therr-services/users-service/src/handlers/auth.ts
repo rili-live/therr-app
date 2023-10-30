@@ -28,15 +28,15 @@ const basicHash = (input: string) => {
 
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => {
-    const userNameEmailPhone = req.body.userName?.trim() || req.body.userEmail?.trim();
+    const userNameEmailPhone = req.body.userName?.trim() || req.body.userEmail?.trim() || req.body.phoneNumber?.trim();
 
-    const userHash = basicHash(userNameEmailPhone);
+    let userHash = userNameEmailPhone ? basicHash(userNameEmailPhone) : undefined;
 
     return Store.users
         .getUsers(
             { userName: userNameEmailPhone },
             { email: normalizeEmail(userNameEmailPhone) },
-            { phoneNumber: userNameEmailPhone.replace(/\s/g, '') },
+            { phoneNumber: userNameEmailPhone?.replace(/\s/g, '') },
         )
         .then((userSearchResults) => {
             const locale = req.headers['x-localecode'] || 'en-us';
@@ -68,8 +68,8 @@ const login: RequestHandler = (req: any, res: any) => {
             }
 
             if (!req.body.isSSO
-                && !(userSearchResults[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED)
-                    || userSearchResults[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES))) {
+                && !(userSearchResults[0]?.accessLevels.includes(AccessLevels.EMAIL_VERIFIED)
+                    || userSearchResults[0]?.accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES))) {
                 logSpan({
                     level: 'warn',
                     messageOrigin: 'API_SERVER',
@@ -111,6 +111,7 @@ const login: RequestHandler = (req: any, res: any) => {
                         user.integrations.fbAccessToken = oauthResponseData?.access_token;
                     }
                     const idToken = createUserToken(user, req.body.rememberMe);
+                    userHash = basicHash(userDetails.userName?.trim() || userDetails.userEmail?.trim() || userDetails.phoneNumber?.trim());
 
                     logSpan({
                         level: 'info',

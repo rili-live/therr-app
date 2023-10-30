@@ -9,6 +9,8 @@ import handleHttpError from '../utilities/handleHttpError';
 import sendSocialSyncAdminNotificationEmail from '../api/email/admin/sendSocialSyncAdminNotificationEmail';
 import Store from '../store';
 import { ICreateOrUpdateParams } from '../store/SocialSyncsStore';
+import * as facebook from '../api/facebook';
+import { oAuthFacebook } from '../api/oauth2';
 
 // NOTE: facebook-instagram is an instagram account of type business/creator
 // Login happens through Facebook business manager
@@ -19,15 +21,7 @@ const youtubeApiKey = process.env.GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY;
 
 const socialPlatformApis = {
     'facebook-instagram': {
-        getProfile: (params: { userId: string, accessToken: string }) => axios({
-            method: 'get',
-            // eslint-disable-next-line max-len
-            url: `https://graph.facebook.com/v18.0/me/accounts?fields=id,name,instagram_business_account{username,media,followers_count,media_count}&access_token=${params.accessToken}`,
-        }).catch((err) => ({
-            data: {
-                errors: err.response?.data?.error,
-            },
-        })),
+        getProfile: (params: { userId: string, accessToken: string }) => facebook.getMe(params.accessToken),
     },
     // Legacy
     // instagram: {
@@ -257,11 +251,6 @@ const getSocialSyncs: RequestHandler = (req: any, res: any) => {
 };
 
 const facebookAppAuth: RequestHandler = (req: any, res: any) => {
-    const appId = process.env.FACEBOOK_APP_ID || '';
-    const appSecret = process.env.FACEBOOK_APP_SECRET || '';
-    const redirectUrl = req.path.includes('dashboard')
-        ? 'https://api.therr.com/v1/users-service/social-sync/oauth2-dashboard-facebook'
-        : 'https://api.therr.com/v1/users-service/social-sync/oauth2-facebook';
     const frontendRedirectUrl = req.path.includes('dashboard') ? 'https://dashboard.therr.com' : 'https://therr.com';
     const {
         code,
@@ -295,22 +284,9 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
 
     const userAuthCodeSplit = (code || '').split('#_');
     const userAuthCode = userAuthCodeSplit[0] || code || '';
-    const form = new FormData();
-    form.append('client_id', appId);
-    form.append('client_secret', appSecret);
-    form.append('grant_type', 'authorization_code');
-    form.append('redirect_uri', redirectUrl); // Required for FB validation of matching url
-    form.append('response_type', 'code');
-    form.append('code', userAuthCode);
 
-    // TODO: Replace with oAuthFacebook
     // Success response should redirect back to this same endpoint
-    return axios({
-        method: 'post',
-        url: 'https://graph.facebook.com/v18.0/oauth/access_token',
-        headers: form.getHeaders(),
-        data: form,
-    }).then((response) => {
+    return oAuthFacebook(userAuthCode, req.path.includes('dashboard'), true).then((response) => {
         const {
             access_token,
             error_message,
