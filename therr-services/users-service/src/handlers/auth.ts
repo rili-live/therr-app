@@ -28,7 +28,7 @@ const basicHash = (input: string) => {
 
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => {
-    const userNameEmailPhone = req.body.userName?.trim() || req.body.userEmail?.trim() || req.body.phoneNumber?.trim();
+    let userNameEmailPhone = req.body.userName?.trim() || req.body.userEmail?.trim() || req.body.phoneNumber?.trim();
 
     let userHash = userNameEmailPhone ? basicHash(userNameEmailPhone) : undefined;
     const getUsersPromise = userNameEmailPhone
@@ -113,8 +113,9 @@ const login: RequestHandler = (req: any, res: any) => {
                     if (oauthResponseData?.access_token) {
                         user.integrations.fbAccessToken = oauthResponseData?.access_token;
                     }
+                    userNameEmailPhone = userDetails.userName?.trim() || userDetails.userEmail?.trim() || userDetails.phoneNumber?.trim();
                     const idToken = createUserToken(user, req.body.rememberMe);
-                    userHash = basicHash(userDetails.userName?.trim() || userDetails.userEmail?.trim() || userDetails.phoneNumber?.trim());
+                    userHash = basicHash(userNameEmailPhone);
 
                     logSpan({
                         level: 'info',

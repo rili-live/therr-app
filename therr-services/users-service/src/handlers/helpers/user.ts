@@ -478,13 +478,13 @@ const validateCredentials = (userSearchResults, {
             let existingUsersFromFBEmail: any[] = [];
             if (!userSearchResults.length) { // First time SSO login
                 let fbUserEmail;
+                let fbUserFirstName;
+                let fbUserLastName;
                 if (!reqBody.userEmail && reqBody.ssoProvider === 'facebook-instagram') {
                     const getMeResponse = await facebook.getMe(response.access_token);
-                    const igProfile = getMeResponse?.data[0]?.instagram_business_account || {};
-                    const facebookProfile = getMeResponse?.data[0] || {};
-                    console.info(JSON.stringify(getMeResponse?.data[0]));
-                    console.log('toke', response.access_token);
-                    fbUserEmail = facebookProfile.email || igProfile.email;
+                    fbUserEmail = getMeResponse?.data?.email;
+                    fbUserFirstName = getMeResponse?.data?.first_name;
+                    fbUserLastName = getMeResponse?.data?.last_name;
                     // TODO: Get user
                     existingUsersFromFBEmail = await Store.users
                         .getUsers(
@@ -494,8 +494,8 @@ const validateCredentials = (userSearchResults, {
                 if (!existingUsersFromFBEmail.length) {
                     return createUserHelper({
                         email: reqBody.userEmail || fbUserEmail,
-                        firstName: reqBody.userFirstName,
-                        lastName: reqBody.userLastName,
+                        firstName: reqBody.userFirstName || fbUserFirstName,
+                        lastName: reqBody.userLastName || fbUserLastName,
                         phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
                     }, true, undefined, false, locale).then((user) => [true, user, response]);
                 }
