@@ -4,6 +4,7 @@ import * as path from 'path';
 import express from 'express';
 import helmet from 'helmet';
 import * as React from 'react';
+import * as url from 'url';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
 import { matchPath } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
@@ -63,6 +64,11 @@ routeConfig.forEach((config) => {
     || 'Access your local business dashboard for single origin marketing';
 
     app.get(routePath, (req, res) => {
+        if (req.originalUrl?.includes('facebook') && req.url?.includes('oauth2-provider')) {
+            const requestedUrl = new URL(req.url);
+            requestedUrl.searchParams.append('oauth2-provider', 'facebook');
+            return res.redirect(requestedUrl.href);
+        }
         const brandContext = getBrandContext(req.hostname);
         const brandName = brandContext.brandName;
         const host = brandContext.host;

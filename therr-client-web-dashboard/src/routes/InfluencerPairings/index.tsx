@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { NavigateFunction } from 'react-router-dom';
+import { Location, NavigateFunction } from 'react-router-dom';
 import {
     Col,
     Row,
@@ -42,6 +42,7 @@ import { getWebsiteName } from '../../utilities/getHostContext';
 const ItemsPerPage = 10;
 
 interface IInfluencerPairingResultsRouterProps {
+    location: Location;
     navigation: {
         navigate: NavigateFunction;
     }
@@ -142,7 +143,7 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
 
     fetchSpaces = (pageNumber = 1, itemsPerPage = ItemsPerPage) => {
         const { latitude, longitude } = this.state;
-        const { routeParams } = this.props;
+        const { location, routeParams } = this.props;
 
         this.setState({
             isLoading: true,
@@ -155,7 +156,7 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
                 itemsPerPage,
             },
         }, () => {
-            const urlParams = new URLSearchParams(window.location.search);
+            const urlParams = new URLSearchParams(location?.search);
             const queryLocation = urlParams.get('location');
             let searchLatitude = latitude || DEFAULT_COORDINATES.latitude;
             let searchLongitude = longitude || DEFAULT_COORDINATES.longitude;

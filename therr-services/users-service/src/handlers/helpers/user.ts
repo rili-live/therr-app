@@ -15,6 +15,7 @@ import * as globalConfig from '../../../../../global-config';
 import handleHttpError from '../../utilities/handleHttpError';
 import { getMappedSocialSyncResults } from '../socialSync';
 import { createOrUpdateAchievement } from './achievements';
+import { oAuthFacebook } from '../../api/oauth2';
 
 const googleOAuth2ClientId = `${globalConfig[process.env.NODE_ENV].googleOAuth2WebClientId}`;
 const googleOAuth2Client = new OAuth2Client(googleOAuth2ClientId);
@@ -410,6 +411,7 @@ interface IValidateCredentials {
     locale: string;
     reqBody: {
         isSSO: boolean;
+        isDashboard?: boolean;
         ssoProvider?: string;
         ssoPlatform?: string;
         nonce?: string;
@@ -423,7 +425,7 @@ interface IValidateCredentials {
 }
 
 // eslint-disable-next-line arrow-body-style
-const validateCredentials = (userSearchResults, {
+const validateCredentials = async (userSearchResults, {
     locale,
     reqBody,
 }: IValidateCredentials, res) => {
@@ -456,6 +458,8 @@ const validateCredentials = (userSearchResults, {
                 nonce: reqBody.nonce,
                 ignoreExpiration: false, // default is false
             });
+        } else if (reqBody.ssoProvider === 'facebook-instagram') {
+            verifyTokenPromise = oAuthFacebook(reqBody.idToken, reqBody.isDashboard, false);
         } else {
             verifyTokenPromise = Promise.reject(new Error('Unsupported SSO Provider'));
         }
@@ -488,7 +492,7 @@ const validateCredentials = (userSearchResults, {
                 userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
             }
 
-            return [true, { ...userSearchResults[0], accessLevels: [...userAccessLevels] }];
+            return [true, { ...userSearchResults[0], accessLevels: [...userAccessLevels] }, response];
         });
     }
 
