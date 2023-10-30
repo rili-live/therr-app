@@ -1,7 +1,9 @@
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import axios from 'axios';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
 import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
+import normalizeEmail from 'normalize-email';
 import Store from '../../store';
 import { hashPassword } from '../../utilities/userHelpers';
 import { validatePassword } from '../../utilities/passwordUtils';
@@ -16,6 +18,7 @@ import handleHttpError from '../../utilities/handleHttpError';
 import { getMappedSocialSyncResults } from '../socialSync';
 import { createOrUpdateAchievement } from './achievements';
 import { oAuthFacebook } from '../../api/oauth2';
+import * as facebook from '../../api/facebook';
 
 const googleOAuth2ClientId = `${globalConfig[process.env.NODE_ENV].googleOAuth2WebClientId}`;
 const googleOAuth2Client = new OAuth2Client(googleOAuth2ClientId);
@@ -425,7 +428,7 @@ interface IValidateCredentials {
 }
 
 // eslint-disable-next-line arrow-body-style
-const validateCredentials = async (userSearchResults, {
+const validateCredentials = (userSearchResults, {
     locale,
     reqBody,
 }: IValidateCredentials, res) => {
@@ -463,7 +466,7 @@ const validateCredentials = async (userSearchResults, {
         } else {
             verifyTokenPromise = Promise.reject(new Error('Unsupported SSO Provider'));
         }
-        return verifyTokenPromise.then((response) => {
+        return verifyTokenPromise.then(async (response) => {
             // Make sure that Google account email is verified
             if ((reqBody.ssoProvider === 'google' && !response.getPayload()?.email_verified)
                 || (reqBody.ssoProvider === 'apple' && !response.email_verified)) {
@@ -472,19 +475,40 @@ const validateCredentials = async (userSearchResults, {
 
             // Create user with phonenumber equal to 'apple-sso'
             // We can use this in the future to mark an account un-verified and still allow Apple SSO
+            let existingUsersFromFBEmail: any[] = [];
             if (!userSearchResults.length) { // First time SSO login
-                return createUserHelper({
-                    email: reqBody.userEmail,
-                    firstName: reqBody.userFirstName,
-                    lastName: reqBody.userLastName,
-                    phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
-                }, true, undefined, false, locale).then((user) => [true, user]);
+                let fbUserEmail;
+                if (!reqBody.userEmail && reqBody.ssoProvider === 'facebook-instagram') {
+                    const getMeResponse = await facebook.getMe(response.access_token);
+                    const igProfile = getMeResponse?.data[0]?.instagram_business_account || {};
+                    const facebookProfile = getMeResponse?.data[0] || {};
+                    console.info(JSON.stringify(getMeResponse?.data[0]));
+                    fbUserEmail = facebookProfile.email || igProfile.email;
+                    // TODO: Get user
+                    existingUsersFromFBEmail = await Store.users
+                        .getUsers(
+                            { email: normalizeEmail(fbUserEmail) },
+                        );
+                }
+                if (!existingUsersFromFBEmail.length) {
+                    return createUserHelper({
+                        email: reqBody.userEmail || fbUserEmail,
+                        firstName: reqBody.userFirstName,
+                        lastName: reqBody.userLastName,
+                        phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
+                    }, true, undefined, false, locale).then((user) => [true, user, response]);
+                }
             }
 
+            // If we had to create a new user from the oauth2 user details response...
+            const dbUserResults = !userSearchResults.length
+                ? existingUsersFromFBEmail
+                : userSearchResults;
+
             // Verify user because they are using email SSO
-            const isMissingUserProps = isUserProfileIncomplete(userSearchResults[0], false);
+            const isMissingUserProps = isUserProfileIncomplete(dbUserResults[0], false);
             const userAccessLevels = new Set(
-                userSearchResults[0].accessLevels,
+                dbUserResults[0].accessLevels,
             );
             if (isMissingUserProps && !userAccessLevels.has(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
                 userAccessLevels.add(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
@@ -492,7 +516,7 @@ const validateCredentials = async (userSearchResults, {
                 userAccessLevels.add(AccessLevels.EMAIL_VERIFIED);
             }
 
-            return [true, { ...userSearchResults[0], accessLevels: [...userAccessLevels] }, response];
+            return [true, { ...dbUserResults[0], accessLevels: [...userAccessLevels] }, response];
         });
     }
 

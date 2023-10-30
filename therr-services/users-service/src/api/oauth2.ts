@@ -13,7 +13,7 @@ const oAuthFacebook = (authCode: string, isDashboard = false, isSocialSync = fal
     const redirectUrl = isDashboard
         ? 'https://api.therr.com/v1/users-service/social-sync/oauth2-dashboard-facebook'
         : 'https://api.therr.com/v1/users-service/social-sync/oauth2-facebook';
-    const frontendRedirectUrl = isDashboard ? 'https://dashboard.therr.com/login' : 'https://therr.com/login';
+    const frontendRedirectUrl = isDashboard ? 'https://dashboard.therr.com/oauth2/facebook-instagram' : 'https://therr.com/oauth2/facebook-instagram';
     const redirectMatchUrl = isSocialSync ? redirectUrl : frontendRedirectUrl;
 
     form.append('client_id', appId);
@@ -36,7 +36,7 @@ const oAuthFacebook = (authCode: string, isDashboard = false, isSocialSync = fal
             error_type,
         } = response.data;
 
-        if (error_type) {
+        if (error_type && !isSocialSync) {
             console.error({
                 access_token,
                 error_message,
@@ -48,6 +48,10 @@ const oAuthFacebook = (authCode: string, isDashboard = false, isSocialSync = fal
         return response?.data;
     }).catch((error) => {
         console.error(error);
+        if (isSocialSync) {
+            return Promise.reject(error);
+        }
+
         return Promise.reject(new Error('Facebook auth failed'));
     });
 };
