@@ -483,6 +483,7 @@ const validateCredentials = (userSearchResults, {
                     const igProfile = getMeResponse?.data[0]?.instagram_business_account || {};
                     const facebookProfile = getMeResponse?.data[0] || {};
                     console.info(JSON.stringify(getMeResponse?.data[0]));
+                    console.log('toke', response.access_token);
                     fbUserEmail = facebookProfile.email || igProfile.email;
                     // TODO: Get user
                     existingUsersFromFBEmail = await Store.users
