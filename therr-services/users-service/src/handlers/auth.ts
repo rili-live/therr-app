@@ -31,13 +31,16 @@ const login: RequestHandler = (req: any, res: any) => {
     const userNameEmailPhone = req.body.userName?.trim() || req.body.userEmail?.trim() || req.body.phoneNumber?.trim();
 
     let userHash = userNameEmailPhone ? basicHash(userNameEmailPhone) : undefined;
+    const getUsersPromise = userNameEmailPhone
+        ? Store.users
+            .getUsers(
+                { userName: userNameEmailPhone },
+                { email: normalizeEmail(userNameEmailPhone) },
+                { phoneNumber: userNameEmailPhone?.replace(/\s/g, '') },
+            )
+        : Promise.resolve([]);
 
-    return Store.users
-        .getUsers(
-            { userName: userNameEmailPhone },
-            { email: normalizeEmail(userNameEmailPhone) },
-            { phoneNumber: userNameEmailPhone?.replace(/\s/g, '') },
-        )
+    return getUsersPromise
         .then((userSearchResults) => {
             const locale = req.headers['x-localecode'] || 'en-us';
 
