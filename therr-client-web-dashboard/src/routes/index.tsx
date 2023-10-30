@@ -22,6 +22,7 @@ import AdminCampaignsOverview from './Campaigns/AdminCampaignsOverview';
 import CreateUserProfile from './CreateUserProfile';
 import CreateEditCampaign from './CreateEditCampaign';
 import InfluencerPairings from './InfluencerPairings';
+import OAuth2Landing from './OAuth2Landing';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -250,6 +251,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             })}
             redirectPath={'/login'}
         />,
+    },
+    {
+        path: '/oauth2/facebook-instagram',
+        element: <OAuth2Landing />,
     },
     {
         path: '/login',
