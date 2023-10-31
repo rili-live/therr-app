@@ -106,6 +106,7 @@ $facebook:      #3b5999;
 $twitter:       #1da1f2;
 $google:        #DB4337;
 $instagram:     #e4405f;
+$linkedin:      #0a66c2;
 $pinterest:     #bd081c;
 $youtube:       #cd201f;
 $slack:         #3aaf85;
@@ -116,6 +117,7 @@ $twitch:        #4B367C;
 $paypal:        #ecb32c;
 $behance:       #0057ff;
 $reddit:        #E84422;
+$therr:           #1c7f8a;
 
 // Brand colors
 $brand-colors: ();
@@ -124,6 +126,7 @@ $brand-colors: map-merge((
   "twitter":      $twitter,
   "google":       $google,
   "instagram":    $instagram,
+  "linkedin":    $linkedin,
   "pinterest":    $pinterest,
   "youtube":      $youtube,
   "slack":        $slack,
@@ -133,6 +136,7 @@ $brand-colors: map-merge((
   "paypal":       $paypal,
   "behance":      $behance,
   "reddit" :      $reddit,  
+  "therr" :       $therr,  
   "github":       $github
 ), $brand-colors);
 
@@ -183,6 +187,7 @@ $theme-colors: map-merge((
   "twitter":      $twitter,
   "google":       $google,
   "instagram":    $instagram,
+  "linkedin":     $linkedin,
   "pinterest":    $pinterest,
   "youtube":      $youtube,
   "slack":        $slack,
@@ -192,6 +197,7 @@ $theme-colors: map-merge((
   "paypal":       $paypal,
   "behance":      $behance,
   "reddit" :      $reddit,  
+  "therr" :       $therr,  
   "github":       $github,
   "teal":         $teal,
   "basic-card":   $basic-card,

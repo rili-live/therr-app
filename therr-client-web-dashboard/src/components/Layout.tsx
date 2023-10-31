@@ -107,13 +107,11 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     constructor(props: ILayoutProps, state: ILayoutState) {
         super(props);
 
-        const { location } = props;
-
         this.state = {
             alertHeading: 'Success!',
-            alertMessage: (location.state as any)?.successMessage || '',
+            alertMessage: '',
             alertVariation: 'success',
-            alertIsVisible: location.state && (location.state as any).successMessage,
+            alertIsVisible: false,
             clientHasLoaded: false,
             isAuthenticated: false,
             isNavMenuOpen: false,
