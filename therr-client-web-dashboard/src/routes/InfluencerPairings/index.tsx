@@ -377,7 +377,7 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
 
                 <Row className="d-flex justify-content-around align-items-center py-4">
                     <Col xs={12} xl={12} xxl={10}>
-                        <h1 className="text-center">Local Influencer Pairings</h1>
+                        <h1 className="text-center">Local Influencer Pairings (Coming soon!)</h1>
                         {
                             (spacesInView?.length > 0 || isLoading)
                                 && <h3 className="text-center mt-5">

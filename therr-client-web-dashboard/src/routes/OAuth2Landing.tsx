@@ -22,15 +22,10 @@ import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
 import { getWebsiteName } from '../utilities/getHostContext';
+import { shouldRenderLoginForm } from '../api/login';
+import { routeAfterLogin } from './Login';
 
 const BgImage = '/assets/img/illustrations/signin-v2.svg';
-
-export const shouldRenderLoginForm = (props: IOAuth2LandingProps) => !props.user
-    || !props.user.isAuthenticated
-    || !props.user.details.accessLevels
-    || !props.user.details.accessLevels.length;
-
-export const routeAfterLogin = '/dashboard';
 
 interface IOAuth2LandingRouterProps {
     location: Location;

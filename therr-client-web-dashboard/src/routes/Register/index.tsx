@@ -8,13 +8,22 @@ import {
     Card,
     Container,
     ToastContainer,
+    Button,
 } from 'react-bootstrap';
+import LogRocket from 'logrocket';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFacebookF } from '@fortawesome/free-brands-svg-icons';
 import Toast from 'react-bootstrap/Toast';
+import { v4 as uuidv4 } from 'uuid';
+import { IUserState } from 'therr-react/types';
 import translator from '../../services/translator';
 import RegisterForm from './RegisterForm';
 import UsersActions from '../../redux/actions/UsersActions';
 import withNavigation from '../../wrappers/withNavigation';
 import { getWebsiteName } from '../../utilities/getHostContext';
+import { onFBLoginPress, shouldRenderLoginForm } from '../../api/login';
+import { routeAfterLogin } from '../Login';
+import LoginWith from '../../components/LoginWith';
 
 const BgImage = '/assets/img/illustrations/signin-v2.svg';
 
@@ -32,14 +41,17 @@ type IStoreProps = IRegisterDispatchProps
 
 // Regular component props
 interface IRegisterProps extends IRegisterRouterProps, IStoreProps {
+    user: IUserState;
 }
 
 interface IRegisterState {
     alertIsVisible: boolean;
     alertMessage: string;
+    requestId: string;
 }
 
 const mapStateToProps = (state: any) => ({
+    user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
@@ -52,12 +64,29 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 export class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
     private translate: Function;
 
+    static getDerivedStateFromProps(nextProps: IRegisterProps) {
+        // TODO: Choose route based on accessLevels
+        if (!shouldRenderLoginForm(nextProps)) {
+            LogRocket.identify(nextProps.user.details.id, {
+                name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
+                email: nextProps.user.details.email,
+                // Add your own custom user variables below:
+            });
+            // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
+            // Causes a flicker / Need to investigate further
+            setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
+            return null;
+        }
+        return {};
+    }
+
     constructor(props: IRegisterProps) {
         super(props);
 
         this.state = {
             alertIsVisible: false,
             alertMessage: '',
+            requestId: uuidv4().toString(),
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -66,6 +95,18 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = `${getWebsiteName()} | ${this.translate('pages.register.pageTitle')}`;
     }
+
+    onOauth2Press = (provider: string) => {
+        const { requestId } = this.state;
+
+        switch (provider) {
+            case 'facebook':
+                onFBLoginPress(requestId);
+                break;
+            default:
+                break;
+        }
+    };
 
     register = (credentials: any) => {
         this.props.register({
@@ -136,20 +177,12 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
                                             register={this.register}
                                         />
 
-                                        {/* <div className="mt-3 mb-4 text-center">
-                                            <span className="fw-normal">or</span>
+                                        <div className="mt-3 mb-4 text-center">
+                                            <span className="fw-normal">or continue with</span>
                                         </div>
-                                        <div className="d-flex justify-content-center my-4">
-                                            <Button variant="outline-light" className="btn-icon-only btn-pill text-facebook me-2">
-                                                <FontAwesomeIcon icon={faFacebookF} />
-                                            </Button>
-                                            <Button variant="outline-light" className="btn-icon-only btn-pill text-twitter me-2">
-                                                <FontAwesomeIcon icon={faTwitter} />
-                                            </Button>
-                                            <Button variant="outline-light" className="btn-icon-only btn-pil text-dark">
-                                                <FontAwesomeIcon icon={faGithub} />
-                                            </Button>
-                                        </div> */}
+                                        <LoginWith
+                                            onClick={this.onOauth2Press}
+                                        />
                                         <div className="d-flex justify-content-center align-items-center mt-4">
                                             <span className="fw-normal">
                                                 Already have an account?
