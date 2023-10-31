@@ -2,7 +2,10 @@
 import axios from 'axios';
 import FormData from 'form-data';
 
-const oAuthFacebook = (authCode: string, isDashboard = false, isSocialSync = false) => {
+const oAuthFacebook = (authCode: string, {
+    isDashboard = false,
+    isSocialSync = false,
+}) => {
     const appId = process.env.FACEBOOK_APP_ID || '';
     const appSecret = process.env.FACEBOOK_APP_SECRET || '';
 
@@ -54,6 +57,14 @@ const oAuthFacebook = (authCode: string, isDashboard = false, isSocialSync = fal
         return Promise.reject(new Error('Facebook auth failed'));
     });
 };
+
+// TODO: Add method for long lived token
+// https://developers.facebook.com/docs/facebook-login/guides/access-tokens/get-long-lived/
+// eslint-disable-next-line max-len
+// "https://graph.facebook.com/{graph-api-version}/oauth/access_token?grant_type=fb_exchange_token&client_id={app-id}&client_secret={app-secret}&fb_exchange_token={your-access-token}"
+
+// TODO: Add method for token refresh
+// https://developers.facebook.com/docs/instagram-basic-display-api/reference/refresh_access_token
 
 export {
     oAuthFacebook,

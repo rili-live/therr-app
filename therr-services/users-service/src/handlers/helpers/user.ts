@@ -462,7 +462,10 @@ const validateCredentials = (userSearchResults, {
                 ignoreExpiration: false, // default is false
             });
         } else if (reqBody.ssoProvider === 'facebook-instagram') {
-            verifyTokenPromise = oAuthFacebook(reqBody.idToken, reqBody.isDashboard, false);
+            verifyTokenPromise = oAuthFacebook(reqBody.idToken, {
+                isDashboard: reqBody.isDashboard,
+                isSocialSync: false,
+            });
         } else {
             verifyTokenPromise = Promise.reject(new Error('Unsupported SSO Provider'));
         }
