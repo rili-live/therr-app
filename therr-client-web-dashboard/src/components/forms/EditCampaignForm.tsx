@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
     Col, Row, Card, Form, Button, Image, InputGroup,
 } from 'react-bootstrap';
+import classNames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 import { AdIntegrationTargets } from 'therr-js-utilities/constants';
@@ -22,6 +23,15 @@ const adTypeCategories = [
     'acquisition',
     'engagement',
 ];
+
+const disabledProvidersStatus = {
+    [AdIntegrationTargets.THERR_REWARDS]: false,
+    [AdIntegrationTargets.FB_ADS]: false,
+    [AdIntegrationTargets.IG_ADS]: true,
+    [AdIntegrationTargets.LINKED_IN_ADS]: true,
+    [AdIntegrationTargets.GOOGLE_ADS]: true,
+    [AdIntegrationTargets.TWITTER_ADS]: true,
+};
 
 interface IEditCampaignFormProps {
     formStage: number;
@@ -84,11 +94,41 @@ const EditCampaignForm = ({
     const [isLinkedInSelected, setProviderLinkedIn] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.LINKED_IN_ADS));
     const modifiedIntegrationTargets = [];
     if (isTherrSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.THERR_REWARDS); }
-    if (isGoogleSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.GOOGLE_ADS); }
     if (isFacebookSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.FB_ADS); }
     if (isInstagramSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.IG_ADS); }
-    if (isTwitterSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.TWITTER_ADS); }
     if (isLinkedInSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.LINKED_IN_ADS); }
+    if (isGoogleSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.GOOGLE_ADS); }
+    if (isTwitterSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.TWITTER_ADS); }
+    const therrCardClassNames = classNames({
+        'ad-provider-card': true,
+        selected: isTherrSelected,
+        disabled: disabledProvidersStatus[AdIntegrationTargets.THERR_REWARDS],
+    });
+    const facebookCardClassNames = classNames({
+        'ad-provider-card': true,
+        selected: isFacebookSelected,
+        disabled: disabledProvidersStatus[AdIntegrationTargets.FB_ADS],
+    });
+    const instagramCardClassNames = classNames({
+        'ad-provider-card': true,
+        selected: isInstagramSelected,
+        disabled: disabledProvidersStatus[AdIntegrationTargets.IG_ADS],
+    });
+    const linkedInCardClassNames = classNames({
+        'ad-provider-card': true,
+        selected: isLinkedInSelected,
+        disabled: disabledProvidersStatus[AdIntegrationTargets.LINKED_IN_ADS],
+    });
+    const googleCardClassNames = classNames({
+        'ad-provider-card': true,
+        selected: isGoogleSelected,
+        disabled: disabledProvidersStatus[AdIntegrationTargets.GOOGLE_ADS],
+    });
+    const twitterCardClassNames = classNames({
+        'ad-provider-card': true,
+        selected: isTwitterSelected,
+        disabled: disabledProvidersStatus[AdIntegrationTargets.TWITTER_ADS],
+    });
 
     return (
         <Card border="light" className="bg-white shadow-sm mb-4">
@@ -103,67 +143,92 @@ const EditCampaignForm = ({
                             <Row>
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
-                                        className={isTherrSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
-                                        onClick={() => setProviderTherr(!isTherrSelected)}>
+                                        className={therrCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.THERR_REWARDS]
+                                            && setProviderTherr(!isTherrSelected)}>
                                         <Card.Body className="text-center">
                                             <Card.Img
-                                                src={'/assets/img/therr-logo-dark.svg'}
+                                                src={'/assets/img/therr-logo-green.svg'}
                                                 alt="Therr Ads"
-                                                className=""
+                                                className={!disabledProvidersStatus[AdIntegrationTargets.THERR_REWARDS] ? 'text-therr' : ''}
                                                 height={20}
                                                 width={20}
                                             />
-                                            <Card.Text>Therr</Card.Text>
+                                            <Card.Text className="mb-0">Therr</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.THERR_REWARDS] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
-                                        className={isGoogleSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
-                                        onClick={() => setProviderGoogle(!isGoogleSelected)}>
+                                        className={facebookCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.FB_ADS]
+                                            && setProviderFacebook(!isFacebookSelected)}>
                                         <Card.Body className="text-center">
-                                            <FontAwesomeIcon icon={faGoogle} />
-                                            <Card.Text>Google</Card.Text>
+                                            <FontAwesomeIcon
+                                                icon={faFacebook}
+                                                className={!disabledProvidersStatus[AdIntegrationTargets.FB_ADS] ? 'text-facebook' : ''}
+                                            />
+                                            <Card.Text className="mb-0">Facebook</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.FB_ADS] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
-                                        className={isFacebookSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
-                                        onClick={() => setProviderFacebook(!isFacebookSelected)}>
+                                        className={instagramCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.IG_ADS]
+                                            && setProviderInstagram(!isInstagramSelected)}>
                                         <Card.Body className="text-center">
-                                            <FontAwesomeIcon icon={faFacebook} />
-                                            <Card.Text>Facebook</Card.Text>
+                                            <FontAwesomeIcon
+                                                className={!disabledProvidersStatus[AdIntegrationTargets.IG_ADS] ? 'text-instagram' : ''}
+                                                icon={faInstagram}
+                                            />
+                                            <Card.Text className="mb-0">Instagram</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.IG_ADS] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
-                                        className={isInstagramSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
-                                        onClick={() => setProviderInstagram(!isInstagramSelected)}>
+                                        className={linkedInCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.LINKED_IN_ADS]
+                                            && setProviderLinkedIn(!isLinkedInSelected)}>
                                         <Card.Body className="text-center">
-                                            <FontAwesomeIcon icon={faInstagram} />
-                                            <Card.Text>Instagram</Card.Text>
+                                            <FontAwesomeIcon
+                                                className={!disabledProvidersStatus[AdIntegrationTargets.LINKED_IN_ADS] ? 'text-linkedin' : ''}
+                                                icon={faLinkedin}
+                                            />
+                                            <Card.Text className="mb-0">LinkedIn</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.LINKED_IN_ADS] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
-                                        className={isTwitterSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
-                                        onClick={() => setProviderTwitter(!isTwitterSelected)}>
+                                        className={googleCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.GOOGLE_ADS]
+                                            && setProviderGoogle(!isGoogleSelected)}>
                                         <Card.Body className="text-center">
-                                            <FontAwesomeIcon icon={faTwitter} />
-                                            <Card.Text>Twitter</Card.Text>
+                                            <FontAwesomeIcon
+                                                className={!disabledProvidersStatus[AdIntegrationTargets.GOOGLE_ADS] ? 'text-google' : ''}
+                                                icon={faGoogle} />
+                                            <Card.Text className="mb-0">Google</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.GOOGLE_ADS] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
-                                        className={isLinkedInSelected ? 'ad-provider-card selected' : 'ad-provider-card'}
-                                        onClick={() => setProviderLinkedIn(!isLinkedInSelected)}>
+                                        className={twitterCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.TWITTER_ADS]
+                                            && setProviderTwitter(!isTwitterSelected)}>
                                         <Card.Body className="text-center">
-                                            <FontAwesomeIcon icon={faLinkedin} />
-                                            <Card.Text>LinkedIn</Card.Text>
+                                            <FontAwesomeIcon
+                                                className={!disabledProvidersStatus[AdIntegrationTargets.TWITTER_ADS] ? 'text-twitter' : ''}
+                                                icon={faTwitter} />
+                                            <Card.Text className="mb-0">Twitter</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.TWITTER_ADS] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
