@@ -2,4 +2,12 @@
     &.selected {
         border: 2px solid $soft-green;
     }
+
+    &:not(.disabled):hover {
+        cursor: pointer;
+    }
+
+    &.disabled:hover {
+        cursor: not-allowed;
+    }
 }
