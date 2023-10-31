@@ -40,6 +40,7 @@ class UsersActions {
             lastKnownLatitude,
             lastKnownLongitude,
             media,
+            rememberMe,
             settingsBio,
             settingsThemeName,
             settingsTherrCoinTotal,
@@ -63,6 +64,7 @@ class UsersActions {
             settingsPushMentions,
             settingsPushMessages,
             settingsPushReminders,
+            integrations,
             loginCount,
         } = userResponseData;
         const userData: IUser = Immutable.from({
@@ -82,7 +84,9 @@ class UsersActions {
         // TODO: Get user settings data from db response
         const userSettingsData: IUserSettings = Immutable.from({
             locale: 'en-us',
+            integrations,
             mobileThemeName: settingsThemeName || 'retro',
+            rememberMe,
             settingsBio,
             settingsTherrCoinTotal,
             settingsAreaCoinTotal,

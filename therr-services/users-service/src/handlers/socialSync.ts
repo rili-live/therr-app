@@ -286,7 +286,10 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
     const userAuthCode = userAuthCodeSplit[0] || code || '';
 
     // Success response should redirect back to this same endpoint
-    return oAuthFacebook(userAuthCode, req.path.includes('dashboard'), true).then((response) => {
+    return oAuthFacebook(userAuthCode, {
+        isDashboard: req.path.includes('dashboard'),
+        isSocialSync: true,
+    }).then((response) => {
         const {
             access_token,
             error_message,

@@ -9,6 +9,7 @@ import {
     CurrentMomentValuations,
     CurrentCheckInValuations,
 } from './Currencies';
+import OAuthIntegrationProviders from './OAuthIntegrationProviders';
 import {
     DefaultUserResources,
     ResourceExchangeRates,
@@ -52,6 +53,7 @@ export {
     ILogLevel,
     LogLevelMap,
     Notifications,
+    OAuthIntegrationProviders,
     PushNotifications,
     PasswordRegex,
     CurrentSocialValuations,

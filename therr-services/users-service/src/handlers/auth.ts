@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { AccessLevels, CurrentSocialValuations } from 'therr-js-utilities/constants';
+import { AccessLevels, CurrentSocialValuations, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizeEmail from 'normalize-email';
 import handleHttpError from '../utilities/handleHttpError';
@@ -111,7 +111,10 @@ const login: RequestHandler = (req: any, res: any) => {
                         integrations: {},
                     };
                     if (oauthResponseData?.access_token) {
-                        user.integrations.fbAccessToken = oauthResponseData?.access_token;
+                        user.integrations[OAuthIntegrationProviders.FACEBOOK] = {
+                            user_access_token: oauthResponseData.access_token,
+                            user_access_token_ttl_sec: oauthResponseData?.expires_in,
+                        };
                     }
                     userNameEmailPhone = userDetails.userName?.trim() || userDetails.userEmail?.trim() || userDetails.phoneNumber?.trim();
                     const idToken = createUserToken(user, req.body.rememberMe);
@@ -182,6 +185,8 @@ const login: RequestHandler = (req: any, res: any) => {
                         return res.status(201).send({
                             ...finalUser,
                             idToken,
+                            integrations: user.integrations || {},
+                            rememberMe: req.body.rememberMe,
                         });
                     });
                 }
