@@ -60,7 +60,7 @@ spec:
               name: honeycomb-writekey
               key: HONEYCOMB
         - name: FACEBOOK_APP_ID
-          value: "8038208602859743"
+          value: "1384683965734062"
         - name: FACEBOOK_APP_SECRET
           valueFrom:
             secretKeyRef:

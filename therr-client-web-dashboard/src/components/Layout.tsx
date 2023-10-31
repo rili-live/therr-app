@@ -17,6 +17,7 @@ import {
 import { UsersService } from 'therr-react/services';
 // import { Loader } from '../library/loader';
 import classNames from 'classnames';
+import { Toast, ToastContainer, ToastProps } from 'react-bootstrap';
 import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config';
@@ -35,6 +36,7 @@ import Preloader from './Preloader';
 import Sidebar from './Sidebar';
 import DashboardNavbar from './DashboardNavbar';
 import { getBrandContext } from '../utilities/getHostContext';
+import translator from '../services/translator';
 
 interface ILayoutRouterProps {
     navigation: {
@@ -65,6 +67,10 @@ interface ILayoutProps extends ILayoutRouterProps, IStoreProps {
 }
 
 interface ILayoutState {
+    alertHeading: string;
+    alertMessage: string;
+    alertVariation: ToastProps['bg'];
+    alertIsVisible: boolean;
     clientHasLoaded: boolean;
     isNavMenuOpen: boolean;
     isNavMenuExpanded: boolean;
@@ -96,10 +102,18 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
 export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState> {
     private throttleTimeoutId;
 
+    private translate;
+
     constructor(props: ILayoutProps, state: ILayoutState) {
         super(props);
 
+        const { location } = props;
+
         this.state = {
+            alertHeading: 'Success!',
+            alertMessage: (location.state as any)?.successMessage || '',
+            alertVariation: 'success',
+            alertIsVisible: location.state && (location.state as any).successMessage,
             clientHasLoaded: false,
             isAuthenticated: false,
             isNavMenuOpen: false,
@@ -107,6 +121,8 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             isMessagingOpen: false,
             isMsgContainerOpen: false,
         };
+
+        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() {
@@ -176,20 +192,21 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 ssoPlatform: 'web',
                 idToken: userAuthCode,
                 isDashboard: true,
+                rememberMe: true,
             }).catch((error: any) => {
-                console.log(error);
-                // if (error.statusCode === 401 || error.statusCode === 404) {
-                //     toggleAlert(true, 'Error Authenticating', 'danger', error.message);
-                // } else if (error.statusCode === 403 && error.message === 'One-time password has expired') {
-                //     toggleAlert(true, 'Token Expired', 'danger', this.translate('components.loginForm.oneTimePasswordExpired'));
-                // } else if (error.statusCode === 429 && error.message === 'Too many login attempts, please try again later.') {
-                //     toggleAlert(true, 'Too Many Requests', 'danger', this.translate('components.loginForm.tooManyRequests'));
-                // } else {
-                //     toggleAlert(true, 'Oops! Something went wrong', 'danger', this.translate('components.loginForm.backendErrorMessage'));
-                // }
-                // this.setState({
-                //     isSubmitting: false,
-                // });
+                if (error.statusCode === 401 || error.statusCode === 404) {
+                    this.toggleAlert(true, 'Error Authenticating', 'danger', error.message);
+                } else if (error.statusCode === 403 && error.message === 'One-time password has expired') {
+                    this.toggleAlert(true, 'Token Expired', 'danger', this.translate('components.loginForm.oneTimePasswordExpired'));
+                } else if (error.statusCode === 429 && error.message === 'Too many login attempts, please try again later.') {
+                    this.toggleAlert(true, 'Too Many Requests', 'danger', this.translate('components.loginForm.tooManyRequests'));
+                } else {
+                    this.toggleAlert(true, 'Oops! Something went wrong', 'danger', this.translate('components.loginForm.backendErrorMessage'));
+                }
+                setTimeout(() => {
+                    this.toggleAlert(false);
+                    navigation.navigate(routeAfterLogin);
+                }, 2000);
             });
         }
     }
@@ -347,6 +364,22 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         this.props.user,
     );
 
+    toggleAlert = (show?: boolean, alertHeading = 'Success!', alertVariation: ToastProps['bg'] = 'success', alertMessage = '') => {
+        const alertIsVisible = show !== undefined ? show : !this.state.alertIsVisible;
+        if (!alertIsVisible) {
+            this.setState({
+                alertIsVisible,
+            });
+        } else {
+            this.setState({
+                alertIsVisible,
+                alertHeading,
+                alertVariation,
+                alertMessage: alertMessage || this.state.alertMessage,
+            });
+        }
+    };
+
     renderNavMenuContent = () => {
         const brandContext = getBrandContext();
 
@@ -428,6 +461,12 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
     public render(): JSX.Element | null {
         const { location, map, user } = this.props;
+        const {
+            alertHeading,
+            alertMessage,
+            alertVariation,
+            alertIsVisible,
+        } = this.state;
         const navMenuClassNames = classNames({
             'is-open': this.state.isNavMenuOpen,
             'is-expanded': this.state.isNavMenuExpanded,
@@ -489,6 +528,16 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                             />
                         </main>
                     </TransitionGroup>
+                    <ToastContainer className="p-3" position={'bottom-end'}>
+                        <Toast bg={alertVariation} show={alertIsVisible && !!alertMessage} onClose={() => this.toggleAlert(false)}>
+                            <Toast.Header>
+                                <img src="holder.js/20x20?text=%20" className="rounded me-2" alt="" />
+                                <strong className="me-auto">{alertHeading}</strong>
+                                {/* <small>11 mins ago</small> */}
+                            </Toast.Header>
+                            <Toast.Body>{alertMessage}</Toast.Body>
+                        </Toast>
+                    </ToastContainer>
 
                     {/* <Alerts></Alerts> */}
                     {/* <Loader></Loader> */}

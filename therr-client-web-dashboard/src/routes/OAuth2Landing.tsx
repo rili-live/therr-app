@@ -131,7 +131,7 @@ export class OAuth2LandingComponent extends React.Component<IOAuth2LandingProps,
                             </p> */}
                             <Row className='justify-content-center form-bg-image' style={{ backgroundImage: `url(${BgImage})` }}>
                                 <Col xs={12} className='d-flex align-items-center justify-content-center' style={{ minHeight: '50vh' }}>
-                                    <p>Loading</p>
+                                    <p>Authenticating...</p>
                                 </Col>
                             </Row>
                         </Container>
