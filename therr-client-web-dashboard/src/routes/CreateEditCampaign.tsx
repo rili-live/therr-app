@@ -371,7 +371,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                         route: location.pathname,
                         state: this.state,
                     }));
-                    onFBLoginPress(requestId);
+                    if (target === OAuthIntegrationProviders.FACEBOOK) {
+                        onFBLoginPress(requestId);
+                    }
                 }
             }
         });
@@ -517,6 +519,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 },
                             });
                         } else {
+                            localStorage.removeItem(CAMPAIGN_DRAFT_KEY);
                             this.setState({
                                 alertTitle: 'Request Sent',
                                 alertMessage: 'Success! Please allow 24-72 hours as we review your campaign.',
