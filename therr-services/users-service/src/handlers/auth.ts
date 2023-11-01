@@ -7,8 +7,9 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { createUserToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
-import { validateCredentials } from './helpers/user';
+import { redactUserCreds, validateCredentials } from './helpers/user';
 import TherrEventEmitter from '../api/TherrEventEmitter';
+import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 
 // Used to disguise customer info, but be consistent for same input string
 const basicHash = (input: string) => {
@@ -108,12 +109,16 @@ const login: RequestHandler = (req: any, res: any) => {
                     const user = {
                         ...userDetails,
                         isSSO: !!req.body.isSSO,
-                        integrations: {},
+                        integrations: {
+                            ...decryptIntegrationsAccess(userDetails?.integrationsAccess),
+                        },
                     };
                     if (oauthResponseData?.access_token) {
+                        // TODO: Store access_tokens encrypted in DB for fetching
+                        // TODO: Fetch stored access_tokens and return in integrations object
                         user.integrations[OAuthIntegrationProviders.FACEBOOK] = {
                             user_access_token: oauthResponseData.access_token,
-                            user_access_token_ttl_sec: oauthResponseData?.expires_in,
+                            user_access_token_expires_at: Date.now() + ((oauthResponseData?.expires_in || 0) * 1000),
                         };
                     }
                     userNameEmailPhone = userDetails.userName?.trim() || userDetails.userEmail?.trim() || userDetails.phoneNumber?.trim();
@@ -180,8 +185,10 @@ const login: RequestHandler = (req: any, res: any) => {
                         id: user.id,
                     }).then((userResponse) => {
                         const finalUser = userResponse[0];
-                        delete finalUser.password; // don't send these in response
-                        delete finalUser.oneTimePassword; // don't send these in response
+                        // Remove credentials from object
+                        redactUserCreds(finalUser);
+                        // TODO: Save, Decrypt, and return stored user integrations
+                        // const storedIntegrations = decryptIntegrationsAccess(access);
                         return res.status(201).send({
                             ...finalUser,
                             idToken,

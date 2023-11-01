@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { NavigateFunction } from 'react-router-dom';
+import { Location, NavigateFunction } from 'react-router-dom';
 import {
     Col,
     Row,
@@ -16,7 +16,8 @@ import { CampaignActions, MapActions, UserConnectionsActions } from 'therr-react
 import { MapsService, UsersService } from 'therr-react/services';
 import { IMapState as IMapReduxState, IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
 import { Option } from 'react-bootstrap-typeahead/types/types';
-import { AccessLevels, AdIntegrationTargets, CampaignAssetTypes } from 'therr-js-utilities/constants';
+import { AccessLevels, OAuthIntegrationProviders, CampaignAssetTypes } from 'therr-js-utilities/constants';
+import { v4 as uuidv4 } from 'uuid';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
 import EditCampaignForm from '../components/forms/EditCampaignForm';
@@ -24,6 +25,9 @@ import { getWebsiteName } from '../utilities/getHostContext';
 import ManageCampaignsMenu from '../components/ManageCampaignsMenu';
 import { ICampaign, ICampaignAsset } from '../types';
 import { signAndUploadImage } from '../utilities/media';
+import { onFBLoginPress } from '../api/login';
+
+export const CAMPAIGN_DRAFT_KEY = 'therrCampaignDraft';
 
 const partitionAssets = (campaign) => {
     const headlineAssets = [];
@@ -67,16 +71,12 @@ const getInputDefaults = (campaign: any) => {
         headline2: headlineAssets.length > 1 ? headlineAssets[1].headline : '',
         longText1: longTextAssets.length > 0 ? longTextAssets[0].longText : '',
         longText2: longTextAssets.length > 1 ? longTextAssets[1].longText : '',
-        integrationTargets: campaign?.integrationTargets || [AdIntegrationTargets.THERR_REWARDS],
+        integrationTargets: campaign?.integrationTargets || [OAuthIntegrationProviders.THERR],
     };
 };
 
 interface ICreateEditCampaignRouterProps {
-    location: {
-        state: {
-            campaign?: ICampaign;
-        };
-    };
+    location: Location;
     routeParams: any;
     navigation: {
         navigate: NavigateFunction;
@@ -118,6 +118,7 @@ interface ICreateEditCampaignState {
     };
     isEditing: boolean;
     mediaPendingUpload: string[];
+    requestId: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -146,7 +147,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     constructor(props: ICreateEditCampaignProps) {
         super(props);
 
-        const { campaign } = props.location?.state || {};
+        const { campaign } = props.location?.state || {} as any;
         const { campaignId } = props.routeParams;
 
         this.state = {
@@ -162,6 +163,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             inputs: getInputDefaults(campaign),
             isEditing: !!campaignId,
             mediaPendingUpload: [],
+            requestId: uuidv4().toString(),
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -170,11 +172,18 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     componentDidMount() {
         document.title = `${getWebsiteName()} | ${this.translate('pages.createACampaign.pageTitle')}`;
         const { getCampaign, location } = this.props;
-        const { campaign } = location?.state || {};
+        const { campaign } = location?.state || {} as any;
         const { campaignId } = this.props.routeParams;
         const id = campaign?.id || campaignId;
 
-        if (id) {
+        // First check if campaign state is stored in localStorage from before user OAuth2 redirected.
+        // Clear it out after re-populating the form state.
+        const stateStr = localStorage.getItem(CAMPAIGN_DRAFT_KEY);
+        const fetchedState = stateStr && JSON.parse(stateStr).state;
+        localStorage.removeItem(CAMPAIGN_DRAFT_KEY);
+        if (fetchedState) {
+            this.setState(fetchedState);
+        } else if (id) {
             getCampaign(id, {
                 withMedia: true,
             }).then((data) => {
@@ -328,7 +337,47 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         });
     };
 
-    onSubmitCampaign = (event: React.MouseEvent<HTMLButtonElement>, modifiedIntegrationTargets: string[]) => {
+    onSocialSyncPress = (target: string) => {
+        const { inputs, requestId } = this.state;
+        const { location, user } = this.props;
+
+        const modifiedTargets = [...inputs.integrationTargets];
+        const targetWasEnabled = modifiedTargets.indexOf(target) > -1;
+        if (targetWasEnabled) {
+            modifiedTargets.splice(modifiedTargets.indexOf(target), 1);
+        } else {
+            modifiedTargets.push(target);
+        }
+        const newInputChanges = {
+            integrationTargets: modifiedTargets,
+        };
+        this.setState({
+            hasFormChanged: true,
+            inputs: {
+                ...this.state.inputs,
+                ...newInputChanges,
+            },
+        }, () => {
+            if (!targetWasEnabled) {
+                // Check redux user.settings for integration access_token
+                // Verify that user is logged in. If not, store current form state in localStorage and attempt to oauth2.
+                // TODO: Refresh token if almost expired
+                const isIntegrationAuthenticated = user?.settings
+                    && user?.settings[target]?.access_token
+                    && user?.settings[target]?.user_access_token_expires_at
+                    && user?.settings[target].user_access_token_expires_at > Date.now();
+                if (!isIntegrationAuthenticated) {
+                    localStorage.setItem(CAMPAIGN_DRAFT_KEY, JSON.stringify({
+                        route: location.pathname,
+                        state: this.state,
+                    }));
+                    onFBLoginPress(requestId);
+                }
+            }
+        });
+    };
+
+    onSubmitCampaign = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
 
         const { location, createCampaign, updateCampaign } = this.props;
@@ -347,10 +396,11 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             longitude,
             headline1,
             headline2,
+            integrationTargets,
             longText1,
             longText2,
         } = this.state.inputs;
-        const { campaign } = location?.state || {};
+        const { campaign } = location?.state || {} as any;
 
         this.setState({
             isSubmitting: true,
@@ -397,7 +447,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             address: selectedAddresses[0]?.description || selectedAddresses[0]?.label,
             latitude,
             longitude,
-            integrationTargets: modifiedIntegrationTargets,
+            integrationTargets,
         };
 
         if (!campaignInView?.status) {
@@ -583,6 +633,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             onDateTimeChange={this.onDateTimeChange}
                             onInputChange={this.onInputChange}
                             onSelectMedia={this.onSelectMedia}
+                            onSocialSyncPress={this.onSocialSyncPress}
                             onSubmit={this.onSubmitCampaign}
                         />
                     </Col>
