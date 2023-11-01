@@ -44,7 +44,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                 lat: origin.latitude,
             });
 
-            isCacheInvalid = distanceFromOriginMeters > Location.AREA_PROXIMITY_EXPANDED_METERS - 1;
+            isCacheInvalid = distanceFromOriginMeters > Location.AREA_PROXIMITY_NEARBY_METERS - 1;
         }
 
         // Fetches x nearest areas within y meters of the user's current location (from the users's connections)
