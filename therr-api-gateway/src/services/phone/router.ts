@@ -59,8 +59,8 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
             restRequest(config)
                 .then(() => resolve(true))
                 .catch((error) => {
-                    // Phone number not yet in use, so we can allow this user to use it
-                    // NOTE: Users are allowed one personal account and one business account
+                    // Phone number is already in use, so we cannot allow this user to use it
+                    // NOTE: Users are allowed one personal account, one creator account, and one business account per phone number
                     if (error?.response?.data?.statusCode === 400 && error?.response?.data?.errorCode === ErrorCodes.TOO_MANY_ACCOUNTS) {
                         return resolve(false);
                     }
