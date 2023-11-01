@@ -24,6 +24,7 @@ import withNavigation from '../wrappers/withNavigation';
 import { getWebsiteName } from '../utilities/getHostContext';
 import { shouldRenderLoginForm } from '../api/login';
 import { routeAfterLogin } from './Login';
+import { CAMPAIGN_DRAFT_KEY } from './CreateEditCampaign';
 
 const BgImage = '/assets/img/illustrations/signin-v2.svg';
 
@@ -79,7 +80,15 @@ export class OAuth2LandingComponent extends React.Component<IOAuth2LandingProps,
             });
             // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
             // Causes a flicker / Need to investigate further
-            setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
+            setTimeout(() => {
+                const campaignDraftState = localStorage.getItem(CAMPAIGN_DRAFT_KEY);
+                if (campaignDraftState) {
+                    const parsedDraftState = JSON.parse(campaignDraftState);
+                    nextProps.navigation.navigate(parsedDraftState.route);
+                } else {
+                    nextProps.navigation.navigate(routeAfterLogin);
+                }
+            });
             return null;
         }
         return {};

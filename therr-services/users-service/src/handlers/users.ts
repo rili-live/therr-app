@@ -13,7 +13,9 @@ import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequestEmail';
-import { createUserHelper, getUserHelper, isUserProfileIncomplete } from './helpers/user';
+import {
+    createUserHelper, getUserHelper, isUserProfileIncomplete, redactUserCreds,
+} from './helpers/user';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -109,9 +111,8 @@ const getMe = (req, res) => {
             }
 
             const userResult = results[0];
-            delete userResult.password;
-            delete userResult.oneTimePassword;
-            delete userResult.verificationCodes;
+            // Remove credentials from object
+            redactUserCreds(userResult);
 
             return userResult;
         })
@@ -226,9 +227,8 @@ const getUserByUserName = (req, res) => {
 const getUsers: RequestHandler = (req: any, res: any) => Store.users.getUsers()
     .then((results) => {
         res.status(200).send(results.map((user) => {
-            delete user.password; // eslint-disable-line no-param-reassign
-            delete user.oneTimePassword; // eslint-disable-line no-param-reassign
-            delete user.verificationCodes; // eslint-disable-line no-param-reassign
+            // Remove credentials from object
+            redactUserCreds(user);
             return user;
         }));
     })
@@ -237,9 +237,8 @@ const getUsers: RequestHandler = (req: any, res: any) => Store.users.getUsers()
 const findUsers: RequestHandler = (req: any, res: any) => Store.users.findUsers({ ids: req.body.ids })
     .then((results) => {
         res.status(200).send(results.map((user) => {
-            delete user.password; // eslint-disable-line no-param-reassign
-            delete user.oneTimePassword; // eslint-disable-line no-param-reassign
-            delete user.verificationCodes; // eslint-disable-line no-param-reassign
+            // Remove credentials from object
+            redactUserCreds(user);
             return user;
         }));
     })
@@ -269,9 +268,8 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
         .then((results) => {
             res.status(200).send({
                 results: results.map((user) => {
-                    delete user.password; // eslint-disable-line no-param-reassign
-                    delete user.oneTimePassword; // eslint-disable-line no-param-reassign
-                    delete user.verificationCodes; // eslint-disable-line no-param-reassign
+                    // Remove credentials from object
+                    redactUserCreds(user);
                     return user;
                 }),
                 pagination: {
@@ -392,9 +390,8 @@ const updateUser = (req, res) => {
                         })
                         .then((results) => {
                             const user = results[0];
-                            delete user.password;
-                            delete user.oneTimePassword;
-                            delete user.verificationCodes;
+                            // Remove credentials from object
+                            redactUserCreds(user);
 
                             // TODO: Investigate security issue
                             // Lockdown updateUser
@@ -470,9 +467,8 @@ const updatePhoneVerification = (req, res) => Store.users.findUser({ id: req.par
                 id: userId,
             }).then((results) => {
                 const user = results[0];
-                delete user.password;
-                delete user.oneTimePassword;
-                delete user.verificationCodes;
+                // Remove credentials from object
+                redactUserCreds(user);
                 res.status(200).send({ ...user, id: userId });
             });
     }).catch((e) => handleHttpError({
@@ -571,9 +567,8 @@ const updateUserCoins = (req, res) => {
                     })
                     .then((results) => {
                         const user = results[0];
-                        delete user.password;
-                        delete user.oneTimePassword;
-                        delete user.verificationCodes;
+                        // Remove credentials from object
+                        redactUserCreds(user);
 
                         // TODO: Investigate security issue
                         // Lockdown updateUser
@@ -879,8 +874,8 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
                 }))
                 .then((results) => {
                     const user = results[0];
-                    delete user.password;
-                    delete user.oneTimePassword;
+                    // Remove credentials from object
+                    redactUserCreds(user);
 
                     return sendVerificationEmail({
                         subject: '[Account Verification] Therr User Account',
