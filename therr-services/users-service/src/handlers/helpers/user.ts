@@ -1,5 +1,4 @@
 import logSpan from 'therr-js-utilities/log-or-update-span';
-import axios from 'axios';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
 import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
@@ -54,6 +53,18 @@ interface IGetUserHelperArgs {
         userName?: string;
     };
 }
+
+/**
+ * Removed sensitive information from user response so we don't return it in REST responses
+ */
+const redactUserCreds = (dbUser) => {
+    delete dbUser.password; // eslint-disable-line no-param-reassign
+    delete dbUser.oneTimePassword; // eslint-disable-line no-param-reassign
+    delete dbUser.integrationsAccess; // eslint-disable-line no-param-reassign
+    delete dbUser.verificationCodes; // eslint-disable-line no-param-reassign
+
+    return dbUser;
+};
 
 /**
  * True if the user profile setting is public or the requesting user is friends with the target user profile
@@ -180,9 +191,8 @@ const getUserHelper = ({
 
         return Promise.all(userPromises).then(([friendship, countResults, syncs]) => {
             const user = results[0];
-            delete user.password;
-            delete user.oneTimePassword;
-            delete user.verificationCodes;
+            // Remove credentials from object
+            redactUserCreds(user);
 
             // TODO: Only send particular information (based on user privacy settings)
             const userResponse = getUserProfileResponse(user, friendship, parseInt(countResults[0]?.count || 0, 10), syncs);
@@ -265,7 +275,8 @@ const createUserHelper = (
         // TODO: RSERV-53 - Create userResource with default values (from library constant DefaultUserResources)
         .then((results) => {
             user = results[0];
-            delete user.password;
+            // Remove credentials from object
+            redactUserCreds(user);
 
             if (hasInviteCode) {
                 createOrUpdateAchievement({
@@ -538,4 +549,5 @@ export {
     isUserProfileIncomplete,
     createUserHelper,
     validateCredentials,
+    redactUserCreds,
 };

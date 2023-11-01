@@ -304,6 +304,10 @@ export default class UsersStore {
             modifiedParams.deviceMobileFirebaseToken = params.deviceMobileFirebaseToken;
         }
 
+        if (params.integrationsAccess) {
+            modifiedParams.integrationsAccess = JSON.stringify(params.integrationsAccess);
+        }
+
         if (params.password) {
             modifiedParams.password = params.password;
         }

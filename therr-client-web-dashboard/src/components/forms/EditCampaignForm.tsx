@@ -5,7 +5,7 @@ import {
 import classNames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
-import { AdIntegrationTargets } from 'therr-js-utilities/constants';
+import { OAuthIntegrationProviders } from 'therr-js-utilities/constants';
 import Datetime from 'react-datetime';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
@@ -25,12 +25,12 @@ const adTypeCategories = [
 ];
 
 const disabledProvidersStatus = {
-    [AdIntegrationTargets.THERR_REWARDS]: false,
-    [AdIntegrationTargets.FB_ADS]: false,
-    [AdIntegrationTargets.IG_ADS]: true,
-    [AdIntegrationTargets.LINKED_IN_ADS]: true,
-    [AdIntegrationTargets.GOOGLE_ADS]: true,
-    [AdIntegrationTargets.TWITTER_ADS]: true,
+    [OAuthIntegrationProviders.THERR]: false,
+    [OAuthIntegrationProviders.FACEBOOK]: false,
+    [OAuthIntegrationProviders.INSTAGRAM]: true,
+    [OAuthIntegrationProviders.LINKEDIN]: true,
+    [OAuthIntegrationProviders.GOOGLE]: true,
+    [OAuthIntegrationProviders.TWITTER]: true,
 };
 
 interface IEditCampaignFormProps {
@@ -64,7 +64,8 @@ interface IEditCampaignFormProps {
     onAddressTypeAheadSelect: (selected: Option[]) => void;
     onInputChange: React.ChangeEventHandler<HTMLInputElement>;
     onDateTimeChange: (name: string, value: string | Moment) => void;
-    onSubmit: (event: React.MouseEvent<HTMLButtonElement>|React.FormEvent<HTMLButtonElement>, integrationTargets: string[]) => void;
+    onSocialSyncPress: any;
+    onSubmit: (event: React.MouseEvent<HTMLButtonElement>|React.FormEvent<HTMLButtonElement>) => void;
     onSelectMedia: (files: any[]) => any;
     shouldShowAdvancedFields?: boolean;
 }
@@ -82,52 +83,46 @@ const EditCampaignForm = ({
     onAddressTypeaheadChange,
     onInputChange,
     onDateTimeChange,
+    onSocialSyncPress,
     onSubmit,
     onSelectMedia,
     shouldShowAdvancedFields,
 }: IEditCampaignFormProps) => {
-    const [isTherrSelected, setProviderTherr] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.THERR_REWARDS));
-    const [isGoogleSelected, setProviderGoogle] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.GOOGLE_ADS));
-    const [isFacebookSelected, setProviderFacebook] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.FB_ADS));
-    const [isInstagramSelected, setProviderInstagram] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.IG_ADS));
-    const [isTwitterSelected, setProviderTwitter] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.TWITTER_ADS));
-    const [isLinkedInSelected, setProviderLinkedIn] = useState(inputs.integrationTargets?.includes(AdIntegrationTargets.LINKED_IN_ADS));
-    const modifiedIntegrationTargets = [];
-    if (isTherrSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.THERR_REWARDS); }
-    if (isFacebookSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.FB_ADS); }
-    if (isInstagramSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.IG_ADS); }
-    if (isLinkedInSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.LINKED_IN_ADS); }
-    if (isGoogleSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.GOOGLE_ADS); }
-    if (isTwitterSelected) { modifiedIntegrationTargets.push(AdIntegrationTargets.TWITTER_ADS); }
+    const isTherrSelected = inputs.integrationTargets?.includes(OAuthIntegrationProviders.THERR);
+    const isGoogleSelected = inputs.integrationTargets?.includes(OAuthIntegrationProviders.GOOGLE);
+    const isFacebookSelected = inputs.integrationTargets?.includes(OAuthIntegrationProviders.FACEBOOK);
+    const isInstagramSelected = inputs.integrationTargets?.includes(OAuthIntegrationProviders.INSTAGRAM);
+    const isTwitterSelected = inputs.integrationTargets?.includes(OAuthIntegrationProviders.TWITTER);
+    const isLinkedInSelected = inputs.integrationTargets?.includes(OAuthIntegrationProviders.LINKEDIN);
     const therrCardClassNames = classNames({
         'ad-provider-card': true,
         selected: isTherrSelected,
-        disabled: disabledProvidersStatus[AdIntegrationTargets.THERR_REWARDS],
+        disabled: disabledProvidersStatus[OAuthIntegrationProviders.THERR],
     });
     const facebookCardClassNames = classNames({
         'ad-provider-card': true,
         selected: isFacebookSelected,
-        disabled: disabledProvidersStatus[AdIntegrationTargets.FB_ADS],
+        disabled: disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK],
     });
     const instagramCardClassNames = classNames({
         'ad-provider-card': true,
         selected: isInstagramSelected,
-        disabled: disabledProvidersStatus[AdIntegrationTargets.IG_ADS],
+        disabled: disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM],
     });
     const linkedInCardClassNames = classNames({
         'ad-provider-card': true,
         selected: isLinkedInSelected,
-        disabled: disabledProvidersStatus[AdIntegrationTargets.LINKED_IN_ADS],
+        disabled: disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN],
     });
     const googleCardClassNames = classNames({
         'ad-provider-card': true,
         selected: isGoogleSelected,
-        disabled: disabledProvidersStatus[AdIntegrationTargets.GOOGLE_ADS],
+        disabled: disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE],
     });
     const twitterCardClassNames = classNames({
         'ad-provider-card': true,
         selected: isTwitterSelected,
-        disabled: disabledProvidersStatus[AdIntegrationTargets.TWITTER_ADS],
+        disabled: disabledProvidersStatus[OAuthIntegrationProviders.TWITTER],
     });
 
     return (
@@ -144,91 +139,91 @@ const EditCampaignForm = ({
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
                                         className={therrCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.THERR_REWARDS]
-                                            && setProviderTherr(!isTherrSelected)}>
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.THERR]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.THERR)}>
                                         <Card.Body className="text-center">
                                             <Card.Img
                                                 src={'/assets/img/therr-logo-green.svg'}
                                                 alt="Therr Ads"
-                                                className={!disabledProvidersStatus[AdIntegrationTargets.THERR_REWARDS] ? 'text-therr' : ''}
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.THERR] ? 'text-therr' : ''}
                                                 height={20}
                                                 width={20}
                                             />
                                             <Card.Text className="mb-0">Therr</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.THERR_REWARDS] ? '' : '(Coming Soon!)'}</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.THERR] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
                                         className={facebookCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.FB_ADS]
-                                            && setProviderFacebook(!isFacebookSelected)}>
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.FACEBOOK)}>
                                         <Card.Body className="text-center">
                                             <FontAwesomeIcon
                                                 icon={faFacebook}
-                                                className={!disabledProvidersStatus[AdIntegrationTargets.FB_ADS] ? 'text-facebook' : ''}
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK] ? 'text-facebook' : ''}
                                             />
                                             <Card.Text className="mb-0">Facebook</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.FB_ADS] ? '' : '(Coming Soon!)'}</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
                                         className={instagramCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.IG_ADS]
-                                            && setProviderInstagram(!isInstagramSelected)}>
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.INSTAGRAM)}>
                                         <Card.Body className="text-center">
                                             <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[AdIntegrationTargets.IG_ADS] ? 'text-instagram' : ''}
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM] ? 'text-instagram' : ''}
                                                 icon={faInstagram}
                                             />
                                             <Card.Text className="mb-0">Instagram</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.IG_ADS] ? '' : '(Coming Soon!)'}</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
                                         className={linkedInCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.LINKED_IN_ADS]
-                                            && setProviderLinkedIn(!isLinkedInSelected)}>
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.LINKEDIN)}>
                                         <Card.Body className="text-center">
                                             <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[AdIntegrationTargets.LINKED_IN_ADS] ? 'text-linkedin' : ''}
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN] ? 'text-linkedin' : ''}
                                                 icon={faLinkedin}
                                             />
                                             <Card.Text className="mb-0">LinkedIn</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.LINKED_IN_ADS] ? '' : '(Coming Soon!)'}</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
                                         className={googleCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.GOOGLE_ADS]
-                                            && setProviderGoogle(!isGoogleSelected)}>
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.GOOGLE)}>
                                         <Card.Body className="text-center">
                                             <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[AdIntegrationTargets.GOOGLE_ADS] ? 'text-google' : ''}
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE] ? 'text-google' : ''}
                                                 icon={faGoogle} />
                                             <Card.Text className="mb-0">Google</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.GOOGLE_ADS] ? '' : '(Coming Soon!)'}</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
                                 <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
                                     <Card
                                         className={twitterCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[AdIntegrationTargets.TWITTER_ADS]
-                                            && setProviderTwitter(!isTwitterSelected)}>
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.TWITTER]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.TWITTER)}>
                                         <Card.Body className="text-center">
                                             <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[AdIntegrationTargets.TWITTER_ADS] ? 'text-twitter' : ''}
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.TWITTER] ? 'text-twitter' : ''}
                                                 icon={faTwitter} />
                                             <Card.Text className="mb-0">Twitter</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[AdIntegrationTargets.TWITTER_ADS] ? '' : '(Coming Soon!)'}</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.TWITTER] ? '' : '(Coming Soon!)'}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
@@ -367,8 +362,8 @@ const EditCampaignForm = ({
                             <Button
                                 variant="primary"
                                 type="submit"
-                                onClick={(e) => onSubmit(e, modifiedIntegrationTargets)}
-                                onSubmit={(e) => onSubmit(e, modifiedIntegrationTargets)}
+                                onClick={onSubmit}
+                                onSubmit={onSubmit}
                                 disabled={isSubmitDisabled}
                             >{hasFormChanged ? 'Save' : 'Next'}</Button>
                         </div>
@@ -483,8 +478,8 @@ const EditCampaignForm = ({
                             <Button
                                 variant="primary"
                                 type="submit"
-                                onClick={(e) => onSubmit(e, modifiedIntegrationTargets)}
-                                onSubmit={(e) => onSubmit(e, modifiedIntegrationTargets)}
+                                onClick={onSubmit}
+                                onSubmit={onSubmit}
                                 disabled={isSubmitDisabled}
                             >{hasFormChanged ? 'Save' : 'Continue'}</Button>
                         </div>

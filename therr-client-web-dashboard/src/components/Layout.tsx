@@ -168,6 +168,8 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         const urlParams = new URLSearchParams(location?.search);
 
+        // TODO: Get/Set integrations in browser localStorage to check session
+        // Include ttl on JSON entries
         if (location.pathname?.includes('oauth2/facebook-instagram')) {
             const searchParams = [...urlParams.entries()].reduce((a, c) => ({
                 ...a,
