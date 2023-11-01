@@ -371,7 +371,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                         route: location.pathname,
                         state: this.state,
                     }));
-                    onFBLoginPress(requestId);
+                    if (target === OAuthIntegrationProviders.FACEBOOK) {
+                        onFBLoginPress(requestId);
+                    }
                 }
             }
         });
