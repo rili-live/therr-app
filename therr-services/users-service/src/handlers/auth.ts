@@ -181,6 +181,7 @@ const login: RequestHandler = (req: any, res: any) => {
                     return Store.users.updateUser({
                         accessLevels: JSON.stringify([...new Set(user.accessLevels)]),
                         loginCount: user.loginCount + 1,
+                        integrationsAccess: user.integrations,
                     }, {
                         id: user.id,
                     }).then((userResponse) => {
