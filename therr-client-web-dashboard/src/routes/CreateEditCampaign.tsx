@@ -362,10 +362,10 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 // Check redux user.settings for integration access_token
                 // Verify that user is logged in. If not, store current form state in localStorage and attempt to oauth2.
                 // TODO: Refresh token if almost expired
-                const isIntegrationAuthenticated = user?.settings
-                    && user?.settings[target]?.access_token
-                    && user?.settings[target]?.user_access_token_expires_at
-                    && user?.settings[target].user_access_token_expires_at > Date.now();
+                const isIntegrationAuthenticated = user?.settings?.integrations
+                    && user.settings.integrations[target]?.access_token
+                    && user.settings.integrations[target]?.user_access_token_expires_at
+                    && user.settings.integrations[target].user_access_token_expires_at > Date.now();
                 if (!isIntegrationAuthenticated) {
                     localStorage.setItem(CAMPAIGN_DRAFT_KEY, JSON.stringify({
                         route: location.pathname,
