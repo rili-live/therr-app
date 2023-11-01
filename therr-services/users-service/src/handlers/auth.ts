@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { AccessLevels, CurrentSocialValuations, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -10,6 +11,10 @@ import translate from '../utilities/translator';
 import { redactUserCreds, validateCredentials } from './helpers/user';
 import TherrEventEmitter from '../api/TherrEventEmitter';
 import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
+
+const userNameOrEmailOrPhone = (user) => user.userName?.trim()
+    || normalizeEmail(user.userEmail?.trim() || '')
+    || normalizePhoneNumber(user.phoneNumber?.trim()?.replace(/\s/g, '') || '');
 
 // Used to disguise customer info, but be consistent for same input string
 const basicHash = (input: string) => {
@@ -29,17 +34,36 @@ const basicHash = (input: string) => {
 
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => {
-    let userNameEmailPhone = req.body.userName?.trim() || req.body.userEmail?.trim() || req.body.phoneNumber?.trim();
+    const authHeader = req.headers.authorization;
+    const userId = req.headers['x-userid'];
+    // TODO: Mitigate user with multiple accounts attached to the same phone number.
+    // Logging in by phone number should attach to all accounts with that phone number and allow them to pick one
+    let userNameEmailPhone = userNameOrEmailOrPhone(req.body);
+    let userEmail = normalizeEmail(req.body.userEmail?.trim() || '');
+    let userPhone = normalizePhoneNumber(req.body.phoneNumber?.trim()?.replace(/\s/g, '') || '');
 
     let userHash = userNameEmailPhone ? basicHash(userNameEmailPhone) : undefined;
-    const getUsersPromise = userNameEmailPhone
-        ? Store.users
-            .getUsers(
-                { userName: userNameEmailPhone },
-                { email: normalizeEmail(userNameEmailPhone) },
-                { phoneNumber: userNameEmailPhone?.replace(/\s/g, '') },
-            )
-        : Promise.resolve([]);
+    let getUsersPromise;
+
+    /**
+     * This ensures that already authenticated users associate any oauth2 integrations with their already logged in account.
+     * It also prevents creating a new account if the oauth2 user's email does not match the logged in user's email
+     */
+    if (userId && authHeader) {
+        // TODO: Test security concerns like a DDOS attack
+        // We should verify the auth bearer token first
+        // Consider making this an optionally authed endpoint in API gateway
+        getUsersPromise = Store.users.getUsers({ id: userId });
+    } else {
+        getUsersPromise = userNameEmailPhone
+            ? Store.users
+                .getUsers(
+                    { userName: userNameEmailPhone },
+                    { email: userNameEmailPhone },
+                    { phoneNumber: userNameEmailPhone },
+                )
+            : Promise.resolve([]);
+    }
 
     return getUsersPromise
         .then((userSearchResults) => {
@@ -72,8 +96,8 @@ const login: RequestHandler = (req: any, res: any) => {
             }
 
             if (!req.body.isSSO
-                && !(userSearchResults[0]?.accessLevels.includes(AccessLevels.EMAIL_VERIFIED)
-                    || userSearchResults[0]?.accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES))) {
+                && !(userSearchResults[0]?.accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)
+                    || userSearchResults[0]?.accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES))) {
                 logSpan({
                     level: 'warn',
                     messageOrigin: 'API_SERVER',
@@ -121,7 +145,10 @@ const login: RequestHandler = (req: any, res: any) => {
                             user_access_token_expires_at: Date.now() + ((oauthResponseData?.expires_in || 0) * 1000),
                         };
                     }
-                    userNameEmailPhone = userDetails.userName?.trim() || userDetails.userEmail?.trim() || userDetails.phoneNumber?.trim();
+                    userNameEmailPhone = userNameOrEmailOrPhone(userDetails);
+
+                    userEmail = userDetails.email?.trim() || ''; // DB response values should already be normalized
+                    userPhone = userDetails.phoneNumber?.trim()?.replace(/\s/g, ''); // DB response values should already be normalized
                     const idToken = createUserToken(user, req.body.rememberMe);
                     userHash = basicHash(userNameEmailPhone);
 
@@ -141,10 +168,15 @@ const login: RequestHandler = (req: any, res: any) => {
                     // Reward inviting user for first time login
                     if (!userSearchResults?.length || userSearchResults[0].loginCount < 2) {
                         let invitesPromise: any;
-                        if (req.body.phoneNumber) {
-                            invitesPromise = Store.invites.getInvitesForPhoneNumber({ phoneNumber: userNameEmailPhone, isAccepted: false });
+                        if (userPhone) {
+                            invitesPromise = Store.invites.getInvitesForPhoneNumber({
+                                phoneNumber: userPhone,
+                                isAccepted: false,
+                            });
+                        } else if (userEmail) {
+                            invitesPromise = Store.invites.getInvitesForEmail({ email: normalizeEmail(userEmail.trim()), isAccepted: false });
                         } else {
-                            invitesPromise = Store.invites.getInvitesForEmail({ email: userNameEmailPhone, isAccepted: false });
+                            invitesPromise = Promise.resolve([]);
                         }
 
                         invitesPromise.then((invites) => {
