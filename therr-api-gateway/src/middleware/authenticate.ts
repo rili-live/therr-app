@@ -5,7 +5,7 @@ import isBlacklisted from '../utilities/isBlacklisted';
 
 const authenticate = async (req, res, next) => {
     try {
-        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+        if (req.headers.authorization?.split(' ')[0] === 'Bearer') {
             await new Promise((resolve, reject) => {
                 jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '', (err, decoded) => {
                     if (err) {

@@ -62,7 +62,8 @@ usersServiceRouter.post('/users/achievements/:id/claim', handleServiceRequest({
 }));
 
 // Auth
-usersServiceRouter.post('/auth', loginAttemptLimiter, authenticateUserValidation, validate, handleServiceRequest({
+// Optional auth when already logged in and using oauth2 providers
+usersServiceRouter.post('/auth', authenticateOptional, loginAttemptLimiter, authenticateUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
