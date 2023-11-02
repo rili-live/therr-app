@@ -5,7 +5,7 @@ import {
 import classNames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
-import { OAuthIntegrationProviders } from 'therr-js-utilities/constants';
+import { CampaignStatuses, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
 import Datetime from 'react-datetime';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
@@ -24,10 +24,16 @@ const adTypeCategories = [
     'engagement',
 ];
 
+const statusOptions = [
+    CampaignStatuses.ACTIVE,
+    CampaignStatuses.PAUSED,
+    CampaignStatuses.REMOVED,
+];
+
 const disabledProvidersStatus = {
     [OAuthIntegrationProviders.THERR]: false,
     [OAuthIntegrationProviders.FACEBOOK]: false,
-    [OAuthIntegrationProviders.INSTAGRAM]: true,
+    [OAuthIntegrationProviders.INSTAGRAM]: false,
     [OAuthIntegrationProviders.LINKEDIN]: true,
     [OAuthIntegrationProviders.GOOGLE]: true,
     [OAuthIntegrationProviders.TWITTER]: true,
@@ -42,6 +48,7 @@ interface IEditCampaignFormProps {
         title: string;
         description: string;
         type: string;
+        status: string;
         scheduleStartAt: string;
         scheduleStopAt: string;
         address?: Option[];
@@ -230,10 +237,10 @@ const EditCampaignForm = ({
                             </Row>
                         </Row>
                         <Row>
-                            <Col sm={8}>
+                            <Col md={8}>
                                 <h5 className="my-4">General Campaign Information</h5>
                                 <Row>
-                                    <Col md={6} className="mb-3">
+                                    <Col lg={6} className="mb-3">
                                         <Form.Group controlId="title">
                                             <Form.Label className="required" aria-required>Campaign Name</Form.Label>
                                             <Form.Control
@@ -247,7 +254,7 @@ const EditCampaignForm = ({
                                             />
                                         </Form.Group>
                                     </Col>
-                                    <Col md={6} className="mb-3">
+                                    <Col lg={6} className="mb-3">
                                         <Form.Group controlId="type">
                                             <Form.Label>Ad Type</Form.Label>
                                             <Form.Control
@@ -266,7 +273,7 @@ const EditCampaignForm = ({
                                     </Col>
                                 </Row>
                                 <Row>
-                                    <Col md={12} className="mb-3">
+                                    <Col lg={12} className="mb-3">
                                         <Form.Group controlId="description">
                                             <Form.Label>Campaign Description</Form.Label>
                                             <Form.Control
@@ -278,15 +285,16 @@ const EditCampaignForm = ({
                                                 onChange={onInputChange}
                                                 placeholder="Add a description of the campaign for future reference..."
                                                 maxLength={1000}
+                                                rows={5}
                                             />
                                         </Form.Group>
                                     </Col>
                                 </Row>
                             </Col>
-                            <Col sm={4}>
+                            <Col md={4}>
                                 <h5 className="my-4">Campaign Schedule</h5>
                                 <Row className="align-items-center">
-                                    <Col md={12} className="mb-3">
+                                    <Col lg={12} className="mb-3">
                                         <Form.Group id="scheduleStartAt">
                                             <Form.Label>Start Date/Time</Form.Label>
                                             <Datetime
@@ -309,7 +317,7 @@ const EditCampaignForm = ({
                                     </Col>
                                 </Row>
                                 <Row className="align-items-center">
-                                    <Col md={12} className="mb-3">
+                                    <Col lg={12} className="mb-3">
                                         <Form.Group id="scheduleStopAt">
                                             <Form.Label>End Date/Time</Form.Label>
                                             <Datetime
@@ -328,6 +336,25 @@ const EditCampaignForm = ({
                                                         />
                                                     </InputGroup>
                                                 )} />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row className="align-items-center">
+                                    <Col lg={12} className="mb-3">
+                                        <Form.Group controlId="status">
+                                            <Form.Label>Status</Form.Label>
+                                            <Form.Control
+                                                value={inputs.status}
+                                                name="status"
+                                                onChange={onInputChange}
+                                                as="select"
+                                            >
+                                                {
+                                                    statusOptions.map((cat, index) => (
+                                                        <option key={index} value={cat}>{cat}</option>
+                                                    ))
+                                                }
+                                            </Form.Control>
                                         </Form.Group>
                                     </Col>
                                 </Row>

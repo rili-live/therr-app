@@ -17,6 +17,7 @@ import {
 // Enums
 import AccessLevels from './enums/AccessLevels';
 import CampaignAssetTypes from './enums/CampaignAssetTypes';
+import CampaignStatuses from './enums/CampaignStatuses';
 import CurrencyTransactionMessages from './enums/CurrencyTransactionMessages';
 import IncentiveRequirementKeys from './enums/IncentiveRequirementKeys';
 import IncentiveRewardKeys from './enums/IncentiveRewardKeys';
@@ -39,6 +40,7 @@ export const SOCKET_MIDDLEWARE_ACTION = 'action';
 export {
     AccessLevels,
     CampaignAssetTypes,
+    CampaignStatuses,
     CurrencyTransactionMessages,
     Content,
     ErrorCodes,
