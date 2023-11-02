@@ -1,4 +1,4 @@
-import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
+import { AccessLevels, CampaignStatuses, ErrorCodes } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
@@ -109,7 +109,7 @@ const createCampaign = async (req, res) => {
         title,
         description,
         type,
-        status: status || 'active',
+        status: status === CampaignStatuses.PAUSED || status === CampaignStatuses.REMOVED ? status : CampaignStatuses.PENDING,
         targetDailyBudget: targetDailyBudget || 0, // TODO
         costBiddingStrategy: costBiddingStrategy || 'default',
         targetLanguages: targetLanguages || [locale],
@@ -178,6 +178,8 @@ const updateCampaign = async (req, res) => {
         assets,
     } = req.body;
 
+    // TODO: Get campaign, check it exists, and check current status
+
     return Store.campaigns.updateCampaign({
         id: req.params.id,
     }, {
@@ -187,7 +189,7 @@ const updateCampaign = async (req, res) => {
         title,
         description,
         type,
-        status,
+        status: status === CampaignStatuses.PAUSED || status === CampaignStatuses.REMOVED ? status : CampaignStatuses.PENDING,
         targetDailyBudget, // TODO
         costBiddingStrategy,
         targetLanguages,
