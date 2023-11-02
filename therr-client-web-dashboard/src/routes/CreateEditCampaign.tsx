@@ -63,6 +63,7 @@ const getInputDefaults = (campaign: any) => {
     return {
         address: [],
         type: campaign?.type || 'local',
+        status: campaign?.status || 'paused',
         title: campaign?.title || '',
         description: campaign?.description || '',
         scheduleStartAt: campaign?.scheduleStartAt || '',
@@ -367,11 +368,15 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                     && user.settings.integrations[target]?.user_access_token_expires_at
                     && user.settings.integrations[target].user_access_token_expires_at > Date.now();
                 if (!isIntegrationAuthenticated) {
-                    localStorage.setItem(CAMPAIGN_DRAFT_KEY, JSON.stringify({
-                        route: location.pathname,
-                        state: this.state,
-                    }));
-                    if (target === OAuthIntegrationProviders.FACEBOOK) {
+                    // TODO: Handle all providers
+                    if (target !== OAuthIntegrationProviders.THERR) {
+                        localStorage.setItem(CAMPAIGN_DRAFT_KEY, JSON.stringify({
+                            route: location.pathname,
+                            state: this.state,
+                        }));
+                    }
+
+                    if (target === OAuthIntegrationProviders.FACEBOOK || target === OAuthIntegrationProviders.INSTAGRAM) {
                         onFBLoginPress(requestId);
                     }
                 }
@@ -391,6 +396,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             title,
             description,
             type,
+            status,
             scheduleStartAt,
             scheduleStopAt,
             address: selectedAddresses,
@@ -443,9 +449,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             title,
             description,
             type,
+            status,
             scheduleStartAt,
             scheduleStopAt,
-            status: formEditingStage < 2 && !campaignInView?.id ? 'paused' : 'active',
             address: selectedAddresses[0]?.description || selectedAddresses[0]?.label,
             latitude,
             longitude,
@@ -621,6 +627,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 title: inputs.title,
                                 description: inputs.description,
                                 type: inputs.type,
+                                status: inputs.status,
                                 scheduleStartAt: inputs.scheduleStartAt,
                                 scheduleStopAt: inputs.scheduleStopAt,
                                 headline1: inputs.headline1,

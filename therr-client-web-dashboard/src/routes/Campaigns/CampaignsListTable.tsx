@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-    faAngleDown, faAngleUp, faEdit, faEllipsisH, faEye, faTrashAlt,
+    faAngleDown, faAngleUp, faClock, faEdit, faEllipsisH, faEye, faPause, faPlay, faStop, faTimes, faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     Button, ButtonGroup, Card, Dropdown, Image, Table,
 } from 'react-bootstrap';
+import { CampaignStatuses } from 'therr-js-utilities/constants';
 import { ICampaign, ISpace } from '../../types';
 import * as globalConfig from '../../../../global-config';
 
@@ -19,6 +20,40 @@ const ValueChange = ({ value, suffix }: any) => {
             <FontAwesomeIcon icon={valueIcon} />
             <span className="fw-bold ms-1">
                 {Math.abs(value)}{suffix}
+            </span>
+        </span> : <span>--</span>
+    );
+};
+
+const CampaignStatus = ({ status, scheduleStartAt, scheduleStopAt }: any) => {
+    const isComplete = Date.now() >= new Date(scheduleStopAt).getTime();
+    const isBeforeSchedule = Date.now() < new Date(scheduleStartAt).getTime();
+    let statusIcon = faClock;
+    let valueTxtColor = 'text-info';
+    let generalizedStatus = isComplete && status !== CampaignStatuses.REMOVED ? CampaignStatuses.COMPLETE : status;
+    generalizedStatus = isBeforeSchedule && status !== CampaignStatuses.REMOVED ? CampaignStatuses.PENDING : generalizedStatus;
+    if (generalizedStatus === CampaignStatuses.PAUSED || generalizedStatus === CampaignStatuses.COMPLETE) {
+        statusIcon = generalizedStatus === CampaignStatuses.COMPLETE ? faStop : faPause;
+        valueTxtColor = 'text-warning';
+    }
+    if (generalizedStatus === CampaignStatuses.PENDING) {
+        statusIcon = faClock;
+        valueTxtColor = 'text-info';
+    }
+    if (generalizedStatus === CampaignStatuses.ACTIVE) {
+        statusIcon = faPlay;
+        valueTxtColor = 'text-success';
+    }
+    if (generalizedStatus === CampaignStatuses.REMOVED) {
+        statusIcon = faTimes;
+        valueTxtColor = 'text-danger';
+    }
+
+    return (
+        status ? <span className={valueTxtColor}>
+            <FontAwesomeIcon icon={statusIcon} />
+            <span className="fw-bold ms-1">
+                {generalizedStatus}
             </span>
         </span> : <span>--</span>
     );
@@ -87,6 +122,13 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
                     <Link to={campaignEditPath} state={{ campaign }}>{title || '-'}</Link>
                 </td>
                 <td className="fw-bold">
+                    <CampaignStatus
+                        scheduleStartAt={scheduleStartAt}
+                        scheduleStopAt={scheduleStopAt}
+                        status={status}
+                    />
+                </td>
+                <td className="fw-bold">
                     {type || '-'}
                 </td>
                 <td className="fw-bold">
@@ -110,6 +152,7 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
                         <tr>
                             <th className="border-0">Actions</th>
                             <th className="border-0">Name</th>
+                            <th className="border-0">Status</th>
                             <th className="border-0">Type</th>
                             <th className="border-0">Start Date</th>
                             <th className="border-0">End Date</th>
