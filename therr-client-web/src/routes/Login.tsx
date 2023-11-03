@@ -90,8 +90,26 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         const alertSuccessMessage = location.state && (location.state as any).successMessage;
 
         return (
-            <div id="page_login" className="flex-box center space-evenly row">
-                <LoginForm login={this.login} alert={alertSuccessMessage}/>
+            <div id="page_login" className="flex-box center space-evenly column">
+                <LoginForm className="self-center" login={this.login} alert={alertSuccessMessage}/>
+                <div className="store-image-links margin-top-lg">
+                    <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
+                        <img
+                            aria-label="apple store link"
+                            className="max-100"
+                            src="/assets/images/apple-store-download-button.svg"
+                            alt="Download Therr on the App Store"
+                        />
+                    </a>
+                    <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
+                        <img
+                            aria-label="play store link"
+                            className="max-100"
+                            src="/assets/images/play-store-download-button.svg"
+                            alt="Download Therr on Google Play"
+                        />
+                    </a>
+                </div>
             </div>
         );
     }

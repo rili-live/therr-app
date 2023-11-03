@@ -14,9 +14,13 @@ import {
 import moment, { Moment } from 'moment';
 import { CampaignActions, MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService, UsersService } from 'therr-react/services';
-import { IMapState as IMapReduxState, IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
+import {
+    IMapState as IMapReduxState, IUserState, IUserConnectionsState, AccessCheckType,
+} from 'therr-react/types';
 import { Option } from 'react-bootstrap-typeahead/types/types';
-import { AccessLevels, OAuthIntegrationProviders, CampaignAssetTypes } from 'therr-js-utilities/constants';
+import {
+    AccessLevels, OAuthIntegrationProviders, CampaignAssetTypes, CampaignStatuses,
+} from 'therr-js-utilities/constants';
 import { v4 as uuidv4 } from 'uuid';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
@@ -63,7 +67,7 @@ const getInputDefaults = (campaign: any) => {
     return {
         address: [],
         type: campaign?.type || 'local',
-        status: campaign?.status || 'paused',
+        status: campaign?.status === CampaignStatuses.PENDING ? CampaignStatuses.ACTIVE : (campaign?.status || CampaignStatuses.PAUSED),
         title: campaign?.title || '',
         description: campaign?.description || '',
         scheduleStartAt: campaign?.scheduleStartAt || '',
@@ -363,10 +367,13 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 // Check redux user.settings for integration access_token
                 // Verify that user is logged in. If not, store current form state in localStorage and attempt to oauth2.
                 // TODO: Refresh token if almost expired
+                const combinedTarget = target === OAuthIntegrationProviders.INSTAGRAM
+                    ? OAuthIntegrationProviders.FACEBOOK
+                    : target;
                 const isIntegrationAuthenticated = user?.settings?.integrations
-                    && user.settings.integrations[target]?.access_token
-                    && user.settings.integrations[target]?.user_access_token_expires_at
-                    && user.settings.integrations[target].user_access_token_expires_at > Date.now();
+                    && user.settings.integrations[combinedTarget]?.access_token
+                    && user.settings.integrations[combinedTarget]?.user_access_token_expires_at
+                    && user.settings.integrations[combinedTarget].user_access_token_expires_at > Date.now();
                 if (!isIntegrationAuthenticated) {
                     // TODO: Handle all providers
                     if (target !== OAuthIntegrationProviders.THERR) {
@@ -376,7 +383,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                         }));
                     }
 
-                    if (target === OAuthIntegrationProviders.FACEBOOK || target === OAuthIntegrationProviders.INSTAGRAM) {
+                    if (combinedTarget === OAuthIntegrationProviders.FACEBOOK) {
                         onFBLoginPress(requestId);
                     }
                 }

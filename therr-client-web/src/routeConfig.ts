@@ -27,7 +27,7 @@ export default [
     {
         route: '/login',
         head: {
-            title: 'Login',
+            title: 'Sign In',
             description: 'Sign in to Therr app and start discovering food, friends, and events in the local community.',
         },
         view: 'index',

@@ -24,6 +24,7 @@ interface IStoreProps extends IHeaderDispatchProps {
 // Regular component props
 interface IHeaderProps extends IStoreProps {
   goHome: Function;
+  goTo: Function;
   isAuthorized: boolean;
   toggleNavMenu: Function;
   isLandingStylePage?: boolean;
@@ -80,6 +81,7 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
         const { hasUnreadNotifications } = this.state;
         const {
             goHome,
+            goTo,
             isAuthorized,
             toggleNavMenu,
             isLandingStylePage,
@@ -109,7 +111,16 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                     />
                 </div>
                 <AccessControl isAuthorized={isAuthorized} publicOnly>
-                    <div className="login-link"><Link to="/login">{this.translate('components.header.buttons.login')}</Link></div>
+                    <div className="login-link flex-box row center align-center">
+                        <SvgButton
+                            id="header_login_icon"
+                            name="account"
+                            onClick={() => goTo('/login')}
+                            buttonType="primary"
+                            aria-label="Sign in to Therr web app"
+                        />
+                        <Link to="/login">{this.translate('components.header.buttons.login')}</Link>
+                    </div>
                 </AccessControl>
                 <AccessControl isAuthorized={isAuthorized}>
                     <SvgButton

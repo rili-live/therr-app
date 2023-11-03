@@ -50,6 +50,12 @@ footer {
 }
 
 button {
+    &#header_login_icon {
+        display: flex;
+        align-items: center;
+        background: transparent;
+    }
+
     &#footer_close,
     &#footer_home,
     &#footer_messages {
@@ -60,6 +66,12 @@ button {
     &#footer_messages {
         margin-right: $messaging-side-margin;
         padding: rem-calc(7px);
+        background: transparent;
+    }
+
+    &#footer_locations_icon {
+        display: flex;
+        align-items: center;
         background: transparent;
     }
 
