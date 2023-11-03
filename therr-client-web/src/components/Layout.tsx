@@ -216,6 +216,10 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         }
     };
 
+    goTo = (path: string) => {
+        this.props.navigation.navigate(path);
+    };
+
     handleLogout = (e) => {
         const { logout, user } = this.props;
 
@@ -304,6 +308,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         return (
             <Header
                 goHome={this.goHome}
+                goTo={this.goTo}
                 isAuthorized={
                     UsersService.isAuthorized(
                         {
@@ -325,6 +330,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         return (
             <Footer
                 goHome={this.goHome}
+                goTo={this.goTo}
                 isAuthorized={
                     UsersService.isAuthorized(
                         {

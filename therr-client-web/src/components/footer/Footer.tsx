@@ -29,6 +29,7 @@ interface IFooterState {
 // Regular component props
 interface IFooterProps extends IStoreProps {
     goHome: Function;
+    goTo: Function;
     isAuthorized: boolean;
     isMessagingOpen: boolean;
     isMsgContainerOpen: boolean;
@@ -71,6 +72,7 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
     render() {
         const {
             goHome,
+            goTo,
             toggleNavMenu,
             isAuthorized,
             isMsgContainerOpen,
@@ -138,8 +140,15 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                         type: AccessCheckType.ALL,
                         levels: [AccessLevels.EMAIL_VERIFIED],
                     }, user)} publicOnly>
-                        <div className="locations-link">
-                            <Link aria-label="View locations on Therr App" to="/locations">
+                        <div className="locations-link flex-box row center align-center">
+                            <SvgButton
+                                id="footer_locations_icon"
+                                name="world"
+                                onClick={() => goTo('/locations')}
+                                buttonType="primary"
+                                aria-label="View business locations on Therr App"
+                            />
+                            <Link aria-label="View business locations on Therr App" to="/locations">
                                 {this.translate('components.footer.buttons.locations')}
                             </Link>
                         </div>

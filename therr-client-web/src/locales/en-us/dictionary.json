@@ -13,7 +13,7 @@
   "components": {
     "header": {
       "buttons": {
-        "login": "Login"
+        "login": "Sign In"
       }
     },
     "footer": {
@@ -46,7 +46,7 @@
         "privacyPolicy": "Privacy Policy",
         "toc": "Terms & Conditions"
       },
-      "defaultTitle": "Login",
+      "defaultTitle": "Sign In",
       "labels": {
         "password": "Password",
         "userName": "Username/Email"
@@ -216,7 +216,7 @@
       "info": "We are dedicated to preventing fake users, so Multi-Factor Auth is a must. Requiring an e-mail and phone # along with geo-tag post requirements drastically limits the potential for fake users."
     },
     "login": {
-      "pageTitle": "Login"
+      "pageTitle": "Sign In"
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"

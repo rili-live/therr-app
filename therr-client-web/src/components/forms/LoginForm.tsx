@@ -13,6 +13,7 @@ interface ILoginFormProps {
     alert?: string;
     login: Function;
     title?: string;
+    className?: string;
 }
 
 interface ILoginFormState {
@@ -108,10 +109,10 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
 
     public render(): JSX.Element | null {
         const { prevLoginError } = this.state;
-        const { alert, title } = this.props;
+        const { alert, className, title } = this.props;
 
         return (
-            <div className="login-container">
+            <div className={`login-container ${className}`}>
                 <div className="flex fill max-wide-20">
                     <h1 className="text-title-medium">{ title || this.translate('components.loginForm.defaultTitle') }</h1>
                     {

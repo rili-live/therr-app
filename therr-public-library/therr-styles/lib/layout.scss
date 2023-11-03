@@ -11,7 +11,10 @@
 
     &.row {
         flex-direction: row;
-        align-items: unset;
+
+        &:not(.align-center) {
+            align-items: unset;
+        }
     }
 
     &.column {

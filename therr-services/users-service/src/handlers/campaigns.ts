@@ -5,6 +5,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
 import sendCampaignCreatedEmail from '../api/email/admin/sendCampaignCreatedEmail';
+import sendCampaignPendingReviewEmail from '../api/email/for-business/sendCampaignPendingReviewEmail';
 
 // READ
 const getCampaign = async (req, res) => {
@@ -178,78 +179,129 @@ const updateCampaign = async (req, res) => {
         assets,
     } = req.body;
 
-    // TODO: Get campaign, check it exists, and check current status
+    return Promise.all([
+        Store.users.getUserById(userId, ['email']),
+        Store.userOrganizations.get({
+            userId,
+        }),
+    ]).then(([[user], userOrgs]) => {
+        // TODO: Verify user is a subscriber
+        const orgsWithWriteAccess = userOrgs.filter((org) => (
+            org.accessLevels.includes(AccessLevels.ORGANIZATIONS_ADMIN)
+            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_BILLING)
+            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_MANAGER)
+        ));
 
-    return Store.campaigns.updateCampaign({
-        id: req.params.id,
-    }, {
-        organizationId, // TODO
-        assetIds, // TODO
-        businessSpaceIds, // TODO
-        title,
-        description,
-        type,
-        status: status === CampaignStatuses.PAUSED || status === CampaignStatuses.REMOVED ? status : CampaignStatuses.PENDING,
-        targetDailyBudget, // TODO
-        costBiddingStrategy,
-        targetLanguages,
-        targetLocations,
-        integrationTargets,
-        scheduleStartAt,
-        scheduleStopAt,
-    }).then((results) => {
-        const campaign = results[0] || {};
-        const existingAssets: any = [];
-        const newAssets: any = [];
-        assets?.forEach((asset) => {
-            if (asset.id) {
-                existingAssets.push(asset);
-            } else {
-                newAssets.push(asset);
-            }
-        });
-        const assetPromises = [
-            newAssets?.length ? Store.campaignAssets.create(newAssets.map((asset) => ({
-                creatorId: userId,
-                organizationId: campaign.organizationId,
-                media: asset.media,
-                spaceId: asset.spaceId, // TODO
-                status: 'accepted',
-                type: asset.type,
-                headline: asset.headline,
-                longText: asset.longText,
-                performance: 'learning', // TODO
-            }))) : Promise.resolve([]),
-            // TODO: Consider using transactions
-            existingAssets.length ? Promise.all(existingAssets.map((asset) => Store.campaignAssets.update(asset.id, {
-                organizationId: campaign.organizationId,
-                headline: asset.headline,
-                longText: asset.longText,
-            }))) : Promise.resolve([]),
-        ];
-
-        return Promise.all(assetPromises).then(([newCampaignAssets, updatedCampaignAssets]) => {
-            // TODO: Automate and remove notification email
-            // Fire off request to update integrations (on third party platforms)
-            sendCampaignCreatedEmail({
-                subject: '[Urgent Request] User Updated a Campaign',
-                toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-            }, {
-                userId,
-                campaignDetails: {
-                    ...campaign,
-                },
+        // Get campaign, check it exists, and check current status
+        return Store.campaigns.getCampaigns({
+            id: req.params.id,
+        }, {
+            creatorId: userId,
+            userOrganizations: orgsWithWriteAccess.map((org) => org.organizationId),
+        }).then(([fetchedCampaign]) => [user, fetchedCampaign]);
+    }).then(([user, fetchedCampaign]) => {
+        if (!fetchedCampaign) {
+            return handleHttpError({
+                res,
+                message: 'Campaign not found',
+                statusCode: 404,
             });
-            return Store.campaigns.updateCampaign({
+        }
+
+        const shouldSendEmailNotifications = (status === CampaignStatuses.REMOVED && fetchedCampaign.status !== CampaignStatuses.REMOVED)
+            || (status === CampaignStatuses.ACTIVE && fetchedCampaign.status !== CampaignStatuses.ACTIVE);
+        const isCampaignCompleted = Date.now() >= new Date(scheduleStopAt || fetchedCampaign.scheduleStopAt).getTime();
+        const isCampaignBeforeSchedule = Date.now() < new Date(scheduleStartAt || scheduleStopAt.scheduleStartAt).getTime();
+        let generalizedStatus = isCampaignCompleted && (status || fetchedCampaign.status) !== CampaignStatuses.REMOVED
+            ? CampaignStatuses.COMPLETE
+            : (status || fetchedCampaign.status);
+        generalizedStatus = isCampaignBeforeSchedule && (status || fetchedCampaign.status) !== CampaignStatuses.REMOVED
+            ? CampaignStatuses.PENDING
+            : generalizedStatus;
+
+        return Store.campaigns.updateCampaign({
+            id: req.params.id,
+        }, {
+            organizationId, // TODO
+            assetIds, // TODO
+            businessSpaceIds, // TODO
+            title,
+            description,
+            type,
+            status: status === CampaignStatuses.PAUSED || status === CampaignStatuses.REMOVED || !status
+                ? status
+                : CampaignStatuses.PENDING,
+            targetDailyBudget, // TODO
+            costBiddingStrategy,
+            targetLanguages,
+            targetLocations,
+            integrationTargets,
+            scheduleStartAt,
+            scheduleStopAt,
+        }).then(([campaign]) => {
+            if (shouldSendEmailNotifications) {
+                if (generalizedStatus !== CampaignStatuses.REMOVED) {
+                    sendCampaignPendingReviewEmail({
+                        subject: `Campaign in Review | ${title}`,
+                        toAddresses: [user.email],
+                    }, {
+                        campaignName: title,
+                        isPastSchedule: isCampaignCompleted,
+                        isBeforeSchedule: isCampaignBeforeSchedule,
+                    });
+                    // TODO: Send email for campaign removal
+                }
+                // TODO: Automate and remove notification email
+                // Fire off request to update integrations (on third party platforms)
+                sendCampaignCreatedEmail({
+                    subject: '[Urgent Request] User Updated a Campaign',
+                    toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                }, {
+                    userId,
+                    campaignDetails: {
+                        ...campaign,
+                    },
+                });
+            }
+            const existingAssets: any = [];
+            const newAssets: any = [];
+            assets?.forEach((asset) => {
+                if (asset.id) {
+                    existingAssets.push(asset);
+                } else {
+                    newAssets.push(asset);
+                }
+            });
+            const assetPromises = [
+                newAssets?.length ? Store.campaignAssets.create(newAssets.map((asset) => ({
+                    creatorId: userId,
+                    organizationId: campaign.organizationId,
+                    media: asset.media,
+                    spaceId: asset.spaceId, // TODO
+                    status: 'accepted',
+                    type: asset.type,
+                    headline: asset.headline,
+                    longText: asset.longText,
+                    performance: 'learning', // TODO
+                }))) : Promise.resolve([]),
+                // TODO: Consider using transactions
+                existingAssets.length ? Promise.all(existingAssets.map((asset) => Store.campaignAssets.update(asset.id, {
+                    organizationId: campaign.organizationId,
+                    headline: asset.headline,
+                    longText: asset.longText,
+                }))) : Promise.resolve([]),
+            ];
+
+            return Promise.all(assetPromises).then(([newCampaignAssets, updatedCampaignAssets]) => Store.campaigns.updateCampaign({
                 id: req.params.id,
             }, {
                 assetIds: newCampaignAssets.map((asset) => asset.id).concat(campaign.assetIds),
-            });
-        }).then((campaigns) => res.status(200).send({
-            updated: results.length,
-            campaigns,
-        }));
-    }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
+            })).then((campaigns) => res.status(200).send({
+                updated: 1,
+                campaigns,
+            }));
+        }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
+    });
 };
 
 export {

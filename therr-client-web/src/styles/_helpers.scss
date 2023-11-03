@@ -25,6 +25,10 @@
     }
 }
 
+.self-center {
+    align-self: auto !important;
+}
+
 @media only screen and (min-width: $screen-medium) {
     .password-requirements {
         p {
