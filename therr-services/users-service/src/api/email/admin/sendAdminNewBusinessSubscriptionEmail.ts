@@ -17,6 +17,8 @@ export interface IAccountTypeParams {
     webhookEventType: string,
     webhookEventAmount: number,
     webhookEventStatus: string,
+    userId?: string;
+    userEmail?: string;
 }
 
 export default (emailParams: ISendAdminNewBusinessSubscriptionEmailConfig, templateParams: ITemplateParams, orderDetails: IAccountTypeParams) => {
