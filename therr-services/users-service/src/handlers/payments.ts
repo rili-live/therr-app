@@ -41,12 +41,13 @@ const handleSubscriptionCreateUpdate = async (event) => {
     });
 
     const normedEmail = normalizeEmail(customer.email || eventObject?.receipt_email || eventObject?.billing_details?.email);
+    let fetchedUser: any = {};
 
     if (eventObject.status === 'trialing') {
         if (normedEmail) {
             await Store.users.getUsers({
                 email: normedEmail,
-            }, {}, {}, ['accessLevels']).then(([user]) => {
+            }, {}, {}, ['id', 'email', 'accessLevels']).then(([user]) => {
                 sendDashboardSubscriberIntroEmail({
                     subject: 'Free Trial Activated: Therr for Business',
                     toAddresses: [normedEmail],
@@ -55,6 +56,7 @@ const handleSubscriptionCreateUpdate = async (event) => {
                 });
 
                 if (user) {
+                    fetchedUser = user;
                     const userAccessLevels = new Set(
                         user.accessLevels,
                     );
@@ -83,13 +85,15 @@ const handleSubscriptionCreateUpdate = async (event) => {
 
     sendAdminNewBusinessSubscriptionEmail({
         subject: '[New Subscriber] New Dashboard Payment',
-        toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+        toAddresses: [],
     }, {
         customerEmail: normedEmail,
     }, {
         webhookEventType: event.type,
         webhookEventAmount: eventObject.amount,
         webhookEventStatus: eventObject.status,
+        userId: fetchedUser?.id,
+        userEmail: fetchedUser?.email,
     });
 };
 
