@@ -12,9 +12,13 @@ import { redactUserCreds, validateCredentials } from './helpers/user';
 import TherrEventEmitter from '../api/TherrEventEmitter';
 import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 
-const userNameOrEmailOrPhone = (user) => user.userName?.trim()
-    || normalizeEmail(user.userEmail?.trim() || '')
-    || normalizePhoneNumber(user.phoneNumber?.trim()?.replace(/\s/g, '') || '');
+// calling normalizeEmail on a userName will have no change
+const userNameOrEmailOrPhone = (user) => normalizeEmail(user.userName?.trim() || user.userEmail?.trim() || user.email?.trim()?.replace(/\s/g, '') || '')
+    || normalizePhoneNumber(
+        user.userName?.trim()?.replace(/\s/g, '')
+            || user.userEmail?.trim()?.replace(/\s/g, '')
+            || user.phoneNumber?.trim()?.replace(/\s/g, '') || '',
+    );
 
 // Used to disguise customer info, but be consistent for same input string
 const basicHash = (input: string) => {
@@ -39,8 +43,13 @@ const login: RequestHandler = (req: any, res: any) => {
     // TODO: Mitigate user with multiple accounts attached to the same phone number.
     // Logging in by phone number should attach to all accounts with that phone number and allow them to pick one
     let userNameEmailPhone = userNameOrEmailOrPhone(req.body);
-    let userEmail = normalizeEmail(req.body.userEmail?.trim() || '');
-    let userPhone = normalizePhoneNumber(req.body.phoneNumber?.trim()?.replace(/\s/g, '') || '');
+    let userEmail = normalizeEmail(req.body.userName?.trim() || req.body.userEmail?.trim() || req.body.email?.trim()?.replace(/\s/g, '') || '');
+    let userPhone = normalizePhoneNumber(
+        req.body.userName?.trim()?.replace(/\s/g, '')
+            || req.body.userEmail?.trim()?.replace(/\s/g, '')
+            || req.body.email?.trim()?.replace(/\s/g, '')
+            || req.body.phoneNumber?.trim()?.replace(/\s/g, '') || '',
+    );
 
     let userHash = userNameEmailPhone ? basicHash(userNameEmailPhone) : undefined;
     let getUsersPromise;
