@@ -399,6 +399,87 @@ const searchMySpaces: RequestHandler = async (req: any, res: any) => {
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
+const claimSpace: RequestHandler = async (req: any, res: any) => {
+    const authorization = req.headers.authorization;
+    const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const { spaceId } = req.params;
+
+    return Store.spaces.getByIdSimple(spaceId).then((([space]) => {
+        if (!space) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'spaces.notFound'),
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            });
+        }
+
+        if (space.fromUserId === userId || space.requestedByUserId) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'spaces.alreadyClaimed'),
+                statusCode: 400,
+                errorCode: ErrorCodes.UNKNOWN_ERROR,
+            });
+        }
+
+        return axios({
+            method: 'post',
+            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/request-space/${spaceId}`,
+            headers: {
+                authorization,
+                'x-localecode': locale,
+                'x-userid': userId,
+            },
+            data: {
+                ...space,
+            },
+        })
+            .then(({ data }) => Store.spaces.updateSpace(space.id, {
+                requestedByUserId: userId,
+            })).then(([updatedSpace]) => {
+                logSpan({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Space Claimed'],
+                    traceArgs: {
+                        // TODO: Add a sentiment analysis score property
+                        action: 'claim-space',
+                        logCategory: 'user-sentiment',
+                        'user.locale': locale,
+                        'user.id': userId,
+                        'space.category': updatedSpace.category,
+                        'space.isPublic': updatedSpace.isPublic,
+                        'space.region': updatedSpace.region,
+                        'space.isMatureContent': updatedSpace.isMatureContent,
+                    },
+                });
+                return {
+                    updated: true,
+                    space: updatedSpace,
+                };
+            }).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['failed to update space after claim request'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'error.response': err?.response?.data,
+                        'user.locale': locale,
+                        'user.id': userId,
+                    },
+                });
+                return {
+                    updated: false,
+                    space,
+                };
+            })
+            .then((result) => res.status(200).send(result));
+    })).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+};
+
 const requestSpace: RequestHandler = async (req: any, res: any) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
@@ -707,6 +788,7 @@ export {
     getSpaceDetails,
     searchSpaces,
     searchMySpaces,
+    claimSpace,
     requestSpace,
     findSpaces,
     getSignedUrlPrivateBucket,
