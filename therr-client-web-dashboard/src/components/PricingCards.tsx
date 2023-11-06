@@ -70,8 +70,8 @@ const PricingCards = ({
                                             <hr />
                                             <ul className="list-unstyled text-white text-left">
                                                 <li><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
+                                                <li><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing)</li>
                                                 <li><i className="fas fa-check"></i> Additional customer metrics</li>
-                                                <li><i className="fas fa-check"></i> AI Influencer Pairings</li>
                                                 <li><i className="fas fa-check"></i> 24/7 Tech Support</li>
                                             </ul>
                                         </Card.Body>
@@ -97,12 +97,10 @@ const PricingCards = ({
                                             </Button>
                                             <hr />
                                             <ul className="list-unstyled text-white text-left">
-                                                <li><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
-                                                <li><i className="fas fa-check"></i> Enhanced customer metrics</li>
-                                                <li><i className="fas fa-check"></i> AI Influencer Pairings</li>
-                                                <li><i className="fas fa-check"></i> 24/7 Tech Support</li>
-                                                <li><i className="fas fa-check"></i> Automated & Configurable Marketing Campaigns (S.O.M.)</li>
+                                                <li className="fw-bolder mb-2"><i className="fas fa-star"></i> All Basic Plan Features</li>
+                                                <li><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing + AI)</li>
                                                 <li><i className="fas fa-check"></i> Customer & Micro-influencer incentives (for reviews, shout-outs, promos, etc.)</li>
+                                                <li><i className="fas fa-check"></i> Personalized Influencer Pairing</li>
                                             </ul>
                                         </Card.Body>
                                     </Card>
@@ -127,15 +125,11 @@ const PricingCards = ({
                                             </Button>
                                             <hr />
                                             <ul className="list-unstyled text-white text-left">
-                                                <li><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
-                                                <li><i className="fas fa-check"></i> Additional customer metrics</li>
-                                                <li><i className="fas fa-check"></i> AI Influencer Pairings</li>
-                                                <li><i className="fas fa-check"></i> 24/7 Tech Support</li>
-                                                <li><i className="fas fa-check"></i> Automated & Configurable Marketing Campaigns (S.O.M.)</li>
-                                                <li><i className="fas fa-check"></i> Customer & influencer incentives (for reviews, shout-outs, promos, etc.)</li>
+                                                <li className="fw-bolder mb-2"><i className="fas fa-star"></i> All Basic/Advanced Plan Features</li>
+                                                <li><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing + Advance AI)</li>
+                                                <li><i className="fas fa-check"></i> Prioritized & Personalized Influencer Pairing</li>
                                                 <li><i className="fas fa-check"></i> Point-of-purchase incentives for customers & influencers</li>
-                                                <li><i className="fas fa-check"></i> Influencer marketing on Instagram/Twitter/etc.</li>
-                                                <li><i className="fas fa-check"></i> Curated Facebook, Twitter, & Google Ads campaign</li>
+                                                <li><i className="fas fa-check"></i> Curated Business Marketing on Therr Blog & Associated Social Media Accounts</li>
                                             </ul>
                                         </Card.Body>
                                     </Card>
