@@ -1,5 +1,6 @@
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
+import { SUPER_ADMIN_ID } from '../constants';
 
 // DELETE
 /**
@@ -10,11 +11,9 @@ const deleteUserData = (req, res) => {
     // TODO: RSERV-52 | Consider archiving only, and delete/archive associated reactions from reactions-service
     // We must delete moments first since they may be associated to a space and have NO cascade on delete (this is intentional)
     const deletePosts = Store.moments.delete(userId)
-        .then(([moments]) => {
-            // TODO: update spaces and assign to super admin
-            console.log('TODO');
-            return [moments, []];
-        }).then(([moments, spaces]) => ([moments, spaces]));
+        // Reassign spaces to the super admin rather than deleting
+        .then(([moments]) => Store.spaces.reassign(userId, SUPER_ADMIN_ID).then((spaces) => [moments, spaces]))
+        .then(([moments, spaces]) => ([moments, spaces]));
 
     deletePosts
         .then(([moments, spaces]) => res.status(202).send({ moments, spaces }))
