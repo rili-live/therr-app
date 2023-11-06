@@ -182,6 +182,7 @@ export default class SpacesStore {
                 'id',
                 'category',
                 'fromUserId',
+                'requestedByUserId',
                 'organizationId',
                 'isPublic',
                 'isMatureContent',
@@ -512,6 +513,7 @@ export default class SpacesStore {
             const isTextMature = isTextUnsafe([params.notificationMsg, params.message, params.hashTags || '']);
 
             const sanitizedParams: any = {
+                requestedByUserId: params.requestedByUserId,
                 addressReadable: params.addressReadable,
                 notificationMsg: params.notificationMsg,
                 message: params.message,

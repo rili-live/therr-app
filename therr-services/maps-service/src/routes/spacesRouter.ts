@@ -4,6 +4,7 @@ import {
     getSpaceDetails,
     searchSpaces,
     searchMySpaces,
+    claimSpace,
     requestSpace,
     findSpaces,
     getSignedUrlPublicBucket,
@@ -21,6 +22,7 @@ router.put('/:spaceId', updateSpace);
 // SEARCH
 router.post('/:spaceId/details', getSpaceDetails);
 router.post('/request-claim', requestSpace);
+router.post('/request-claim/:spaceId', claimSpace);
 router.post('/list', searchSpaces);
 router.post('/search', searchSpaces);
 router.post('/search/me', searchMySpaces);

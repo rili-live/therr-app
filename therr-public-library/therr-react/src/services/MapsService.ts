@@ -208,6 +208,16 @@ class MapsService {
     deleteSpaces = (data: IDeleteAreasBody) => this.deleteAreas('spaces', data);
 
     // Dashboard
+    claimSpace = (spaceId: string) => {
+        const url = `/maps-service/spaces/request-claim/${spaceId}`;
+
+        return axios({
+            method: 'post',
+            url,
+            data: {},
+        });
+    };
+
     requestClaim = (args: any) => {
         const url = '/maps-service/spaces/request-claim';
 

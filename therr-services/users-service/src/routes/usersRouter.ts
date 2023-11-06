@@ -54,5 +54,6 @@ router.post('/forgot-password', createOneTimePassword);
 router.post('/verify/resend', resendVerification);
 router.post('/verify/:token', verifyUserAccount);
 router.post('/request-space', requestSpace);
+router.post('/request-space/:spaceId', requestSpace);
 
 export default router;
