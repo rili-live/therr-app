@@ -170,7 +170,7 @@ const Sidebar = (props: ISidebarProps) => {
                                 <NavItem title="Admin Dashboard" link={'/dashboard-admin'} icon={faTasks} />
                             </AccessControl>
                             <NavItem title="Claim a Space" link={'/claim-a-space'} icon={faMapMarked} />
-                            <NavItem title="My Campaigns" icon={faBullhorn} link={'/campaigns/overview'} />
+                            <NavItem title="My Ad Campaigns" icon={faBullhorn} link={'/campaigns/overview'} />
                             <NavItem title="Influencer Pairings" icon={faPeopleArrows} link={'/influencer-pairings'} />
 
                             {/* <CollapsableNavItem eventKey="tables/" title="Tables" icon={faTable}>

@@ -63,7 +63,7 @@ const EditSpaceForm = ({
             <Card.Body>
                 <Form>
                     <Row>
-                        <h5 className="my-4">Location / Address</h5>
+                        <h5 className="my-4">Storefront Location / Address</h5>
                         <Col sm={12} className="mb-3">
                             {/* <Form.Group id="address">
                                 <Form.Label>Address</Form.Label>
