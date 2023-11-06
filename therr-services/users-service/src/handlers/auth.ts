@@ -137,7 +137,7 @@ const login: RequestHandler = (req: any, res: any) => {
                     userFirstName: req.body.userFirstName,
                     userLastName: req.body.userLastName,
                 },
-            }, res).then(([isValid, userDetails, oauthResponseData]) => {
+            }, res).then(async ([isValid, userDetails, oauthResponseData]) => {
                 if (isValid) {
                     const user = {
                         ...userDetails,
@@ -158,7 +158,22 @@ const login: RequestHandler = (req: any, res: any) => {
 
                     userEmail = userDetails.email?.trim() || ''; // DB response values should already be normalized
                     userPhone = userDetails.phoneNumber?.trim()?.replace(/\s/g, ''); // DB response values should already be normalized
-                    const idToken = createUserToken(user, req.body.rememberMe);
+                    const userOrgs = await Store.userOrganizations.get({
+                        userId: user.id,
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: [err?.message, 'Failed to fetch user organizations for idToken'],
+                            traceArgs: {
+                                issue: '',
+                                port: process.env.USERS_SERVICE_API_PORT,
+                                'process.id': process.pid,
+                            },
+                        });
+                        return [];
+                    });
+                    const idToken = createUserToken(user, userOrgs, req.body.rememberMe);
                     userHash = basicHash(userNameEmailPhone);
 
                     logSpan({

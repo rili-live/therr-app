@@ -228,6 +228,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
             longitude,
             radius: 100,
             isPublic: true,
+            isDashboard: true,
         }).then(() => {
             this.setState({
                 alertTitle: 'Request Sent',
