@@ -10,7 +10,11 @@ const deleteUserData = (req, res) => {
     // TODO: RSERV-52 | Consider archiving only, and delete/archive associated reactions from reactions-service
     // We must delete moments first since they may be associated to a space and have NO cascade on delete (this is intentional)
     const deletePosts = Store.moments.delete(userId)
-        .then(([moments]) => Store.spaces.delete(userId).then(([spaces]) => ([moments, spaces])));
+        .then(([moments]) => {
+            // TODO: update spaces and assign to super admin
+            console.log('TODO');
+            return [moments, []];
+        }).then(([moments, spaces]) => ([moments, spaces]));
 
     deletePosts
         .then(([moments, spaces]) => res.status(202).send({ moments, spaces }))

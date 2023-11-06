@@ -40,8 +40,13 @@ const PricingCards = ({
                             </h3>
                         </Row>
                         <Row className="flex-row justify-content-center align-items-center">
-                            <h5 className="text-center pb-4">
-                                Contact support for a 30% on annual payments.
+                            <h5 className="text-center pb-1 text-success text-uppercase">
+                                All packages start with a <span className="fw-bolder text-underline">14 day free trial</span> that can be canceled at any time.
+                            </h5>
+                        </Row>
+                        <Row className="flex-row justify-content-center align-items-center">
+                            <h5 className="text-center pb-2">
+                                View the checkout page for a <span className="fw-bolder text-underline">30% discount</span> when you pay annually.
                             </h5>
                         </Row>
                         <Row className="flex-row justify-content-center align-items-center">
