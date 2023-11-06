@@ -202,6 +202,10 @@ mapsServiceRouter.post('/spaces/request-claim', createAreaValidation, validate, 
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));
+mapsServiceRouter.post('/spaces/request-claim/:spaceId', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
 
 // TODO: Add rate limiter?
 // External APIs
