@@ -931,9 +931,16 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
                 title,
                 description,
                 userId,
-            });
+            }).then(() => users[0]);
         })
-        .then(() => res.status(200).send({ message: 'Request sent to admin' }))
+        .then((user) => res.status(200).send({
+            message: 'Request sent to admin',
+            user: {
+                accessLevels: user.accessLevels,
+                isBusinessAccount: user.isBusinessAccount,
+                email: user.email,
+            },
+        }))
         .catch((err) => handleHttpError({
             err,
             res,

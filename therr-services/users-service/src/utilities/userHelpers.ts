@@ -5,7 +5,7 @@ const saltRounds = 10;
 
 export const hashPassword = (password: string) => bcrypt.hash(password, saltRounds);
 
-export const createUserToken = (user: any, rememberMe?: boolean) => {
+export const createUserToken = (user: any, userOrgs: any[], rememberMe?: boolean) => {
     const {
         id,
         userName,
@@ -16,6 +16,12 @@ export const createUserToken = (user: any, rememberMe?: boolean) => {
         isSSO,
         accessLevels,
     } = user;
+    const mappedUserOrgs = userOrgs
+        .filter((o) => o.inviteStatus === 'accepted' && o.isEnabled)
+        .reduce((acc, cur) => {
+            acc[cur.organizationId] = cur.accessLevels;
+            return acc;
+        }, {});
     // Sign the JWT
     return jwt.sign(
         {
@@ -27,6 +33,7 @@ export const createUserToken = (user: any, rememberMe?: boolean) => {
             integrations,
             isSSO: isSSO || false,
             accessLevels,
+            organizations: mappedUserOrgs,
         },
         (process.env.JWT_SECRET || ''),
         {

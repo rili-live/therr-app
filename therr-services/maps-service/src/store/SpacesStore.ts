@@ -24,6 +24,7 @@ export interface ICreateSpaceParams {
     category?: string;
     expiresAt?: any;
     fromUserId: string;
+    requestedByUserId?: string;
     organizationId?: string;
     locale: string;
     isPublic?: boolean;
@@ -433,6 +434,7 @@ export default class SpacesStore {
                 category: params.category || 'uncategorized',
                 expiresAt: params.expiresAt,
                 fromUserId: params.fromUserId,
+                requestedByUserId: params.requestedByUserId,
                 locale: params.locale,
                 isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
                 isClaimPending: params.isClaimPending || false,
@@ -554,6 +556,17 @@ export default class SpacesStore {
 
             return this.db.write.query(queryString).then((response) => response.rows);
         });
+    }
+
+    reassign(fromUserId: string, toUserId: string) {
+        const queryString = knexBuilder.update({
+            id: toUserId,
+        })
+            .from(SPACES_TABLE_NAME)
+            .where('fromUserId', fromUserId)
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
     }
 
     delete(fromUserId: string) {

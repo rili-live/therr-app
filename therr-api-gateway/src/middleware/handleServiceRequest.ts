@@ -27,6 +27,7 @@ const handleServiceRequest = ({
             'x-userid': req.headers['x-userid'] || req['x-userid'] || '',
             'x-username': req.headers['x-username'] || req['x-username'] || '',
             'x-user-access-levels': req.headers['x-user-access-levels'] || req['x-user-access-levels'] || '',
+            'x-organizations': req.headers['x-organizations'] || req['x-organizations'] || '',
         },
         method,
         url: `${basePath}${overrideUrl || req.url}`,

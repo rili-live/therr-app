@@ -18,6 +18,7 @@ const authenticateOptional = async (req, res, next) => {
                     req['x-userid'] = decoded.id;
                     req['x-username'] = decoded.userName;
                     req['x-user-access-levels'] = decoded.accessLevels ? JSON.stringify(decoded.accessLevels) : '[]';
+                    req['x-organizations'] = decoded.organizations ? JSON.stringify(decoded.organizations) : '{}';
 
                     return resolve('');
                 });

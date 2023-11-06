@@ -20,6 +20,7 @@ import { checkIsMediaSafeForWork } from './helpers';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import userMetricsService from '../api/userMetricsService';
 import getUserOrganizations from '../utilities/getUserOrganizations';
+import { SUPER_ADMIN_ID } from '../constants';
 
 const MAX_DISTANCE_TO_ADDRESS_METERS = 2000;
 
@@ -404,6 +405,8 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
     const locale = req.headers['x-localecode'] || 'en-us';
 
     const {
+        isDashboard,
+
         address,
         addressReadable,
         addressStreetAddress,
@@ -465,7 +468,8 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                 addressLocality,
                 postalCode,
                 category,
-                fromUserId: userId,
+                fromUserId: isDashboard ? userId : SUPER_ADMIN_ID,
+                requestedByUserId: userId,
                 locale,
                 isPublic,
                 isMatureContent: isTextMature,
