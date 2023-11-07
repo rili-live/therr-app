@@ -11,20 +11,22 @@ const onFBLoginPress = (requestId: string, target = '_self') => {
         'email',
         'public_profile',
         'instagram_basic',
+        'business_management',
         //
+        'ads_read',
         'ads_management',
         'pages_show_list',
         'pages_read_engagement',
         //
-        'ads_read',
-        // //
         'pages_manage_ads',
         'pages_show_list',
-        // //
+        'pages_events',
+        'pages_user_locale',
+        'pages_user_timezone',
+        //
         'read_insights',
         'instagram_manage_insights',
         // 'instagram_graph_user_profile',
-        'business_management',
     ];
     // const redirectUri = 'https://api.therr.com/v1/users-service/social-sync/oauth2-dashboard-facebook';
     const redirectUri = 'https://dashboard.therr.com/oauth2/facebook-instagram';

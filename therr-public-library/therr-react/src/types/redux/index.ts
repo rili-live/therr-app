@@ -1,5 +1,5 @@
 import {
-    ICampaignState,
+    ICampaignsState,
     CampaignActionTypes,
 } from './campaigns';
 import {
@@ -51,7 +51,7 @@ import {
 
 export {
     // Campaigns
-    ICampaignState,
+    ICampaignsState,
     CampaignActionTypes,
 
     // Content
