@@ -375,9 +375,13 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                     </ButtonGroup>
                 </div>
 
+                <div className="text-center">
+                    <Button variant="secondary" onClick={this.navigateHandler('/claim-a-space')}>
+                        <FontAwesomeIcon icon={faMapMarked} className="me-1" /> Claim a Space
+                    </Button>
+                </div>
                 <Row className="d-flex justify-content-around align-items-center py-4">
                     <Col xs={12} xl={12} xxl={10}>
-                        <h1 className="text-center">Manage Your Spaces</h1>
                         {
                             (spacesInView?.length > 0 || isLoading)
                                 && <SpacesListTable

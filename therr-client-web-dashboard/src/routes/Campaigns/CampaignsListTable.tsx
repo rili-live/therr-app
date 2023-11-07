@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import moment, { Moment } from 'moment';
 import {
     faAngleDown, faAngleUp, faClock, faEdit, faEllipsisH, faEye, faPause, faPlay, faStop, faTimes, faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
@@ -132,20 +133,20 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
                     {type || '-'}
                 </td>
                 <td className="fw-bold">
-                    {scheduleStartAt.toString() || '-'}
+                    {scheduleStartAt ? moment(scheduleStartAt).format('MM/DD/YYYY h:mm A') : '-'}
                 </td>
                 <td className="fw-bold">
-                    {scheduleStopAt.toString() || '-'}
+                    {scheduleStopAt ? moment(scheduleStopAt).format('MM/DD/YYYY h:mm A') : '-'}
                 </td>
                 <td className="fw-bold">
-                    {updatedAt.toString() || '-'}
+                    {updatedAt ? moment(updatedAt).format('MM/DD/YYYY h:mm A') : '-'}
                 </td>
             </tr>
         );
     };
 
     return (
-        <Card border="light" className="shadow-sm">
+        <Card border="light" className="shadow-sm rounded-0">
             <Card.Body className="pb-0">
                 <Table responsive className="table-centered table-nowrap rounded mb-0">
                     <thead className="thead-light">

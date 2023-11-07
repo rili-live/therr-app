@@ -36,7 +36,7 @@ const CounterWidget = ({
     const percentageColor = percentage < 0 ? 'text-danger' : 'text-success';
 
     return (
-        <Card border="light" className="shadow-sm">
+        <Card border="light" className="shadow-sm rounded-0">
             <Card.Body>
                 <Row className="d-block d-xl-flex align-items-center">
                     <Col xl={5} className="text-xl-center d-flex align-items-center justify-content-xl-center mb-3 mb-xl-0">

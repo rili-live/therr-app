@@ -202,7 +202,9 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     <FormCheck id="terms" type="checkbox" className="d-flex mb-4">
                         <FormCheck.Input required className="me-2" onChange={this.onCheckboxChange} checked={inputs.terms}/>
                         <FormCheck.Label htmlFor="terms">
-                            I agree to the <Card.Link href="https://www.therr.app/terms-and-conditions.html" target="_blank">terms & conditions</Card.Link>
+                            I agree to the <Card.Link href="https://www.therr.app/terms-and-conditions.html"
+                                target="_blank"
+                                className="fw-bolder">terms & conditions</Card.Link>
                         </FormCheck.Label>
                     </FormCheck>
                 </Form.Group>
