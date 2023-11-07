@@ -15,7 +15,7 @@ import moment, { Moment } from 'moment';
 import { CampaignActions, MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService, UsersService } from 'therr-react/services';
 import {
-    IMapState as IMapReduxState, IUserState, IUserConnectionsState, AccessCheckType,
+    IMapState as IMapReduxState, IUserState, IUserConnectionsState, AccessCheckType, ICampaignsState,
 } from 'therr-react/types';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 import {
@@ -27,7 +27,7 @@ import withNavigation from '../wrappers/withNavigation';
 import EditCampaignForm from '../components/forms/EditCampaignForm';
 import { getWebsiteName } from '../utilities/getHostContext';
 import ManageCampaignsMenu from '../components/ManageCampaignsMenu';
-import { ICampaign, ICampaignAsset } from '../types';
+import { ICampaignAsset } from '../types';
 import { signAndUploadImage } from '../utilities/media';
 import { onFBLoginPress } from '../api/login';
 
@@ -98,6 +98,7 @@ interface ICreateEditCampaignDispatchProps {
 }
 
 interface IStoreProps extends ICreateEditCampaignDispatchProps {
+    campaigns: ICampaignsState;
     map: IMapReduxState;
     user: IUserState;
     userConnections: IUserConnectionsState;
@@ -113,7 +114,6 @@ interface ICreateEditCampaignState {
     alertVariation: string;
     alertTitle: string;
     alertMessage: string;
-    fetchedCampaign: any;
     files: any[];
     formEditingStage: number;
     hasFormChanged: boolean;
@@ -127,6 +127,7 @@ interface ICreateEditCampaignState {
 }
 
 const mapStateToProps = (state: any) => ({
+    campaigns: state.campaigns,
     map: state.map,
     user: state.user,
     userConnections: state.userConnections,
@@ -146,14 +147,13 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  */
 export class CreateEditCampaignComponent extends React.Component<ICreateEditCampaignProps, ICreateEditCampaignState> {
     static getDerivedStateFromProps(nextProps: ICreateEditCampaignProps, nextState: ICreateEditCampaignState) {
-        if (!nextProps?.routeParams?.campaignId) {
+        if (!nextProps?.routeParams?.campaignId && nextState.isEditing) {
             const campaign = {};
             return {
                 alertIsVisible: false,
                 alertVariation: 'success',
                 alertTitle: '',
                 alertMessage: '',
-                fetchedCampaign: campaign,
                 files: [],
                 formEditingStage: 1,
                 hasFormChanged: false,
@@ -174,7 +174,6 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     constructor(props: ICreateEditCampaignProps) {
         super(props);
 
-        const { campaign } = props.location?.state || {} as any;
         const { campaignId } = props.routeParams;
 
         this.state = {
@@ -182,12 +181,11 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             alertVariation: 'success',
             alertTitle: '',
             alertMessage: '',
-            fetchedCampaign: campaign,
             files: [],
             formEditingStage: 1,
             hasFormChanged: false,
             isSubmitting: false,
-            inputs: getInputDefaults(campaign),
+            inputs: getInputDefaults(props.campaigns.campaigns[campaignId] || {}),
             isEditing: !!campaignId,
             mediaPendingUpload: [],
             requestId: uuidv4().toString(),
@@ -198,10 +196,8 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
     componentDidMount() {
         document.title = `${getWebsiteName()} | ${this.translate('pages.createACampaign.pageTitle')}`;
-        const { getCampaign, location } = this.props;
-        const { campaign } = location?.state || {} as any;
+        const { getCampaign, campaigns } = this.props;
         const { campaignId } = this.props.routeParams;
-        const id = campaign?.id || campaignId;
 
         // First check if campaign state is stored in localStorage from before user OAuth2 redirected.
         // Clear it out after re-populating the form state.
@@ -210,17 +206,13 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         localStorage.removeItem(CAMPAIGN_DRAFT_KEY);
         if (fetchedState) {
             this.setState(fetchedState);
-        } else if (id) {
-            getCampaign(id, {
+        } else if (!campaigns.campaigns[campaignId]) {
+            // TODO: Make sure assets are returned in search results or we store fetched campaigns separately
+            getCampaign(campaignId, {
                 withMedia: true,
-            }).then((data) => {
-                const mergedCampaign = {
-                    ...this.state.fetchedCampaign,
-                    ...data,
-                };
+            }).then((response) => {
                 this.setState({
-                    fetchedCampaign: mergedCampaign,
-                    inputs: getInputDefaults(mergedCampaign),
+                    inputs: getInputDefaults(response),
                 });
             }).catch(() => {
                 //
@@ -416,9 +408,16 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     onSubmitCampaign = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
 
-        const { location, createCampaign, updateCampaign } = this.props;
         const {
-            files, fetchedCampaign, formEditingStage, hasFormChanged,
+            campaigns,
+            createCampaign,
+            updateCampaign,
+            routeParams,
+        } = this.props;
+        const { campaignId } = routeParams;
+        const campaign = campaigns.campaigns[campaignId] || {};
+        const {
+            files, formEditingStage, hasFormChanged,
         } = this.state;
 
         const {
@@ -437,7 +436,6 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             longText1,
             longText2,
         } = this.state.inputs;
-        const { campaign } = location?.state || {} as any;
 
         this.setState({
             isSubmitting: true,
@@ -465,14 +463,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             return;
         }
 
-        const campaignInView = {
-            ...campaign,
-            ...fetchedCampaign,
-        };
-
         // TODO: Upload if new image asset(s) are added
-        const saveMethod = campaignInView?.id
-            ? (campaignDetails) => updateCampaign(campaignInView?.id, campaignDetails)
+        const saveMethod = campaign?.id
+            ? (campaignDetails) => updateCampaign(campaign?.id, campaignDetails)
             : createCampaign;
         const requestBody: any = {
             title,
@@ -487,7 +480,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             integrationTargets,
         };
 
-        if (!campaignInView?.status) {
+        if (!campaign?.status) {
             requestBody.status = formEditingStage < 2 ? 'paused' : 'active';
         }
 
@@ -497,7 +490,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             headlineAssets,
             longTextAssets,
             mediaAssets,
-        } = partitionAssets(campaignInView);
+        } = partitionAssets(campaign);
         if (headline1) {
             assets.push({
                 id: headlineAssets && headlineAssets[0]?.id,
@@ -548,10 +541,6 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             this.setState({
                                 isSubmitting: false,
                                 formEditingStage: 2,
-                                fetchedCampaign: {
-                                    ...fetchedCampaign,
-                                    ...response?.campaigns[0],
-                                },
                             });
                         } else {
                             localStorage.removeItem(CAMPAIGN_DRAFT_KEY);
@@ -616,16 +605,19 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             alertVariation,
             alertTitle,
             alertMessage,
-            fetchedCampaign,
             hasFormChanged,
             inputs,
             isEditing,
             formEditingStage,
         } = this.state;
-        const { map, user } = this.props;
+        const {
+            campaigns, map, user, routeParams,
+        } = this.props;
+        const { campaignId } = routeParams;
+        const campaign = campaigns.campaigns[campaignId];
         const {
             mediaAssets,
-        } = partitionAssets(fetchedCampaign);
+        } = partitionAssets(campaign);
 
         return (
             <div id="page_settings" className="flex-box column">

@@ -110,7 +110,7 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
                             {/* <Dropdown.Item>
                                 <FontAwesomeIcon icon={faEye} className="me-2" /> View Details
                             </Dropdown.Item> */}
-                            <Dropdown.Item as={Link} to={campaignEditPath} state={{ campaign }}>
+                            <Dropdown.Item as={Link} to={campaignEditPath}>
                                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Edit
                             </Dropdown.Item>
                             {/* <Dropdown.Item className="text-danger">
@@ -120,7 +120,7 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
                     </Dropdown>
                 </td>
                 <td className="fw-bold">
-                    <Link to={campaignEditPath} state={{ campaign }}>{title || '-'}</Link>
+                    <Link to={campaignEditPath}>{title || '-'}</Link>
                 </td>
                 <td className="fw-bold">
                     <CampaignStatus

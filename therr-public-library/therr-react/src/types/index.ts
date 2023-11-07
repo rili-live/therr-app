@@ -1,6 +1,6 @@
 import {
     // Campaigns
-    ICampaignState,
+    ICampaignsState,
     CampaignActionTypes,
 
     // Content
@@ -82,7 +82,7 @@ export {
     ISearchQuery,
 
     // Campaigns
-    ICampaignState,
+    ICampaignsState,
     CampaignActionTypes,
 
     // Content
