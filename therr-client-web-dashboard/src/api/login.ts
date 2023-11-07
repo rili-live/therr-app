@@ -24,6 +24,7 @@ const onFBLoginPress = (requestId: string, target = '_self') => {
         'read_insights',
         'instagram_manage_insights',
         // 'instagram_graph_user_profile',
+        'business_management',
     ];
     // const redirectUri = 'https://api.therr.com/v1/users-service/social-sync/oauth2-dashboard-facebook';
     const redirectUri = 'https://dashboard.therr.com/oauth2/facebook-instagram';
