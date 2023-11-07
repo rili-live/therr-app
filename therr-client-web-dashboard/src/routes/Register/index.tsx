@@ -186,7 +186,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
                                         <div className="d-flex justify-content-center align-items-center mt-4">
                                             <span className="fw-normal">
                                                 Already have an account?
-                                                <Card.Link as={Link} to={'/login'} className="fw-bold">
+                                                <Card.Link as={Link} to={'/login'} className="fw-bolder">
                                                     {' Login here '}
                                                 </Card.Link>
                                             </span>

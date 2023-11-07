@@ -32,7 +32,7 @@ const PricingCards = ({
     return (
         <Row className="d-flex justify-content-around align-items-center py-4">
             <Col xs={12} xl={12} xxl={10}>
-                <Card>
+                <Card className="rounded-0">
                     <Card.Body>
                         <Row className="flex-row justify-content-center align-items-center">
                             <h3 className="text-center pb-4">

@@ -390,11 +390,6 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
 
                 <Row className="d-flex justify-content-around align-items-center py-4">
                     <Col xs={12} xl={10} xxl={8}>
-                        {
-                            isEditing
-                                ? <h1 className="text-center">Edit Space</h1>
-                                : <h1 className="text-center">Create a Space</h1>
-                        }
                         <EditSpaceForm
                             addressTypeAheadResults={map?.searchPredictions?.results || []}
                             inputs={{
@@ -409,6 +404,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                                 reservationUrl: inputs.reservationUrl,
                             }}
                             mediaUrl={spaceMediaUrl}
+                            isEditing={isEditing}
                             isSubmitDisabled={this.isSubmitDisabled()}
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeAheadSelect={this.onAddressTypeAheadSelect}

@@ -64,6 +64,7 @@ interface IEditCampaignFormProps {
         longText2: string;
         integrationTargets: string[];
     }
+    isEditing: boolean;
     isSubmitDisabled: boolean;
     mediaUrl?: string;
     mediaAssets: ICampaignAsset[] ;
@@ -85,6 +86,7 @@ const EditCampaignForm = ({
     mediaAssets,
     hasFormChanged,
     inputs,
+    isEditing,
     isSubmitDisabled,
     onAddressTypeAheadSelect,
     onAddressTypeaheadChange,
@@ -134,6 +136,13 @@ const EditCampaignForm = ({
 
     return (
         <Card border="light" className="bg-white shadow-sm mb-4">
+            <Card.Header>
+                {
+                    isEditing
+                        ? <h1 className="text-center">Edit Campaign</h1>
+                        : <h1 className="text-center">Create a Marketing Campaign</h1>
+                }
+            </Card.Header>
             <Card.Body>
                 {
                     formStage === 1

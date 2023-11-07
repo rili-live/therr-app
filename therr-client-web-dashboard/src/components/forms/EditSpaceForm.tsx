@@ -32,6 +32,7 @@ interface IEditSpaceFormProps {
         orderUrl?: string;
         reservationUrl?: string;
     }
+    isEditing: boolean;
     isSubmitDisabled: boolean;
     mediaUrl?: string;
     onAddressTypeaheadChange: (text: string, event: React.ChangeEvent<HTMLInputElement>) => void,
@@ -47,6 +48,7 @@ const EditSpaceForm = ({
     addressTypeAheadResults,
     mediaUrl,
     inputs,
+    isEditing,
     isSubmitDisabled,
     onAddressTypeAheadSelect,
     onAddressTypeaheadChange,
@@ -60,6 +62,13 @@ const EditSpaceForm = ({
 
     return (
         <Card border="light" className="bg-white shadow-sm mb-4">
+            <Card.Header>
+                {
+                    isEditing
+                        ? <h1 className="text-center">Edit Business Space</h1>
+                        : <h1 className="text-center">Claim Your Business Space</h1>
+                }
+            </Card.Header>
             <Card.Body>
                 <Form>
                     <Row>

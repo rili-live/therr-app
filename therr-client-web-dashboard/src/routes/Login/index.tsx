@@ -180,7 +180,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                                             <span className='fw-normal'>
                                                 {/* eslint-disable-next-line no-trailing-spaces */}
                                                 Not registered? 
-                                                <Card.Link as={Link} to={'/register'} className='fw-bold' style={{ paddingLeft: '.5rem' }}>
+                                                <Card.Link as={Link} to={'/register'} className='fw-bolder' style={{ paddingLeft: '.5rem' }}>
                                                     {'Create account'}
                                                 </Card.Link>
                                             </span>
