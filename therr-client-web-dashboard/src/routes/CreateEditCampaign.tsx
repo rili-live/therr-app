@@ -145,6 +145,28 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * CreateEditCampaign
  */
 export class CreateEditCampaignComponent extends React.Component<ICreateEditCampaignProps, ICreateEditCampaignState> {
+    static getDerivedStateFromProps(nextProps: ICreateEditCampaignProps, nextState: ICreateEditCampaignState) {
+        if (!nextProps?.routeParams?.campaignId) {
+            const campaign = {};
+            return {
+                alertIsVisible: false,
+                alertVariation: 'success',
+                alertTitle: '',
+                alertMessage: '',
+                fetchedCampaign: campaign,
+                files: [],
+                formEditingStage: 1,
+                hasFormChanged: false,
+                isSubmitting: false,
+                inputs: getInputDefaults(campaign),
+                isEditing: false,
+                mediaPendingUpload: [],
+                requestId: uuidv4().toString(),
+            };
+        }
+        return {};
+    }
+
     private translate: Function;
 
     private throttleTimeoutId: any;
@@ -620,11 +642,6 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
                 <Row className="d-flex justify-content-around align-items-center py-4">
                     <Col md={12} xl={10}>
-                        {
-                            isEditing
-                                ? <h1 className="text-center">Edit Campaign</h1>
-                                : <h1 className="text-center">Create a Marketing Campaign</h1>
-                        }
                         <EditCampaignForm
                             addressTypeAheadResults={map?.searchPredictions?.results || []}
                             formStage={formEditingStage}
@@ -644,6 +661,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 integrationTargets: inputs.integrationTargets,
                             }}
                             isSubmitDisabled={this.isSubmitDisabled()}
+                            isEditing={isEditing}
                             mediaAssets={mediaAssets}
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeAheadSelect={this.onAddressTypeAheadSelect}

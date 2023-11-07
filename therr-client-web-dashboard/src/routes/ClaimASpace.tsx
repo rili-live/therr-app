@@ -302,13 +302,13 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
 
                 <Row className="d-flex justify-content-around align-items-center py-4">
                     <Col xs={12} xl={10} xxl={8}>
-                        <h1 className="text-center">Claim Your Business Space</h1>
                         <EditSpaceForm
                             addressTypeAheadResults={map?.searchPredictions?.results || []}
                             inputs={{
                                 spaceTitle: inputs.spaceTitle,
                                 spaceDescription: inputs.spaceDescription,
                             }}
+                            isEditing={false}
                             isSubmitDisabled={this.isSubmitDisabled()}
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeAheadSelect={this.onAddressTypeAheadSelect}

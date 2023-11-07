@@ -17,6 +17,7 @@ import withNavigation from '../../wrappers/withNavigation';
 import PricingCards from '../../components/PricingCards';
 import CampaignsListTable from './CampaignsListTable';
 import { ICampaign } from '../../types';
+import ManageCampaignsMenu from '../../components/ManageCampaignsMenu';
 
 interface IBaseCampaignsOverviewRouterProps {
     navigation: {
@@ -118,6 +119,7 @@ export class BaseCampaignsOverviewComponent extends React.Component<IBaseCampaig
             isSuperAdmin,
             isSubscriber,
             routeParams,
+            user,
         } = this.props;
         const {
             campaignsInView,
@@ -136,6 +138,12 @@ export class BaseCampaignsOverviewComponent extends React.Component<IBaseCampaig
             <div id="page_campaigns_overview" className={containerClassNames}>
                 {
                     isSubscriber && <>
+                        <div className="d-flex justify-content-around justify-content-md-between flex-wrap flex-md-nowrap align-items-center py-4">
+                            <ManageCampaignsMenu
+                                navigateHandler={this.navigateHandler}
+                                user={user}
+                            />
+                        </div>
                         {
                             (campaignsInView?.length > 0 || isLoadingCampaigns)
                                 && <>

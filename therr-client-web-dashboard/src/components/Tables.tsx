@@ -73,7 +73,7 @@ export const PageVisitsTable = () => {
     };
 
     return (
-        <Card border="light" className="shadow-sm">
+        <Card border="light" className="shadow-sm rounded-0">
             <Card.Header>
                 <Row className="align-items-center">
                     <Col>
