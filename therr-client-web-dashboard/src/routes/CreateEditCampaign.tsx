@@ -22,6 +22,7 @@ import {
     AccessLevels, OAuthIntegrationProviders, CampaignAssetTypes, CampaignStatuses,
 } from 'therr-js-utilities/constants';
 import { v4 as uuidv4 } from 'uuid';
+import * as facebook from '../api/facebook';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
 import EditCampaignForm from '../components/forms/EditCampaignForm';
@@ -32,6 +33,18 @@ import { signAndUploadImage } from '../utilities/media';
 import { onFBLoginPress } from '../api/login';
 
 export const CAMPAIGN_DRAFT_KEY = 'therrCampaignDraft';
+
+const isAdsProviderAuthenticated = (user: IUserState, target: string) => {
+    // TODO: Refresh token if almost expired
+    const combinedTarget = target === OAuthIntegrationProviders.INSTAGRAM
+        ? OAuthIntegrationProviders.FACEBOOK
+        : target;
+
+    return user?.settings?.integrations
+        && user.settings.integrations[combinedTarget]?.access_token
+        && user.settings.integrations[combinedTarget]?.user_access_token_expires_at
+        && user.settings.integrations[combinedTarget].user_access_token_expires_at > Date.now();
+};
 
 const partitionAssets = (campaign) => {
     const headlineAssets = [];
@@ -76,6 +89,7 @@ const getInputDefaults = (campaign: any) => {
         headline2: headlineAssets.length > 1 ? headlineAssets[1].headline : '',
         longText1: longTextAssets.length > 0 ? longTextAssets[0].longText : '',
         longText2: longTextAssets.length > 1 ? longTextAssets[1].longText : '',
+        integrationDetails: campaign?.integrationDetails || {},
         integrationTargets: campaign?.integrationTargets || [OAuthIntegrationProviders.THERR],
     };
 };
@@ -124,6 +138,9 @@ interface ICreateEditCampaignState {
     isEditing: boolean;
     mediaPendingUpload: string[];
     requestId: string;
+    fetchedIntegrationDetails: {
+        [key: string]: any;
+    };
 }
 
 const mapStateToProps = (state: any) => ({
@@ -189,6 +206,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             isEditing: !!campaignId,
             mediaPendingUpload: [],
             requestId: uuidv4().toString(),
+            fetchedIntegrationDetails: {},
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -205,23 +223,51 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         const fetchedState = stateStr && JSON.parse(stateStr).state;
         localStorage.removeItem(CAMPAIGN_DRAFT_KEY);
         if (fetchedState) {
-            this.setState(fetchedState);
-        } else if (!campaigns.campaigns[campaignId]) {
+            this.setState(fetchedState, this.afterStateIsEstablished);
+        }
+
+        if (!campaigns.campaigns[campaignId]) {
             // TODO: Make sure assets are returned in search results or we store fetched campaigns separately
             getCampaign(campaignId, {
                 withMedia: true,
             }).then((response) => {
                 this.setState({
                     inputs: getInputDefaults(response),
-                });
+                }, this.afterStateIsEstablished);
             }).catch(() => {
                 //
             });
+        } else {
+            // TODO: Verify access tokens, and fetch required integration details
         }
     }
 
     componentWillUnmount = () => {
         clearTimeout(this.throttleTimeoutId);
+    };
+
+    afterStateIsEstablished = () => {
+        const { user } = this.props;
+        const { inputs } = this.state;
+
+        inputs.integrationTargets.forEach((target) => {
+            const isAuthed = isAdsProviderAuthenticated(user, target);
+            if (isAuthed && (target === OAuthIntegrationProviders.FACEBOOK)) {
+                facebook.getMyAccounts(user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.access_token).then((results) => {
+                    const { fetchedIntegrationDetails } = this.state;
+                    this.setState({
+                        fetchedIntegrationDetails: {
+                            ...fetchedIntegrationDetails,
+                            [OAuthIntegrationProviders.FACEBOOK]: results,
+                        },
+                    });
+                }).catch((err) => {
+                    // TODO: This might mean the access token is expired and needs to re-authenticate
+                    // Prompt the user or display a signal on the provider selection form
+                    console.log(err);
+                });
+            }
+        });
     };
 
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
@@ -349,6 +395,33 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         });
     };
 
+    onIntegrationDetailsChange = (integrationProvider: string, event: React.ChangeEvent<HTMLInputElement>) => {
+        const { inputs, requestId } = this.state;
+        const { location, user } = this.props;
+
+        event.preventDefault();
+        this.toggleAlert(false);
+
+        const { name, value } = event.currentTarget;
+        const modifiedDetails = { ...inputs.integrationDetails };
+        if (!modifiedDetails[integrationProvider]) {
+            modifiedDetails[integrationProvider] = {};
+        }
+
+        modifiedDetails[integrationProvider][name] = value;
+        const newInputChanges = {
+            integrationDetails: modifiedDetails,
+        };
+
+        this.setState({
+            hasFormChanged: true,
+            inputs: {
+                ...this.state.inputs,
+                ...newInputChanges,
+            },
+        });
+    };
+
     onSelectMedia = (files: any[]) => {
         this.setState({
             hasFormChanged: true,
@@ -380,14 +453,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             if (!targetWasEnabled) {
                 // Check redux user.settings for integration access_token
                 // Verify that user is logged in. If not, store current form state in localStorage and attempt to oauth2.
-                // TODO: Refresh token if almost expired
-                const combinedTarget = target === OAuthIntegrationProviders.INSTAGRAM
-                    ? OAuthIntegrationProviders.FACEBOOK
-                    : target;
-                const isIntegrationAuthenticated = user?.settings?.integrations
-                    && user.settings.integrations[combinedTarget]?.access_token
-                    && user.settings.integrations[combinedTarget]?.user_access_token_expires_at
-                    && user.settings.integrations[combinedTarget].user_access_token_expires_at > Date.now();
+                const isIntegrationAuthenticated = isAdsProviderAuthenticated(user, target);
                 if (!isIntegrationAuthenticated) {
                     // TODO: Handle all providers
                     if (target !== OAuthIntegrationProviders.THERR) {
@@ -397,7 +463,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                         }));
                     }
 
-                    if (combinedTarget === OAuthIntegrationProviders.FACEBOOK) {
+                    if (target === OAuthIntegrationProviders.FACEBOOK || target === OAuthIntegrationProviders.INSTAGRAM) {
                         onFBLoginPress(requestId);
                     }
                 }
@@ -432,6 +498,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             longitude,
             headline1,
             headline2,
+            integrationDetails,
             integrationTargets,
             longText1,
             longText2,
@@ -477,6 +544,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             address: selectedAddresses[0]?.description || selectedAddresses[0]?.label,
             latitude,
             longitude,
+            integrationDetails,
             integrationTargets,
         };
 
@@ -609,6 +677,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             inputs,
             isEditing,
             formEditingStage,
+            fetchedIntegrationDetails,
         } = this.state;
         const {
             campaigns, map, user, routeParams,
@@ -652,6 +721,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 longText2: inputs.longText2,
                                 integrationTargets: inputs.integrationTargets,
                             }}
+                            fetchedIntegrationDetails={fetchedIntegrationDetails}
                             isSubmitDisabled={this.isSubmitDisabled()}
                             isEditing={isEditing}
                             mediaAssets={mediaAssets}
@@ -659,6 +729,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             onAddressTypeAheadSelect={this.onAddressTypeAheadSelect}
                             onDateTimeChange={this.onDateTimeChange}
                             onInputChange={this.onInputChange}
+                            onIntegrationDetailsChange={this.onIntegrationDetailsChange}
                             onSelectMedia={this.onSelectMedia}
                             onSocialSyncPress={this.onSocialSyncPress}
                             onSubmit={this.onSubmitCampaign}

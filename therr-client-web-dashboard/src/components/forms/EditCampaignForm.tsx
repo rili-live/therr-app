@@ -64,6 +64,9 @@ interface IEditCampaignFormProps {
         longText2: string;
         integrationTargets: string[];
     }
+    fetchedIntegrationDetails: {
+        [key: string]: any;
+    };
     isEditing: boolean;
     isSubmitDisabled: boolean;
     mediaUrl?: string;
@@ -71,6 +74,7 @@ interface IEditCampaignFormProps {
     onAddressTypeaheadChange: (text: string, event: React.ChangeEvent<HTMLInputElement>) => void,
     onAddressTypeAheadSelect: (selected: Option[]) => void;
     onInputChange: React.ChangeEventHandler<HTMLInputElement>;
+    onIntegrationDetailsChange: (integrationProvider: string, event: React.ChangeEvent<any>) => void,
     onDateTimeChange: (name: string, value: string | Moment) => void;
     onSocialSyncPress: any;
     onSubmit: (event: React.MouseEvent<HTMLButtonElement>|React.FormEvent<HTMLButtonElement>) => void;
@@ -86,11 +90,13 @@ const EditCampaignForm = ({
     mediaAssets,
     hasFormChanged,
     inputs,
+    fetchedIntegrationDetails,
     isEditing,
     isSubmitDisabled,
     onAddressTypeAheadSelect,
     onAddressTypeaheadChange,
     onInputChange,
+    onIntegrationDetailsChange,
     onDateTimeChange,
     onSocialSyncPress,
     onSubmit,
@@ -147,104 +153,6 @@ const EditCampaignForm = ({
                 {
                     formStage === 1
                     && <Form>
-                        <Row>
-                            <Col sm={12}>
-                                <h5 className="my-4">Ad Provider Targets</h5>
-                            </Col>
-                            <Row>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={therrCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.THERR]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.THERR)}>
-                                        <Card.Body className="text-center">
-                                            <Card.Img
-                                                src={'/assets/img/therr-logo-green.svg'}
-                                                alt="Therr Ads"
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.THERR] ? 'text-therr' : ''}
-                                                height={20}
-                                                width={20}
-                                            />
-                                            <Card.Text className="mb-0">Therr</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.THERR] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={facebookCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.FACEBOOK)}>
-                                        <Card.Body className="text-center">
-                                            <FontAwesomeIcon
-                                                icon={faFacebook}
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK] ? 'text-facebook' : ''}
-                                            />
-                                            <Card.Text className="mb-0">Facebook</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={instagramCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.INSTAGRAM)}>
-                                        <Card.Body className="text-center">
-                                            <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM] ? 'text-instagram' : ''}
-                                                icon={faInstagram}
-                                            />
-                                            <Card.Text className="mb-0">Instagram</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={linkedInCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.LINKEDIN)}>
-                                        <Card.Body className="text-center">
-                                            <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN] ? 'text-linkedin' : ''}
-                                                icon={faLinkedin}
-                                            />
-                                            <Card.Text className="mb-0">LinkedIn</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={googleCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.GOOGLE)}>
-                                        <Card.Body className="text-center">
-                                            <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE] ? 'text-google' : ''}
-                                                icon={faGoogle} />
-                                            <Card.Text className="mb-0">Google</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={twitterCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.TWITTER]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.TWITTER)}>
-                                        <Card.Body className="text-center">
-                                            <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.TWITTER] ? 'text-twitter' : ''}
-                                                icon={faTwitter} />
-                                            <Card.Text className="mb-0">Twitter</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.TWITTER] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            </Row>
-                        </Row>
                         <Row>
                             <Col md={8}>
                                 <h5 className="my-4">General Campaign Information</h5>
@@ -369,6 +277,128 @@ const EditCampaignForm = ({
                                 </Row>
                             </Col>
                         </Row>
+                        <Row>
+                            <Col sm={12}>
+                                <h5 className="my-4">Ad Provider Targets</h5>
+                            </Col>
+                            <Row>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={therrCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.THERR]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.THERR)}>
+                                        <Card.Body className="text-center">
+                                            <Card.Img
+                                                src={'/assets/img/therr-logo-green.svg'}
+                                                alt="Therr Ads"
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.THERR] ? 'text-therr' : ''}
+                                                height={20}
+                                                width={20}
+                                            />
+                                            <Card.Text className="mb-0">Therr</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.THERR] ? '' : '(Coming Soon!)'}</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={facebookCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.FACEBOOK)}>
+                                        <Card.Body className="text-center">
+                                            <FontAwesomeIcon
+                                                icon={faFacebook}
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK] ? 'text-facebook' : ''}
+                                            />
+                                            <Card.Text className="mb-0">Facebook</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK] ? '' : '(Coming Soon!)'}</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={instagramCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.INSTAGRAM)}>
+                                        <Card.Body className="text-center">
+                                            <FontAwesomeIcon
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM] ? 'text-instagram' : ''}
+                                                icon={faInstagram}
+                                            />
+                                            <Card.Text className="mb-0">Instagram</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM] ? '' : '(Coming Soon!)'}</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={linkedInCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.LINKEDIN)}>
+                                        <Card.Body className="text-center">
+                                            <FontAwesomeIcon
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN] ? 'text-linkedin' : ''}
+                                                icon={faLinkedin}
+                                            />
+                                            <Card.Text className="mb-0">LinkedIn</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN] ? '' : '(Coming Soon!)'}</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={googleCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.GOOGLE)}>
+                                        <Card.Body className="text-center">
+                                            <FontAwesomeIcon
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE] ? 'text-google' : ''}
+                                                icon={faGoogle} />
+                                            <Card.Text className="mb-0">Google</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE] ? '' : '(Coming Soon!)'}</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                    <Card
+                                        className={twitterCardClassNames}
+                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.TWITTER]
+                                            && onSocialSyncPress(OAuthIntegrationProviders.TWITTER)}>
+                                        <Card.Body className="text-center">
+                                            <FontAwesomeIcon
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.TWITTER] ? 'text-twitter' : ''}
+                                                icon={faTwitter} />
+                                            <Card.Text className="mb-0">Twitter</Card.Text>
+                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.TWITTER] ? '' : '(Coming Soon!)'}</Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            </Row>
+                        </Row>
+                        {
+                            !disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK]
+                            && fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.data?.length
+                            && <Row>
+                                <Col sm={12}>
+                                    <h5 className="my-4">Facebook Customizations</h5>
+                                </Col>
+                                <Form.Group controlId="pageId">
+                                    <Form.Label>Facebook Page for Ad Publishing</Form.Label>
+                                    <Form.Control
+                                        value={fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId}
+                                        name="pageId"
+                                        onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
+                                        as="select"
+                                    >
+                                        {
+                                            fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.data.map((pageDetails) => (
+                                                <option key={pageDetails.id} value={pageDetails.id}>{pageDetails.name}</option>
+                                            ))
+                                        }
+                                    </Form.Control>
+                                </Form.Group>
+                            </Row>
+                        }
                         <Row>
                             <h5 className="my-4">Ad Target Location / Address</h5>
                             <Col sm={12} className="mb-3">
