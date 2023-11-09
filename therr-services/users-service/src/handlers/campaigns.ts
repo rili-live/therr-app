@@ -97,6 +97,7 @@ const createCampaign = async (req, res) => {
         targetLanguages,
         targetLocations,
         integrationTargets,
+        integrationDetails,
         scheduleStartAt,
         scheduleStopAt,
         assets,
@@ -116,6 +117,7 @@ const createCampaign = async (req, res) => {
         targetLanguages: targetLanguages || [locale],
         targetLocations,
         integrationTargets,
+        integrationDetails,
         scheduleStartAt,
         scheduleStopAt,
     }).then((results) => {
@@ -174,6 +176,7 @@ const updateCampaign = async (req, res) => {
         targetLanguages,
         targetLocations,
         integrationTargets,
+        integrationDetails,
         scheduleStartAt,
         scheduleStopAt,
         assets,
@@ -236,6 +239,7 @@ const updateCampaign = async (req, res) => {
             targetLanguages,
             targetLocations,
             integrationTargets,
+            integrationDetails,
             scheduleStartAt,
             scheduleStopAt,
         }).then(([campaign]) => {
