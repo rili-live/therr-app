@@ -17,7 +17,7 @@ const getMyAccounts = (accessToken) => axios({
     method: 'get',
     // eslint-disable-next-line max-len
     url: `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}`,
-}).catch((err) => ({
+}).then(({ data }) => data).catch((err) => ({
     data: {
         errors: err.response?.data?.error,
     },

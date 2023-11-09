@@ -27,6 +27,7 @@ export interface ICreateCampaignParams {
     targetLanguages: string[];
     targetLocations?: ITargetLocations[];
     integrationTargets?: string[]; // OAuthIntegrationProviders ... therr, facebook, instagram, google, etc.
+    integrationDetails?: { [key: string]: any }; // { 'facebook': { targetPage: 'ABC Tech', ... } }
     scheduleStartAt: Date;
     scheduleStopAt: Date;
 }
@@ -48,6 +49,7 @@ export interface IUpdateCampaignParams {
     targetLanguages?: string[];
     targetLocations?: ITargetLocations[];
     integrationTargets?: string[]; // therr-rewards, fb-ads, ig-ads, google-ads, etc.
+    integrationDetails?: { [key: string]: any }; // { 'facebook': { targetPage: 'ABC Tech', ... } }
     scheduleStartAt?: Date;
     scheduleStopAt?: Date;
 }
@@ -112,6 +114,7 @@ export default class CampaignsStore {
                 `${CAMPAIGNS_TABLE_NAME}.targetLanguages`,
                 `${CAMPAIGNS_TABLE_NAME}.targetLocations`,
                 `${CAMPAIGNS_TABLE_NAME}.integrationTargets`,
+                `${CAMPAIGNS_TABLE_NAME}.integrationDetails`,
                 `${CAMPAIGNS_TABLE_NAME}.scheduleStartAt`,
                 `${CAMPAIGNS_TABLE_NAME}.scheduleStopAt`,
                 `${CAMPAIGNS_TABLE_NAME}.createdAt`,
@@ -154,6 +157,7 @@ export default class CampaignsStore {
             targetLanguages: JSON.stringify(params.targetLanguages),
             targetLocations: params.targetLocations ? JSON.stringify(params.targetLocations) : JSON.stringify([]),
             integrationTargets: params.integrationTargets ? JSON.stringify(params.integrationTargets) : JSON.stringify([]),
+            integrationDetails: params.integrationDetails ? JSON.stringify(params.integrationDetails) : JSON.stringify({}),
         };
         const queryString = knexBuilder.insert(modifiedParams)
             .into(CAMPAIGNS_TABLE_NAME)
@@ -172,6 +176,7 @@ export default class CampaignsStore {
             targetLanguages: params.targetLanguages ? JSON.stringify(params.targetLanguages) : undefined,
             targetLocations: params.targetLocations ? JSON.stringify(params.targetLocations) : undefined,
             integrationTargets: params.integrationTargets ? JSON.stringify(params.integrationTargets) : undefined,
+            integrationDetails: params.integrationDetails ? JSON.stringify(params.integrationDetails) : undefined,
         })
             .into(CAMPAIGNS_TABLE_NAME)
             .where(conditions)
