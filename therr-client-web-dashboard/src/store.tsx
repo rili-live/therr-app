@@ -29,7 +29,9 @@ function safelyParse(input: any) {
 if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
     const storedSocketDetails = JSON.parse(localStorage.getItem('therrSession')) || JSON.parse(sessionStorage.getItem('therrSession'));
     let storedUser = JSON.parse(localStorage.getItem('therrUser')) || JSON.parse(sessionStorage.getItem('therrUser'));
+    let storedUserSettings = JSON.parse(localStorage.getItem('therrUserSettings')) || JSON.parse(sessionStorage.getItem('therrUserSettings'));
     storedUser = storedUser || {};
+    storedUserSettings = storedUserSettings || {};
     const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
     const reloadedState: any = {
         user: {
@@ -38,6 +40,7 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
             settings: {
                 locale: 'en-us',
                 mobileThemeName: 'retro',
+                ...storedUserSettings,
             },
             socketDetails: {
                 session: storedSocketDetails || {},

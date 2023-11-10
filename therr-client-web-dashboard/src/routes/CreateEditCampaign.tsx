@@ -41,7 +41,7 @@ const isAdsProviderAuthenticated = (user: IUserState, target: string) => {
         : target;
 
     return user?.settings?.integrations
-        && user.settings.integrations[combinedTarget]?.access_token
+        && user.settings.integrations[combinedTarget]?.user_access_token
         && user.settings.integrations[combinedTarget]?.user_access_token_expires_at
         && user.settings.integrations[combinedTarget].user_access_token_expires_at > Date.now();
 };
@@ -253,12 +253,33 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         inputs.integrationTargets.forEach((target) => {
             const isAuthed = isAdsProviderAuthenticated(user, target);
             if (isAuthed && (target === OAuthIntegrationProviders.FACEBOOK)) {
-                facebook.getMyAccounts(user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.access_token).then((results) => {
+                // TODO: Add error handling and UI alerts for user
+                Promise.all([
+                    facebook.getMyAccounts(user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.user_access_token),
+                    facebook.getMyAdAccounts(user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.user_access_token),
+                ]).then(([myAccountResults, myAdAccountResults]) => {
                     const { fetchedIntegrationDetails } = this.state;
+                    const newInputChanges = {
+                        integrationDetails: {
+                            [OAuthIntegrationProviders.FACEBOOK]: {
+                                pageId: myAccountResults?.data[0]?.id || undefined,
+                                adAccountId: myAdAccountResults?.data[0]?.id || undefined,
+                            },
+                        },
+                    };
+
                     this.setState({
                         fetchedIntegrationDetails: {
                             ...fetchedIntegrationDetails,
-                            [OAuthIntegrationProviders.FACEBOOK]: results,
+                            [OAuthIntegrationProviders.FACEBOOK]: {
+                                account: myAccountResults,
+                                adAccount: myAdAccountResults,
+                            },
+                        },
+                        hasFormChanged: true,
+                        inputs: {
+                            ...this.state.inputs,
+                            ...newInputChanges,
                         },
                     });
                 }).catch((err) => {
@@ -396,8 +417,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     };
 
     onIntegrationDetailsChange = (integrationProvider: string, event: React.ChangeEvent<HTMLInputElement>) => {
-        const { inputs, requestId } = this.state;
-        const { location, user } = this.props;
+        const { inputs } = this.state;
 
         event.preventDefault();
         this.toggleAlert(false);
@@ -719,6 +739,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 headline2: inputs.headline2,
                                 longText1: inputs.longText1,
                                 longText2: inputs.longText2,
+                                integrationDetails: inputs.integrationDetails,
                                 integrationTargets: inputs.integrationTargets,
                             }}
                             fetchedIntegrationDetails={fetchedIntegrationDetails}

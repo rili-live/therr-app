@@ -260,7 +260,7 @@ class UsersActions {
             const { userData, userSettingsData } = this.extractUserData(response.data);
             const combinedUserDetails = {
                 ...storedUserDetails,
-                userData,
+                ...userData,
             };
             dispatch({
                 type: SocketClientActionTypes.UPDATE_USER,

@@ -149,9 +149,10 @@ const login: RequestHandler = (req: any, res: any) => {
                     if (oauthResponseData?.access_token) {
                         // TODO: Store access_tokens encrypted in DB for fetching
                         // TODO: Fetch stored access_tokens and return in integrations object
+                        const DEFAULT_60_DAYS_AS_SECONDS = 60 * 60 * 24 * 60; // 60 days
                         user.integrations[OAuthIntegrationProviders.FACEBOOK] = {
                             user_access_token: oauthResponseData.access_token,
-                            user_access_token_expires_at: Date.now() + ((oauthResponseData?.expires_in || 0) * 1000),
+                            user_access_token_expires_at: Date.now() + ((oauthResponseData?.expires_in || DEFAULT_60_DAYS_AS_SECONDS) * 1000),
                         };
                     }
                     userNameEmailPhone = userNameOrEmailOrPhone(userDetails);
