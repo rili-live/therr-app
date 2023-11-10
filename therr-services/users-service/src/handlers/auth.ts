@@ -147,7 +147,7 @@ const login: RequestHandler = (req: any, res: any) => {
                         },
                     };
                     if (oauthResponseData?.access_token) {
-                        // TODO: Store access_tokens encrypted in DB for fetching
+                        // TODO: Store access_tokens encrypted in DB (integrationsAccess) for fetching
                         // TODO: Fetch stored access_tokens and return in integrations object
                         const DEFAULT_60_DAYS_AS_SECONDS = 60 * 60 * 24 * 60; // 60 days
                         user.integrations[OAuthIntegrationProviders.FACEBOOK] = {
