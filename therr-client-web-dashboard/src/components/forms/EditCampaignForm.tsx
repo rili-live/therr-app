@@ -63,6 +63,12 @@ interface IEditCampaignFormProps {
         longText1: string;
         longText2: string;
         integrationTargets: string[];
+        integrationDetails: {
+            [key: string]: {
+                pageId: string;
+                adAccountId: string;
+            };
+        };
     }
     fetchedIntegrationDetails: {
         [key: string]: any;
@@ -377,26 +383,46 @@ const EditCampaignForm = ({
                         </Row>
                         {
                             !disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK]
-                            && fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.data?.length
+                            && (fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data?.length
+                                || fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccount?.data?.length)
                             && <Row>
                                 <Col sm={12}>
-                                    <h5 className="my-4">Facebook Customizations</h5>
+                                    <h5 className="my-4">Ad Target Customizations</h5>
                                 </Col>
-                                <Form.Group controlId="pageId">
-                                    <Form.Label>Facebook Page for Ad Publishing</Form.Label>
-                                    <Form.Control
-                                        value={fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId}
-                                        name="pageId"
-                                        onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
-                                        as="select"
-                                    >
-                                        {
-                                            fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.data.map((pageDetails) => (
-                                                <option key={pageDetails.id} value={pageDetails.id}>{pageDetails.name}</option>
-                                            ))
-                                        }
-                                    </Form.Control>
-                                </Form.Group>
+                                <Col md={6}>
+                                    <Form.Group controlId="adAccountId">
+                                        <Form.Label>Facebook Ad Account</Form.Label>
+                                        <Form.Control
+                                            value={inputs.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId}
+                                            name="adAccountId"
+                                            onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
+                                            as="select"
+                                        >
+                                            {
+                                                fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccount?.data.map((accountDetails) => (
+                                                    <option key={accountDetails.id} value={accountDetails.id}>{accountDetails.name}</option>
+                                                ))
+                                            }
+                                        </Form.Control>
+                                    </Form.Group>
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group controlId="pageId">
+                                        <Form.Label>Facebook Page for Ad Publishing</Form.Label>
+                                        <Form.Control
+                                            value={inputs.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId}
+                                            name="pageId"
+                                            onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
+                                            as="select"
+                                        >
+                                            {
+                                                fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data.map((pageDetails) => (
+                                                    <option key={pageDetails.id} value={pageDetails.id}>{pageDetails.name}</option>
+                                                ))
+                                            }
+                                        </Form.Control>
+                                    </Form.Group>
+                                </Col>
                             </Row>
                         }
                         <Row>
