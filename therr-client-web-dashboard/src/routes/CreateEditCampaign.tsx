@@ -237,8 +237,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             }).catch(() => {
                 //
             });
-        } else {
-            // TODO: Verify access tokens, and fetch required integration details
+        } else if (!fetchedState) {
+            // TODO: Cache fetched state so this is no longer necessary
+            this.afterStateIsEstablished();
         }
     }
 
@@ -262,8 +263,10 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                     const newInputChanges = {
                         integrationDetails: {
                             [OAuthIntegrationProviders.FACEBOOK]: {
-                                pageId: myAccountResults?.data[0]?.id || undefined,
-                                adAccountId: myAdAccountResults?.data[0]?.id || undefined,
+                                pageId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId
+                                    || myAccountResults?.data[0]?.id || undefined,
+                                adAccountId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
+                                    || myAdAccountResults?.data[0]?.id || undefined,
                             },
                         },
                     };
