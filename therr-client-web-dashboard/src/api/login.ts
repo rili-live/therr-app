@@ -20,6 +20,9 @@ const onFBLoginPress = (requestId: string, target = '_self') => {
         //
         'pages_manage_ads',
         'pages_show_list',
+        // 'page_events', // Note there is a type in the docs (page should be singular)
+        'pages_user_locale',
+        'pages_user_timezone',
         //
         'read_insights',
         'instagram_manage_insights',
