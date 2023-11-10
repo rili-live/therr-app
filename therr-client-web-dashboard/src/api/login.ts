@@ -20,9 +20,6 @@ const onFBLoginPress = (requestId: string, target = '_self') => {
         //
         'pages_manage_ads',
         'pages_show_list',
-        'pages_events',
-        'pages_user_locale',
-        'pages_user_timezone',
         //
         'read_insights',
         'instagram_manage_insights',
