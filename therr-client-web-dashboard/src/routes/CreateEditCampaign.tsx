@@ -226,7 +226,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             this.setState(fetchedState, this.afterStateIsEstablished);
         }
 
-        if (!campaigns.campaigns[campaignId]) {
+        if (campaignId && !campaigns.campaigns[campaignId]) {
             // TODO: Make sure assets are returned in search results or we store fetched campaigns separately
             getCampaign(campaignId, {
                 withMedia: true,
