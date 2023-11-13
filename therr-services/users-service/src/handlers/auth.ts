@@ -235,11 +235,21 @@ const login: RequestHandler = (req: any, res: any) => {
                         });
                     }
 
-                    return Store.users.updateUser({
+                    const updateArgs: any = {
                         accessLevels: JSON.stringify([...new Set(user.accessLevels)]),
                         loginCount: user.loginCount + 1,
                         integrationsAccess: user.integrations,
-                    }, {
+                    };
+
+                    if (req.body.billingEmail) {
+                        if (req.body.billingEmail !== user.email) {
+                            // TODO: Improve security so users cannot claim the same billing email as another user
+                            // Send verification e-mail before updating param
+                        }
+                        updateArgs.billingEmail = req.body.billingEmail;
+                    }
+
+                    return Store.users.updateUser(updateArgs, {
                         id: user.id,
                     }).then((userResponse) => {
                         const finalUser = userResponse[0];
