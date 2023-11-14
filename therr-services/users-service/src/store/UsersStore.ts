@@ -10,6 +10,7 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export interface ICreateUserParams {
     accessLevels: string | AccessLevels;
     email: string;
+    billingEmail?: string;
     firstName?: string;
     hasAgreedToTerms: boolean;
     isBusinessAccount?: boolean;
@@ -266,6 +267,11 @@ export default class UsersStore {
         // Normalize Email
         if (conditions.email) {
             normalizedConditions.email = normalizeEmail(conditions.email);
+        }
+
+        // Normalize Email
+        if (conditions.billingEmail) {
+            normalizedConditions.billingEmail = normalizeEmail(conditions.billingEmail);
         }
 
         if (params.firstName) {
