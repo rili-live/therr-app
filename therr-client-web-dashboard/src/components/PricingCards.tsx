@@ -83,12 +83,12 @@ const PricingCards = ({
                                             <h4 className="mb-1 text-white text-left">Basic Marketing Plan</h4>
                                         </Card.Header>
                                         <Card.Body>
-                                            <h6 className="text-white pb-2">Benefit from our basic local business marketing support package along with metrics from current and prospective customers.</h6>
+                                            <h6 className="text-white pb-4">Benefit from our basic local business marketing support package along with metrics from current and prospective customers.</h6>
                                             <ul className="list-unstyled text-white text-left">
-                                                <li><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
-                                                <li><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing)</li>
-                                                <li><i className="fas fa-check"></i> Additional customer metrics</li>
-                                                <li><i className="fas fa-check"></i> 24/7 Tech Support</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing)</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> Additional customer metrics</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> 24/7 Tech Support</li>
                                             </ul>
                                         </Card.Body>
                                         <Card.Footer className="border-gray-100 py-4 px-4">
@@ -120,12 +120,12 @@ const PricingCards = ({
                                             <h4 className="mb-1 text-white text-left">Advanced Marketing Plan</h4>
                                         </Card.Header>
                                         <Card.Body>
-                                            <h6 className="text-white pb-2">Benefit from our premium local business marketing support package along with advanced metrics from current and prospective customers.</h6>
+                                            <h6 className="text-white pb-4">Benefit from our premium local business marketing support package along with advanced metrics from current and prospective customers.</h6>
                                             <ul className="list-unstyled text-white text-left">
                                                 <li className="fw-bolder mb-2"><i className="fas fa-star"></i> All Basic Plan Features</li>
-                                                <li><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing + AI)</li>
-                                                <li><i className="fas fa-check"></i> Customer & Micro-influencer incentives (for reviews, shout-outs, promos, etc.)</li>
-                                                <li><i className="fas fa-check"></i> Personalized Influencer Pairing</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing + AI)</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> Customer & Micro-influencer incentives (for reviews, shout-outs, promos, etc.)</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> Personalized Influencer Pairing</li>
                                             </ul>
                                         </Card.Body>
                                         <Card.Footer className="border-gray-100 py-4 px-4">
@@ -157,13 +157,13 @@ const PricingCards = ({
                                             <h4 className="mb-1 text-white text-left">Pro Marketing Plan</h4>
                                         </Card.Header>
                                         <Card.Body>
-                                            <h6 className="text-white pb-2">Benefit from our professional local business marketing support package along with high fidelity metrics from current and prospective customers.</h6>
+                                            <h6 className="text-white pb-4">Benefit from our professional local business marketing support package along with high fidelity metrics from current and prospective customers.</h6>
                                             <ul className="list-unstyled text-white text-left">
                                                 <li className="fw-bolder mb-2"><i className="fas fa-star"></i> All Basic/Advanced Plan Features</li>
-                                                <li><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing + Advance AI)</li>
-                                                <li><i className="fas fa-check"></i> Prioritized & Personalized Influencer Pairing</li>
-                                                <li><i className="fas fa-check"></i> Point-of-purchase incentives for customers & influencers</li>
-                                                <li><i className="fas fa-check"></i> Curated Business Marketing on Therr Blog & Associated Social Media Accounts</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing + Advance AI)</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> Prioritized & Personalized Influencer Pairing</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> Point-of-purchase incentives for customers & influencers</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> Curated Business Marketing on Therr Blog & Associated Social Media Accounts</li>
                                             </ul>
                                         </Card.Body>
                                         <Card.Footer className="border-gray-100 py-4 px-4">
