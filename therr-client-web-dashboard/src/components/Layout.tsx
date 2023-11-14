@@ -78,6 +78,7 @@ interface ILayoutState {
     isAuthenticated: boolean;
     isMessagingOpen: boolean;
     isMsgContainerOpen: boolean;
+    isSidebarCompact: boolean;
     messagingContext?: IMessagingContext;
 }
 
@@ -118,6 +119,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             isNavMenuExpanded: false,
             isMessagingOpen: false,
             isMsgContainerOpen: false,
+            isSidebarCompact: false,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -301,6 +303,12 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         logout(user.details);
     };
 
+    toggleSidebar = () => {
+        this.setState({
+            isSidebarCompact: !this.state.isSidebarCompact,
+        });
+    };
+
     onSearchInpuChange = (event) => {
         event.preventDefault();
         const { name, value } = event.currentTarget;
@@ -466,6 +474,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             alertMessage,
             alertVariation,
             alertIsVisible,
+            isSidebarCompact,
         } = this.state;
         const navMenuClassNames = classNames({
             'is-open': this.state.isNavMenuOpen,
@@ -505,7 +514,13 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         className={ isLandingStylePage ? 'content-container-home view' : 'content-container view' }
                     >
                         <Preloader show={!this.state.clientHasLoaded} />
-                        <Sidebar isSuperAdmin={this.isSuperAdmin()} onLogout={this.handleLogout} show={shouldShowSidebar} user={user} />
+                        <Sidebar
+                            isContracted={isSidebarCompact}
+                            isSuperAdmin={this.isSuperAdmin()}
+                            onLogout={this.handleLogout}
+                            show={shouldShowSidebar}
+                            user={user}
+                        />
                         <main className={mainClassNames}>
                             {
                                 shouldShowSidebar
@@ -514,6 +529,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                                     onLogout={this.handleLogout}
                                     onSearchInpuChange={this.onSearchInpuChange}
                                     navToSettings={this.navToSettings}
+                                    toggleSidebar={this.toggleSidebar}
                                     user={user}
                                 />
                             }

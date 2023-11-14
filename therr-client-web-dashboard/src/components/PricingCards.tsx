@@ -33,22 +33,22 @@ const PricingCards = ({
         <Row className="d-flex justify-content-around align-items-center py-4">
             <Col xs={12} xl={12} xxl={10}>
                 <Card className="rounded-0">
-                    <Card.Body>
+                    <Card.Header className="flex-row justify-content-center align-items-center">
+                        <h2 className="text-center">
+                            Choose the best plan for your business
+                        </h2>
+                        <p className="text-center">
+                            View the checkout page for a <span className="fw-bolder text-underline">30% discount</span> when you pay annually.
+                        </p>
+                    </Card.Header>
+                    <Card.Header className="flex-row justify-content-center align-items-center">
                         <Row className="flex-row justify-content-center align-items-center">
-                            <h3 className="text-center pb-4">
-                                Upgrade to the Basic, Advanced, or Pro plan to activate these additional features.
-                            </h3>
-                        </Row>
-                        <Row className="flex-row justify-content-center align-items-center">
-                            <h5 className="text-center pb-1 text-success text-uppercase">
+                            <h5 className="text-center text-success text-italic">
                                 All packages start with a <span className="fw-bolder text-underline">14 day free trial</span> that can be canceled at any time.
                             </h5>
                         </Row>
-                        <Row className="flex-row justify-content-center align-items-center">
-                            <h5 className="text-center pb-2">
-                                View the checkout page for a <span className="fw-bolder text-underline">30% discount</span> when you pay annually.
-                            </h5>
-                        </Row>
+                    </Card.Header>
+                    <Card.Body>
                         <Row className="flex-row justify-content-center align-items-center">
                             <Col xs={12} xl={6} xxl={4} className="text-center">
                                 <Row className="justify-content-center align-items-center mx-2 mb-4">
