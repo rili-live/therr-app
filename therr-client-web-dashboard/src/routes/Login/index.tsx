@@ -124,7 +124,14 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         }
     };
 
-    login = (credentials: any) => this.props.login(credentials);
+    login = (credentials: any) => {
+        const urlParams = new URLSearchParams(window?.location?.search);
+        const paymentSessionId = urlParams.get('paymentSessionId');
+        this.props.login({
+            ...credentials,
+            paymentSessionId,
+        });
+    };
 
     onOauth2Press = (provider: string) => {
         const { requestId } = this.state;

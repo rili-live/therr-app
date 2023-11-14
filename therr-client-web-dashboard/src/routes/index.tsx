@@ -23,6 +23,7 @@ import CreateUserProfile from './CreateUserProfile';
 import CreateEditCampaign from './CreateEditCampaign';
 import InfluencerPairings from './InfluencerPairings';
 import OAuth2Landing from './OAuth2Landing';
+import PaymentComplete from './PaymentComplete';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -259,6 +260,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/login',
         element: <Login />,
+    },
+    {
+        path: '/payment-complete/:sessionId',
+        element: <PaymentComplete />,
     },
     {
         path: '/register',

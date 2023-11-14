@@ -133,7 +133,7 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps,
         } = this.state;
 
         return (
-            <div id="page_email_verification" className="flex-box space-evenly center row wrap-reverse">
+            <div id="page_password_reset" className="flex-box space-evenly center row wrap-reverse">
                 <main>
                     <section className='d-flex align-items-center my-5 mt-lg-6 mb-lg-5'>
                         <Container>

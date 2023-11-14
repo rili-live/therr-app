@@ -149,6 +149,22 @@
       "successMessage": "Your!",
       "successVerifiedMessage": "Your account has been verified. Log in to continue."
     },
+    "paymentComplete": {
+      "buttons": {
+        "send": "Create an Account"
+      },
+      "failedMessage": "An error occurred while trying to activate your subscription. Please logout and log back in or contact support.",
+      "failedMessageUserNotFound": "No user found. Try a different e-mail or create an account to continue.",
+      "instructions": "Enter your account e-mail to reset your password.",
+      "labels": {
+        "email": "E-mail"
+      },
+      "pageTitle": "Payment Completed",
+      "returnToLogin": "Return to login page",
+      "goToRegistrationPage": "Go to Sign-Up Page",
+      "successMessage": "Thanks for Subscribing! Redirecting to dashboard.",
+      "successVerifiedMessage": "Login or Register to complete your account."
+    },
     "resetPassword": {
       "buttons": {
         "send": "Send E-mail"

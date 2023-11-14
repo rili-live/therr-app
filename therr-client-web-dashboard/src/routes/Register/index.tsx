@@ -109,6 +109,8 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     };
 
     register = (credentials: any) => {
+        const urlParams = new URLSearchParams(window?.location?.search);
+        const paymentSessionId = urlParams.get('paymentSessionId');
         this.props.register({
             ...credentials,
             email: credentials.email,
@@ -117,6 +119,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             isBusinessAccount: true,
             isCreatorAccount: false,
             isDashboardRegistration: true,
+            paymentSessionId,
         }).then((response: any) => {
             this.props.navigation.navigate('/login', {
                 state: {
