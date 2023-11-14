@@ -56,6 +56,7 @@ import { getBrandContext } from '../utilities/getHostContext';
 interface ISidebarProps {
     onLogout: (event: any) => any;
     isSuperAdmin: boolean;
+    isContracted: boolean;
     show: boolean;
     user: any;
 }
@@ -64,10 +65,13 @@ const Sidebar = (props: ISidebarProps) => {
     const brandContext = getBrandContext();
     const MobileLogo = `/assets/img/${brandContext.mobileLogoFileName}`;
     const DefaultProfilePicture = '/assets/img/team/profile-picture-3.jpg';
-    const { onLogout, isSuperAdmin, user } = props;
+    const {
+        onLogout, isContracted, isSuperAdmin, user,
+    } = props;
     const location = useLocation();
     const { pathname } = location;
     const [show, setShow] = useState(false);
+    const contractClass = isContracted ? 'contracted' : '';
     const showClass = show ? 'show' : '';
     const onClickUpgrade = () => {
         ReactGA.event('clicked_upgrade_btn', {
@@ -120,6 +124,11 @@ const Sidebar = (props: ISidebarProps) => {
                     <span>
                         {icon ? <span className="sidebar-icon"><FontAwesomeIcon icon={icon} /> </span> : null}
                         {image ? <Image src={image} width={20} height={20} className="sidebar-icon svg-icon" /> : null}
+                        {!show && isContracted && !icon && !image ? (
+                            <span className="sidebar-text-contracted">
+                                {title[0]}
+                            </span>
+                        ) : null}
 
                         <span className="sidebar-text">{title}</span>
                     </span>
@@ -146,7 +155,7 @@ const Sidebar = (props: ISidebarProps) => {
                 </Navbar.Toggle>
             </Navbar>
             <CSSTransition timeout={300} in={show} classNames="sidebar-transition">
-                <SimpleBar className={`collapse ${showClass} sidebar d-md-block bg-primary text-white`}>
+                <SimpleBar className={`collapse ${contractClass} ${showClass} sidebar d-md-block bg-primary text-white`}>
                     <div className="sidebar-inner px-4 pt-3">
                         <div className="user-card d-flex d-md-none align-items-center justify-content-between justify-content-md-center pb-4">
                             <div className="d-flex align-items-center">
@@ -243,7 +252,7 @@ const Sidebar = (props: ISidebarProps) => {
                                 target="_blank"
                                 image={MobileLogo}
                             />
-                            <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} variant="secondary" className="upgrade-to-pro"><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
+                            <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className="upgrade-to-pro"><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
                         </Nav>
                     </div>
                 </SimpleBar>

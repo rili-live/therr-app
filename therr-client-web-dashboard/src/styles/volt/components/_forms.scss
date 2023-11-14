@@ -19,7 +19,7 @@
 
 .search-bar {
     .form-control {
-        width: 280px;
+        width: 250px;
         transition: width .2s ease-in-out;
 
         @include media-breakpoint-down(sm) {

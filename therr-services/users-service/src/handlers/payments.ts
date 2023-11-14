@@ -22,7 +22,7 @@ const activateUserSubscription = (req, res) => {
         const fetchUserPromise = userId ? Store.users.getUserById(userId) : fetchUserByEmail;
 
         return fetchUserPromise.then(([existingUser]) => {
-            if (response.mode === 'subscription') {
+            if (response.mode === 'subscription' && response.payment_status === 'paid' && response.status === 'complete') {
                 (response.subscription as Stripe.Subscription)?.items.data.forEach((item) => {
                     const accessLevel = productIdToAccessLvlMap[(item.price.product as string)];
                     if (productIdToAccessLvlMap[(item.price.product as string)]) {
