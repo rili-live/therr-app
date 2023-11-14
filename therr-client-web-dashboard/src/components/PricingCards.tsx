@@ -80,24 +80,10 @@ const PricingCards = ({
                                                 </span>
                                                 <h6 className="fw-normal align-self-end">/ month</h6>
                                             </div>
-                                            {/* <h4 className="mb-3 text-black">{title}</h4>
-                                            <p className="fw-normal mb-0">{description}</p> */}
+                                            <h4 className="mb-1 text-white text-left">Basic Marketing Plan</h4>
                                         </Card.Header>
                                         <Card.Body>
-                                            <h3 className="text-white">Basic Marketing Plan</h3>
-                                            <h6 className="text-white">Benefit from our basic local business marketing support package along with metrics from current and prospective customers.</h6>
-                                            <hr />
-                                            <Button
-                                                onClick={getOnClickUpgrade('basic')}
-                                                href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'}
-                                                target="_blank"
-                                                variant="primary"
-                                                className="text-white"
-                                            >
-                                                <FontAwesomeIcon icon={faRocket} className="me-1" />
-                                                Upgrade to Basic ({isPriceMonthly ? '$14.99/month' : '$125/year'})
-                                            </Button>
-                                            <hr />
+                                            <h6 className="text-white pb-2">Benefit from our basic local business marketing support package along with metrics from current and prospective customers.</h6>
                                             <ul className="list-unstyled text-white text-left">
                                                 <li><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
                                                 <li><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing)</li>
@@ -105,6 +91,18 @@ const PricingCards = ({
                                                 <li><i className="fas fa-check"></i> 24/7 Tech Support</li>
                                             </ul>
                                         </Card.Body>
+                                        <Card.Footer className="border-gray-100 py-4 px-4">
+                                            <Button
+                                                onClick={getOnClickUpgrade('basic')}
+                                                href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'}
+                                                target="_blank"
+                                                variant="primary"
+                                                className="text-white w-100"
+                                            >
+                                                <FontAwesomeIcon icon={faRocket} className="me-1" />
+                                                Upgrade to Basic ({isPriceMonthly ? '$14.99/month' : '$125/year'})
+                                            </Button>
+                                        </Card.Footer>
                                     </Card>
                                 </Row>
                             </Col>
@@ -119,24 +117,10 @@ const PricingCards = ({
                                                 </span>
                                                 <h6 className="fw-normal align-self-end">/ month</h6>
                                             </div>
-                                            {/* <h4 className="mb-3 text-black">{title}</h4>
-                                            <p className="fw-normal mb-0">{description}</p> */}
+                                            <h4 className="mb-1 text-white text-left">Advanced Marketing Plan</h4>
                                         </Card.Header>
                                         <Card.Body>
-                                            <h3 className="text-white">Advanced Marketing Plan</h3>
-                                            <h6 className="text-white">Benefit from our premium local business marketing support package along with advanced metrics from current and prospective customers.</h6>
-                                            <hr />
-                                            <Button
-                                                onClick={getOnClickUpgrade('advanced')}
-                                                href={'https://buy.stripe.com/aEUdRI78F0aGePu6op'}
-                                                target="_blank"
-                                                variant="primary"
-                                                className="text-white"
-                                            >
-                                                <FontAwesomeIcon icon={faRocket} className="me-1" />
-                                                Upgrade to Advanced ({isPriceMonthly ? '$34.99/month' : '$295/year'})
-                                            </Button>
-                                            <hr />
+                                            <h6 className="text-white pb-2">Benefit from our premium local business marketing support package along with advanced metrics from current and prospective customers.</h6>
                                             <ul className="list-unstyled text-white text-left">
                                                 <li className="fw-bolder mb-2"><i className="fas fa-star"></i> All Basic Plan Features</li>
                                                 <li><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing + AI)</li>
@@ -144,6 +128,18 @@ const PricingCards = ({
                                                 <li><i className="fas fa-check"></i> Personalized Influencer Pairing</li>
                                             </ul>
                                         </Card.Body>
+                                        <Card.Footer className="border-gray-100 py-4 px-4">
+                                            <Button
+                                                onClick={getOnClickUpgrade('advanced')}
+                                                href={'https://buy.stripe.com/aEUdRI78F0aGePu6op'}
+                                                target="_blank"
+                                                variant="primary"
+                                                className="text-white w-100"
+                                            >
+                                                <FontAwesomeIcon icon={faRocket} className="me-1" />
+                                                Upgrade to Advanced ({isPriceMonthly ? '$34.99/month' : '$295/year'})
+                                            </Button>
+                                        </Card.Footer>
                                     </Card>
                                 </Row>
                             </Col>
@@ -158,24 +154,10 @@ const PricingCards = ({
                                                 </span>
                                                 <h6 className="fw-normal align-self-end">/ month</h6>
                                             </div>
-                                            {/* <h4 className="mb-3 text-black">{title}</h4>
-                                            <p className="fw-normal mb-0">{description}</p> */}
+                                            <h4 className="mb-1 text-white text-left">Pro Marketing Plan</h4>
                                         </Card.Header>
                                         <Card.Body>
-                                            <h3 className="text-white">Pro Marketing Plan</h3>
-                                            <h6 className="text-white">Benefit from our professional local business marketing support package along with high fidelity metrics from current and prospective customers.</h6>
-                                            <hr />
-                                            <Button
-                                                onClick={getOnClickUpgrade('pro')}
-                                                href={'https://buy.stripe.com/8wM14W64Bg9E36M146'}
-                                                target="_blank"
-                                                variant="primary"
-                                                className="text-white"
-                                            >
-                                                <FontAwesomeIcon icon={faRocket} className="me-1" />
-                                                Upgrade to Pro ({isPriceMonthly ? '$99.99/month' : '$835/year'})
-                                            </Button>
-                                            <hr />
+                                            <h6 className="text-white pb-2">Benefit from our professional local business marketing support package along with high fidelity metrics from current and prospective customers.</h6>
                                             <ul className="list-unstyled text-white text-left">
                                                 <li className="fw-bolder mb-2"><i className="fas fa-star"></i> All Basic/Advanced Plan Features</li>
                                                 <li><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing + Advance AI)</li>
@@ -184,6 +166,18 @@ const PricingCards = ({
                                                 <li><i className="fas fa-check"></i> Curated Business Marketing on Therr Blog & Associated Social Media Accounts</li>
                                             </ul>
                                         </Card.Body>
+                                        <Card.Footer className="border-gray-100 py-4 px-4">
+                                            <Button
+                                                onClick={getOnClickUpgrade('pro')}
+                                                href={'https://buy.stripe.com/8wM14W64Bg9E36M146'}
+                                                target="_blank"
+                                                variant="primary"
+                                                className="text-white w-100"
+                                            >
+                                                <FontAwesomeIcon icon={faRocket} className="me-1" />
+                                                Upgrade to Pro ({isPriceMonthly ? '$99.99/month' : '$835/year'})
+                                            </Button>
+                                        </Card.Footer>
                                     </Card>
                                 </Row>
                             </Col>
