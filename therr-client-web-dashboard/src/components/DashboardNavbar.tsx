@@ -7,6 +7,7 @@ import {
 import {
     faBell,
     faCog,
+    faHamburger,
     faSearch,
     faSignOutAlt,
     faUserShield,
@@ -24,6 +25,7 @@ import {
     Container,
     ListGroup,
     InputGroup,
+    Button,
 } from 'react-bootstrap';
 import {
     NotificationActions,
@@ -55,6 +57,7 @@ interface IDashboardNavbarProps extends IStoreProps{
     navToSettings: () => any;
     onLogout: React.MouseEventHandler<any>;
     onSearchInpuChange: React.ChangeEventHandler<HTMLInputElement>;
+    toggleSidebar: () => any;
     user: any;
 }
 
@@ -84,7 +87,12 @@ const Notification = (notificationProps: any) => {
 
 const DashboardNavbar = (props: IDashboardNavbarProps) => {
     const {
-        user, map, notifications, onSearchInpuChange, updateNotification,
+        user,
+        map,
+        notifications,
+        onSearchInpuChange,
+        toggleSidebar,
+        updateNotification,
     } = props;
     const messagesSlice = notifications.messages.slice(0, MAX_NOTIFICATIONS_IN_VIEW);
     const areNotificationsRead = notifications.messages.reduce((acc: boolean, notif: INotification) => acc && notif.isUnread, false);
@@ -97,6 +105,13 @@ const DashboardNavbar = (props: IDashboardNavbarProps) => {
             <Container fluid className="px-0">
                 <div className="d-flex justify-content-between w-100">
                     <div className="d-flex align-items-center">
+                        <Button
+                            variant='outline-light'
+                            className="text-dark sidebar-toggle d-none d-md-inline-block align-items-center justify-content-center me-3 btn btn-icon-only"
+                            onClick={toggleSidebar}
+                        >
+                            <FontAwesomeIcon icon={faHamburger} />
+                        </Button>
                         <Form className="navbar-search">
                             <Form.Group id="topbarSearch">
                                 <InputGroup className="input-group-merge search-bar">
