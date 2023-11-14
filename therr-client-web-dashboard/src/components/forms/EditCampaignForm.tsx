@@ -109,7 +109,6 @@ const EditCampaignForm = ({
     onSelectMedia,
     shouldShowAdvancedFields,
 }: IEditCampaignFormProps) => {
-    // TODO: Debug initial value for Form Controls
     const isTherrSelected = inputs.integrationTargets?.includes(OAuthIntegrationProviders.THERR);
     const isGoogleSelected = inputs.integrationTargets?.includes(OAuthIntegrationProviders.GOOGLE);
     const isFacebookSelected = inputs.integrationTargets?.includes(OAuthIntegrationProviders.FACEBOOK);

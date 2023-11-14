@@ -67,10 +67,9 @@ class UsersActions {
             integrations,
             loginCount,
         } = userResponseData;
-        const userData: IUser = Immutable.from({
+        const mutableUserData: any = {
             accessLevels,
             id,
-            idToken, // Note: CAREFUL! - if this is undefined it could overwrite stored value an trigger user logout in interceptors.ts
             email,
             firstName,
             lastName,
@@ -80,7 +79,12 @@ class UsersActions {
             media,
             lastKnownLatitude,
             lastKnownLongitude,
-        });
+        };
+        if (idToken) {
+            // Note: CAREFUL! - if this is undefined it could overwrite stored value an trigger user logout in interceptors.ts
+            mutableUserData.idToken = idToken;
+        }
+        const userData: IUser = Immutable.from(mutableUserData);
         // TODO: Get user settings data from db response
         const userSettingsData: IUserSettings = Immutable.from({
             locale: 'en-us',
@@ -256,10 +260,12 @@ class UsersActions {
 
     getMe = () => async (dispatch: any) => {
         await UsersService.getMe().then(async (response) => {
-            const storedUserDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
+            const localUserDetails = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || null);
+            const sessionUserDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
             const { userData, userSettingsData } = this.extractUserData(response.data);
             const combinedUserDetails = {
-                ...storedUserDetails,
+                ...localUserDetails,
+                ...sessionUserDetails,
                 ...userData,
             };
             dispatch({
@@ -282,7 +288,8 @@ class UsersActions {
     logout = (userDetails?: any) => async (dispatch: any) => {
         // NOTE: Native Storage methods return a promise, but in this case we don't need to await
         userDetails = userDetails // eslint-disable-line no-param-reassign
-            || JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
+            || JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null)
+            || JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || null);
         if (!this.NativeStorage) {
             localStorage.removeItem('therrSession');
             localStorage.removeItem('therrUser');
@@ -374,15 +381,19 @@ class UsersActions {
         } = response?.data || {};
         // TODO: Determine if it is necessary to dispatch anything after user registers
         // set current user?
-        const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
-        const userSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || {});
+        const sessionUserDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
+        const localUserDetails = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || {});
+        const sessionUserSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || {});
+        const localUserSettings = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUserSettings') || {});
         const userData: IUser = Immutable.from({
-            ...userDetails,
+            ...localUserDetails,
+            ...sessionUserDetails,
             ...response.data,
         });
         // TODO: Get user settings from db
         const userSettingsData: IUser = Immutable.from({
-            ...userSettings,
+            ...localUserSettings,
+            ...sessionUserSettings,
             locale: 'en-us',
             mobileThemeName: settingsThemeName || 'retro',
             settingsBio,
@@ -409,6 +420,8 @@ class UsersActions {
             settingsPushMessages,
             settingsPushReminders,
         });
+        (this.NativeStorage || localStorage).setItem('therrUser', JSON.stringify(userData));
+        (this.NativeStorage || localStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
         (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
         (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
 

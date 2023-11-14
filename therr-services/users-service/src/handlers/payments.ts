@@ -37,6 +37,7 @@ const activateUserSubscription = (req, res) => {
             );
             accessLevels.forEach((level) => userAccessLevels.add(level));
 
+            // TODO: Only update user if subscription has started free trial or paid
             const updateUserPromise = (existingUser && accessLevels.length)
                 ? Store.users.updateUser({
                     accessLevels: JSON.stringify([...userAccessLevels]),
