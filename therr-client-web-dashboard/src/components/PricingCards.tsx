@@ -43,7 +43,7 @@ const PricingCards = ({
                     </Card.Header>
                     <Card.Header className="flex-row justify-content-center align-items-center">
                         <Row className="flex-row justify-content-center align-items-center">
-                            <h5 className="text-center text-success text-uppercase">
+                            <h5 className="text-center text-success text-italic">
                                 All packages start with a <span className="fw-bolder text-underline">14 day free trial</span> that can be canceled at any time.
                             </h5>
                         </Row>
