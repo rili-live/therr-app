@@ -24,6 +24,9 @@ import { createOrUpdateAchievement } from './helpers/achievements';
 const createUser: RequestHandler = (req: any, res: any) => {
     const locale = req.headers['x-localecode'] || 'en-us';
 
+    // const { paymentSessionId } = req.body;
+    // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
+
     // This is a honeypot hidden field to prevent spam
     if (req.body.website) {
         return handleHttpError({

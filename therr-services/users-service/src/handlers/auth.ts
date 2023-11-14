@@ -40,6 +40,10 @@ const basicHash = (input: string) => {
 const login: RequestHandler = (req: any, res: any) => {
     const authHeader = req.headers.authorization;
     const userId = req.headers['x-userid'];
+
+    // const { paymentSessionId } = req.body;
+    // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
+
     // TODO: Mitigate user with multiple accounts attached to the same phone number.
     // Logging in by phone number should attach to all accounts with that phone number and allow them to pick one
     let userNameEmailPhone = userNameOrEmailOrPhone(req.body);

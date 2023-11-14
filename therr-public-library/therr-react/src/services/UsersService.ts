@@ -255,6 +255,12 @@ class UsersService {
         url: '/users-service/thoughts',
         data,
     });
+
+    // Payments
+    activateSubscription = (sessionId: string) => axios({
+        method: 'post',
+        url: `/users-service/payments/checkout/sessions/${sessionId}`,
+    });
 }
 
 export default new UsersService();
