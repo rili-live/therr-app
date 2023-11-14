@@ -1,15 +1,17 @@
 /* eslint-disable max-len */
-import React from 'react';
+import React, { useState } from 'react';
 import ReactGA from 'react-ga4';
 import {
     Col,
     Row,
     Card,
     Button,
+    FormCheck,
 } from 'react-bootstrap';
 import {
     FontAwesomeIcon,
 } from '@fortawesome/react-fontawesome';
+import CountUp from 'react-countup';
 import {
     faRocket,
 } from '@fortawesome/free-solid-svg-icons';
@@ -21,6 +23,8 @@ interface IPricingCardsProps {
 const PricingCards = ({
     eventSource,
 }: IPricingCardsProps) => {
+    const [isPriceMonthly, setIsPriceMonthly] = useState(true);
+    const priceType = isPriceMonthly ? 'monthly' : 'annual';
     const onClickUpgrade = (plan: string) => {
         ReactGA.event('clicked_upgrade_btn', {
             source: eventSource,
@@ -28,6 +32,9 @@ const PricingCards = ({
         });
     };
     const getOnClickUpgrade = (plan: string) => () => onClickUpgrade(plan);
+    const togglePriceType = () => {
+        setIsPriceMonthly(!isPriceMonthly);
+    };
 
     return (
         <Row className="d-flex justify-content-around align-items-center py-4">
@@ -48,11 +55,34 @@ const PricingCards = ({
                             </h5>
                         </Row>
                     </Card.Header>
+                    <Col xs={12} className="d-flex align-items-center justify-content-center pt-2 pb-1">
+                        <h5 className="fw-normal me-4 mt-2">
+                            Monthly
+                        </h5>
+                        <FormCheck type="switch">
+                            <FormCheck.Input type="checkbox" id="billingSwitch" value={isPriceMonthly.toString()} onChange={togglePriceType} />
+                            <FormCheck.Label htmlFor="billingSwitch" />
+                        </FormCheck>
+                        <h5 className="fw-normal ms-1 mt-2">
+                            Annual
+                        </h5>
+                    </Col>
                     <Card.Body>
                         <Row className="flex-row justify-content-center align-items-center">
                             <Col xs={12} xl={6} xxl={4} className="text-center">
                                 <Row className="justify-content-center align-items-center mx-2 mb-4">
                                     <Card className="bg-basic-card pricing-card-basic">
+                                        <Card.Header className="border-gray-100 py-4 px-4">
+                                            <div className="d-flex mb-1 text-white">
+                                                <h5 className="mb-0">$</h5>
+                                                <span className={'price display-2 mb-0'}>
+                                                    <CountUp start={isPriceMonthly ? 10 : 15} end={isPriceMonthly ? 15 : 10} duration={1} />
+                                                </span>
+                                                <h6 className="fw-normal align-self-end">/ month</h6>
+                                            </div>
+                                            {/* <h4 className="mb-3 text-black">{title}</h4>
+                                            <p className="fw-normal mb-0">{description}</p> */}
+                                        </Card.Header>
                                         <Card.Body>
                                             <h3 className="text-white">Basic Marketing Plan</h3>
                                             <h6 className="text-white">Benefit from our basic local business marketing support package along with metrics from current and prospective customers.</h6>
@@ -65,7 +95,7 @@ const PricingCards = ({
                                                 className="text-white"
                                             >
                                                 <FontAwesomeIcon icon={faRocket} className="me-1" />
-                                                Upgrade to Basic ($14.99)
+                                                Upgrade to Basic ({isPriceMonthly ? '$14.99/month' : '$125/year'})
                                             </Button>
                                             <hr />
                                             <ul className="list-unstyled text-white text-left">
@@ -81,6 +111,17 @@ const PricingCards = ({
                             <Col xs={12} xl={6} xxl={4} className="text-center">
                                 <Row className="justify-content-center align-items-center mx-2 mb-4">
                                     <Card className="bg-advanced-card pricing-card-advanced">
+                                        <Card.Header className="border-gray-100 py-4 px-4">
+                                            <div className="d-flex mb-1 text-white">
+                                                <h5 className="mb-0">$</h5>
+                                                <span className={'price display-2 mb-0'}>
+                                                    <CountUp start={isPriceMonthly ? 24 : 35} end={isPriceMonthly ? 35 : 24} duration={1} />
+                                                </span>
+                                                <h6 className="fw-normal align-self-end">/ month</h6>
+                                            </div>
+                                            {/* <h4 className="mb-3 text-black">{title}</h4>
+                                            <p className="fw-normal mb-0">{description}</p> */}
+                                        </Card.Header>
                                         <Card.Body>
                                             <h3 className="text-white">Advanced Marketing Plan</h3>
                                             <h6 className="text-white">Benefit from our premium local business marketing support package along with advanced metrics from current and prospective customers.</h6>
@@ -93,7 +134,7 @@ const PricingCards = ({
                                                 className="text-white"
                                             >
                                                 <FontAwesomeIcon icon={faRocket} className="me-1" />
-                                                Upgrade to Advanced ($34.99)
+                                                Upgrade to Advanced ({isPriceMonthly ? '$34.99/month' : '$295/year'})
                                             </Button>
                                             <hr />
                                             <ul className="list-unstyled text-white text-left">
@@ -109,6 +150,17 @@ const PricingCards = ({
                             <Col xs={12} xl={6} xxl={4} className="text-center">
                                 <Row className="justify-content-center align-items-center mx-2 mb-4">
                                     <Card className="bg-pro-card pricing-card-pro">
+                                        <Card.Header className="border-gray-100 py-4 px-4">
+                                            <div className="d-flex mb-1 text-white">
+                                                <h5 className="mb-0">$</h5>
+                                                <span className={'price display-2 mb-0'}>
+                                                    <CountUp start={isPriceMonthly ? 69 : 99} end={isPriceMonthly ? 99 : 69} duration={1} />
+                                                </span>
+                                                <h6 className="fw-normal align-self-end">/ month</h6>
+                                            </div>
+                                            {/* <h4 className="mb-3 text-black">{title}</h4>
+                                            <p className="fw-normal mb-0">{description}</p> */}
+                                        </Card.Header>
                                         <Card.Body>
                                             <h3 className="text-white">Pro Marketing Plan</h3>
                                             <h6 className="text-white">Benefit from our professional local business marketing support package along with high fidelity metrics from current and prospective customers.</h6>
@@ -121,7 +173,7 @@ const PricingCards = ({
                                                 className="text-white"
                                             >
                                                 <FontAwesomeIcon icon={faRocket} className="me-1" />
-                                                Upgrade to Pro ($99.99)
+                                                Upgrade to Pro ({isPriceMonthly ? '$99.99/month' : '$835/year'})
                                             </Button>
                                             <hr />
                                             <ul className="list-unstyled text-white text-left">
