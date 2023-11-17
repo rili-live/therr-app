@@ -24,6 +24,9 @@ const AccountDetailsForm = ({
 
     return (
         <Card border="light" className="bg-white shadow-sm mb-4">
+            <Card.Header>
+                <h1>Settings</h1>
+            </Card.Header>
             <Card.Body>
                 <h5 className="mb-4">General information</h5>
                 <Form>

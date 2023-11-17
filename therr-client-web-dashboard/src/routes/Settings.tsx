@@ -18,7 +18,8 @@ import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
 import AccountDetailsForm from '../components/forms/AccountDetailsForm';
 import ChangePasswordForm from '../components/forms/ChangePasswordForm';
-import { getWebsiteName } from '../utilities/getHostContext';
+import { getWebsiteName, getBrandContext } from '../utilities/getHostContext';
+import SubscriptionDetailsForm from '../components/forms/SubscriptionDetailsForm';
 
 interface ISettingsRouterProps {
     navigation: {
@@ -129,6 +130,7 @@ export class SettingsComponent extends React.Component<ISettingsProps, ISettings
             alertTitle,
             alertMessage,
         } = this.state;
+        const brandContext = getBrandContext();
 
         return (
             <div id="page_dashboard_overview" className="flex-box column">
@@ -154,19 +156,12 @@ export class SettingsComponent extends React.Component<ISettingsProps, ISettings
                         />
                     </Col>
 
-                    {/* <Col xs={12} xl={4}>
-                        <Row>
-                            <Col xs={12}>
-                                <ProfileCardWidget />
-                            </Col>
-                            <Col xs={12}>
-                                <ChoosePhotoWidget
-                                    title="Select profile photo"
-                                    photo={Profile3}
-                                />
-                            </Col>
-                        </Row>
-                    </Col> */}
+                    <Col xs={12} xl={10} xxl={8}>
+                        <SubscriptionDetailsForm
+                            brandContext={brandContext}
+                            user={user}
+                        />
+                    </Col>
                 </Row>
                 <ToastContainer className="p-3" position={'bottom-end'}>
                     <Toast bg={alertVariation} show={alertIsVisible} onClose={() => this.toggleAlert(false)}>

@@ -38,7 +38,7 @@ const PricingCards = ({
 
     return (
         <Row className="d-flex justify-content-around align-items-center py-4">
-            <Col xs={12} xl={12} xxl={10}>
+            <Col xs={12} xl={12} xxl={12}>
                 <Card className="rounded-0">
                     <Card.Header className="flex-row justify-content-center align-items-center">
                         <h2 className="text-center">
@@ -72,7 +72,7 @@ const PricingCards = ({
                             <Col xs={12} xl={6} xxl={4} className="text-center">
                                 <Row className="justify-content-center align-items-center mx-2 mb-4">
                                     <Card className="bg-basic-card pricing-card-basic">
-                                        <Card.Header className="border-gray-100 py-4 px-4">
+                                        <Card.Header className="border-gray-100 py-4 px-4 mb-4">
                                             <div className="d-flex mb-1 text-white">
                                                 <h5 className="mb-0">$</h5>
                                                 <span className={'price display-2 mb-0'}>
@@ -91,7 +91,7 @@ const PricingCards = ({
                                                 <li className="mb-2"><i className="fas fa-check"></i> 24/7 Tech Support</li>
                                             </ul>
                                         </Card.Body>
-                                        <Card.Footer className="border-gray-100 py-4 px-4">
+                                        <Card.Footer className="border-gray-100 py-4 px-4 mt-4">
                                             <Button
                                                 onClick={getOnClickUpgrade('basic')}
                                                 href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'}
@@ -109,7 +109,7 @@ const PricingCards = ({
                             <Col xs={12} xl={6} xxl={4} className="text-center">
                                 <Row className="justify-content-center align-items-center mx-2 mb-4">
                                     <Card className="bg-advanced-card pricing-card-advanced">
-                                        <Card.Header className="border-gray-100 py-4 px-4">
+                                        <Card.Header className="border-gray-100 py-4 px-4 mb-4">
                                             <div className="d-flex mb-1 text-white">
                                                 <h5 className="mb-0">$</h5>
                                                 <span className={'price display-2 mb-0'}>
@@ -128,7 +128,7 @@ const PricingCards = ({
                                                 <li className="mb-2"><i className="fas fa-check"></i> Personalized Influencer Pairing</li>
                                             </ul>
                                         </Card.Body>
-                                        <Card.Footer className="border-gray-100 py-4 px-4">
+                                        <Card.Footer className="border-gray-100 py-4 px-4 mt-4">
                                             <Button
                                                 onClick={getOnClickUpgrade('advanced')}
                                                 href={'https://buy.stripe.com/aEUdRI78F0aGePu6op'}
@@ -146,7 +146,7 @@ const PricingCards = ({
                             <Col xs={12} xl={6} xxl={4} className="text-center">
                                 <Row className="justify-content-center align-items-center mx-2 mb-4">
                                     <Card className="bg-pro-card pricing-card-pro">
-                                        <Card.Header className="border-gray-100 py-4 px-4">
+                                        <Card.Header className="border-gray-100 py-4 px-4 mb-4">
                                             <div className="d-flex mb-1 text-white">
                                                 <h5 className="mb-0">$</h5>
                                                 <span className={'price display-2 mb-0'}>
@@ -166,7 +166,7 @@ const PricingCards = ({
                                                 <li className="mb-2"><i className="fas fa-check"></i> Curated Business Marketing on Therr Blog & Associated Social Media Accounts</li>
                                             </ul>
                                         </Card.Body>
-                                        <Card.Footer className="border-gray-100 py-4 px-4">
+                                        <Card.Footer className="border-gray-100 py-4 px-4 mt-4">
                                             <Button
                                                 onClick={getOnClickUpgrade('pro')}
                                                 href={'https://buy.stripe.com/8wM14W64Bg9E36M146'}
