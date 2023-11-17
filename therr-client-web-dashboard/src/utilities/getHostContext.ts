@@ -1,4 +1,4 @@
-interface IBrandConfig {
+export interface IBrandConfig {
     brandName: string;
     websiteName: string;
     host: string;
