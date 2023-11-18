@@ -127,7 +127,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     login = (credentials: any) => {
         const urlParams = new URLSearchParams(window?.location?.search);
         const paymentSessionId = urlParams.get('paymentSessionId');
-        this.props.login({
+        return this.props.login({
             ...credentials,
             paymentSessionId,
         });
