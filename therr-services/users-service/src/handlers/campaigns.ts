@@ -6,36 +6,27 @@ import translate from '../utilities/translator';
 import Store from '../store';
 import sendCampaignCreatedEmail from '../api/email/admin/sendCampaignCreatedEmail';
 import sendCampaignPendingReviewEmail from '../api/email/for-business/sendCampaignPendingReviewEmail';
+import { getUserOrgsIdsFromHeaders } from './helpers/user';
 
 // READ
 const getCampaign = async (req, res) => {
     const userId = req.headers['x-userid'];
+    const readAccessOrgIds = getUserOrgsIdsFromHeaders(req.headers, 'read');
 
-    return Store.userOrganizations.get({
-        userId,
-    }).then((userOrgs) => {
-        const orgsWithReadAccess = userOrgs.filter((org) => (
-            org.accessLevels.includes(AccessLevels.ORGANIZATIONS_ADMIN)
-            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_BILLING)
-            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_MANAGER)
-            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_READ)
-        ));
+    return Store.campaigns.getCampaigns({
+        id: req.params.id,
+    }, {
+        creatorId: userId,
+        userOrganizations: readAccessOrgIds,
+    }).then((campaigns) => {
+        const campaign = campaigns[0] || {};
 
-        return Store.campaigns.getCampaigns({
-            id: req.params.id,
-        }, {
-            creatorId: userId,
-            userOrganizations: orgsWithReadAccess.map((org) => org.organizationId),
-        }).then((campaigns) => {
-            const campaign = campaigns[0] || {};
+        const assetsPromise = campaign?.assetIds?.length
+            ? Store.campaignAssets.get({}, campaign.assetIds) : Promise.resolve([]);
 
-            const assetsPromise = campaign?.assetIds?.length
-                ? Store.campaignAssets.get({}, campaign.assetIds) : Promise.resolve([]);
-
-            return assetsPromise.then((campaignAssets) => {
-                campaign.assets = campaignAssets;
-                return res.status(200).send(campaign);
-            });
+        return assetsPromise.then((campaignAssets) => {
+            campaign.assets = campaignAssets;
+            return res.status(200).send(campaign);
         });
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
 };
@@ -52,30 +43,20 @@ const searchMyCampaigns = async (req, res) => {
 
     const integerColumns = [];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
+    const readAccessOrgIds = getUserOrgsIdsFromHeaders(req.headers, 'read');
 
-    return Store.userOrganizations.get({
-        userId,
-    }).then((userOrgs) => {
-        const orgsWithReadAccess = userOrgs.filter((org) => (
-            org.accessLevels.includes(AccessLevels.ORGANIZATIONS_ADMIN)
-            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_BILLING)
-            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_MANAGER)
-            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_READ)
-        ));
-
-        return Store.campaigns.searchCampaigns(searchArgs[0], searchArgs[1], userId, {
-            userOrganizations: orgsWithReadAccess.map((org) => org.organizationId),
-        }).then((results) => {
-            const response = {
-                results,
-                pagination: {
-                    itemsPerPage: Number(itemsPerPage),
-                    pageNumber: Number(pageNumber),
-                },
-            };
-            return res.status(200).send(response);
-        }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
-    });
+    return Store.campaigns.searchCampaigns(searchArgs[0], searchArgs[1], userId, {
+        userOrganizations: readAccessOrgIds,
+    }).then((results) => {
+        const response = {
+            results,
+            pagination: {
+                itemsPerPage: Number(itemsPerPage),
+                pageNumber: Number(pageNumber),
+            },
+        };
+        return res.status(200).send(response);
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
 };
 
 // SAVE
@@ -162,6 +143,7 @@ const updateCampaign = async (req, res) => {
     const userId = req.headers['x-userid'];
     const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
+    const writeAccessOrgIds = getUserOrgsIdsFromHeaders(req.headers, 'write');
 
     const {
         organizationId,
@@ -182,25 +164,17 @@ const updateCampaign = async (req, res) => {
         assets,
     } = req.body;
 
-    return Promise.all([
-        Store.users.getUserById(userId, ['email']),
-        Store.userOrganizations.get({
-            userId,
-        }),
-    ]).then(([[user], userOrgs]) => {
+    return Store.users.getUserById(userId, ['email']).then(([user]) => {
         // TODO: Verify user is a subscriber
-        const orgsWithWriteAccess = userOrgs.filter((org) => (
-            org.accessLevels.includes(AccessLevels.ORGANIZATIONS_ADMIN)
-            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_BILLING)
-            || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_MANAGER)
-        ));
+        // NOTE: We should probably handle this as a middleware in API Gateway
+        console.log(user.accessLevels);
 
         // Get campaign, check it exists, and check current status
         return Store.campaigns.getCampaigns({
             id: req.params.id,
         }, {
             creatorId: userId,
-            userOrganizations: orgsWithWriteAccess.map((org) => org.organizationId),
+            userOrganizations: writeAccessOrgIds,
         }).then(([fetchedCampaign]) => [user, fetchedCampaign]);
     }).then(([user, fetchedCampaign]) => {
         if (!fetchedCampaign) {

@@ -544,10 +544,50 @@ const validateCredentials = (userSearchResults, {
     }).then((isSuccess) => [isSuccess, userSearchResults[0]]);
 };
 
+const getUserOrgsIdsFromHeaders = (headers: any, accessFilter = 'read') => {
+    let userOrgs = {};
+    try {
+        userOrgs = JSON.parse(headers['x-organizations'] || '{}');
+    } catch (e) {
+        console.log(e);
+        userOrgs = {};
+    }
+    const readAccessOrgIds = Object.keys(userOrgs).filter((key) => {
+        if (accessFilter === 'read') {
+            return (
+                userOrgs[key].includes(AccessLevels.ORGANIZATIONS_ADMIN)
+                    || userOrgs[key].includes(AccessLevels.ORGANIZATIONS_BILLING)
+                    || userOrgs[key].includes(AccessLevels.ORGANIZATIONS_MANAGER)
+                    || userOrgs[key].includes(AccessLevels.ORGANIZATIONS_READ)
+            );
+        }
+
+        if (accessFilter === 'write') {
+            return (
+                userOrgs[key].includes(AccessLevels.ORGANIZATIONS_ADMIN)
+                    || userOrgs[key].includes(AccessLevels.ORGANIZATIONS_MANAGER)
+            );
+        }
+
+        if (accessFilter === 'billing') {
+            return (userOrgs[key].includes(AccessLevels.ORGANIZATIONS_BILLING));
+        }
+
+        if (accessFilter === 'admin') {
+            return (userOrgs[key].includes(AccessLevels.ORGANIZATIONS_ADMIN));
+        }
+
+        return false;
+    });
+
+    return readAccessOrgIds;
+};
+
 export {
     getUserHelper,
     isUserProfileIncomplete,
     createUserHelper,
     validateCredentials,
     redactUserCreds,
+    getUserOrgsIdsFromHeaders,
 };
