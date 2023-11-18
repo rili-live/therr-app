@@ -115,7 +115,7 @@ const Sidebar = (props: ISidebarProps) => {
         } = itemProps;
         let classNames = badgeText ? 'd-flex justify-content-start align-items-center justify-content-between' : '';
         classNames = external ? `${classNames} open-external` : classNames;
-        const navItemClassName = link === pathname ? `active ${className}` : `${className}`;
+        const navItemClassName = link === pathname ? `active ${className || ''}` : `${className || ''}`;
         const linkProps: any = external ? { href: link } : { as: Link, to: link };
 
         return (
@@ -252,7 +252,7 @@ const Sidebar = (props: ISidebarProps) => {
                                 target="_blank"
                                 image={MobileLogo}
                             />
-                            <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className="upgrade-to-pro"><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
+                            <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className={`${isContracted ? '' : 'upgrade-to-pro'}`}><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
                         </Nav>
                     </div>
                 </SimpleBar>
