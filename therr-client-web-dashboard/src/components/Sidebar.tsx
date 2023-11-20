@@ -156,7 +156,7 @@ const Sidebar = (props: ISidebarProps) => {
             </Navbar>
             <CSSTransition timeout={300} in={show} classNames="sidebar-transition">
                 <SimpleBar className={`collapse ${contractClass} ${showClass} sidebar d-md-block bg-primary text-white`}>
-                    <div className="sidebar-inner px-4 pt-3">
+                    <div className="sidebar-inner px-4 pt-3 overflow-hidden">
                         <div className="user-card d-flex d-md-none align-items-center justify-content-between justify-content-md-center pb-4">
                             <div className="d-flex align-items-center">
                                 <div className="user-avatar lg-avatar me-4">
@@ -252,7 +252,7 @@ const Sidebar = (props: ISidebarProps) => {
                                 target="_blank"
                                 image={MobileLogo}
                             />
-                            <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className={`${isContracted ? '' : 'upgrade-to-pro'}`}><FontAwesomeIcon icon={faRocket} className="me-1" /> Upgrade to Pro</Button>
+                            <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className={`${isContracted ? '' : 'upgrade-to-pro'}`}><FontAwesomeIcon icon={faRocket} className="me-1" /> {isContracted ? '' : 'Upgrade to Pro'}</Button>
                         </Nav>
                     </div>
                 </SimpleBar>
