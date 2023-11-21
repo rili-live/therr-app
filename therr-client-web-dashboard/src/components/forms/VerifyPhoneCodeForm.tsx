@@ -32,6 +32,7 @@ const VerifyPhoneCodeForm = ({
         <Card border="light" className="bg-white shadow-sm mb-4">
             <Card.Body>
                 <h5 className="mb-4">Enter Verification Code</h5>
+                <p className="mb-4">You should receive a code by text message shortly. Otherwise, please contact us further assistance.</p>
                 <Form>
                     <Row>
                         <Col md={6} className="mb-3">
