@@ -157,7 +157,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             <div id="page_login" className="flex-box center space-evenly row">
                 <main>
                     <section className='d-flex align-items-center my-5 mt-lg-7 mb-lg-5'>
-                        <Container>
+                        <Container className="mw-100">
                             {/* <p className='text-center'>
                                 <Card.Link as={Link} to={'/'} className='text-gray-700'>
                                     <FontAwesomeIcon icon={faAngleLeft} className='me-2' /> Back to homepage

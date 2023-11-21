@@ -4,6 +4,7 @@ import CampaignsStore from './CampaignsStore';
 import CampaignAssetsStore from './CampaignAssetsStore';
 import ConfigStore from './ConfigStore';
 import InvitesStore from './InvitesStore';
+import InviteCodesStore from './InviteCodesStore';
 import NotificationsStore from './NotificationsStore';
 import SocialSyncsStore from './SocialSyncsStore';
 import SubscribersStore from './SubscribersStore';
@@ -44,6 +45,8 @@ class Store {
 
     invites: InvitesStore;
 
+    inviteCodes: InviteCodesStore;
+
     notifications: NotificationsStore;
 
     verificationCodes: VerificationCodesStore;
@@ -64,6 +67,7 @@ class Store {
         this.socialSyncs = new SocialSyncsStore(this.db);
         this.thoughts = new ThoughtsStore(this.db, this.users);
         this.invites = new InvitesStore(this.db);
+        this.inviteCodes = new InviteCodesStore(this.db);
         this.notifications = new NotificationsStore(this.db);
         this.verificationCodes = new VerificationCodesStore(this.db);
     }
