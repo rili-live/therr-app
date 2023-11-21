@@ -19,13 +19,16 @@ import {
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
+import { getAccessForCodeType } from '../store/InviteCodesStore';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => {
     const locale = req.headers['x-localecode'] || 'en-us';
 
-    // const { paymentSessionId } = req.body;
-    // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
+    const {
+        activationCode,
+        paymentSessionId,
+    } = req.body;
 
     // This is a honeypot hidden field to prevent spam
     if (req.body.website) {
@@ -50,6 +53,46 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     statusCode: 400,
                     errorCode: ErrorCodes.USER_EXISTS,
                 });
+            }
+
+            let getSubsAccessLvlsPromise: Promise<AccessLevels[]> = Promise.resolve([]);
+
+            if (activationCode) {
+                getSubsAccessLvlsPromise = Promise.all([
+                    Store.inviteCodes.getInviteCodes({
+                        code: activationCode,
+                        isRedeemed: false,
+                    }),
+                    Store.inviteCodes.getInviteCodes({
+                        userEmail: req.body.email,
+                        isRedeemed: true,
+                    }),
+                ]).then(([validCodes, invalidCodes]) => {
+                    if (invalidCodes.length) {
+                        return [];
+                    }
+
+                    if (validCodes.length) {
+                        // TODO: Better error logging
+                        Store.inviteCodes.updateInviteCode({
+                            id: validCodes[0].id,
+                        }, {
+                            isRedeemed: true,
+                            userEmail: req.body.email,
+                        }).catch((err) => {
+                            console.error(err);
+                        });
+                        return getAccessForCodeType(validCodes[0].redemptionType);
+                    }
+
+                    return [];
+                }).catch((err) => {
+                    console.error(err);
+                    return [];
+                });
+            } else if (paymentSessionId) {
+                // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
+                console.log('TODO...');
             }
 
             if (inviteCode) {
@@ -80,7 +123,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            return createUserHelper({
+            return getSubsAccessLvlsPromise.then((levels) => createUserHelper({
                 email: req.body.email,
                 password: req.body.password,
                 firstName: req.body.firstName,
@@ -90,7 +133,8 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 lastName: req.body.lastName,
                 phoneNumber: req.body.phoneNumber,
                 userName: req.body.userName,
-            }, false, undefined, !!inviteCode, req.headers['x-localecode']).then((user) => res.status(201).send(user));
+                accessLevels: levels,
+            }, false, undefined, !!inviteCode, req.headers['x-localecode']).then((user) => res.status(201).send(user)));
         })
         .catch((err) => handleHttpError({
             err,

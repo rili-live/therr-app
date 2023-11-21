@@ -85,9 +85,9 @@ const PricingCards = ({
                                         <Card.Body>
                                             <h6 className="text-white pb-4">Benefit from our basic local business marketing support package along with metrics from current and prospective customers.</h6>
                                             <ul className="list-unstyled text-white text-left">
-                                                <li className="mb-2"><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
                                                 <li className="mb-2"><i className="fas fa-check"></i> Ads Orchestrator (Single Origin Marketing)</li>
                                                 <li className="mb-2"><i className="fas fa-check"></i> Additional customer metrics</li>
+                                                <li className="mb-2"><i className="fas fa-check"></i> Business space prioritized on mobile app</li>
                                                 <li className="mb-2"><i className="fas fa-check"></i> 24/7 Tech Support</li>
                                             </ul>
                                         </Card.Body>

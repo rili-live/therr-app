@@ -13,6 +13,8 @@ export const createUserValidation = [
     body('isCreatorAccount').optional().isBoolean(),
     body('isDashboardRegistration').optional().isBoolean(),
     body('inviteCode').optional().isString(),
+    body('activationCode').optional().isString(),
+    body('paymentSessionId').optional().isString(),
 ];
 
 export const changePasswordValidation = [

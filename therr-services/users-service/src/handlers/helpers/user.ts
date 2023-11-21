@@ -36,6 +36,7 @@ interface IRequiredUserDetails {
     isBusinessAccount?: boolean;
     isCreatorAccount?: boolean;
     isDashboardRegistration?: boolean;
+    accessLevels?: string[];
 }
 
 export interface IUserByInviteDetails {
@@ -243,6 +244,7 @@ const createUserHelper = (
             const isMissingUserProps = isUserProfileIncomplete(userDetails);
             const userAccessLevels = new Set([
                 AccessLevels.DEFAULT,
+                ...(userDetails.accessLevels || []),
             ]);
             if (userDetails.isDashboardRegistration) {
                 userAccessLevels.add(AccessLevels.DASHBOARD_SIGNUP);
