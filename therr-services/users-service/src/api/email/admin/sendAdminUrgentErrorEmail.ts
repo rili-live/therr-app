@@ -11,13 +11,14 @@ export interface ISendAdminUrgentErrorEmailConfig {
 
 export interface ITemplateParams {
     errorMessage: string;
-    userEmail?: string;
 }
 
 export interface IAccountTypeParams {
     webhookEventType?: string,
     webhookEventAmount?: number,
     webhookEventStatus?: string,
+    activationCode?: string;
+    userEmail?: string;
 }
 
 export default (emailParams: ISendAdminUrgentErrorEmailConfig, templateParams: ITemplateParams, errorDetails: IAccountTypeParams) => {
