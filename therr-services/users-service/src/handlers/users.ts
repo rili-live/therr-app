@@ -20,6 +20,7 @@ import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
 import { getAccessForCodeType } from '../store/InviteCodesStore';
+import sendAdminUrgentErrorEmail from '../api/email/admin/sendAdminUrgentErrorEmail';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => {
@@ -69,6 +70,13 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     }),
                 ]).then(([validCodes, invalidCodes]) => {
                     if (invalidCodes.length) {
+                        sendAdminUrgentErrorEmail({
+                            subject: '[Urgent Error] Bad Activation Code',
+                            toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                        }, {
+                            errorMessage: 'Activation Code already used',
+                            userEmail: req.body.email,
+                        }, {});
                         return [];
                     }
 
@@ -85,9 +93,23 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         return getAccessForCodeType(validCodes[0].redemptionType);
                     }
 
+                    sendAdminUrgentErrorEmail({
+                        subject: '[Urgent Error] Bad Activation Code',
+                        toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                    }, {
+                        errorMessage: 'Activation Code not found',
+                        userEmail: req.body.email,
+                    }, {});
+
                     return [];
                 }).catch((err) => {
-                    console.error(err);
+                    sendAdminUrgentErrorEmail({
+                        subject: '[Urgent Error] Bad Activation Code',
+                        toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                    }, {
+                        errorMessage: `Error fetching activation codes: ${err?.message}`,
+                        userEmail: req.body.email,
+                    }, {});
                     return [];
                 });
             } else if (paymentSessionId) {
