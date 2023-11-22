@@ -75,8 +75,10 @@ const createUser: RequestHandler = (req: any, res: any) => {
                             toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                         }, {
                             errorMessage: 'Activation Code already used',
+                        }, {
                             userEmail: req.body.email,
-                        }, {});
+                            activationCode,
+                        });
                         return [];
                     }
 
@@ -88,7 +90,15 @@ const createUser: RequestHandler = (req: any, res: any) => {
                             isRedeemed: true,
                             userEmail: req.body.email,
                         }).catch((err) => {
-                            console.error(err);
+                            sendAdminUrgentErrorEmail({
+                                subject: '[Urgent Error] Activation Code Error',
+                                toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                            }, {
+                                errorMessage: `Failed to update activation code: ${err?.message}`,
+                            }, {
+                                userEmail: req.body.email,
+                                activationCode,
+                            });
                         });
                         return getAccessForCodeType(validCodes[0].redemptionType);
                     }
@@ -97,9 +107,11 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         subject: '[Urgent Error] Bad Activation Code',
                         toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                     }, {
-                        errorMessage: 'Activation Code not found',
+                        errorMessage: 'Activation code not found',
+                    }, {
                         userEmail: req.body.email,
-                    }, {});
+                        activationCode,
+                    });
 
                     return [];
                 }).catch((err) => {
@@ -108,8 +120,10 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                     }, {
                         errorMessage: `Error fetching activation codes: ${err?.message}`,
+                    }, {
                         userEmail: req.body.email,
-                    }, {});
+                        activationCode,
+                    });
                     return [];
                 });
             } else if (paymentSessionId) {
