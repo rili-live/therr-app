@@ -3,7 +3,7 @@ import Handlebars from 'handlebars';
 import sendEmail from '../sendEmail';
 import templateString from '../template';
 
-export interface ISendAdminNewBusinessSubscriptionEmailConfig {
+export interface ISendAdminUrgentErrorEmailConfig {
     charset?: string;
     subject: string;
     toAddresses: string[];
@@ -17,9 +17,11 @@ export interface IAccountTypeParams {
     webhookEventType?: string,
     webhookEventAmount?: number,
     webhookEventStatus?: string,
+    activationCode?: string;
+    userEmail?: string;
 }
 
-export default (emailParams: ISendAdminNewBusinessSubscriptionEmailConfig, templateParams: ITemplateParams, errorDetails: IAccountTypeParams) => {
+export default (emailParams: ISendAdminUrgentErrorEmailConfig, templateParams: ITemplateParams, errorDetails: IAccountTypeParams) => {
     const otherEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',');
     const template = Handlebars.compile(templateString);
     const dearUser = 'Oops something went wrong!';
