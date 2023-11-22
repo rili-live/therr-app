@@ -50,6 +50,9 @@ import {
 import {
     AccessControl,
 } from 'therr-react/components';
+import { UsersService } from 'therr-react/services';
+import { AccessCheckType } from 'therr-react/types';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import getUserImageUri from '../utilities/getUserImageUri';
 import { getBrandContext } from '../utilities/getHostContext';
 
@@ -79,6 +82,17 @@ const Sidebar = (props: ISidebarProps) => {
             plan: 'basic',
         });
     };
+
+    const isProSubscribed = UsersService.isAuthorized(
+        {
+            type: AccessCheckType.ANY,
+            levels: [
+                AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
+                AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY],
+            isPublic: true,
+        },
+        user,
+    );
 
     const currentUserImageUri = getUserImageUri(user, 200);
 
@@ -252,7 +266,15 @@ const Sidebar = (props: ISidebarProps) => {
                                 target="_blank"
                                 image={MobileLogo}
                             />
-                            <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className={`${isContracted ? '' : 'upgrade-to-pro'}`}><FontAwesomeIcon icon={faRocket} className="me-1" /> {isContracted ? '' : 'Upgrade to Pro'}</Button>
+                            {
+                                !isProSubscribed
+                                    ? <Button onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className={`${isContracted ? '' : 'upgrade-to-pro'}`}>
+                                        <FontAwesomeIcon icon={faRocket} className="me-1" /> {isContracted ? '' : 'Upgrade to Pro'}
+                                    </Button>
+                                    : <Button disabled onClick={onClickUpgrade} href={'https://buy.stripe.com/3cs7tkcsZ6z4fTy7ss'} target="_blank" variant="secondary" className={`${isContracted ? '' : 'upgrade-to-pro'}`}>
+                                        {isContracted ? '' : 'Pro Subscriber'}
+                                    </Button>
+                            }
                         </Nav>
                     </div>
                 </SimpleBar>
