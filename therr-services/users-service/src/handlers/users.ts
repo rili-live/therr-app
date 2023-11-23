@@ -450,6 +450,7 @@ const updateUser = (req, res) => {
                             userId,
                             organizationId: orgsResult[0].id,
                             inviteStatus: 'accepted',
+                            accessLevels: [AccessLevels.ORGANIZATIONS_ADMIN],
                         }]).then(() => orgsResult));
                     });
                 }
@@ -502,10 +503,26 @@ const updateUser = (req, res) => {
                         .updateUser(updateArgs, {
                             id: userId,
                         })
-                        .then((results) => {
+                        .then(async (results) => {
                             const user = results[0];
                             // Remove credentials from object
                             redactUserCreds(user);
+
+                            const userOrgs = await Store.userOrganizations.get({
+                                userId: user.id,
+                            }).catch((err) => {
+                                logSpan({
+                                    level: 'error',
+                                    messageOrigin: 'API_SERVER',
+                                    messages: [err?.message, 'Failed to fetch user organizations for idToken'],
+                                    traceArgs: {
+                                        issue: '',
+                                        port: process.env.USERS_SERVICE_API_PORT,
+                                        'process.id': process.pid,
+                                    },
+                                });
+                                return [];
+                            });
 
                             // TODO: Investigate security issue
                             // Lockdown updateUser
@@ -513,7 +530,8 @@ const updateUser = (req, res) => {
                                 ...user,
                                 id: userId,
                                 organizations: orgsResult,
-                            }); // Precaution, always return correct request userID to prevent polution
+                                userOrganizations: userOrgs,
+                            }); // Precaution, always return correct request userID to prevent pollution
                         });
                 });
         })
@@ -697,7 +715,7 @@ const updateUserCoins = (req, res) => {
 
                         // TODO: Investigate security issue
                         // Lockdown updateUser
-                        return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent polution
+                        return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent pollution
                     }))
                 .catch((e) => handleHttpError({
                     res,

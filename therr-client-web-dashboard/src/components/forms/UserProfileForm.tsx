@@ -4,6 +4,7 @@ import {
 } from 'react-bootstrap';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import flags from 'react-phone-number-input/flags'; // eslint-disable-line import/extensions
+import { IUserState } from 'therr-react/types';
 
 export const orgTypeOptions = [
     {
@@ -42,6 +43,7 @@ interface IUserProfileFormProps {
     isPhoneNumberValid?: boolean;
     isSubmitting?: boolean;
     translate: any;
+    user: IUserState;
 }
 
 const UserProfileForm = ({
@@ -58,6 +60,7 @@ const UserProfileForm = ({
     isPhoneNumberValid,
     isSubmitting,
     translate,
+    user,
 }: IUserProfileFormProps) => {
     const onContinue = (e) => {
         e.preventDefault();
@@ -73,7 +76,12 @@ const UserProfileForm = ({
         });
     };
 
-    const isFormDisabled = !isPhoneNumberValid || !userName || !organizationName || !organizationType || isSubmitting;
+    const isFormDisabled = isSubmitting
+        || !isPhoneNumberValid
+        || !firstName
+        || !lastName
+        || !userName
+        || (!user.details?.userOrganizations?.length && (!organizationName || !organizationType));
 
     return (
         <Card border="light" className="bg-white shadow-sm mb-4">
@@ -85,8 +93,9 @@ const UserProfileForm = ({
                     <Row>
                         <Col md={6} className="mb-3">
                             <Form.Group id="firstName">
-                                <Form.Label>First Name (optional)</Form.Label>
+                                <Form.Label>First Name (required)</Form.Label>
                                 <Form.Control
+                                    required
                                     value={firstName}
                                     name="firstName"
                                     type="text"
@@ -97,8 +106,9 @@ const UserProfileForm = ({
                         </Col>
                         <Col md={6} className="mb-3">
                             <Form.Group id="lastName">
-                                <Form.Label>Last Name (optional)</Form.Label>
+                                <Form.Label>Last Name (required)</Form.Label>
                                 <Form.Control
+                                    required
                                     value={lastName}
                                     name="lastName"
                                     type="text"
@@ -115,46 +125,52 @@ const UserProfileForm = ({
                                 <Form.Control
                                     value={userName}
                                     name="userName"
-                                    required type="text"
+                                    required
+                                    type="text"
                                     placeholder="Create a username..."
                                     onChange={onInputChange}
                                 />
                             </Form.Group>
                         </Col>
                     </Row>
-                    <Row>
-                        <Col md={12} className="mb-3">
-                            <Form.Group id="organizationName">
-                                <Form.Label>Business/Organization (required)</Form.Label>
-                                <Form.Control
-                                    value={organizationName}
-                                    name="organizationName"
-                                    required type="text"
-                                    placeholder="Enter your business name (DBA)..."
-                                    onChange={onInputChange}
-                                />
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    <Row className="align-items-center">
-                        <Col lg={12} className="mb-3">
-                            <Form.Group controlId="organizationType">
-                                <Form.Label>Business Type</Form.Label>
-                                <Form.Control
-                                    value={organizationType}
-                                    name="organizationType"
-                                    onChange={onInputChange}
-                                    as="select"
-                                >
-                                    {
-                                        orgTypeOptions.map((option, index) => (
-                                            <option key={index} value={option.value}>{option.label}</option>
-                                        ))
-                                    }
-                                </Form.Control>
-                            </Form.Group>
-                        </Col>
-                    </Row>
+                    {
+                        !user.details?.userOrganizations?.length
+                        && <>
+                            <Row>
+                                <Col md={12} className="mb-3">
+                                    <Form.Group id="organizationName">
+                                        <Form.Label>Business/Organization (required)</Form.Label>
+                                        <Form.Control
+                                            value={organizationName}
+                                            name="organizationName"
+                                            required type="text"
+                                            placeholder="Enter your business name (DBA)..."
+                                            onChange={onInputChange}
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                            <Row className="align-items-center">
+                                <Col lg={12} className="mb-3">
+                                    <Form.Group controlId="organizationType">
+                                        <Form.Label>Business Type</Form.Label>
+                                        <Form.Control
+                                            value={organizationType}
+                                            name="organizationType"
+                                            onChange={onInputChange}
+                                            as="select"
+                                        >
+                                            {
+                                                orgTypeOptions.map((option, index) => (
+                                                    <option key={index} value={option.value}>{option.label}</option>
+                                                ))
+                                            }
+                                        </Form.Control>
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        </>
+                    }
                     {/* <Row className="align-items-center">
                         <Col md={6} className="mb-3">
                             <Form.Group id="birthday">

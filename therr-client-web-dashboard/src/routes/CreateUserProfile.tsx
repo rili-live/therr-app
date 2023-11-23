@@ -87,9 +87,9 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
             phoneNumber: props.user?.details?.phoneNumber && props.user?.details?.phoneNumber !== 'apple-sso'
                 ? props.user?.details?.phoneNumber
                 : '',
-            firstName: props.user?.details?.firstName,
-            lastName: props.user?.details?.lastName,
-            userName: props.user?.details?.userName,
+            firstName: props.user?.details?.firstName || '',
+            lastName: props.user?.details?.lastName || '',
+            userName: props.user?.details?.userName || '',
             organizationId: undefined,
             organizationName: '',
             organizationType: orgTypeOptions[0].value,
@@ -155,6 +155,9 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
                 id: organizationId,
             },
         };
+        if (!updateArgs.organization?.name || !updateArgs.organization?.settingsGeneralBusinessType) {
+            delete modifiedUpdateArgs.organization;
+        }
 
         updateUser(user.details.id, modifiedUpdateArgs).then((response: any) => {
             if (response.organizations?.length) {
@@ -326,6 +329,7 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
                                             isPhoneNumberValid={isPhoneNumberValid}
                                             translate={this.translate}
                                             onSubmit={this.onSubmitVerifyPhone}
+                                            user={user}
                                         />
                                     </Col>
                                 }

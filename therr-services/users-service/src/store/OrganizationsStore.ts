@@ -1,9 +1,8 @@
 import KnexBuilder, { Knex } from 'knex';
 import { IConnection } from './connection';
+import { ORGANIZATIONS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
-
-export const ORGANIZATIONS_TABLE_NAME = 'main.organizations';
 
 export interface ICreateOrganizationParams {
     creatorId: string;

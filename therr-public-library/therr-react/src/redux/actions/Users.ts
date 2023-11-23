@@ -66,6 +66,7 @@ class UsersActions {
             settingsPushReminders,
             integrations,
             loginCount,
+            userOrganizations,
         } = userResponseData;
         const mutableUserData: any = {
             accessLevels,
@@ -79,6 +80,7 @@ class UsersActions {
             media,
             lastKnownLatitude,
             lastKnownLongitude,
+            userOrganizations,
         };
         if (idToken) {
             // Note: CAREFUL! - if this is undefined it could overwrite stored value an trigger user logout in interceptors.ts

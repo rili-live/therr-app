@@ -259,13 +259,14 @@ const login: RequestHandler = (req: any, res: any) => {
                         const finalUser = userResponse[0];
                         // Remove credentials from object
                         redactUserCreds(finalUser);
-                        // TODO: Save, Decrypt, and return stored user integrations
-                        // const storedIntegrations = decryptIntegrationsAccess(access);
+                        // TODO: Save, Encrypt, and return stored user integrations
+                        // const storedIntegrations = encryptIntegrationsAccess(access);
                         return res.status(201).send({
                             ...finalUser,
                             idToken,
                             integrations: user.integrations || {},
                             rememberMe: req.body.rememberMe,
+                            userOrganizations: userOrgs,
                         });
                     });
                 }
