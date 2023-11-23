@@ -426,6 +426,7 @@ const updateUser = (req, res) => {
 
             let orgsPromise: Promise<any[]> = Promise.resolve([]);
 
+            // TODO: Add organization to x-organizations header?
             if (organization) {
                 if (organization.id) {
                     orgsPromise = Store.organizations.update(organization.id, {
