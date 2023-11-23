@@ -22,7 +22,7 @@
     "audit:all": "npm run prep && npm audit fix && _bin/apply-to-all.sh 'npm audit fix'",
     "install:all:ci": "npm run prep && npm ci --omit=optional --legacy-peer-deps && _bin/apply-to-all.sh 'npm ci --omit=optional --legacy-peer-deps'",
     "install:base:ci": "npm run prep && npm ci --omit=optional --legacy-peer-deps && _bin/apply-to-all.sh 'npm ci --omit=optional --legacy-peer-deps' rootOnly",
-    "docker:run:postgres": "docker run --name therr-postgres -e POSTGRES_USER=therr -e POSTGRES_PASSWORD=mysecretpassword -d -p 5431:5432 -v postgresTherrDbData:/var/lib/postgresql/data:delegated,rw postgis/postgis",
+    "docker:run:postgres": "docker run --name therr-postgres -e POSTGRES_USER=therr -e POSTGRES_PASSWORD=mysecretpassword -d -p 5431:5432 -v postgresTherrDbData:/var/lib/postgresql/data:delegated,rw postgis/postgis:15-3.4",
     "docker:remove:postgres": "docker stop therr-postgres && docker rm therr-postgres",
     "docker:run:redis": "docker run --name therr-redis -d -p 6380:6379 redis",
     "docker:remove:redis": "docker stop therr-redis && docker rm therr-redis",

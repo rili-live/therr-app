@@ -6,6 +6,7 @@ import ConfigStore from './ConfigStore';
 import InvitesStore from './InvitesStore';
 import InviteCodesStore from './InviteCodesStore';
 import NotificationsStore from './NotificationsStore';
+import OrganizationsStore from './OrganizationsStore';
 import SocialSyncsStore from './SocialSyncsStore';
 import SubscribersStore from './SubscribersStore';
 import ThoughtsStore from './ThoughtsStore';
@@ -49,6 +50,8 @@ class Store {
 
     notifications: NotificationsStore;
 
+    organizations: OrganizationsStore;
+
     verificationCodes: VerificationCodesStore;
 
     constructor(dbConnection) {
@@ -69,6 +72,7 @@ class Store {
         this.invites = new InvitesStore(this.db);
         this.inviteCodes = new InviteCodesStore(this.db);
         this.notifications = new NotificationsStore(this.db);
+        this.organizations = new OrganizationsStore(this.db);
         this.verificationCodes = new VerificationCodesStore(this.db);
     }
 }

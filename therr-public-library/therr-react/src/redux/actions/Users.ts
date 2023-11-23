@@ -66,6 +66,7 @@ class UsersActions {
             settingsPushReminders,
             integrations,
             loginCount,
+            userOrganizations,
         } = userResponseData;
         const mutableUserData: any = {
             accessLevels,
@@ -79,6 +80,7 @@ class UsersActions {
             media,
             lastKnownLatitude,
             lastKnownLongitude,
+            userOrganizations,
         };
         if (idToken) {
             // Note: CAREFUL! - if this is undefined it could overwrite stored value an trigger user logout in interceptors.ts
@@ -378,6 +380,7 @@ class UsersActions {
             settingsPushMessages,
             settingsPushReminders,
             shouldHideMatureContent,
+            organizations,
         } = response?.data || {};
         // TODO: Determine if it is necessary to dispatch anything after user registers
         // set current user?
@@ -471,7 +474,12 @@ class UsersActions {
                 },
             },
         });
-        return { email, id, userName };
+        return {
+            email,
+            id,
+            userName,
+            organizations,
+        };
     });
 
     updateTour = (id: string, data: IUpdateTourArgs) => (dispatch: any) => (this.NativeStorage || sessionStorage)
