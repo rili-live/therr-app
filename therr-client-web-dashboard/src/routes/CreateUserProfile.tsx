@@ -20,7 +20,7 @@ import AccountDetailsForm from '../components/forms/AccountDetailsForm';
 import { getWebsiteName } from '../utilities/getHostContext';
 import UsersActions from '../redux/actions/UsersActions';
 import { routeAfterLogin } from './Login';
-import UserProfileForm from '../components/forms/UserProfileForm';
+import UserProfileForm, { orgTypeOptions } from '../components/forms/UserProfileForm';
 import VerifyPhoneCodeForm from '../components/forms/VerifyPhoneCodeForm';
 
 interface ICreateUserProfileRouterProps {
@@ -54,6 +54,9 @@ interface ICreateUserProfileState {
     firstName?: string;
     lastName?: string;
     userName?: string;
+    organizationId: string | undefined;
+    organizationName?: string;
+    organizationType?: string;
     verificationCode: string;
 }
 
@@ -87,6 +90,9 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
             firstName: props.user?.details?.firstName,
             lastName: props.user?.details?.lastName,
             userName: props.user?.details?.userName,
+            organizationId: undefined,
+            organizationName: '',
+            organizationType: orgTypeOptions[0].value,
             verificationCode: '',
         };
 
@@ -135,14 +141,27 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
 
     onSubmitVerifyPhone = (updateArgs: any) => {
         const { user, updateUser } = this.props;
-        const { phoneNumber } = this.state;
+        const { phoneNumber, organizationId } = this.state;
 
         this.setState({
             isSubmitting: true,
             phoneNumber,
         });
 
-        updateUser(user.details.id, updateArgs).then((response: any) => {
+        const modifiedUpdateArgs = {
+            ...updateArgs,
+            organization: {
+                ...updateArgs.organization,
+                id: organizationId,
+            },
+        };
+
+        updateUser(user.details.id, modifiedUpdateArgs).then((response: any) => {
+            if (response.organizations?.length) {
+                this.setState({
+                    organizationId: response.organizations[0].id,
+                });
+            }
             ApiService.verifyPhone(phoneNumber).then(() => {
                 ReactGA.event({
                     category: 'Registering',
@@ -279,6 +298,8 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
             userName,
             firstName,
             lastName,
+            organizationName,
+            organizationType,
             phoneNumber,
             verificationCode,
         } = this.state;
@@ -296,6 +317,8 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
                                             userName={userName}
                                             firstName={firstName}
                                             lastName={lastName}
+                                            organizationName={organizationName}
+                                            organizationType={organizationType}
                                             email={user?.details?.email}
                                             phoneNumber={phoneNumber}
                                             onPhoneInputChange={this.onPhoneInputChange}

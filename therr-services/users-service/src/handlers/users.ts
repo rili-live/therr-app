@@ -376,6 +376,7 @@ const updateUser = (req, res) => {
                 password,
                 oldPassword,
                 userName,
+                organization,
             } = req.body;
 
             if (!userSearchResults.length) {
@@ -423,6 +424,36 @@ const updateUser = (req, res) => {
                 });
             }
 
+            let orgsPromise: Promise<any[]> = Promise.resolve([]);
+
+            if (organization) {
+                if (organization.id) {
+                    orgsPromise = Store.organizations.update(organization.id, {
+                        creatorId: userId,
+                        name: organization.name,
+                        description: organization.description,
+                        settingsGeneralBusinessType: organization.settingsGeneralBusinessType,
+                    });
+                } else {
+                    orgsPromise = Store.organizations.count(userId).then((response) => {
+                        if (response[0].count >= 5) {
+                            return Promise.reject(new Error('max-organizations'));
+                        }
+
+                        return Store.organizations.create([{
+                            creatorId: userId,
+                            name: organization.name,
+                            description: organization.description,
+                            settingsGeneralBusinessType: organization.settingsGeneralBusinessType,
+                        }]).then((orgsResult) => Store.userOrganizations.create([{
+                            userId,
+                            organizationId: orgsResult[0].id,
+                            inviteStatus: 'accepted',
+                        }]).then(() => orgsResult));
+                    });
+                }
+            }
+
             // TODO: Don't allow updating phone number unless user phone number is already verified
             const updateArgs: any = {
                 firstName: req.body.firstName,
@@ -457,9 +488,8 @@ const updateUser = (req, res) => {
                 updateArgs.accessLevels = JSON.stringify([...userAccessLevels]);
             }
 
-            return passwordPromise
-                .then(() => mediaPromise)
-                .then((isMediaSafeForWork) => {
+            return Promise.all([passwordPromise, orgsPromise, mediaPromise])
+                .then(([passwordResult, orgsResult, isMediaSafeForWork]) => {
                     if (!isMediaSafeForWork) {
                         return handleHttpError({
                             res,
@@ -478,7 +508,11 @@ const updateUser = (req, res) => {
 
                             // TODO: Investigate security issue
                             // Lockdown updateUser
-                            return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent polution
+                            return res.status(202).send({
+                                ...user,
+                                id: userId,
+                                organizations: orgsResult,
+                            }); // Precaution, always return correct request userID to prevent polution
                         });
                 });
         })
@@ -487,6 +521,13 @@ const updateUser = (req, res) => {
                 return handleHttpError({
                     res,
                     message: translate(locale, 'User/password combination is incorrect'),
+                    statusCode: 400,
+                });
+            }
+            if (err?.message === 'max-organizations') {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'Max organizations reached'),
                     statusCode: 400,
                 });
             }

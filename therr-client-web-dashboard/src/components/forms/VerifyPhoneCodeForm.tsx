@@ -50,7 +50,7 @@ const VerifyPhoneCodeForm = ({
                         </Col>
                     </Row>
 
-                    <div className="mt-3 text-right">
+                    <div className="mt-3 d-flex justify-content-between">
                         <Button
                             variant="secondary"
                             type="submit"

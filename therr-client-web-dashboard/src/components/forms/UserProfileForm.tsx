@@ -5,11 +5,36 @@ import {
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import flags from 'react-phone-number-input/flags'; // eslint-disable-line import/extensions
 
+export const orgTypeOptions = [
+    {
+        label: 'Storefront / Restaurant',
+        value: 'storefront-restaurant',
+    },
+    {
+        label: 'Storefront Franchise',
+        value: 'storefront-franchise',
+    },
+    {
+        label: 'Digital Retail',
+        value: 'digital-retail',
+    },
+    {
+        label: 'Internet Service',
+        value: 'internet-service',
+    },
+    {
+        label: 'Other',
+        value: 'other',
+    },
+];
+
 interface IUserProfileFormProps {
     userName: string;
     firstName: string;
     lastName: string;
     email: string;
+    organizationName: string;
+    organizationType: string;
     phoneNumber: string;
     onPhoneInputChange: any;
     onSubmit: any;
@@ -24,6 +49,8 @@ const UserProfileForm = ({
     firstName,
     lastName,
     email,
+    organizationName,
+    organizationType,
     phoneNumber,
     onPhoneInputChange,
     onInputChange,
@@ -39,8 +66,14 @@ const UserProfileForm = ({
             firstName,
             lastName,
             userName,
+            organization: {
+                name: organizationName,
+                settingsGeneralBusinessType: organizationType,
+            },
         });
     };
+
+    const isFormDisabled = !isPhoneNumberValid || !userName || !organizationName || !organizationType || isSubmitting;
 
     return (
         <Card border="light" className="bg-white shadow-sm mb-4">
@@ -86,6 +119,39 @@ const UserProfileForm = ({
                                     placeholder="Create a username..."
                                     onChange={onInputChange}
                                 />
+                            </Form.Group>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col md={12} className="mb-3">
+                            <Form.Group id="organizationName">
+                                <Form.Label>Business/Organization (required)</Form.Label>
+                                <Form.Control
+                                    value={organizationName}
+                                    name="organizationName"
+                                    required type="text"
+                                    placeholder="Enter your business name (DBA)..."
+                                    onChange={onInputChange}
+                                />
+                            </Form.Group>
+                        </Col>
+                    </Row>
+                    <Row className="align-items-center">
+                        <Col lg={12} className="mb-3">
+                            <Form.Group controlId="organizationType">
+                                <Form.Label>Business Type</Form.Label>
+                                <Form.Control
+                                    value={organizationType}
+                                    name="organizationType"
+                                    onChange={onInputChange}
+                                    as="select"
+                                >
+                                    {
+                                        orgTypeOptions.map((option, index) => (
+                                            <option key={index} value={option.value}>{option.label}</option>
+                                        ))
+                                    }
+                                </Form.Control>
                             </Form.Group>
                         </Col>
                     </Row>
@@ -158,7 +224,7 @@ const UserProfileForm = ({
                         <Button
                             variant="primary"
                             type="submit"
-                            disabled={!isPhoneNumberValid || !userName || isSubmitting}
+                            disabled={isFormDisabled}
                             onClick={onContinue}
                             onSubmit={onContinue}
                         >Continue</Button>
