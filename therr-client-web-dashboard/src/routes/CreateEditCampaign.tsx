@@ -502,11 +502,12 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             createCampaign,
             updateCampaign,
             routeParams,
+            user,
         } = this.props;
         const { campaignId } = routeParams;
         const campaign = campaigns.campaigns[campaignId] || {};
         const {
-            files, formEditingStage, hasFormChanged,
+            inputs, files, formEditingStage, hasFormChanged,
         } = this.state;
 
         const {
@@ -525,7 +526,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             integrationTargets,
             longText1,
             longText2,
-        } = this.state.inputs;
+        } = inputs;
 
         this.setState({
             isSubmitting: true,
@@ -533,16 +534,16 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
         if (!hasFormChanged) {
             if (formEditingStage === 1) {
-                this.setState({
+                return this.setState({
                     isSubmitting: false,
                     formEditingStage: 2,
                 });
-            } else {
-                this.setState({
-                    isSubmitting: false,
-                });
-                this.navigateHandler('/campaigns/overview')();
             }
+
+            this.setState({
+                isSubmitting: false,
+            });
+            return this.navigateHandler('/campaigns/overview')();
         }
 
         if (moment(scheduleStopAt).isSameOrBefore(moment(scheduleStartAt))) {

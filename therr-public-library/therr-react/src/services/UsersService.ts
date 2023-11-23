@@ -45,6 +45,12 @@ interface IUpdateUser {
     password?: string;
     newPassword?: string;
     shouldHideMatureContent?: boolean;
+    organization?: {
+        id?: string;
+        name?: string;
+        description?: string;
+        settingsGeneralBusinessType?: string;
+    }
 }
 
 interface IChangePasswordArgs {

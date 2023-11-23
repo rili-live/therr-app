@@ -1,9 +1,10 @@
 import KnexBuilder, { Knex } from 'knex';
 import { AccessLevels, CurrencyTransactionMessages, UserConnectionTypes } from 'therr-js-utilities/constants';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
+import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import normalizeEmail from 'normalize-email';
 import { IConnection } from './connection';
-import { USERS_TABLE_NAME, USER_CONNECTIONS_TABLE_NAME } from './tableNames';
+import { USERS_TABLE_NAME, USER_CONNECTIONS_TABLE_NAME, USER_ORGANIZATIONS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
