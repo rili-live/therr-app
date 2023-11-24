@@ -204,21 +204,65 @@ const updateCampaign = async (req, res) => {
             integrationTargets.forEach((target) => {
                 if (target === OAuthIntegrationProviders.FACEBOOK
                     && isAdsProviderAuthenticated(integrationsAccess, target)
-                    && !integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId
                     && integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId) {
-                    const promise = facebook.createCampaign(
-                        integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId,
-                        integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
-                        {
-                            title,
-                        },
-                    ).then((response) => ({
-                        id: response.data?.id,
-                    })).catch((error) => {
-                        // TODO: Email Admin
-                        console.log(error);
-                        return {};
-                    });
+                    const promise = (integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId
+                        ? facebook.updateCampaign(
+                            integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId,
+                            integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
+                            {
+                                id: integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
+                                title,
+                                maxBudget: integrationDetails[OAuthIntegrationProviders.FACEBOOK].maxBudget || undefined,
+                            },
+                        )
+                        : facebook.createCampaign(
+                            integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId,
+                            integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
+                            {
+                                title,
+                                type,
+                                maxBudget: integrationDetails[OAuthIntegrationProviders.FACEBOOK].maxBudget || undefined,
+                            },
+                        ))
+                        .then((response) => {
+                            if (response?.data?.configured_status === 'ARCHIVED' || response?.data?.configured_status === 'DELETED') {
+                                // If user deleted campaign from integration provider, create a new one
+                                return facebook.createCampaign(
+                                    integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId,
+                                    integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
+                                    {
+                                        title,
+                                        type,
+                                        maxBudget: integrationDetails[OAuthIntegrationProviders.FACEBOOK].maxBudget || undefined,
+                                    },
+                                ).then((subResponse) => ({
+                                    id: subResponse.data?.id,
+                                }));
+                            }
+                            if (response?.data?.errors) {
+                                logSpan({
+                                    level: 'error',
+                                    messageOrigin: 'API_SERVER',
+                                    messages: ['api error'],
+                                    traceArgs: {
+                                        'error.message': response?.data?.errors?.message,
+                                        'error.code': response?.data?.errors?.code,
+                                        'error.subcode': response?.data?.errors?.error_subcode,
+                                        integration: OAuthIntegrationProviders.FACEBOOK,
+                                        integration_trace_id: response?.data?.errors?.fbtrace_id,
+                                    },
+                                });
+                            }
+                            return ({
+                                id: response.data?.id || integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
+                            });
+                        }).catch((error) => {
+                            // TODO: Email Admin
+                            console.log(error);
+                            return {
+                                id: 'missing',
+                            };
+                        });
 
                     integrationUpdatePromises.push(promise);
                 } else {
@@ -227,9 +271,16 @@ const updateCampaign = async (req, res) => {
             });
 
             return Promise.allSettled(integrationUpdatePromises).then((results) => {
-                const resultsMap = {};
+                const modifiedIntegrationDetails = {
+                    ...integrationDetails,
+                };
                 integrationTargets.forEach((target, index) => {
-                    resultsMap[target] = results[index];
+                    if (results[index].status === 'fulfilled') {
+                        const campaignId = (results[index] as any).value.id;
+                        if (modifiedIntegrationDetails[target] && campaignId) {
+                            modifiedIntegrationDetails[target].campaignId = campaignId === 'missing' ? undefined : campaignId;
+                        }
+                    }
                 });
 
                 const shouldSendEmailNotifications = (status === CampaignStatuses.REMOVED && fetchedCampaign.status !== CampaignStatuses.REMOVED)
@@ -260,7 +311,7 @@ const updateCampaign = async (req, res) => {
                     targetLanguages,
                     targetLocations,
                     integrationTargets,
-                    integrationDetails,
+                    integrationDetails: modifiedIntegrationDetails,
                     scheduleStartAt,
                     scheduleStopAt,
                 }).then(([campaign]) => {

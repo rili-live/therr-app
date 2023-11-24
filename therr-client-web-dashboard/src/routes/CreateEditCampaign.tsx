@@ -19,7 +19,7 @@ import {
 } from 'therr-react/types';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 import {
-    AccessLevels, OAuthIntegrationProviders, CampaignAssetTypes, CampaignStatuses,
+    AccessLevels, OAuthIntegrationProviders, CampaignAssetTypes, CampaignStatuses, CampaignTypes,
 } from 'therr-js-utilities/constants';
 import { v4 as uuidv4 } from 'uuid';
 import * as facebook from '../api/facebook';
@@ -79,7 +79,7 @@ const getInputDefaults = (campaign: any) => {
 
     return {
         address: [],
-        type: campaign?.type || 'local',
+        type: campaign?.type || CampaignTypes.LOCAL,
         status: campaign?.status === CampaignStatuses.PENDING ? CampaignStatuses.ACTIVE : (campaign?.status || CampaignStatuses.PAUSED),
         title: campaign?.title || '',
         description: campaign?.description || '',
@@ -267,6 +267,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                     || myAccountResults?.data[0]?.id || undefined,
                                 adAccountId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
                                     || myAdAccountResults?.data[0]?.id || undefined,
+                                campaignId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
                             },
                         },
                     };
@@ -432,6 +433,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         }
 
         modifiedDetails[integrationProvider][name] = value;
+        if (name === 'maxBudget') {
+            modifiedDetails[integrationProvider][name] = Math.round(parseInt(value, 10));
+        }
         const newInputChanges = {
             integrationDetails: modifiedDetails,
         };
@@ -453,7 +457,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     };
 
     onSocialSyncPress = (target: string) => {
-        const { inputs, requestId } = this.state;
+        const { inputs, requestId, fetchedIntegrationDetails } = this.state;
         const { location, user } = this.props;
 
         const modifiedTargets = [...inputs.integrationTargets];
@@ -489,6 +493,10 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                     if (target === OAuthIntegrationProviders.FACEBOOK || target === OAuthIntegrationProviders.INSTAGRAM) {
                         onFBLoginPress(requestId);
                     }
+                } else if (!fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data?.length
+                    || !fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccount?.data?.length) {
+                    // This should occur for any integration when enabling but already authenticated
+                    this.afterStateIsEstablished();
                 }
             }
         });
@@ -629,6 +637,12 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
                 return saveMethod(reformattedRequest)
                     .then((response) => {
+                        this.setState({
+                            inputs: {
+                                ...this.state.inputs,
+                                integrationDetails: response.campaigns[0].integrationDetails,
+                            },
+                        });
                         if (formEditingStage === 1) {
                             this.setState({
                                 isSubmitting: false,
