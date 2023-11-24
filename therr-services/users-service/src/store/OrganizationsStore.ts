@@ -7,7 +7,7 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export interface ICreateOrganizationParams {
     creatorId: string;
     name: string;
-    description: string;
+    description?: string;
     settingsGeneralBusinessType?: string;
     businessIndustry?: string;
     isAgency?: boolean;

@@ -77,6 +77,8 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
     constructor(props: ICreateUserProfileProps) {
         super(props);
 
+        const defaultOrganization = props.user?.details?.userOrganizations && props.user?.details?.userOrganizations[0];
+
         this.state = {
             alertIsVisible: false,
             alertVariation: 'success',
@@ -90,9 +92,9 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
             firstName: props.user?.details?.firstName || '',
             lastName: props.user?.details?.lastName || '',
             userName: props.user?.details?.userName || '',
-            organizationId: undefined,
-            organizationName: '',
-            organizationType: orgTypeOptions[0].value,
+            organizationId: defaultOrganization?.organizationId || undefined,
+            organizationName: defaultOrganization?.organizationName || '',
+            organizationType: defaultOrganization?.organizationBusinessType || orgTypeOptions[0].value,
             verificationCode: '',
         };
 
