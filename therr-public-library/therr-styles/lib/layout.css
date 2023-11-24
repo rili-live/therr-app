@@ -11,6 +11,8 @@
 }
 .flex-box.row {
   flex-direction: row;
+}
+.flex-box.row:not(.align-center) {
   align-items: unset;
 }
 .flex-box.column {
