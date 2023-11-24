@@ -89,6 +89,8 @@ class UsersActions {
         const userData: IUser = Immutable.from(mutableUserData);
         // TODO: Get user settings data from db response
         const userSettingsData: IUserSettings = Immutable.from({
+            id, // Included because userSettings persists even after logout. This helps prevent cross-user contamination
+            userName, // Included because userSettings persists even after logout. This helps prevent cross-user contamination
             locale: 'en-us',
             integrations,
             mobileThemeName: settingsThemeName || 'retro',
@@ -224,7 +226,7 @@ class UsersActions {
                     data: userData,
                 });
                 dispatch({
-                    type: SocketClientActionTypes.UPDATE_USER,
+                    type: SocketClientActionTypes.RESET_USER_SETTINGS,
                     data: {
                         settings: userSettingsData,
                     },
@@ -279,7 +281,7 @@ class UsersActions {
             });
             (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(combinedUserDetails));
             (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
-            if (!this.NativeStorage) {
+            if (userSettingsData.rememberMe && !this.NativeStorage) {
                 localStorage.setItem('therrUser', JSON.stringify(combinedUserDetails));
                 localStorage.setItem('therrUserSettings', JSON.stringify(userSettingsData));
             }

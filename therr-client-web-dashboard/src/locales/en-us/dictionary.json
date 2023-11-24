@@ -43,11 +43,11 @@
       },
       "defaultTitle": "Login",
       "labels": {
-        "password": "Your Password",
-        "userName": "Your Email"
+        "password": "Password",
+        "userName": "Email/Username"
       },
       "placeHolders": {
-        "password": "Password",
+        "password": "Your Password",
         "userName": "example@company.com"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
