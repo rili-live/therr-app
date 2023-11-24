@@ -5,7 +5,7 @@ import {
 import classNames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
-import { CampaignStatuses, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
+import { CampaignStatuses, CampaignTypes, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
 import Datetime from 'react-datetime';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
@@ -18,10 +18,12 @@ import { ICampaignAsset } from '../../types';
 import getUserContentUri from '../../utilities/getUserContentUri';
 
 const adTypeCategories = [
-    'local',
-    'awareness',
-    'acquisition',
-    'engagement',
+    CampaignTypes.LOCAL,
+    CampaignTypes.AWARENESS,
+    CampaignTypes.ACQUISITION,
+    CampaignTypes.ENGAGEMENT,
+    CampaignTypes.LEADS,
+    CampaignTypes.SALES,
 ];
 
 const statusOptions = [
@@ -67,6 +69,7 @@ interface IEditCampaignFormProps {
             [key: string]: {
                 pageId: string;
                 adAccountId: string;
+                maxBudget: number;
             };
         };
     }
@@ -185,6 +188,7 @@ const EditCampaignForm = ({
                                                 name="type"
                                                 onChange={onInputChange}
                                                 as="select"
+                                                disabled={isEditing}
                                             >
                                                 {
                                                     adTypeCategories.map((cat, index) => (
@@ -383,13 +387,14 @@ const EditCampaignForm = ({
                         </Row>
                         {
                             !disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK]
+                            && isFacebookSelected
                             && (fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data?.length
                                 || fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccount?.data?.length)
                             && <Row>
                                 <Col sm={12}>
                                     <h5 className="my-4">Ad Target Customizations</h5>
                                 </Col>
-                                <Col md={6}>
+                                <Col md={4}>
                                     <Form.Group controlId="adAccountId">
                                         <Form.Label>Facebook Ad Account</Form.Label>
                                         <Form.Control
@@ -406,7 +411,7 @@ const EditCampaignForm = ({
                                         </Form.Control>
                                     </Form.Group>
                                 </Col>
-                                <Col md={6}>
+                                <Col md={4}>
                                     <Form.Group controlId="pageId">
                                         <Form.Label>Facebook Page for Ad Publishing</Form.Label>
                                         <Form.Control
@@ -423,33 +428,50 @@ const EditCampaignForm = ({
                                         </Form.Control>
                                     </Form.Group>
                                 </Col>
+                                <Col md={4}>
+                                    <Form.Group controlId="maxBudget">
+                                        <Form.Label>Facebook Integration Max Budget</Form.Label>
+                                        <Form.Control
+                                            value={inputs.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.maxBudget || 100}
+                                            name="maxBudget"
+                                            onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
+                                            type="number"
+                                            required
+                                            placeholder="100.00"
+                                            step="1"
+                                        />
+                                    </Form.Group>
+                                </Col>
                             </Row>
                         }
-                        <Row>
-                            <h5 className="my-4">Ad Target Location / Address</h5>
-                            <Col sm={12} className="mb-3">
-                                {/* <Form.Group id="address">
-                                    <Form.Label>Address</Form.Label>
-                                    <InputGroup className="input-group-merge search-bar">
-                                        <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
-                                        <Form.Control required type="text" placeholder="Search an address..." />
-                                    </InputGroup>
-                                </Form.Group> */}
-                                <Form.Group controlId="address">
-                                    <Typeahead
-                                        id="address-search-typeahead"
-                                        options={addressTypeAheadResults.map((result) => ({
-                                            ...result,
-                                            label: result.description || '',
-                                        }))}
-                                        placeholder="Search an address or location..."
-                                        onInputChange={onAddressTypeaheadChange}
-                                        onChange={onAddressTypeAheadSelect}
-                                        selected={inputs.address}
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
+                        {
+                            inputs.type === CampaignTypes.LOCAL
+                            && <Row>
+                                <h5 className="my-4">Ad Target Location / Address</h5>
+                                <Col sm={12} className="mb-3">
+                                    {/* <Form.Group id="address">
+                                        <Form.Label>Address</Form.Label>
+                                        <InputGroup className="input-group-merge search-bar">
+                                            <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
+                                            <Form.Control required type="text" placeholder="Search an address..." />
+                                        </InputGroup>
+                                    </Form.Group> */}
+                                    <Form.Group controlId="address">
+                                        <Typeahead
+                                            id="address-search-typeahead"
+                                            options={addressTypeAheadResults.map((result) => ({
+                                                ...result,
+                                                label: result.description || '',
+                                            }))}
+                                            placeholder="Search an address or location..."
+                                            onInputChange={onAddressTypeaheadChange}
+                                            onChange={onAddressTypeAheadSelect}
+                                            selected={inputs.address}
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        }
                         <div className="mt-3 d-flex justify-content-end">
                             <Button
                                 variant="primary"
