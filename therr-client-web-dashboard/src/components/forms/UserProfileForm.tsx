@@ -133,44 +133,39 @@ const UserProfileForm = ({
                             </Form.Group>
                         </Col>
                     </Row>
-                    {
-                        !user.details?.userOrganizations?.length
-                        && <>
-                            <Row>
-                                <Col md={12} className="mb-3">
-                                    <Form.Group id="organizationName">
-                                        <Form.Label>Business/Organization (required)</Form.Label>
-                                        <Form.Control
-                                            value={organizationName}
-                                            name="organizationName"
-                                            required type="text"
-                                            placeholder="Enter your business name (DBA)..."
-                                            onChange={onInputChange}
-                                        />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                            <Row className="align-items-center">
-                                <Col lg={12} className="mb-3">
-                                    <Form.Group controlId="organizationType">
-                                        <Form.Label>Business Type</Form.Label>
-                                        <Form.Control
-                                            value={organizationType}
-                                            name="organizationType"
-                                            onChange={onInputChange}
-                                            as="select"
-                                        >
-                                            {
-                                                orgTypeOptions.map((option, index) => (
-                                                    <option key={index} value={option.value}>{option.label}</option>
-                                                ))
-                                            }
-                                        </Form.Control>
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                        </>
-                    }
+                    <Row>
+                        <Col md={12} className="mb-3">
+                            <Form.Group id="organizationName">
+                                <Form.Label>Business/Organization (required)</Form.Label>
+                                <Form.Control
+                                    value={organizationName}
+                                    name="organizationName"
+                                    required type="text"
+                                    placeholder="Enter your business name (DBA)..."
+                                    onChange={onInputChange}
+                                />
+                            </Form.Group>
+                        </Col>
+                    </Row>
+                    <Row className="align-items-center">
+                        <Col lg={12} className="mb-3">
+                            <Form.Group controlId="organizationType">
+                                <Form.Label>Business Type</Form.Label>
+                                <Form.Control
+                                    value={organizationType}
+                                    name="organizationType"
+                                    onChange={onInputChange}
+                                    as="select"
+                                >
+                                    {
+                                        orgTypeOptions.map((option, index) => (
+                                            <option key={index} value={option.value}>{option.label}</option>
+                                        ))
+                                    }
+                                </Form.Control>
+                            </Form.Group>
+                        </Col>
+                    </Row>
                     {/* <Row className="align-items-center">
                         <Col md={6} className="mb-3">
                             <Form.Group id="birthday">
