@@ -30,6 +30,7 @@ enum SocketClientActionTypes {
 
     // USER
     UPDATE_USER = 'CLIENT:UPDATE_USER',
+    RESET_USER_SETTINGS = 'CLIENT:RESET_USER_SETTINGS'
 }
 
 export default SocketClientActionTypes;
