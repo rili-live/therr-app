@@ -91,11 +91,17 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
             socketIO.disconnect();
             return state.setIn(['socketDetails', 'session'], {});
         case SocketClientActionTypes.UPDATE_USER:
+            // Retains existing settings with overwrite
             return state.setIn(['details'], {
                 ...state.details,
                 ...action.data.details,
             }).setIn(['settings'], {
                 ...state.settings,
+                ...action.data.settings,
+            });
+        case SocketClientActionTypes.RESET_USER_SETTINGS:
+            // Clears our existing settings
+            return state.setIn(['settings'], {
                 ...action.data.settings,
             });
         case UserActionTypes.UPDATE_USER_TOUR:

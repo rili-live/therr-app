@@ -182,6 +182,7 @@ const login: RequestHandler = (req: any, res: any) => {
                         });
                         return [];
                     });
+
                     const idToken = createUserToken(user, userOrgs, req.body.rememberMe);
                     userHash = basicHash(userNameEmailPhone);
 
