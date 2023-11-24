@@ -300,6 +300,31 @@ const createUserHelper = (
                 });
             }
 
+            // TODO: Create organization and/or userOrganization
+            // If user was invited by to register and join and organizations, associate with the existing organization
+            // Create a default organization for the user
+            if (userDetails.isBusinessAccount) {
+                Store.organizations.create([{
+                    creatorId: user.id,
+                    name: '',
+                    settingsGeneralBusinessType: 'other',
+                }]).then(([organization]) => Store.userOrganizations.create([{
+                    userId: user.id,
+                    organizationId: organization.id,
+                    inviteStatus: 'accepted',
+                    accessLevels: [AccessLevels.ORGANIZATIONS_ADMIN],
+                }])).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Failed to create default organization and userOrganization'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    });
+                });
+            }
+
             // Fire and forget: Create initial achievement so user is aware of invite rewards
             Store.userAchievements.create([
                 {
