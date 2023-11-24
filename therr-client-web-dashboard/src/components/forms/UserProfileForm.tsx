@@ -81,7 +81,8 @@ const UserProfileForm = ({
         || !firstName
         || !lastName
         || !userName
-        || (!user.details?.userOrganizations?.length && (!organizationName || !organizationType));
+        || !organizationName
+        || !organizationType;
 
     return (
         <Card border="light" className="bg-white shadow-sm mb-4">
