@@ -1,16 +1,23 @@
 import {
+    getMe,
+    getMyAccounts,
+} from './user';
+import {
+    createAd,
+} from './ads';
+import {
     createCampaign,
     updateCampaign,
     deleteCampaign,
 } from './campaigns';
-import {
-    getMe,
-    getMyAccounts,
-} from './user';
 
 export {
+    // User
     getMe,
     getMyAccounts,
+
+    // Ads
+    createAd,
 
     // Campaigns
     createCampaign,
