@@ -200,40 +200,50 @@ const updateCampaign = async (req, res) => {
 
             const integrationsAccess = decryptIntegrationsAccess(user.integrationsAccess);
             const integrationUpdatePromises: Promise<{ id?: string; }>[] = [];
+            const integrationDetailsEntries = Object.entries(integrationDetails as { [key: string]: any; });
 
-            integrationTargets.forEach((target) => {
+            integrationDetailsEntries.forEach(([target, details]) => {
                 if (target === OAuthIntegrationProviders.FACEBOOK
                     && isAdsProviderAuthenticated(integrationsAccess, target)
-                    && integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId) {
-                    const promise = (integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId
+                    && details?.adAccountId) {
+                    const promise = (details?.campaignId
                         ? facebook.updateCampaign(
-                            integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId,
+                            details?.adAccountId,
                             integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
                             {
-                                id: integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
+                                id: details?.campaignId,
                                 title,
-                                maxBudget: integrationDetails[OAuthIntegrationProviders.FACEBOOK].maxBudget || undefined,
+                                maxBudget: details?.maxBudget || undefined,
+                                status: !integrationTargets.includes(target)
+                                    ? CampaignStatuses.REMOVED
+                                    : status,
                             },
                         )
                         : facebook.createCampaign(
-                            integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId,
+                            details?.adAccountId,
                             integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
                             {
                                 title,
                                 type,
-                                maxBudget: integrationDetails[OAuthIntegrationProviders.FACEBOOK].maxBudget || undefined,
+                                maxBudget: details.maxBudget || undefined,
+                                status: !integrationTargets.includes(target)
+                                    ? CampaignStatuses.REMOVED
+                                    : status,
                             },
                         ))
                         .then((response) => {
                             if (response?.data?.configured_status === 'ARCHIVED' || response?.data?.configured_status === 'DELETED') {
                                 // If user deleted campaign from integration provider, create a new one
                                 return facebook.createCampaign(
-                                    integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId,
+                                    details?.adAccountId,
                                     integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
                                     {
                                         title,
                                         type,
-                                        maxBudget: integrationDetails[OAuthIntegrationProviders.FACEBOOK].maxBudget || undefined,
+                                        maxBudget: details.maxBudget || undefined,
+                                        status: !integrationTargets.includes(target)
+                                            ? CampaignStatuses.REMOVED
+                                            : status,
                                     },
                                 ).then((subResponse) => ({
                                     id: subResponse.data?.id,
@@ -243,7 +253,7 @@ const updateCampaign = async (req, res) => {
                                 // TODO: Handle various nuanced errors
                             }
                             return ({
-                                id: response.data?.id || integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
+                                id: response.data?.id || details?.campaignId,
                             });
                         });
 
@@ -257,7 +267,7 @@ const updateCampaign = async (req, res) => {
                 const modifiedIntegrationDetails = {
                     ...integrationDetails,
                 };
-                integrationTargets.forEach((target, index) => {
+                integrationDetailsEntries.forEach(([target, details], index) => {
                     if (results[index].status === 'fulfilled') {
                         const campaignId = (results[index] as any).value.id;
                         if (modifiedIntegrationDetails[target] && campaignId) {
@@ -332,6 +342,25 @@ const updateCampaign = async (req, res) => {
                             newAssets.push(asset);
                         }
                     });
+
+                    // if (newAssets.length
+                    //     && integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token
+                    //     && integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
+                    //     && integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId) {
+                    //     facebook.createAd(
+                    //         {
+                    //             accessToken: integrationsAccess[OAuthIntegrationProviders.FACEBOOK].user_access_token,
+                    //             adAccountId: integrationDetails[OAuthIntegrationProviders.FACEBOOK].adAccountId,
+                    //             pageId: integrationDetails[OAuthIntegrationProviders.FACEBOOK].pageId,
+                    //         },
+                    //         {
+                    //             name: 'Test Asset',
+                    //         },
+                    //     )
+                    //         .then((response) => {
+                    //             console.log(response.data);
+                    //         });
+                    // }
                     const assetPromises = [
                         newAssets?.length ? Store.campaignAssets.create(newAssets.map((asset) => ({
                             creatorId: userId,

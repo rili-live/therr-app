@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { CampaignTypes } from 'therr-js-utilities/constants';
+import { CampaignStatuses, CampaignTypes } from 'therr-js-utilities/constants';
 import { passthroughAndLogErrors } from './utils';
 
 const campaignTypeToObjectiveMap = {
@@ -19,6 +19,18 @@ const sanitizeMaxBudget = (budget?: number) => {
     return budget;
 };
 
+const getStatusForIntegration = (campaignStatus?: CampaignStatuses) => {
+    if (campaignStatus === CampaignStatuses.PAUSED || !campaignStatus) {
+        return 'PAUSED'; // TODO
+    }
+
+    if (campaignStatus === CampaignStatuses.REMOVED) {
+        return 'PAUSED';
+    }
+
+    return 'PAUSED';
+};
+
 /**
  * Creates an ad campaign
  */
@@ -26,6 +38,7 @@ const createCampaign = (adAccountId, accessToken, campaign: {
     title: string;
     type?: string;
     maxBudget?: number;
+    status?: CampaignStatuses;
 }) => axios({
     method: 'post',
     // eslint-disable-next-line max-len
@@ -33,7 +46,7 @@ const createCampaign = (adAccountId, accessToken, campaign: {
     params: {
         name: `[automated] ${campaign.title}`,
         objective: campaign.type ? campaignTypeToObjectiveMap[campaign.type] : 'OUTCOME_TRAFFIC',
-        status: 'PAUSED',
+        status: getStatusForIntegration(campaign.status),
         special_ad_categories: '[]',
         lifetime_budget: sanitizeMaxBudget(campaign.maxBudget) || 922337203685478,
     },
@@ -50,9 +63,11 @@ const updateCampaign = (adAccountId, accessToken, campaign: {
     id: string;
     title: string;
     maxBudget?: number;
+    status?: CampaignStatuses;
 }) => {
     const params: any = {
         name: `[automated] ${campaign.title}`,
+        status: getStatusForIntegration(campaign.status),
     };
 
     if (campaign.maxBudget) {
