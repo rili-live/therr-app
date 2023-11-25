@@ -33,6 +33,7 @@ import { signAndUploadImage } from '../utilities/media';
 import { onFBLoginPress } from '../api/login';
 
 export const CAMPAIGN_DRAFT_KEY = 'therrCampaignDraft';
+const DEFAULT_MAX_BUDGET = 100;
 
 const isAdsProviderAuthenticated = (user: IUserState, target: string) => {
     // TODO: Refresh token if almost expired
@@ -77,6 +78,13 @@ const getInputDefaults = (campaign: any) => {
         mediaAssets,
     } = partitionAssets(campaign);
 
+    const initialIntegrationDetails = campaign?.integrationDetails || {};
+    Object.keys(initialIntegrationDetails).forEach((target) => {
+        if (!initialIntegrationDetails[target].maxBudget) {
+            initialIntegrationDetails[target].maxBudget = DEFAULT_MAX_BUDGET;
+        }
+    })
+
     return {
         address: [],
         type: campaign?.type || CampaignTypes.LOCAL,
@@ -89,7 +97,7 @@ const getInputDefaults = (campaign: any) => {
         headline2: headlineAssets.length > 1 ? headlineAssets[1].headline : '',
         longText1: longTextAssets.length > 0 ? longTextAssets[0].longText : '',
         longText2: longTextAssets.length > 1 ? longTextAssets[1].longText : '',
-        integrationDetails: campaign?.integrationDetails || {},
+        integrationDetails: initialIntegrationDetails,
         integrationTargets: campaign?.integrationTargets || [OAuthIntegrationProviders.THERR],
     };
 };
