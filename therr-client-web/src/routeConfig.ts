@@ -3,8 +3,8 @@ export default [
     {
         route: '/',
         head: {
-            title: 'Local Loyalty Rewards',
-            description: 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
+            title: 'Create your Social Profile or Business',
+            description: 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.',
         },
         view: 'index',
     },
@@ -12,7 +12,7 @@ export default [
         route: '/forums',
         head: {
             title: 'Forums',
-            description: 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
+            description: 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.',
         },
         view: 'index',
     },
@@ -20,7 +20,7 @@ export default [
         route: '/create-forum',
         head: {
             title: 'Join Forum',
-            description: 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
+            description: 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.',
         },
         view: 'index',
     },

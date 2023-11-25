@@ -81,7 +81,7 @@ const renderMomentView = (req, res, config, {
     const title = config.head.title;
     const description = config.head.description
         // eslint-disable-next-line max-len
-        || 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
+        || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
 
     // TODO: Mimic existing best SEO practices for a location page
     const momentId = req.params?.momentId;
@@ -133,7 +133,7 @@ const renderSpaceView = (req, res, config, {
     const title = config.head.title;
     const description = config.head.description
         // eslint-disable-next-line max-len
-        || 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
+        || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
 
     // TODO: Mimic existing best SEO practices for a location page
     const spaceId = req.params?.spaceId;
@@ -239,7 +239,7 @@ const renderUserView = (req, res, config, {
     const title = config.head.title;
     const description = config.head.description
         // eslint-disable-next-line max-len
-        || 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
+        || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
 
     // TODO: Mimic existing best SEO practices for a location page
     const user = initialState?.user?.userInView;

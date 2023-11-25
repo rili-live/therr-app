@@ -240,28 +240,11 @@ const updateCampaign = async (req, res) => {
                                 }));
                             }
                             if (response?.data?.errors) {
-                                logSpan({
-                                    level: 'error',
-                                    messageOrigin: 'API_SERVER',
-                                    messages: ['api error'],
-                                    traceArgs: {
-                                        'error.message': response?.data?.errors?.message,
-                                        'error.code': response?.data?.errors?.code,
-                                        'error.subcode': response?.data?.errors?.error_subcode,
-                                        integration: OAuthIntegrationProviders.FACEBOOK,
-                                        integration_trace_id: response?.data?.errors?.fbtrace_id,
-                                    },
-                                });
+                                // TODO: Handle various nuanced errors
                             }
                             return ({
                                 id: response.data?.id || integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
                             });
-                        }).catch((error) => {
-                            // TODO: Email Admin
-                            console.log(error);
-                            return {
-                                id: 'missing',
-                            };
                         });
 
                     integrationUpdatePromises.push(promise);
@@ -278,6 +261,7 @@ const updateCampaign = async (req, res) => {
                     if (results[index].status === 'fulfilled') {
                         const campaignId = (results[index] as any).value.id;
                         if (modifiedIntegrationDetails[target] && campaignId) {
+                            // If campaignId is 'missing' remove the link from Therr to integration provider by marking it undefined
                             modifiedIntegrationDetails[target].campaignId = campaignId === 'missing' ? undefined : campaignId;
                         }
                     }
