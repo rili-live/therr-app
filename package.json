@@ -56,7 +56,7 @@
   "homepage": "https://github.com/rili-live/therr-app#readme",
   "devDependencies": {
     "@babel/cli": "^7.18.10",
-    "@babel/core": "^7.20.0",
+    "@babel/core": "^7.23.3",
     "@babel/eslint-parser": "^7.19.1",
     "@babel/preset-env": "^7.20.2",
     "@babel/register": "^7.18.9",
@@ -100,7 +100,6 @@
     "@typescript-eslint/parser": "^5.40.0",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.6.7",
     "autoprefixer": "^9.8.8",
-    "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^27.5.1",
     "babel-loader": "^8.2.5",
     "babel-plugin-array-includes": "^2.0.3",

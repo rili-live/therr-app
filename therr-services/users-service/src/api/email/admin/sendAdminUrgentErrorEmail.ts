@@ -17,6 +17,7 @@ export interface IAccountTypeParams {
     webhookEventType?: string,
     webhookEventAmount?: number,
     webhookEventStatus?: string,
+    webhookCustomerId?: string,
     activationCode?: string;
     userEmail?: string;
 }
