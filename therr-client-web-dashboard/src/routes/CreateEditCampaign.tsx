@@ -78,12 +78,12 @@ const getInputDefaults = (campaign: any) => {
         mediaAssets,
     } = partitionAssets(campaign);
 
-    const initialIntegrationDetails = campaign?.integrationDetails || {};
+    const initialIntegrationDetails = JSON.parse(JSON.stringify(campaign?.integrationDetails || {}));
     Object.keys(initialIntegrationDetails).forEach((target) => {
         if (!initialIntegrationDetails[target].maxBudget) {
             initialIntegrationDetails[target].maxBudget = DEFAULT_MAX_BUDGET;
         }
-    })
+    });
 
     return {
         address: [],
