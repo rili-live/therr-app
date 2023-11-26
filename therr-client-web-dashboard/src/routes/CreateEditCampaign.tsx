@@ -25,7 +25,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as facebook from '../api/facebook';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
-import EditCampaignForm from '../components/forms/EditCampaignForm';
+import EditCampaignForm, { isAdsProviderAuthenticated } from '../components/forms/EditCampaignForm';
 import { getWebsiteName } from '../utilities/getHostContext';
 import ManageCampaignsMenu from '../components/ManageCampaignsMenu';
 import { ICampaignAsset } from '../types';
@@ -34,18 +34,6 @@ import { onFBLoginPress } from '../api/login';
 
 export const CAMPAIGN_DRAFT_KEY = 'therrCampaignDraft';
 const DEFAULT_MAX_BUDGET = 100;
-
-const isAdsProviderAuthenticated = (user: IUserState, target: string) => {
-    // TODO: Refresh token if almost expired
-    const combinedTarget = target === OAuthIntegrationProviders.INSTAGRAM
-        ? OAuthIntegrationProviders.FACEBOOK
-        : target;
-
-    return user?.settings?.integrations
-        && user.settings.integrations[combinedTarget]?.user_access_token
-        && user.settings.integrations[combinedTarget]?.user_access_token_expires_at
-        && user.settings.integrations[combinedTarget].user_access_token_expires_at > Date.now();
-};
 
 const partitionAssets = (campaign) => {
     const headlineAssets = [];
@@ -780,6 +768,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             onSelectMedia={this.onSelectMedia}
                             onSocialSyncPress={this.onSocialSyncPress}
                             onSubmit={this.onSubmitCampaign}
+                            user={user}
                         />
                     </Col>
 
