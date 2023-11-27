@@ -85,7 +85,7 @@ const createCampaign = async (req, res) => {
     const {
         organizationId,
         assetIds,
-        businessSpaceIds,
+        spaceId,
         title,
         description,
         type,
@@ -105,7 +105,7 @@ const createCampaign = async (req, res) => {
         creatorId: userId,
         organizationId, // TODO
         assetIds, // TODO
-        businessSpaceIds, // TODO
+        spaceId,
         title,
         description,
         type,
@@ -165,7 +165,7 @@ const updateCampaign = async (req, res) => {
     const {
         organizationId,
         assetIds,
-        businessSpaceIds,
+        spaceId,
         title,
         description,
         type,
@@ -293,7 +293,7 @@ const updateCampaign = async (req, res) => {
                 }, {
                     organizationId, // TODO
                     assetIds, // TODO
-                    businessSpaceIds, // TODO
+                    spaceId,
                     title,
                     description,
                     type,

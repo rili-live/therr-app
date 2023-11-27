@@ -51,7 +51,7 @@ export interface ICampaign {
   assetIds: string[]; // headlines, descriptions, media, etc.
   status: 'active' | 'paused' | 'removed';
   type: string;
-  businessSpaceIds: string[];
+  spaceId?: string;
   targetDailyBudget: number;
   costBiddingStrategy: string;
   targetLanguages: string[];

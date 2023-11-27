@@ -86,7 +86,7 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
             assetIds,
             status,
             type,
-            businessSpaceIds,
+            spaceId,
             targetDailyBudget,
             costBiddingStrategy,
             targetLanguages,
