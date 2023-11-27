@@ -21,7 +21,7 @@ export interface ICreateCampaignParams {
     type: string;
     assetIds?: string[];
     status: string; // active, paused, removed, etc.
-    businessSpaceIds?: string[];
+    spaceId?: string;
     targetDailyBudget: number;
     costBiddingStrategy: string;
     targetLanguages: string[];
@@ -43,7 +43,7 @@ export interface IUpdateCampaignParams {
     type?: string;
     assetIds?: string[];
     status?: string; // active, paused, removed, etc.
-    businessSpaceIds?: string[];
+    spaceId?: string;
     targetDailyBudget?: number;
     costBiddingStrategy?: string;
     targetLanguages?: string[];
@@ -108,7 +108,7 @@ export default class CampaignsStore {
                 `${CAMPAIGNS_TABLE_NAME}.assetIds`,
                 `${CAMPAIGNS_TABLE_NAME}.type`,
                 `${CAMPAIGNS_TABLE_NAME}.status`,
-                `${CAMPAIGNS_TABLE_NAME}.businessSpaceIds`,
+                `${CAMPAIGNS_TABLE_NAME}.spaceId`,
                 `${CAMPAIGNS_TABLE_NAME}.targetDailyBudget`,
                 `${CAMPAIGNS_TABLE_NAME}.costBiddingStrategy`,
                 `${CAMPAIGNS_TABLE_NAME}.targetLanguages`,
@@ -153,7 +153,6 @@ export default class CampaignsStore {
         const modifiedParams = {
             ...params,
             assetIds: params.assetIds ? JSON.stringify(params.assetIds) : JSON.stringify([]),
-            businessSpaceIds: params.businessSpaceIds ? JSON.stringify(params.businessSpaceIds) : JSON.stringify([]),
             targetLanguages: JSON.stringify(params.targetLanguages),
             targetLocations: params.targetLocations ? JSON.stringify(params.targetLocations) : JSON.stringify([]),
             integrationTargets: params.integrationTargets ? JSON.stringify(params.integrationTargets) : JSON.stringify([]),
@@ -172,7 +171,6 @@ export default class CampaignsStore {
             ...params,
             updatedAt: new Date(),
             assetIds: params.assetIds ? JSON.stringify(params.assetIds) : undefined,
-            businessSpaceIds: params.businessSpaceIds ? JSON.stringify(params.businessSpaceIds) : undefined,
             targetLanguages: params.targetLanguages ? JSON.stringify(params.targetLanguages) : undefined,
             targetLocations: params.targetLocations ? JSON.stringify(params.targetLocations) : undefined,
             integrationTargets: params.integrationTargets ? JSON.stringify(params.integrationTargets) : undefined,
