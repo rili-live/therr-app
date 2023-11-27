@@ -87,6 +87,7 @@ const getInputDefaults = (campaign: any) => {
         longText2: longTextAssets.length > 1 ? longTextAssets[1].longText : '',
         integrationDetails: initialIntegrationDetails,
         integrationTargets: campaign?.integrationTargets || [OAuthIntegrationProviders.THERR],
+        spaceId: campaign?.spaceId || '',
     };
 };
 
@@ -137,6 +138,10 @@ interface ICreateEditCampaignState {
     fetchedIntegrationDetails: {
         [key: string]: any;
     };
+    mySpaces: {
+        id: string;
+        notificationMsg: string;
+    }[];
 }
 
 const mapStateToProps = (state: any) => ({
@@ -203,6 +208,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             mediaPendingUpload: [],
             requestId: uuidv4().toString(),
             fetchedIntegrationDetails: {},
+            mySpaces: [],
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -212,6 +218,23 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         document.title = `${getWebsiteName()} | ${this.translate('pages.createACampaign.pageTitle')}`;
         const { getCampaign, campaigns } = this.props;
         const { campaignId } = this.props.routeParams;
+
+        MapsService.searchMySpaces({
+            itemsPerPage: 50,
+            pageNumber: 1,
+        }).then((response) => {
+            const { inputs } = this.state;
+            const mySpaces = response?.data?.results || [];
+            this.setState({
+                mySpaces: response?.data?.results || [],
+                inputs: {
+                    ...this.state.inputs,
+                    spaceId: inputs.spaceId || mySpaces[0]?.id || undefined,
+                },
+            });
+        }).catch((err) => {
+            console.log(err);
+        });
 
         // First check if campaign state is stored in localStorage from before user OAuth2 redirected.
         // Clear it out after re-populating the form state.
@@ -302,7 +325,8 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 || !inputs.description
                 || !inputs.type
                 || !inputs.scheduleStartAt
-                || !inputs.scheduleStopAt) {
+                || !inputs.scheduleStopAt
+                || (inputs.type === CampaignTypes.LOCAL && !inputs.spaceId)) {
                 return true;
             }
         } else if (formEditingStage === 2) {
@@ -530,6 +554,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             integrationTargets,
             longText1,
             longText2,
+            spaceId,
         } = inputs;
 
         this.setState({
@@ -574,6 +599,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             longitude,
             integrationDetails,
             integrationTargets,
+            spaceId,
         };
 
         if (!campaign?.status) {
@@ -712,6 +738,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             isEditing,
             formEditingStage,
             fetchedIntegrationDetails,
+            mySpaces,
         } = this.state;
         const {
             campaigns, map, user, routeParams,
@@ -755,7 +782,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 longText2: inputs.longText2,
                                 integrationDetails: inputs.integrationDetails,
                                 integrationTargets: inputs.integrationTargets,
+                                spaceId: inputs.spaceId,
                             }}
+                            navigateHandler={this.navigateHandler}
                             fetchedIntegrationDetails={fetchedIntegrationDetails}
                             isSubmitDisabled={this.isSubmitDisabled()}
                             isEditing={isEditing}
@@ -768,6 +797,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             onSelectMedia={this.onSelectMedia}
                             onSocialSyncPress={this.onSocialSyncPress}
                             onSubmit={this.onSubmitCampaign}
+                            mySpaces={mySpaces}
                             user={user}
                         />
                     </Col>

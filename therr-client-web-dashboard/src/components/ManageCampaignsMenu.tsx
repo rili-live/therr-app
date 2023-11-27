@@ -51,7 +51,7 @@ const ManageCampaignsMenu = ({
                     <FontAwesomeIcon icon={faPlus} className="me-2" /> Create a Campaign
                 </Dropdown.Item>
                 <Dropdown.Item className="fw-bold" onClick={navigateHandler('/campaigns/overview')}>
-                    <FontAwesomeIcon icon={faPencilRuler} className="me-2" /> Edit My Campaigns
+                    <FontAwesomeIcon icon={faPencilRuler} className="me-2" /> Campaigns List
                 </Dropdown.Item>
                 {/* <Dropdown.Item className="fw-bold" onClick={navigateHandler('/campaigns/edit')}>
                     <FontAwesomeIcon icon={faUserShield} className="me-2" /> Manage Access

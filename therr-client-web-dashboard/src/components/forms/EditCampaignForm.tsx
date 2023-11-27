@@ -9,7 +9,7 @@ import { CampaignStatuses, CampaignTypes, OAuthIntegrationProviders } from 'ther
 import { IUserState } from 'therr-react/types';
 import Datetime from 'react-datetime';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt, faCheckCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarAlt, faCheckCircle, faExclamationCircle, faMapMarked } from '@fortawesome/free-solid-svg-icons';
 import moment, { Moment } from 'moment';
 import {
     faFacebook, faGoogle, faInstagram, faLinkedin, faTwitter,
@@ -87,7 +87,9 @@ interface IEditCampaignFormProps {
                 maxBudget: number;
             };
         };
+        spaceId?: string;
     }
+    navigateHandler: (routeName: string) => any;
     fetchedIntegrationDetails: {
         [key: string]: any;
     };
@@ -104,6 +106,10 @@ interface IEditCampaignFormProps {
     onSubmit: (event: React.MouseEvent<HTMLButtonElement>|React.FormEvent<HTMLButtonElement>) => void;
     onSelectMedia: (files: any[]) => any;
     shouldShowAdvancedFields?: boolean;
+    mySpaces: {
+        id: string;
+        notificationMsg: string;
+    }[];
     user: IUserState;
 }
 
@@ -113,6 +119,7 @@ const EditCampaignForm = ({
     goBack,
     mediaUrl,
     mediaAssets,
+    navigateHandler,
     hasFormChanged,
     inputs,
     fetchedIntegrationDetails,
@@ -127,6 +134,7 @@ const EditCampaignForm = ({
     onSubmit,
     onSelectMedia,
     shouldShowAdvancedFields,
+    mySpaces,
     user,
 }: IEditCampaignFormProps) => {
     const isTherrSelected = inputs.integrationTargets?.includes(OAuthIntegrationProviders.THERR);
@@ -320,196 +328,194 @@ const EditCampaignForm = ({
                             <Col sm={12}>
                                 <h5 className="my-4">Ad Provider Targets</h5>
                             </Col>
-                            <Row>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={therrCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.THERR]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.THERR)}>
-                                        {
-                                            isTherrSelected
-                                                && <div className="position-absolute top-0 right-0">
-                                                    <FontAwesomeIcon
-                                                        icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.THERR)
-                                                            ? faCheckCircle
-                                                            : faExclamationCircle
-                                                        }
-                                                        className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.THERR)
-                                                            ? 'm-2 text-success'
-                                                            : 'm-2 text-warning'
-                                                        }
-                                                    />
-                                                </div>
-                                        }
-                                        <Card.Body className="text-center">
-                                            <Card.Img
-                                                src={'/assets/img/therr-logo-green.svg'}
-                                                alt="Therr Ads"
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.THERR] ? 'text-therr' : ''}
-                                                height={32}
-                                                width={32}
-                                            />
-                                            <Card.Text className="mb-0">Therr</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.THERR] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={facebookCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.FACEBOOK)}>
-                                        {
-                                            isFacebookSelected
-                                                && <div className="position-absolute top-0 right-0">
-                                                    <FontAwesomeIcon
-                                                        icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.FACEBOOK)
-                                                            ? faCheckCircle
-                                                            : faExclamationCircle
-                                                        }
-                                                        className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.FACEBOOK)
-                                                            ? 'm-2 text-success'
-                                                            : 'm-2 text-warning'
-                                                        }
-                                                    />
-                                                </div>
-                                        }
-                                        <Card.Body className="text-center">
-                                            <FontAwesomeIcon
-                                                icon={faFacebook}
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK] ? 'text-facebook' : ''}
-                                                size="2x"
-                                            />
-                                            <Card.Text className="mb-0">Facebook</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={instagramCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.INSTAGRAM)}>
-                                        {
-                                            isInstagramSelected
-                                                && <div className="position-absolute top-0 right-0">
-                                                    <FontAwesomeIcon
-                                                        icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.INSTAGRAM)
-                                                            ? faCheckCircle
-                                                            : faExclamationCircle
-                                                        }
-                                                        className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.INSTAGRAM)
-                                                            ? 'm-2 text-success'
-                                                            : 'm-2 text-warning'
-                                                        }
-                                                    />
-                                                </div>
-                                        }
-                                        <Card.Body className="text-center">
-                                            <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM] ? 'text-instagram' : ''}
-                                                icon={faInstagram}
-                                                size="2x"
-                                            />
-                                            <Card.Text className="mb-0">Instagram</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={linkedInCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.LINKEDIN)}>
-                                        {
-                                            isLinkedInSelected
-                                                && <div className="position-absolute top-0 right-0">
-                                                    <FontAwesomeIcon
-                                                        icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.LINKEDIN)
-                                                            ? faCheckCircle
-                                                            : faExclamationCircle
-                                                        }
-                                                        className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.LINKEDIN)
-                                                            ? 'm-2 text-success'
-                                                            : 'm-2 text-warning'
-                                                        }
-                                                    />
-                                                </div>
-                                        }
-                                        <Card.Body className="text-center">
-                                            <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN] ? 'text-linkedin' : ''}
-                                                icon={faLinkedin}
-                                                size="2x"
-                                            />
-                                            <Card.Text className="mb-0">LinkedIn</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={googleCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.GOOGLE)}>
-                                        {
-                                            isGoogleSelected
-                                                && <div className="position-absolute top-0 right-0">
-                                                    <FontAwesomeIcon
-                                                        icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.GOOGLE)
-                                                            ? faCheckCircle
-                                                            : faExclamationCircle
-                                                        }
-                                                        className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.GOOGLE)
-                                                            ? 'm-2 text-success'
-                                                            : 'm-2 text-warning'
-                                                        }
-                                                    />
-                                                </div>
-                                        }
-                                        <Card.Body className="text-center">
-                                            <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE] ? 'text-google' : ''}
-                                                icon={faGoogle}
-                                                size="2x"
-                                            />
-                                            <Card.Text className="mb-0">Google</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
-                                    <Card
-                                        className={twitterCardClassNames}
-                                        onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.TWITTER]
-                                            && onSocialSyncPress(OAuthIntegrationProviders.TWITTER)}>
-                                        {
-                                            isTwitterSelected
-                                                && <div className="position-absolute top-0 right-0">
-                                                    <FontAwesomeIcon
-                                                        icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.TWITTER)
-                                                            ? faCheckCircle
-                                                            : faExclamationCircle
-                                                        }
-                                                        className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.TWITTER)
-                                                            ? 'm-2 text-success'
-                                                            : 'm-2 text-warning'
-                                                        }
-                                                    />
-                                                </div>
-                                        }
-                                        <Card.Body className="text-center">
-                                            <FontAwesomeIcon
-                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.TWITTER] ? 'text-twitter' : ''}
-                                                icon={faTwitter}
-                                                size="2x"
-                                            />
-                                            <Card.Text className="mb-0">Twitter</Card.Text>
-                                            <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.TWITTER] ? '' : '(Coming Soon!)'}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            </Row>
+                            <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                <Card
+                                    className={therrCardClassNames}
+                                    onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.THERR]
+                                        && onSocialSyncPress(OAuthIntegrationProviders.THERR)}>
+                                    {
+                                        isTherrSelected
+                                            && <div className="position-absolute top-0 right-0">
+                                                <FontAwesomeIcon
+                                                    icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.THERR)
+                                                        ? faCheckCircle
+                                                        : faExclamationCircle
+                                                    }
+                                                    className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.THERR)
+                                                        ? 'm-2 text-success'
+                                                        : 'm-2 text-warning'
+                                                    }
+                                                />
+                                            </div>
+                                    }
+                                    <Card.Body className="text-center">
+                                        <Card.Img
+                                            src={'/assets/img/therr-logo-green.svg'}
+                                            alt="Therr Ads"
+                                            className={!disabledProvidersStatus[OAuthIntegrationProviders.THERR] ? 'text-therr' : ''}
+                                            height={32}
+                                            width={32}
+                                        />
+                                        <Card.Text className="mb-0">Therr</Card.Text>
+                                        <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.THERR] ? '' : '(Coming Soon!)'}</Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                            <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                <Card
+                                    className={facebookCardClassNames}
+                                    onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK]
+                                        && onSocialSyncPress(OAuthIntegrationProviders.FACEBOOK)}>
+                                    {
+                                        isFacebookSelected
+                                            && <div className="position-absolute top-0 right-0">
+                                                <FontAwesomeIcon
+                                                    icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.FACEBOOK)
+                                                        ? faCheckCircle
+                                                        : faExclamationCircle
+                                                    }
+                                                    className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.FACEBOOK)
+                                                        ? 'm-2 text-success'
+                                                        : 'm-2 text-warning'
+                                                    }
+                                                />
+                                            </div>
+                                    }
+                                    <Card.Body className="text-center">
+                                        <FontAwesomeIcon
+                                            icon={faFacebook}
+                                            className={!disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK] ? 'text-facebook' : ''}
+                                            size="2x"
+                                        />
+                                        <Card.Text className="mb-0">Facebook</Card.Text>
+                                        <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK] ? '' : '(Coming Soon!)'}</Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                            <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                <Card
+                                    className={instagramCardClassNames}
+                                    onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM]
+                                        && onSocialSyncPress(OAuthIntegrationProviders.INSTAGRAM)}>
+                                    {
+                                        isInstagramSelected
+                                            && <div className="position-absolute top-0 right-0">
+                                                <FontAwesomeIcon
+                                                    icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.INSTAGRAM)
+                                                        ? faCheckCircle
+                                                        : faExclamationCircle
+                                                    }
+                                                    className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.INSTAGRAM)
+                                                        ? 'm-2 text-success'
+                                                        : 'm-2 text-warning'
+                                                    }
+                                                />
+                                            </div>
+                                    }
+                                    <Card.Body className="text-center">
+                                        <FontAwesomeIcon
+                                            className={!disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM] ? 'text-instagram' : ''}
+                                            icon={faInstagram}
+                                            size="2x"
+                                        />
+                                        <Card.Text className="mb-0">Instagram</Card.Text>
+                                        <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM] ? '' : '(Coming Soon!)'}</Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                            <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                <Card
+                                    className={linkedInCardClassNames}
+                                    onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN]
+                                        && onSocialSyncPress(OAuthIntegrationProviders.LINKEDIN)}>
+                                    {
+                                        isLinkedInSelected
+                                            && <div className="position-absolute top-0 right-0">
+                                                <FontAwesomeIcon
+                                                    icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.LINKEDIN)
+                                                        ? faCheckCircle
+                                                        : faExclamationCircle
+                                                    }
+                                                    className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.LINKEDIN)
+                                                        ? 'm-2 text-success'
+                                                        : 'm-2 text-warning'
+                                                    }
+                                                />
+                                            </div>
+                                    }
+                                    <Card.Body className="text-center">
+                                        <FontAwesomeIcon
+                                            className={!disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN] ? 'text-linkedin' : ''}
+                                            icon={faLinkedin}
+                                            size="2x"
+                                        />
+                                        <Card.Text className="mb-0">LinkedIn</Card.Text>
+                                        <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.LINKEDIN] ? '' : '(Coming Soon!)'}</Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                            <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                <Card
+                                    className={googleCardClassNames}
+                                    onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE]
+                                        && onSocialSyncPress(OAuthIntegrationProviders.GOOGLE)}>
+                                    {
+                                        isGoogleSelected
+                                            && <div className="position-absolute top-0 right-0">
+                                                <FontAwesomeIcon
+                                                    icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.GOOGLE)
+                                                        ? faCheckCircle
+                                                        : faExclamationCircle
+                                                    }
+                                                    className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.GOOGLE)
+                                                        ? 'm-2 text-success'
+                                                        : 'm-2 text-warning'
+                                                    }
+                                                />
+                                            </div>
+                                    }
+                                    <Card.Body className="text-center">
+                                        <FontAwesomeIcon
+                                            className={!disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE] ? 'text-google' : ''}
+                                            icon={faGoogle}
+                                            size="2x"
+                                        />
+                                        <Card.Text className="mb-0">Google</Card.Text>
+                                        <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.GOOGLE] ? '' : '(Coming Soon!)'}</Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                            <Col sm={12} md={6} lg={4} xxl={2} className="mb-3">
+                                <Card
+                                    className={twitterCardClassNames}
+                                    onClick={() => !disabledProvidersStatus[OAuthIntegrationProviders.TWITTER]
+                                        && onSocialSyncPress(OAuthIntegrationProviders.TWITTER)}>
+                                    {
+                                        isTwitterSelected
+                                            && <div className="position-absolute top-0 right-0">
+                                                <FontAwesomeIcon
+                                                    icon={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.TWITTER)
+                                                        ? faCheckCircle
+                                                        : faExclamationCircle
+                                                    }
+                                                    className={isAdsProviderAuthenticated(user, OAuthIntegrationProviders.TWITTER)
+                                                        ? 'm-2 text-success'
+                                                        : 'm-2 text-warning'
+                                                    }
+                                                />
+                                            </div>
+                                    }
+                                    <Card.Body className="text-center">
+                                        <FontAwesomeIcon
+                                            className={!disabledProvidersStatus[OAuthIntegrationProviders.TWITTER] ? 'text-twitter' : ''}
+                                            icon={faTwitter}
+                                            size="2x"
+                                        />
+                                        <Card.Text className="mb-0">Twitter</Card.Text>
+                                        <Card.Text>{!disabledProvidersStatus[OAuthIntegrationProviders.TWITTER] ? '' : '(Coming Soon!)'}</Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
                         </Row>
                         {
                             !disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK]
@@ -574,7 +580,38 @@ const EditCampaignForm = ({
                             inputs.type === CampaignTypes.LOCAL
                             && <Row>
                                 <h5 className="my-4">Ad Target Location / Address</h5>
-                                <Col sm={12} className="mb-3">
+                                {/* TODO: Show message to claim a space when none exist */}
+                                <Col md={4}>
+                                    {
+                                        mySpaces.length < 1
+                                            ? <Form.Group controlId="spaceId">
+                                                <div className="text-center">
+                                                    <Form.Label className="text-center">* Local Campaigns Require a Business Space</Form.Label>
+                                                </div>
+                                                <div className="text-center">
+                                                    <Button variant="secondary" onClick={navigateHandler('/claim-a-space')}>
+                                                        <FontAwesomeIcon icon={faMapMarked} className="me-1" /> Claim a Space
+                                                    </Button>
+                                                </div>
+                                            </Form.Group>
+                                            : <Form.Group controlId="spaceId">
+                                                <Form.Label>Business Space</Form.Label>
+                                                <Form.Control
+                                                    value={inputs.spaceId}
+                                                    name="spaceId"
+                                                    onChange={onInputChange}
+                                                    as="select"
+                                                >
+                                                    {
+                                                        mySpaces.map((space) => (
+                                                            <option key={space.id} value={space.id}>{space.notificationMsg}</option>
+                                                        ))
+                                                    }
+                                                </Form.Control>
+                                            </Form.Group>
+                                    }
+                                </Col>
+                                <Col md={8} className="mb-3">
                                     {/* <Form.Group id="address">
                                         <Form.Label>Address</Form.Label>
                                         <InputGroup className="input-group-merge search-bar">
@@ -583,6 +620,7 @@ const EditCampaignForm = ({
                                         </InputGroup>
                                     </Form.Group> */}
                                     <Form.Group controlId="address">
+                                        <Form.Label>Target Locations</Form.Label>
                                         <Typeahead
                                             id="address-search-typeahead"
                                             options={addressTypeAheadResults.map((result) => ({
