@@ -19,7 +19,7 @@ import {
 } from 'therr-react/types';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 import {
-    AccessLevels, OAuthIntegrationProviders, CampaignAssetTypes, CampaignStatuses, CampaignTypes,
+    AccessLevels, OAuthIntegrationProviders, CampaignAssetTypes, CampaignStatuses, CampaignTypes, CampaignAdGoals,
 } from 'therr-js-utilities/constants';
 import { v4 as uuidv4 } from 'uuid';
 import * as facebook from '../api/facebook';
@@ -35,12 +35,19 @@ import { onFBLoginPress } from '../api/login';
 export const CAMPAIGN_DRAFT_KEY = 'therrCampaignDraft';
 const DEFAULT_MAX_BUDGET = 100;
 
-const partitionAssets = (campaign) => {
+const partitionAdGroups = (campaign) => {
     const headlineAssets = [];
     const longTextAssets = [];
     const mediaAssets = [];
+    const adGroup = (campaign?.adGroups && campaign?.adGroups[0]) || {
+        assets: [],
+        spaceId: campaign?.spaceId || '',
+        headline: 'Ad Group 1',
+        description: 'The default ad group for this campaign',
+        // goal: adGroup.goal || CampaignAdGoals.CLICKS,
+    };
 
-    campaign?.assets?.forEach((asset) => {
+    adGroup.assets.forEach((asset) => {
         if (asset.type === CampaignAssetTypes.TEXT) {
             if (asset.headline) {
                 headlineAssets.push(asset);
@@ -53,6 +60,7 @@ const partitionAssets = (campaign) => {
     });
 
     return {
+        adGroup,
         headlineAssets,
         longTextAssets,
         mediaAssets,
@@ -61,10 +69,11 @@ const partitionAssets = (campaign) => {
 
 const getInputDefaults = (campaign: any) => {
     const {
+        adGroup,
         headlineAssets,
         longTextAssets,
         mediaAssets,
-    } = partitionAssets(campaign);
+    } = partitionAdGroups(campaign);
 
     const initialIntegrationDetails = JSON.parse(JSON.stringify(campaign?.integrationDetails || {}));
     Object.keys(initialIntegrationDetails).forEach((target) => {
@@ -81,13 +90,12 @@ const getInputDefaults = (campaign: any) => {
         description: campaign?.description || '',
         scheduleStartAt: campaign?.scheduleStartAt || '',
         scheduleStopAt: campaign?.scheduleStopAt || '',
-        headline1: headlineAssets.length > 0 ? headlineAssets[0].headline : '',
         headline2: headlineAssets.length > 1 ? headlineAssets[1].headline : '',
-        longText1: longTextAssets.length > 0 ? longTextAssets[0].longText : '',
         longText2: longTextAssets.length > 1 ? longTextAssets[1].longText : '',
         integrationDetails: initialIntegrationDetails,
         integrationTargets: campaign?.integrationTargets || [OAuthIntegrationProviders.THERR],
         spaceId: campaign?.spaceId || '',
+        adGroup,
     };
 };
 
@@ -331,9 +339,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             }
         } else if (formEditingStage === 2) {
             if (isSubmitting
-                || !inputs.headline1
+                || !inputs.adGroup.headline
                 || !inputs.headline2
-                || !inputs.longText1) {
+                || !inputs.adGroup.description) {
                 return true;
             }
         }
@@ -427,9 +435,26 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         this.toggleAlert(false);
         event.preventDefault();
         const { name, value } = event.currentTarget;
-        const newInputChanges = {
-            [name]: value,
-        };
+        let newInputChanges: any = {};
+        if (name === 'adGroupHeadline') {
+            newInputChanges = {
+                adGroup: {
+                    ...this.state.inputs.adGroup,
+                    headline: value,
+                },
+            };
+        } else if (name === 'adGroupDescription') {
+            newInputChanges = {
+                adGroup: {
+                    ...this.state.inputs.adGroup,
+                    description: value,
+                },
+            };
+        } else {
+            newInputChanges = {
+                [name]: value,
+            };
+        }
 
         this.setState({
             hasFormChanged: true,
@@ -539,6 +564,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         } = this.state;
 
         const {
+            adGroup,
             title,
             description,
             type,
@@ -548,11 +574,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             address: selectedAddresses,
             latitude,
             longitude,
-            headline1,
             headline2,
             integrationDetails,
             integrationTargets,
-            longText1,
             longText2,
             spaceId,
         } = inputs;
@@ -587,6 +611,12 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         const saveMethod = campaign?.id
             ? (campaignDetails) => updateCampaign(campaign?.id, campaignDetails)
             : createCampaign;
+        const {
+            adGroup: originalAdGroup,
+            headlineAssets,
+            longTextAssets,
+            mediaAssets,
+        } = partitionAdGroups(campaign);
         const requestBody: any = {
             title,
             description,
@@ -600,6 +630,15 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             integrationDetails,
             integrationTargets,
             spaceId,
+            adGroups: [
+                {
+                    ...originalAdGroup,
+                    spaceId,
+                    headline: adGroup.headline || originalAdGroup.headline,
+                    description: adGroup.description || originalAdGroup.description,
+                    // goal: adGroup.goal || originalAdGroup.goal,
+                },
+            ],
         };
 
         if (!campaign?.status) {
@@ -608,30 +647,11 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
         // TODO: Make this more dynamic when we allow adding and deleting assets
         const assets: ICampaignAsset[] = [];
-        const {
-            headlineAssets,
-            longTextAssets,
-            mediaAssets,
-        } = partitionAssets(campaign);
-        if (headline1) {
-            assets.push({
-                id: headlineAssets && headlineAssets[0]?.id,
-                type: CampaignAssetTypes.TEXT,
-                headline: headline1,
-            });
-        }
         if (headline2) {
             assets.push({
                 id: headlineAssets && headlineAssets[1]?.id,
                 type: CampaignAssetTypes.TEXT,
                 headline: headline2,
-            });
-        }
-        if (longText1) {
-            assets.push({
-                id: longTextAssets && longTextAssets[0]?.id,
-                type: CampaignAssetTypes.TEXT,
-                longText: longText1,
             });
         }
         if (longText2) {
@@ -663,6 +683,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             inputs: {
                                 ...this.state.inputs,
                                 integrationDetails: response.campaigns[0].integrationDetails,
+                                adGroup: response.campaigns[0].adGroups[0],
                             },
                         });
                         if (formEditingStage === 1) {
@@ -747,7 +768,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         const campaign = campaigns.campaigns[campaignId];
         const {
             mediaAssets,
-        } = partitionAssets(campaign);
+        } = partitionAdGroups(campaign);
 
         return (
             <div id="page_settings" className="flex-box column">
@@ -776,13 +797,12 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 status: inputs.status,
                                 scheduleStartAt: inputs.scheduleStartAt,
                                 scheduleStopAt: inputs.scheduleStopAt,
-                                headline1: inputs.headline1,
                                 headline2: inputs.headline2,
-                                longText1: inputs.longText1,
                                 longText2: inputs.longText2,
                                 integrationDetails: inputs.integrationDetails,
                                 integrationTargets: inputs.integrationTargets,
                                 spaceId: inputs.spaceId,
+                                adGroup: inputs.adGroup,
                             }}
                             navigateHandler={this.navigateHandler}
                             fetchedIntegrationDetails={fetchedIntegrationDetails}

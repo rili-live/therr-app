@@ -1,6 +1,7 @@
 import connection, { IConnection } from './connection';
 import BlacklistedEmailsStore from './BlacklistedEmailsStore';
 import CampaignsStore from './CampaignsStore';
+import CampaignAdGroupsStore from './CampaignAdGroupsStore';
 import CampaignAssetsStore from './CampaignAssetsStore';
 import ConfigStore from './ConfigStore';
 import InvitesStore from './InvitesStore';
@@ -23,6 +24,8 @@ class Store {
     blacklistedEmails: BlacklistedEmailsStore;
 
     campaigns: CampaignsStore;
+
+    campaignAdGroups: CampaignAdGroupsStore;
 
     campaignAssets: CampaignAssetsStore;
 
@@ -59,6 +62,7 @@ class Store {
 
         this.blacklistedEmails = new BlacklistedEmailsStore(this.db);
         this.campaigns = new CampaignsStore(this.db);
+        this.campaignAdGroups = new CampaignAdGroupsStore(this.db);
         this.campaignAssets = new CampaignAssetsStore(this.db);
         this.config = new ConfigStore(this.db);
         this.users = new UsersStore(this.db);

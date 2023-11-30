@@ -19,7 +19,6 @@ export interface ICreateCampaignParams {
     title: string;
     description: string;
     type: string;
-    assetIds?: string[];
     status: string; // active, paused, removed, etc.
     spaceId?: string;
     targetDailyBudget: number;
@@ -41,7 +40,6 @@ export interface IUpdateCampaignParams {
     title?: string;
     description?: string;
     type?: string;
-    assetIds?: string[];
     status?: string; // active, paused, removed, etc.
     spaceId?: string;
     targetDailyBudget?: number;
@@ -105,7 +103,6 @@ export default class CampaignsStore {
                 `${CAMPAIGNS_TABLE_NAME}.organizationId`,
                 `${CAMPAIGNS_TABLE_NAME}.title`,
                 `${CAMPAIGNS_TABLE_NAME}.description`,
-                `${CAMPAIGNS_TABLE_NAME}.assetIds`,
                 `${CAMPAIGNS_TABLE_NAME}.type`,
                 `${CAMPAIGNS_TABLE_NAME}.status`,
                 `${CAMPAIGNS_TABLE_NAME}.spaceId`,
@@ -152,7 +149,6 @@ export default class CampaignsStore {
     createCampaign(params: ICreateCampaignParams) {
         const modifiedParams = {
             ...params,
-            assetIds: params.assetIds ? JSON.stringify(params.assetIds) : JSON.stringify([]),
             targetLanguages: JSON.stringify(params.targetLanguages),
             targetLocations: params.targetLocations ? JSON.stringify(params.targetLocations) : JSON.stringify([]),
             integrationTargets: params.integrationTargets ? JSON.stringify(params.integrationTargets) : JSON.stringify([]),
@@ -170,7 +166,6 @@ export default class CampaignsStore {
         const queryString = knexBuilder.update({
             ...params,
             updatedAt: new Date(),
-            assetIds: params.assetIds ? JSON.stringify(params.assetIds) : undefined,
             targetLanguages: params.targetLanguages ? JSON.stringify(params.targetLanguages) : undefined,
             targetLocations: params.targetLocations ? JSON.stringify(params.targetLocations) : undefined,
             integrationTargets: params.integrationTargets ? JSON.stringify(params.integrationTargets) : undefined,

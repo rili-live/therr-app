@@ -83,7 +83,7 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
             id,
             title,
             description,
-            assetIds,
+            adGroupIds,
             status,
             type,
             spaceId,

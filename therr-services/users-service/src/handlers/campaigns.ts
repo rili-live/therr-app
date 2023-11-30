@@ -1,29 +1,16 @@
-import {
-    AccessLevels, CampaignStatuses, ErrorCodes, OAuthIntegrationProviders,
-} from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
-import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
-import handleHttpError from '../utilities/handleHttpError';
-import translate from '../utilities/translator';
-import Store from '../store';
+import {
+    AccessLevels, CampaignAdGoals, CampaignStatuses, ErrorCodes, OAuthIntegrationProviders,
+} from 'therr-js-utilities/constants';
 import sendCampaignCreatedEmail from '../api/email/admin/sendCampaignCreatedEmail';
 import sendCampaignPendingReviewEmail from '../api/email/for-business/sendCampaignPendingReviewEmail';
+import Store from '../store';
+import translate from '../utilities/translator';
+import { createUpdateAssetIntegrations, createUpdateCampaignIntegrations } from './helpers/campaignIntegrations';
 import { getUserOrgsIdsFromHeaders } from './helpers/user';
-import * as facebook from '../api/facebook';
-
-const isAdsProviderAuthenticated = (userIntegrationsAccess: {
-    [key: string]: any;
-}, target: string) => {
-    // TODO: Refresh token if almost expired
-    const combinedTarget = target === OAuthIntegrationProviders.INSTAGRAM
-        ? OAuthIntegrationProviders.FACEBOOK
-        : target;
-
-    return userIntegrationsAccess[combinedTarget]?.user_access_token
-        && userIntegrationsAccess[combinedTarget]?.user_access_token_expires_at
-        && userIntegrationsAccess[combinedTarget].user_access_token_expires_at > Date.now();
-};
+import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
+import handleHttpError from '../utilities/handleHttpError';
 
 // READ
 const getCampaign = async (req, res) => {
@@ -38,11 +25,12 @@ const getCampaign = async (req, res) => {
     }).then((campaigns) => {
         const campaign = campaigns[0] || {};
 
-        const assetsPromise = campaign?.assetIds?.length
-            ? Store.campaignAssets.get({}, campaign.assetIds) : Promise.resolve([]);
-
-        return assetsPromise.then((campaignAssets) => {
-            campaign.assets = campaignAssets;
+        return Store.campaignAdGroups.get({ campaignId: campaign.id }).then((campaignAdGroups) => {
+            // TODO: Fetch associated assets
+            campaign.adGroups = campaignAdGroups.map((a) => ({
+                ...a,
+                assets: [],
+            }));
             return res.status(200).send(campaign);
         });
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
@@ -84,7 +72,6 @@ const createCampaign = async (req, res) => {
 
     const {
         organizationId,
-        assetIds,
         spaceId,
         title,
         description,
@@ -98,18 +85,19 @@ const createCampaign = async (req, res) => {
         integrationDetails,
         scheduleStartAt,
         scheduleStopAt,
-        assets,
+        adGroups,
     } = req.body;
+
+    const storedStatus = status === CampaignStatuses.PAUSED || status === CampaignStatuses.REMOVED ? status : CampaignStatuses.PENDING;
 
     return Store.campaigns.createCampaign({
         creatorId: userId,
         organizationId, // TODO
-        assetIds, // TODO
         spaceId,
         title,
         description,
         type,
-        status: status === CampaignStatuses.PAUSED || status === CampaignStatuses.REMOVED ? status : CampaignStatuses.PENDING,
+        status: storedStatus,
         targetDailyBudget: targetDailyBudget || 0, // TODO
         costBiddingStrategy: costBiddingStrategy || 'default',
         targetLanguages: targetLanguages || [locale],
@@ -121,19 +109,34 @@ const createCampaign = async (req, res) => {
     }).then((results) => {
         const campaign = results[0] || {};
 
-        const assetsPromise = assets?.length ? Store.campaignAssets.create(assets.map((asset) => ({
+        // Creates a default adGroup if none are supplied during campaign creation
+        const adGroupsPromise = adGroups?.length ? Store.campaignAdGroups.create(adGroups.map((adGroup) => ({
+            campaignId: campaign.id,
             creatorId: userId,
             organizationId: campaign.organizationId,
-            media: asset.media,
-            spaceId: asset.spaceId, // TODO
-            status: 'accepted',
-            type: asset.type,
-            headline: asset.headline,
-            longText: asset.longText,
+            spaceId: adGroup.spaceId || spaceId, // TODO
+            status: storedStatus, // TODO
+            headline: adGroup.headline,
+            description: adGroup.description,
             performance: 'learning', // TODO
-        }))) : Promise.resolve([]);
+            goal: adGroup.goal || CampaignAdGoals.CLICKS,
+            scheduleStartAt,
+            scheduleStopAt,
+        }))) : Store.campaignAdGroups.create([{
+            campaignId: campaign.id,
+            creatorId: userId,
+            organizationId: campaign.organizationId,
+            spaceId, // TODO
+            status: storedStatus, // TODO
+            headline: 'Default Headline',
+            description: 'The default ad group for this campaign',
+            performance: 'learning', // TODO
+            goal: CampaignAdGoals.CLICKS,
+            scheduleStartAt,
+            scheduleStopAt,
+        }]);
 
-        return assetsPromise.then((campaignAssets) => {
+        return adGroupsPromise.then((campaignAdGroups) => {
             // Fire off request to create integrations (on third party platforms)
             sendCampaignCreatedEmail({
                 subject: '[Urgent Request] User Created a Campaign',
@@ -144,11 +147,10 @@ const createCampaign = async (req, res) => {
                     ...campaign,
                 },
             });
-            return Store.campaigns.updateCampaign({
-                id: campaign.id,
-            }, {
-                assetIds: campaignAssets.map((asset) => asset.id),
-            });
+            return [{
+                ...campaign,
+                adGroups: campaignAdGroups,
+            }];
         }).then((campaigns) => res.status(201).send({
             created: results.length,
             campaigns,
@@ -164,7 +166,6 @@ const updateCampaign = async (req, res) => {
 
     const {
         organizationId,
-        assetIds,
         spaceId,
         title,
         description,
@@ -178,8 +179,12 @@ const updateCampaign = async (req, res) => {
         integrationDetails,
         scheduleStartAt,
         scheduleStopAt,
-        assets,
+        adGroups,
     } = req.body;
+
+    const storedStatus = status === CampaignStatuses.PAUSED || status === CampaignStatuses.REMOVED || !status
+        ? status
+        : CampaignStatuses.PENDING;
 
     // Get campaign, check it exists, and check current status
     return Store.users.getUserById(userId, ['email', 'integrationsAccess'])
@@ -199,197 +204,146 @@ const updateCampaign = async (req, res) => {
             }
 
             const integrationsAccess = decryptIntegrationsAccess(user.integrationsAccess);
-            const integrationUpdatePromises: Promise<{ id?: string; }>[] = [];
+
             const integrationDetailsEntries = Object.entries(integrationDetails as { [key: string]: any; });
 
-            integrationDetailsEntries.forEach(([target, details]) => {
-                if (target === OAuthIntegrationProviders.FACEBOOK
-                    && isAdsProviderAuthenticated(integrationsAccess, target)
-                    && details?.adAccountId) {
-                    const promise = (details?.campaignId
-                        ? facebook.updateCampaign(
-                            details?.adAccountId,
-                            integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
-                            {
-                                id: details?.campaignId,
-                                title,
-                                maxBudget: details?.maxBudget || undefined,
-                                status: !integrationTargets.includes(target)
-                                    ? CampaignStatuses.REMOVED
-                                    : status,
-                            },
-                        )
-                        : facebook.createCampaign(
-                            details?.adAccountId,
-                            integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
-                            {
-                                title,
-                                type,
-                                maxBudget: details.maxBudget || undefined,
-                                status: !integrationTargets.includes(target)
-                                    ? CampaignStatuses.REMOVED
-                                    : status,
-                            },
-                        ))
-                        .then((response) => {
-                            if (response?.data?.configured_status === 'ARCHIVED' || response?.data?.configured_status === 'DELETED') {
-                                // If user deleted campaign from integration provider, create a new one
-                                return facebook.createCampaign(
-                                    details?.adAccountId,
-                                    integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
-                                    {
-                                        title,
-                                        type,
-                                        maxBudget: details.maxBudget || undefined,
-                                        status: !integrationTargets.includes(target)
-                                            ? CampaignStatuses.REMOVED
-                                            : status,
-                                    },
-                                ).then((subResponse) => ({
-                                    id: subResponse.data?.id,
-                                }));
-                            }
-                            if (response?.data?.errors) {
-                                // TODO: Handle various nuanced errors
-                            }
-                            return ({
-                                id: response.data?.id || details?.campaignId,
-                            });
-                        });
-
-                    integrationUpdatePromises.push(promise);
-                } else {
-                    integrationUpdatePromises.push(Promise.resolve({}));
-                }
-            });
-
-            return Promise.allSettled(integrationUpdatePromises).then((results) => {
+            return createUpdateCampaignIntegrations(req.body, integrationsAccess).then((campaignIntegResults) => {
                 const modifiedIntegrationDetails = {
                     ...integrationDetails,
                 };
                 integrationDetailsEntries.forEach(([target, details], index) => {
-                    if (results[index].status === 'fulfilled') {
-                        const campaignId = (results[index] as any).value.id;
+                    if (campaignIntegResults[index].status === 'fulfilled') {
+                        const campaignId = (campaignIntegResults[index] as any).value.id;
                         if (modifiedIntegrationDetails[target] && campaignId) {
                             // If campaignId is 'missing' remove the link from Therr to integration provider by marking it undefined
                             modifiedIntegrationDetails[target].campaignId = campaignId === 'missing' ? undefined : campaignId;
                         }
                     }
                 });
-
-                const shouldSendEmailNotifications = (status === CampaignStatuses.REMOVED && fetchedCampaign.status !== CampaignStatuses.REMOVED)
-                || (status === CampaignStatuses.ACTIVE && fetchedCampaign.status !== CampaignStatuses.ACTIVE);
-                const isCampaignCompleted = Date.now() >= new Date(scheduleStopAt || fetchedCampaign.scheduleStopAt).getTime();
-                const isCampaignBeforeSchedule = Date.now() < new Date(scheduleStartAt || scheduleStopAt.scheduleStartAt).getTime();
-                let generalizedStatus = isCampaignCompleted && (status || fetchedCampaign.status) !== CampaignStatuses.REMOVED
-                    ? CampaignStatuses.COMPLETE
-                    : (status || fetchedCampaign.status);
-                generalizedStatus = isCampaignBeforeSchedule && (status || fetchedCampaign.status) !== CampaignStatuses.REMOVED
-                    ? CampaignStatuses.PENDING
-                    : generalizedStatus;
-
-                return Store.campaigns.updateCampaign({
-                    id: req.params.id,
-                }, {
-                    organizationId, // TODO
-                    assetIds, // TODO
-                    spaceId,
-                    title,
-                    description,
-                    type,
-                    status: status === CampaignStatuses.PAUSED || status === CampaignStatuses.REMOVED || !status
-                        ? status
-                        : CampaignStatuses.PENDING,
-                    targetDailyBudget, // TODO
-                    costBiddingStrategy,
-                    targetLanguages,
-                    targetLocations,
-                    integrationTargets,
-                    integrationDetails: modifiedIntegrationDetails,
-                    scheduleStartAt,
-                    scheduleStopAt,
-                }).then(([campaign]) => {
-                    if (shouldSendEmailNotifications) {
-                        if (generalizedStatus !== CampaignStatuses.REMOVED) {
-                            sendCampaignPendingReviewEmail({
-                                subject: `Campaign in Review | ${title}`,
-                                toAddresses: [user.email],
-                            }, {
-                                campaignName: title,
-                                isPastSchedule: isCampaignCompleted,
-                                isBeforeSchedule: isCampaignBeforeSchedule,
-                            });
-                            // TODO: Send email for campaign removal
-                        }
-                        // TODO: Automate and remove notification email
-                        // Fire off request to update integrations (on third party platforms)
-                        sendCampaignCreatedEmail({
-                            subject: '[Urgent Request] User Updated a Campaign',
-                            toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-                        }, {
-                            userId,
-                            campaignDetails: {
-                                ...campaign,
-                            },
+                return createUpdateAssetIntegrations(req.body, integrationsAccess, modifiedIntegrationDetails)
+                    .then((adSetResults) => {
+                        const adGroupsWithIntegs = [
+                            ...adGroups,
+                        ];
+                        // Merge all results with the updated adGroup.integrationAssociations
+                        adSetResults.forEach((adSetResult) => {
+                            if (adSetResult.status === 'fulfilled') {
+                                adSetResult.value.forEach((adGroupResult, resultIdx) => {
+                                    // eslint-disable-next-line no-param-reassign
+                                    adGroupsWithIntegs[resultIdx] = {
+                                        ...adGroupsWithIntegs[resultIdx],
+                                        ...(adGroupResult[resultIdx] || {}),
+                                    };
+                                });
+                            } else if (adSetResult.status === 'rejected') {
+                                console.error(JSON.stringify(adSetResult));
+                            }
                         });
-                    }
-                    const existingAssets: any = [];
-                    const newAssets: any = [];
-                    assets?.forEach((asset) => {
-                        if (asset.id) {
-                            existingAssets.push(asset);
-                        } else {
-                            newAssets.push(asset);
-                        }
+
+                        const existingAdGroups: any = [];
+                        const newAdGroups: any = [];
+                        adGroupsWithIntegs?.forEach((adGroup) => {
+                            if (adGroup.id) {
+                                existingAdGroups.push(adGroup);
+                            } else {
+                                newAdGroups.push(adGroup);
+                            }
+                        });
+
+                        const adGroupPromises = [
+                            newAdGroups?.length ? Store.campaignAdGroups.create(newAdGroups.map((adGroup) => ({
+                                campaignId: fetchedCampaign.id,
+                                creatorId: userId,
+                                organizationId: fetchedCampaign.organizationId,
+                                spaceId: adGroup.spaceId || spaceId, // TODO
+                                status: storedStatus,
+                                headline: adGroup.headline,
+                                description: adGroup.description,
+                                integrationAssociations: adGroup.integrationAssociations,
+                                performance: 'learning', // TODO
+                                goal: CampaignAdGoals.CLICKS,
+                                scheduleStartAt,
+                                scheduleStopAt,
+                            }))) : Promise.resolve([]),
+                            // TODO: Consider using transactions
+                            existingAdGroups.length ? Promise.all(existingAdGroups.map((adGroup) => Store.campaignAdGroups.update(adGroup.id, {
+                                campaignId: fetchedCampaign.id,
+                                organizationId: fetchedCampaign.organizationId,
+                                headline: adGroup.headline,
+                                description: adGroup.description,
+                                integrationAssociations: adGroup.integrationAssociations,
+                            }))) : Promise.resolve([]),
+                        ];
+
+                        const shouldSendEmailNotifications = (status === CampaignStatuses.REMOVED && fetchedCampaign.status !== CampaignStatuses.REMOVED)
+                        || (status === CampaignStatuses.ACTIVE && fetchedCampaign.status !== CampaignStatuses.ACTIVE);
+                        const isCampaignCompleted = Date.now() >= new Date(scheduleStopAt || fetchedCampaign.scheduleStopAt).getTime();
+                        const isCampaignBeforeSchedule = Date.now() < new Date(scheduleStartAt || scheduleStopAt.scheduleStartAt).getTime();
+                        let generalizedStatus = isCampaignCompleted && (status || fetchedCampaign.status) !== CampaignStatuses.REMOVED
+                            ? CampaignStatuses.COMPLETE
+                            : (status || fetchedCampaign.status);
+                        generalizedStatus = isCampaignBeforeSchedule && (status || fetchedCampaign.status) !== CampaignStatuses.REMOVED
+                            ? CampaignStatuses.PENDING
+                            : generalizedStatus;
+
+                        return Store.campaigns.updateCampaign({
+                            id: req.params.id,
+                        }, {
+                            organizationId, // TODO
+                            spaceId,
+                            title,
+                            description,
+                            type,
+                            status: storedStatus,
+                            targetDailyBudget, // TODO
+                            costBiddingStrategy,
+                            targetLanguages,
+                            targetLocations,
+                            integrationTargets,
+                            integrationDetails: modifiedIntegrationDetails,
+                            scheduleStartAt,
+                            scheduleStopAt,
+                        }).then(([campaign]) => {
+                            if (shouldSendEmailNotifications) {
+                                if (generalizedStatus !== CampaignStatuses.REMOVED) {
+                                    sendCampaignPendingReviewEmail({
+                                        subject: `Campaign in Review | ${title}`,
+                                        toAddresses: [user.email],
+                                    }, {
+                                        campaignName: title,
+                                        isPastSchedule: isCampaignCompleted,
+                                        isBeforeSchedule: isCampaignBeforeSchedule,
+                                    });
+                                    // TODO: Send email for campaign removal
+                                }
+                                // TODO: Automate and remove notification email
+                                // Fire off request to update integrations (on third party platforms)
+                                sendCampaignCreatedEmail({
+                                    subject: '[Urgent Request] User Updated a Campaign',
+                                    toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                                }, {
+                                    userId,
+                                    campaignDetails: {
+                                        ...campaign,
+                                    },
+                                });
+                            }
+
+                            return Promise.all(adGroupPromises).then(([createdAdGroups, [updatedAdGroups]]) => [{
+                                ...campaign,
+                                adGroups: createdAdGroups.map((a) => ({
+                                    ...a,
+                                    assets: [],
+                                })).concat(updatedAdGroups.map((a) => ({
+                                    ...a,
+                                    assets: [],
+                                }))),
+                            }]).then((campaigns) => res.status(200).send({
+                                updated: 1,
+                                campaigns,
+                            }));
+                        }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
                     });
-
-                    // if (newAssets.length
-                    //     && integrationsAccess[OAuthIntegrationProviders.FACEBOOK]?.user_access_token
-                    //     && integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
-                    //     && integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId) {
-                    //     facebook.createAd(
-                    //         {
-                    //             accessToken: integrationsAccess[OAuthIntegrationProviders.FACEBOOK].user_access_token,
-                    //             adAccountId: integrationDetails[OAuthIntegrationProviders.FACEBOOK].adAccountId,
-                    //             pageId: integrationDetails[OAuthIntegrationProviders.FACEBOOK].pageId,
-                    //         },
-                    //         {
-                    //             name: 'Test Asset',
-                    //         },
-                    //     )
-                    //         .then((response) => {
-                    //             console.log(response.data);
-                    //         });
-                    // }
-                    const assetPromises = [
-                        newAssets?.length ? Store.campaignAssets.create(newAssets.map((asset) => ({
-                            creatorId: userId,
-                            organizationId: campaign.organizationId,
-                            media: asset.media,
-                            spaceId: asset.spaceId, // TODO
-                            status: 'accepted',
-                            type: asset.type,
-                            headline: asset.headline,
-                            longText: asset.longText,
-                            performance: 'learning', // TODO
-                        }))) : Promise.resolve([]),
-                        // TODO: Consider using transactions
-                        existingAssets.length ? Promise.all(existingAssets.map((asset) => Store.campaignAssets.update(asset.id, {
-                            organizationId: campaign.organizationId,
-                            headline: asset.headline,
-                            longText: asset.longText,
-                        }))) : Promise.resolve([]),
-                    ];
-
-                    return Promise.all(assetPromises).then(([newCampaignAssets, updatedCampaignAssets]) => Store.campaigns.updateCampaign({
-                        id: req.params.id,
-                    }, {
-                        assetIds: newCampaignAssets.map((asset) => asset.id).concat(campaign.assetIds),
-                    })).then((campaigns) => res.status(200).send({
-                        updated: 1,
-                        campaigns,
-                    }));
-                }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
             });
         });
 };

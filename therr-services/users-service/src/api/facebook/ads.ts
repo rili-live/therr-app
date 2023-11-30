@@ -1,5 +1,123 @@
 import axios from 'axios';
-import { passthroughAndLogErrors } from './utils';
+import { CampaignAdGoals, CampaignStatuses, CampaignTypes } from 'therr-js-utilities/constants';
+import { passthroughAndLogErrors, sanitizeMaxBudget } from './utils';
+
+// TODO: ...add more mapping logic
+const assetGoalToOptimizationMap = {
+    [CampaignAdGoals.CLICKS]: 'POST_ENGAGEMENT',
+    [CampaignAdGoals.ENGAGEMENT]: 'POST_ENGAGEMENT',
+    [CampaignAdGoals.IMPRESSIONS]: 'POST_ENGAGEMENT',
+    [CampaignAdGoals.LIKES]: 'POST_ENGAGEMENT',
+};
+
+// TODO: ...add more mapping logic
+// enum {APP_INSTALLS, CLICKS, IMPRESSIONS, LINK_CLICKS, NONE, OFFER_CLAIMS, PAGE_LIKES, POST_ENGAGEMENT, THRUPLAY, PURCHASE, LISTING_INTERACTION}
+const campaignTypeToBillingEventMap = {
+    [CampaignTypes.AWARENESS]: 'IMPRESSIONS',
+    [CampaignTypes.ACQUISITION]: 'IMPRESSIONS',
+    [CampaignTypes.ENGAGEMENT]: 'IMPRESSIONS',
+    [CampaignTypes.LOCAL]: 'IMPRESSIONS',
+    [CampaignTypes.LEADS]: 'IMPRESSIONS',
+    [CampaignTypes.SALES]: 'IMPRESSIONS',
+};
+
+const getStatusForIntegrationAd = (campaignStatus?: CampaignStatuses) => {
+    if (campaignStatus === CampaignStatuses.PAUSED || !campaignStatus) {
+        return 'PAUSED'; // TODO
+    }
+
+    if (campaignStatus === CampaignStatuses.REMOVED) {
+        return 'PAUSED';
+    }
+
+    return 'PAUSED';
+};
+
+/**
+ * Creates an ad set
+ */
+const createAdSet = (
+    context: {
+        accessToken: string;
+        adAccountId: string;
+        pageId: string;
+    },
+    adSet: {
+        name: string;
+        goal: CampaignAdGoals;
+        status?: CampaignStatuses;
+    },
+    campaign: {
+        id: string;
+        type: CampaignTypes;
+        scheduleStopAt: string;
+        maxBudget?: number;
+    },
+) => axios({
+    method: 'post',
+    // eslint-disable-next-line max-len
+    url: `https://graph.facebook.com/v18.0/${context.adAccountId}/adsets?fields=status&access_token=${context.accessToken}`,
+    params: {
+        campaign_id: campaign.id,
+        name: `[automated] ${adSet.name}`,
+        status: getStatusForIntegrationAd(adSet.status),
+        // lifetime_budget: sanitizeMaxBudget(campaign.maxBudget), // Can only set campaign budget or adSet budget (not both)
+        optimization_goal: assetGoalToOptimizationMap[adSet.goal],
+        billing_event: campaignTypeToBillingEventMap[campaign.type],
+        bid_amount: 100,
+        // enum {LOWEST_COST_WITHOUT_CAP, LOWEST_COST_WITH_BID_CAP, COST_CAP}
+        bid_strategy: 'LOWEST_COST_WITH_BID_CAP',
+        targeting: {
+            geo_locations: {
+                countries: ['US'],
+                // TODO: Use target locations from campaign inputs
+            },
+        },
+        end_time: campaign.scheduleStopAt,
+    },
+}).catch((err) => ({
+    data: {
+        errors: err.response?.data?.error,
+    },
+})).then(passthroughAndLogErrors);
+
+/**
+ * Updates an ad set
+ */
+const updateAdSet = (
+    context: {
+        accessToken: string;
+        adAccountId: string;
+        pageId: string;
+    },
+    adSet: {
+        id: string;
+        name?: string;
+        goal?: CampaignAdGoals;
+        status?: CampaignStatuses;
+    },
+) => {
+    const params: any = {};
+
+    if (adSet.name) {
+        params.name = `[automated] ${adSet.name}`;
+    }
+
+    if (adSet.status) {
+        params.status = getStatusForIntegrationAd(adSet.status);
+    }
+
+    return axios({
+        method: 'post',
+        // eslint-disable-next-line max-len
+        url: `https://graph.facebook.com/v18.0/${adSet.id}?fields=id,status&access_token=${context.accessToken}`,
+        params,
+    }).catch((err) => ({
+        data: {
+            errors: err.response?.data?.error,
+        },
+    })).then(passthroughAndLogErrors);
+};
 
 /**
  * Creates an ad
@@ -12,18 +130,40 @@ const createAd = (
     },
     ad: {
         name: string;
+        status?: CampaignStatuses;
+        linkUrl?: string;
+        headline?: string;
+    },
+    adSet: {
+        id: string;
+        linkUrl?: string;
+        headline?: string;
     },
 ) => axios({
     method: 'post',
     // eslint-disable-next-line max-len
-    url: `https://graph.facebook.com/v18.0/${context.adAccountId}/adcreatives?access_token=${context.accessToken}`,
+    url: `https://graph.facebook.com/v18.0/${context.adAccountId}/ads?fields=id,status&access_token=${context.accessToken}`,
     params: {
+        adset_id: adSet.id,
         name: `[automated] ${ad.name}`,
-        object_story_spec: {
-            link: 'www.therr.com',
-            message: 'Test Ad',
+        status: getStatusForIntegrationAd(ad.status),
+        creative: {
+            object_story_spec: {
+                page_id: context.pageId,
+                // instagram_actor_id: context.igPageId,
+                link_data: {
+                    link: ad.linkUrl || adSet.linkUrl,
+                    message: ad.headline || adSet.headline,
+                },
+            },
+            degrees_of_freedom_spec: {
+                creative_features_spec: {
+                    standard_enhancements: {
+                        enroll_status: 'OPT_IN',
+                    },
+                },
+            },
         },
-        page_id: context.pageId,
     },
 }).catch((err) => ({
     data: {
@@ -32,5 +172,7 @@ const createAd = (
 })).then(passthroughAndLogErrors);
 
 export {
+    createAdSet,
+    updateAdSet,
     createAd,
 };

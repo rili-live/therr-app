@@ -48,7 +48,7 @@ export interface ICampaign {
   organizationId?: string;
   title: string;
   description: string;
-  assetIds: string[]; // headlines, descriptions, media, etc.
+  adGroupIds: string[];
   status: 'active' | 'paused' | 'removed';
   type: string;
   spaceId?: string;

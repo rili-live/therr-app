@@ -9,7 +9,9 @@ import { CampaignStatuses, CampaignTypes, OAuthIntegrationProviders } from 'ther
 import { IUserState } from 'therr-react/types';
 import Datetime from 'react-datetime';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt, faCheckCircle, faExclamationCircle, faMapMarked } from '@fortawesome/free-solid-svg-icons';
+import {
+    faCalendarAlt, faCheckCircle, faExclamationCircle, faMapMarked,
+} from '@fortawesome/free-solid-svg-icons';
 import moment, { Moment } from 'moment';
 import {
     faFacebook, faGoogle, faInstagram, faLinkedin, faTwitter,
@@ -75,9 +77,7 @@ interface IEditCampaignFormProps {
         menuUrl?: string;
         orderUrl?: string;
         reservationUrl?: string;
-        headline1: string;
         headline2: string;
-        longText1: string;
         longText2: string;
         integrationTargets: string[];
         integrationDetails: {
@@ -88,6 +88,12 @@ interface IEditCampaignFormProps {
             };
         };
         spaceId?: string;
+        adGroup: {
+            id?: string;
+            headline: string;
+            description: string;
+            assets: any[];
+        };
     }
     navigateHandler: (routeName: string) => any;
     fetchedIntegrationDetails: {
@@ -682,14 +688,29 @@ const EditCampaignForm = ({
                                 <Row>
                                     <h5 className="my-4">Edit Headlines</h5>
                                     <Col md={12} className="mb-3">
-                                        <Form.Group controlId="headline1">
-                                            <Form.Label className="required" aria-required>Headline 1</Form.Label>
+                                        <Form.Group controlId="adGroupHeadline">
+                                            <Form.Label className="required" aria-required>Ad Group Title</Form.Label>
                                             <Form.Control
-                                                value={inputs.headline1}
-                                                name="headline1"
+                                                value={inputs.adGroup.headline}
+                                                name="adGroupHeadline"
                                                 onChange={onInputChange}
                                                 type="text"
-                                                placeholder="A headline for your ad"
+                                                placeholder="A title for your ad group"
+                                                required
+                                                aria-required
+                                                maxLength={40}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-3">
+                                        <Form.Group controlId="adGroupDescription">
+                                            <Form.Label className="required" aria-required>Ad Group Description</Form.Label>
+                                            <Form.Control
+                                                value={inputs.adGroup.description}
+                                                name="adGroupDescription"
+                                                onChange={onInputChange}
+                                                type="text"
+                                                placeholder="A description for your ad group"
                                                 required
                                                 aria-required
                                                 maxLength={160}
@@ -704,26 +725,10 @@ const EditCampaignForm = ({
                                                 name="headline2"
                                                 onChange={onInputChange}
                                                 type="text"
-                                                placeholder="Another headline for your ad"
+                                                placeholder="An ad headline"
                                                 required
                                                 aria-required
                                                 maxLength={40}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={12} className="mb-3">
-                                        <Form.Group controlId="longText1">
-                                            <Form.Label className="required" aria-required>Description 1</Form.Label>
-                                            <Form.Control
-                                                as="textarea"
-                                                value={inputs.longText1}
-                                                name="longText1"
-                                                onChange={onInputChange}
-                                                type="text"
-                                                placeholder="A description with more details"
-                                                required
-                                                aria-required
-                                                maxLength={100}
                                             />
                                         </Form.Group>
                                     </Col>
