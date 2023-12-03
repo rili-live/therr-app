@@ -10,7 +10,7 @@ import { IUserState } from 'therr-react/types';
 import Datetime from 'react-datetime';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faCalendarAlt, faCheckCircle, faExclamationCircle, faMapMarked,
+    faCalendarAlt, faCheckCircle, faExclamationCircle, faMapMarked, faPlusCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import moment, { Moment } from 'moment';
 import {
@@ -77,8 +77,6 @@ interface IEditCampaignFormProps {
         menuUrl?: string;
         orderUrl?: string;
         reservationUrl?: string;
-        headline2: string;
-        longText2: string;
         integrationTargets: string[];
         integrationDetails: {
             [key: string]: {
@@ -105,6 +103,7 @@ interface IEditCampaignFormProps {
     mediaAssets: ICampaignAsset[] ;
     onAddressTypeaheadChange: (text: string, event: React.ChangeEvent<HTMLInputElement>) => void,
     onAddressTypeAheadSelect: (selected: Option[]) => void;
+    onAssetInputChange: (event, assetIndex: number, name: string, value: number | string) => any;
     onInputChange: React.ChangeEventHandler<HTMLInputElement>;
     onIntegrationDetailsChange: (integrationProvider: string, event: React.ChangeEvent<any>) => void,
     onDateTimeChange: (name: string, value: string | Moment) => void;
@@ -133,6 +132,7 @@ const EditCampaignForm = ({
     isSubmitDisabled,
     onAddressTypeAheadSelect,
     onAddressTypeaheadChange,
+    onAssetInputChange,
     onInputChange,
     onIntegrationDetailsChange,
     onDateTimeChange,
@@ -658,6 +658,38 @@ const EditCampaignForm = ({
                     && <Form>
                         <Row>
                             <Col sm={4}>
+                                <h5 className="my-4">Edit Ad Set Grouping</h5>
+                                <Col md={12} className="mb-3">
+                                    <Form.Group controlId="adGroupHeadline">
+                                        <Form.Label className="required" aria-required>Ad Group Title</Form.Label>
+                                        <Form.Control
+                                            value={inputs.adGroup.headline}
+                                            name="adGroupHeadline"
+                                            onChange={onInputChange}
+                                            type="text"
+                                            placeholder="A title for your ad group"
+                                            required
+                                            aria-required
+                                            maxLength={40}
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={12} className="mb-3">
+                                    <Form.Group controlId="adGroupDescription">
+                                        <Form.Label className="required" aria-required>Ad Group Description</Form.Label>
+                                        <Form.Control
+                                            as="textarea"
+                                            value={inputs.adGroup.description}
+                                            name="adGroupDescription"
+                                            onChange={onInputChange}
+                                            type="text"
+                                            placeholder="A description for your ad group"
+                                            required
+                                            aria-required
+                                            maxLength={160}
+                                        />
+                                    </Form.Group>
+                                </Col>
                                 <h5 className="my-4">Assets (images/media/etc)</h5>
                                 <Row>
                                     <Col sm={12} className="d-flex align-items-center justify-content-center">
@@ -685,70 +717,78 @@ const EditCampaignForm = ({
                                 </Row>
                             </Col>
                             <Col sm={8}>
-                                <Row>
-                                    <h5 className="my-4">Edit Headlines</h5>
-                                    <Col md={12} className="mb-3">
-                                        <Form.Group controlId="adGroupHeadline">
-                                            <Form.Label className="required" aria-required>Ad Group Title</Form.Label>
-                                            <Form.Control
-                                                value={inputs.adGroup.headline}
-                                                name="adGroupHeadline"
-                                                onChange={onInputChange}
-                                                type="text"
-                                                placeholder="A title for your ad group"
-                                                required
-                                                aria-required
-                                                maxLength={40}
-                                            />
-                                        </Form.Group>
+                                {
+                                    inputs.adGroup.assets.map((asset, index) => (
+                                        <React.Fragment key={index}>
+                                            <Row>
+                                                <h5 className="my-4">Create/Edit Ads</h5>
+                                                <Col md={12} className="mb-3">
+                                                    <Form.Group controlId={`headline${index + 1}`}>
+                                                        <Form.Label className="required" aria-required>Headline {index + 1}</Form.Label>
+                                                        <Form.Control
+                                                            value={inputs.adGroup?.assets[index].headline}
+                                                            name={`headline${index + 1}`}
+                                                            onChange={(e) => onAssetInputChange(e, index, 'headline', e.currentTarget.value)}
+                                                            type="text"
+                                                            placeholder="An ad headline"
+                                                            required
+                                                            aria-required
+                                                            maxLength={40}
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+                                                <Col md={12} className="mb-3">
+                                                    <Form.Group controlId={`link${index + 1}`}>
+                                                        <Form.Label className="required" aria-required>Link {index + 1}</Form.Label>
+                                                        <Form.Control
+                                                            value={inputs.adGroup?.assets[index].linkUrl}
+                                                            name={`link${index + 1}`}
+                                                            onChange={(e) => onAssetInputChange(e, index, 'linkUrl', e.currentTarget.value)}
+                                                            placeholder="https://www.example.com"
+                                                            required
+                                                            aria-required
+                                                            maxLength={40}
+                                                            type="url"
+                                                            pattern="https://.*"
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+                                                <Col md={12} className="mb-3">
+                                                    <Form.Group controlId={`longText${index + 1}`}>
+                                                        <Form.Label className="required" aria-required>Description {index + 1} (optional)</Form.Label>
+                                                        <Form.Control
+                                                            as="textarea"
+                                                            value={inputs.adGroup?.assets[index].longText}
+                                                            name={`longText${index + 1}`}
+                                                            onChange={(e) => onAssetInputChange(e, index, 'longText', e.currentTarget.value)}
+                                                            type="text"
+                                                            placeholder="An alternate description"
+                                                            required
+                                                            aria-required
+                                                            maxLength={100}
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+                                            </Row>
+                                            <hr />
+                                        </React.Fragment>
+                                    ))
+                                }
+                                {/* <Row className="text-center align-items-center justify-content-center">
+                                    <Col md={12} lg={2} className="mb-3">
+                                        <Row>
+                                            <Button
+                                                variant="primary"
+                                                type="button"
+                                                onClick={() => { console.log('foo'); }}
+                                                onSubmit={() => { console.log('foo'); }}
+                                                // disabled={isSubmitDisabled}
+                                            >
+                                                <FontAwesomeIcon icon={faPlusCircle} className="me-0" />
+                                            </Button>
+                                        </Row>
                                     </Col>
-                                    <Col md={12} className="mb-3">
-                                        <Form.Group controlId="adGroupDescription">
-                                            <Form.Label className="required" aria-required>Ad Group Description</Form.Label>
-                                            <Form.Control
-                                                value={inputs.adGroup.description}
-                                                name="adGroupDescription"
-                                                onChange={onInputChange}
-                                                type="text"
-                                                placeholder="A description for your ad group"
-                                                required
-                                                aria-required
-                                                maxLength={160}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={12} className="mb-3">
-                                        <Form.Group controlId="headline2">
-                                            <Form.Label className="required" aria-required>Headline 2</Form.Label>
-                                            <Form.Control
-                                                value={inputs.headline2}
-                                                name="headline2"
-                                                onChange={onInputChange}
-                                                type="text"
-                                                placeholder="An ad headline"
-                                                required
-                                                aria-required
-                                                maxLength={40}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={12} className="mb-3">
-                                        <Form.Group controlId="longText2">
-                                            <Form.Label className="required" aria-required>Description 2 (optional)</Form.Label>
-                                            <Form.Control
-                                                as="textarea"
-                                                value={inputs.longText2}
-                                                name="longText2"
-                                                onChange={onInputChange}
-                                                type="text"
-                                                placeholder="An alternate description"
-                                                required
-                                                aria-required
-                                                maxLength={100}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
+                                </Row> */}
                             </Col>
                         </Row>
                         <div className="mt-3 d-flex justify-content-end">

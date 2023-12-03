@@ -4,6 +4,7 @@ exports.up = (knex) => knex.schema.withSchema('main').alterTable('campaignAssets
     table.string('urlParams');
     table.jsonb('audiences').notNullable().defaultTo(JSON.stringify([])); // connection to integration third-party IDs
     table.jsonb('languages').defaultTo(JSON.stringify(['en-us']));
+    table.jsonb('integrationAssociations').notNullable().defaultTo(JSON.stringify({})); // connection to integration third-party IDs
 });
 
 exports.down = (knex) => knex.schema.withSchema('main').alterTable('campaignAssets', (table) => {
@@ -12,4 +13,5 @@ exports.down = (knex) => knex.schema.withSchema('main').alterTable('campaignAsse
     table.dropColumn('urlParams');
     table.dropColumn('audiences');
     table.dropColumn('languages');
+    table.dropColumn('integrationAssociations');
 });

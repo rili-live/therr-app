@@ -18,6 +18,7 @@ export interface ICreateCampaignAdGroupParams {
     linkUrl?: string;
     urlParams?: string;
     audiences?: any[]; // Add more typing
+    assetIds?: string[];
     integrationAssociations?: {
         [key: string]: any;
     };
@@ -37,6 +38,7 @@ export interface IUpdateCampaignAdGroupParams {
     linkUrl?: string;
     urlParams?: string;
     audiences?: any[]; // Add more typing
+    assetIds?: string[];
     integrationAssociations?: {
         [key: string]: any;
     };
@@ -76,6 +78,7 @@ export default class CampaignAdGroupsStore {
     create(paramsList: ICreateCampaignAdGroupParams[]) {
         const modifiedParamsList = paramsList.map((params) => ({
             ...params,
+            assetIds: params.assetIds ? JSON.stringify(params.assetIds) : JSON.stringify([]),
             audiences: params.audiences ? JSON.stringify(params.audiences) : JSON.stringify([]),
             integrationAssociations: params.integrationAssociations ? JSON.stringify(params.integrationAssociations) : JSON.stringify({}),
             languages: params.languages ? JSON.stringify(params.languages) : JSON.stringify(['en-us']),
@@ -93,6 +96,7 @@ export default class CampaignAdGroupsStore {
             .update({
                 ...params,
                 updatedAt: new Date(),
+                assetIds: params.assetIds ? JSON.stringify(params.assetIds) : undefined,
                 audiences: params.audiences ? JSON.stringify(params.audiences) : undefined,
                 integrationAssociations: params.integrationAssociations ? JSON.stringify(params.integrationAssociations) : undefined,
                 languages: params.languages ? JSON.stringify(params.languages) : undefined,

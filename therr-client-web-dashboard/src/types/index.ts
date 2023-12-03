@@ -73,5 +73,6 @@ export interface ICampaignAsset {
   status?: string;// processing and AI status (accepted, optimized, rejected, etc.)
   type: string; // text, image, video, space, etc.
   headline?: string; // if type is text
+  linkUrl?: string;
   longText?: string; // if type is text
 }

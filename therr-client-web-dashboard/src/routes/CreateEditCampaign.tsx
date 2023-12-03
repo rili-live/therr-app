@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Location, NavigateFunction } from 'react-router-dom';
+import { Location, NavigateFunction, NavigateOptions } from 'react-router-dom';
 import {
     Col,
     Row,
@@ -36,33 +36,35 @@ export const CAMPAIGN_DRAFT_KEY = 'therrCampaignDraft';
 const DEFAULT_MAX_BUDGET = 100;
 
 const partitionAdGroups = (campaign) => {
-    const headlineAssets = [];
-    const longTextAssets = [];
+    const combinedAssets = [];
     const mediaAssets = [];
-    const adGroup = (campaign?.adGroups && campaign?.adGroups[0]) || {
+    const adGroup = JSON.parse(JSON.stringify((campaign?.adGroups && campaign?.adGroups[0]) || {
         assets: [],
         spaceId: campaign?.spaceId || '',
         headline: 'Ad Group 1',
         description: 'The default ad group for this campaign',
         // goal: adGroup.goal || CampaignAdGoals.CLICKS,
-    };
+    }));
+
+    if (!adGroup.assets?.length) {
+        adGroup.assets = [{
+            headline: '',
+            linkUrl: '',
+            longText: '',
+        }];
+    }
 
     adGroup.assets.forEach((asset) => {
-        if (asset.type === CampaignAssetTypes.TEXT) {
-            if (asset.headline) {
-                headlineAssets.push(asset);
-            } else if (asset.longText) {
-                longTextAssets.push(asset);
-            }
-        } else if (asset.type === CampaignAssetTypes.MEDIA) {
+        if (asset.type === CampaignAssetTypes.MEDIA) {
             mediaAssets.push(asset);
+        } else if (asset.type === CampaignAssetTypes.COMBINED) {
+            combinedAssets.push(asset);
         }
     });
 
     return {
         adGroup,
-        headlineAssets,
-        longTextAssets,
+        combinedAssets,
         mediaAssets,
     };
 };
@@ -70,9 +72,6 @@ const partitionAdGroups = (campaign) => {
 const getInputDefaults = (campaign: any) => {
     const {
         adGroup,
-        headlineAssets,
-        longTextAssets,
-        mediaAssets,
     } = partitionAdGroups(campaign);
 
     const initialIntegrationDetails = JSON.parse(JSON.stringify(campaign?.integrationDetails || {}));
@@ -90,8 +89,6 @@ const getInputDefaults = (campaign: any) => {
         description: campaign?.description || '',
         scheduleStartAt: campaign?.scheduleStartAt || '',
         scheduleStopAt: campaign?.scheduleStopAt || '',
-        headline2: headlineAssets.length > 1 ? headlineAssets[1].headline : '',
-        longText2: longTextAssets.length > 1 ? longTextAssets[1].longText : '',
         integrationDetails: initialIntegrationDetails,
         integrationTargets: campaign?.integrationTargets || [OAuthIntegrationProviders.THERR],
         spaceId: campaign?.spaceId || '',
@@ -202,13 +199,22 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
         const { campaignId } = props.routeParams;
 
+        const urlParams = new URLSearchParams(props.location?.search);
+        let stage: string | number = urlParams.get('stage');
+        try {
+            stage = parseInt(stage, 10);
+            stage = Number.isNaN(stage) ? 1 : stage;
+        } catch (e) {
+            stage = 1;
+        }
+
         this.state = {
             alertIsVisible: false,
             alertVariation: 'success',
             alertTitle: '',
             alertMessage: '',
             files: [],
-            formEditingStage: 1,
+            formEditingStage: stage || 1,
             hasFormChanged: false,
             isSubmitting: false,
             inputs: getInputDefaults(props.campaigns.campaigns[campaignId] || {}),
@@ -224,7 +230,9 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
     componentDidMount() {
         document.title = `${getWebsiteName()} | ${this.translate('pages.createACampaign.pageTitle')}`;
-        const { getCampaign, campaigns } = this.props;
+        const {
+            getCampaign, campaigns, location, navigation,
+        } = this.props;
         const { campaignId } = this.props.routeParams;
 
         MapsService.searchMySpaces({
@@ -283,21 +291,30 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             if (isAuthed && (target === OAuthIntegrationProviders.FACEBOOK)) {
                 // TODO: Add error handling and UI alerts for user
                 Promise.all([
-                    facebook.getMyAccounts(user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.user_access_token),
-                    facebook.getMyAdAccounts(user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.user_access_token),
+                    facebook.getMyAccounts(user.settings.integrations[target]?.user_access_token),
+                    facebook.getMyAdAccounts(user.settings.integrations[target]?.user_access_token),
                 ]).then(([myAccountResults, myAdAccountResults]) => {
                     const { fetchedIntegrationDetails } = this.state;
                     const newInputChanges = {
                         integrationDetails: {
-                            [OAuthIntegrationProviders.FACEBOOK]: {
-                                pageId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId
+                            [target]: {
+                                pageId: inputs?.integrationDetails[target]?.pageId
                                     || myAccountResults?.data[0]?.id || undefined,
-                                adAccountId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
+                                adAccountId: inputs?.integrationDetails[target]?.adAccountId
                                     || myAdAccountResults?.data[0]?.id || undefined,
-                                campaignId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
+                                campaignId: inputs?.integrationDetails[target]?.campaignId,
                             },
                         },
                     };
+
+                    const hasFormChanged = !inputs?.integrationDetails[target]?.pageId
+                        || !inputs?.integrationDetails[target]?.adAccountId
+                        || !inputs?.integrationDetails[target]?.campaignId;
+                    if (hasFormChanged) {
+                        this.setState({
+                            hasFormChanged: true,
+                        });
+                    }
 
                     this.setState({
                         fetchedIntegrationDetails: {
@@ -307,7 +324,6 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 adAccount: myAdAccountResults,
                             },
                         },
-                        hasFormChanged: true,
                         inputs: {
                             ...this.state.inputs,
                             ...newInputChanges,
@@ -322,7 +338,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         });
     };
 
-    navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
+    navigateHandler = (routeName: string, options?: NavigateOptions) => () => this.props.navigation.navigate(routeName, options);
 
     isSubmitDisabled = () => {
         const { inputs, isSubmitting, formEditingStage } = this.state;
@@ -340,8 +356,8 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         } else if (formEditingStage === 2) {
             if (isSubmitting
                 || !inputs.adGroup.headline
-                || !inputs.headline2
-                || !inputs.adGroup.description) {
+                || !inputs.adGroup?.assets[0].headline
+                || !inputs.adGroup?.assets[0].linkUrl) {
                 return true;
             }
         }
@@ -352,13 +368,18 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     goBackStage = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         const { formEditingStage } = this.state;
+        const { location } = this.props;
 
         if (formEditingStage === 1) {
             this.navigateHandler('/campaigns/overview')();
         } else {
+            const newStage = formEditingStage - 1;
             this.setState({
-                formEditingStage: formEditingStage - 1,
+                formEditingStage: newStage,
             });
+            this.navigateHandler(`${location.pathname}?stage=${newStage}`, {
+                replace: true,
+            })();
         }
     };
 
@@ -461,6 +482,30 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             inputs: {
                 ...this.state.inputs,
                 ...newInputChanges,
+            },
+        });
+    };
+
+    onAssetInputChange = (event, assetIndex: number, name: string, value: number | string) => {
+        this.toggleAlert(false);
+        event.preventDefault();
+        const adGroup = JSON.parse(JSON.stringify(this.state.inputs.adGroup));
+        if (!adGroup?.assets[assetIndex]) {
+            adGroup.assets[assetIndex] = {
+                type: CampaignAssetTypes.COMBINED,
+            };
+        }
+        adGroup.assets[assetIndex] = {
+            ...adGroup.assets[assetIndex],
+            type: CampaignAssetTypes.COMBINED,
+            [name]: value,
+        };
+
+        this.setState({
+            hasFormChanged: true,
+            inputs: {
+                ...this.state.inputs,
+                adGroup,
             },
         });
     };
@@ -574,10 +619,8 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             address: selectedAddresses,
             latitude,
             longitude,
-            headline2,
             integrationDetails,
             integrationTargets,
-            longText2,
             spaceId,
         } = inputs;
 
@@ -587,10 +630,15 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
         if (!hasFormChanged) {
             if (formEditingStage === 1) {
-                return this.setState({
+                const { location } = this.props;
+                const newStage = formEditingStage + 1;
+                this.setState({
                     isSubmitting: false,
                     formEditingStage: 2,
                 });
+                return this.navigateHandler(`${location.pathname}?stage=${newStage}`, {
+                    replace: true,
+                })();
             }
 
             this.setState({
@@ -613,8 +661,6 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             : createCampaign;
         const {
             adGroup: originalAdGroup,
-            headlineAssets,
-            longTextAssets,
             mediaAssets,
         } = partitionAdGroups(campaign);
         const requestBody: any = {
@@ -634,6 +680,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 {
                     ...originalAdGroup,
                     spaceId,
+                    ...adGroup,
                     headline: adGroup.headline || originalAdGroup.headline,
                     description: adGroup.description || originalAdGroup.description,
                     // goal: adGroup.goal || originalAdGroup.goal,
@@ -645,24 +692,6 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             requestBody.status = formEditingStage < 2 ? 'paused' : 'active';
         }
 
-        // TODO: Make this more dynamic when we allow adding and deleting assets
-        const assets: ICampaignAsset[] = [];
-        if (headline2) {
-            assets.push({
-                id: headlineAssets && headlineAssets[1]?.id,
-                type: CampaignAssetTypes.TEXT,
-                headline: headline2,
-            });
-        }
-        if (longText2) {
-            assets.push({
-                id: longTextAssets && longTextAssets[1]?.id,
-                type: CampaignAssetTypes.TEXT,
-                longText: longText2,
-            });
-        }
-        requestBody.assets = assets;
-
         (files.length > 0 ? signAndUploadImage({ ...requestBody, isPublic: true }, files, 'campaigns/') : Promise.resolve(requestBody))
             .then((modifiedRequest) => {
                 const newMediaAssets = (modifiedRequest.media || []).map((media) => ({
@@ -671,7 +700,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 }));
                 const reformattedRequest = {
                     ...modifiedRequest,
-                    assets: assets.concat(newMediaAssets),
+                    mediaAssets: newMediaAssets,
                 };
 
                 delete reformattedRequest.media;
@@ -687,10 +716,15 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             },
                         });
                         if (formEditingStage === 1) {
+                            const { location } = this.props;
+                            const newStage = formEditingStage + 1;
                             this.setState({
                                 isSubmitting: false,
-                                formEditingStage: 2,
+                                formEditingStage: newStage,
                             });
+                            this.navigateHandler(`${location.pathname}?stage=${newStage}`, {
+                                replace: true,
+                            })();
                         } else {
                             localStorage.removeItem(CAMPAIGN_DRAFT_KEY);
                             this.setState({
@@ -797,8 +831,6 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 status: inputs.status,
                                 scheduleStartAt: inputs.scheduleStartAt,
                                 scheduleStopAt: inputs.scheduleStopAt,
-                                headline2: inputs.headline2,
-                                longText2: inputs.longText2,
                                 integrationDetails: inputs.integrationDetails,
                                 integrationTargets: inputs.integrationTargets,
                                 spaceId: inputs.spaceId,
@@ -812,6 +844,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeAheadSelect={this.onAddressTypeAheadSelect}
                             onDateTimeChange={this.onDateTimeChange}
+                            onAssetInputChange={this.onAssetInputChange}
                             onInputChange={this.onInputChange}
                             onIntegrationDetailsChange={this.onIntegrationDetailsChange}
                             onSelectMedia={this.onSelectMedia}

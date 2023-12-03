@@ -1,7 +1,7 @@
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import {
-    AccessLevels, CampaignAdGoals, CampaignStatuses, ErrorCodes, OAuthIntegrationProviders,
+    AccessLevels, CampaignAdGoals, CampaignAssetTypes, CampaignStatuses, ErrorCodes, OAuthIntegrationProviders,
 } from 'therr-js-utilities/constants';
 import sendCampaignCreatedEmail from '../api/email/admin/sendCampaignCreatedEmail';
 import sendCampaignPendingReviewEmail from '../api/email/for-business/sendCampaignPendingReviewEmail';
@@ -26,12 +26,30 @@ const getCampaign = async (req, res) => {
         const campaign = campaigns[0] || {};
 
         return Store.campaignAdGroups.get({ campaignId: campaign.id }).then((campaignAdGroups) => {
-            // TODO: Fetch associated assets
-            campaign.adGroups = campaignAdGroups.map((a) => ({
-                ...a,
-                assets: [],
+            const adGroupsPromises = campaignAdGroups.map((adGroup) => Store.campaignAssets.getByIds(adGroup.assetIds || []).then((assets) => ({
+                ...adGroup,
+                assets,
+            })).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [`failed to fetch campaign assets for adGroup ID, ${adGroup.id}`],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'error.response': err?.response?.data,
+                    },
+                });
+                return {
+                    ...adGroup,
+                    assets: [],
+                };
             }));
-            return res.status(200).send(campaign);
+
+            return Promise.all(adGroupsPromises).then((adGroups) => {
+                campaign.adGroups = adGroups;
+
+                return res.status(200).send(campaign);
+            });
         });
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
 };
@@ -86,6 +104,7 @@ const createCampaign = async (req, res) => {
         scheduleStartAt,
         scheduleStopAt,
         adGroups,
+        mediaAssest,
     } = req.body;
 
     const storedStatus = status === CampaignStatuses.PAUSED || status === CampaignStatuses.REMOVED ? status : CampaignStatuses.PENDING;
@@ -240,41 +259,6 @@ const updateCampaign = async (req, res) => {
                             }
                         });
 
-                        const existingAdGroups: any = [];
-                        const newAdGroups: any = [];
-                        adGroupsWithIntegs?.forEach((adGroup) => {
-                            if (adGroup.id) {
-                                existingAdGroups.push(adGroup);
-                            } else {
-                                newAdGroups.push(adGroup);
-                            }
-                        });
-
-                        const adGroupPromises = [
-                            newAdGroups?.length ? Store.campaignAdGroups.create(newAdGroups.map((adGroup) => ({
-                                campaignId: fetchedCampaign.id,
-                                creatorId: userId,
-                                organizationId: fetchedCampaign.organizationId,
-                                spaceId: adGroup.spaceId || spaceId, // TODO
-                                status: storedStatus,
-                                headline: adGroup.headline,
-                                description: adGroup.description,
-                                integrationAssociations: adGroup.integrationAssociations,
-                                performance: 'learning', // TODO
-                                goal: CampaignAdGoals.CLICKS,
-                                scheduleStartAt,
-                                scheduleStopAt,
-                            }))) : Promise.resolve([]),
-                            // TODO: Consider using transactions
-                            existingAdGroups.length ? Promise.all(existingAdGroups.map((adGroup) => Store.campaignAdGroups.update(adGroup.id, {
-                                campaignId: fetchedCampaign.id,
-                                organizationId: fetchedCampaign.organizationId,
-                                headline: adGroup.headline,
-                                description: adGroup.description,
-                                integrationAssociations: adGroup.integrationAssociations,
-                            }))) : Promise.resolve([]),
-                        ];
-
                         const shouldSendEmailNotifications = (status === CampaignStatuses.REMOVED && fetchedCampaign.status !== CampaignStatuses.REMOVED)
                         || (status === CampaignStatuses.ACTIVE && fetchedCampaign.status !== CampaignStatuses.ACTIVE);
                         const isCampaignCompleted = Date.now() >= new Date(scheduleStopAt || fetchedCampaign.scheduleStopAt).getTime();
@@ -329,19 +313,109 @@ const updateCampaign = async (req, res) => {
                                 });
                             }
 
-                            return Promise.all(adGroupPromises).then(([createdAdGroups, [updatedAdGroups]]) => [{
-                                ...campaign,
-                                adGroups: createdAdGroups.map((a) => ({
-                                    ...a,
-                                    assets: [],
-                                })).concat(updatedAdGroups.map((a) => ({
-                                    ...a,
-                                    assets: [],
-                                }))),
-                            }]).then((campaigns) => res.status(200).send({
-                                updated: 1,
-                                campaigns,
-                            }));
+                            const assetPromises = adGroupsWithIntegs?.map((adGroup) => {
+                                const promises: Promise<any[]>[] = [];
+
+                                if (adGroup.assets?.length) {
+                                    const newAssets: any = [];
+                                    const existingAssets: any = [];
+                                    adGroup.assets.forEach((asset) => {
+                                        if (asset.id) {
+                                            existingAssets.push(asset);
+                                        } else {
+                                            newAssets.push(asset);
+                                        }
+                                    });
+                                    promises.push(
+                                        newAssets.length
+                                            ? Store.campaignAssets.create(newAssets.map((asset) => ({
+                                                ...asset,
+                                                creatorId: userId,
+                                                status: storedStatus,
+                                                performance: 'learning', // TODO
+                                                goal: CampaignAdGoals.CLICKS,
+                                                // TODO: Add asset integrationAssociations
+                                            })))
+                                            : Promise.resolve([]),
+                                    );
+                                    promises.push(
+                                        Promise.all(existingAssets.map((asset) => Store.campaignAssets.update(asset.id, {
+                                            ...asset,
+                                            // TODO: Add asset integrationAssociations
+                                        }))),
+                                    );
+                                }
+
+                                return Promise.all(promises);
+                            });
+
+                            return Promise.all(assetPromises).then((assetPromiseResults) => {
+                                const existingAdGroups: any = [];
+                                const newAdGroups: any = [];
+                                adGroupsWithIntegs?.forEach((adGroup, adGroupIndex) => {
+                                    const [createdAssets, [updatedAssets]] = assetPromiseResults[adGroupIndex];
+
+                                    if (adGroup.id) {
+                                        existingAdGroups.push({
+                                            ...adGroup,
+                                            assetIds: [...(createdAssets || []).map((a) => a.id), ...(updatedAssets || []).map((a) => a.id)],
+                                        });
+                                    } else {
+                                        newAdGroups.push({
+                                            ...adGroup,
+                                            assetIds: [...(createdAssets || []).map((a) => a.id), ...(updatedAssets || []).map((a) => a.id)],
+                                        });
+                                    }
+                                });
+                                const adGroupPromises = [
+                                    newAdGroups?.length ? Store.campaignAdGroups.create(newAdGroups.map((adGroup) => ({
+                                        campaignId: fetchedCampaign.id,
+                                        creatorId: userId,
+                                        organizationId: fetchedCampaign.organizationId,
+                                        spaceId: adGroup.spaceId || spaceId, // TODO
+                                        status: storedStatus,
+                                        headline: adGroup.headline,
+                                        description: adGroup.description,
+                                        integrationAssociations: adGroup.integrationAssociations,
+                                        performance: 'learning', // TODO
+                                        goal: CampaignAdGoals.CLICKS,
+                                        scheduleStartAt,
+                                        scheduleStopAt,
+                                        assetIds: adGroup.assetIds,
+                                    }))) : Promise.resolve([]),
+                                    // TODO: Consider using transactions
+                                    existingAdGroups.length ? Promise.all(existingAdGroups.map((adGroup) => Store.campaignAdGroups.update(adGroup.id, {
+                                        campaignId: fetchedCampaign.id,
+                                        organizationId: fetchedCampaign.organizationId,
+                                        headline: adGroup.headline,
+                                        description: adGroup.description,
+                                        integrationAssociations: adGroup.integrationAssociations,
+                                        // NOTE: This relies on all new and existing assetsIds being including in each adGroup update
+                                        assetIds: adGroup.assetIds,
+                                    }))) : Promise.resolve([[]]),
+                                ];
+
+                                return Promise.all(adGroupPromises)
+                                    .then(([createdAdGroups, [updatedAdGroups]]) => {
+                                        const mapAssetsToAdGroup = (a, adGroupIndex) => {
+                                            const [createdAssets, [updatedAssets]] = assetPromiseResults[adGroupIndex];
+                                            return {
+                                                ...a,
+                                                assets: [...(createdAssets || []), ...(updatedAssets || [])], // TODO: Fix confusing code
+                                            };
+                                        };
+                                        const createdAdGroupsWithAssetResults = createdAdGroups.map(mapAssetsToAdGroup);
+                                        const updatedAdGroupsWithAssetResults = updatedAdGroups.map(mapAssetsToAdGroup);
+                                        const allAdGroups = createdAdGroupsWithAssetResults.concat(updatedAdGroupsWithAssetResults);
+                                        return [{
+                                            ...campaign,
+                                            adGroups: allAdGroups,
+                                        }];
+                                    }).then((campaigns) => res.status(200).send({
+                                        updated: 1,
+                                        campaigns,
+                                    }));
+                            });
                         }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
                     });
             });

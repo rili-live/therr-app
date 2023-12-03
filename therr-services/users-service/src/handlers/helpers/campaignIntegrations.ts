@@ -172,35 +172,33 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
                 });
                 // TODO: map create result ids to adGroup.integrationAssociations[target].adSetId
                 return updatedAdGroups;
+            }).then((updatedAdGroups) => {
+                // TODO: Use integration bulk endpoints
+                const adPromise = Promise.allSettled(updatedAdGroups.map((adSetResponse) => {
+                    if (adSetResponse?.data?.id) {
+                        // TODO: Create separate ad for each non-combined campaignAsset
+                        // combined asset will become the parent
+                        // return facebook.createAd(
+                        //     context,
+                        //     {
+                        //         name: 'Test Ad',
+                        //         status,
+                        //         linkUrl: assets[0].linkUrl, // TODO: Get child asset linkUrl
+                        //         headline: assets[0].headline, // TODO: Get child asset headline
+                        //     },
+                        //     {
+                        //         id: adSetResponse.data.id,
+                        //         linkUrl: assets[0].linkUrl, // TODO: Get parent asset linkUrl
+                        //         headline: assets[0].headline, // TODO: Get parent asset headline
+                        //     },
+                        // ).then((adResponse) => adResponse.data);
+                    }
+
+                    return Promise.resolve({});
+                }));
+
+                return updatedAdGroups;
             });
-            // .then((adSetResults) => {
-            //     // TODO: Use integration bulk endpoints
-            //     const adPromise = Promise.allSettled(adSetResults.map((adSetResponse) => {
-            //         console.log(adSetResponse)
-            //         if (adSetResponse?.data?.id) {
-            //             // TODO: Create separate ad for each non-combined campaignAsset
-            //             // combined asset will become the parent
-            //             // return facebook.createAd(
-            //             //     context,
-            //             //     {
-            //             //         name: 'Test Ad',
-            //             //         status,
-            //             //         linkUrl: assets[0].linkUrl, // TODO: Get child asset linkUrl
-            //             //         headline: assets[0].headline, // TODO: Get child asset headline
-            //             //     },
-            //             //     {
-            //             //         id: adSetResponse.data.id,
-            //             //         linkUrl: assets[0].linkUrl, // TODO: Get parent asset linkUrl
-            //             //         headline: assets[0].headline, // TODO: Get parent asset headline
-            //             //     },
-            //             // ).then((adResponse) => adResponse.data);
-            //         }
-
-            //         return Promise.resolve({});
-            //     }));
-
-            //     return adPromise;
-            // }));
             integrationAssetPromises.push(assetPromise);
             integrationAssetPromises.push(Promise.resolve([])); // TODO: Remove after above impl
         } else {
