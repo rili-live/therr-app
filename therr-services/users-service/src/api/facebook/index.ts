@@ -4,6 +4,8 @@ import {
 } from './user';
 import {
     createAd,
+    createAdSet,
+    updateAdSet,
 } from './ads';
 import {
     createCampaign,
@@ -18,6 +20,8 @@ export {
 
     // Ads
     createAd,
+    createAdSet,
+    updateAdSet,
 
     // Campaigns
     createCampaign,

@@ -20,6 +20,15 @@ const passthroughAndLogErrors = (response) => {
     return response;
 };
 
+const sanitizeMaxBudget = (budget?: number) => {
+    if (budget) {
+        return budget * 100;
+    }
+
+    return 922337203685478;
+};
+
 export {
     passthroughAndLogErrors,
+    sanitizeMaxBudget,
 };

@@ -83,7 +83,7 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
             id,
             title,
             description,
-            assetIds,
+            adGroupIds,
             status,
             type,
             spaceId,
@@ -95,7 +95,7 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
             scheduleStopAt,
             updatedAt,
         } = campaign;
-        const campaignEditPath = editContext === 'admin' ? `/campaigns/${id}/edit/${editContext}` : `/campaigns/${id}/edit`;
+        const campaignEditPath = editContext === 'admin' ? `/campaigns/${id}/edit/${editContext}?stage=1` : `/campaigns/${id}/edit?stage=1`;
 
         return (
             <tr>
