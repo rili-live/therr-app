@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { CampaignStatuses, CampaignTypes } from 'therr-js-utilities/constants';
-import { passthroughAndLogErrors } from './utils';
+import { passthroughAndLogErrors, sanitizeMaxBudget } from './utils';
 
 const campaignTypeToObjectiveMap = {
     [CampaignTypes.AWARENESS]: 'OUTCOME_AWARENESS',
@@ -9,14 +9,6 @@ const campaignTypeToObjectiveMap = {
     [CampaignTypes.LOCAL]: 'OUTCOME_AWARENESS',
     [CampaignTypes.LEADS]: 'OUTCOME_LEADS',
     [CampaignTypes.SALES]: 'OUTCOME_SALES',
-};
-
-const sanitizeMaxBudget = (budget?: number) => {
-    if (budget) {
-        return budget * 100;
-    }
-
-    return budget;
 };
 
 const getStatusForIntegration = (campaignStatus?: CampaignStatuses) => {
@@ -36,7 +28,7 @@ const getStatusForIntegration = (campaignStatus?: CampaignStatuses) => {
  */
 const createCampaign = (adAccountId, accessToken, campaign: {
     title: string;
-    type?: string;
+    type?: CampaignTypes;
     maxBudget?: number;
     status?: CampaignStatuses;
 }) => axios({
@@ -48,7 +40,7 @@ const createCampaign = (adAccountId, accessToken, campaign: {
         objective: campaign.type ? campaignTypeToObjectiveMap[campaign.type] : 'OUTCOME_TRAFFIC',
         status: getStatusForIntegration(campaign.status),
         special_ad_categories: '[]',
-        lifetime_budget: sanitizeMaxBudget(campaign.maxBudget) || 922337203685478,
+        lifetime_budget: sanitizeMaxBudget(campaign.maxBudget),
     },
 }).catch((err) => ({
     data: {

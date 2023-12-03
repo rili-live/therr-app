@@ -1,63 +1,62 @@
 import KnexBuilder, { Knex } from 'knex';
-import { CampaignAssetTypes } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-export const CAMPAIGN_ASSETS_TABLE_NAME = 'main.campaignAssets';
+export const CAMPAIGN_AD_GROUPS_TABLE_NAME = 'main.campaignAdGroups';
 
-export interface ICreateCampaignAssetParams {
+export interface ICreateCampaignAdGroupParams {
+    campaignId: string;
     creatorId: string;
     organizationId?: string;
-    media?: {
-        [key: string]: any;
-    };
     spaceId?: string;
-    status: string;// processing and AI status (accepted, optimized, rejected, etc.)
-    type: CampaignAssetTypes; // text, image, video, space, etc.
+    status?: string;// processing and AI status (accepted, optimized, rejected, etc.)
     headline?: string; // if type is text
-    longText?: string; // if type is text
+    description?: string; // if type is text
     performance: string; // performance rating (worst, bad, learning, good, best)
     goal: string;
     linkUrl?: string;
     urlParams?: string;
     audiences?: any[]; // Add more typing
+    assetIds?: string[];
     integrationAssociations?: {
         [key: string]: any;
     };
     languages?: string[];
+    scheduleStartAt: Date;
+    scheduleStopAt: Date;
 }
 
-export interface IUpdateCampaignAssetParams {
+export interface IUpdateCampaignAdGroupParams {
+    campaignId: string;
     organizationId?: string;
-    media?: {
-        [key: string]: any;
-    };
     status?: string;// processing and AI status (accepted, optimized, rejected, etc.)
-    type?: CampaignAssetTypes; // text, image, video, etc.
     headline?: string; // if type is text
-    longText?: string; // if type is text
+    description?: string; // if type is text
     performance?: string; // performance rating (worst, bad, learning, good, best)
     goal?: string;
     linkUrl?: string;
     urlParams?: string;
     audiences?: any[]; // Add more typing
+    assetIds?: string[];
     integrationAssociations?: {
         [key: string]: any;
     };
     languages?: string[];
+    scheduleStartAt?: Date;
+    scheduleStopAt?: Date;
 }
 
-export default class CampaignAssetsStore {
+export default class CampaignAdGroupsStore {
     db: IConnection;
 
     constructor(dbConnection) {
         this.db = dbConnection;
     }
 
-    get(conditions: { id?: string, userId?: string, organizationId?: string }, ids?: string[]) {
+    get(conditions: { id?: string, userId?: string, campaignId?: string, organizationId?: string }, ids?: string[]) {
         let queryString = knexBuilder.select()
-            .from(CAMPAIGN_ASSETS_TABLE_NAME)
+            .from(CAMPAIGN_AD_GROUPS_TABLE_NAME)
             .where(conditions);
 
         if (ids) {
@@ -69,50 +68,40 @@ export default class CampaignAssetsStore {
 
     getById(id: string) {
         const queryString = knexBuilder.select()
-            .from(CAMPAIGN_ASSETS_TABLE_NAME)
+            .from(CAMPAIGN_AD_GROUPS_TABLE_NAME)
             .where({ id })
             .toString();
 
         return this.db.read.query(queryString).then((response) => response.rows[0]);
     }
 
-    getByIds(ids: string[]) {
-        const queryString = knexBuilder.select()
-            .from(CAMPAIGN_ASSETS_TABLE_NAME)
-            .whereIn('id', ids)
-            .toString();
-
-        return this.db.read.query(queryString).then((response) => response.rows);
-    }
-
-    create(paramsList: ICreateCampaignAssetParams[]) {
+    create(paramsList: ICreateCampaignAdGroupParams[]) {
         const modifiedParamsList = paramsList.map((params) => ({
             ...params,
+            assetIds: params.assetIds ? JSON.stringify(params.assetIds) : JSON.stringify([]),
             audiences: params.audiences ? JSON.stringify(params.audiences) : JSON.stringify([]),
             integrationAssociations: params.integrationAssociations ? JSON.stringify(params.integrationAssociations) : JSON.stringify({}),
             languages: params.languages ? JSON.stringify(params.languages) : JSON.stringify(['en-us']),
-            media: params.media ? JSON.stringify(params.media) : JSON.stringify({}),
         }));
         const queryString = knexBuilder.insert(modifiedParamsList)
-            .into(CAMPAIGN_ASSETS_TABLE_NAME)
+            .into(CAMPAIGN_AD_GROUPS_TABLE_NAME)
             .returning('*')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
-    update(id: string, params: IUpdateCampaignAssetParams) {
-        const sanitizedParams = {
-            ...params,
-            audiences: params.audiences ? JSON.stringify(params.audiences) : undefined,
-            integrationAssociations: params.integrationAssociations ? JSON.stringify(params.integrationAssociations) : undefined,
-            languages: params.languages ? JSON.stringify(params.languages) : undefined,
-            media: params.media ? JSON.stringify(params.media) : undefined,
-            updatedAt: new Date(),
-        };
+    update(id: string, params: IUpdateCampaignAdGroupParams) {
         const queryString = knexBuilder.where({ id })
-            .update(sanitizedParams)
-            .into(CAMPAIGN_ASSETS_TABLE_NAME)
+            .update({
+                ...params,
+                updatedAt: new Date(),
+                assetIds: params.assetIds ? JSON.stringify(params.assetIds) : undefined,
+                audiences: params.audiences ? JSON.stringify(params.audiences) : undefined,
+                integrationAssociations: params.integrationAssociations ? JSON.stringify(params.integrationAssociations) : undefined,
+                languages: params.languages ? JSON.stringify(params.languages) : undefined,
+            })
+            .into(CAMPAIGN_AD_GROUPS_TABLE_NAME)
             .returning('*')
             .toString();
 
@@ -122,7 +111,7 @@ export default class CampaignAssetsStore {
     delete(id: string) {
         const queryString = knexBuilder.where({ id })
             .delete()
-            .from(CAMPAIGN_ASSETS_TABLE_NAME)
+            .from(CAMPAIGN_AD_GROUPS_TABLE_NAME)
             .returning('*')
             .toString();
 
