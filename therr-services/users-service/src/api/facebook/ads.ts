@@ -233,8 +233,61 @@ const createAd = (
     },
 })).then(passthroughAndLogErrors);
 
+/**
+ * Updates an ad
+ */
+const updateAd = (
+    context: {
+        accessToken: string;
+        adAccountId: string;
+        pageId: string;
+    },
+    ad: {
+        id: string;
+        name: string;
+        status?: CampaignStatuses;
+        linkUrl?: string;
+        headline?: string;
+    },
+    adSet: {
+        id: string;
+        linkUrl?: string;
+        headline?: string;
+    },
+) => axios({
+    method: 'post',
+    // eslint-disable-next-line max-len
+    url: `https://graph.facebook.com/v18.0/${ad.id}?fields=id,status&access_token=${context.accessToken}`,
+    params: {
+        name: `[automated] ${ad.name}`,
+        status: getStatusForIntegrationAd(ad.status),
+        // creative: {
+        //     object_story_spec: {
+        //         page_id: context.pageId,
+        //         // instagram_actor_id: context.igPageId,
+        //         link_data: {
+        //             link: ad.linkUrl || adSet.linkUrl,
+        //             message: ad.headline || adSet.headline,
+        //         },
+        //     },
+        //     degrees_of_freedom_spec: {
+        //         creative_features_spec: {
+        //             standard_enhancements: {
+        //                 enroll_status: 'OPT_IN',
+        //             },
+        //         },
+        //     },
+        // },
+    },
+}).catch((err) => ({
+    data: {
+        errors: err.response?.data?.error,
+    },
+})).then(passthroughAndLogErrors);
+
 export {
     createAdSet,
     updateAdSet,
     createAd,
+    updateAd,
 };
