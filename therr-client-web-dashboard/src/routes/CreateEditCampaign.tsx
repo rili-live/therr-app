@@ -93,6 +93,7 @@ const getInputDefaults = (campaign: any) => {
         integrationTargets: campaign?.integrationTargets || [OAuthIntegrationProviders.THERR],
         spaceId: campaign?.spaceId || '',
         adGroup,
+        targetLocations: campaign?.targetLocations || [],
     };
 };
 
@@ -416,11 +417,21 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             MapsService.getPlaceDetails({
                 placeId: result.place_id,
             }).then(({ data }) => {
+                const targetLocation = {
+                    label: result?.label,
+                    latitude: data?.result?.geometry?.location?.lat,
+                    longitude: data?.result?.geometry?.location?.lng,
+                };
+                const targetLocations = [...this.state.inputs.targetLocations];
+                if (targetLocation.label && targetLocation.latitude && targetLocation.longitude) {
+                    targetLocations.push(targetLocation);
+                }
                 this.setState({
                     inputs: {
                         ...this.state.inputs,
-                        latitude: data?.result?.geometry?.location?.lat,
-                        longitude: data?.result?.geometry?.location?.lng,
+                        latitude: data?.result?.geometry?.location?.lat, // TODO: Probably can remove this
+                        longitude: data?.result?.geometry?.location?.lng, // TODO: Probably can remove this
+                        targetLocations,
                     },
                 });
             }).catch((err) => {
@@ -435,6 +446,17 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 },
             });
         }
+    };
+
+    onRemoveTargetLocation = (label: string) => {
+        const targetLocations = [...this.state.inputs.targetLocations].filter((location) => location.label !== label);
+        this.setState({
+            hasFormChanged: true,
+            inputs: {
+                ...this.state.inputs,
+                targetLocations,
+            },
+        });
     };
 
     onDateTimeChange = (name: string, value: string | Moment) => {
@@ -622,6 +644,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             integrationDetails,
             integrationTargets,
             spaceId,
+            targetLocations,
         } = inputs;
 
         this.setState({
@@ -676,6 +699,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             integrationDetails,
             integrationTargets,
             spaceId,
+            targetLocations,
             adGroups: [
                 {
                     ...originalAdGroup,
@@ -835,6 +859,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 integrationTargets: inputs.integrationTargets,
                                 spaceId: inputs.spaceId,
                                 adGroup: inputs.adGroup,
+                                targetLocations: inputs.targetLocations,
                             }}
                             navigateHandler={this.navigateHandler}
                             fetchedIntegrationDetails={fetchedIntegrationDetails}
@@ -844,6 +869,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             onAddressTypeaheadChange={this.onAddressTypeaheadChange}
                             onAddressTypeAheadSelect={this.onAddressTypeAheadSelect}
                             onDateTimeChange={this.onDateTimeChange}
+                            onRemoveTargetLocation={this.onRemoveTargetLocation}
                             onAssetInputChange={this.onAssetInputChange}
                             onInputChange={this.onInputChange}
                             onIntegrationDetailsChange={this.onIntegrationDetailsChange}

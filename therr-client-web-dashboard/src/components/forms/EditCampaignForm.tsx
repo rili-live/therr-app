@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import React, { useState } from 'react';
 import {
     Col, Row, Card, Form, Button, Image, InputGroup,
@@ -10,7 +11,7 @@ import { IUserState } from 'therr-react/types';
 import Datetime from 'react-datetime';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faCalendarAlt, faCheckCircle, faExclamationCircle, faMapMarked, faPlusCircle,
+    faCalendarAlt, faCheckCircle, faExclamationCircle, faMapMarked, faPlusCircle, faTimesCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import moment, { Moment } from 'moment';
 import {
@@ -92,6 +93,11 @@ interface IEditCampaignFormProps {
             description: string;
             assets: any[];
         };
+        targetLocations: {
+            label: string;
+            latitude: number;
+            longitude: number;
+        }[];
     }
     navigateHandler: (routeName: string) => any;
     fetchedIntegrationDetails: {
@@ -107,6 +113,7 @@ interface IEditCampaignFormProps {
     onInputChange: React.ChangeEventHandler<HTMLInputElement>;
     onIntegrationDetailsChange: (integrationProvider: string, event: React.ChangeEvent<any>) => void,
     onDateTimeChange: (name: string, value: string | Moment) => void;
+    onRemoveTargetLocation: (label: string) => any;
     onSocialSyncPress: any;
     onSubmit: (event: React.MouseEvent<HTMLButtonElement>|React.FormEvent<HTMLButtonElement>) => void;
     onSelectMedia: (files: any[]) => any;
@@ -136,6 +143,7 @@ const EditCampaignForm = ({
     onInputChange,
     onIntegrationDetailsChange,
     onDateTimeChange,
+    onRemoveTargetLocation,
     onSocialSyncPress,
     onSubmit,
     onSelectMedia,
@@ -582,12 +590,11 @@ const EditCampaignForm = ({
                                 </Col>
                             </Row>
                         }
-                        {
-                            inputs.type === CampaignTypes.LOCAL
-                            && <Row>
-                                <h5 className="my-4">Ad Target Location / Address</h5>
-                                {/* TODO: Show message to claim a space when none exist */}
-                                <Col md={4}>
+                        <Row>
+                            <h5 className="my-4">Ad Target Locations</h5>
+                            {
+                                inputs.type === CampaignTypes.LOCAL
+                                && <Col md={4}>
                                     {
                                         mySpaces.length < 1
                                             ? <Form.Group controlId="spaceId">
@@ -617,31 +624,50 @@ const EditCampaignForm = ({
                                             </Form.Group>
                                     }
                                 </Col>
-                                <Col md={8} className="mb-3">
-                                    {/* <Form.Group id="address">
-                                        <Form.Label>Address</Form.Label>
-                                        <InputGroup className="input-group-merge search-bar">
-                                            <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
-                                            <Form.Control required type="text" placeholder="Search an address..." />
-                                        </InputGroup>
-                                    </Form.Group> */}
-                                    <Form.Group controlId="address">
-                                        <Form.Label>Target Locations</Form.Label>
-                                        <Typeahead
-                                            id="address-search-typeahead"
-                                            options={addressTypeAheadResults.map((result) => ({
-                                                ...result,
-                                                label: result.description || '',
-                                            }))}
-                                            placeholder="Search an address or location..."
-                                            onInputChange={onAddressTypeaheadChange}
-                                            onChange={onAddressTypeAheadSelect}
-                                            selected={inputs.address}
-                                        />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                        }
+                            }
+                            <Col md={inputs.type === CampaignTypes.LOCAL ? 8 : 12} className="mb-3">
+                                {/* <Form.Group id="address">
+                                    <Form.Label>Address</Form.Label>
+                                    <InputGroup className="input-group-merge search-bar">
+                                        <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
+                                        <Form.Control required type="text" placeholder="Search an address..." />
+                                    </InputGroup>
+                                </Form.Group> */}
+                                <Form.Group controlId="address">
+                                    <Form.Label>Target Locations</Form.Label>
+                                    <Typeahead
+                                        id="address-search-typeahead"
+                                        options={addressTypeAheadResults.map((result) => ({
+                                            ...result,
+                                            label: result.description || '',
+                                        }))}
+                                        placeholder="Search an address or location..."
+                                        onInputChange={onAddressTypeaheadChange}
+                                        onChange={onAddressTypeAheadSelect}
+                                        selected={inputs.address}
+                                    />
+                                </Form.Group>
+                                <Row className="mt-2">
+                                    {
+                                        inputs.targetLocations.map((location) => (
+                                            <Col
+                                                sm={12}
+                                                md={6}
+                                                lg={3}
+                                                key={location.latitude}
+                                            >
+                                                <Col
+                                                    className="card border-light shadow-sm me-1 pe-1 d-flex flex-row align-items-center justify-content-between"
+                                                >
+                                                    {location.label}
+                                                    <FontAwesomeIcon onClick={() => onRemoveTargetLocation(location.label)} icon={faTimesCircle} className="pointer me-1" />
+                                                </Col>
+                                            </Col>
+                                        ))
+                                    }
+                                </Row>
+                            </Col>
+                        </Row>
                         <div className="mt-3 d-flex justify-content-end">
                             <Button
                                 variant="primary"

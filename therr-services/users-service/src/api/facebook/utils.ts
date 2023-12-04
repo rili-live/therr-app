@@ -9,6 +9,7 @@ const passthroughAndLogErrors = (response) => {
             messages: ['facebook api error'],
             traceArgs: {
                 'error.message': response?.data?.errors?.message,
+                'error.user_message': response?.data?.errors?.error_user_msg,
                 'error.code': response?.data?.errors?.code,
                 'error.subcode': response?.data?.errors?.error_subcode,
                 integration: OAuthIntegrationProviders.FACEBOOK,
