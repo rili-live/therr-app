@@ -126,7 +126,7 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
                 pageId: integrationDetails[target].pageId,
             };
             // TODO: Account for existingAdGroups by updating adGroups.integrationAssociations
-            const assetPromise = Promise.allSettled(adGroups.map((adGroup) => {
+            const adGroupsPromise = Promise.allSettled(adGroups.map((adGroup) => {
                 if (!adGroup.id || !adGroup.integrationAssociations[target] || !adGroup.integrationAssociations[target].adSetId) {
                     return facebook.createAdSet(
                         context,
@@ -179,32 +179,58 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
                 return updatedAdGroups;
             }).then((updatedAdGroups) => {
                 // TODO: Use integration bulk endpoints
-                const adPromise = Promise.allSettled(updatedAdGroups.map((adSetResponse) => {
-                    if (adSetResponse?.data?.id) {
-                        // TODO: Create separate ad for each non-combined campaignAsset
-                        // combined asset will become the parent
-                        // return facebook.createAd(
-                        //     context,
-                        //     {
-                        //         name: 'Test Ad',
-                        //         status,
-                        //         linkUrl: assets[0].linkUrl, // TODO: Get child asset linkUrl
-                        //         headline: assets[0].headline, // TODO: Get child asset headline
-                        //     },
-                        //     {
-                        //         id: adSetResponse.data.id,
-                        //         linkUrl: assets[0].linkUrl, // TODO: Get parent asset linkUrl
-                        //         headline: assets[0].headline, // TODO: Get parent asset headline
-                        //     },
-                        // ).then((adResponse) => adResponse.data);
-                    }
+                const adGroupAssetsPromises = updatedAdGroups.map((adGroup) => Promise.allSettled(adGroup.assets.map((asset) => {
+                    const adSetId = adGroup?.integrationAssociations?.[target]?.adSetId;
+                    const assetId = asset.integrationAssociations?.[target]?.assetId;
 
-                    return Promise.resolve({});
-                }));
+                    const restMethod = !assetId ? facebook.createAd : facebook.updateAd;
 
-                return updatedAdGroups;
+                    return restMethod(
+                        context,
+                        {
+                            id: assetId,
+                            name: asset.headline,
+                            status,
+                            linkUrl: asset.linkUrl,
+                            headline: asset.headline,
+                        },
+                        {
+                            id: adSetId,
+                        },
+                    ).then((response) => {
+                        if (response?.data?.id) {
+                            return {
+                                ...asset,
+                                integrationAssociations: {
+                                    ...(asset.integrationAssociations || {}),
+                                    [target]: {
+                                        ...(asset.integrationAssociations?.[target] || {}),
+                                        assetId: response?.data?.id,
+                                    },
+                                },
+                            };
+                        }
+
+                        return asset;
+                    });
+                })));
+
+                return Promise.all(adGroupAssetsPromises).then((resultsByAdGroup) => {
+                    const updatedAdGroupsWithAssets = resultsByAdGroup.map((adGroupAssetsResults: any, index) => {
+                        adGroups[index].assets = [];
+                        adGroupAssetsResults.forEach((assetResult) => {
+                            if (assetResult?.status === 'fulfilled') {
+                                adGroups[index].assets.push({ ...(assetResult?.value || {}) });
+                            }
+                        });
+
+                        // TODO: Parse Error Messages for User Signalling
+                        return adGroups[index];
+                    });
+                    return updatedAdGroupsWithAssets;
+                });
             });
-            integrationAssetPromises.push(assetPromise);
+            integrationAssetPromises.push(adGroupsPromise);
             integrationAssetPromises.push(Promise.resolve([])); // TODO: Remove after above impl
         } else {
             integrationAssetPromises.push(Promise.resolve([]));
