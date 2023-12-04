@@ -4,6 +4,7 @@ import {
 } from './user';
 import {
     createAd,
+    updateAd,
     createAdSet,
     updateAdSet,
 } from './ads';
@@ -20,6 +21,7 @@ export {
 
     // Ads
     createAd,
+    updateAd,
     createAdSet,
     updateAdSet,
 

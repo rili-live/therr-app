@@ -678,6 +678,14 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             return;
         }
 
+        if (moment(scheduleStopAt).isSameOrBefore(moment())) {
+            this.onSubmitError('Invalid Start/End Dates', 'Campaign stop date must be in the future');
+            this.setState({
+                isSubmitting: false,
+            });
+            return;
+        }
+
         // TODO: Upload if new image asset(s) are added
         const saveMethod = campaign?.id
             ? (campaignDetails) => updateCampaign(campaign?.id, campaignDetails)
