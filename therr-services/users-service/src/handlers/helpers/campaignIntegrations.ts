@@ -140,6 +140,7 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
                             type,
                             scheduleStopAt,
                             maxBudget: details?.maxBudget || undefined,
+                            targetLocations,
                         },
                     );
                 }
@@ -153,6 +154,9 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
                         name: adGroup.headline,
                         goal: adGroup.goal,
                         status,
+                    },
+                    {
+                        targetLocations,
                     },
                 );
             })).then((results) => {
@@ -168,6 +172,7 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
                         };
                     }
 
+                    // TODO: Parse Error Messages for User Signalling
                     return adGroups[index];
                 });
                 // TODO: map create result ids to adGroup.integrationAssociations[target].adSetId

@@ -244,6 +244,7 @@ const updateCampaign = async (req, res) => {
                         const adGroupsWithIntegs = [
                             ...adGroups,
                         ];
+                        // TODO: Parse Error Messages for User Signalling
                         // Merge all results with the updated adGroup.integrationAssociations
                         adSetResults.forEach((adSetResult) => {
                             if (adSetResult.status === 'fulfilled') {
