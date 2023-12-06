@@ -30,16 +30,35 @@ import {
     faMapMarked,
     faMapMarker,
     faMarker,
+    faQuestion,
     faSearch,
 } from '@fortawesome/free-solid-svg-icons';
+import { faFacebook, faTiktok, faTwitter, faYoutube } from '@fortawesome/free-brands-svg-icons';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 // import ManageSpacesMenu from '../../components/ManageSpacesMenu';
 import { ISpace } from '../../types';
 import { DEFAULT_COORDINATES, DEFAULT_QUERY_LOCALES } from '../../constants/LocationDefaults';
 import { getWebsiteName } from '../../utilities/getHostContext';
+import UsersActions from '../../redux/actions/UsersActions';
+import * as globalConfig from '../../../../global-config';
 
-const ItemsPerPage = 10;
+const ItemsPerPage = 50;
+
+const getSocialIcon = (platform: string) => {
+    switch (platform) {
+        case 'twitter':
+            return faTwitter;
+        case 'tiktok':
+            return faTiktok;
+        case 'facebook':
+            return faFacebook;
+        case 'youtube':
+            return faYoutube;
+        default:
+            return faQuestion;
+    }
+};
 
 interface IInfluencerPairingResultsRouterProps {
     location: Location;
@@ -50,6 +69,7 @@ interface IInfluencerPairingResultsRouterProps {
 }
 
 interface IInfluencerPairingResultsDispatchProps {
+    searchInfluencerPairings: Function;
     searchUserConnections: Function;
     getPlacesSearchAutoComplete: Function;
     setSearchDropdownVisibility: Function;
@@ -92,6 +112,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    searchInfluencerPairings: UsersActions.searchPairings,
     searchUserConnections: UserConnectionsActions.search,
     getPlacesSearchAutoComplete: MapActions.getPlacesSearchAutoComplete,
     setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
@@ -131,10 +152,42 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
 
     componentDidMount() {
         const { pagination } = this.state;
-        const { routeParams } = this.props;
+        const { routeParams, searchInfluencerPairings } = this.props;
         document.title = `${getWebsiteName()} | ${this.translate('pages.influencerPairingResults.pageTitle')}`;
 
         this.fetchSpaces(pagination.pageNumber, pagination.itemsPerPage);
+
+        // TODO: Display pricing page if not authorized
+        const isAuthorized = UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ANY,
+                levels: [
+                    AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
+                ],
+            },
+            this.props.user,
+        );
+        if (isAuthorized) {
+            searchInfluencerPairings(
+                {
+                    query: '',
+                    limit: ItemsPerPage,
+                    offset: 0,
+                    withMedia: true,
+                },
+            )
+                .catch((err) => {
+                    console.log(err);
+                })
+                .finally(() => {
+                    this.setState({
+                        isLoading: false,
+                    });
+                });
+        }
     }
 
     componentWillUnmount = () => {
@@ -165,21 +218,10 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
                 searchLongitude = DEFAULT_QUERY_LOCALES[queryLocation]?.longitude;
             }
 
-            const searchSpacesPromise: Promise<AxiosResponse<any, any>> = routeParams.context === 'admin'
-                ? MapsService.searchSpaces({
-                    query: 'connections',
-                    itemsPerPage,
-                    pageNumber,
-                    filterBy: 'fromUserIds',
-                    latitude: searchLatitude,
-                    longitude: searchLongitude,
-                }, {
-                    distanceOverride: 160934, // ~ 100 miles
-                })
-                : MapsService.searchMySpaces({
-                    itemsPerPage,
-                    pageNumber,
-                }); // TODO: Make this an admin route
+            const searchSpacesPromise: Promise<AxiosResponse<any, any>> = MapsService.searchMySpaces({
+                itemsPerPage,
+                pageNumber,
+            });
             searchSpacesPromise.then((response) => new Promise((resolve) => {
                 this.setState({
                     spacesInView: response?.data?.results || [],
@@ -350,6 +392,7 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
             isLoading,
         } = this.state;
         const { map, routeParams, user } = this.props;
+        const influencerPairings: any[] = Object.values(user.influencerPairings || {});
 
         return (
             <div id="page_settings" className="flex-box column">
@@ -379,18 +422,12 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
                     <Col xs={12} xl={12} xxl={10}>
                         <h1 className="text-center">Local Influencer Pairings (Coming soon!)</h1>
                         {
-                            (spacesInView?.length > 0 || isLoading)
-                                && <h3 className="text-center mt-5">
-                                    <FontAwesomeIcon icon={faSearch} className="me-2" />
-                                    We Found 0 Matches. It may take some time before new matches are generated.
-                                </h3>
+                            isLoading
+                                && <h3 className="text-center mt-5">Loading...</h3>
                         }
                         {
                             !spacesInView?.length && !isLoading
                                 && <>
-                                    <h3 className="text-center mt-5">
-                                        <FontAwesomeIcon icon={faSearch} className="me-2" />We Found 0 Business Locations Associated with Your Account
-                                    </h3>
                                     <p className="text-center mt-1">
                                         Claim a business space to start matching with local influencers today.
                                     </p>
@@ -399,6 +436,46 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
                                             <FontAwesomeIcon icon={faMapMarked} className="me-1" /> Claim a Business Location
                                         </Button>
                                     </div>
+                                </>
+                        }
+                        {
+                            (influencerPairings?.length > 0 && spacesInView?.length > 0 && !isLoading)
+                                && <Row className="text-center mt-5 justify-content-center">
+                                    <Col md={12} lg={6}>
+                                        <ol>
+                                            {
+                                                influencerPairings.map((pairing) => (
+                                                    <li key={pairing.id}><a
+                                                        href={`${globalConfig[process.env.NODE_ENV].hostFull}/users/${pairing.id}`}
+                                                        rel="noreferrer"
+                                                        target="_blank">
+                                                        Therr - {pairing.userName}
+                                                    </a> | {pairing.socialSyncs
+                                                        .map((sync, index) => (
+                                                            <React.Fragment key={sync.id}>
+                                                                <FontAwesomeIcon icon={getSocialIcon(sync.platform)} className="me-2" />
+                                                                <a href={sync.link} rel="noreferrer" target="_blank">
+                                                                    {sync.displayName} - {sync.platformUsername}
+                                                                </a>
+                                                                {
+                                                                    index < pairing.socialSyncs.length - 1
+                                                                    && <span> | </span>
+                                                                }
+                                                            </React.Fragment>
+                                                        ))}
+                                                    </li>
+                                                ))
+                                            }
+                                        </ol>
+                                    </Col>
+                                </Row>
+                        }
+                        {
+                            !influencerPairings?.length && spacesInView?.length > 0 && !isLoading
+                                && <>
+                                    <h3 className="text-center mt-5">
+                                        <FontAwesomeIcon icon={faSearch} className="me-2" />We Found 0 Influencers Related To Your Business Locations
+                                    </h3>
                                 </>
                         }
                     </Col>

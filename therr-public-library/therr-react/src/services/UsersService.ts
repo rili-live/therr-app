@@ -147,6 +147,12 @@ class UsersService {
         data: args,
     });
 
+    searchPairings = (args: ISearchUsersArgs) => axios({
+        method: 'post',
+        url: '/users-service/users/search-pairings',
+        data: args,
+    });
+
     report = (userId: string) => axios({
         method: 'put',
         url: `/users-service/users/${userId}/report`,
