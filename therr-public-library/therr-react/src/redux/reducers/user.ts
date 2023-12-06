@@ -15,6 +15,7 @@ const initialState: IUserState = Immutable.from({
     thoughts: Immutable.from([]),
     myThoughts: Immutable.from([]),
     users: Immutable.from({}),
+    influencerPairings: Immutable.from({}),
 });
 
 const getUserReducer = (socketIO) => (state: IUserState = initialState, action: any) => {
@@ -25,6 +26,12 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
 
     // Slice to keep total from overflowing
     const modifiedUsers = Object.entries(state.users || {}).slice(0, 100).reduce((acc, cur) => {
+        const [key, value] = cur;
+        acc[key] = value;
+
+        return acc;
+    }, {});
+    const modifiedInfluencerPairings = Object.entries(state.influencerPairings || {}).slice(0, 100).reduce((acc, cur) => {
         const [key, value] = cur;
         acc[key] = value;
 
@@ -60,6 +67,13 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
             }
             // Convert array to object for faster lookup and de-duping
             return state.setIn(['users'], modifiedUsers); // Clear stale results
+        case UserActionTypes.GET_USERS_PAIRINGS:
+            // Convert array to object for faster lookup and de-duping
+            return state.setIn(['influencerPairings'], action.data.results
+                .reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), modifiedInfluencerPairings));
         case UserActionTypes.GET_MY_ACHIEVEMENTS:
             return state.setIn(['achievements'], action.data);
         case UserActionTypes.UPDATE_MY_ACHIEVEMENTS:

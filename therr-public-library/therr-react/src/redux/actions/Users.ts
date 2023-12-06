@@ -186,6 +186,15 @@ class UsersActions {
         return response?.data;
     });
 
+    searchPairings = (args: ISearchUsersArgs) => (dispatch: any) => UsersService.searchPairings(args).then((response) => {
+        dispatch({
+            type: UserActionTypes.GET_USERS_PAIRINGS,
+            data: response?.data,
+        });
+
+        return response?.data;
+    });
+
     searchUpdateUser = (userId: string, updates: { isConnected: boolean }) => (dispatch: any) => {
         dispatch({
             type: UserActionTypes.GET_USERS_UPDATE,

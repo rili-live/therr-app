@@ -284,7 +284,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         const isAuthorized = UsersService.isAuthorized(
             {
                 type: AccessCheckType.ALL,
-                levels: ['user.default'],
+                levels: [AccessLevels.DEFAULT],
             },
             this.props.user,
         );

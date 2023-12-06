@@ -364,6 +364,48 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
+/**
+ * Fetches users that may be a good influencer match for the requesting user
+ */
+const searchUserPairings: RequestHandler = (req: any, res: any) => {
+    const userId = req.headers['x-userid']; // undefined if user is not logged in
+
+    // TODO: Implement prediction algorithm to find users relevant to the requesting user
+
+    const {
+        ids,
+        query,
+        queryColumnName,
+        limit,
+        offset,
+    } = req.body;
+
+    const actualLimit = limit || 21;
+    const actualOffset = offset || 0;
+
+    return Store.users.searchUserSocials(userId, {
+        ids,
+        query,
+        queryColumnName,
+        limit: actualLimit,
+        offset: actualOffset,
+    })
+        .then((results) => {
+            res.status(200).send({
+                results: results.map((user) => {
+                    // Remove credentials from object
+                    redactUserCreds(user);
+                    return user;
+                }),
+                pagination: {
+                    itemsPerPage: (actualLimit),
+                    pageNumber: actualOffset + 1,
+                },
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
 // UPDATE
 const updateUser = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
@@ -1100,6 +1142,7 @@ export {
     getUsers,
     findUsers,
     searchUsers,
+    searchUserPairings,
     updateUser,
     updateLastKnownLocation,
     updatePhoneVerification,

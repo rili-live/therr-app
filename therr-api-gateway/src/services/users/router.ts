@@ -1,5 +1,5 @@
 import express from 'express';
-import { FilePaths } from 'therr-js-utilities/constants';
+import { AccessLevels, FilePaths } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
@@ -47,6 +47,7 @@ import {
     deleteThoughtsValidation,
 } from './validation/thoughts';
 import CacheStore from '../../store';
+import authorize, { AccessCheckType } from '../../middleware/authorize';
 
 const usersServiceRouter = express.Router();
 
@@ -203,6 +204,21 @@ usersServiceRouter.delete('/users/:id', handleServiceRequest({
 }));
 
 usersServiceRouter.post('/users/search', searchUsersValidation, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.post('/users/search-pairings', searchUsersValidation, authorize(
+    {
+        type: AccessCheckType.ANY,
+        levels: [
+            AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+            AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
+            AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
+            AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY,
+        ],
+    },
+), handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
