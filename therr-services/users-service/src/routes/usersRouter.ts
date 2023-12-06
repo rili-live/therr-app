@@ -8,6 +8,7 @@ import {
     getUsers,
     findUsers,
     searchUsers,
+    searchUserPairings,
     updateUser,
     updatePhoneVerification,
     updateUserCoins,
@@ -35,6 +36,7 @@ router.get('/by-phone/:phoneNumber', getUserByPhoneNumber);
 router.get('/by-username/:userName', getUserByUserName);
 router.post('/find', findUsers);
 router.post('/search', searchUsers);
+router.post('/search-pairings', searchUserPairings);
 
 // UPDATE
 router.put('/change-password', updateUserPassword);

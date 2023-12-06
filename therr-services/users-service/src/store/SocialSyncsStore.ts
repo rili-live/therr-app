@@ -1,9 +1,8 @@
 import KnexBuilder, { Knex } from 'knex';
 import { IConnection } from './connection';
+import { SOCIAL_SYNCS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
-
-export const SOCIAL_SYNCS_TABLE_NAME = 'main.socialSyncs';
 
 export interface ICreateOrUpdateParams {
     userId: string;

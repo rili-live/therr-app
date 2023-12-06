@@ -4,7 +4,12 @@ import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import normalizeEmail from 'normalize-email';
 import { IConnection } from './connection';
-import { USERS_TABLE_NAME, USER_CONNECTIONS_TABLE_NAME, USER_ORGANIZATIONS_TABLE_NAME } from './tableNames';
+import {
+    SOCIAL_SYNCS_TABLE_NAME,
+    USERS_TABLE_NAME,
+    USER_CONNECTIONS_TABLE_NAME,
+    USER_ORGANIZATIONS_TABLE_NAME,
+} from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -210,6 +215,55 @@ export default class UsersStore {
                 return Object.values(usersById);
             });
         });
+    }
+
+    searchUserSocials(requestingUserId, {
+        ids,
+        query,
+        queryColumnName,
+        limit,
+        offset,
+    }: ISearchUsersArgs, returning: any = [`${USERS_TABLE_NAME}.id`, 'userName', 'firstName', 'lastName', 'media']) {
+        const supportedSearchColumns = ['firstName', 'lastName', 'userName'];
+        const MAX_LIMIT = 200;
+        const throttledLimit = Math.min(limit || 100, MAX_LIMIT);
+        let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
+            .innerJoin(SOCIAL_SYNCS_TABLE_NAME, `${USERS_TABLE_NAME}.id`, `${SOCIAL_SYNCS_TABLE_NAME}.userId`)
+            .columns([
+                `${SOCIAL_SYNCS_TABLE_NAME}.id as socialSyncs[].id`,
+                `${SOCIAL_SYNCS_TABLE_NAME}.userId as socialSyncs[].userId`,
+                `${SOCIAL_SYNCS_TABLE_NAME}.platform as socialSyncs[].platform`,
+                `${SOCIAL_SYNCS_TABLE_NAME}.platformUsername as socialSyncs[].platformUsername`,
+                `${SOCIAL_SYNCS_TABLE_NAME}.displayName as socialSyncs[].displayName`,
+                `${SOCIAL_SYNCS_TABLE_NAME}.link as socialSyncs[].link`,
+                `${SOCIAL_SYNCS_TABLE_NAME}.followerCount as socialSyncs[].followerCount`,
+            ])
+            .whereNotNull('userName')
+            .andWhere('settingsIsProfilePublic', true)
+            .andWhereNot(`${USERS_TABLE_NAME}.id`, requestingUserId)
+            .orderBy(`${USERS_TABLE_NAME}.createdAt`, 'desc')
+            .limit(throttledLimit)
+            .offset(offset || 0);
+
+        if (ids) {
+            queryString = queryString.whereIn(`${USERS_TABLE_NAME}.id`, ids || []);
+        }
+
+        if (query) {
+            if (supportedSearchColumns.includes(queryColumnName || '')) {
+                queryString = queryString.where(queryColumnName, 'ilike', `%${query}%`);
+            } else {
+                queryString = queryString.where((builder) => {
+                    builder.where('firstName', 'ilike', `%${query}%`)
+                        .orWhere('lastName', 'ilike', `%${query}%`)
+                        .orWhere('userName', 'ilike', `%${query}%`);
+                });
+            }
+        }
+
+        queryString = queryString.toString();
+        return this.db.read.query(queryString)
+            .then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'socialSyncs', propId: 'id' }]));
     }
 
     findUsersByContactInfo(
