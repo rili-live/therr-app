@@ -12,6 +12,8 @@ export const createUserValidation = [
     body('isBusinessAccount').optional().isBoolean(),
     body('isCreatorAccount').optional().isBoolean(),
     body('isDashboardRegistration').optional().isBoolean(),
+    body('settingsEmailMarketing').optional().isBoolean(),
+    body('settingsEmailBusMarketing').optional().isBoolean(),
     body('inviteCode').optional().isString(),
     body('activationCode').optional().isString(),
     body('paymentSessionId').optional().isString(),

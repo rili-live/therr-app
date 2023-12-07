@@ -21,7 +21,8 @@ const schema = yup.object().shape({
     password: yup.string().matches(RegExp(VALIDATIONS.password.regex)).required(),
     repeatPassword: yup.string().matches(RegExp(VALIDATIONS.password.regex), 'Password must meet minimum complexity requirements').required(),
     website: yup.string().optional(),
-    terms: yup.bool().required().oneOf([true], 'Terms must be accepted'),
+    settingsEmailBusMarketing: yup.bool().optional(),
+    hasAgreedToTerms: yup.bool().required().oneOf([true], 'Terms must be accepted'),
 });
 
 // Regular component props
@@ -50,7 +51,8 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                 email: '',
                 password: '',
                 repeatPassword: '',
-                terms: false,
+                hasAgreedToTerms: false,
+                settingsEmailBusMarketing: true,
                 website: '',
             },
             isSubmitting: false,
@@ -110,10 +112,10 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
     };
 
     onCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { checked } = event.currentTarget;
+        const { name, checked } = event.currentTarget;
 
         const newInputChanges = {
-            terms: !this.state.inputs.terms,
+            [name]: !this.state.inputs[name],
         };
 
         this.setState({
@@ -199,9 +201,21 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                             />
                         </InputGroup>
                     </Form.Group>
-                    <FormCheck id="terms" type="checkbox" className="d-flex mb-4">
-                        <FormCheck.Input required className="me-2" onChange={this.onCheckboxChange} checked={inputs.terms}/>
-                        <FormCheck.Label htmlFor="terms">
+                    <FormCheck id="settingsEmailBusMarketing" type="checkbox" className="d-flex mb-4">
+                        <FormCheck.Input
+                            name="settingsEmailBusMarketing"
+                            required
+                            className="me-2"
+                            onChange={this.onCheckboxChange}
+                            checked={inputs.settingsEmailBusMarketing}
+                        />
+                        <FormCheck.Label htmlFor="settingsEmailBusMarketing">
+                            Join our Newsletter for helpful marketing tips?
+                        </FormCheck.Label>
+                    </FormCheck>
+                    <FormCheck id="hasAgreedToTerms" type="checkbox" className="d-flex mb-4">
+                        <FormCheck.Input name="hasAgreedToTerms" required className="me-2" onChange={this.onCheckboxChange} checked={inputs.hasAgreedToTerms}/>
+                        <FormCheck.Label htmlFor="hasAgreedToTerms">
                             I agree to the <Card.Link href="https://www.therr.app/terms-and-conditions.html"
                                 target="_blank"
                                 className="fw-bolder">terms & conditions</Card.Link>

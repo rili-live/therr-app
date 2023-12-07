@@ -29,6 +29,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
     const {
         activationCode,
         paymentSessionId,
+
     } = req.body;
 
     // This is a honeypot hidden field to prevent spam
@@ -166,6 +167,8 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 isBusinessAccount: req.body.isBusinessAccount,
                 isCreatorAccount: req.body.isCreatorAccount,
                 isDashboardRegistration: req.body.isDashboardRegistration,
+                settingsEmailMarketing: req.body.settingsEmailMarketing,
+                settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
                 lastName: req.body.lastName,
                 phoneNumber: req.body.phoneNumber,
                 userName: req.body.userName,
