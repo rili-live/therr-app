@@ -33,7 +33,7 @@ import {
     faQuestion,
     faSearch,
 } from '@fortawesome/free-solid-svg-icons';
-import { faFacebook, faTiktok, faTwitter, faYoutube } from '@fortawesome/free-brands-svg-icons';
+import { faFacebook, faInstagram, faTiktok, faTwitter, faYoutube } from '@fortawesome/free-brands-svg-icons';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 // import ManageSpacesMenu from '../../components/ManageSpacesMenu';
@@ -53,6 +53,9 @@ const getSocialIcon = (platform: string) => {
             return faTiktok;
         case 'facebook':
             return faFacebook;
+        case 'instagram':
+        case 'facebook-instagram':
+            return faInstagram;
         case 'youtube':
             return faYoutube;
         default:
@@ -163,7 +166,7 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
                 type: AccessCheckType.ANY,
                 levels: [
                     AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY,
-                    AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+                    // AccessLevels.DASHBOARD_SUBSCRIBER_BASIC, - pairings not included for this pricing package
                     AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
                     AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
                 ],
@@ -440,7 +443,7 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
                         }
                         {
                             (influencerPairings?.length > 0 && spacesInView?.length > 0 && !isLoading)
-                                && <Row className="text-center mt-5 justify-content-center">
+                                && <Row className="mt-5 justify-content-center">
                                     <Col md={12} lg={6}>
                                         <ol>
                                             {

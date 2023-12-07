@@ -53,7 +53,7 @@ const VerifyPhoneCodeForm = ({
                     <div className="mt-3 d-flex justify-content-between">
                         <Button
                             variant="secondary"
-                            type="submit"
+                            type="button"
                             disabled={isSubmitting}
                             onClick={onResendCode}
                             className="mx-3"
