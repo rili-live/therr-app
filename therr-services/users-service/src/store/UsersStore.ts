@@ -21,6 +21,8 @@ export interface ICreateUserParams {
     hasAgreedToTerms: boolean;
     isBusinessAccount?: boolean;
     isCreatorAccount?: boolean;
+    settingsEmailMarketing?: boolean;
+    settingsEmailBusMarketing?: boolean;
     lastName?: string;
     password: string;
     phoneNumber?: string;
@@ -399,6 +401,38 @@ export default class UsersStore {
 
         if (params.settingsThemeName != null) {
             modifiedParams.settingsThemeName = params.settingsThemeName;
+        }
+
+        if (params.settingsEmailLikes != null) {
+            modifiedParams.settingsEmailLikes = params.settingsEmailLikes;
+        }
+
+        if (params.settingsEmailInvites != null) {
+            modifiedParams.settingsEmailInvites = params.settingsEmailInvites;
+        }
+
+        if (params.settingsEmailMentions != null) {
+            modifiedParams.settingsEmailMentions = params.settingsEmailMentions;
+        }
+
+        if (params.settingsEmailMessages != null) {
+            modifiedParams.settingsEmailMessages = params.settingsEmailMessages;
+        }
+
+        if (params.settingsEmailReminders != null) {
+            modifiedParams.settingsEmailReminders = params.settingsEmailReminders;
+        }
+
+        if (params.settingsEmailBackground != null) {
+            modifiedParams.settingsEmailBackground = params.settingsEmailBackground;
+        }
+
+        if (params.settingsEmailMarketing != null) {
+            modifiedParams.settingsEmailMarketing = params.settingsEmailMarketing;
+        }
+
+        if (params.settingsEmailBusMarketing != null) {
+            modifiedParams.settingsEmailBusMarketing = params.settingsEmailBusMarketing;
         }
 
         if (params.settingsPushMarketing != null) {

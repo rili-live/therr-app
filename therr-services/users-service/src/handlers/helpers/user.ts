@@ -36,6 +36,8 @@ interface IRequiredUserDetails {
     isBusinessAccount?: boolean;
     isCreatorAccount?: boolean;
     isDashboardRegistration?: boolean;
+    settingsEmailMarketing?: boolean;
+    settingsEmailBusMarketing?: boolean;
     accessLevels?: string[];
 }
 
@@ -263,6 +265,8 @@ const createUserHelper = (
                 hasAgreedToTerms,
                 isBusinessAccount: userDetails.isBusinessAccount,
                 isCreatorAccount: userDetails.isCreatorAccount,
+                settingsEmailMarketing: userDetails.settingsEmailMarketing,
+                settingsEmailBusMarketing: userDetails.settingsEmailBusMarketing,
                 lastName: userDetails.lastName || undefined,
                 password: hash,
                 phoneNumber: userDetails.phoneNumber || undefined,

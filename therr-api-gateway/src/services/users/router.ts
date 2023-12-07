@@ -212,7 +212,7 @@ usersServiceRouter.post('/users/search-pairings', searchUsersValidation, authori
     {
         type: AccessCheckType.ANY,
         levels: [
-            AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+            // AccessLevels.DASHBOARD_SUBSCRIBER_BASIC, - pairings not included for this pricing package
             AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
             AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
             AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY,
