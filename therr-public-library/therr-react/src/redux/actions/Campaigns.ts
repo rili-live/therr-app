@@ -7,7 +7,7 @@ const Campaigns = {
     create: (campaignDetails: any) => (dispatch: any) => CampaignsService.create(campaignDetails).then((response: any) => {
         dispatch({
             type: CampaignActionTypes.CREATE_CAMPAIGN,
-            data: campaignDetails,
+            data: response.data,
         });
 
         return response?.data;

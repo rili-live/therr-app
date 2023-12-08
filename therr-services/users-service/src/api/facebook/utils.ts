@@ -26,7 +26,7 @@ const sanitizeMaxBudget = (budget?: number) => {
         return budget * 100;
     }
 
-    return 922337203685478;
+    return 1000 * 100;
 };
 
 export {

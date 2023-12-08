@@ -278,6 +278,7 @@ const EditCampaignForm = ({
                                             <Datetime
                                                 timeFormat={true}
                                                 onChange={(value) => onDateTimeChange('scheduleStartAt', value)}
+                                                initialViewDate={inputs.scheduleStartAt || new Date()}
                                                 renderInput={(props, openCalendar) => (
                                                     <InputGroup>
                                                         <InputGroup.Text><FontAwesomeIcon icon={faCalendarAlt} /></InputGroup.Text>
@@ -301,6 +302,7 @@ const EditCampaignForm = ({
                                             <Datetime
                                                 timeFormat={true}
                                                 onChange={(value) => onDateTimeChange('scheduleStopAt', value)}
+                                                initialViewDate={inputs.scheduleStopAt || new Date()}
                                                 renderInput={(props, openCalendar) => (
                                                     <InputGroup>
                                                         <InputGroup.Text><FontAwesomeIcon icon={faCalendarAlt} /></InputGroup.Text>
@@ -532,69 +534,143 @@ const EditCampaignForm = ({
                             </Col>
                         </Row>
                         {
-                            !disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK]
-                            && isFacebookSelected
-                            && (fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data?.length
-                                || fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccount?.data?.length)
+                            (isFacebookSelected || isInstagramSelected)
                             && <Row>
                                 <Col sm={12}>
                                     <h5 className="my-4">Ad Target Customizations</h5>
                                 </Col>
-                                <Col md={4}>
-                                    <Form.Group controlId="adAccountId">
-                                        <Form.Label>Facebook Ad Account</Form.Label>
-                                        <Form.Control
-                                            value={inputs.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId}
-                                            name="adAccountId"
-                                            onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
-                                            as="select"
-                                        >
-                                            {
-                                                fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccount?.data.map((accountDetails) => (
-                                                    <option key={accountDetails.id} value={accountDetails.id}>{accountDetails.name}</option>
-                                                ))
-                                            }
-                                        </Form.Control>
-                                    </Form.Group>
-                                </Col>
-                                <Col md={4}>
-                                    <Form.Group controlId="pageId">
-                                        <Form.Label>Facebook Page for Ad Publishing</Form.Label>
-                                        <Form.Control
-                                            value={inputs.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId}
-                                            name="pageId"
-                                            onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
-                                            as="select"
-                                        >
-                                            {
-                                                fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data.map((pageDetails) => (
-                                                    <option key={pageDetails.id} value={pageDetails.id}>{pageDetails.name}</option>
-                                                ))
-                                            }
-                                        </Form.Control>
-                                    </Form.Group>
-                                </Col>
-                                <Col md={4}>
-                                    <Form.Group controlId="maxBudget">
-                                        <Form.Label>Facebook Integration Max Budget</Form.Label>
-                                        <Form.Control
-                                            value={inputs.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.maxBudget || 100}
-                                            name="maxBudget"
-                                            onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
-                                            type="number"
-                                            required
-                                            placeholder="100.00"
-                                            step="1"
-                                        />
-                                    </Form.Group>
-                                </Col>
+                                {
+                                    isFacebookSelected && (fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data?.length
+                                        || fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccount?.data?.length)
+                                    && <>
+                                        <Col lg={1} className="d-flex justify-content-center align-items-center">
+                                            <FontAwesomeIcon
+                                                icon={faFacebook}
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.FACEBOOK] ? 'text-facebook' : ''}
+                                                size="2x"
+                                            />
+                                        </Col>
+                                        <Col lg={4} className="mb-3">
+                                            <Form.Group controlId="adAccountId">
+                                                <Form.Label>Facebook Ad Account</Form.Label>
+                                                <Form.Control
+                                                    value={inputs.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId}
+                                                    name="adAccountId"
+                                                    onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
+                                                    as="select"
+                                                >
+                                                    {
+                                                        fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccount?.data.map((accountDetails) => (
+                                                            <option key={accountDetails.id} value={accountDetails.id}>{accountDetails.name}</option>
+                                                        ))
+                                                    }
+                                                </Form.Control>
+                                            </Form.Group>
+                                        </Col>
+                                        <Col lg={4} className="mb-3">
+                                            <Form.Group controlId="fbPageId">
+                                                <Form.Label>Facebook Page for Ad Publishing</Form.Label>
+                                                <Form.Control
+                                                    value={inputs.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId}
+                                                    name="fbPageId"
+                                                    onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
+                                                    as="select"
+                                                >
+                                                    {
+                                                        fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data.map((pageDetails) => (
+                                                            <option key={pageDetails.id} value={pageDetails.id}>{pageDetails.name}</option>
+                                                        ))
+                                                    }
+                                                </Form.Control>
+                                            </Form.Group>
+                                        </Col>
+                                        <Col lg={3} className="mb-3">
+                                            <Form.Group controlId="maxBudget">
+                                                <Form.Label>Facebook Integration Max Budget</Form.Label>
+                                                <Form.Control
+                                                    value={inputs.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.maxBudget || 100}
+                                                    name="maxBudget"
+                                                    onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
+                                                    type="number"
+                                                    required
+                                                    placeholder="100.00"
+                                                    step="1"
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                    </>
+                                }
+                                {
+                                    isInstagramSelected && (fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data?.length
+                                        || fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccount?.data?.length)
+                                    && <>
+                                        <Col lg={1} className="d-flex justify-content-center align-items-center">
+                                            <FontAwesomeIcon
+                                                icon={faInstagram}
+                                                className={!disabledProvidersStatus[OAuthIntegrationProviders.INSTAGRAM] ? 'text-instagram' : ''}
+                                                size="2x"
+                                            />
+                                        </Col>
+                                        <Col lg={4} className="mb-3">
+                                            <Form.Group controlId="adAccountId">
+                                                <Form.Label>Facebook Ad Account (*required for IG Ads)</Form.Label>
+                                                <Form.Control
+                                                    value={inputs.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId}
+                                                    name="adAccountId"
+                                                    onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
+                                                    as="select"
+                                                >
+                                                    {
+                                                        fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccount?.data.map((accountDetails) => (
+                                                            <option key={accountDetails.id} value={accountDetails.id}>{accountDetails.name}</option>
+                                                        ))
+                                                    }
+                                                </Form.Control>
+                                            </Form.Group>
+                                        </Col>
+                                        <Col lg={4} className="mb-3">
+                                            <Form.Group controlId="fbPageId">
+                                                <Form.Label>Facebook Page for Ad Publishing (*required for IG Ads)</Form.Label>
+                                                <Form.Control
+                                                    value={inputs.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId}
+                                                    name="fbPageId"
+                                                    onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.FACEBOOK, e)}
+                                                    as="select"
+                                                >
+                                                    {
+                                                        fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data.map((pageDetails) => (
+                                                            <option key={pageDetails.id} value={pageDetails.id}>{pageDetails.name}</option>
+                                                        ))
+                                                    }
+                                                </Form.Control>
+                                            </Form.Group>
+                                        </Col>
+                                        <Col lg={3} className="mb-3">
+                                            <Form.Group controlId="igPageId">
+                                                <Form.Label>Instagram Page for Ad Publishing</Form.Label>
+                                                <Form.Control
+                                                    value={inputs.integrationDetails[OAuthIntegrationProviders.INSTAGRAM]?.pageId}
+                                                    name="igPageId"
+                                                    onChange={(e) => onIntegrationDetailsChange(OAuthIntegrationProviders.INSTAGRAM, e)}
+                                                    as="select"
+                                                >
+                                                    {
+                                                        fetchedIntegrationDetails[OAuthIntegrationProviders.INSTAGRAM]?.igAccount?.data.map((pageDetails) => (
+                                                            <option key={pageDetails.id} value={pageDetails.id}>{pageDetails.username}</option>
+                                                        ))
+                                                    }
+                                                </Form.Control>
+                                            </Form.Group>
+                                        </Col>
+                                    </>
+                                }
                             </Row>
                         }
                         <Row>
                             <h5 className="my-4">Ad Target Locations</h5>
                             {
                                 inputs.type === CampaignTypes.LOCAL
-                                && <Col md={4}>
+                                && <Col md={4} className="mb-3">
                                     {
                                         mySpaces.length < 1
                                             ? <Form.Group controlId="spaceId">
@@ -744,7 +820,7 @@ const EditCampaignForm = ({
                             </Col>
                             <Col sm={8}>
                                 {
-                                    inputs.adGroup.assets.map((asset, index) => (
+                                    (inputs.adGroup.assets || []).map((asset, index) => (
                                         <React.Fragment key={index}>
                                             <Row>
                                                 <h5 className="my-4">Create/Edit Ads</h5>
