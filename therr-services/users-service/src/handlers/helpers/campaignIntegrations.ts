@@ -124,6 +124,7 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
                 accessToken: integrationsAccess[target].user_access_token,
                 adAccountId: integrationDetails[target].adAccountId,
                 pageId: integrationDetails[target].pageId,
+                igPageId: integrationDetails[OAuthIntegrationProviders.INSTAGRAM]?.pageId,
             };
             // TODO: Account for existingAdGroups by updating adGroups.integrationAssociations
             const adGroupsPromise = Promise.allSettled(adGroups.map((adGroup) => {
@@ -182,6 +183,10 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
                 const adGroupAssetsPromises = updatedAdGroups.map((adGroup) => Promise.allSettled(adGroup.assets.map((asset) => {
                     const adSetId = adGroup?.integrationAssociations?.[target]?.adSetId;
                     const assetId = asset.integrationAssociations?.[target]?.assetId;
+
+                    if (!adSetId) {
+                        return Promise.resolve(asset);
+                    }
 
                     const restMethod = !assetId ? facebook.createAd : facebook.updateAd;
 
