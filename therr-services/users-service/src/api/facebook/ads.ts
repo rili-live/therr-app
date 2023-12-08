@@ -189,6 +189,7 @@ const createAd = (
         accessToken: string;
         adAccountId: string;
         pageId: string;
+        igPageId?: string;
     },
     ad: {
         name: string;
@@ -201,37 +202,51 @@ const createAd = (
         linkUrl?: string;
         headline?: string;
     },
-) => axios({
-    method: 'post',
-    // eslint-disable-next-line max-len
-    url: `https://graph.facebook.com/v18.0/${context.adAccountId}/ads?fields=id,status&access_token=${context.accessToken}`,
-    params: {
-        adset_id: adSet.id,
-        name: `[automated] ${ad.name}`,
-        status: getStatusForIntegrationAd(ad.status),
-        creative: {
-            object_story_spec: {
-                page_id: context.pageId,
-                // instagram_actor_id: context.igPageId,
-                link_data: {
-                    link: ad.linkUrl || adSet.linkUrl,
-                    message: ad.headline || adSet.headline,
+) => {
+    if (!ad.linkUrl && !adSet.linkUrl) {
+        console.error('Missing Link URL');
+        return Promise.resolve({
+            data: {},
+        });
+    }
+    if (!adSet.id) {
+        console.error('Missing adSet ID');
+        return Promise.resolve({
+            data: {},
+        });
+    }
+    return axios({
+        method: 'post',
+        // eslint-disable-next-line max-len
+        url: `https://graph.facebook.com/v18.0/${context.adAccountId}/ads?fields=id,status&access_token=${context.accessToken}`,
+        params: {
+            adset_id: adSet.id,
+            name: `[automated] ${ad.name}`,
+            status: getStatusForIntegrationAd(ad.status),
+            creative: {
+                object_story_spec: {
+                    page_id: context.pageId,
+                    instagram_actor_id: context.igPageId,
+                    link_data: {
+                        link: ad.linkUrl || adSet.linkUrl,
+                        message: ad.headline || adSet.headline,
+                    },
                 },
-            },
-            degrees_of_freedom_spec: {
-                creative_features_spec: {
-                    standard_enhancements: {
-                        enroll_status: 'OPT_IN',
+                degrees_of_freedom_spec: {
+                    creative_features_spec: {
+                        standard_enhancements: {
+                            enroll_status: 'OPT_IN',
+                        },
                     },
                 },
             },
         },
-    },
-}).catch((err) => ({
-    data: {
-        errors: err.response?.data?.error,
-    },
-})).then(passthroughAndLogErrors);
+    }).catch((err) => ({
+        data: {
+            errors: err.response?.data?.error,
+        },
+    })).then(passthroughAndLogErrors);
+};
 
 /**
  * Updates an ad

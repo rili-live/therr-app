@@ -51,6 +51,7 @@ const partitionAdGroups = (campaign) => {
             headline: '',
             linkUrl: '',
             longText: '',
+            type: CampaignAssetTypes.COMBINED,
         }];
     }
 
@@ -87,8 +88,8 @@ const getInputDefaults = (campaign: any) => {
         status: campaign?.status === CampaignStatuses.PENDING ? CampaignStatuses.ACTIVE : (campaign?.status || CampaignStatuses.PAUSED),
         title: campaign?.title || '',
         description: campaign?.description || '',
-        scheduleStartAt: campaign?.scheduleStartAt || '',
-        scheduleStopAt: campaign?.scheduleStopAt || '',
+        scheduleStartAt: campaign?.scheduleStartAt || new Date(),
+        scheduleStopAt: campaign?.scheduleStopAt || new Date(),
         integrationDetails: initialIntegrationDetails,
         integrationTargets: campaign?.integrationTargets || [OAuthIntegrationProviders.THERR],
         spaceId: campaign?.spaceId || '',
@@ -139,6 +140,7 @@ interface ICreateEditCampaignState {
         [key: string]: any;
     };
     isEditing: boolean;
+    isFormBusy: boolean;
     mediaPendingUpload: string[];
     requestId: string;
     fetchedIntegrationDetails: {
@@ -181,6 +183,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 files: [],
                 formEditingStage: 1,
                 hasFormChanged: false,
+                isFormBusy: false,
                 isSubmitting: false,
                 inputs: getInputDefaults(campaign),
                 isEditing: false,
@@ -217,6 +220,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             files: [],
             formEditingStage: stage || 1,
             hasFormChanged: false,
+            isFormBusy: false,
             isSubmitting: false,
             inputs: getInputDefaults(props.campaigns.campaigns[campaignId] || {}),
             isEditing: !!campaignId,
@@ -283,57 +287,76 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         clearTimeout(this.throttleTimeoutId);
     };
 
-    afterStateIsEstablished = () => {
+    afterStateIsEstablished = (isInit = true) => {
         const { user } = this.props;
         const { inputs } = this.state;
 
         inputs.integrationTargets.forEach((target) => {
             const isAuthed = isAdsProviderAuthenticated(user, target);
-            if (isAuthed && (target === OAuthIntegrationProviders.FACEBOOK)) {
+            if (isAuthed
+                && (target === OAuthIntegrationProviders.FACEBOOK
+                    || (target === OAuthIntegrationProviders.INSTAGRAM && !inputs.integrationTargets?.includes(target === OAuthIntegrationProviders.FACEBOOK)))
+            ) {
                 // TODO: Add error handling and UI alerts for user
+                this.setState({
+                    isFormBusy: true,
+                });
                 Promise.all([
-                    facebook.getMyAccounts(user.settings.integrations[target]?.user_access_token),
-                    facebook.getMyAdAccounts(user.settings.integrations[target]?.user_access_token),
+                    facebook.getMyAccounts(user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.user_access_token),
+                    facebook.getMyAdAccounts(user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.user_access_token),
                 ]).then(([myAccountResults, myAdAccountResults]) => {
                     const { fetchedIntegrationDetails } = this.state;
+                    const fbPageId = inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId
+                        || myAccountResults?.data[0]?.id || undefined;
                     const newInputChanges = {
                         integrationDetails: {
-                            [target]: {
-                                pageId: inputs?.integrationDetails[target]?.pageId
+                            [OAuthIntegrationProviders.FACEBOOK]: {
+                                pageId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId
                                     || myAccountResults?.data[0]?.id || undefined,
-                                adAccountId: inputs?.integrationDetails[target]?.adAccountId
+                                adAccountId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
                                     || myAdAccountResults?.data[0]?.id || undefined,
-                                campaignId: inputs?.integrationDetails[target]?.campaignId,
+                                campaignId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
                             },
                         },
                     };
 
-                    const hasFormChanged = !inputs?.integrationDetails[target]?.pageId
-                        || !inputs?.integrationDetails[target]?.adAccountId
-                        || !inputs?.integrationDetails[target]?.campaignId;
+                    const hasFormChanged = !inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId
+                        || !inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
+                        || !inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId;
                     if (hasFormChanged) {
                         this.setState({
                             hasFormChanged: true,
                         });
                     }
 
+                    const modifiedIntegrationsFetch = {
+                        ...fetchedIntegrationDetails,
+                        [OAuthIntegrationProviders.FACEBOOK]: {
+                            account: myAccountResults,
+                            adAccount: myAdAccountResults,
+                        },
+                    };
+                    const modifiedInputs = {
+                        ...this.state.inputs,
+                        ...newInputChanges,
+                    };
+
+                    const fetchedPage = modifiedIntegrationsFetch[OAuthIntegrationProviders.FACEBOOK]?.account?.data
+                        ?.find((account) => account.id === fbPageId);
+                    const afterState = () => this.handleIGAccountChange(fetchedPage?.access_token, fbPageId, isInit);
+
                     this.setState({
-                        fetchedIntegrationDetails: {
-                            ...fetchedIntegrationDetails,
-                            [OAuthIntegrationProviders.FACEBOOK]: {
-                                account: myAccountResults,
-                                adAccount: myAdAccountResults,
-                            },
-                        },
-                        inputs: {
-                            ...this.state.inputs,
-                            ...newInputChanges,
-                        },
-                    });
+                        fetchedIntegrationDetails: modifiedIntegrationsFetch,
+                        inputs: modifiedInputs,
+                    }, afterState);
                 }).catch((err) => {
                     // TODO: This might mean the access token is expired and needs to re-authenticate
                     // Prompt the user or display a signal on the provider selection form
                     console.log(err);
+                }).finally(() => {
+                    this.setState({
+                        isFormBusy: false,
+                    });
                 });
             }
         });
@@ -342,10 +365,13 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
     navigateHandler = (routeName: string, options?: NavigateOptions) => () => this.props.navigation.navigate(routeName, options);
 
     isSubmitDisabled = () => {
-        const { inputs, isSubmitting, formEditingStage } = this.state;
+        const {
+            inputs, isFormBusy, isSubmitting, formEditingStage,
+        } = this.state;
         // TODO: Remove id block after implementing update
         if (formEditingStage === 1) {
             if (isSubmitting
+                || isFormBusy
                 || !inputs.title
                 || !inputs.description
                 || !inputs.type
@@ -356,9 +382,10 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             }
         } else if (formEditingStage === 2) {
             if (isSubmitting
+                || isFormBusy
                 || !inputs.adGroup.headline
-                || !inputs.adGroup?.assets[0].headline
-                || !inputs.adGroup?.assets[0].linkUrl) {
+                || !inputs.adGroup?.assets?.[0].headline
+                || !inputs.adGroup?.assets?.[0].linkUrl) {
                 return true;
             }
         }
@@ -532,22 +559,99 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         });
     };
 
-    onIntegrationDetailsChange = (integrationProvider: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    handleIGAccountChange = (fbPageAccessToken, fbPageId, isInit = false) => {
+        const { user } = this.props;
         const { inputs } = this.state;
+        const target = OAuthIntegrationProviders.INSTAGRAM;
+        const isAuthed = isAdsProviderAuthenticated(user, target);
+        if (isAuthed && fbPageAccessToken && fbPageId) {
+            // TODO: Add error handling and UI alerts for user
+            this.setState({
+                isFormBusy: true,
+            });
+            return facebook.getMyIGAccounts(fbPageAccessToken, fbPageId).then((igAccountResults) => {
+                const { fetchedIntegrationDetails } = this.state;
+                const igPageId = isInit
+                    ? (inputs?.integrationDetails[target]?.pageId || igAccountResults?.data[0]?.id || undefined)
+                    : igAccountResults?.data[0]?.id || undefined;
+                if (!igPageId) {
+                    this.onSubmitError('Missing IG Page ID', 'You must link an Instagram account to your Facebook page or remove the IG target', 'warning');
+                }
+
+                const newInputChanges = {
+                    integrationDetails: {
+                        ...inputs?.integrationDetails,
+                        [target]: {
+                            pageId: igPageId,
+                        },
+                    },
+                };
+
+                const hasFormChanged = inputs?.integrationDetails[target]?.pageId !== newInputChanges?.integrationDetails[target]?.pageId
+                    || this.state.hasFormChanged;
+                if (hasFormChanged) {
+                    this.setState({
+                        hasFormChanged: true,
+                    });
+                }
+
+                this.setState({
+                    fetchedIntegrationDetails: {
+                        ...fetchedIntegrationDetails,
+                        [target]: {
+                            ...fetchedIntegrationDetails[target],
+                            igAccount: igAccountResults,
+                        },
+                    },
+                    inputs: {
+                        ...this.state.inputs,
+                        ...newInputChanges,
+                    },
+                });
+            }).catch((err) => {
+                // TODO: This might mean the access token is expired and needs to re-authenticate
+                // Prompt the user or display a signal on the provider selection form
+                console.log(err);
+            }).finally(() => {
+                this.setState({
+                    isFormBusy: false,
+                });
+            });
+        }
+
+        return Promise.resolve({});
+    };
+
+    onIntegrationDetailsChange = (integrationProvider: string, event: React.ChangeEvent<HTMLInputElement>) => {
+        const { inputs, fetchedIntegrationDetails } = this.state;
+        let afterStateUpdate = () => null;
 
         event.preventDefault();
         this.toggleAlert(false);
 
         const { name, value } = event.currentTarget;
+        let formattedPropName = name;
+        if (name === 'igPageId' || name === 'fbPageId') {
+            formattedPropName = 'pageId';
+        }
         const modifiedDetails = { ...inputs.integrationDetails };
         if (!modifiedDetails[integrationProvider]) {
             modifiedDetails[integrationProvider] = {};
         }
 
-        modifiedDetails[integrationProvider][name] = value;
+        modifiedDetails[integrationProvider][formattedPropName] = value;
+
         if (name === 'maxBudget') {
-            modifiedDetails[integrationProvider][name] = Math.round(parseInt(value, 10));
+            modifiedDetails[integrationProvider][formattedPropName] = Math.round(parseInt(value, 10));
         }
+        if (name === 'fbPageId') {
+            const fetchedPage = fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data
+                ?.find((account) => account.id === value);
+            if (fetchedPage?.access_token) {
+                afterStateUpdate = () => this.handleIGAccountChange(fetchedPage?.access_token, value);
+            }
+        }
+
         const newInputChanges = {
             integrationDetails: modifiedDetails,
         };
@@ -558,7 +662,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 ...this.state.inputs,
                 ...newInputChanges,
             },
-        });
+        }, afterStateUpdate);
     };
 
     onSelectMedia = (files: any[]) => {
@@ -608,7 +712,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 } else if (!fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data?.length
                     || !fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccount?.data?.length) {
                     // This should occur for any integration when enabling but already authenticated
-                    this.afterStateIsEstablished();
+                    this.afterStateIsEstablished(false);
                 }
             }
         });
@@ -671,7 +775,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         }
 
         if (moment(scheduleStopAt).isSameOrBefore(moment(scheduleStartAt))) {
-            this.onSubmitError('Invalid Start/End Dates', 'Campaign start date must be before campaign end date');
+            this.onSubmitError('Invalid Start/End Dates', 'Campaign stop date must be after campaign start date');
             this.setState({
                 isSubmitting: false,
             });
@@ -699,8 +803,8 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             description,
             type,
             status,
-            scheduleStartAt,
-            scheduleStopAt,
+            scheduleStartAt: moment(scheduleStartAt).format('MM/DD/YYYY h:mm A'),
+            scheduleStopAt: moment(scheduleStopAt).format('MM/DD/YYYY h:mm A'),
             address: selectedAddresses[0]?.description || selectedAddresses[0]?.label,
             latitude,
             longitude,
@@ -740,11 +844,18 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
                 return saveMethod(reformattedRequest)
                     .then((response) => {
+                        if (!response.campaigns[0]?.id) {
+                            // TODO: Show alert error message
+                            return;
+                        }
+                        const {
+                            adGroup: resultAdGroup,
+                        } = partitionAdGroups(response.campaigns[0]);
                         this.setState({
                             inputs: {
                                 ...this.state.inputs,
                                 integrationDetails: response.campaigns[0].integrationDetails,
-                                adGroup: response.campaigns[0].adGroups[0],
+                                adGroup: resultAdGroup,
                             },
                         });
                         if (formEditingStage === 1) {
@@ -754,7 +865,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                                 isSubmitting: false,
                                 formEditingStage: newStage,
                             });
-                            this.navigateHandler(`${location.pathname}?stage=${newStage}`, {
+                            this.navigateHandler(`/campaigns/${response.campaigns[0].id}/edit?stage=${newStage}`, {
                                 replace: true,
                             })();
                         } else {
@@ -782,11 +893,11 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             });
     };
 
-    onSubmitError = (errTitle: string, errMsg: string) => {
+    onSubmitError = (errTitle: string, errMsg: string, alertVariation = 'danger') => {
         this.setState({
             alertTitle: errTitle,
             alertMessage: errMsg,
-            alertVariation: 'danger',
+            alertVariation,
         });
         this.toggleAlert(true);
     };

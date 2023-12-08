@@ -168,7 +168,10 @@ const createCampaign = async (req, res) => {
             });
             return [{
                 ...campaign,
-                adGroups: campaignAdGroups,
+                adGroups: campaignAdGroups.map((group) => ({
+                    ...group,
+                    assets: [],
+                })),
             }];
         }).then((campaigns) => res.status(201).send({
             created: results.length,
@@ -331,6 +334,7 @@ const updateCampaign = async (req, res) => {
                                         newAssets.length
                                             ? Store.campaignAssets.create(newAssets.map((asset) => ({
                                                 ...asset,
+                                                type: asset.type || CampaignAssetTypes.COMBINED,
                                                 creatorId: userId,
                                                 status: storedStatus,
                                                 performance: 'learning', // TODO

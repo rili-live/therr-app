@@ -18,7 +18,9 @@ const campaigns = (state: ICampaignsState = initialState, action: any) => {
 
     switch (action.type) {
         case CampaignActionTypes.CREATE_CAMPAIGN:
-            modifiedCampaigns[action.data.id] = action.data;
+            action.data?.campaigns?.forEach((campaign) => {
+                modifiedCampaigns[campaign.id] = campaign;
+            });
             return state.setIn(['campaigns'], modifiedCampaigns);
         case CampaignActionTypes.UPDATE_CAMPAIGN:
             action.data?.campaigns?.forEach((campaign) => {
