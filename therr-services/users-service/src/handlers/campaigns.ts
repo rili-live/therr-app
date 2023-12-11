@@ -1,7 +1,7 @@
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import {
-    AccessLevels, CampaignAdGoals, CampaignAssetTypes, CampaignStatuses, ErrorCodes, OAuthIntegrationProviders,
+    AccessLevels, CampaignAdGoals, CampaignAssetTypes, CampaignStatuses, CampaignTypes, ErrorCodes, OAuthIntegrationProviders,
 } from 'therr-js-utilities/constants';
 import sendCampaignCreatedEmail from '../api/email/admin/sendCampaignCreatedEmail';
 import sendCampaignPendingReviewEmail from '../api/email/for-business/sendCampaignPendingReviewEmail';
@@ -11,6 +11,15 @@ import { createUpdateAssetIntegrations, createUpdateCampaignIntegrations } from 
 import { getUserOrgsIdsFromHeaders } from './helpers/user';
 import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 import handleHttpError from '../utilities/handleHttpError';
+
+const campaignTypeToAdGroupGoalMap = {
+    [CampaignTypes.AWARENESS]: CampaignAdGoals.IMPRESSIONS, // or REACH
+    [CampaignTypes.ACQUISITION]: CampaignAdGoals.CLICKS, // or REACH or IMPRESSIONS
+    [CampaignTypes.ENGAGEMENT]: CampaignAdGoals.ENGAGEMENT, // or LIKES
+    [CampaignTypes.LOCAL]: CampaignAdGoals.IMPRESSIONS, // or IMPRESSIONS
+    [CampaignTypes.LEADS]: CampaignAdGoals.CLICKS, // or LEAD_GENERATION
+    [CampaignTypes.SALES]: CampaignAdGoals.CLICKS, // or CONVERSATIONS
+};
 
 // READ
 const getCampaign = async (req, res) => {
@@ -138,7 +147,7 @@ const createCampaign = async (req, res) => {
             headline: adGroup.headline,
             description: adGroup.description,
             performance: 'learning', // TODO
-            goal: adGroup.goal || CampaignAdGoals.CLICKS,
+            goal: adGroup.goal || campaignTypeToAdGroupGoalMap[type],
             scheduleStartAt,
             scheduleStopAt,
         }))) : Store.campaignAdGroups.create([{
@@ -150,7 +159,7 @@ const createCampaign = async (req, res) => {
             headline: 'Default Headline',
             description: 'The default ad group for this campaign',
             performance: 'learning', // TODO
-            goal: CampaignAdGoals.CLICKS,
+            goal: campaignTypeToAdGroupGoalMap[type],
             scheduleStartAt,
             scheduleStopAt,
         }]);

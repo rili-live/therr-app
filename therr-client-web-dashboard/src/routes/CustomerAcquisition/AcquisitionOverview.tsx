@@ -104,8 +104,12 @@ export class AcquisitionOverviewComponent extends React.Component<IAcquisitionOv
         return UsersService.isAuthorized(
             {
                 type: AccessCheckType.ANY,
-                levels: [AccessLevels.DASHBOARD_SUBSCRIBER_BASIC, AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM, AccessLevels.DASHBOARD_SUBSCRIBER_PRO],
-                isPublic: true,
+                levels: [
+                    AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
+                    AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY,
+                ],
             },
             user,
         );

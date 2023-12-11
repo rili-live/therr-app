@@ -2,13 +2,26 @@ import axios from 'axios';
 import { CampaignStatuses, CampaignTypes } from 'therr-js-utilities/constants';
 import { passthroughAndLogErrors, sanitizeMaxBudget } from './utils';
 
+// TODO
+// const campaignTypeToObjectiveMap = {
+// eslint-disable-next-line max-len
+//     [CampaignTypes.AWARENESS]: 'OUTCOME_AWARENESS', // valid FB adSet optimization_goal = AD_RECALL_LIFT, REACH, IMPRESSIONS, THRUPLAY, TWO_SECOND_CONTINUOUS_VIDEO_VIEWS
+//     [CampaignTypes.ACQUISITION]: 'OUTCOME_TRAFFIC', // valid FB adSet optimization_goal = LINK_CLICKS, LANDING_PAGE_VIEWS, REACH, IMPRESSIONS, QUALITY_CALL,
+// eslint-disable-next-line max-len
+//     [CampaignTypes.ENGAGEMENT]: 'OUTCOME_ENGAGEMENT', // valid FB adSet optimization_goal = POST_ENGAGEMENT, REACH, IMPRESSIONS, PAGE_LIKES, EVENT_RESPONSES, CONVERSATIONS, LEAD_GENERATION, OFFSITE_CONVERSIONS, LANDING_PAGE_VIEWS
+//     [CampaignTypes.LOCAL]: 'OUTCOME_AWARENESS', // SEE ABOVE
+//     [CampaignTypes.LEADS]: 'OUTCOME_TRAFFIC', // SEE ABOVE
+//     [CampaignTypes.SALES]: 'OUTCOME_TRAFFIC', // SEE ABOVE
+// };
+
+// TODO: Use above settings and dynamically create ads that are compatible for each ad set objective
 const campaignTypeToObjectiveMap = {
-    [CampaignTypes.AWARENESS]: 'OUTCOME_AWARENESS',
+    [CampaignTypes.AWARENESS]: 'OUTCOME_TRAFFIC',
     [CampaignTypes.ACQUISITION]: 'OUTCOME_TRAFFIC',
-    [CampaignTypes.ENGAGEMENT]: 'OUTCOME_ENGAGEMENT',
-    [CampaignTypes.LOCAL]: 'OUTCOME_AWARENESS',
-    [CampaignTypes.LEADS]: 'OUTCOME_LEADS',
-    [CampaignTypes.SALES]: 'OUTCOME_SALES',
+    [CampaignTypes.ENGAGEMENT]: 'OUTCOME_TRAFFIC',
+    [CampaignTypes.LOCAL]: 'OUTCOME_TRAFFIC',
+    [CampaignTypes.LEADS]: 'OUTCOME_TRAFFIC',
+    [CampaignTypes.SALES]: 'OUTCOME_TRAFFIC',
 };
 
 const getStatusForIntegration = (campaignStatus?: CampaignStatuses) => {

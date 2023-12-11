@@ -22,15 +22,15 @@ campaignsServiceRouter.post('/', createCampaignValidation, validate, authorize(
         ],
     },
 ), handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns/`,
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns`,
     method: 'post',
 }));
 campaignsServiceRouter.get('/:id', validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns/`,
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns`,
     method: 'get',
 }));
 campaignsServiceRouter.post('/search/me', validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns/`,
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns`,
     method: 'post',
 }));
 campaignsServiceRouter.put('/:id', validate, authorize(
@@ -44,7 +44,7 @@ campaignsServiceRouter.put('/:id', validate, authorize(
         ],
     },
 ), handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns/`,
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns`,
     method: 'put',
 }));
 
