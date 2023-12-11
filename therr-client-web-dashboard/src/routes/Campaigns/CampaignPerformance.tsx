@@ -10,8 +10,11 @@ import {
     ButtonGroup,
     Toast,
     ToastContainer,
+    Card,
 } from 'react-bootstrap';
 import moment, { Moment } from 'moment';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFacebook } from '@fortawesome/free-brands-svg-icons';
 import { CampaignActions, MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService, UsersService } from 'therr-react/services';
 import {
@@ -32,9 +35,6 @@ import { ICampaignAsset } from '../../types';
 import { signAndUploadImage } from '../../utilities/media';
 import { onFBLoginPress } from '../../api/login';
 import PricingCards from '../../components/PricingCards';
-
-export const CAMPAIGN_DRAFT_KEY = 'therrCampaignDraft';
-const DEFAULT_MAX_BUDGET = 100;
 
 const partitionAdGroups = (campaign) => {
     const combinedAssets = [];
@@ -68,34 +68,6 @@ const partitionAdGroups = (campaign) => {
         adGroup,
         combinedAssets,
         mediaAssets,
-    };
-};
-
-const getInputDefaults = (campaign: any) => {
-    const {
-        adGroup,
-    } = partitionAdGroups(campaign);
-
-    const initialIntegrationDetails = JSON.parse(JSON.stringify(campaign?.integrationDetails || {}));
-    Object.keys(initialIntegrationDetails).forEach((target) => {
-        if (!initialIntegrationDetails[target].maxBudget) {
-            initialIntegrationDetails[target].maxBudget = DEFAULT_MAX_BUDGET;
-        }
-    });
-
-    return {
-        address: [],
-        type: campaign?.type || CampaignTypes.LOCAL,
-        status: campaign?.status === CampaignStatuses.PENDING ? CampaignStatuses.ACTIVE : (campaign?.status || CampaignStatuses.PAUSED),
-        title: campaign?.title || '',
-        description: campaign?.description || '',
-        scheduleStartAt: campaign?.scheduleStartAt || new Date(),
-        scheduleStopAt: campaign?.scheduleStopAt || new Date(),
-        integrationDetails: initialIntegrationDetails,
-        integrationTargets: campaign?.integrationTargets || [OAuthIntegrationProviders.THERR],
-        spaceId: campaign?.spaceId || '',
-        adGroup,
-        targetLocations: campaign?.targetLocations || [],
     };
 };
 
@@ -137,9 +109,6 @@ interface ICampaignPerformanceState {
     formEditingStage: number;
     hasFormChanged: boolean;
     isSubmitting: boolean;
-    inputs: {
-        [key: string]: any;
-    };
     isLoadingCampaign: boolean;
     isFormBusy: boolean;
     mediaPendingUpload: string[];
@@ -151,7 +120,9 @@ interface ICampaignPerformanceState {
         id: string;
         notificationMsg: string;
     }[];
-    performanceSummary: any;
+    performanceSummary: {
+        [key: string]: any;
+    };
 }
 
 const mapStateToProps = (state: any) => ({
@@ -202,13 +173,14 @@ export class CampaignPerformanceComponent extends React.Component<ICampaignPerfo
             hasFormChanged: false,
             isFormBusy: false,
             isSubmitting: false,
-            inputs: getInputDefaults(props.campaigns.campaigns[campaignId] || {}),
             isLoadingCampaign: true,
             mediaPendingUpload: [],
             requestId: uuidv4().toString(),
             fetchedIntegrationDetails: {},
             mySpaces: [],
-            performanceSummary: {},
+            performanceSummary: {
+                [OAuthIntegrationProviders.THERR]: {},
+            },
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -238,7 +210,10 @@ export class CampaignPerformanceComponent extends React.Component<ICampaignPerfo
                 ).then((response) => {
                     this.setState({
                         isLoadingCampaign: false,
-                        performanceSummary: response?.summary || {},
+                        performanceSummary: {
+                            ...this.state.performanceSummary,
+                            [OAuthIntegrationProviders.FACEBOOK]: response?.summary || {},
+                        },
                     });
                 });
             }
@@ -252,183 +227,6 @@ export class CampaignPerformanceComponent extends React.Component<ICampaignPerfo
     };
 
     navigateHandler = (routeName: string, options?: NavigateOptions) => () => this.props.navigation.navigate(routeName, options);
-
-    onAddressTypeaheadChange = (text: string, event: React.ChangeEvent<HTMLInputElement>) => {
-        const { getPlacesSearchAutoComplete, map } = this.props;
-
-        clearTimeout(this.throttleTimeoutId);
-
-        this.throttleTimeoutId = setTimeout(() => {
-            getPlacesSearchAutoComplete({
-                longitude: map?.longitude || '-122.44696',
-                latitude: map?.latitude || '37.76999',
-                // radius,
-                input: text,
-            });
-        }, 500);
-
-        this.setState({
-            inputs: {
-                ...this.state.inputs,
-                address: [
-                    {
-                        label: text,
-                    },
-                ],
-            },
-        });
-    };
-
-    onAddressTypeAheadSelect = (selected: Option[]) => {
-        const result: any = selected[0];
-
-        if (result) {
-            MapsService.getPlaceDetails({
-                placeId: result.place_id,
-            }).then(({ data }) => {
-                const targetLocation = {
-                    label: result?.label,
-                    latitude: data?.result?.geometry?.location?.lat,
-                    longitude: data?.result?.geometry?.location?.lng,
-                };
-                const targetLocations = [...this.state.inputs.targetLocations];
-                if (targetLocation.label && targetLocation.latitude && targetLocation.longitude) {
-                    targetLocations.push(targetLocation);
-                }
-                this.setState({
-                    inputs: {
-                        ...this.state.inputs,
-                        latitude: data?.result?.geometry?.location?.lat, // TODO: Probably can remove this
-                        longitude: data?.result?.geometry?.location?.lng, // TODO: Probably can remove this
-                        targetLocations,
-                    },
-                });
-            }).catch((err) => {
-                console.log(err);
-            });
-
-            this.setState({
-                hasFormChanged: true,
-                inputs: {
-                    ...this.state.inputs,
-                    address: selected,
-                },
-            });
-        }
-    };
-
-    handleIGAccountChange = (fbPageAccessToken, fbPageId, isInit = false) => {
-        const { user } = this.props;
-        const { inputs } = this.state;
-        const target = OAuthIntegrationProviders.INSTAGRAM;
-        const isAuthed = isAdsProviderAuthenticated(user, target);
-        if (isAuthed && fbPageAccessToken && fbPageId) {
-            // TODO: Add error handling and UI alerts for user
-            this.setState({
-                isFormBusy: true,
-            });
-            return facebook.getMyIGAccounts(fbPageAccessToken, fbPageId).then((igAccountResults) => {
-                const { fetchedIntegrationDetails } = this.state;
-                const igPageId = isInit
-                    ? (inputs?.integrationDetails[target]?.pageId || igAccountResults?.data[0]?.id || undefined)
-                    : igAccountResults?.data[0]?.id || undefined;
-                if (!igPageId) {
-                    this.onPageError('Missing IG Page ID', 'You must link an Instagram account to your Facebook page or remove the IG target', 'warning');
-                }
-
-                const newInputChanges = {
-                    integrationDetails: {
-                        ...inputs?.integrationDetails,
-                        [target]: {
-                            pageId: igPageId,
-                        },
-                    },
-                };
-
-                const hasFormChanged = inputs?.integrationDetails[target]?.pageId !== newInputChanges?.integrationDetails[target]?.pageId
-                    || this.state.hasFormChanged;
-                if (hasFormChanged) {
-                    this.setState({
-                        hasFormChanged: true,
-                    });
-                }
-
-                this.setState({
-                    fetchedIntegrationDetails: {
-                        ...fetchedIntegrationDetails,
-                        [target]: {
-                            ...fetchedIntegrationDetails[target],
-                            igAccount: igAccountResults,
-                        },
-                    },
-                    inputs: {
-                        ...this.state.inputs,
-                        ...newInputChanges,
-                    },
-                });
-            }).catch((err) => {
-                // TODO: This might mean the access token is expired and needs to re-authenticate
-                // Prompt the user or display a signal on the provider selection form
-                console.log(err);
-            }).finally(() => {
-                this.setState({
-                    isFormBusy: false,
-                });
-            });
-        }
-
-        return Promise.resolve({});
-    };
-
-    onIntegrationDetailsChange = (integrationProvider: string, event: React.ChangeEvent<HTMLInputElement>) => {
-        const { inputs, fetchedIntegrationDetails } = this.state;
-        let afterStateUpdate = () => null;
-
-        event.preventDefault();
-        this.toggleAlert(false);
-
-        const { name, value } = event.currentTarget;
-        let formattedPropName = name;
-        if (name === 'igPageId' || name === 'fbPageId') {
-            formattedPropName = 'pageId';
-        }
-        const modifiedDetails = { ...inputs.integrationDetails };
-        if (!modifiedDetails[integrationProvider]) {
-            modifiedDetails[integrationProvider] = {};
-        }
-
-        modifiedDetails[integrationProvider][formattedPropName] = value;
-
-        if (name === 'maxBudget') {
-            modifiedDetails[integrationProvider][formattedPropName] = Math.round(parseInt(value, 10));
-        }
-        if (name === 'fbPageId') {
-            const fetchedPage = fetchedIntegrationDetails[OAuthIntegrationProviders.FACEBOOK]?.account?.data
-                ?.find((account) => account.id === value);
-            if (fetchedPage?.access_token) {
-                afterStateUpdate = () => this.handleIGAccountChange(fetchedPage?.access_token, value);
-            }
-        }
-
-        const newInputChanges = {
-            integrationDetails: modifiedDetails,
-        };
-
-        this.setState({
-            hasFormChanged: true,
-            inputs: {
-                ...this.state.inputs,
-                ...newInputChanges,
-            },
-        }, afterStateUpdate);
-    };
-
-    onSelectMedia = (files: any[]) => {
-        this.setState({
-            hasFormChanged: true,
-            files,
-        });
-    };
 
     onPageError = (errTitle: string, errMsg: string, alertVariation = 'danger') => {
         this.setState({
@@ -468,7 +266,6 @@ export class CampaignPerformanceComponent extends React.Component<ICampaignPerfo
             alertTitle,
             alertMessage,
             hasFormChanged,
-            inputs,
             isLoadingCampaign,
             formEditingStage,
             fetchedIntegrationDetails,
@@ -484,6 +281,12 @@ export class CampaignPerformanceComponent extends React.Component<ICampaignPerfo
             mediaAssets,
         } = partitionAdGroups(campaign);
         const isSubscriber = this.isSubscribed();
+        const isTherrSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.THERR);
+        const isGoogleSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.GOOGLE);
+        const isFacebookSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.FACEBOOK);
+        const isInstagramSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.INSTAGRAM);
+        const isTwitterSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.TWITTER);
+        const isLinkedInSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.LINKEDIN);
 
         return (
             <div id="page_campaign_performance" className="flex-box column">
@@ -495,15 +298,79 @@ export class CampaignPerformanceComponent extends React.Component<ICampaignPerfo
                                 user={user}
                             />
                         </div>
-                        <div className="text-center mt-5">
+                        <Row className="d-flex justify-content-around align-items-center py-4 text-center">
                             <h1>Campaign Performance Summary</h1>
-                            <h3 className="fw-normal">Clicks: <span className="fw-bolder">{performanceSummary.clicks || 'N/A'}</span></h3>
-                            <h3 className="fw-normal">Unique Clicks: <span className="fw-bolder">{performanceSummary.unique_clicks || 'N/A'}</span></h3>
-                            <h3 className="fw-normal">CPM: <span className="fw-bolder">{performanceSummary.cpm || 'N/A'}</span></h3>
-                            <h3 className="fw-normal">Impressions: <span className="fw-bolder">{performanceSummary.impressions || 'N/A'}</span></h3>
-                            <h3 className="fw-normal">Reach: <span className="fw-bolder">{performanceSummary.reach || 'N/A'}</span></h3>
-                            <h3 className="fw-normal">Spend: <span className="fw-bolder">{performanceSummary.spend || 'N/A'}</span></h3>
-                        </div>
+                            <Row className="d-flex justify-content-center align-items-center">
+                                {
+                                    isTherrSelected
+                                    && <Col sm={12} md={6} lg={3} className="text-center mt-5">
+                                        <h2>
+                                            <Card.Img
+                                                src={'/assets/img/therr-logo-green.svg'}
+                                                alt="Therr Ads"
+                                                className={'text-therr mx-2 w-auto'}
+                                                height={32}
+                                                width={32}
+                                            />
+                                            Therr
+                                        </h2>
+                                        <h4 className="fw-normal">Clicks: <span className="fw-bolder">
+                                            {performanceSummary[OAuthIntegrationProviders.THERR]?.clicks || 'N/A'}
+                                        </span></h4>
+                                        <h4 className="fw-normal">
+                                            Unique Clicks: <span className="fw-bolder">
+                                                {performanceSummary[OAuthIntegrationProviders.THERR]?.unique_clicks || 'N/A'}
+                                            </span>
+                                        </h4>
+                                        <h4 className="fw-normal">CPM: <span className="fw-bolder">
+                                            {performanceSummary[OAuthIntegrationProviders.THERR]?.cpm || 'N/A'}
+                                        </span></h4>
+                                        <h4 className="fw-normal">Impressions: <span className="fw-bolder">
+                                            {performanceSummary[OAuthIntegrationProviders.THERR]?.impressions || 'N/A'}
+                                        </span></h4>
+                                        <h4 className="fw-normal">Reach: <span className="fw-bolder">
+                                            {performanceSummary[OAuthIntegrationProviders.THERR]?.reach || 'N/A'}
+                                        </span></h4>
+                                        <h4 className="fw-normal">Spend: <span className="fw-bolder">
+                                            {performanceSummary[OAuthIntegrationProviders.THERR]?.spend || 'N/A'}
+                                        </span></h4>
+                                    </Col>
+                                }
+                                {
+                                    (isFacebookSelected || isInstagramSelected)
+                                    && <Col sm={12} md={6} lg={3} className="text-center mt-5">
+                                        <h2>
+                                            <FontAwesomeIcon
+                                                icon={faFacebook}
+                                                className={'text-facebook mx-2'}
+                                                size="1x"
+                                            />
+                                            Facebook
+                                        </h2>
+                                        <h4 className="fw-normal">Clicks: <span className="fw-bolder">
+                                            {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.clicks || 'N/A'}
+                                        </span></h4>
+                                        <h4 className="fw-normal">
+                                            Unique Clicks: <span className="fw-bolder">
+                                                {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.unique_clicks || 'N/A'}
+                                            </span>
+                                        </h4>
+                                        <h4 className="fw-normal">CPM: <span className="fw-bolder">
+                                            {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.cpm || 'N/A'}
+                                        </span></h4>
+                                        <h4 className="fw-normal">Impressions: <span className="fw-bolder">
+                                            {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.impressions || 'N/A'}
+                                        </span></h4>
+                                        <h4 className="fw-normal">Reach: <span className="fw-bolder">
+                                            {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.reach || 'N/A'}
+                                        </span></h4>
+                                        <h4 className="fw-normal">Spend: <span className="fw-bolder">
+                                            {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.spend || 'N/A'}
+                                        </span></h4>
+                                    </Col>
+                                }
+                            </Row>
+                        </Row>
                     </>
                 }
                 {
