@@ -2,23 +2,22 @@ import axios from 'axios';
 import { CampaignAdGoals, CampaignStatuses, CampaignTypes } from 'therr-js-utilities/constants';
 import { passthroughAndLogErrors, sanitizeMaxBudget } from './utils';
 
-// TODO: ...add more mapping logic
 const assetGoalToOptimizationMap = {
-    [CampaignAdGoals.CLICKS]: 'POST_ENGAGEMENT',
-    [CampaignAdGoals.ENGAGEMENT]: 'POST_ENGAGEMENT',
-    [CampaignAdGoals.IMPRESSIONS]: 'POST_ENGAGEMENT',
+    [CampaignAdGoals.CLICKS]: 'LINK_CLICKS',
+    [CampaignAdGoals.ENGAGEMENT]: 'PAGE_LIKES',
+    [CampaignAdGoals.IMPRESSIONS]: 'IMPRESSIONS',
     [CampaignAdGoals.LIKES]: 'POST_ENGAGEMENT',
+    [CampaignAdGoals.REACH]: 'REACH',
 };
 
-// TODO: ...add more mapping logic
 // enum {APP_INSTALLS, CLICKS, IMPRESSIONS, LINK_CLICKS, NONE, OFFER_CLAIMS, PAGE_LIKES, POST_ENGAGEMENT, THRUPLAY, PURCHASE, LISTING_INTERACTION}
 const campaignTypeToBillingEventMap = {
     [CampaignTypes.AWARENESS]: 'IMPRESSIONS',
-    [CampaignTypes.ACQUISITION]: 'IMPRESSIONS',
-    [CampaignTypes.ENGAGEMENT]: 'IMPRESSIONS',
+    [CampaignTypes.ACQUISITION]: 'LINK_CLICKS',
+    [CampaignTypes.ENGAGEMENT]: 'PAGE_LIKES',
     [CampaignTypes.LOCAL]: 'IMPRESSIONS',
-    [CampaignTypes.LEADS]: 'IMPRESSIONS',
-    [CampaignTypes.SALES]: 'IMPRESSIONS',
+    [CampaignTypes.LEADS]: 'LINK_CLICKS',
+    [CampaignTypes.SALES]: 'LINK_CLICKS',
 };
 
 const getStatusForIntegrationAd = (campaignStatus?: CampaignStatuses) => {

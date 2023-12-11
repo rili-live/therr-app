@@ -3,6 +3,7 @@ enum CampaignAdGoals {
   IMPRESSIONS = 'impressions',
   LIKES = 'likes',
   ENGAGEMENT = 'engagement',
+  REACH = 'reach'
 }
 
 export default CampaignAdGoals;
