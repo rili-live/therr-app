@@ -24,7 +24,7 @@ import withNavigation from '../wrappers/withNavigation';
 import { getWebsiteName } from '../utilities/getHostContext';
 import { shouldRenderLoginForm } from '../api/login';
 import { routeAfterLogin } from './Login';
-import { CAMPAIGN_DRAFT_KEY } from './CreateEditCampaign';
+import { CAMPAIGN_DRAFT_KEY } from './Campaigns/CreateEditCampaign';
 
 const BgImage = '/assets/img/illustrations/signin-v2.svg';
 

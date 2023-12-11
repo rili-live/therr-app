@@ -337,7 +337,7 @@ export class BaseDashboardComponent extends React.Component<IBaseDashboardProps,
 
         return UsersService.isAuthorized(
             {
-                type: AccessCheckType.ALL,
+                type: AccessCheckType.ANY,
                 levels: [
                     AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
                     AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
