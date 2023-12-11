@@ -2,15 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import moment, { Moment } from 'moment';
 import {
-    faAngleDown, faAngleUp, faClock, faEdit, faEllipsisH, faEye, faPause, faPlay, faStop, faTimes, faTrashAlt,
+    faAngleDown, faAngleUp, faChartBar, faClock, faEdit, faEllipsisH, faEye, faPause, faPlay, faStop, faTimes, faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     Button, ButtonGroup, Card, Dropdown, Image, Table,
 } from 'react-bootstrap';
 import { CampaignStatuses } from 'therr-js-utilities/constants';
-import { ICampaign, ISpace } from '../../types';
-import * as globalConfig from '../../../../global-config';
+import { ICampaign, ISpace } from '../../../types';
+import * as globalConfig from '../../../../../global-config';
 
 const ValueChange = ({ value, suffix }: any) => {
     const valueIcon = value < 0 ? faAngleDown : faAngleUp;
@@ -96,6 +96,7 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
             updatedAt,
         } = campaign;
         const campaignEditPath = editContext === 'admin' ? `/campaigns/${id}/edit/${editContext}?stage=1` : `/campaigns/${id}/edit?stage=1`;
+        const campaignResultsPath = editContext === 'admin' ? `/campaigns/${id}/view-results/${editContext}?stage=1` : `/campaigns/${id}/view-results?stage=1`;
 
         return (
             <tr>
@@ -112,6 +113,9 @@ const CampaignsListTable = ({ campaignsInView, editContext, isLoading }: ICampai
                             </Dropdown.Item> */}
                             <Dropdown.Item as={Link} to={campaignEditPath}>
                                 <FontAwesomeIcon icon={faEdit} className="me-2" /> Edit
+                            </Dropdown.Item>
+                            <Dropdown.Item as={Link} to={campaignResultsPath}>
+                                <FontAwesomeIcon icon={faChartBar} className="me-2" /> View Results
                             </Dropdown.Item>
                             {/* <Dropdown.Item className="text-danger">
                                 <FontAwesomeIcon icon={faTrashAlt} className="me-2" /> Delete?

@@ -20,10 +20,11 @@ import AdminAcquisitionOverview from './CustomerAcquisition/AdminAcquisitionOver
 import CampaignsOverview from './Campaigns/CampaignsOverview';
 import AdminCampaignsOverview from './Campaigns/AdminCampaignsOverview';
 import CreateUserProfile from './CreateUserProfile';
-import CreateEditCampaign from './CreateEditCampaign';
+import CreateEditCampaign from './Campaigns/CreateEditCampaign';
 import InfluencerPairings from './InfluencerPairings';
 import OAuth2Landing from './OAuth2Landing';
 import PaymentComplete from './PaymentComplete';
+import CampaignPerformance from './Campaigns/CampaignPerformance';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -136,6 +137,28 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/campaigns/:campaignId/edit/:context',
         element: <AuthRoute
             component={CreateEditCampaign}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/campaigns/:campaignId/view-results',
+        element: <AuthRoute
+            component={CampaignPerformance}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/campaigns/:campaignId/view-results/:context',
+        element: <AuthRoute
+            component={CampaignPerformance}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
