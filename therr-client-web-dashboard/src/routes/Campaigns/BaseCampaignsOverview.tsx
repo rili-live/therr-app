@@ -15,7 +15,7 @@ import { CampaignActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 import PricingCards from '../../components/PricingCards';
-import CampaignsListTable from './CampaignsListTable';
+import CampaignsListTable from './components/CampaignsListTable';
 import { ICampaign } from '../../types';
 import ManageCampaignsMenu from '../../components/ManageCampaignsMenu';
 

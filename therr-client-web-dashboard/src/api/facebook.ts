@@ -43,9 +43,20 @@ const getMyIGAccounts = (fbPageAccessToken, fbPageId) => axios({
     },
 }));
 
+const getCampaignResults = (accessToken, adAccountId, campaignId) => axios({
+    method: 'get',
+    // eslint-disable-next-line max-len
+    url: `https://graph.facebook.com/v18.0/${adAccountId}/insights?breakdowns=publisher_platform&fields=ad_id,clicks,unique_clicks,cpm,impressions,reach,spend&default_summary=true&date_preset=maximum&filtering=[{field: "campaign.id",operator:"IN", value: ['${campaignId}']},{"field":"publisher_platform","operator":"CONTAIN","value":"facebook"}]&access_token=${accessToken}`,
+}).then(({ data }) => data).catch((err) => ({
+    data: {
+        errors: err.response?.data?.error,
+    },
+}));
+
 export {
     getMe,
     getMyAccounts,
     getMyAdAccounts,
     getMyIGAccounts,
+    getCampaignResults
 };

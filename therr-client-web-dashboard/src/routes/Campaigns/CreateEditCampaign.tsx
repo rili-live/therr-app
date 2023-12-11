@@ -22,15 +22,15 @@ import {
     AccessLevels, OAuthIntegrationProviders, CampaignAssetTypes, CampaignStatuses, CampaignTypes, CampaignAdGoals,
 } from 'therr-js-utilities/constants';
 import { v4 as uuidv4 } from 'uuid';
-import * as facebook from '../api/facebook';
-import translator from '../services/translator';
-import withNavigation from '../wrappers/withNavigation';
-import EditCampaignForm, { isAdsProviderAuthenticated } from '../components/forms/EditCampaignForm';
-import { getWebsiteName } from '../utilities/getHostContext';
-import ManageCampaignsMenu from '../components/ManageCampaignsMenu';
-import { ICampaignAsset } from '../types';
-import { signAndUploadImage } from '../utilities/media';
-import { onFBLoginPress } from '../api/login';
+import * as facebook from '../../api/facebook';
+import translator from '../../services/translator';
+import withNavigation from '../../wrappers/withNavigation';
+import EditCampaignForm, { isAdsProviderAuthenticated } from '../../components/forms/EditCampaignForm';
+import { getWebsiteName } from '../../utilities/getHostContext';
+import ManageCampaignsMenu from '../../components/ManageCampaignsMenu';
+import { ICampaignAsset } from '../../types';
+import { signAndUploadImage } from '../../utilities/media';
+import { onFBLoginPress } from '../../api/login';
 
 export const CAMPAIGN_DRAFT_KEY = 'therrCampaignDraft';
 const DEFAULT_MAX_BUDGET = 100;
@@ -913,13 +913,12 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
 
         return UsersService.isAuthorized(
             {
-                type: AccessCheckType.ALL,
+                type: AccessCheckType.ANY,
                 levels: [
                     AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
                     AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
                     AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
                     AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY],
-                isPublic: true,
             },
             user,
         );
@@ -948,7 +947,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         } = partitionAdGroups(campaign);
 
         return (
-            <div id="page_settings" className="flex-box column">
+            <div id="page_campaign_edit" className="flex-box column">
                 <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
                     <ManageCampaignsMenu
                         navigateHandler={this.navigateHandler}

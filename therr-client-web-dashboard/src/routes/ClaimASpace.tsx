@@ -265,7 +265,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
 
         return UsersService.isAuthorized(
             {
-                type: AccessCheckType.ALL,
+                type: AccessCheckType.ANY,
                 levels: [
                     AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
                     AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,

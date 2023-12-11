@@ -129,6 +129,9 @@
     "createACampaign": {
       "pageTitle": "Create/Edit Campaign"
     },
+    "campaignPerformance": {
+      "pageTitle": "Campaign Performance"
+    },
     "editSpace": {
       "pageTitle": "Create/Edit Space"
     },
