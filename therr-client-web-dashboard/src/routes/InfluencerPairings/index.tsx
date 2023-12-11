@@ -42,6 +42,7 @@ import { DEFAULT_COORDINATES, DEFAULT_QUERY_LOCALES } from '../../constants/Loca
 import { getWebsiteName } from '../../utilities/getHostContext';
 import UsersActions from '../../redux/actions/UsersActions';
 import * as globalConfig from '../../../../global-config';
+import PricingCards from '../../components/PricingCards';
 
 const ItemsPerPage = 50;
 
@@ -372,13 +373,12 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
 
         return UsersService.isAuthorized(
             {
-                type: AccessCheckType.ALL,
+                type: AccessCheckType.ANY,
                 levels: [
-                    AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+                    // AccessLevels.DASHBOARD_SUBSCRIBER_BASIC, // Basic package does not include influencer pairings at this time
                     AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
                     AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
                     AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY],
-                isPublic: true,
             },
             user,
         );
@@ -396,93 +396,110 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
         } = this.state;
         const { map, routeParams, user } = this.props;
         const influencerPairings: any[] = Object.values(user.influencerPairings || {});
+        const isSubscriber = this.isSubscribed();
 
         return (
             <div id="page_settings" className="flex-box column">
-                <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
-                    {/* <ManageSpacesMenu
-                        navigateHandler={this.navigateHandler}
-                        user={user}
-                    /> */}
+                {
+                    isSubscriber
+                        && <>
+                            <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+                                {/* <ManageSpacesMenu
+                                    navigateHandler={this.navigateHandler}
+                                    user={user}
+                                /> */}
 
-                    {/* <ButtonGroup className="mb-2 mb-md-0">
-                        {
-                            pagination.pageNumber > 1
-                                && <Button onClick={this.onPageBack} variant="outline-primary" size="sm">
-                                    <FontAwesomeIcon icon={faChevronLeft} className="me-2" /> Prev. Page
-                                </Button>
-                        }
-                        {
-                            spacesInView.length === ItemsPerPage
-                                && <Button onClick={this.onPageForward} variant="outline-primary" size="sm">
-                                    Next Page <FontAwesomeIcon icon={faChevronRight} className="me-2" />
-                                </Button>
-                        }
-                    </ButtonGroup> */}
-                </div>
+                                {/* <ButtonGroup className="mb-2 mb-md-0">
+                                    {
+                                        pagination.pageNumber > 1
+                                            && <Button onClick={this.onPageBack} variant="outline-primary" size="sm">
+                                                <FontAwesomeIcon icon={faChevronLeft} className="me-2" /> Prev. Page
+                                            </Button>
+                                    }
+                                    {
+                                        spacesInView.length === ItemsPerPage
+                                            && <Button onClick={this.onPageForward} variant="outline-primary" size="sm">
+                                                Next Page <FontAwesomeIcon icon={faChevronRight} className="me-2" />
+                                            </Button>
+                                    }
+                                </ButtonGroup> */}
+                            </div>
 
-                <Row className="d-flex justify-content-around align-items-center py-4">
-                    <Col xs={12} xl={12} xxl={10}>
-                        <h1 className="text-center">Local Influencer Pairings (Coming soon!)</h1>
-                        {
-                            isLoading
-                                && <h3 className="text-center mt-5">Loading...</h3>
-                        }
-                        {
-                            !spacesInView?.length && !isLoading
-                                && <>
-                                    <p className="text-center mt-1">
-                                        Claim a business space to start matching with local influencers today.
-                                    </p>
-                                    <div className="text-center mt-5">
-                                        <Button variant="secondary" onClick={this.navigateHandler('/claim-a-space')}>
-                                            <FontAwesomeIcon icon={faMapMarked} className="me-1" /> Claim a Business Location
-                                        </Button>
-                                    </div>
-                                </>
-                        }
-                        {
-                            (influencerPairings?.length > 0 && spacesInView?.length > 0 && !isLoading)
-                                && <Row className="mt-5 justify-content-center">
-                                    <Col md={12} lg={6}>
-                                        <ol>
-                                            {
-                                                influencerPairings.map((pairing) => (
-                                                    <li key={pairing.id}><a
-                                                        href={`${globalConfig[process.env.NODE_ENV].hostFull}/users/${pairing.id}`}
-                                                        rel="noreferrer"
-                                                        target="_blank">
-                                                        Therr - {pairing.userName}
-                                                    </a> | {pairing.socialSyncs
-                                                        .map((sync, index) => (
-                                                            <React.Fragment key={sync.id}>
-                                                                <FontAwesomeIcon icon={getSocialIcon(sync.platform)} className="me-2" />
-                                                                <a href={sync.link} rel="noreferrer" target="_blank">
-                                                                    {sync.displayName} - {sync.platformUsername}
-                                                                </a>
-                                                                {
-                                                                    index < pairing.socialSyncs.length - 1
-                                                                    && <span> | </span>
-                                                                }
-                                                            </React.Fragment>
-                                                        ))}
-                                                    </li>
-                                                ))
-                                            }
-                                        </ol>
-                                    </Col>
-                                </Row>
-                        }
-                        {
-                            !influencerPairings?.length && spacesInView?.length > 0 && !isLoading
-                                && <>
-                                    <h3 className="text-center mt-5">
-                                        <FontAwesomeIcon icon={faSearch} className="me-2" />We Found 0 Influencers Related To Your Business Locations
-                                    </h3>
-                                </>
-                        }
-                    </Col>
-                </Row>
+                            <Row className="d-flex justify-content-around align-items-center py-4">
+                                <Col xs={12} xl={12} xxl={10}>
+                                    <h1 className="text-center">Local Influencer Pairings</h1>
+                                    {
+                                        isLoading
+                                            && <h3 className="text-center mt-5">Loading...</h3>
+                                    }
+                                    {
+                                        !spacesInView?.length && !isLoading
+                                            && <>
+                                                <p className="text-center mt-1">
+                                                    Claim a business space to start matching with local influencers today.
+                                                </p>
+                                                <div className="text-center mt-5">
+                                                    <Button variant="secondary" onClick={this.navigateHandler('/claim-a-space')}>
+                                                        <FontAwesomeIcon icon={faMapMarked} className="me-1" /> Claim a Business Location
+                                                    </Button>
+                                                </div>
+                                            </>
+                                    }
+                                    {
+                                        (influencerPairings?.length > 0 && spacesInView?.length > 0 && !isLoading)
+                                            && <Row className="mt-5 justify-content-center">
+                                                <Col md={12} lg={6}>
+                                                    <ol>
+                                                        {
+                                                            influencerPairings.map((pairing) => (
+                                                                <li key={pairing.id}><a
+                                                                    href={`${globalConfig[process.env.NODE_ENV].hostFull}/users/${pairing.id}`}
+                                                                    rel="noreferrer"
+                                                                    target="_blank">
+                                                                    Therr - {pairing.userName}
+                                                                </a> | {pairing.socialSyncs
+                                                                    .map((sync, index) => (
+                                                                        <React.Fragment key={sync.id}>
+                                                                            <FontAwesomeIcon icon={getSocialIcon(sync.platform)} className="me-2" />
+                                                                            <a href={sync.link} rel="noreferrer" target="_blank">
+                                                                                {sync.displayName} - {sync.platformUsername}
+                                                                            </a>
+                                                                            {
+                                                                                index < pairing.socialSyncs.length - 1
+                                                                                && <span> | </span>
+                                                                            }
+                                                                        </React.Fragment>
+                                                                    ))}
+                                                                </li>
+                                                            ))
+                                                        }
+                                                    </ol>
+                                                </Col>
+                                            </Row>
+                                    }
+                                    {
+                                        !influencerPairings?.length && spacesInView?.length > 0 && !isLoading
+                                            && <>
+                                                <h3 className="text-center mt-5">
+                                                    <FontAwesomeIcon icon={faSearch} className="me-2" />
+                                                    We Found 0 Influencers Related To Your Business Location(s)
+                                                </h3>
+                                            </>
+                                    }
+                                </Col>
+                            </Row>
+                        </>
+                }
+                {
+                    !isSubscriber
+                        && <div className="d-flex align-items-center">
+                            <Row className="justify-content-md-center">
+                                <Col xs={12} className="mb-4 d-sm-block">
+                                    <PricingCards eventSource="influencer-pairings" />
+                                </Col>
+                            </Row>
+                        </div>
+                }
                 <ToastContainer className="p-3" position={'bottom-end'}>
                     <Toast bg={alertVariation} show={alertIsVisible && !!alertMessage} onClose={() => this.toggleAlert(false)}>
                         <Toast.Header>
