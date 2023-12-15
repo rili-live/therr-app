@@ -241,6 +241,12 @@ export default class SpacesStore {
         returningMod = overrides?.shouldLimitDetail
             ? ['id', 'addressReadable', 'category', 'websiteUrl', 'notificationMsg']
             : returningMod;
+        const firstWhere: any = {
+            isMatureContent: false, // content that has been blocked
+        };
+        if (conditions.filterBy !== 'isClaimPending') {
+            firstWhere.isClaimPending = false; // hide pending claim requests
+        }
         let queryString: any = knexBuilder
             .select(returningMod)
             .from(SPACES_TABLE_NAME)
@@ -248,14 +254,17 @@ export default class SpacesStore {
             // .orderBy(`${SPACES_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)) // eslint-disable-line quotes, max-len
-            .andWhere({
-                isClaimPending: false, // hide pending claim requests
-                isMatureContent: false, // content that has been blocked
-            });
+            .andWhere(firstWhere);
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq
             const operator = conditions.filterOperator || '=';
-            const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
+            let query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
+            if (query === 'true') {
+                query = true;
+            }
+            if (query === 'false') {
+                query = false;
+            }
 
             if (conditions.filterBy === 'fromUserIds') {
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
@@ -519,6 +528,7 @@ export default class SpacesStore {
                 message: params.message,
                 category: params.category,
                 isMatureContent: params.isMatureContent || isTextMature ? true : undefined,
+                isClaimPending: params.isClaimPending,
                 isPublic: params.isMatureContent === true ? true : undefined, // NOTE: For now make this content private to reduce public, mature content
                 featuredIncentiveKey: params.featuredIncentiveKey,
                 featuredIncentiveValue: params.featuredIncentiveValue,

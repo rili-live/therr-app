@@ -228,6 +228,16 @@ class MapsService {
         });
     };
 
+    approveClaim = (spaceId: string) => {
+        const url = `/maps-service/spaces/request-approve/${spaceId}`;
+
+        return axios({
+            method: 'post',
+            url,
+            data: {},
+        });
+    };
+
     // Map Metrics
     getSpaceEngagement = (spaceId: string, args: IGetSpaceEngagementArgs) => {
         const url = `/maps-service/space-metrics/${spaceId}/engagement?startDate=${args.startDate}&endDate=${args.endDate}`;

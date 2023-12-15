@@ -21,6 +21,8 @@ import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
 import { getAccessForCodeType } from '../store/InviteCodesStore';
 import sendAdminUrgentErrorEmail from '../api/email/admin/sendAdminUrgentErrorEmail';
+import sendClaimPendingReviewEmail from '../api/email/for-business/sendClaimPendingReviewEmail';
+import sendClaimApprovedEmail from '../api/email/for-business/sendClaimApprovedEmail';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => {
@@ -1096,6 +1098,7 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
         longitude,
         latitude,
         title,
+        notificationMsg,
         description,
     } = req.body;
 
@@ -1108,18 +1111,25 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
                     statusCode: 404,
                 });
             }
-
-            return sendSpaceClaimRequestEmail({
-                subject: '[Urgent Request] User Claimed a Space',
-                toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-            }, {
-                address,
-                longitude,
-                latitude,
-                title,
-                description,
-                userId,
-            }).then(() => users[0]);
+            return Promise.all([
+                sendClaimPendingReviewEmail({
+                    subject: 'Business Space Request in Review',
+                    toAddresses: [users[0].email],
+                }, {
+                    spaceName: title || notificationMsg,
+                }),
+                sendSpaceClaimRequestEmail({
+                    subject: '[Urgent Request] User Claimed a Space',
+                    toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                }, {
+                    address,
+                    longitude,
+                    latitude,
+                    title: title || notificationMsg,
+                    description,
+                    userId,
+                }),
+            ]).then(() => users[0]);
         })
         .then((user) => res.status(200).send({
             message: 'Request sent to admin',
@@ -1127,6 +1137,53 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
                 accessLevels: user.accessLevels,
                 isBusinessAccount: user.isBusinessAccount,
                 email: user.email,
+            },
+        }))
+        .catch((err) => handleHttpError({
+            err,
+            res,
+            message: 'SQL:USER_ROUTES:ERROR',
+        }));
+};
+
+const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const userId = req.headers['x-userid'];
+    // TODO: Supply user agent to determine if web or mobile
+    const {
+        address,
+        longitude,
+        latitude,
+        title,
+        notificationMsg,
+        description,
+        id: spaceId,
+        fromUserId,
+        requestedByUserId,
+    } = req.body;
+
+    return Store.users.getUserById(requestedByUserId || fromUserId)
+        .then((users) => {
+            if (!users.length) {
+                return handleHttpError({
+                    res,
+                    message: 'User not found',
+                    statusCode: 404,
+                });
+            }
+
+            return sendClaimApprovedEmail({
+                subject: 'Approved: Business Space Request',
+                toAddresses: [users[0].email],
+            }, {
+                spaceName: title || notificationMsg,
+                spaceId,
+            }).then(() => users[0]);
+        })
+        .then((user) => res.status(200).send({
+            message: 'Request approved by admin',
+            user: {
+                id: user.id,
             },
         }))
         .catch((err) => handleHttpError({
@@ -1158,4 +1215,5 @@ export {
     verifyUserAccount,
     resendVerification,
     requestSpace,
+    approveSpaceRequest,
 };

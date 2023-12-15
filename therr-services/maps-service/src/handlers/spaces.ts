@@ -289,6 +289,8 @@ const getSpaceDetails = (req, res) => {
 const searchSpaces: RequestHandler = async (req: any, res: any) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
+    const userAccessLevels = req.headers['x-user-access-levels'];
+    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
     const shouldLimitDetail = !authorization || req.path === '/list';
     const {
         // filterBy,
@@ -304,7 +306,16 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
 
     const integerColumns = ['maxViews', 'longitude', 'latitude'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    let fromUserIds;
+
+    if (searchArgs[0].filterBy === 'isClaimPending' && searchArgs[0].query === 'true' && !accessLevels.includes(AccessLevels.SUPER_ADMIN)) {
+        return {
+            data: {
+                results: [],
+            },
+        };
+    }
+
+    let fromUserIds: any[] = [];
     if (query === 'me') {
         fromUserIds = [userId];
     } else if (query === 'connections') {
@@ -652,6 +663,94 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
+/**
+ * Admin endpoint to enable pending space claims. Also sends email to requestor.
+ */
+const approveSpaceRequest: RequestHandler = async (req: any, res: any) => {
+    const authorization = req.headers.authorization;
+    const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const userAccessLevels = req.headers['x-user-access-levels'];
+    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const { spaceId } = req.params;
+
+    if (!accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.accessDenied'),
+            statusCode: 403,
+            errorCode: ErrorCodes.ACCESS_DENIED,
+        });
+    }
+
+    return Store.spaces.getByIdSimple(spaceId).then((([space]) => {
+        if (!space) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'spaces.notFound'),
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            });
+        }
+
+        return axios({
+            method: 'post',
+            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/request-approve/${spaceId}`,
+            headers: {
+                authorization,
+                'x-localecode': locale,
+                'x-userid': userId,
+            },
+            data: {
+                ...space,
+            },
+        })
+            .then(({ data }) => Store.spaces.updateSpace(space.id, {
+                fromUserId: space.fromUserId,
+                isClaimPending: false,
+            })).then(([updatedSpace]) => {
+                logSpan({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Space Claimed'],
+                    traceArgs: {
+                        // TODO: Add a sentiment analysis score property
+                        action: 'claim-space',
+                        logCategory: 'user-sentiment',
+                        'user.locale': locale,
+                        'user.id': userId,
+                        'space.category': updatedSpace.category,
+                        'space.isPublic': updatedSpace.isPublic,
+                        'space.region': updatedSpace.region,
+                        'space.isClaimPending': updatedSpace.isClaimPending,
+                        'space.isMatureContent': updatedSpace.isMatureContent,
+                    },
+                });
+                return {
+                    updated: true,
+                    space: updatedSpace,
+                };
+            }).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['failed to update space after claim request approval'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'error.response': err?.response?.data,
+                        'user.locale': locale,
+                        'user.id': userId,
+                    },
+                });
+                return {
+                    updated: false,
+                    space,
+                };
+            })
+            .then((result) => res.status(200).send(result));
+    })).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+};
+
 // NOTE: This should remain a non-public endpoint
 const findSpaces: RequestHandler = async (req: any, res: any) => {
     // const userId = req.headers['x-userid'];
@@ -790,6 +889,7 @@ export {
     searchMySpaces,
     claimSpace,
     requestSpace,
+    approveSpaceRequest,
     findSpaces,
     getSignedUrlPrivateBucket,
     getSignedUrlPublicBucket,
