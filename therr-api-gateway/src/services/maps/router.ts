@@ -1,5 +1,6 @@
 import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
@@ -23,6 +24,7 @@ import {
 } from './validation/spaces';
 import CacheStore from '../../store';
 import authenticateOptional from '../../middleware/authenticateOptional';
+import authorize, { AccessCheckType } from '../../middleware/authorize';
 
 const mapsServiceRouter = express.Router();
 
@@ -203,6 +205,17 @@ mapsServiceRouter.post('/spaces/request-claim', createAreaValidation, validate, 
     method: 'post',
 }));
 mapsServiceRouter.post('/spaces/request-claim/:spaceId', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+mapsServiceRouter.post('/spaces/request-approve/:spaceId', validate, authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [
+            AccessLevels.SUPER_ADMIN,
+        ],
+    },
+), handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));

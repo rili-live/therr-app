@@ -150,17 +150,17 @@ const renderSpaceView = (req, res, config, {
     const spaceAddressStreet = space?.addressStreetAddress || '';
     const spacePostalCode = space?.postalCode || '';
     const spaceWebsiteUrl = space?.websiteUrl || '';
-    const spacePriceRange = space.priceRange || 0;
-    const spaceFoodGenre = space.foodStyle || '';
+    const spacePriceRange = space?.priceRange || 0;
+    const spaceFoodGenre = space?.foodStyle || '';
 
     let metaImgUrl;
 
-    const mediaId = (space.media && space.media[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
+    const mediaId = (space?.media && space?.media[0]?.id) || (space.mediaIds?.length && space?.mediaIds?.split(',')[0]);
     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-    const mediaPath = (space.media && space.media[0]?.path);
-    const mediaType = (space.media && space.media[0]?.type);
+    const mediaPath = (space?.media && space?.media[0]?.path);
+    const mediaType = (space?.media && space?.media[0]?.type);
     const spaceMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(space.media[0])
+        ? getUserContentUri(space?.media[0])
         : content?.media[mediaId];
 
     // TODO: Use an image optimized for meta image (ImageKit)
