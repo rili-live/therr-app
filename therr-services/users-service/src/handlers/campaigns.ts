@@ -91,6 +91,30 @@ const searchMyCampaigns = async (req, res) => {
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
 };
 
+const searchAllCampaigns = async (req, res) => {
+    const userId = req.headers['x-userid'];
+    const {
+        itemsPerPage,
+        pageNumber,
+    } = req.query;
+    const authorization = req.headers.authorization;
+    const locale = req.headers['x-localecode'] || 'en-us';
+
+    const integerColumns = [];
+    const searchArgs = getSearchQueryArgs(req.query, integerColumns);
+
+    return Store.campaigns.searchCampaigns(searchArgs[0], searchArgs[1], undefined).then((results) => {
+        const response = {
+            results,
+            pagination: {
+                itemsPerPage: Number(itemsPerPage),
+                pageNumber: Number(pageNumber),
+            },
+        };
+        return res.status(200).send(response);
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
+};
+
 // SAVE
 const createCampaign = async (req, res) => {
     const userId = req.headers['x-userid'];
@@ -439,6 +463,7 @@ const updateCampaign = async (req, res) => {
 export {
     createCampaign,
     searchMyCampaigns,
+    searchAllCampaigns,
     getCampaign,
     updateCampaign,
 };

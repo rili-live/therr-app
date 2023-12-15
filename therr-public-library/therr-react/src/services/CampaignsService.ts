@@ -25,6 +25,16 @@ class CampaignsService {
         });
     };
 
+    searchAllCampaigns = (query: ISearchQuery, data: any = {}) => {
+        const queryString = getSearchQueryString(query);
+
+        return axios({
+            method: 'post',
+            url: `/users-service/campaigns/search/all${queryString}`,
+            data,
+        });
+    };
+
     update = (id: any, data: any) => axios({
         method: 'put',
         url: `/users-service/campaigns/${id}`,
