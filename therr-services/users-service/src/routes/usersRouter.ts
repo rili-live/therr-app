@@ -20,6 +20,7 @@ import {
     verifyUserAccount,
     resendVerification,
     requestSpace,
+    approveSpaceRequest,
     updateLastKnownLocation,
 } from '../handlers/users';
 
@@ -57,5 +58,6 @@ router.post('/verify/resend', resendVerification);
 router.post('/verify/:token', verifyUserAccount);
 router.post('/request-space', requestSpace);
 router.post('/request-space/:spaceId', requestSpace);
+router.post('/request-approve/:spaceId', approveSpaceRequest);
 
 export default router;
