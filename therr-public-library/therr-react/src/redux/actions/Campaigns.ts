@@ -29,6 +29,8 @@ const Campaigns = {
 
             return response?.data;
         }),
+    searchAllCampaigns: (query: ISearchQuery, data: any = {}) => (dispatch: any) => CampaignsService.searchAllCampaigns(query, data)
+        .then((response: any) => response?.data),
     update: (id: string, campaignDetails: any) => (dispatch: any) => CampaignsService.update(id, campaignDetails).then((response: any) => {
         dispatch({
             type: CampaignActionTypes.UPDATE_CAMPAIGN,

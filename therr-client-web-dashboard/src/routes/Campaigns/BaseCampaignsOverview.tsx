@@ -28,6 +28,7 @@ interface IBaseCampaignsOverviewRouterProps {
 
 interface IBaseCampaignsOverviewDispatchProps {
     searchMyCampaigns: Function;
+    searchAllCampaigns: Function;
 }
 
 interface IStoreProps extends IBaseCampaignsOverviewDispatchProps {
@@ -52,6 +53,7 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     searchMyCampaigns: CampaignActions.searchMyCampaigns,
+    searchAllCampaigns: CampaignActions.searchAllCampaigns,
 }, dispatch);
 
 /**
@@ -79,12 +81,14 @@ export class BaseCampaignsOverviewComponent extends React.Component<IBaseCampaig
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
 
     fetchCampaigns = () => {
-        const { searchMyCampaigns } = this.props;
+        const { searchMyCampaigns, searchAllCampaigns, isSuperAdmin } = this.props;
         this.setState({
             isLoadingCampaigns: true,
         });
 
-        searchMyCampaigns({
+        const searchMethod = isSuperAdmin ? searchAllCampaigns : searchMyCampaigns;
+
+        searchMethod({
             itemsPerPage: 50,
             pageNumber: 1,
             order: 'desc',

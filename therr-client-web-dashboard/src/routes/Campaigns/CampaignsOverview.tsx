@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { MapsService, UsersService } from 'therr-react/services';
-import { IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
+import { IUserState, AccessCheckType } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
@@ -16,7 +16,6 @@ interface ICampaignsOverviewDispatchProps {
 
 interface IStoreProps extends ICampaignsOverviewDispatchProps {
     user: IUserState;
-    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
@@ -34,7 +33,6 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createUserConnection: UserConnectionsActions.create,
-    searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
 const fetchMySpaces = () => MapsService.searchMySpaces({
@@ -67,21 +65,8 @@ export class CampaignsOverviewComponent extends React.Component<ICampaignsOvervi
     componentDidMount() {
         const {
             user,
-            userConnections,
         } = this.props;
         document.title = `${getWebsiteName()} | ${this.translate('pages.campaignsOverview.pageTitle')}`;
-
-        if (!userConnections.connections.length) {
-            this.props.searchUserConnections({
-                filterBy: 'acceptingUserId',
-                query: user.details.id,
-                itemsPerPage: 50,
-                pageNumber: 1,
-                orderBy: 'interactionCount',
-                order: 'desc',
-                shouldCheckReverse: true,
-            }, user.details.id).catch((err) => console.log(err));
-        }
     }
 
     getConnectionDetails = (connection) => {

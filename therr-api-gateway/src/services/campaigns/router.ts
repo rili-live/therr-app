@@ -33,6 +33,17 @@ campaignsServiceRouter.post('/search/me', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns`,
     method: 'post',
 }));
+campaignsServiceRouter.post('/search/all', validate, authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [
+            AccessLevels.SUPER_ADMIN,
+        ],
+    },
+), handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns`,
+    method: 'post',
+}));
 campaignsServiceRouter.put('/:id', validate, authorize(
     {
         type: AccessCheckType.ANY,
@@ -41,6 +52,17 @@ campaignsServiceRouter.put('/:id', validate, authorize(
             AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
             AccessLevels.DASHBOARD_SUBSCRIBER_PRO,
             AccessLevels.DASHBOARD_SUBSCRIBER_AGENCY,
+        ],
+    },
+), handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns`,
+    method: 'put',
+}));
+campaignsServiceRouter.put('/:id/status', validate, authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [
+            AccessLevels.SUPER_ADMIN,
         ],
     },
 ), handleServiceRequest({

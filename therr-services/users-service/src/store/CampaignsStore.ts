@@ -92,7 +92,7 @@ export default class CampaignsStore {
     }
 
     // eslint-disable-next-line default-param-last
-    searchCampaigns(conditions: any = {}, returning: any, creatorId, overrides: any = {}) {
+    searchCampaigns(conditions: any = {}, returning: any, creatorId?, overrides: any = {}) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
 
@@ -117,18 +117,21 @@ export default class CampaignsStore {
                 `${CAMPAIGNS_TABLE_NAME}.createdAt`,
                 `${CAMPAIGNS_TABLE_NAME}.updatedAt`,
             ])
-            .from(CAMPAIGNS_TABLE_NAME)
-            .where(`${CAMPAIGNS_TABLE_NAME}.creatorId`, '=', creatorId);
+            .from(CAMPAIGNS_TABLE_NAME);
+
+        if (creatorId) {
+            queryString = queryString.where(`${CAMPAIGNS_TABLE_NAME}.creatorId`, '=', creatorId);
+        }
 
         if (overrides?.userOrganizations?.length) {
             queryString = queryString.orWhereIn('organizationId', overrides?.userOrganizations);
         }
 
-        // if (conditions.filterBy && conditions.query) {
-        //     const operator = conditions.filterOperator || '=';
-        //     const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
-        //     queryString = queryString.andWhere(conditions.filterBy, operator, query);
-        // }
+        if (conditions.filterBy && conditions.query) {
+            const operator = conditions.filterOperator || '=';
+            const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
+            queryString = queryString.andWhere(conditions.filterBy, operator, query);
+        }
 
         queryString = queryString.orderBy(`${CAMPAIGNS_TABLE_NAME}.updatedAt`, conditions.order || 'desc');
 
