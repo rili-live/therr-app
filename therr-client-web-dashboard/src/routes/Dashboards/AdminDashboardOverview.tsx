@@ -146,6 +146,7 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
         modifiedCampaigns.splice(campaignIndex, 1);
 
         CampaignsService.updateStatus(campaign.id, {
+            creatorId: campaign.creatorId,
             status: CampaignStatuses.ACTIVE,
         })
             .then(() => {

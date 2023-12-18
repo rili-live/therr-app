@@ -24,13 +24,17 @@ const campaignTypeToObjectiveMap = {
     [CampaignTypes.SALES]: 'OUTCOME_TRAFFIC',
 };
 
-const getStatusForIntegration = (campaignStatus?: CampaignStatuses) => {
+const getStatusForIntegration = (campaignStatus?: CampaignStatuses, isAdmin = false) => {
     if (campaignStatus === CampaignStatuses.PAUSED || !campaignStatus) {
         return 'PAUSED'; // TODO
     }
 
     if (campaignStatus === CampaignStatuses.REMOVED) {
         return 'PAUSED';
+    }
+
+    if (isAdmin && campaignStatus === CampaignStatuses.ACTIVE) {
+        return 'ACTIVE';
     }
 
     return 'PAUSED';
@@ -69,10 +73,10 @@ const updateCampaign = (adAccountId, accessToken, campaign: {
     title: string;
     maxBudget?: number;
     status?: CampaignStatuses;
-}) => {
+}, isAdmin = false) => {
     const params: any = {
         name: `[automated] ${campaign.title}`,
-        status: getStatusForIntegration(campaign.status),
+        status: getStatusForIntegration(campaign.status, isAdmin),
     };
 
     if (campaign.maxBudget) {
