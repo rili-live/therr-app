@@ -14,7 +14,7 @@ const isAdsProviderAuthenticated = (userIntegrationsAccess: {
         && userIntegrationsAccess[combinedTarget].user_access_token_expires_at > Date.now();
 };
 
-const createUpdateCampaignIntegrations = (campaignRequest, integrationsAccess) => {
+const createUpdateCampaignIntegrations = (campaignRequest, integrationsAccess, isAdmin = false) => {
     const {
         title,
         type,
@@ -48,6 +48,7 @@ const createUpdateCampaignIntegrations = (campaignRequest, integrationsAccess) =
                             ? CampaignStatuses.REMOVED
                             : status,
                     },
+                    isAdmin,
                 )
                 : facebook.createCampaign(
                     details?.adAccountId,
@@ -96,7 +97,7 @@ const createUpdateCampaignIntegrations = (campaignRequest, integrationsAccess) =
     return Promise.allSettled(integrationCampaignPromises);
 };
 
-const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, latestIntegrationDetails) => {
+const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, latestIntegrationDetails, isAdmin = false) => {
     const {
         adGroups,
         title,
@@ -159,6 +160,7 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
                     {
                         targetLocations,
                     },
+                    isAdmin,
                 );
             })).then((results) => {
                 const updatedAdGroups = results.map((result: any, index) => {
@@ -202,6 +204,7 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
                         {
                             id: adSetId,
                         },
+                        isAdmin,
                     ).then((response) => {
                         if (response?.data?.id) {
                             return {

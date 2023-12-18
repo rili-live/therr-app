@@ -20,13 +20,17 @@ const campaignTypeToBillingEventMap = {
     [CampaignTypes.SALES]: 'LINK_CLICKS',
 };
 
-const getStatusForIntegrationAd = (campaignStatus?: CampaignStatuses) => {
+const getStatusForIntegrationAd = (campaignStatus?: CampaignStatuses, isAdmin = false) => {
     if (campaignStatus === CampaignStatuses.PAUSED || !campaignStatus) {
         return 'PAUSED'; // TODO
     }
 
     if (campaignStatus === CampaignStatuses.REMOVED) {
         return 'PAUSED';
+    }
+
+    if (isAdmin && campaignStatus === CampaignStatuses.ACTIVE) {
+        return 'ACTIVE';
     }
 
     return 'PAUSED';
@@ -134,6 +138,7 @@ const updateAdSet = (
             longitude: number;
         }[];
     },
+    isAdmin = false,
 ) => {
     const params: any = {};
 
@@ -142,7 +147,7 @@ const updateAdSet = (
     }
 
     if (adSet.status) {
-        params.status = getStatusForIntegrationAd(adSet.status);
+        params.status = getStatusForIntegrationAd(adSet.status, isAdmin);
     }
 
     if (campaign?.scheduleStopAt) {
@@ -201,6 +206,7 @@ const createAd = (
         linkUrl?: string;
         headline?: string;
     },
+    isAdmin = false,
 ) => {
     if (!ad.linkUrl && !adSet.linkUrl) {
         console.error('Missing Link URL');
@@ -268,13 +274,14 @@ const updateAd = (
         linkUrl?: string;
         headline?: string;
     },
+    isAdmin = false,
 ) => axios({
     method: 'post',
     // eslint-disable-next-line max-len
     url: `https://graph.facebook.com/v18.0/${ad.id}?fields=id,status&access_token=${context.accessToken}`,
     params: {
         name: `[automated] ${ad.name}`,
-        status: getStatusForIntegrationAd(ad.status),
+        status: getStatusForIntegrationAd(ad.status, isAdmin),
         // creative: {
         //     object_story_spec: {
         //         page_id: context.pageId,
