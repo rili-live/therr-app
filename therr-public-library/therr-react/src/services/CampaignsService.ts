@@ -40,6 +40,12 @@ class CampaignsService {
         url: `/users-service/campaigns/${id}`,
         data,
     });
+
+    updateStatus = (id: any, data: any) => axios({
+        method: 'put',
+        url: `/users-service/campaigns/${id}/status`,
+        data,
+    });
 }
 
 export default new CampaignsService();

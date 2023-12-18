@@ -6,6 +6,7 @@ import {
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import { CampaignStatuses } from 'therr-js-utilities/constants';
 import { CampaignsService, MapsService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
@@ -144,7 +145,9 @@ export class AdminDashboardOverviewComponent extends React.Component<IAdminDashb
         const modifiedCampaigns = [...campaignsPendingReview];
         modifiedCampaigns.splice(campaignIndex, 1);
 
-        Promise.resolve(campaign.id)
+        CampaignsService.updateStatus(campaign.id, {
+            status: CampaignStatuses.ACTIVE,
+        })
             .then(() => {
                 this.setState({
                     campaignsPendingReview: modifiedCampaigns,

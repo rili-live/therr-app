@@ -460,10 +460,24 @@ const updateCampaign = async (req, res) => {
         });
 };
 
+const updateCampaignStatus = async (req, res) => {
+    const userId = req.headers['x-userid'];
+    const authorization = req.headers.authorization;
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const writeAccessOrgIds = getUserOrgsIdsFromHeaders(req.headers, 'write');
+
+    const {
+        status,
+    } = req.body;
+
+    return res.status(200).send({});
+};
+
 export {
     createCampaign,
     searchMyCampaigns,
     searchAllCampaigns,
     getCampaign,
     updateCampaign,
+    updateCampaignStatus,
 };

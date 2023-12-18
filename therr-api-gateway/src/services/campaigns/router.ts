@@ -58,5 +58,16 @@ campaignsServiceRouter.put('/:id', validate, authorize(
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns`,
     method: 'put',
 }));
+campaignsServiceRouter.put('/:id/status', validate, authorize(
+    {
+        type: AccessCheckType.ALL,
+        levels: [
+            AccessLevels.SUPER_ADMIN,
+        ],
+    },
+), handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/campaigns`,
+    method: 'put',
+}));
 
 export default campaignsServiceRouter;
