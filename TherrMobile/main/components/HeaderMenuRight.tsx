@@ -568,12 +568,12 @@ class HeaderMenuRight extends React.PureComponent<
                                             />
                                             <Button
                                                 buttonStyle={
-                                                    currentScreen === 'Contacts'
+                                                    currentScreen === 'Invite'
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons
                                                 }
                                                 titleStyle={
-                                                    currentScreen === 'Contacts'
+                                                    currentScreen === 'Invite'
                                                         ? themeMenu.styles.buttonsTitleActive
                                                         : themeMenu.styles.buttonsTitle
                                                 }
@@ -581,7 +581,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                 icon={
                                                     <TherrIcon
                                                         style={
-                                                            currentScreen === 'Contacts'
+                                                            currentScreen === 'Invite'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
@@ -590,9 +590,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                     />
                                                 }
                                                 iconRight
-                                                onPress={() => this.navTo('Contacts', {
-                                                    activeTab: 'invite',
-                                                })}
+                                                onPress={() => this.navTo('Invite')}
                                             />
                                             {/* <Button
                                                 buttonStyle={

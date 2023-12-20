@@ -18,14 +18,19 @@ import ConnectionItem from './components/ConnectionItem';
 import CreateConnectionButton from '../../components/CreateConnectionButton';
 import { RefreshControl } from 'react-native-gesture-handler';
 import LazyPlaceholder from './components/LazyPlaceholder';
-import CreateConnection from './components/CreateConnection';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import ListEmpty from '../../components/ListEmpty';
 import UsersActions from '../../redux/actions/UsersActions';
 import UserSearchItem from './components/UserSearchItem';
+import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 
 const { width: viewportWidth } = Dimensions.get('window');
 const DEFAULT_PAGE_SIZE = 50;
+const tabMap = {
+    0: PEOPLE_CAROUSEL_TABS.PEOPLE,
+    1: PEOPLE_CAROUSEL_TABS.GROUPS,
+    2: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
+};
 
 interface IContactsDispatchProps {
     createUserConnection: Function;
@@ -79,6 +84,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     private unsubscribeFocusListener;
     private peopleListRef;
     private connectionsListRef;
+    private groupsListRef;
 
     constructor(props) {
         super(props);
@@ -88,13 +94,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
         const { route } = props;
         let activeTabIndex = 0;
-        if (route.params?.activeTab === 'people') {
+        if (route.params?.activeTab === tabMap[0]) {
             activeTabIndex = 0;
         }
-        if (route.params?.activeTab === 'connections') {
+        if (route.params?.activeTab === tabMap[1]) {
             activeTabIndex = 1;
         }
-        if (route.params?.activeTab === 'invite') {
+        if (route.params?.activeTab === tabMap[2]) {
             activeTabIndex = 2;
         }
 
@@ -104,9 +110,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             isRefreshing: false,
             isRefreshingUserSearch: false,
             tabRoutes: [
-                { key: 'people', title: this.translate('menus.headerTabs.people') },
-                { key: 'connections', title: this.translate('menus.headerTabs.connections') },
-                { key: 'invite', title: this.translate('menus.headerTabs.invite') },
+                { key: PEOPLE_CAROUSEL_TABS.PEOPLE, title: this.translate('menus.headerTabs.people') },
+                { key: PEOPLE_CAROUSEL_TABS.GROUPS, title: this.translate('menus.headerTabs.groups') },
+                { key: PEOPLE_CAROUSEL_TABS.CONNECTIONS, title: this.translate('menus.headerTabs.connections') },
+                // { key: PEOPLE_CAROUSEL_TABS.INVITES, title: this.translate('menus.headerTabs.invite') },
             ],
         };
 
@@ -134,13 +141,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
             const { route } = this.props;
             let activeTabIndex = 0;
-            if (route.params?.activeTab === 'people') {
+            if (route.params?.activeTab === tabMap[0]) {
                 activeTabIndex = 0;
             }
-            if (route.params?.activeTab === 'connections') {
+            if (route.params?.activeTab === tabMap[1]) {
                 activeTabIndex = 1;
             }
-            if (route.params?.activeTab === 'invite') {
+            if (route.params?.activeTab === tabMap[2]) {
                 activeTabIndex = 2;
             }
 
@@ -294,9 +301,8 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     navToInvite = () => {
-        this.setState({
-            activeTabIndex: 2,
-        });
+        const { navigation } = this.props;
+        navigation.navigate('Invite');
     };
 
     scrollTop = () => {
@@ -304,6 +310,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
         if (userConnections.connections?.length) {
             this.connectionsListRef?.scrollToOffset({ animated: true, offset: 0 });
+        }
+        if (userConnections.groups?.length) {
+            this.groupsListRef?.scrollToOffset({ animated: true, offset: 0 });
         }
         if (Object.keys(user.users || {}).length) {
             this.peopleListRef?.scrollToOffset({ animated: true, offset: 0 });
@@ -317,6 +326,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             ?.filter(c => !activeConnections.find(a => a.id === c.requestingUserId || a.id === c.acceptingUserId)) || [];
 
         return activeConnections.concat(inactiveConnections);
+    };
+
+    sortGroups = (): any[] => {
+        return [];
     };
 
     renderTabBar = props => {
@@ -341,10 +354,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     renderSceneMap = ({ route }) => {
         const { isRefreshing, isRefreshingUserSearch } = this.state;
         const { user } = this.props;
-        const shouldLaunchContacts = this.props.route?.params?.shouldLaunchContacts;
 
         switch (route.key) {
-            case 'people':
+            case PEOPLE_CAROUSEL_TABS.PEOPLE:
                 const people: any[] = Object.values(user?.users || {});
 
                 return (
@@ -379,7 +391,42 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         ListFooterComponentStyle={{ marginBottom: 80 }}
                     />
                 );
-            case 'connections':
+            case PEOPLE_CAROUSEL_TABS.GROUPS:
+                const groups = this.sortGroups();
+
+                return (
+                    <FlatList
+                        ref={(component) => this.groupsListRef = component}
+                        data={groups}
+                        keyExtractor={(item) => String(item.id)}
+                        renderItem={({ item: group }) => (
+                            <ConnectionItem
+                                key={group.id}
+                                connectionDetails={this.getConnectionOrUserDetails(group)}
+                                getConnectionSubtitle={this.getConnectionSubtitle}
+                                goToViewUser={this.goToViewUser}
+                                isActive={group.isActive}
+                                onConnectionPress={this.onConnectionPress}
+                                theme={this.theme}
+                                translate={this.translate}
+                            />
+                        )}
+                        ListEmptyComponent={
+                            <View style={spacingStyles.marginHorizLg}>
+                                <ListEmpty iconName="group" theme={this.theme} text={this.translate(
+                                    'components.contactsSearch.noGroupsFound'
+                                )} />
+                            </View>
+                        }
+                        stickyHeaderIndices={[]}
+                        refreshControl={<RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={this.handleRefresh}
+                        />}
+                        onContentSizeChange={this.scrollTop}
+                    />
+                );
+            case PEOPLE_CAROUSEL_TABS.CONNECTIONS:
                 const connections = this.sortConnections();
 
                 return (
@@ -414,22 +461,15 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         onContentSizeChange={this.scrollTop}
                     />
                 );
-            case 'invite':
-                const { navigation } = this.props;
-
-                return (
-                    <CreateConnection
-                        navigation={navigation}
-                        shouldLaunchContacts={shouldLaunchContacts}
-                        toggleNameConfirmModal={this.toggleNameConfirmModal}
-                    />
-                );
         }
     };
 
     render() {
         const { activeTabIndex, isNameConfirmModalVisible, tabRoutes } = this.state;
         const { navigation, user } = this.props;
+        const createButtonTitle = tabMap[activeTabIndex] === PEOPLE_CAROUSEL_TABS.GROUPS
+            ? this.translate('menus.connections.buttons.create')
+            : this.translate('menus.connections.buttons.invite');
 
         return (
             <>
@@ -472,7 +512,11 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     themeModal={this.themeConfirmModal}
                     themeButtons={this.themeButtons}
                 />
-                <CreateConnectionButton onPress={this.navToInvite} themeButtons={this.themeButtons} translate={this.translate} />
+                <CreateConnectionButton
+                    onPress={this.navToInvite}
+                    themeButtons={this.themeButtons}
+                    title={createButtonTitle}
+                />
                 <MainButtonMenu
                     activeRoute="Contacts"
                     navigation={navigation}

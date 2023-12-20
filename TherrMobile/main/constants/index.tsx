@@ -7,6 +7,18 @@ const CAROUSEL_TABS = {
     THOUGHTS: 'thoughts',
     NEWS: 'news',
 };
+const PEOPLE_CAROUSEL_TABS = {
+    PEOPLE: 'people',
+    GROUPS: 'groups',
+    CONNECTIONS: 'connections',
+};
+const PROFILE_CAROUSEL_TABS = {
+    THOUGHTS: 'people',
+    MEDIA: 'groups',
+    MOMENTS: 'moments',
+};
+
+const HAPTIC_FEEDBACK_TYPE = 'soft';
 
 // Area Constants
 const DEFAULT_RADIUS = 10;
@@ -91,6 +103,10 @@ const getAndroidChannel = (channelId: AndroidChannelIds, vibration = true): Andr
 export {
     // Carousel
     CAROUSEL_TABS,
+    PEOPLE_CAROUSEL_TABS,
+    PROFILE_CAROUSEL_TABS,
+
+    HAPTIC_FEEDBACK_TYPE,
 
     // Area
     DEFAULT_RADIUS,

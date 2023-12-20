@@ -22,6 +22,7 @@ module.exports = {
             pingTimeout: 1000 * 15,
             userSocketSessionExpire: 1000 * 60 * 30,
         },
+        superAdminId: '04e65180-3cff-48b1-988f-4b6e0ab25def',
     },
     production: {
         baseApiGatewayRoute: `https://api.${hostProd}/v1`,
@@ -41,5 +42,6 @@ module.exports = {
             pingTimeout: 1000 * 5,
             userSocketSessionExpire: 1000 * 60 * 30,
         },
+        superAdminId: '568bf5d2-8595-4fd6-95da-32cc318618d3',
     },
 };

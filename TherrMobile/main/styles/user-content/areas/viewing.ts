@@ -193,6 +193,10 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         areaDistance: {
             ...getAreaDistanceStyle(therrTheme, isDarkMode),
         },
+        areaDistanceCenter: {
+            ...getAreaDistanceStyle(therrTheme, isDarkMode),
+            textAlign: 'center',
+        },
         areaDistanceRight: {
             ...getAreaDistanceStyle(therrTheme, isDarkMode),
             textAlign: 'right',

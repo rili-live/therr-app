@@ -7,6 +7,7 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import TherrIcon from '../../components/TherrIcon';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
+import { HAPTIC_FEEDBACK_TYPE, PEOPLE_CAROUSEL_TABS } from '../../constants';
 // import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
 const hapticFeedbackOptions = {
@@ -22,7 +23,7 @@ class MainButtonMenuAlt extends ButtonMenu {
     }
 
     navTo = (routeName, params = {}) => {
-        ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+        ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
         const { navigation } = this.props;
 
         navigation.navigate(routeName, params);
@@ -64,7 +65,7 @@ class MainButtonMenuAlt extends ButtonMenu {
         const { navigation, user } = this.props;
         const currentScreen = this.getCurrentScreen();
 
-        ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+        ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
         if (currentScreen === 'ViewUser') {
             navigation.setParams({
@@ -235,7 +236,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                     }
                     onPress={() => {
                         this.navTo('Contacts', {
-                            activeTab: 'people',
+                            activeTab: PEOPLE_CAROUSEL_TABS.PEOPLE,
                         });
                         this.onNavPressDynamic('Contacts');
                     }}
@@ -255,7 +256,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                                 style={imageStyle}
                                 PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
                             />}
-                        onPress={() => this.goToMyProfile()}
+                        onPress={this.goToMyProfile}
                         title={translate('menus.main.buttons.profile')}
                         type="clear"
                     />

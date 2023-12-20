@@ -346,7 +346,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
             // const scopes = ['public_profile', 'instagram_basic', 'instagram_manage_insights', 'pages_show_list', 'pages_read_engagement'];
             const scopes = ['public_profile', 'instagram_basic', 'pages_show_list', 'pages_read_engagement'];
             // eslint-disable-next-line max-len
-            Linking.openURL(`https://www.facebook.com/v14.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`);
+            Linking.openURL(`https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`);
         }
     };
 

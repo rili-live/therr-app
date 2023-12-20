@@ -17,6 +17,7 @@ import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import { getUserImageUri } from '../../utilities/content';
 import TherrIcon from '../TherrIcon';
+import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 
 
 const hapticFeedbackOptions = {
@@ -100,7 +101,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
 
     onLikePress = (thought) => {
         if (!thought.isDraft) {
-            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+            ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateThoughtReaction, user } = this.props;
 
             // Only display on own user post

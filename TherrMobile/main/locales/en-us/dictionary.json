@@ -23,7 +23,8 @@
     "walkCloser": "Too Far Away",
     "nameUnknown": "Anonymous User",
     "newAreasActivated": "New Areas Activated",
-    "draftReminder": "✏️ Don't Forget Drafts ✏️"
+    "draftReminder": "✏️ Don't Forget Drafts ✏️",
+    "requestClaimSent": "Request Sent"
   },
   "alertMessages": {
     "codeSent": "Check your phone for a new verification code.",
@@ -43,7 +44,8 @@
     "pleaseTryAgain": "Connection error. Please try again later.",
     "walkCloser": "Walk closer to claim rewards. Check the map for details.",
     "newAreasActivated": "You recently activated {total} new moments/spaces.",
-    "draftReminder": "Did you remember to finish your drafted post?"
+    "draftReminder": "Did you remember to finish your drafted post?",
+    "requestClaimSent": "Check your e-mail for confirmation and next steps"
   },
   "quoteOfTheDay": "Quote of the Day",
   "dailyQuotes": [
@@ -175,6 +177,7 @@
     },
     "contactsSearch": {
       "noContactsFound": "No contacts found. Create a connection to get started",
+      "noGroupsFound": "No groups found. Create new connections to discover more",
       "noUsersFound": "No users found",
       "title": "All Contacts"
     },
@@ -279,7 +282,7 @@
       },
       "shareLink": {
         "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 https://www.therr.com/register?invite-code={inviteCode}",
-        "title": "Therr App | Nearby Newsfeed"
+        "title": "Therr App | Local Community & Rewards App"
       }
     },
     "createProfile": {
@@ -657,11 +660,12 @@
       "discoveries": "Moments",
       "moments": "Moments",
       "connections": "Connections",
+      "groups": "Groups",
       "people": "People",
       "search": "Search",
       "social": "Social",
       "events": "Events",
-      "invite": "Invites",
+      "invite": "+",
       "media": "Media",
       "news": "News",
       "thoughts": "Thoughts"
@@ -685,7 +689,7 @@
         "connect": "Connect",
         "bookmarked": "Saved",
         "goToTop": "Go To Top",
-        "list": "Discovered",
+        "list": "Discover",
         "map": "Map",
         "messages": "Messages",
         "nearby": "Nearby",
@@ -700,6 +704,7 @@
     "connections": {
       "buttons": {
         "add": "Invite",
+        "create": "Create",
         "activeConnections": "Active Connections",
         "invite": "Invite",
         "searchContacts": "Search Contacts",
@@ -823,6 +828,9 @@
       "headerTitle": "Claim a Space",
       "previewHeader": "Preview:"
     },
+    "invite": {
+      "headerTitle": "Invite"
+    },
     "requestSpace": {
       "headerTitle": "Request a Space",
       "previewHeader": "Preview:"
@@ -839,7 +847,8 @@
       "buttons": {
         "claimRewards": "Claim Rewards?",
         "coinReward": "Earn {count} TherrCoin(s)",
-        "coinRewardDollars": "Earn ~${amount}"
+        "coinRewardDollars": "Earn ~${amount}",
+        "claimThisBusiness": "Claim This Business?"
       },
       "h2": {
         "claimRewards": "Claim Your Rewards",
@@ -997,7 +1006,7 @@
       "noDraftsFound": "No drafts found. Save an in-progress post as a draft to edit later."
     },
     "nearby": {
-      "headerTitle": "Nearby Newsfeed",
+      "headerTitle": "Local Community & Rewards App",
       "locationDescription1": "See posts from nearby users in the local community where you currently are.",
       "locationDescription2": "Use the awareness and influence sliders to control content distance and your own visibility.",
       "locationDescription3": "Please enable location services to activate this feature."

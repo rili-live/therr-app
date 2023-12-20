@@ -36,6 +36,7 @@ import ThoughtOptionsModal, { ISelectionType } from '../components/Modals/Though
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import TherrIcon from '../components/TherrIcon';
 import RoundTextInput from '../components/Input/TextInput/Round';
+import { HAPTIC_FEEDBACK_TYPE } from '../constants';
 // import AccentInput from '../components/Input/Accent';
 
 const hapticFeedbackOptions = {
@@ -298,7 +299,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         };
 
         if (!this.isFormDisabled()) {
-            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+            ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
             this.setState({
                 isSubmitting: true,

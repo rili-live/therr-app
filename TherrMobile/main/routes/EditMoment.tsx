@@ -37,6 +37,7 @@ import {
     getAndroidChannel,
     AndroidChannelIds,
     PressActionIds,
+    HAPTIC_FEEDBACK_TYPE,
 } from '../constants';
 import Alert from '../components/Alert';
 import RoundInput from '../components/Input/Round';
@@ -354,7 +355,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         };
 
         if (!this.isFormDisabled()) {
-            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+            ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
             this.setState({
                 isSubmitting: true,

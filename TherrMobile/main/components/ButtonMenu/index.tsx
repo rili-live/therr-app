@@ -74,6 +74,9 @@ export class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuSta
         return this.getCurrentScreen();
     };
 
+    /**
+     * TODO: This seems to only get the previous state...
+     */
     getCurrentScreen = () => {
         const navState = this.props.navigation.getState();
 

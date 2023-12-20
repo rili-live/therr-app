@@ -16,8 +16,11 @@ import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import LottieView from 'lottie-react-native';
+import Toast from 'react-native-toast-message';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
+import { MapsService } from 'therr-react/services';
+import getConfig from '../../utilities/getConfig';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -31,12 +34,11 @@ import missingImageStorefront from '../../assets/missing-image-storefront.json';
 import missingImageIdea from '../../assets/missing-image-idea.json';
 import missingImageMusic from '../../assets/missing-image-music.json';
 import missingImageNature from '../../assets/missing-image-nature.json';
+import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 
+const envConfig = getConfig();
 const placeholderMedia = require('../../assets/placeholder-content-media.png');
-
-
 const { width: viewportWidth } = Dimensions.get('window');
-
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
     ignoreAndroidSystemSettings: false,
@@ -140,7 +142,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
     onLikePress = (area) => {
         if (!area.isDraft) {
-            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+            ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateAreaReaction, user } = this.props;
 
             // Only display on own user post
@@ -262,6 +264,18 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         );
     };
 
+    claimSpace = () => {
+        const { area, translate } = this.props;
+        MapsService.claimSpace(area.id).then(() => {
+            Toast.show({
+                type: 'success',
+                text1: translate('alertTitles.requestClaimSent'),
+                text2: translate('alertMessages.requestClaimSent'),
+                visibilityTime: 3500,
+            });
+        });
+    };
+
     render() {
         const {
             date,
@@ -279,6 +293,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             themeForms,
             themeViewArea,
             translate,
+            user,
         } = this.props;
         const { likeCount } = this.state;
 
@@ -332,7 +347,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             <>
                 <View style={themeViewArea.styles.areaAuthorContainer}>
                     {
-                        (isSpace && areaUserDetails?.userName === translate('alertTitles.nameUnknown'))
+                        // (isSpace && areaUserDetails?.userName === translate('alertTitles.nameUnknown'))
+                        isSpace
                             ? <View style={{ flex: 1 }} />
                             : <>
                                 <Pressable
@@ -571,8 +587,31 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     />
                 </View>
                 {
+                    isSpace
+                    && area.fromUserId === envConfig.superAdminId
+                    && area.fromUserId !== user?.details?.id
+                    && area.requestedByUserId !== user?.details?.id
+                    && user?.details?.isBusinessAccount &&
+                    <View>
+                        <Button
+                            titleStyle={themeForms.styles.buttonLink}
+                            title={translate('pages.viewSpace.buttons.claimThisBusiness')}
+                            type="clear"
+                            // icon={
+                            //     <FontAwesome5Icon
+                            //         name="sync"
+                            //         size={22}
+                            //         style={themeForms.styles.buttonIconAlt}
+                            //     />
+                            // }
+                            raised={false}
+                            onPress={this.claimSpace}
+                        />
+                    </View>
+                }
+                {
                     area.distance != null &&
-                    <Text style={themeViewArea.styles.areaDistance}>{`${area.distance}`}</Text>
+                    <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
                 }
             </>
         );

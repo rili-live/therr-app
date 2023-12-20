@@ -17,7 +17,7 @@ import Achievements from './Achievements';
 import AchievementClaim from './Achievements/AchievementClaim';
 import Areas from './Areas';
 import Contacts from './Contacts';
-import PhoneContacts from './Contacts/PhoneContacts';
+import PhoneContacts from './Invite/PhoneContacts';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
@@ -36,6 +36,7 @@ import EditThought from './EditThought';
 import EditChat from './HostedChat/EditChat';
 import ExchangePointsDisclaimer from './Rewards/ExchangePointsDisclaimer';
 import ViewChat from './HostedChat/ViewChat';
+import Invite from './Invite';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 
@@ -203,6 +204,17 @@ const routes: RouteConfig<
         component: Contacts,
         options: () => ({
             title: 'Contacts',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'Invite',
+        component: Invite,
+        options: () => ({
+            title: 'Invite',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

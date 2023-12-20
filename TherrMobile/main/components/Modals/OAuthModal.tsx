@@ -133,7 +133,7 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
 
         if (provider === 'facebook-instagram') {
             // eslint-disable-next-line max-len
-            authUrl = `https://www.facebook.com/v14.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
+            authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
         }
 
         return (
