@@ -62,9 +62,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         footer: {
             display: 'flex',
             flexDirection: 'row',
-            justifyContent: 'flex-end',
+            justifyContent: 'center',
             paddingHorizontal: 10,
-            paddingVertical: 4,
+            paddingTop: 10,
         },
         footerIconsContainer: {
             minWidth: 50,

@@ -3,13 +3,16 @@ import { Dimensions, FlatList, SafeAreaView, Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { UserConnectionsActions } from 'therr-react/redux/actions';
-import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import { ForumActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { IForumsState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { TabBar, TabView } from 'react-native-tab-view';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildTileStyles } from '../../styles/user-content/groups/chat-tiles';
+import { buildStyles as buildFormsStyles } from '../../styles/forms';
+import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import spacingStyles from '../../styles/layouts/spacing';
 import translator from '../../services/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -23,6 +26,8 @@ import ListEmpty from '../../components/ListEmpty';
 import UsersActions from '../../redux/actions/UsersActions';
 import UserSearchItem from './components/UserSearchItem';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
+import GroupTile from '../Groups/GroupTile';
+import ChatCategories from '../Groups/ChatCategories';
 
 const { width: viewportWidth } = Dimensions.get('window');
 const DEFAULT_PAGE_SIZE = 50;
@@ -35,12 +40,15 @@ const tabMap = {
 interface IContactsDispatchProps {
     createUserConnection: Function;
     logout: Function;
+    searchCategories: Function;
+    searchForums: Function;
     searchUserConnections: Function;
     searchUsers: Function;
     searchUpdateUser: Function;
 }
 
 interface IStoreProps extends IContactsDispatchProps {
+    forums: IForumsState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -52,14 +60,18 @@ export interface IContactsProps extends IStoreProps {
 }
 
 interface IContactsState {
+    categories: any[];
     isNameConfirmModalVisible: boolean;
     isRefreshing: boolean;
     isRefreshingUserSearch: boolean;
     activeTabIndex: number;
+    searchFilters: any;
     tabRoutes: { key: string; title: string }[];
+    toggleChevronName: 'chevron-down' | 'chevron-up',
 }
 
 const mapStateToProps = (state) => ({
+    forums: state.forums,
     user: state.user,
     userConnections: state.userConnections,
 });
@@ -68,6 +80,8 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             createUserConnection: UserConnectionsActions.create,
+            searchCategories: ForumActions.searchCategories,
+            searchForums: ForumActions.searchForums,
             searchUserConnections: UserConnectionsActions.search,
             searchUsers: UsersActions.search,
             searchUpdateUser: UsersActions.searchUpdateUser,
@@ -81,10 +95,23 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     private themeButtons = buildButtonsStyles();
     private themeConfirmModal = buildConfirmModalStyles();
     private themeMenu = buildMenuStyles();
+    private themeTile = buildTileStyles();
+    private themeForms = buildFormsStyles();
+    private themeCategory = buildCategoryStyles();
     private unsubscribeFocusListener;
     private peopleListRef;
     private connectionsListRef;
     private groupsListRef;
+
+    static getDerivedStateFromProps(nextProps: IContactsProps, nextState: IContactsState) {
+        if (!nextState.categories || !nextState.categories.length) {
+            return {
+                categories: nextProps.forums.forumCategories,
+            };
+        }
+
+        return null;
+    }
 
     constructor(props) {
         super(props);
@@ -105,6 +132,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         }
 
         this.state = {
+            categories: props.categories || [],
             activeTabIndex,
             isNameConfirmModalVisible: false,
             isRefreshing: false,
@@ -115,16 +143,25 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 { key: PEOPLE_CAROUSEL_TABS.CONNECTIONS, title: this.translate('menus.headerTabs.connections') },
                 // { key: PEOPLE_CAROUSEL_TABS.INVITES, title: this.translate('menus.headerTabs.invite') },
             ],
+            toggleChevronName: 'chevron-down',
+            searchFilters: {
+                itemsPerPage: DEFAULT_PAGE_SIZE,
+                pageNumber: 1,
+                order: 'desc',
+            },
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeTile = buildTileStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormsStyles(props.user.settings?.mobileThemeName);
+        this.themeCategory = buildCategoryStyles(props.user.settings?.mobileThemeName);
     }
 
     componentDidMount() {
-        const { navigation, user, userConnections } = this.props;
+        const { navigation, forums, searchCategories, user, userConnections } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.contacts.headerTitle'),
@@ -136,6 +173,18 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
         if ((Object.keys(user.users || {})?.length || 0) < DEFAULT_PAGE_SIZE) {
             this.handleRefreshUsersSearch();
+        }
+
+        if (forums && (!forums.searchResults || !forums.searchResults.length)) {
+            this.handleRefreshForumsSearch();
+        }
+
+        if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
+            searchCategories({
+                itemsPerPage: 100,
+                pageNumber: 1,
+                order: 'desc',
+            }, {});
         }
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
@@ -214,6 +263,22 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
     trySearchMoreUsers = () => {
 
+    };
+
+    handleRefreshForumsSearch = () => {
+        const { searchFilters } = this.state;
+        this.setState({
+            isRefreshingUserSearch: true,
+        });
+
+        this.props
+            .searchForums(searchFilters, {})
+            .catch(() => {})
+            .finally(() => {
+                this.setState({
+                    isRefreshingUserSearch: false,
+                });
+            });
     };
 
     handleRefreshUsersSearch = () => {
@@ -300,9 +365,15 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         });
     };
 
-    navToInvite = () => {
+    onCreatePress = () => {
+        const { activeTabIndex } = this.state;
         const { navigation } = this.props;
-        navigation.navigate('Invite');
+
+        if (tabMap[activeTabIndex] === PEOPLE_CAROUSEL_TABS.GROUPS) {
+            navigation.navigate('EditChat');
+        } else {
+            navigation.navigate('Invite');
+        }
     };
 
     scrollTop = () => {
@@ -329,7 +400,59 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     sortGroups = (): any[] => {
-        return [];
+        const { forums } = this.props;
+        const groups = (forums && forums.searchResults) || [];
+        // TODO: Sort by more recently active
+        return groups;
+    };
+
+    handleChatTilePress = (chat) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('ViewChat', chat);
+    };
+
+    handleCategoryPress = (category) => {
+        const { categories } = this.state;
+        const modifiedCategories: any = [ ...categories ];
+
+        modifiedCategories.some((c, i) => {
+            if (c.tag === category.tag) {
+                modifiedCategories[i] = { ...c, isActive: !c.isActive };
+                return true;
+            }
+        });
+
+        this.searchForumsWithFilters('', modifiedCategories);
+
+        this.setState({
+            categories: modifiedCategories,
+        });
+    };
+
+    searchForumsWithFilters = (text, modifiedCategories?) => {
+        const { searchForums } = this.props;
+        const { categories, searchFilters } = this.state;
+
+        const selectedCategoryTags = (modifiedCategories || categories).filter(c => c.isActive).map(c => c.tag);
+        const searchParams = {
+            ...searchFilters,
+            query: text,
+            filterBy: 'title',
+            filterOperator: 'ilike',
+        };
+        const searchArgs: any = {};
+        if (selectedCategoryTags.length) {
+            searchArgs.categoryTags = selectedCategoryTags;
+        }
+        searchForums(searchParams, searchArgs);
+    };
+
+    handleCategoryTogglePress = () => {
+        const  { toggleChevronName } = this.state;
+        this.setState({
+            toggleChevronName: toggleChevronName === 'chevron-down' ? 'chevron-up' : 'chevron-down',
+        });
     };
 
     renderTabBar = props => {
@@ -352,7 +475,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     renderSceneMap = ({ route }) => {
-        const { isRefreshing, isRefreshingUserSearch } = this.state;
+        const { categories, toggleChevronName, isRefreshing, isRefreshingUserSearch } = this.state;
         const { user } = this.props;
 
         switch (route.key) {
@@ -399,16 +522,25 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         ref={(component) => this.groupsListRef = component}
                         data={groups}
                         keyExtractor={(item) => String(item.id)}
+                        ListHeaderComponent={<ChatCategories
+                            style={{}}
+                            backgroundColor={this.theme.colors.primary}
+                            categories={categories}
+                            onCategoryPress={this.handleCategoryPress}
+                            translate={this.translate}
+                            onCategoryTogglePress={this.handleCategoryTogglePress}
+                            toggleChevronName={toggleChevronName}
+                            theme={this.theme}
+                            themeForms={this.themeForms}
+                            themeCategory={this.themeCategory}
+                        />}
                         renderItem={({ item: group }) => (
-                            <ConnectionItem
-                                key={group.id}
-                                connectionDetails={this.getConnectionOrUserDetails(group)}
-                                getConnectionSubtitle={this.getConnectionSubtitle}
-                                goToViewUser={this.goToViewUser}
-                                isActive={group.isActive}
-                                onConnectionPress={this.onConnectionPress}
+                            <GroupTile
+                                group={group}
+                                onChatTilePress={this.handleChatTilePress}
                                 theme={this.theme}
-                                translate={this.translate}
+                                themeChatTile={this.themeTile}
+                                isActive={false}
                             />
                         )}
                         ListEmptyComponent={
@@ -421,7 +553,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         stickyHeaderIndices={[]}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
-                            onRefresh={this.handleRefresh}
+                            onRefresh={this.handleRefreshForumsSearch}
                         />}
                         onContentSizeChange={this.scrollTop}
                     />
@@ -513,7 +645,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     themeButtons={this.themeButtons}
                 />
                 <CreateConnectionButton
-                    onPress={this.navToInvite}
+                    onPress={this.onCreatePress}
                     themeButtons={this.themeButtons}
                     title={createButtonTitle}
                 />

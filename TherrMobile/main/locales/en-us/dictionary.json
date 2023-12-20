@@ -209,7 +209,7 @@
         "connections": "View Connections",
         "home": "Home",
         "feedback": "Share Feedback",
-        "hostedChat": "Hosted Chat",
+        "groups": "Groups",
         "logout": "Log Out",
         "map": "Map",
         "moments": "Moments",
@@ -308,7 +308,7 @@
         "email": "E-mail"
       }
     },
-    "hostedChat": {
+    "groups": {
       "noResultsFound": "No results found...",
       "searchPlaceholder": "Search by name..."
     },
@@ -340,7 +340,7 @@
         "radiusOfInfluence": "Influence Radius: {miles} miles"
       }
     },
-    "editHostedChat": {
+    "editGroup": {
       "buttons": {
         "submit": "Send",
         "delete": "Delete?",
@@ -348,14 +348,14 @@
         "cancel": "Cancel"
       },
       "placeholders": {
-        "title": "A catchy title...",
-        "subtitle": "Optional subtitle",
-        "description": "A brief summary of the chat...",
+        "title": "A searchable title...",
+        "subtitle": "Subtitle (optional)",
+        "description": "A brief summary of the group...",
         "hashTags": "Tags (ie. my_tag, myTag)",
         "maxComments": "Max comments (per minute)",
         "expiresAt": "Countdown"
       },
-      "backendSuccessMessage": "Your hosted chat was successfully saved!",
+      "backendSuccessMessage": "Your group was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
     "editMoment": {
@@ -817,8 +817,8 @@
       "inputPlaceholder": "Enter a message..."
     },
     "editChat": {
-      "headerTitleCreate": "Create a Hosted Chat",
-      "pageTitle": "Create a Hosted Chat"
+      "headerTitleCreate": "Create a Group",
+      "pageTitle": "Create a Group"
     },
     "editMoment": {
       "headerTitle": "Create a Moment",
@@ -930,9 +930,9 @@
       "headerTitle": "Home",
       "pageTitle": "Home"
     },
-    "hostedChat": {
-      "headerTitle": "Hosted Chat",
-      "pageTitle": "Hosted Chat",
+    "groups": {
+      "headerTitle": "Groups",
+      "pageTitle": "Groups",
       "categories": {
         "title": "Categories"
       }

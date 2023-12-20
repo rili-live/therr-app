@@ -10,17 +10,18 @@ import { ForumActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
-import { buildStyles as buildCategoryStyles } from '../../styles/user-content/hosted-chat/categories';
+import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
 import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import formatHashtags from '../../utilities/formatHashtags';
-import AccentInput from '../../components/Input/Accent';
-import AccentTextInput from '../../components/Input/TextInput/Accent';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import ChatCategories from './ChatCategories';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import TherrIcon from '../../components/TherrIcon';
+import RoundInput from '../../components/Input/Round';
+import RoundTextInput from '../../components/Input/TextInput/Round';
+import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 
 interface IEditChatDispatchProps {
     logout: Function;
@@ -72,10 +73,10 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         super(props);
 
         const { route } = props;
-        const { categories } = route.params;
+        const { categories } = route.params || {};
 
         this.state = {
-            categories: categories.map(c => ({ ...c, isActive: false })),
+            categories: (categories || []).map(c => ({ ...c, isActive: false })),
             errorMsg: '',
             successMsg: '',
             toggleChevronName: 'chevron-down',
@@ -163,15 +164,17 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             this.setState({
                 isSubmitting: true,
             });
-            // TODO: Move success/error alert to hosted chat page andd remove settimeout
+            // TODO: Move success/error alert to group chat page and remove settimeout
             this.props
                 .createHostedChat(createArgs)
                 .then(() => {
                     this.setState({
-                        successMsg: this.translate('forms.editHostedChat.backendSuccessMessage'),
+                        successMsg: this.translate('forms.editGroup.backendSuccessMessage'),
                     });
                     setTimeout(() => {
-                        this.props.navigation.navigate('HostedChat');
+                        this.props.navigation.navigate('Contacts', {
+                            activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                        });
                     }, 200);
                 })
                 .catch((error: any) => {
@@ -189,7 +192,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         });
                     } else if (error.statusCode >= 500) {
                         this.setState({
-                            errorMsg: this.translate('forms.editHostedChat.backendErrorMessage'),
+                            errorMsg: this.translate('forms.editGroup.backendErrorMessage'),
                         });
                     }
                 })
@@ -277,10 +280,14 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             themeCategory={this.themeCategory}
                             themeForms={this.themeForms}
                         />
-                        <View style={this.themeAccentLayout.styles.container}>
-                            <AccentInput
+                        <View style={[this.themeAccentLayout.styles.container, {
+                            position: 'relative',
+                        }]}>
+                            <RoundInput
+                                autoFocus
+                                maxLength={100}
                                 placeholder={this.translate(
-                                    'forms.editHostedChat.placeholders.title'
+                                    'forms.editGroup.placeholders.title'
                                 )}
                                 value={inputs.title}
                                 onChangeText={(text) =>
@@ -288,9 +295,9 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 }
                                 themeForms={this.themeForms}
                             />
-                            <AccentInput
+                            <RoundInput
                                 placeholder={this.translate(
-                                    'forms.editHostedChat.placeholders.subtitle'
+                                    'forms.editGroup.placeholders.subtitle'
                                 )}
                                 value={inputs.subtitle}
                                 onChangeText={(text) =>
@@ -298,11 +305,23 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 }
                                 themeForms={this.themeForms}
                             />
-                            <AccentInput
+                            <RoundTextInput
+                                placeholder={this.translate(
+                                    'forms.editGroup.placeholders.description'
+                                )}
+                                value={inputs.description}
+                                onChangeText={(text) =>
+                                    this.onInputChange('description', text)
+                                }
+                                minHeight={150}
+                                numberOfLines={7}
+                                themeForms={this.themeForms}
+                            />
+                            <RoundInput
                                 autoCorrect={false}
                                 errorStyle={this.theme.styles.displayNone}
                                 placeholder={this.translate(
-                                    'forms.editHostedChat.placeholders.hashTags'
+                                    'forms.editGroup.placeholders.hashTags'
                                 )}
                                 value={inputs.hashTags}
                                 onChangeText={(text) =>
@@ -315,24 +334,15 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 onHashtagPress={this.handleHashtagPress}
                                 styles={this.themeForms.styles}
                             />
-                            <AccentTextInput
-                                placeholder={this.translate(
-                                    'forms.editHostedChat.placeholders.description'
-                                )}
-                                value={inputs.description}
-                                onChangeText={(text) =>
-                                    this.onInputChange('description', text)
-                                }
-                                numberOfLines={3}
-                                themeForms={this.themeForms}
-                            />
                         </View>
                     </KeyboardAwareScrollView>
                     <View style={this.themeAccentLayout.styles.footer}>
                         <Button
                             containerStyle={this.themeAccentForms.styles.backButtonContainer}
                             buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.navigate('HostedChat')}
+                            onPress={() => navigation.navigate('Contacts', {
+                                activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                            })}
                             icon={
                                 <TherrIcon
                                     name="go-back"

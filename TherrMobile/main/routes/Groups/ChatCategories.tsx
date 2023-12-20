@@ -71,7 +71,7 @@ export default ({
     return (
         <View style={[themeCategory.styles.outerContainer, style]}>
             <View style={themeCategory.styles.innerContainer}>
-                <Text style={[themeCategory.styles.header, { backgroundColor }]}>{translate('pages.hostedChat.categories.title')}</Text>
+                <Text style={[themeCategory.styles.header, { backgroundColor }]}>{translate('pages.groups.categories.title')}</Text>
                 <FlatList
                     horizontal={true}
                     keyExtractor={keyExtractor}

@@ -14,33 +14,33 @@ import RoundInput from '../../components/Input/Round';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
-import { buildStyles as buildCategoryStyles } from '../../styles/user-content/hosted-chat/categories';
-import { buildStyles as buildChatStyles } from '../../styles/user-content/hosted-chat';
-import { buildStyles as buildTileStyles } from '../../styles/user-content/hosted-chat/chat-tiles';
+import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
+import { buildStyles as buildChatStyles } from '../../styles/user-content/groups';
+import { buildStyles as buildTileStyles } from '../../styles/user-content/groups/chat-tiles';
 import ChatCategories from './ChatCategories';
-import renderChatTile from './ChatTile';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import ChatTile from './GroupTile';
 
 const chatKeyExtractor = (item) => item.id.toString();
 
-interface IHostedChatDispatchProps {
+interface IGroupsDispatchProps {
     searchCategories: Function;
     searchForums: Function;
     searchUserConnections: Function;
 }
 
-interface IStoreProps extends IHostedChatDispatchProps {
+interface IStoreProps extends IGroupsDispatchProps {
     forums: IForumsState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
 
 // Regular component props
-export interface IHostedChatProps extends IStoreProps {
+export interface IGroupsProps extends IStoreProps {
     navigation: any;
 }
 
-interface IHostedChatState {
+interface IGroupsState {
     categories: any[];
     searchFilters: any;
     searchInput: string;
@@ -63,7 +63,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
+class Groups extends React.Component<IGroupsProps, IGroupsState> {
     private flatListRef: any;
     private translate: Function;
     private searchTimerId: any;
@@ -74,7 +74,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
     private themeChat = buildChatStyles();
     private themeTile = buildTileStyles();
 
-    static getDerivedStateFromProps(nextProps: IHostedChatProps, nextState: IHostedChatState) {
+    static getDerivedStateFromProps(nextProps: IGroupsProps, nextState: IGroupsState) {
         if (!nextState.categories || !nextState.categories.length) {
             return {
                 categories: nextProps.forums.forumCategories,
@@ -112,7 +112,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
         const { searchFilters } = this.state;
 
         navigation.setOptions({
-            title: this.translate('pages.hostedChat.headerTitle'),
+            title: this.translate('pages.groups.headerTitle'),
         });
 
         if (forums && (!forums.searchResults || !forums.searchResults.length)) {
@@ -163,7 +163,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
         });
     };
 
-    handleCreateHostedChat = () => {
+    handleCreateGroup = () => {
         const { forums, navigation } = this.props;
         const categories = (forums && forums.forumCategories) || [];
 
@@ -214,7 +214,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                             autoCapitalize="none"
                             containerStyle={this.themeChat.styles.searchInputContainer}
                             placeholder={this.translate(
-                                'forms.hostedChat.searchPlaceholder'
+                                'forms.groups.searchPlaceholder'
                             )}
                             value={this.state.searchInput}
                             onChangeText={this.onSearchInputChange}
@@ -245,12 +245,21 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
 
                     {
                         !forumSearchResults.length ?
-                            <Text style={this.themeChat.styles.noResultsText}>{this.translate('forms.hostedChat.noResultsFound')}</Text> :
+                            <Text style={this.themeChat.styles.noResultsText}>{this.translate('forms.groups.noResultsFound')}</Text> :
                             <FlatList
                                 horizontal={false}
                                 keyExtractor={chatKeyExtractor}
                                 data={forumSearchResults}
-                                renderItem={renderChatTile(this.handleChatTilePress, this.theme, this.themeTile)}
+                                renderItem={({
+                                    item: group,
+                                }) =>
+                                    <ChatTile
+                                        group={group}
+                                        onChatTilePress={this.handleChatTilePress}
+                                        theme={this.theme}
+                                        themeChatTile={this.themeTile}
+                                    />
+                                }
                                 style={this.theme.styles.scrollViewFull}
                                 contentContainerStyle={this.themeChat.styles.scrollContentContainer}
                                 ref={(component) => (this.flatListRef = component)}
@@ -272,7 +281,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                                 />
                             }
                             raised={true}
-                            onPress={this.handleCreateHostedChat}
+                            onPress={this.handleCreateGroup}
                         />
                     </View>
                 </SafeAreaView>
@@ -282,4 +291,4 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(HostedChat);
+export default connect(mapStateToProps, mapDispatchToProps)(Groups);

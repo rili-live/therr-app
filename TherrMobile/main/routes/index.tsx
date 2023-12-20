@@ -21,7 +21,6 @@ import PhoneContacts from './Invite/PhoneContacts';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
-// import HostedChat from './HostedChat';
 import Nearby from './Areas/Nearby';
 import Notifications from './Notifications';
 import Register from './Register';
@@ -33,9 +32,10 @@ import EditMoment from './EditMoment';
 import ViewSpace from './ViewSpace';
 import EditSpace from './EditSpace';
 import EditThought from './EditThought';
-import EditChat from './HostedChat/EditChat';
+import Groups from './Groups';
+import EditChat from './Groups/EditChat';
+import ViewChat from './Groups/ViewChat';
 import ExchangePointsDisclaimer from './Rewards/ExchangePointsDisclaimer';
-import ViewChat from './HostedChat/ViewChat';
 import Invite from './Invite';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
@@ -252,17 +252,6 @@ const routes: RouteConfig<
             title: 'Password Reset',
         }),
     },
-    // {
-    //     name: 'HostedChat',
-    //     component: HostedChat,
-    //     options: () => ({
-    //         title: 'HostedChat',
-    //         access: {
-    //             type: AccessCheckType.ALL,
-    //             levels: [AccessLevels.EMAIL_VERIFIED],
-    //         },
-    //     }),
-    // },
     {
         name: 'MapFilteredSearch',
         component: MapFilteredSearch,
@@ -357,7 +346,7 @@ const routes: RouteConfig<
         name: 'EditChat',
         component: EditChat,
         options: () => ({
-            title: 'Edit Chat',
+            title: 'Create/Edit Group',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -373,6 +362,17 @@ const routes: RouteConfig<
         component: ExchangePointsDisclaimer,
         options: () => ({
             title: 'Exchange Points',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'Groups',
+        component: Groups,
+        options: () => ({
+            title: 'Groups',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

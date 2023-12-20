@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
-import { EDGE_PADDING } from './';
+import { EDGE_PADDING } from '.';
 import { getTheme } from '../../themes';
 
 const categoryButtonContainerStyle = {

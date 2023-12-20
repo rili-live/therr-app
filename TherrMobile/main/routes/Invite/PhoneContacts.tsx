@@ -195,7 +195,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                             autoCapitalize="none"
                             containerStyle={{ paddingHorizontal: 10, backgroundColor: this.theme.colors.primary, paddingTop: 10 }}
                             placeholder={this.translate(
-                                'forms.hostedChat.searchPlaceholder'
+                                'forms.groups.searchPlaceholder'
                             )}
                             value={searchInputValue}
                             onChangeText={this.onSearchInputChange}

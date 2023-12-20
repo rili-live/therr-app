@@ -22,7 +22,7 @@ import translator from '../../services/translator';
 // import RoundInput from '../../components/Input/Round';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
-import { buildStyles as buildChatStyles } from '../../styles/user-content/hosted-chat/view-chat';
+import { buildStyles as buildChatStyles } from '../../styles/user-content/groups/view-chat';
 import { buildStyles as buildMessageStyles } from '../../styles/user-content/messages';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
@@ -30,6 +30,7 @@ import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import AccentInput from '../../components/Input/Accent';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { getUserImageUri } from '../../utilities/content';
+import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 
 const userColors: any = {}; // local state
 
@@ -223,7 +224,9 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                         <Button
                             containerStyle={this.themeAccentForms.styles.backButtonContainerFixed}
                             buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.navigate('HostedChat')}
+                            onPress={() => navigation.navigate('Contacts', {
+                                activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                            })}
                             icon={
                                 <FontAwesome5Icon
                                     name="arrow-left"
