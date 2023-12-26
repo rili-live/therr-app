@@ -36,7 +36,7 @@ messagesServiceRouter.get('/forum-messages/:forumId', handleServiceRequest({
 }));
 
 // Forums
-messagesServiceRouter.post('/forums', createForumValidation, validate, checkResources('createForum'), handleServiceRequest({
+messagesServiceRouter.post('/forums', createForumValidation, validate, checkResources('createGroup'), handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'post',
 }));

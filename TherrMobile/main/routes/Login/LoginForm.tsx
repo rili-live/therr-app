@@ -220,7 +220,7 @@ export class LoginFormComponent extends React.Component<
                 />
                 <RoundInput
                     autoCapitalize="none"
-                    autoCompleteType="email"
+                    autoComplete="email"
                     autoCorrect={false}
                     placeholder={this.translate(
                         'forms.loginForm.labels.userName'
@@ -243,7 +243,7 @@ export class LoginFormComponent extends React.Component<
                 <RoundInput
                     autoCapitalize="none"
                     autoCorrect={false}
-                    autoCompleteType="password"
+                    autoComplete="password"
                     placeholder={this.translate(
                         'forms.loginForm.labels.password'
                     )}

@@ -26,7 +26,7 @@ const verifyAndJoinForum = (props) => {
     }
 
     props.joinForum({
-        roomId: props.routePrams.roomId,
+        roomId: props.routePrams?.roomId,
         roomName: (props.location?.state as any)?.roomName,
         userName: props.user.details.userName,
         userImgSrc: `https://robohash.org/${props.user.details.id}`,
@@ -134,12 +134,12 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  */
 export class ForumComponent extends React.Component<IForumProps, IForumState> {
     static getDerivedStateFromProps(nextProps: IForumProps, nextState: IForumState) {
-        if (nextState.isFirstLoad || nextProps.routePrams.roomId !== nextState.previousRoomId) {
+        if (nextState.isFirstLoad || nextProps.routePrams?.roomId !== nextState.previousRoomId) {
             verifyAndJoinForum(nextProps);
 
             return {
                 isFirstLoad: false,
-                previousRoomId: nextProps.routePrams.roomId,
+                previousRoomId: nextProps.routePrams?.roomId,
             };
         }
         return {};
@@ -157,7 +157,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         this.state = {
             inputs: {},
             isFirstLoad: true,
-            previousRoomId: props.routePrams.roomId,
+            previousRoomId: props.routePrams?.roomId,
         };
 
         this.messageInputRef = React.createRef();
@@ -183,7 +183,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
     componentWillUnmount() {
         this.props.leaveForum({
-            roomId: this.props.routePrams.roomId,
+            roomId: this.props.routePrams?.roomId,
             userName: this.props.user.details.userName,
             userImgSrc: `https://robohash.org/${this.props.user.details.id}`,
         });
@@ -255,7 +255,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                     </div>
                 </div>
 
-                <h1 id="forumTitle">{this.translate('pages.chatForum.pageTitle')}: {(location.state as any).roomName || user.socketDetails.currentRoom}</h1>
+                <h1 id="forumTitle">{this.translate('pages.chatForum.pageTitle')}: {(location.state as any)?.roomName || user.socketDetails.currentRoom}</h1>
                 {
                     <div id="forums_list">
                         {

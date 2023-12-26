@@ -35,6 +35,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             width: '100%',
             borderBottomColor: therrTheme.colors.accentDivider,
             borderBottomWidth: 1,
+            marginTop: 10,
             marginBottom: 20,
             paddingHorizontal: 20,
         },
@@ -43,8 +44,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginTop: 20,
             marginBottom: 4,
             padding: 20,
-            paddingBottom: 4,
-            paddingTop: 4,
+            paddingVertical: 4,
             flex: 1,
         },
         categoriesContainer: {

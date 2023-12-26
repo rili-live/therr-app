@@ -37,7 +37,14 @@ import LocationUseDisclosureModal from '../../components/Modals/LocationUseDiscl
 
 const { width: viewportWidth } = Dimensions.get('window');
 
-const defaultActiveTab = CAROUSEL_TABS.DISCOVERIES;
+const tabMap = {
+    0: CAROUSEL_TABS.DISCOVERIES,
+    1: CAROUSEL_TABS.EVENTS,
+    2: CAROUSEL_TABS.THOUGHTS,
+    3: CAROUSEL_TABS.NEWS,
+};
+
+const defaultActiveTab = tabMap[0];
 
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
@@ -428,7 +435,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
 
     scrollTop = () => {
         const { activeTabIndex } = this.state;
-        switch (Object.values(CAROUSEL_TABS)[activeTabIndex]) {
+        switch (tabMap[activeTabIndex]) {
             case CAROUSEL_TABS.DISCOVERIES:
                 this.carouselDiscoveriesRef?.scrollToOffset({ animated: true, offset: 0 });
                 break;
@@ -650,7 +657,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             tabRoutes,
         } = this.state;
         const { navigation, user } = this.props;
-        const tabName = Object.values(CAROUSEL_TABS)[activeTabIndex];
+        const tabName = tabMap[activeTabIndex];
 
         return (
             <>

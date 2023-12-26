@@ -91,12 +91,12 @@ const buttonGroupStyles: any = {
 };
 
 const getQuickFiltersButtonTiny = (theme: ITherrTheme): any => ({
-    backgroundColor: theme.colors.backgroundGray,
+    backgroundColor: theme.colors.brandingWhite,
     // borderColor: therrTheme.colors.primary3,
     display: 'flex',
     alignItems: 'center',
     borderRadius: 8,
-    height: 24,
+    height: 28,
     paddingVertical: 2,
 });
 const getQuickFiltersButtonTitle = (theme: ITherrTheme): any => ({
@@ -104,6 +104,7 @@ const getQuickFiltersButtonTitle = (theme: ITherrTheme): any => ({
     fontFamily: therrFontFamily,
     color: theme.colors.primary3,
     paddingLeft: 4,
+    fontSize: 14,
 });
 
 const buildStyles = (themeName?: IMobileThemeName) => {
@@ -214,7 +215,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.primary3,
         },
         quickFiltersButtonIconActive: {
-            color: therrTheme.colors.backgroundGray,
+            color: therrTheme.colors.brandingWhite,
         },
         searchThisAreaTitle: {
             color: therrTheme.colors.brandingWhite,

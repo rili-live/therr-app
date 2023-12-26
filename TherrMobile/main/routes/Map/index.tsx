@@ -41,6 +41,7 @@ import {
     AndroidChannelIds,
     PressActionIds,
     MIN_TIME_BTW_CHECK_INS_MS,
+    HAPTIC_FEEDBACK_TYPE,
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
@@ -838,7 +839,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             updateLocationPermissions,
         } = this.props;
 
-        ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+        ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
         this.setState({
             shouldShowCreateActions: false,
@@ -1203,9 +1204,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     handleQuickFilterSelect = (index: string) => {
-        const { setMapFilters } = this.props;
-
-        this.expandBottomSheet(0, true);
+        const { setMapFilters, map, location } = this.props;
 
         let authorFilters = this.initialAuthorFilters.map(x => ({ ...x, isChecked: true}));
         let categoryFilters = this.initialCategoryFilters.map(x => ({ ...x, isChecked: true}));
@@ -1255,6 +1254,22 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 filtersCategory: this.initialCategoryFilters.map(x => ({ ...x, isChecked: x.name === 'music' || x.name === 'music/concerts'})),
                 filtersVisibility: visibilityFilters,
             });
+        }
+
+        // TODO: Eventually we can always use the preview sheet when we implement a people search and moment search
+        if (this.quickFilterButtons[index].title !== this.translate('pages.map.filterButtons.people')) {
+            const latitude = map?.latitude || location?.user?.latitude;
+            const longitude = map?.longitude || location?.user?.longitude;
+            this.mapRef.props.onPress({
+                nativeEvent: {
+                    coordinate: {
+                        latitude: latitude,
+                        longitude: longitude,
+                    },
+                },
+            }, true);
+        } else {
+            this.expandBottomSheet(0, true);
         }
 
         this.setState({
@@ -1365,8 +1380,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     onPressFindFriends = () => {
         const { navigation } = this.props;
 
-        navigation.navigate('Contacts', {
-            activeTab: 'invite',
+        navigation.navigate('Invite', {
             shouldLaunchContacts: true,
         });
     };

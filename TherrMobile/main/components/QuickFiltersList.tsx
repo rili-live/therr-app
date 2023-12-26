@@ -34,14 +34,14 @@ const renderFilterButton = (item, props) => {
             }]}
             buttonStyle={buttonStyle}
             // disabledTitleStyle={themeButtons.styles.buttonTitleDisabled}
-            titleStyle={[buttonTitleStyle, { fontSize: 12 }]}
+            titleStyle={buttonTitleStyle}
             title={item.title}
             onPress={onPress}
             raised={false}
             icon={
                 item.icon && <TherrIcon
                     name={item.icon}
-                    size={10}
+                    size={11}
                     style={buttonIconStyle}
                 />
             }
