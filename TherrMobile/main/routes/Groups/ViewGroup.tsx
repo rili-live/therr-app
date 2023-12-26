@@ -13,7 +13,6 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { IMesssageState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import randomColor from 'randomcolor';
@@ -22,19 +21,27 @@ import translator from '../../services/translator';
 // import RoundInput from '../../components/Input/Round';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
-import { buildStyles as buildChatStyles } from '../../styles/user-content/groups/view-chat';
+import { buildStyles as buildChatStyles } from '../../styles/user-content/groups/view-group';
 import { buildStyles as buildMessageStyles } from '../../styles/user-content/messages';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
-import AccentInput from '../../components/Input/Accent';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { getUserImageUri } from '../../utilities/content';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
+import RoundInput from '../../components/Input/Round';
+import TherrIcon from '../../components/TherrIcon';
 
 const userColors: any = {}; // local state
 
-const renderMessage = (item, theme, themeChat, themeMessage) => {
+const renderMessage = ({
+    item,
+    theme,
+    themeChat,
+    themeMessage,
+    connectionDetails,
+    userDetails,
+}) => {
     const senderTitle = !item.isAnnouncement ? item.fromUserName : '';
     const timeSplit = item.time.split(', ');
     const isYou = item.fromUserName?.toLowerCase().includes('you');
@@ -53,11 +60,12 @@ const renderMessage = (item, theme, themeChat, themeMessage) => {
     return (
         // eslint-disable-next-line react-native/no-inline-styles
         <View style={[themeChat.styles.messageContainer, {
-            borderLeftColor: messageColor,
+            borderColor: messageColor,
             paddingLeft: item.isAnnouncement ? 18 : 10,
         }]}>
             <Image
-                source={{ uri: `${item.fromUserImgSrc}?size=50x50` }}
+                // source={{ uri: `${item.fromUserImgSrc}?size=50x50` }}
+                source={{ uri: getUserImageUri(isYou ? { details: userDetails } : { details: connectionDetails }, 50) }}
                 style={themeMessage.styles.userImage}
                 PlaceholderContent={<ActivityIndicator />}
             />
@@ -188,7 +196,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
 
     render() {
         const { msgInputVal } = this.state;
-        const { messages, navigation, route } = this.props;
+        const { messages, navigation, route, user } = this.props;
         const { description, subtitle, id: forumId } = route.params;
         const mgs = messages.forumMsgs[forumId] || [];
 
@@ -199,21 +207,34 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                     <View
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
                     >
-                        <View style={this.themeAccentLayout.styles.containerHeader}>
-                            <Text>{subtitle}</Text>
-                            <Text>{description}</Text>
-                            <HashtagsContainer
-                                hasIcon={false}
-                                hashtags={this.hashtags}
-                                onHashtagPress={() => {}}
-                                styles={this.themeForms.styles}
-                            />
-                        </View>
                         <View style={[this.themeAccentLayout.styles.container, this.themeChat.styles.container]}>
                             <FlatList
                                 data={mgs}
                                 keyExtractor={(item) => String(item.key)}
-                                renderItem={({ item }) => renderMessage(item, this.theme, this.themeChat, this.themeMessage)}
+                                ListHeaderComponent={
+                                    <View style={this.themeAccentLayout.styles.containerHeader}>
+                                        <Text><Text style={{ fontWeight: 'bold' }}>{this.translate('pages.groups.labels.subtitle')}</Text> {subtitle}</Text>
+                                        <Text>
+                                            <Text style={{ fontWeight: 'bold' }}>{this.translate('pages.groups.labels.description')}</Text> {description}
+                                        </Text>
+                                        <HashtagsContainer
+                                            hasIcon={false}
+                                            hashtags={this.hashtags}
+                                            onHashtagPress={() => {}}
+                                            styles={this.themeForms.styles}
+                                        />
+                                    </View>
+                                }
+                                renderItem={({ item }) => renderMessage({
+                                    item,
+                                    theme: this.theme,
+                                    themeChat: this.themeChat,
+                                    themeMessage: this.themeMessage,
+                                    userDetails: user.details,
+                                    connectionDetails: {
+                                        id: item.fromUserId,
+                                    },
+                                })}
                                 ref={(component) => (this.flatListRef = component)}
                                 style={this.theme.styles.stretch}
                                 onContentSizeChange={() => mgs.length && this.flatListRef.scrollToEnd({ animated: true })}
@@ -236,7 +257,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                             }
                             type="clear"
                         />
-                        <AccentInput
+                        <RoundInput
                             value={msgInputVal}
                             onChangeText={this.handleInputChange}
                             placeholder={this.translate(
@@ -248,7 +269,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                             themeForms={this.themeForms}
                         />
                         <Button
-                            icon={<MaterialIcon name="send" size={26} style={this.themeMessage.styles.icon} />}
+                            icon={<TherrIcon name="send" size={26} style={this.themeMessage.styles.icon} />}
                             buttonStyle={this.themeMessage.styles.sendBtn}
                             containerStyle={[this.themeMessage.styles.sendBtnContainer, this.themeChat.styles.sendBtnContainer]}
                             onPress={this.handleSend}

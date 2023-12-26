@@ -935,6 +935,10 @@
       "pageTitle": "Groups",
       "categories": {
         "title": "Categories"
+      },
+      "labels": {
+        "description": "Description:",
+        "subtitle": "Subtitle:",
       }
     },
     "landing": {
@@ -995,7 +999,8 @@
         "moments": "Moments",
         "spaces": "Spaces",
         "showAll": "Show All Categories",
-        "selectAll": "Select / Unselect All",
+        "selectAll": "Select All",
+        "unSelectAll": "Unselect All",
         "uncategorized": "Uncategorized",
         "me": "Only My Posts",
         "notMe": "Not My Posts"

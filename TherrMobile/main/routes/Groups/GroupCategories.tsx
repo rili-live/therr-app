@@ -3,7 +3,7 @@ import { View, Text, FlatList } from 'react-native';
 import  { Button } from 'react-native-elements';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import therrIconConfig from '../../assets/therr-font-config.json';
 
 const TherrIcon = createIconSetFromIcoMoon(
@@ -17,7 +17,7 @@ const keyExtractor = (item) => item.iconId;
 const renderCategoryIcon = (category, theme, themeCategory) => {
     const style = category.isActive ? themeCategory.styles.categoryIconActive : themeCategory.styles.categoryIcon;
     const props = {
-        color: category.isActive ? theme.colors.textWhite : category.iconColor,
+        color: category.isActive ? category.iconColor : category.iconColor,
         name: category.iconId,
         size: 14,
         style,
@@ -83,7 +83,7 @@ export default ({
             <Button
                 containerStyle={[themeCategory.styles.listToggleButtonContainer, { backgroundColor }]}
                 icon={
-                    <FontAwesome5Icon
+                    <TherrIcon
                         name={toggleChevronName}
                         size={16}
                         color={theme.colors.primary3}

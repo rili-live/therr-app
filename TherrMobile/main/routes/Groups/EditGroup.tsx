@@ -16,7 +16,7 @@ import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentE
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import formatHashtags from '../../utilities/formatHashtags';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
-import ChatCategories from './ChatCategories';
+import GroupCategories from './GroupCategories';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import TherrIcon from '../../components/TherrIcon';
 import RoundInput from '../../components/Input/Round';
@@ -268,7 +268,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
                         contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
                     >
-                        <ChatCategories
+                        <GroupCategories
                             style={this.themeAccentLayout.styles.categoriesContainer}
                             backgroundColor={this.theme.colors.accent1}
                             categories={categories}

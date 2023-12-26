@@ -17,8 +17,8 @@ export const visibilityOptions: { name: string; isChecked?: boolean }[] = [
 const getInitialAuthorFilters = (translate) => authorOptions
     .map(a => ({ ...a, title: translate(`pages.mapFilteredSearch.labels.${a.name}`), isChecked: false }));
 
-const getInitialCategoryFilters = (translate) => [{
-    title:  translate('pages.mapFilteredSearch.labels.selectAll'),
+const getInitialCategoryFilters = (translate, shouldDefaultUnselectTitle = false) => [{
+    title: shouldDefaultUnselectTitle ? translate('pages.mapFilteredSearch.labels.unSelectAll') : translate('pages.mapFilteredSearch.labels.selectAll'),
     name: SELECT_ALL,
 }].concat(categoryOptions.map(c => ({
     ...c,

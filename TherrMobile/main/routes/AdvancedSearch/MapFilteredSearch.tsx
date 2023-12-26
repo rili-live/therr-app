@@ -137,7 +137,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
     };
 
     isSelectAll = (title: string) => {
-        return title === this.translate('pages.mapFilteredSearch.labels.selectAll');
+        return title === this.translate('pages.mapFilteredSearch.labels.selectAll') || title === this.translate('pages.mapFilteredSearch.labels.unSelectAll');
     };
 
     onRefresh = () => {
@@ -155,6 +155,12 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
                 if (index === 0) { return true; }
                 return item.isChecked;
             });
+        }
+
+        if (modifiedGroup[0].isChecked) {
+            modifiedGroup[0].title = this.translate('pages.mapFilteredSearch.labels.unSelectAll');
+        } else {
+            modifiedGroup[0].title = this.translate('pages.mapFilteredSearch.labels.selectAll');
         }
 
         this.setState({

@@ -27,7 +27,7 @@ import UsersActions from '../../redux/actions/UsersActions';
 import UserSearchItem from './components/UserSearchItem';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 import GroupTile from '../Groups/GroupTile';
-import ChatCategories from '../Groups/ChatCategories';
+import GroupCategories from '../Groups/GroupCategories';
 
 const { width: viewportWidth } = Dimensions.get('window');
 const DEFAULT_PAGE_SIZE = 50;
@@ -67,7 +67,7 @@ interface IContactsState {
     activeTabIndex: number;
     searchFilters: any;
     tabRoutes: { key: string; title: string }[];
-    toggleChevronName: 'chevron-down' | 'chevron-up',
+    toggleChevronName: 'refresh',
 }
 
 const mapStateToProps = (state) => ({
@@ -143,7 +143,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 { key: PEOPLE_CAROUSEL_TABS.CONNECTIONS, title: this.translate('menus.headerTabs.connections') },
                 // { key: PEOPLE_CAROUSEL_TABS.INVITES, title: this.translate('menus.headerTabs.invite') },
             ],
-            toggleChevronName: 'chevron-down',
+            toggleChevronName: 'refresh',
             searchFilters: {
                 itemsPerPage: DEFAULT_PAGE_SIZE,
                 pageNumber: 1,
@@ -412,24 +412,6 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         navigation.navigate('ViewChat', chat);
     };
 
-    handleCategoryPress = (category) => {
-        const { categories } = this.state;
-        const modifiedCategories: any = [ ...categories ];
-
-        modifiedCategories.some((c, i) => {
-            if (c.tag === category.tag) {
-                modifiedCategories[i] = { ...c, isActive: !c.isActive };
-                return true;
-            }
-        });
-
-        this.searchForumsWithFilters('', modifiedCategories);
-
-        this.setState({
-            categories: modifiedCategories,
-        });
-    };
-
     searchForumsWithFilters = (text, modifiedCategories?) => {
         const { searchForums } = this.props;
         const { categories, searchFilters } = this.state;
@@ -448,10 +430,35 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         searchForums(searchParams, searchArgs);
     };
 
-    handleCategoryTogglePress = () => {
-        const  { toggleChevronName } = this.state;
+    handleCategoryPress = (category) => {
+        const { categories } = this.state;
+        const modifiedCategories: any = [ ...categories ];
+
+        modifiedCategories.some((c, i) => {
+            if (c.tag === category.tag) {
+                modifiedCategories[i] = { ...c, isActive: !c.isActive };
+                return true;
+            }
+        });
+
+        this.searchForumsWithFilters('', modifiedCategories);
+
         this.setState({
-            toggleChevronName: toggleChevronName === 'chevron-down' ? 'chevron-up' : 'chevron-down',
+            categories: modifiedCategories,
+        });
+    };
+
+    handleCategoryTogglePress = () => {
+        const { categories } = this.state;
+        const modifiedCategories: any = [ ...categories ];
+        modifiedCategories.forEach((c, i) => {
+            modifiedCategories[i] = { ...c, isActive: false };
+        });
+
+        this.searchForumsWithFilters('', modifiedCategories);
+
+        this.setState({
+            categories: modifiedCategories,
         });
     };
 
@@ -522,7 +529,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         ref={(component) => this.groupsListRef = component}
                         data={groups}
                         keyExtractor={(item) => String(item.id)}
-                        ListHeaderComponent={<ChatCategories
+                        ListHeaderComponent={<GroupCategories
                             style={{}}
                             backgroundColor={this.theme.colors.primary}
                             categories={categories}
@@ -644,11 +651,14 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     themeModal={this.themeConfirmModal}
                     themeButtons={this.themeButtons}
                 />
-                <CreateConnectionButton
-                    onPress={this.onCreatePress}
-                    themeButtons={this.themeButtons}
-                    title={createButtonTitle}
-                />
+                {
+                    tabMap[activeTabIndex] !== PEOPLE_CAROUSEL_TABS.GROUPS
+                    && <CreateConnectionButton
+                        onPress={this.onCreatePress}
+                        themeButtons={this.themeButtons}
+                        title={createButtonTitle}
+                    />
+                }
                 <MainButtonMenu
                     activeRoute="Contacts"
                     navigation={navigation}

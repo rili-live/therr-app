@@ -74,7 +74,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
 
         this.translate = (key: string, params?: any) =>
             translator('en-us', key, params);
-        this.initialCategoryFilters = getInitialCategoryFilters(this.translate);
+        this.initialCategoryFilters = getInitialCategoryFilters(this.translate, true);
 
         const filtersArePopulated = props.map.filtersCategory?.length;
 
@@ -146,6 +146,12 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
                 if (i === 0) { return true; }
                 return item.isChecked;
             });
+        }
+
+        if (modifiedGroup[0].isChecked) {
+            modifiedGroup[0].title = this.translate('pages.mapFilteredSearch.labels.unSelectAll');
+        } else {
+            modifiedGroup[0].title = this.translate('pages.mapFilteredSearch.labels.selectAll');
         }
 
         // Apply filters immediately on press

@@ -17,9 +17,9 @@ import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import { buildStyles as buildChatStyles } from '../../styles/user-content/groups';
 import { buildStyles as buildTileStyles } from '../../styles/user-content/groups/chat-tiles';
-import ChatCategories from './ChatCategories';
+import GroupCategories from './GroupCategories';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import ChatTile from './GroupTile';
+import GroupTile from './GroupTile';
 
 const chatKeyExtractor = (item) => item.id.toString();
 
@@ -230,7 +230,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                             themeForms={this.themeForms}
                         />
                     </View>
-                    <ChatCategories
+                    <GroupCategories
                         style={{}}
                         backgroundColor={this.theme.colors.primary}
                         categories={categories}
@@ -253,11 +253,12 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                                 renderItem={({
                                     item: group,
                                 }) =>
-                                    <ChatTile
+                                    <GroupTile
                                         group={group}
                                         onChatTilePress={this.handleChatTilePress}
                                         theme={this.theme}
                                         themeChatTile={this.themeTile}
+                                        isActive={false}
                                     />
                                 }
                                 style={this.theme.styles.scrollViewFull}

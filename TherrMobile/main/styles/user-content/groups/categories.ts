@@ -3,13 +3,15 @@ import { IMobileThemeName } from 'therr-react/types';
 import { EDGE_PADDING } from '.';
 import { getTheme } from '../../themes';
 
+const headerTop = -12;
+
 const categoryButtonContainerStyle = {
     marginTop: 0,
     marginBottom: 0,
 };
 
 const getCategoryButtonTitleStyle = (theme) => ({
-    color: theme.colors.textBlack,
+    color: theme.colors.brandingBlack,
 });
 
 const categoryButtonStyle: any = {
@@ -35,6 +37,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             margin: 0,
             padding: 0,
             marginBottom: 8,
+            marginTop: (0 - headerTop) + 4,
         },
         innerContainer: {
             borderTopWidth: 1,
@@ -51,7 +54,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         header: {
             position: 'absolute',
-            top: -12,
+            top: headerTop,
             left: 10,
             backgroundColor: therrTheme.colors.primary2,
             color: therrTheme.colors.primary3,
@@ -83,15 +86,17 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         categoryButtonTitleActive: {
             ...getCategoryButtonTitleStyle(therrTheme),
-            color: therrTheme.colors.textWhite,
         },
         categoryButton: {
             ...categoryButtonStyle,
-            backgroundColor: therrTheme.colors.brandingLightBlue,
+            backgroundColor: therrTheme.colors.brandingWhite,
+            borderColor: 'transparent',
         },
         categoryButtonActive: {
             ...categoryButtonStyle,
-            backgroundColor: therrTheme.colors.accentBlue,
+            backgroundColor: therrTheme.colors.primary,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.primary3,
         },
         categoryIcon: {
             ...categoryIconStyle,
