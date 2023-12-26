@@ -26,6 +26,7 @@ import spacingStyles from '../styles/layouts/spacing';
 import {
     youtubeLinkRegex,
     DEFAULT_RADIUS,
+    HAPTIC_FEEDBACK_TYPE,
 } from '../constants';
 import Alert from '../components/Alert';
 import formatHashtags from '../utilities/formatHashtags';
@@ -252,7 +253,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
         };
 
         if (!this.isFormDisabled()) {
-            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+            ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
             this.setState({
                 isSubmitting: true,

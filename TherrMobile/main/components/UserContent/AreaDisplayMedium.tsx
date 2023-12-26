@@ -19,6 +19,7 @@ import spacingStyles from '../../styles/layouts/spacing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../PressableWithDoubleTap';
+import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -94,7 +95,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
 
     onLikePress = (area) => {
         if (!area.isDraft) {
-            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+            ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateAreaReaction, user } = this.props;
 
             updateAreaReaction(area.id, {
@@ -257,7 +258,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                 </View>
                 {
                     area.distance != null &&
-                    <Text  style={themeViewArea.styles.areaDistance}>{`${area.distance}`}</Text>
+                    <Text  style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
                 }
             </>
         );

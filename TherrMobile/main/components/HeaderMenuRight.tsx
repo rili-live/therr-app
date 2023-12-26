@@ -568,12 +568,12 @@ class HeaderMenuRight extends React.PureComponent<
                                             />
                                             <Button
                                                 buttonStyle={
-                                                    currentScreen === 'Contacts'
+                                                    currentScreen === 'Invite'
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons
                                                 }
                                                 titleStyle={
-                                                    currentScreen === 'Contacts'
+                                                    currentScreen === 'Invite'
                                                         ? themeMenu.styles.buttonsTitleActive
                                                         : themeMenu.styles.buttonsTitle
                                                 }
@@ -581,7 +581,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                 icon={
                                                     <TherrIcon
                                                         style={
-                                                            currentScreen === 'Contacts'
+                                                            currentScreen === 'Invite'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
@@ -590,26 +590,24 @@ class HeaderMenuRight extends React.PureComponent<
                                                     />
                                                 }
                                                 iconRight
-                                                onPress={() => this.navTo('Contacts', {
-                                                    activeTab: 'invite',
-                                                })}
+                                                onPress={() => this.navTo('Invite')}
                                             />
                                             {/* <Button
                                                 buttonStyle={
-                                                    currentScreen === 'HostedChat'
+                                                    currentScreen === 'Groups'
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons
                                                 }
                                                 titleStyle={
-                                                    currentScreen === 'HostedChat'
+                                                    currentScreen === 'Groups'
                                                         ? themeMenu.styles.buttonsTitleActive
                                                         : themeMenu.styles.buttonsTitle
                                                 }
-                                                title={this.translate('components.headerMenuRight.menuItems.hostedChat')}
+                                                title={this.translate('components.headerMenuRight.menuItems.groups')}
                                                 icon={
                                                     <Icon
                                                         style={
-                                                            currentScreen === 'HostedChat'
+                                                            currentScreen === 'Groups'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
@@ -617,7 +615,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                         size={18}
                                                     />
                                                 }
-                                                onPress={() => this.navTo('HostedChat')}
+                                                onPress={() => this.navTo('Groups')}
                                             /> */}
                                             <Button
                                                 buttonStyle={

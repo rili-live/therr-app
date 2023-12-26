@@ -235,7 +235,7 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
                         <View style={this.themeAuthForms.styles.inputsContainer}>
                             <RoundInput
                                 autoCapitalize="none"
-                                autoCompleteType="email"
+                                autoComplete="email"
                                 placeholder={this.translate(
                                     'forms.emailVerification.labels.email'
                                 )}

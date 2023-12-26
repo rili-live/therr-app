@@ -37,6 +37,7 @@ import {
     MAX_RADIUS_PUBLIC,
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
+    HAPTIC_FEEDBACK_TYPE,
 } from '../constants';
 import Alert from '../components/Alert';
 import formatHashtags from '../utilities/formatHashtags';
@@ -416,7 +417,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         });
 
         if (!this.isFormDisabled()) {
-            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+            ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
             this.setState({
                 isSubmitting: true,

@@ -30,6 +30,7 @@ import {
     MAX_ANIMATION_LATITUDE_DELTA,
     MAX_ANIMATION_LONGITUDE_DELTA,
     MAX_DISTANCE_TO_NEARBY_SPACE,
+    HAPTIC_FEEDBACK_TYPE,
 } from '../../constants';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildBottomSheetStyles } from '../../styles/bottom-sheet';
@@ -346,7 +347,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         });
 
         if (pressedSpaces.length) {
-            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+            ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
             this.setState({
                 activeMoment: {},

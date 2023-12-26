@@ -52,6 +52,7 @@ import { handleAreaReaction, handleThoughtReaction, navToViewContent } from '../
 import ListEmpty from '../../components/ListEmpty';
 import TherrIcon from '../../components/TherrIcon';
 import getDirections from '../../utilities/getDirections';
+import { PROFILE_CAROUSEL_TABS } from '../../constants';
 
 const { width: viewportWidth } = Dimensions.get('window');
 const imageWidth = viewportWidth / 3;
@@ -149,14 +150,15 @@ class ViewUser extends React.Component<
 
         const { route } = props;
         const { userInView } = route.params;
-        const activeTabIndex = route.params?.activeTab === 'media' ? 1 : 0;
+        let activeTabIndex = route.params?.activeTab === PROFILE_CAROUSEL_TABS.MEDIA ? 1 : 0;
         const isMe = userInView?.id === props.user.details.id;
         const tabRoutes = [
-            { key: 'thoughts', title: this.translate('menus.headerTabs.thoughts') },
-            { key: 'media', title: this.translate('menus.headerTabs.media') },
+            { key: PROFILE_CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
+            { key: PROFILE_CAROUSEL_TABS.MEDIA, title: this.translate('menus.headerTabs.media') },
         ];
         if (isMe) {
-            tabRoutes.unshift({ key: 'moments', title: this.translate('menus.headerTabs.moments') });
+            tabRoutes.unshift({ key: PROFILE_CAROUSEL_TABS.MOMENTS, title: this.translate('menus.headerTabs.moments') });
+            activeTabIndex = route.params?.activeTab === PROFILE_CAROUSEL_TABS.MEDIA ? 2 : 0;
         }
 
         this.state = {
@@ -205,11 +207,11 @@ class ViewUser extends React.Component<
         if (prevProps.route?.params?.userInView?.id !== this.props.route?.params?.userInView?.id) {
             const isMe = this.props.route?.params?.userInView?.id === this.props.user.details.id;
             const tabRoutes = [
-                { key: 'thoughts', title: this.translate('menus.headerTabs.thoughts') },
-                { key: 'media', title: this.translate('menus.headerTabs.media') },
+                { key: PROFILE_CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
+                { key: PROFILE_CAROUSEL_TABS.MEDIA, title: this.translate('menus.headerTabs.media') },
             ];
             if (isMe) {
-                tabRoutes.unshift({ key: 'moments', title: this.translate('menus.headerTabs.moments') });
+                tabRoutes.unshift({ key: PROFILE_CAROUSEL_TABS.MOMENTS, title: this.translate('menus.headerTabs.moments') });
             }
             this.setState({
                 tabRoutes,
@@ -610,7 +612,7 @@ class ViewUser extends React.Component<
         const noop = () => {};
 
         switch (route.key) {
-            case 'moments':
+            case PROFILE_CAROUSEL_TABS.MOMENTS:
                 const momentsData = userInViewsMoments;
                 return (
                     <AreaCarousel
@@ -639,7 +641,7 @@ class ViewUser extends React.Component<
                         // viewportWidth={viewportWidth}
                     />
                 );
-            case 'thoughts':
+            case PROFILE_CAROUSEL_TABS.THOUGHTS:
                 const thoughtsData = userInViewsThoughts;
                 return (
                     <AreaCarousel
@@ -668,7 +670,7 @@ class ViewUser extends React.Component<
                         // viewportWidth={viewportWidth}
                     />
                 );
-            case 'media':
+            case PROFILE_CAROUSEL_TABS.MEDIA:
                 return (
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"

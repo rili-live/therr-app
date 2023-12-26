@@ -4,8 +4,8 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 export default ({
     themeButtons,
-    translate,
     onPress,
+    title,
 }) => {
     return (
         <Button
@@ -20,7 +20,7 @@ export default ({
                 />
             }
             raised={true}
-            title={translate('menus.connections.buttons.add')}
+            title={title}
             onPress={onPress}
         />
     );
