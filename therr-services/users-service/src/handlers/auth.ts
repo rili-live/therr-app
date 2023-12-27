@@ -40,6 +40,7 @@ const basicHash = (input: string) => {
 const login: RequestHandler = (req: any, res: any) => {
     const authHeader = req.headers.authorization;
     const userId = req.headers['x-userid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
 
     // const { paymentSessionId } = req.body;
     // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
@@ -132,6 +133,7 @@ const login: RequestHandler = (req: any, res: any) => {
 
             return validateCredentials(userSearchResults, {
                 locale,
+                whiteLabelOrigin,
                 reqBody: {
                     isSSO: req.body.isSSO,
                     isDashboard: req.body.isDashboard,

@@ -5,6 +5,8 @@ import handleHttpError from '../utilities/handleHttpError';
 import restRequest from '../utilities/restRequest';
 import isBlacklisted, { isBlacklistedEmail } from '../utilities/isBlacklisted';
 
+const hostRegex = /^(?:https?:\/\/)(?:[^@\n]+@)?(?:www\.)?([^/\n&?]+)/;
+
 interface IHandleServiceRequestArgs {
     basePath: string;
     method: string;
@@ -28,6 +30,7 @@ const handleServiceRequest = ({
             'x-username': req.headers['x-username'] || req['x-username'] || '',
             'x-user-access-levels': req.headers['x-user-access-levels'] || req['x-user-access-levels'] || '',
             'x-organizations': req.headers['x-organizations'] || req['x-organizations'] || '',
+            'x-therr-origin-host': req.headers.origin?.match(hostRegex)?.[1] || '',
         },
         method,
         url: `${basePath}${overrideUrl || req.url}`,

@@ -16,6 +16,8 @@ enum AccessLevels {
   ORGANIZATIONS_BILLING = 'user.organizations.billing', // Assigned by organization admin when adding a billing user
   ORGANIZATIONS_MANAGER = 'user.organizations.manager', // Assigned by organization admin when adding a manager user
   ORGANIZATIONS_READ = 'user.organizations.read', // Assigned by organization admin when adding a read only user
+  // eslint-disable-next-line max-len
+  ORGANIZATIONS_SUBSCRIBER = 'user.organizations.subscriber', // Assigned by white-label organization admin when adding a subscriber/customer
 }
 
 export default AccessLevels;

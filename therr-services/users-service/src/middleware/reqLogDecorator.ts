@@ -24,6 +24,7 @@ export default (req, res, next) => {
     activeSpan?.setAttribute('request.body', serializedBody.toString());
     activeSpan?.setAttribute('request.query', serializedQuery);
     activeSpan?.setAttribute('request.osHostname', os.hostname());
+    activeSpan?.setAttribute('request.originHost', req.headers['x-therr-origin-host']);
 
     return next();
 };
