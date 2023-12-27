@@ -231,6 +231,7 @@ const createUserHelper = (
     userByInviteDetails?: IUserByInviteDetails,
     hasInviteCode = false,
     locale = 'en-us',
+    whiteLabelOrigin = '',
 ) => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
@@ -305,19 +306,40 @@ const createUserHelper = (
             }
 
             // TODO: Create organization and/or userOrganization
-            // If user was invited by to register and join and organizations, associate with the existing organization
+            // If user was invited by register and join an organizations, associate with the existing organization
             // Create a default organization for the user
+            // TODO: whiteLabelOrigin
             if (userDetails.isBusinessAccount) {
                 Store.organizations.create([{
                     creatorId: user.id,
                     name: '',
                     settingsGeneralBusinessType: 'other',
-                }]).then(([organization]) => Store.userOrganizations.create([{
-                    userId: user.id,
-                    organizationId: organization.id,
-                    inviteStatus: 'accepted',
-                    accessLevels: [AccessLevels.ORGANIZATIONS_ADMIN],
-                }])).catch((err) => {
+                }]).then(async ([organization]) => {
+                    const userOrgs = [{
+                        userId: user.id,
+                        organizationId: organization.id,
+                        inviteStatus: 'accepted',
+                        accessLevels: [AccessLevels.ORGANIZATIONS_ADMIN],
+                    }];
+
+                    if (whiteLabelOrigin) {
+                        const whiteLabelOrg = await Store.organizations.get({
+                            domain: whiteLabelOrigin,
+                            isAgency: true,
+                        });
+
+                        if (whiteLabelOrg?.length) {
+                            userOrgs.push({
+                                userId: user.id,
+                                organizationId: whiteLabelOrg[0].id,
+                                inviteStatus: 'accepted',
+                                accessLevels: [AccessLevels.ORGANIZATIONS_SUBSCRIBER],
+                            });
+                        }
+                    }
+
+                    return Store.userOrganizations.create(userOrgs);
+                }).catch((err) => {
                     logSpan({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
@@ -454,6 +476,7 @@ const createUserHelper = (
 
 interface IValidateCredentials {
     locale: string;
+    whiteLabelOrigin?: string;
     reqBody: {
         isSSO: boolean;
         isDashboard?: boolean;
@@ -472,6 +495,7 @@ interface IValidateCredentials {
 // eslint-disable-next-line arrow-body-style
 const validateCredentials = (userSearchResults, {
     locale,
+    whiteLabelOrigin,
     reqBody,
 }: IValidateCredentials, res) => {
     if (reqBody.isSSO) {
@@ -542,7 +566,7 @@ const validateCredentials = (userSearchResults, {
                         firstName: reqBody.userFirstName || fbUserFirstName,
                         lastName: reqBody.userLastName || fbUserLastName,
                         phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
-                    }, true, undefined, false, locale).then((user) => [true, user, response]);
+                    }, true, undefined, false, locale, whiteLabelOrigin).then((user) => [true, user, response]);
                 }
             }
 

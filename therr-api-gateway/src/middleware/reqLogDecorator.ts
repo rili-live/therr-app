@@ -6,6 +6,7 @@ export default (req, res, next) => {
     activeSpan?.setAttribute('request.app', req.app);
     activeSpan?.setAttribute('request.ip', req.ip);
     activeSpan?.setAttribute('request.osHostname', os.hostname());
+    activeSpan?.setAttribute('request.originHost', req.headers['x-therr-origin-host']);
 
     return next();
 };

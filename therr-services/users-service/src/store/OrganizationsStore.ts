@@ -31,7 +31,7 @@ export default class OrganizationsStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    get(conditions: { id?: string, creatorId?: string }) {
+    get(conditions: { id?: string, creatorId?: string, domain?: string, isAgency?: boolean }) {
         const queryString = knexBuilder.select()
             .from(ORGANIZATIONS_TABLE_NAME)
             .where(conditions)
