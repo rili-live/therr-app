@@ -62,6 +62,7 @@ export default (findUser: (args: IFindUserArgs, returning: any[]) => Promise<{
             authorization,
             'x-localecode': locale,
             'x-userid': fromUserId,
+            'x-therr-origin-host': whiteLabelOrigin,
         },
         data: {
             fromUserName,

@@ -180,6 +180,7 @@ const createThought = async (req, res) => {
                     authorization,
                     'x-localecode': locale,
                     'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
                     userHasActivated: true,
@@ -322,7 +323,10 @@ const getThoughtDetails = (req, res) => {
 };
 
 const searchThoughts: RequestHandler = async (req: any, res: any) => {
-    const userId = req.headers['x-userid'];
+    const {
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     const {
         // filterBy,
         query,
@@ -355,6 +359,7 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
                 authorization: req.headers.authorization,
                 'x-localecode': req.headers['x-localecode'] || 'en-us',
                 'x-userid': userId,
+                'x-therr-origin-host': whiteLabelOrigin,
             },
         }).catch(() => ({
             data: {

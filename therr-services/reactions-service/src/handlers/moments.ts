@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { distanceTo } from 'geolocation-utils';
+import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import getReadableDistance from '../utilities/getReadableDistance';
 import Store from '../store';
@@ -7,9 +8,12 @@ import Store from '../store';
 import * as globalConfig from '../../../../global-config';
 
 const searchActiveMoments = async (req: any, res: any) => {
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     const {
         limit,
         offset,
@@ -60,6 +64,7 @@ const searchActiveMoments = async (req: any, res: any) => {
                     authorization,
                     'x-localecode': locale,
                     'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
                     momentIds,
@@ -106,9 +111,12 @@ const searchActiveMoments = async (req: any, res: any) => {
 };
 
 const searchActiveMomentsByIds = async (req: any, res: any) => {
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     const {
         momentIds,
         blockedUsers,
@@ -149,6 +157,7 @@ const searchActiveMomentsByIds = async (req: any, res: any) => {
                     authorization,
                     'x-localecode': locale,
                     'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
                     momentIds: activatedMomentIds,

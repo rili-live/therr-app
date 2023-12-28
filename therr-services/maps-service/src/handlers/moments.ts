@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as countryGeo from 'country-reverse-geocoding';
-import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
+import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
 import {
     AccessLevels,
     Content,
@@ -140,10 +140,12 @@ const rewardMomentPosted = ({
 
 // CREATE
 const createMoment = async (req, res) => {
-    const authorization = req.headers.authorization;
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     let therrCoinRewarded = 0;
 
     const isDuplicate = await Store.moments.get({
@@ -444,11 +446,13 @@ const createIntegratedMomentBase = ({
     });
 
 const createIntegratedMoment = (req, res) => {
-    const authorization = req.headers.authorization;
-    const requestId = req.headers['x-requestid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
-    const userId = req.headers['x-userid'];
+    const {
+        authorization,
+        locale,
+        requestId,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const {
         accessToken,

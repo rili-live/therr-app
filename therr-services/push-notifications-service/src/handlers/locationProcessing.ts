@@ -2,6 +2,7 @@ import { Location } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import { distanceTo } from 'geolocation-utils';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import UserLocationCache from '../store/UserLocationCache';
 import { activateAreasAndNotify, getAllNearbyAreas } from './helpers/areaLocationHelpers';
@@ -10,16 +11,20 @@ import { updateAchievements } from './helpers/updateAchievements';
 
 // CREATE/UPDATE
 const processUserLocationChange: RequestHandler = (req, res) => {
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const userDeviceToken = req.headers['x-user-device-token'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        userDeviceToken,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const headers = {
         authorization,
         locale,
         userId,
-        userDeviceToken: (userDeviceToken as string),
+        userDeviceToken,
+        whiteLabelOrigin,
     };
 
     const {

@@ -1,9 +1,14 @@
+import { parseHeaders } from 'therr-js-utilities/http';
 import getReactionValuation from './getReactionValuation';
 import requestUsersService from './requestUsersService';
 
 const sendUserCoinUpdateRequest = (req, currentReaction) => {
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
+
     const coinValue = getReactionValuation(currentReaction, req.body);
 
     if (coinValue !== 0) {
@@ -11,6 +16,7 @@ const sendUserCoinUpdateRequest = (req, currentReaction) => {
             authorization: req.headers.authorization,
             userId,
             locale,
+            whiteLabelOrigin,
         }, {
             path: `/users/${userId}/coins`,
             method: 'put',
