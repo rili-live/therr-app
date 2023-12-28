@@ -7,6 +7,7 @@ export interface ISendNewUserAdminNotificationEmailConfig {
     charset?: string;
     subject: string;
     toAddresses: string[];
+    agencyDomainName: string;
 }
 
 export interface ITemplateParams {
@@ -18,6 +19,7 @@ export interface IAccountTypeParams {
     isBusinessAccount: boolean | undefined;
     isCreatorAccount?: boolean | undefined;
     isDashboardRegistration: boolean | undefined;
+
 }
 
 export default (emailParams: ISendNewUserAdminNotificationEmailConfig, templateParams: ITemplateParams, accountTypeParams: IAccountTypeParams) => {

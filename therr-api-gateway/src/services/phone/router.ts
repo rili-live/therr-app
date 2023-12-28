@@ -10,6 +10,7 @@ import translate from '../../utilities/translator';
 import { verifyPhoneLimiter, verifyPhoneLongLimiter } from './limitation/phone';
 import * as globalConfig from '../../../../global-config';
 import restRequest from '../../utilities/restRequest';
+import { hostRegex } from '../../utilities/patterns';
 
 const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
     if (receivingPhoneNumber.startsWith('+44')) {
@@ -52,6 +53,7 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
                     'x-username': req.headers['x-username'] || req['x-username'] || '',
                     'x-user-access-levels': req.headers['x-user-access-levels'] || req['x-user-access-levels'] || '',
                     'x-organizations': req.headers['x-organizations'] || req['x-organizations'] || '',
+                    'x-therr-origin-host': req.headers.origin?.match(hostRegex)?.[1] || '',
                 },
                 method: 'get',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/by-phone/${normalizedPhoneNumber}`,
@@ -148,6 +150,7 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
                             'x-username': req.headers['x-username'] || req['x-username'] || '',
                             'x-user-access-levels': req.headers['x-user-access-levels'] || req['x-user-access-levels'] || '',
                             'x-organizations': req.headers['x-organizations'] || req['x-organizations'] || '',
+                            'x-therr-origin-host': req.headers.origin?.match(hostRegex)?.[1] || '',
                         },
                         method: 'put',
                         url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/${userId}/verify-phone`,

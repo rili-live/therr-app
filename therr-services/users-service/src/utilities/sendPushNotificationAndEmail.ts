@@ -13,6 +13,7 @@ interface ISendPushNotification {
     toUserId: any;
     type: any;
     retentionEmailType?: PushNotifications.Types;
+    whiteLabelOrigin: string;
 }
 
 export default (findUser: (args: IFindUserArgs, returning: any[]) => Promise<{
@@ -27,6 +28,7 @@ export default (findUser: (args: IFindUserArgs, returning: any[]) => Promise<{
     toUserId,
     type,
     retentionEmailType,
+    whiteLabelOrigin,
 }: ISendPushNotification): Promise<any> => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email', 'isUnclaimed']).then(([destinationUser]) => {
     if (!destinationUser || destinationUser.isUnclaimed) {
         // Don't send notification/email
@@ -37,6 +39,7 @@ export default (findUser: (args: IFindUserArgs, returning: any[]) => Promise<{
             sendPendingInviteEmail({
                 subject: `[New Connection Request] ${fromUserName} sent you a request on Therr App`,
                 toAddresses: [destinationUser.email],
+                agencyDomainName: whiteLabelOrigin,
             }, {
                 fromName: fromUserName,
             });

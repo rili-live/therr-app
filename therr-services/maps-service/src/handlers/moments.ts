@@ -36,6 +36,7 @@ const countryReverseGeo = countryGeo.country_reverse_geocoding();
 const rewardMomentPosted = ({
     authorization,
     locale,
+    whiteLabelOrigin,
 }, {
     spaceId,
     userId,
@@ -100,6 +101,8 @@ const rewardMomentPosted = ({
                     authorization,
                     'x-localecode': locale,
                     'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
+
                 },
                 data: {
                     fromUserId: space.fromUserId,
@@ -140,6 +143,7 @@ const createMoment = async (req, res) => {
     const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
     let therrCoinRewarded = 0;
 
     const isDuplicate = await Store.moments.get({
@@ -164,6 +168,7 @@ const createMoment = async (req, res) => {
         ? rewardMomentPosted({
             authorization,
             locale,
+            whiteLabelOrigin,
         }, {
             spaceId: req.body.spaceId,
             userId,
@@ -196,6 +201,7 @@ const createMoment = async (req, res) => {
                     authorization,
                     'x-localecode': locale,
                     'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
                     userHasActivated: true,
@@ -279,6 +285,7 @@ const createMoment = async (req, res) => {
                     authorization,
                     locale,
                     userId,
+                    whiteLabelOrigin,
                 }, req.body);
 
                 return res.status(201).send({
@@ -308,6 +315,7 @@ const createIntegratedMomentBase = ({
     requestId,
     userId,
     media,
+    whiteLabelOrigin,
 }, res) => Store.externalMediaIntegrations.get({
     fromUserId: userId,
     platform,
@@ -413,6 +421,7 @@ const createIntegratedMomentBase = ({
                             authorization,
                             'x-localecode': locale,
                             'x-userid': userId,
+                            'x-therr-origin-host': whiteLabelOrigin,
                         },
                         data: {
                             userHasActivated: true,
@@ -438,6 +447,7 @@ const createIntegratedMoment = (req, res) => {
     const authorization = req.headers.authorization;
     const requestId = req.headers['x-requestid'];
     const locale = req.headers['x-localecode'] || 'en-us';
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
     const userId = req.headers['x-userid'];
 
     const {
@@ -475,6 +485,7 @@ const createIntegratedMoment = (req, res) => {
             platform,
             requestId,
             userId,
+            whiteLabelOrigin,
         }, res))
         .catch((err) => {
             if (err?.message?.includes('duplicate key value violates unique constraint')) {
@@ -493,6 +504,7 @@ const createIntegratedMoment = (req, res) => {
 const dynamicCreateIntegratedMoment = (req, res) => {
     const authorization = req.headers.authorization;
     const requestId = req.headers['x-requestid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
     const locale = req.headers['x-localecode'] || 'en-us';
 
     const {
@@ -508,6 +520,7 @@ const dynamicCreateIntegratedMoment = (req, res) => {
         platform,
         requestId,
         userId,
+        whiteLabelOrigin,
     }, res)
         .catch((err) => {
             if (err?.message?.includes('duplicate key value violates unique constraint')) {
@@ -526,6 +539,7 @@ const dynamicCreateIntegratedMoment = (req, res) => {
 const updateMoment = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
     const { momentId } = req.params;
 
     // Ensure user can only update own moments
@@ -576,6 +590,7 @@ const updateMoment = (req, res) => {
                     rewardsPromise = rewardMomentPosted({
                         authorization: req.headers.authorization,
                         locale,
+                        whiteLabelOrigin,
                     }, {
                         spaceId: req.body.spaceId,
                         userId,
@@ -616,6 +631,7 @@ const getMomentDetails = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
     const userAccessLevels = req.headers['x-user-access-levels'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
     const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
 
     const { momentId } = req.params;
@@ -679,6 +695,7 @@ const getMomentDetails = (req, res) => {
                         authorization: req.headers.authorization,
                         userId,
                         locale,
+                        originDomain: whiteLabelOrigin,
                     }).catch((err) => {
                         logSpan({
                             level: 'error',
@@ -756,6 +773,8 @@ const getIntegratedMoments: RequestHandler = async (req: any, res: any) => {
 
 const searchMoments: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+
     const {
         // filterBy,
         query,
@@ -790,6 +809,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
                 authorization: req.headers.authorization,
                 'x-localecode': req.headers['x-localecode'] || 'en-us',
                 'x-userid': userId,
+                'x-therr-origin-host': whiteLabelOrigin,
             },
         }).catch((err) => {
             console.log(err);

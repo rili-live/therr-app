@@ -39,6 +39,8 @@ const fetchExchangeRate = () => Store.users.sumTotalCoins()
 
 const requestRewardsExchange = (req, res) => {
     const userId = req.headers['x-userid'] as string;
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+
     return Store.users.getUserById(userId, ['userName', 'email', 'settingsTherrCoinTotal']).then(([user]) => {
         if (!user) {
             return handleHttpError({
@@ -65,6 +67,7 @@ const requestRewardsExchange = (req, res) => {
                 return sendRewardsExchangeEmail({
                     subject: '[Rewards Requested] Coin Exchange',
                     toAddresses: [],
+                    agencyDomainName: whiteLabelOrigin,
                 }, {
                     amount: req.body.amount || user.settingsTherrCoinTotal,
                     exchangeRate,
@@ -86,6 +89,7 @@ const requestRewardsExchange = (req, res) => {
 
 const getCurrentExchangeRate = (req, res) => {
     const userId = req.headers['x-userid'] as string;
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
 
     return fetchExchangeRate().then((exchangeRate) => res.status(200).send({ exchangeRate }))
         .catch((err) => handleHttpError({
@@ -97,6 +101,8 @@ const getCurrentExchangeRate = (req, res) => {
 };
 
 const transferCoins = (req, res) => {
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+
     const {
         fromUserId, toUserId, amount, spaceId, spaceName,
     } = req.body;
@@ -120,6 +126,7 @@ const transferCoins = (req, res) => {
                             sendInsufficientFundsEmail({
                                 subject: `[Insufficient Coins] Request for ${amount} TherrCoin(s) rejected!`,
                                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS],
+                                agencyDomainName: whiteLabelOrigin,
                             }, {
                                 coinTotal: amount,
                                 userName,
@@ -148,6 +155,7 @@ const transferCoins = (req, res) => {
                     sendCoinsReceivedEmail({
                         subject: `[Coins Received] You earned ${amount} TherrCoin(s)!`,
                         toAddresses: [email],
+                        agencyDomainName: whiteLabelOrigin,
                     }, {
                         coinTotal: amount,
                         userName,

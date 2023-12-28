@@ -14,12 +14,14 @@ interface IRequesterDetails {
     authorization?: string;
     userId: string;
     locale: string;
+    whiteLabelOrigin: string;
 }
 
 const createOrUpdateAchievement: (requesterDetails: IRequesterDetails, requestBody: any) => Promise<ICreateOrUpdateResponse> = ({
     authorization,
     userId,
     locale,
+    whiteLabelOrigin,
 }, {
     achievementClass,
     achievementTier,
@@ -55,6 +57,7 @@ const createOrUpdateAchievement: (requesterDetails: IRequesterDetails, requestBo
                     createSendTotalNotification({
                         authorization,
                         locale,
+                        whiteLabelOrigin,
                     }, {
                         userId,
                         type: Notifications.Types.ACHIEVEMENT_COMPLETED,

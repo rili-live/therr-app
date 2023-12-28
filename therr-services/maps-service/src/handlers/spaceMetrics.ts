@@ -17,6 +17,7 @@ const createSpaceMetric = async (req, res) => {
     const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
 
     const checkInCount = 1;
     const {
@@ -83,6 +84,7 @@ const createSpaceMetric = async (req, res) => {
                 authorization,
                 'x-localecode': locale,
                 'x-userid': userId,
+                'x-therr-origin-host': whiteLabelOrigin,
             },
             data: {
                 fromUserId: space.fromUserId,

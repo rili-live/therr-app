@@ -8,6 +8,7 @@ export interface ISendUserFeedbackEmailConfig {
     charset?: string;
     subject: string;
     toAddresses: string[];
+    agencyDomainName: string;
 }
 
 export interface ITemplateParams {

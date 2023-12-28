@@ -1,5 +1,5 @@
 import logSpan from 'therr-js-utilities/log-or-update-span';
-import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
+import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
 import {
     AccessLevels, CampaignAdGoals, CampaignAssetTypes, CampaignStatuses, CampaignTypes, ErrorCodes, OAuthIntegrationProviders,
 } from 'therr-js-utilities/constants';
@@ -27,6 +27,7 @@ const accessAndModifyCampaign = (
         campaignId: string;
         userActorId: string;
         isAdmin: boolean;
+        whiteLabelOrigin: string;
     },
     campaignReqBody: any,
     effectiveStatus: CampaignStatuses,
@@ -142,6 +143,7 @@ const accessAndModifyCampaign = (
                                     sendCampaignPendingReviewEmail({
                                         subject: `Campaign in Review | ${title}`,
                                         toAddresses: [user.email],
+                                        agencyDomainName: context.whiteLabelOrigin,
                                     }, {
                                         campaignName: title,
                                         isPastSchedule: isCampaignCompleted,
@@ -154,6 +156,7 @@ const accessAndModifyCampaign = (
                                 sendCampaignCreatedEmail({
                                     subject: '[Urgent Request] User Updated a Campaign',
                                     toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                                    agencyDomainName: context.whiteLabelOrigin,
                                 }, {
                                     userId: context.userActorId,
                                     campaignDetails: {
@@ -373,9 +376,12 @@ const searchAllCampaigns = async (req, res) => {
 
 // SAVE
 const createCampaign = async (req, res) => {
-    const userId = req.headers['x-userid'];
-    const authorization = req.headers.authorization;
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const {
         organizationId,
@@ -449,6 +455,7 @@ const createCampaign = async (req, res) => {
             sendCampaignCreatedEmail({
                 subject: '[Urgent Request] User Created a Campaign',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                agencyDomainName: whiteLabelOrigin,
             }, {
                 userId,
                 campaignDetails: {
@@ -470,10 +477,14 @@ const createCampaign = async (req, res) => {
 };
 
 const updateCampaign = async (req, res) => {
-    const userId = req.headers['x-userid'];
-    const authorization = req.headers.authorization;
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const writeAccessOrgIds = getUserOrgsIdsFromHeaders(req.headers, 'write');
+    const {
+        authorization,
+        locale,
+        userId,
+        userOrgsAccess,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
+    const writeAccessOrgIds = getUserOrgsIdsFromHeaders(userOrgsAccess, 'write');
 
     const {
         organizationId,
@@ -502,6 +513,7 @@ const updateCampaign = async (req, res) => {
             campaignId: req.params.id,
             userActorId: userId,
             isAdmin: false,
+            whiteLabelOrigin,
         },
         req.body,
         storedStatus,
@@ -530,9 +542,12 @@ const updateCampaign = async (req, res) => {
 };
 
 const updateCampaignStatus = async (req, res) => {
-    const userId = req.headers['x-userid'];
-    const authorization = req.headers.authorization;
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const {
         creatorId,
@@ -551,6 +566,7 @@ const updateCampaignStatus = async (req, res) => {
                 campaignId: req.params.id,
                 userActorId: creatorId,
                 isAdmin: true,
+                whiteLabelOrigin,
             },
             campaignExpanded,
             status,
@@ -563,6 +579,7 @@ const updateCampaignStatus = async (req, res) => {
                     sendCampaignApprovedEmail({
                         subject: 'Campaign Update Approved',
                         toAddresses: [users[0].email],
+                        agencyDomainName: whiteLabelOrigin,
                     }, {
                         campaignName: campaigns[0].title,
                         integrationTargets: campaigns[0].integrationTargets,

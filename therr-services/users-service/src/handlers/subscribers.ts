@@ -9,9 +9,12 @@ import sendSubscriberVerificationEmail from '../api/email/sendSubscriberVerifica
 // CREATE
 const createFeedback: RequestHandler = (req: any, res: any) => {
     const fromUserId = req.headers['x-userid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+
     return sendUserFeedbackEmail({
         subject: '[Therr] New User Feedback',
         toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+        agencyDomainName: whiteLabelOrigin,
     }, {
         fromUserId,
         feedback: req.body.feedback,
@@ -32,6 +35,8 @@ const createFeedback: RequestHandler = (req: any, res: any) => {
 };
 
 const createSubscriber: RequestHandler = (req: any, res: any) => {
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+
     if (!req.body.email) {
         return handleHttpError({
             res,
@@ -56,6 +61,7 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
                 sendSubscriberVerificationEmail({
                     subject: '[Therr] Subscribed to General Updates',
                     toAddresses: [req.body.email],
+                    agencyDomainName: whiteLabelOrigin,
                 }, {}).catch((error) => {
                     logSpan({
                         level: 'error',
