@@ -25,6 +25,7 @@ interface IHeaders {
     locale: any;
     userId: any;
     userDeviceToken: string;
+    whiteLabelOrigin: string;
 }
 
 interface IAreaGetSettings {
@@ -114,6 +115,7 @@ const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLo
             authorization: headers.authorization,
             'x-localecode': headers.locale,
             'x-userid': headers.userId,
+            'x-therr-origin-host': headers.whiteLabelOrigin,
         },
         data,
     })
@@ -169,6 +171,7 @@ const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLo
                                 authorization: headers.authorization,
                                 'x-localecode': headers.locale,
                                 'x-userid': headers.userId,
+                                'x-therr-origin-host': headers.whiteLabelOrigin,
                             },
                             data: {
                                 userId: headers.userId,
@@ -284,6 +287,7 @@ const fetchNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocationCa
             authorization: headers.authorization,
             'x-localecode': headers.locale,
             'x-userid': headers.userId,
+            'x-therr-origin-host': headers.whiteLabelOrigin,
         },
         data: {
             distanceOverride: Location.AREA_PROXIMITY_EXPANDED_METERS,
@@ -309,6 +313,7 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
                 authorization: headers.authorization,
                 'x-localecode': headers.locale,
                 'x-userid': headers.userId,
+                'x-therr-origin-host': headers.whiteLabelOrigin,
             },
             data: {
                 latitude: userLocation.latitude,
@@ -363,6 +368,7 @@ const sendSpaceMetric = (headers: IHeaders, spaces: any[], userLocation: IUserlo
         authorization: headers.authorization,
         'x-localecode': headers.locale,
         'x-userid': headers.userId,
+        'x-therr-origin-host': headers.whiteLabelOrigin,
     },
     data: {
         name: metricName,
@@ -407,6 +413,7 @@ const activateAreasAndNotify = (
             authorization: headers.authorization,
             'x-localecode': headers.locale,
             'x-userid': headers.userId,
+            'x-therr-origin-host': headers.whiteLabelOrigin,
         },
         data: {
             momentIds: activatedMomentIds,
@@ -420,6 +427,7 @@ const activateAreasAndNotify = (
             authorization: headers.authorization,
             'x-localecode': headers.locale,
             'x-userid': headers.userId,
+            'x-therr-origin-host': headers.whiteLabelOrigin,
         },
         data: {
             spaceIds: activatedSpaceIds,
@@ -470,6 +478,7 @@ const activateAreasAndNotify = (
                         authorization: headers.authorization,
                         'x-localecode': headers.locale,
                         'x-userid': headers.userId,
+                        'x-therr-origin-host': headers.whiteLabelOrigin,
                     },
                     data: {
                         userId: headers.userId,

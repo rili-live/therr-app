@@ -8,12 +8,17 @@ export interface ISendSubscriberVerificationEmailConfig {
     charset?: string;
     subject: string;
     toAddresses: string[];
+    agencyDomainName: string;
+}
+
+interface ITemplateParams {
+    [key: string]: any;
 }
 
 // export interface ITemplateParams {}
 
 // TODO: Localize email
-export default (emailParams: ISendSubscriberVerificationEmailConfig, templateParams: any, isDashboardRegistration = false) => {
+export default (emailParams: ISendSubscriberVerificationEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     const template = Handlebars.compile(templateString);
     const htmlConfig = {
         header: 'Therr App: Subscribed to Updates',

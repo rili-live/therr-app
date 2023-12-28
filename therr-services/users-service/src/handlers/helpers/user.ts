@@ -289,6 +289,7 @@ const createUserHelper = (
                 createOrUpdateAchievement({
                     userId: user.id,
                     locale,
+                    whiteLabelOrigin,
                 }, {
                     achievementClass: 'communityLeader',
                     achievementTier: '1_1',
@@ -409,6 +410,7 @@ const createUserHelper = (
                         sendNewUserAdminNotificationEmail({
                             subject: userByInviteDetails ? '[New User] New User Registration by Invite' : '[New User] New User Registration',
                             toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                            agencyDomainName: whiteLabelOrigin,
                         }, {
                             name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
                             inviterEmail: userByInviteDetails?.fromEmail || '',
@@ -422,6 +424,8 @@ const createUserHelper = (
                             return sendSSONewUserEmail({
                                 subject: '[Account Created] Therr One-Time Password',
                                 toAddresses: [userDetails.email],
+                                agencyDomainName: whiteLabelOrigin,
+
                             }, {
                                 name: userDetails.email,
                                 oneTimePassword: otPassword,
@@ -431,6 +435,8 @@ const createUserHelper = (
                         return sendNewUserInviteEmail({
                             subject: `${userByInviteDetails?.fromName} Invited You to Therr app`,
                             toAddresses: [userByInviteDetails?.toEmail || ''],
+                            agencyDomainName: whiteLabelOrigin,
+
                         }, {
                             fromName: userByInviteDetails?.fromName || '',
                             fromEmail: userByInviteDetails?.fromEmail || '',
@@ -446,6 +452,7 @@ const createUserHelper = (
             sendNewUserAdminNotificationEmail({
                 subject: '[New User] New User Registration',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                agencyDomainName: whiteLabelOrigin,
             }, {
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
             }, {
@@ -459,6 +466,7 @@ const createUserHelper = (
             return sendVerificationEmail({
                 subject: '[Account Verification] Therr User Account',
                 toAddresses: [userDetails.email],
+                agencyDomainName: whiteLabelOrigin,
             }, {
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
                 verificationCodeToken: codeDetails.token,
@@ -599,14 +607,7 @@ const validateCredentials = (userSearchResults, {
     }).then((isSuccess) => [isSuccess, userSearchResults[0]]);
 };
 
-const getUserOrgsIdsFromHeaders = (headers: any, accessFilter = 'read') => {
-    let userOrgs = {};
-    try {
-        userOrgs = JSON.parse(headers['x-organizations'] || '{}');
-    } catch (e) {
-        console.log(e);
-        userOrgs = {};
-    }
+const getUserOrgsIdsFromHeaders = (userOrgs: { [key: string]: string[] }, accessFilter = 'read') => {
     const readAccessOrgIds = Object.keys(userOrgs).filter((key) => {
         if (accessFilter === 'read') {
             return (

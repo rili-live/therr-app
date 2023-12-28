@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { getSearchQueryArgs } from 'therr-js-utilities/http';
+import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
@@ -14,11 +14,16 @@ export const translateNotification = (notification, locale = 'en-us') => ({
 
 // CREATE
 const createNotification = (req, res) => {
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     return createSendTotalNotification({
         authorization: req.headers.authorization,
         locale,
+        whiteLabelOrigin,
     }, {
         userId: req.body.userId,
         type: req.body.type, // DB Notification type

@@ -20,6 +20,7 @@ export interface IUpdatePasswordArgs extends IValidatePasswordArgs {
     };
     newPassword: string;
     userId: string;
+    whiteLabelOrigin: string
 }
 
 const validatePassword = async ({
@@ -62,6 +63,7 @@ const updatePassword = ({
     res,
     emailArgs,
     userId,
+    whiteLabelOrigin,
 }: IUpdatePasswordArgs) => validatePassword({
     hashedPassword,
     inputPassword,
@@ -81,6 +83,7 @@ const updatePassword = ({
                     .then(() => sendPasswordChangeEmail({
                         subject: '[Password Changed] Therr Account Settings',
                         toAddresses: [emailArgs.email],
+                        agencyDomainName: whiteLabelOrigin,
                     }, {
                         email: emailArgs.email,
                         userName: emailArgs.userName,

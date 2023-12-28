@@ -5,6 +5,7 @@ interface IRequestUsersServiceConfig {
     authorization: string;
     locale: string;
     userId: string;
+    whiteLabelOrigin: string;
 }
 
 interface IRequestUsersServiceArgs {
@@ -16,6 +17,7 @@ export default ({
     authorization,
     locale,
     userId,
+    whiteLabelOrigin,
 }: IRequestUsersServiceConfig, {
     path,
     method,
@@ -26,6 +28,7 @@ export default ({
         authorization,
         'x-localecode': locale,
         'x-userid': userId,
+        'x-therr-origin-host': whiteLabelOrigin,
     },
     data: requestBody,
 });

@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 // import axios from 'axios';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
@@ -11,8 +12,11 @@ import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
 // CREATE/UPDATE
 const createOrUpdateMomentReaction = (req, res) => {
     // TODO: This endpoint should be secure/non-public so user's cannot activate moments on demand
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     return Store.momentReactions.get({
         userId,
@@ -23,6 +27,7 @@ const createOrUpdateMomentReaction = (req, res) => {
                 authorization: req.headers.authorization,
                 locale,
                 userId,
+                whiteLabelOrigin,
             }, req.body);
 
             return Store.momentReactions.update({

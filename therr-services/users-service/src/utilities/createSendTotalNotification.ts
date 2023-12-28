@@ -6,6 +6,7 @@ import sendPushNotificationAndEmail from './sendPushNotificationAndEmail';
 interface IHeaders {
     authorization: string;
     locale: string;
+    whiteLabelOrigin: string;
 }
 
 interface IParticipants {
@@ -59,6 +60,7 @@ export default (
                 locale: headers.locale,
                 toUserId: participants.toUserId,
                 type: pushNotificationType,
+                whiteLabelOrigin: headers.whiteLabelOrigin,
             });
         }
 
