@@ -27,11 +27,11 @@ import sendClaimApprovedEmail from '../api/email/for-business/sendClaimApprovedE
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => {
     const locale = req.headers['x-localecode'] || 'en-us';
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
 
     const {
         activationCode,
         paymentSessionId,
-
     } = req.body;
 
     // This is a honeypot hidden field to prevent spam
@@ -175,7 +175,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 phoneNumber: req.body.phoneNumber,
                 userName: req.body.userName,
                 accessLevels: levels,
-            }, false, undefined, !!inviteCode, req.headers['x-localecode']).then((user) => res.status(201).send(user)));
+            }, false, undefined, !!inviteCode, req.headers['x-localecode'], whiteLabelOrigin).then((user) => res.status(201).send(user)));
         })
         .catch((err) => handleHttpError({
             err,
