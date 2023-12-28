@@ -5,24 +5,31 @@ export default (req, res, next) => {
     const serializedBody = {
         ...req.body,
     };
-    if (req.body && req.body.idToken) {
-        serializedBody.idToken = 'XXXXX';
+    if (req.body?.idToken) {
+        serializedBody.idToken = 'XXREDACTEDXX';
     }
-    if (req.body && req.body.password) {
-        serializedBody.password = 'XXXXX';
+    if (req.body?.password) {
+        serializedBody.password = 'XXREDACTEDXX';
+    }
+    if (req.body?.oneTimePassword) {
+        serializedBody.oneTimePassword = 'XXREDACTEDXX';
+    }
+    if (req.body?.integrationsAccess) {
+        serializedBody.integrationsAccess = 'XXREDACTEDXX';
     }
     const serializedQuery = {
         ...req.query,
-        idToken: 'XXXXX',
+        idToken: 'XXREDACTEDXX',
+        access_token: 'XXREDACTEDXX',
     };
     if (req.query && req.query.idToken) {
-        serializedQuery.idToken = 'XXXXX';
+        serializedQuery.idToken = 'XXREDACTEDXX';
     }
     const activeSpan = opentelemetry.trace.getActiveSpan();
     activeSpan?.setAttribute('request.app', req.app);
     activeSpan?.setAttribute('request.ip', req.ip);
-    activeSpan?.setAttribute('request.body', serializedBody.toString());
-    activeSpan?.setAttribute('request.query', serializedQuery);
+    activeSpan?.setAttribute('request.body', JSON.stringify(serializedBody));
+    activeSpan?.setAttribute('request.query', JSON.stringify(serializedQuery));
     activeSpan?.setAttribute('request.osHostname', os.hostname());
     activeSpan?.setAttribute('request.originHost', req.headers['x-therr-origin-host']);
 
