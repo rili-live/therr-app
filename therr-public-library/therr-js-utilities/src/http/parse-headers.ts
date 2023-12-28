@@ -14,7 +14,7 @@ const parseHeaders = (headers: { [key: string]: any }) => {
         userAccessLevels = JSON.parse(headers['x-user-access-levels'] || '[]');
         userOrgsAccess = JSON.parse(headers['x-organizations'] || '{}');
     } catch (e) {
-        console.error('Failed to parse x-user-access-levels OR x-organizations header', e);
+        console.warn('Failed to parse x-user-access-levels OR x-organizations header', e);
     }
 
     return {

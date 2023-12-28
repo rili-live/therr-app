@@ -307,8 +307,13 @@ const getCampaignAndAdGroup = (campaignPromise) => campaignPromise.then((campaig
 
 // READ
 const getCampaign = async (req, res) => {
-    const userId = req.headers['x-userid'];
-    const readAccessOrgIds = getUserOrgsIdsFromHeaders(req.headers, 'read');
+    const {
+        authorization,
+        locale,
+        userId,
+        userOrgsAccess,
+    } = parseHeaders(req.headers);
+    const readAccessOrgIds = getUserOrgsIdsFromHeaders(userOrgsAccess, 'read');
 
     getCampaignAndAdGroup(
         Store.campaigns.getCampaigns({
@@ -329,12 +334,15 @@ const searchMyCampaigns = async (req, res) => {
         itemsPerPage,
         pageNumber,
     } = req.query;
-    const authorization = req.headers.authorization;
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userOrgsAccess,
+    } = parseHeaders(req.headers);
 
     const integerColumns = [];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const readAccessOrgIds = getUserOrgsIdsFromHeaders(req.headers, 'read');
+    const readAccessOrgIds = getUserOrgsIdsFromHeaders(userOrgsAccess, 'read');
 
     return Store.campaigns.searchCampaigns(searchArgs[0], searchArgs[1], userId, {
         userOrganizations: readAccessOrgIds,
