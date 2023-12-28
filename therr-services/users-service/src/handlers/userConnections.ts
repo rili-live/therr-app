@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import {
     CurrentSocialValuations, Notifications, PushNotifications, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
-import { getSearchQueryArgs } from 'therr-js-utilities/http';
+import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
@@ -49,6 +49,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     } = req.body;
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'];
     const fromUserFullName = `${requestingUserFirstName} ${requestingUserLastName}`;
     const locale = req.headers['x-localecode'] || 'en-us';
     let acceptingUser: {
@@ -180,6 +181,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     authorization,
                     userId,
                     locale,
+                    whiteLabelOrigin,
                 }, {
                     achievementClass: 'socialite',
                     achievementTier: '1_1',
@@ -222,6 +224,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 toUserId: acceptingUser.id as string,
                 type: 'new-connection-request',
                 retentionEmailType: PushNotifications.Types.newConnectionRequest,
+                whiteLabelOrigin,
             }).catch((err) => {
                 logSpan({
                     level: 'error',
@@ -277,10 +280,13 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         requestingUserEmail,
         inviteList,
     } = req.body;
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
     const fromUserFullName = `${requestingUserFirstName} ${requestingUserLastName}`;
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     let coinRewardsTotal = 0;
 
     if (requestingUserId !== userId) {
@@ -340,6 +346,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             emailSendPromises.push(sendContactInviteEmail({
                 subject: `${requestingUserFirstName} ${requestingUserLastName} invited you to Therr app`,
                 toAddresses: [contact.email],
+                agencyDomainName: whiteLabelOrigin,
             }, {
                 fromName: `${requestingUserFirstName} ${requestingUserLastName}`,
                 fromEmail: requestingUserEmail || '',
@@ -374,6 +381,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                     authorization,
                     userId,
                     locale,
+                    whiteLabelOrigin,
                 }, {
                     achievementClass: 'socialite',
                     achievementTier: '1_1',
@@ -461,6 +469,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                         toUserId: acceptingUser.id,
                         type: 'new-connection-request',
                         retentionEmailType: PushNotifications.Types.newConnectionRequest,
+                        whiteLabelOrigin,
                     });
                 });
 
@@ -577,10 +586,13 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
 // UPDATE
 // TODO: RSERV-32 - return associated users (same as search userConnections does)
 const updateUserConnection = (req, res) => {
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     const acceptingUserId = userId;
-    const locale = req.headers['x-localecode'] || 'en-us';
     const requestingUserId = req.body.otherUserId;
 
     return Store.userConnections.getUserConnections({
@@ -612,6 +624,7 @@ const updateUserConnection = (req, res) => {
                             authorization,
                             userId: getResults[0].requestingUserId,
                             locale,
+                            whiteLabelOrigin,
                         }, {
                             achievementClass: 'socialite',
                             achievementTier: '1_2',
@@ -623,6 +636,7 @@ const updateUserConnection = (req, res) => {
                             authorization,
                             userId: getResults[0].acceptingUserId,
                             locale,
+                            whiteLabelOrigin,
                         }, {
                             achievementClass: 'socialite',
                             achievementTier: '1_2',
@@ -647,6 +661,7 @@ const updateUserConnection = (req, res) => {
                     locale,
                     toUserId: getResults[0].acceptingUserId,
                     type: PushNotifications.Types.connectionRequestAccepted,
+                    whiteLabelOrigin,
                 });
             }).catch((err) => {
                 logSpan({

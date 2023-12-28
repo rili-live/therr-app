@@ -29,6 +29,7 @@ const createSpace = async (req, res) => {
     const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
 
     const isDuplicate = await Store.spaces.get({
         fromUserId: userId,
@@ -67,6 +68,7 @@ const createSpace = async (req, res) => {
                 authorization,
                 'x-localecode': locale,
                 'x-userid': userId,
+                'x-therr-origin-host': whiteLabelOrigin,
             },
             data: {
                 userHasActivated: true,
@@ -179,6 +181,7 @@ const getSpaceDetails = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
     const userAccessLevels = req.headers['x-user-access-levels'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
 
     const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
 
@@ -249,6 +252,7 @@ const getSpaceDetails = (req, res) => {
                     authorization: req.headers.authorization,
                     userId,
                     locale,
+                    originDomain: whiteLabelOrigin,
                 }).catch((err) => {
                     logSpan({
                         level: 'error',
@@ -269,6 +273,7 @@ const getSpaceDetails = (req, res) => {
                 // TODO: Check if user is part of organization and has access to view
                 userHasAccessPromise = () => getReactions('space', spaceId, {
                     'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
                 });
             }
 
@@ -289,6 +294,7 @@ const getSpaceDetails = (req, res) => {
 const searchSpaces: RequestHandler = async (req: any, res: any) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
     const userAccessLevels = req.headers['x-user-access-levels'];
     const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
     const shouldLimitDetail = !authorization || req.path === '/list';
@@ -335,6 +341,7 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
                 authorization: req.headers.authorization,
                 'x-localecode': req.headers['x-localecode'] || 'en-us',
                 'x-userid': userId,
+                'x-therr-origin-host': whiteLabelOrigin,
             },
         }).catch((err) => {
             console.log(err);
@@ -375,6 +382,7 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
 
 const searchMySpaces: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
     const {
         // filterBy,
         itemsPerPage,
@@ -385,6 +393,7 @@ const searchMySpaces: RequestHandler = async (req: any, res: any) => {
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
     return getUserOrganizations({
         'x-userid': userId,
+        'x-therr-origin-host': whiteLabelOrigin,
     }).then((orgResults) => {
         const orgsWithReadAccess = orgResults.userOrganizations.filter((org) => (
             org.accessLevels.includes(AccessLevels.ORGANIZATIONS_ADMIN)
@@ -414,6 +423,7 @@ const claimSpace: RequestHandler = async (req: any, res: any) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
     const { spaceId } = req.params;
 
     return Store.spaces.getByIdSimple(spaceId).then((([space]) => {
@@ -442,6 +452,7 @@ const claimSpace: RequestHandler = async (req: any, res: any) => {
                 authorization,
                 'x-localecode': locale,
                 'x-userid': userId,
+                'x-therr-origin-host': whiteLabelOrigin,
             },
             data: {
                 ...space,
@@ -495,6 +506,7 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
 
     const {
         isDashboard,
@@ -534,6 +546,7 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
             authorization,
             'x-localecode': locale,
             'x-userid': userId,
+            'x-therr-origin-host': whiteLabelOrigin,
         },
         data: {
             address,
@@ -586,6 +599,7 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                     authorization,
                     'x-localecode': locale,
                     'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
                     userHasActivated: true,
@@ -670,6 +684,7 @@ const approveSpaceRequest: RequestHandler = async (req: any, res: any) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
     const userAccessLevels = req.headers['x-user-access-levels'];
     const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
     const { spaceId } = req.params;
@@ -700,6 +715,7 @@ const approveSpaceRequest: RequestHandler = async (req: any, res: any) => {
                 authorization,
                 'x-localecode': locale,
                 'x-userid': userId,
+                'x-therr-origin-host': whiteLabelOrigin,
             },
             data: {
                 ...space,

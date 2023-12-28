@@ -34,6 +34,7 @@ module.exports = {
         googleOAuth2WebClientIdiOS: '718962923226-os68t9a1pi6giap1l447r3vtshf2ie3c.apps.googleusercontent.com',
         host: hostDev,
         hostFull: `http://${hostDev}:${clientPort}`,
+        dashboardHost: hostDev,
         dashboardHostFull: `http://${hostDev}:${dashboardClientPort}`,
         socket: {
             clientPath: '/socketio',
@@ -59,6 +60,7 @@ module.exports = {
         googleOAuth2WebClientIdiOS: '718962923226-os68t9a1pi6giap1l447r3vtshf2ie3c.apps.googleusercontent.com',
         host: hostStage,
         hostFull: `https://${hostStage}`,
+        dashboardHost: dashboardHostStage,
         dashboardHostFull: `http://${dashboardHostStage}`,
         socket: {
             clientPath: '/socketio',
@@ -85,6 +87,7 @@ module.exports = {
         googleOAuth2WebClientIdiOS: '718962923226-1rhet8adgsvuviutj7ja2006bhcncr87.apps.googleusercontent.com',
         host: hostProd,
         hostFull: `https://${hostProd}`,
+        dashboardHost: dashboardHostProd,
         dashboardHostFull: `https://${dashboardHostProd}`,
         socket: {
             clientPath: '/socketio',

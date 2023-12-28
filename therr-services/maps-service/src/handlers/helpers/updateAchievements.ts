@@ -24,6 +24,7 @@ const updateAchievements = (headers, reqBody): Promise<any> => {
             authorization: headers.authorization,
             'x-localecode': headers.locale,
             'x-userid': headers.userId,
+            'x-therr-origin-host': headers.whiteLabelOrigin,
         },
         data: {
             achievementClass: 'influencer',

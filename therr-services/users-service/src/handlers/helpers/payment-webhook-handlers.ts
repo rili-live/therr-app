@@ -7,11 +7,26 @@ import sendAdminNewBusinessSubscriptionEmail from '../../api/email/admin/sendAdm
 import sendDashboardSubscriberIntroEmail from '../../api/email/for-business/sendDashboardSubscriberIntroEmail';
 import sendDashboardSubscriberUserNotFoundEmail from '../../api/email/for-business/sendDashboardSubscriberUserNotFoundEmail';
 import stripe from '../../api/stripe';
+import * as globalConfig from '../../../../../global-config';
 
-export const productIdToAccessLvlMap = {
-    prod_OK9dEHmueTGDZ1: AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
-    prod_OK9e5d2awEPukG: AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
-    prod_OK9f7dJp7rtPB8: AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+export const productIdMap: {
+    [key: string]: {
+        accessLevel: string;
+        domain: string;
+    }
+} = {
+    prod_OK9dEHmueTGDZ1: {
+        accessLevel: AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+        domain: globalConfig[process.env.NODE_ENV].dashboardHost,
+    },
+    prod_OK9e5d2awEPukG: {
+        accessLevel: AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
+        domain: globalConfig[process.env.NODE_ENV].dashboardHost,
+    },
+    prod_OK9f7dJp7rtPB8: {
+        accessLevel: AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
+        domain: globalConfig[process.env.NODE_ENV].dashboardHost,
+    },
 };
 
 const handleSubscriptionCreateUpdate = async (event) => {
@@ -46,6 +61,7 @@ const handleSubscriptionCreateUpdate = async (event) => {
                 sendDashboardSubscriberIntroEmail({
                     subject: 'Free Trial Activated: Therr for Business',
                     toAddresses: [normedEmail],
+                    agencyDomainName: productIdMap[eventObject.product?.id]?.domain || '',
                 }, {
                     productName: product.name,
                 });
@@ -55,7 +71,7 @@ const handleSubscriptionCreateUpdate = async (event) => {
                     const userAccessLevels = new Set(
                         user.accessLevels,
                     );
-                    userAccessLevels.add(productIdToAccessLvlMap[product.id] || AccessLevels.DASHBOARD_SUBSCRIBER_BASIC);
+                    userAccessLevels.add(productIdMap[product.id].accessLevel || AccessLevels.DASHBOARD_SUBSCRIBER_BASIC);
                     return Store.users.updateUser({
                         accessLevels: JSON.stringify([...userAccessLevels]),
                     }, {
@@ -67,6 +83,7 @@ const handleSubscriptionCreateUpdate = async (event) => {
                 sendDashboardSubscriberUserNotFoundEmail({
                     subject: 'Subscriber Missing Email | Not Found',
                     toAddresses: [normedEmail, process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                    agencyDomainName: productIdMap[product.id].domain,
                 }, {
                     productName: product.name,
                 });
@@ -81,6 +98,7 @@ const handleSubscriptionCreateUpdate = async (event) => {
     sendAdminNewBusinessSubscriptionEmail({
         subject: '[New Subscriber] New Dashboard Payment',
         toAddresses: [],
+        agencyDomainName: productIdMap[eventObject.product?.id]?.domain || '',
     }, {
         customerEmail: normedEmail,
     }, {

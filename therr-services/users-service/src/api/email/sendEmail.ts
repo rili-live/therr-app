@@ -9,6 +9,7 @@ export interface ISendEmailConfig {
     html: string;
     subject: string;
     toAddresses: string[];
+    agencyDomainName: string;
 }
 
 const failsafeBlackListRequest = (email) => Promise.all([

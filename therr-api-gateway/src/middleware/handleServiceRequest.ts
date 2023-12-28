@@ -4,8 +4,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
 import restRequest from '../utilities/restRequest';
 import isBlacklisted, { isBlacklistedEmail } from '../utilities/isBlacklisted';
-
-const hostRegex = /^(?:https?:\/\/)(?:[^@\n]+@)?(?:www\.)?([^/\n&?]+)/;
+import { hostRegex } from '../utilities/patterns';
 
 interface IHandleServiceRequestArgs {
     basePath: string;

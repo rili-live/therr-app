@@ -8,6 +8,7 @@ export interface ISendOneTimePasswordConfig {
     charset?: string;
     subject: string;
     toAddresses: string[];
+    agencyDomainName: string;
 }
 
 export interface ITemplateParams {

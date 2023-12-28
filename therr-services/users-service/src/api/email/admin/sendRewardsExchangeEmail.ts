@@ -8,6 +8,7 @@ export interface ISendRewardsExchangeEmailConfig {
     charset?: string;
     subject: string;
     toAddresses: string[];
+    agencyDomainName: string;
 }
 
 export interface ITemplateParams {

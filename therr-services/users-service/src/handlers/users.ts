@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizeEmail from 'normalize-email';
+import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
@@ -26,8 +27,10 @@ import sendClaimApprovedEmail from '../api/email/for-business/sendClaimApprovedE
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => {
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        locale,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const {
         activationCode,
@@ -76,6 +79,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         sendAdminUrgentErrorEmail({
                             subject: '[Urgent Error] Bad Activation Code',
                             toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                            agencyDomainName: whiteLabelOrigin,
                         }, {
                             errorMessage: 'Activation Code already used',
                         }, {
@@ -96,6 +100,8 @@ const createUser: RequestHandler = (req: any, res: any) => {
                             sendAdminUrgentErrorEmail({
                                 subject: '[Urgent Error] Activation Code Error',
                                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                                agencyDomainName: whiteLabelOrigin,
+
                             }, {
                                 errorMessage: `Failed to update activation code: ${err?.message}`,
                             }, {
@@ -109,6 +115,8 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     sendAdminUrgentErrorEmail({
                         subject: '[Urgent Error] Bad Activation Code',
                         toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                        agencyDomainName: whiteLabelOrigin,
+
                     }, {
                         errorMessage: 'Activation code not found',
                     }, {
@@ -121,6 +129,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     sendAdminUrgentErrorEmail({
                         subject: '[Urgent Error] Bad Activation Code',
                         toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                        agencyDomainName: whiteLabelOrigin,
                     }, {
                         errorMessage: `Error fetching activation codes: ${err?.message}`,
                     }, {
@@ -143,6 +152,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         return createOrUpdateAchievement({
                             userId: inviter[0].id,
                             locale,
+                            whiteLabelOrigin,
                         }, {
                             achievementClass: 'communityLeader',
                             achievementTier: '1_1',
@@ -413,8 +423,11 @@ const searchUserPairings: RequestHandler = (req: any, res: any) => {
 
 // UPDATE
 const updateUser = (req, res) => {
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
+    const {
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     return Store.users.getUserById(userId)
         .then((userSearchResults) => {
@@ -457,6 +470,7 @@ const updateUser = (req, res) => {
                     },
                     newPassword: password,
                     userId,
+                    whiteLabelOrigin,
                 }).catch((e) => {
                     logSpan({
                         level: 'error',
@@ -668,8 +682,11 @@ const updatePhoneVerification = (req, res) => Store.users.findUser({ id: req.par
     }));
 
 const updateUserCoins = (req, res) => {
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
+    const {
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     return Store.users.getUserById(userId)
         .then((userSearchResults) => {
@@ -704,6 +721,7 @@ const updateUserCoins = (req, res) => {
                     },
                     newPassword: password,
                     userId,
+                    whiteLabelOrigin,
                 }).catch((e) => {
                     logSpan({
                         level: 'error',
@@ -827,8 +845,11 @@ const reportUser = (req, res) => Store.users.findUser({ id: req.params.id })
 // UPDATE PASSWORD
 const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers['x-userid'] })
     .then((findResults) => {
-        const locale = req.headers['x-localecode'] || 'en-us';
-        const userId = req.headers['x-userid'];
+        const {
+            locale,
+            userId,
+            whiteLabelOrigin,
+        } = parseHeaders(req.headers);
         const {
             email,
             newPassword,
@@ -855,6 +876,7 @@ const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers[
             },
             newPassword,
             userId,
+            whiteLabelOrigin,
         })
             .then(() => res.status(204).send())
             .catch(() => handleHttpError({
@@ -867,8 +889,11 @@ const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers[
 
 // DELETE
 const deleteUser = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const userName = req.headers['x-username'];
+    const {
+        userName,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     // User should only be able to delete self
     if (userId !== req.params.id) {
@@ -890,6 +915,7 @@ const deleteUser = (req, res) => {
             sendUserDeletedEmail({
                 subject: '😞 User Account Deleted',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                agencyDomainName: whiteLabelOrigin,
             }, {
                 userId,
                 userName,
@@ -903,6 +929,9 @@ const deleteUser = (req, res) => {
 };
 
 const createOneTimePassword = (req, res) => {
+    const {
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     const { email, isDashboardRegistration } = req.body;
 
     return Store.users.getUsers({ email: normalizeEmail(email) })
@@ -927,6 +956,7 @@ const createOneTimePassword = (req, res) => {
                 .then(() => sendOneTimePasswordEmail({
                     subject: '[Forgot Password?] Therr One-Time Password',
                     toAddresses: [email],
+                    agencyDomainName: whiteLabelOrigin,
                 }, {
                     name: email,
                     oneTimePassword: otPassword,
@@ -1026,6 +1056,9 @@ const verifyUserAccount = (req, res) => {
 };
 
 const resendVerification: RequestHandler = (req: any, res: any) => {
+    const {
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: req.body.email, type: req.body.type });
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
@@ -1070,6 +1103,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
                     return sendVerificationEmail({
                         subject: '[Account Verification] Therr User Account',
                         toAddresses: [req.body.email],
+                        agencyDomainName: whiteLabelOrigin,
                     }, {
                         name: users[0].firstName && users[0].lastName ? `${users[0].firstName} ${users[0].lastName}` : users[0].email,
                         verificationCodeToken: codeDetails.token,
@@ -1090,8 +1124,10 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
 };
 
 const requestSpace: RequestHandler = (req: any, res: any) => {
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
+    const {
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     // TODO: Supply user agent to determine if web or mobile
     const {
         address,
@@ -1115,12 +1151,14 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
                 sendClaimPendingReviewEmail({
                     subject: 'Business Space Request in Review',
                     toAddresses: [users[0].email],
+                    agencyDomainName: whiteLabelOrigin,
                 }, {
                     spaceName: title || notificationMsg,
                 }),
                 sendSpaceClaimRequestEmail({
                     subject: '[Urgent Request] User Claimed a Space',
                     toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                    agencyDomainName: whiteLabelOrigin,
                 }, {
                     address,
                     longitude,
@@ -1147,8 +1185,11 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
 };
 
 const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
+    const {
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     // TODO: Supply user agent to determine if web or mobile
     const {
         address,
@@ -1175,6 +1216,7 @@ const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
             return sendClaimApprovedEmail({
                 subject: 'Approved: Business Space Request',
                 toAddresses: [users[0].email],
+                agencyDomainName: whiteLabelOrigin,
             }, {
                 spaceName: title || notificationMsg,
                 spaceId,

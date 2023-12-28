@@ -1,13 +1,17 @@
 import axios from 'axios';
+import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 // import translate from '../utilities/translator';
 import * as globalConfig from '../../../../global-config';
 
 const searchActiveThoughts = async (req: any, res: any) => {
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     const {
         limit,
         offset,
@@ -57,6 +61,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
                     authorization,
                     'x-localecode': locale,
                     'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
                     thoughtIds,

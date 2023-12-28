@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
+import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
 import {
     ErrorCodes, MetricNames, MetricValueTypes, Notifications,
 } from 'therr-js-utilities/constants';
@@ -16,9 +16,12 @@ import { createOrUpdateAchievement } from './helpers/achievements';
 
 // CREATE
 const createThought = async (req, res) => {
-    const authorization = req.headers.authorization;
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const isDuplicate = await Store.thoughts.get({
         fromUserId: userId,
@@ -70,6 +73,7 @@ const createThought = async (req, res) => {
                                 authorization,
                                 userId: parentThought.fromUserId,
                                 locale,
+                                whiteLabelOrigin,
                             }, {
                                 achievementClass: 'thinker',
                                 achievementTier: '1_2',
@@ -114,6 +118,7 @@ const createThought = async (req, res) => {
                         return createSendTotalNotification({
                             authorization,
                             locale,
+                            whiteLabelOrigin,
                         }, {
                             userId: thoughts[0].fromUserId, // Notify parent thought's author
                             type: Notifications.Types.THOUGHT_REPLY,
@@ -151,6 +156,7 @@ const createThought = async (req, res) => {
                     authorization,
                     userId,
                     locale,
+                    whiteLabelOrigin,
                 }, {
                     achievementClass: 'thinker',
                     achievementTier: '1_1',
@@ -174,6 +180,7 @@ const createThought = async (req, res) => {
                     authorization,
                     'x-localecode': locale,
                     'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
                     userHasActivated: true,
@@ -316,7 +323,10 @@ const getThoughtDetails = (req, res) => {
 };
 
 const searchThoughts: RequestHandler = async (req: any, res: any) => {
-    const userId = req.headers['x-userid'];
+    const {
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     const {
         // filterBy,
         query,
@@ -349,6 +359,7 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
                 authorization: req.headers.authorization,
                 'x-localecode': req.headers['x-localecode'] || 'en-us',
                 'x-userid': userId,
+                'x-therr-origin-host': whiteLabelOrigin,
             },
         }).catch(() => ({
             data: {

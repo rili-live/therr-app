@@ -21,6 +21,7 @@ export class UserMetricsProvider {
             authorization: uniqueDbProperties.authorization, // Hijack this arg object (this will be replaced with actual metrics provider)
             'x-localecode': uniqueDbProperties.locale, // Hijack this arg object (this will be replaced with actual metrics provider)
             'x-userid': uniqueDbProperties.userId, // Hijack this arg object (this will be replaced with actual metrics provider)
+            'x-therr-origin-host': uniqueDbProperties.originDomain || '',
         },
         data: {
             name: metric.name,

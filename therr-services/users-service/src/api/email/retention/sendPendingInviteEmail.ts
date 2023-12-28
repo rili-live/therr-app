@@ -8,6 +8,7 @@ export interface ISendPendingInviteEmailConfig {
     charset?: string;
     subject: string;
     toAddresses: string[];
+    agencyDomainName: string;
 }
 
 export interface ITemplateParams {

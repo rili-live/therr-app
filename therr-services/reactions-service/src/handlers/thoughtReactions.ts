@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 // import axios from 'axios';
+import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
@@ -10,8 +11,11 @@ import updateAchievements from '../utilities/updateAchievements';
 // CREATE/UPDATE
 const createOrUpdateThoughtReaction = (req, res) => {
     // TODO: This endpoint should be secure/non-public so user's cannot activate thoughts on demand
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     return Store.thoughtReactions.get({
         userId,
@@ -22,6 +26,7 @@ const createOrUpdateThoughtReaction = (req, res) => {
                 authorization: req.headers.authorization,
                 locale,
                 userId,
+                whiteLabelOrigin,
             }, req.body, reactionsResponse[0]);
 
             return Store.thoughtReactions.update({

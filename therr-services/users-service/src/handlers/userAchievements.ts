@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { achievementsByClass } from 'therr-js-utilities/config';
+import { parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
@@ -7,9 +8,12 @@ import { createOrUpdateAchievement } from './helpers/achievements';
 
 // CREATE
 const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: any) => {
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     const {
         achievementClass,
         achievementTier,
@@ -28,6 +32,7 @@ const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: an
         authorization,
         userId,
         locale,
+        whiteLabelOrigin,
     }, {
         achievementClass,
         achievementTier,
