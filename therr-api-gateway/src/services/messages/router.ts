@@ -25,12 +25,12 @@ messagesServiceRouter.get('/direct-messages', handleServiceRequest({
 }));
 
 // Forum Messages
-messagesServiceRouter.post('/forum-messages', createForumMessageValidation, validate, handleServiceRequest({
+messagesServiceRouter.post('/forums-messages', createForumMessageValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'post',
 }));
 
-messagesServiceRouter.get('/forum-messages/:forumId', handleServiceRequest({
+messagesServiceRouter.get('/forums-messages/:forumId', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'get',
 }));

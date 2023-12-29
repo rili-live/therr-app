@@ -48,12 +48,13 @@ export default class ForumMessagesStore {
         let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(FORUM_MESSAGES_TABLE_NAME)
-            .orderBy(`${FORUM_MESSAGES_TABLE_NAME}.updatedAt`);
+            .where('forumId', forumId)
+            .orderBy(`${FORUM_MESSAGES_TABLE_NAME}.createdAt`, 'desc');
 
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
-            queryString = queryString.where('forumId', forumId).andWhere(conditions.filterBy, operator, query);
+            queryString = queryString.andWhere(conditions.filterBy, operator, query);
         }
 
         queryString = queryString

@@ -3,6 +3,7 @@ import emailValidator from 'therr-js-utilities/email-validator';
 import logSpan from 'therr-js-utilities/log-or-update-span'; // eslint-disable-line import/order
 import { awsSES } from '../aws';
 import Store from '../../store';
+import { getHostContext } from '../../constants/hostContext';
 
 export interface ISendEmailConfig {
     charset?: string;
@@ -23,6 +24,7 @@ const failsafeBlackListRequest = (email) => Promise.all([
 });
 
 export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
+    const contextConfig = getHostContext(config.agencyDomainName);
     const params = {
         Content: {
             Simple: {
@@ -47,7 +49,7 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
             // ],
             ToAddresses: config.toAddresses,
         },
-        FromEmailAddress: process.env.AWS_SES_FROM_EMAIL,
+        FromEmailAddress: contextConfig.emailTemplates.fromEmail,
     };
 
     if (!config.toAddresses?.length) {
