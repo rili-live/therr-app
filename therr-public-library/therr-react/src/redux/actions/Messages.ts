@@ -21,18 +21,20 @@ const Messages = {
             data,
         });
     }),
-    searchForumMessages: (query: any) => (dispatch: any) => MessagesService.searchForumMessages(query)
+    searchForumMessages: (forumId: string, userId: string, query: any) => (dispatch: any) => MessagesService
+        .searchForumMessages(forumId, query)
         .then((response: any) => {
             dispatch({
                 type: MessageActionTypes.GET_FORUM_MESSAGES,
                 data: {
-                    messages: response.data.results.map((forumMessage, idx) => ({
-                        key: idx,
+                    roomId: forumId,
+                    messages: response.data.results.map((forumMessage) => ({
+                        id: forumMessage.id,
+                        fromUserId: forumMessage.fromUserId,
                         fromUserName: forumMessage.fromUserName,
                         text: forumMessage.message,
                         time: `${forumMessage.createdAt}`, // TODO: Format date with locale timezone in mind
                     })),
-                    contextUserId: query.query,
                 },
             });
         }),

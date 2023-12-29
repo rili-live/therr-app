@@ -17,12 +17,12 @@ class MessagesService {
         });
     };
 
-    searchForumMessages = (query: ISearchQuery) => {
+    searchForumMessages = (forumId: string, query: ISearchQuery) => {
         const queryString = getSearchQueryString(query);
 
         return axios({
             method: 'get',
-            url: `/messages-service/forum-messages${queryString}`,
+            url: `/messages-service/forums-messages/${forumId}${queryString}`,
         });
     };
 }
