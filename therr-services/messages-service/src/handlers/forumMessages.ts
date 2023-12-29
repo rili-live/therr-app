@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import axios from 'axios';
 import moment from 'moment';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
@@ -36,7 +37,21 @@ const searchForumMessages: RequestHandler = (req: any, res: any) => {
         query,
     });
 
+    // TODO: Fetch username and media for each user (as aggregate)
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
+        // const userIdSet = new Set();
+        // results.forEach((result) => userIdSet.add(result.fromUserId));
+        // const userIds = [...userIdSet];
+        // TODO: Fetch userName and media
+        // axios({
+        //     method: 'post',
+        //     url: `${baseUsersServiceRoute}/users`,
+        //     headers,
+        //     data: {
+        //         thoughtIds,
+        //         userHasActivated: true,
+        //     },
+        // })
         const response = {
             results: results // TODO: RFRONT-25 - localize dates
                 .map((result) => ({ ...result, createdAt: moment(result.createdAt).format('M/D/YY, h:mma') })),

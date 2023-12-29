@@ -1,3 +1,7 @@
+/**
+ * See ../hostContext.ts in users-service for similar logic
+ */
+
 export interface IBrandConfig {
     brandName: string;
     websiteName: string;

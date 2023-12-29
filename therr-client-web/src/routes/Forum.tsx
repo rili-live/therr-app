@@ -57,7 +57,7 @@ const renderMessage = (message: IForumMsg, index, user: IUserState) => {
         <React.Fragment key={message.key}>
             {
                 (index !== 0 && index % 10 === 0)
-                    && <div className="forum-messages-date">{timeSplit[0]}</div>
+                    && <div className="forums-messages-date">{timeSplit[0]}</div>
             }
             <div
                 className={msgClassNames}

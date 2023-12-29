@@ -25,13 +25,13 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
         },
     }, socket, decodedAuthenticationToken).then(({ data: message }) => {
         // TODO: RFRONT-25 - localize dates
-        const timeFormatted = moment(message.updatedAt).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
+        const timeFormatted = moment(message.createdAt || Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
         socket.emit('action', {
             type: SocketServerActionTypes.SEND_DIRECT_MESSAGE,
             data: {
                 contextUserId: data.to.id,
                 message: {
-                    key: message.id,
+                    id: message.id,
                     fromUserName: 'you',
                     fromUserImgSrc: data.userImgSrc,
                     time: timeFormatted,
@@ -45,7 +45,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
                 data: {
                     contextUserId: data.userId,
                     message: {
-                        key: message.id,
+                        id: message.id,
                         fromUserName: data.userName,
                         fromUserImgSrc: data.userImgSrc,
                         time: timeFormatted,
@@ -124,38 +124,54 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
 };
 
 const sendForumMessage = (socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
-    logSpan({
-        level: 'info',
-        messageOrigin: 'SOCKET_IO_LOGS',
-        messages: `${SocketClientActionTypes.SEND_MESSAGE}: ${data.toString()}`,
-    });
-    // TODO: RFRONT-25 - localize dates
-    const now = moment(Date.now()).format(COMMON_DATE_FORMAT);
-    socket.emit('action', {
-        type: SocketServerActionTypes.SEND_MESSAGE,
+    restRequest({
+        method: 'post',
+        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseMessagesServiceRoute}/forums-messages`,
         data: {
-            roomId: data.roomId,
-            message: {
-                key: Date.now().toString(),
-                fromUserName: 'you',
-                fromUserImgSrc: data.userImgSrc,
-                time: now,
-                text: data.message,
-            },
+            forumId: data.roomId,
+            message: data.message,
+            fromUserId: data.userId,
+            isUnread: false, // TODO: RSERV-36 - derive from frontend message
         },
-    });
-    socket.broadcast.to(`${FORUM_PREFIX}${data.roomId}`).emit(SOCKET_MIDDLEWARE_ACTION, {
-        type: SocketServerActionTypes.SEND_MESSAGE,
-        data: {
-            roomId: data.roomId,
-            message: {
-                key: Date.now().toString(),
-                fromUserName: data.userName,
-                fromUserImgSrc: data.userImgSrc,
-                time: now,
-                text: data.message,
+    }, socket, decodedAuthenticationToken).then(({ data: message }) => {
+        const timeFormatted = moment(message.createdAt || Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
+        socket.emit('action', {
+            type: SocketServerActionTypes.SEND_MESSAGE,
+            data: {
+                roomId: data.roomId,
+                message: {
+                    key: Date.now().toString(),
+                    fromUserName: 'you',
+                    fromUserImgSrc: data.userImgSrc,
+                    time: timeFormatted,
+                    text: data.message,
+                },
             },
-        },
+        });
+        socket.broadcast.to(`${FORUM_PREFIX}${data.roomId}`).emit(SOCKET_MIDDLEWARE_ACTION, {
+            type: SocketServerActionTypes.SEND_MESSAGE,
+            data: {
+                roomId: data.roomId,
+                message: {
+                    key: Date.now().toString(),
+                    fromUserName: data.userName,
+                    fromUserImgSrc: data.userImgSrc,
+                    time: timeFormatted,
+                    text: data.message,
+                },
+            },
+        });
+    }).catch((err) => {
+        // TODO: RSERV-36 - Emit error message
+        logSpan({
+            level: 'error',
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: err.toString(),
+            traceArgs: {
+                'error.message': err?.message,
+                source: 'messages.sendMessage',
+            },
+        });
     });
 };
 

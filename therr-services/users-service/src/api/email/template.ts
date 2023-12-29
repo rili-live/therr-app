@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import * as globalConfig from '../../../../../global-config';
 
-// Use production imgaes so we can actually load in email
+// Use production images so we can actually load in email
 const imagesHost = process.env.NODE_ENV === 'development'
     ? globalConfig.production.hostFull
     : globalConfig[process.env.NODE_ENV].hostFull;
