@@ -49,6 +49,7 @@ const accessAndModifyCampaign = (
         scheduleStartAt,
         scheduleStopAt,
         adGroups,
+        assetIdsToDelete, // TODO: Delete these assets
     } = campaignReqBody;
 
     // Get campaign, check it exists, and check current status
@@ -165,6 +166,7 @@ const accessAndModifyCampaign = (
                                 });
                             }
 
+                            // TODO: Ensure media asset Ids are returned
                             const assetPromises = adGroupsWithIntegs?.map((adGroup) => {
                                 const promises: Promise<any[]>[] = [];
 
@@ -203,11 +205,12 @@ const accessAndModifyCampaign = (
                                 return Promise.all(promises);
                             });
 
-                            return Promise.all(assetPromises).then((assetPromiseResults) => {
+                            return (Promise.all(assetPromises)).then((assetPromiseResults) => {
                                 const existingAdGroups: any = [];
                                 const newAdGroups: any = [];
                                 adGroupsWithIntegs?.forEach((adGroup, adGroupIndex) => {
-                                    const [createdAssets, [updatedAssets]] = assetPromiseResults[adGroupIndex];
+                                    const [createdAssets, updatedAssetsList] = assetPromiseResults[adGroupIndex];
+                                    const updatedAssets = updatedAssetsList.flat(1);
 
                                     if (adGroup.id) {
                                         existingAdGroups.push({
@@ -253,7 +256,8 @@ const accessAndModifyCampaign = (
                                 return Promise.all(adGroupPromises)
                                     .then(([createdAdGroups, [updatedAdGroups]]) => {
                                         const mapAssetsToAdGroup = (a, adGroupIndex) => {
-                                            const [createdAssets, [updatedAssets]] = assetPromiseResults[adGroupIndex];
+                                            const [createdAssets, updatedAssetsList] = assetPromiseResults[adGroupIndex];
+                                            const updatedAssets = updatedAssetsList.flat(1);
                                             return {
                                                 ...a,
                                                 assets: [...(createdAssets || []), ...(updatedAssets || [])], // TODO: Fix confusing code
@@ -407,7 +411,6 @@ const createCampaign = async (req, res) => {
         scheduleStartAt,
         scheduleStopAt,
         adGroups,
-        mediaAssest,
     } = req.body;
 
     const storedStatus = status === CampaignStatuses.PAUSED || status === CampaignStatuses.REMOVED ? status : CampaignStatuses.PENDING;

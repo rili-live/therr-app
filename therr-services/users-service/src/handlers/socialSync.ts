@@ -11,6 +11,7 @@ import Store from '../store';
 import { ICreateOrUpdateParams } from '../store/SocialSyncsStore';
 import * as facebook from '../api/facebook';
 import { oAuthFacebook } from '../api/oauth2';
+import * as globalConfig from '../../../../global-config';
 
 // NOTE: facebook-instagram is an instagram account of type business/creator
 // Login happens through Facebook business manager
@@ -253,7 +254,9 @@ const getSocialSyncs: RequestHandler = (req: any, res: any) => {
 };
 
 const facebookAppAuth: RequestHandler = (req: any, res: any) => {
-    const frontendRedirectUrl = req.path.includes('dashboard') ? 'https://dashboard.therr.com' : 'https://therr.com';
+    const frontendRedirectUrl = req.path.includes('dashboard')
+        ? globalConfig[process.env.NODE_ENV].dashboardHostFull
+        : globalConfig[process.env.NODE_ENV].hostFull;
     const {
         code,
         error,

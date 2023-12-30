@@ -46,13 +46,13 @@ const partitionAdGroups = (campaign) => {
         // goal: adGroup.goal || CampaignAdGoals.CLICKS,
     }));
 
-    if (!adGroup.assets?.length) {
+    if (!adGroup.assets?.filter((a) => a.type === CampaignAssetTypes.COMBINED).length) {
         adGroup.assets = [{
             headline: '',
             linkUrl: '',
             longText: '',
             type: CampaignAssetTypes.COMBINED,
-        }];
+        }, ...adGroup.assets];
     }
 
     adGroup.assets.forEach((asset) => {
@@ -62,6 +62,9 @@ const partitionAdGroups = (campaign) => {
             combinedAssets.push(asset);
         }
     });
+
+    // Reorder so media are always last and don't disrupt index order
+    adGroup.assets = [...combinedAssets, ...mediaAssets];
 
     return {
         adGroup,
@@ -132,6 +135,7 @@ interface ICreateEditCampaignState {
     alertVariation: string;
     alertTitle: string;
     alertMessage: string;
+    assetIdsToDelete: string[];
     files: any[];
     formEditingStage: number;
     hasFormChanged: boolean;
@@ -217,6 +221,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             alertVariation: 'success',
             alertTitle: '',
             alertMessage: '',
+            assetIdsToDelete: [],
             files: [],
             formEditingStage: stage || 1,
             hasFormChanged: false,
@@ -539,13 +544,8 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         this.toggleAlert(false);
         event.preventDefault();
         const adGroup = JSON.parse(JSON.stringify(this.state.inputs.adGroup));
-        if (!adGroup?.assets[assetIndex]) {
-            adGroup.assets[assetIndex] = {
-                type: CampaignAssetTypes.COMBINED,
-            };
-        }
         adGroup.assets[assetIndex] = {
-            ...adGroup.assets[assetIndex],
+            ...adGroup?.assets?.[assetIndex],
             type: CampaignAssetTypes.COMBINED,
             [name]: value,
         };
@@ -731,7 +731,11 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         const { campaignId } = routeParams;
         const campaign = campaigns.campaigns[campaignId] || {};
         const {
-            inputs, files, formEditingStage, hasFormChanged,
+            assetIdsToDelete,
+            inputs,
+            files,
+            formEditingStage,
+            hasFormChanged,
         } = this.state;
 
         const {
@@ -822,6 +826,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                     // goal: adGroup.goal || originalAdGroup.goal,
                 },
             ],
+            assetIdsToDelete,
         };
 
         if (!campaign?.status) {
@@ -836,8 +841,10 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 }));
                 const reformattedRequest = {
                     ...modifiedRequest,
-                    mediaAssets: newMediaAssets,
+                    assetIdsToDelete,
                 };
+
+                reformattedRequest.adGroups[0].assets.push(...newMediaAssets);
 
                 delete reformattedRequest.media;
                 delete reformattedRequest.isPublic;
@@ -900,6 +907,23 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             alertVariation,
         });
         this.toggleAlert(true);
+    };
+
+    removeMediaAsset = (assetId: string) => {
+        const adGroup = JSON.parse(JSON.stringify(this.state.inputs.adGroup)); // make mutable
+        const removalAssetIndex = adGroup.assets?.findIndex((a) => a.id === assetId) || -1;
+        if (removalAssetIndex > -1) {
+            adGroup.assets.splice(removalAssetIndex, removalAssetIndex);
+        }
+
+        this.setState({
+            hasFormChanged: true,
+            inputs: {
+                ...this.state.inputs,
+                adGroup,
+            },
+            assetIdsToDelete: [...this.state.assetIdsToDelete, assetId],
+        });
     };
 
     toggleAlert = (show?: boolean) => {
@@ -995,6 +1019,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             onSocialSyncPress={this.onSocialSyncPress}
                             onSubmit={this.onSubmitCampaign}
                             mySpaces={mySpaces}
+                            removeMediaAsset={this.removeMediaAsset}
                             user={user}
                         />
                     </Col>
