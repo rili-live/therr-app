@@ -19,7 +19,6 @@ const onFBLoginPress = (requestId: string, target = '_self') => {
         'pages_read_engagement',
         //
         'pages_manage_ads',
-        'pages_show_list',
         // 'page_events', // Note there is a type in the docs (page should be singular)
         // 'pages_user_locale',
         // 'pages_user_timezone',
@@ -32,8 +31,12 @@ const onFBLoginPress = (requestId: string, target = '_self') => {
     const redirectUri = 'https://dashboard.therr.com/oauth2/facebook-instagram';
     const responseType = 'code';
     const appId = '1384683965734062';
+    // https://developers.facebook.com/docs/facebook-login/facebook-login-for-business#configurations
+    const configId = '903585274566915';
     // eslint-disable-next-line max-len
-    const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
+    // const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
+    // eslint-disable-next-line max-len
+    const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&response_type=${responseType}&config_id=${configId}&state=${requestId}`;
     const handle = window?.open(authUrl, target, target === 'mozillaWindow' ? popupWindowFeatures() : undefined);
     if (!handle) {
         window?.open(authUrl, '_self');
