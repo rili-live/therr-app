@@ -6,7 +6,7 @@ import {
 import classNames from 'classnames';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
-import { CampaignStatuses, CampaignTypes, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
+import { CampaignAssetTypes, CampaignStatuses, CampaignTypes, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import Datetime from 'react-datetime';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -117,6 +117,7 @@ interface IEditCampaignFormProps {
     onSocialSyncPress: any;
     onSubmit: (event: React.MouseEvent<HTMLButtonElement>|React.FormEvent<HTMLButtonElement>) => void;
     onSelectMedia: (files: any[]) => any;
+    removeMediaAsset: (id: string) => any;
     shouldShowAdvancedFields?: boolean;
     mySpaces: {
         id: string;
@@ -147,6 +148,7 @@ const EditCampaignForm = ({
     onSocialSyncPress,
     onSubmit,
     onSelectMedia,
+    removeMediaAsset,
     shouldShowAdvancedFields,
     mySpaces,
     user,
@@ -810,7 +812,15 @@ const EditCampaignForm = ({
                                             {
                                                 mediaAssets.map((asset) => (
                                                     <Col key={asset.id} xs="6" sm="12" md="6" className="my-2">
-                                                        <img src={getUserContentUri(asset.media)} className="rounded" alt="" />
+                                                        <div className="image-preview-container">
+                                                            <FontAwesomeIcon
+                                                                icon={faTimesCircle}
+                                                                className="text-danger remove-image"
+                                                                size="1x"
+                                                                onClick={() => removeMediaAsset(asset.id)}
+                                                            />
+                                                            <img src={getUserContentUri(asset.media)} className="rounded" alt="" />
+                                                        </div>
                                                     </Col>
                                                 ))
                                             }
@@ -820,7 +830,7 @@ const EditCampaignForm = ({
                             </Col>
                             <Col sm={8}>
                                 {
-                                    (inputs.adGroup.assets || []).map((asset, index) => (
+                                    (inputs.adGroup.assets || []).filter((a) => a.type === CampaignAssetTypes.COMBINED).map((asset, index) => (
                                         <React.Fragment key={index}>
                                             <Row>
                                                 <h5 className="my-4">Create/Edit Ads</h5>

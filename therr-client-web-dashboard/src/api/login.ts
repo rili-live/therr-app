@@ -1,3 +1,5 @@
+import * as globalConfig from '../../../global-config';
+
 const popupWindowFeatures = (screen = { height: 900, width: 1600 }, w = 540, h = 680) => {
     const left = (screen.width / 2) - (w / 2);
     const top = (screen.height / 2) - (h / 2);
@@ -27,8 +29,10 @@ const onFBLoginPress = (requestId: string, target = '_self') => {
         'instagram_manage_insights',
         // 'instagram_graph_user_profile',
     ];
-    // const redirectUri = 'https://api.therr.com/v1/users-service/social-sync/oauth2-dashboard-facebook';
-    const redirectUri = 'https://dashboard.therr.com/oauth2/facebook-instagram';
+    const dashboardHostFull = process.env.NODE_ENV === 'development'
+        ? globalConfig.production.dashboardHostFull // localhost does not work in development
+        : globalConfig[process.env.NODE_ENV].dashboardHostFull;
+    const redirectUri = `${dashboardHostFull}/oauth2/facebook-instagram`;
     const responseType = 'code';
     const appId = '1384683965734062';
     // https://developers.facebook.com/docs/facebook-login/facebook-login-for-business#configurations
