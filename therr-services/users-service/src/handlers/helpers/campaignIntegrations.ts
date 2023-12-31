@@ -190,6 +190,10 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
                         return Promise.resolve(asset);
                     }
 
+                    if (asset.type === CampaignAssetTypes.MEDIA) {
+                        return Promise.resolve(asset);
+                    }
+
                     const restMethod = !assetId ? facebook.createAd : facebook.updateAd;
 
                     return restMethod(

@@ -1,0 +1,13 @@
+.image-preview-container {
+    position: relative;
+
+    .remove-image {
+        position: absolute;
+        top: .5rem;
+        right: .5rem;
+        stroke: black;
+        stroke-width: 1rem;
+        cursor: pointer;
+    }
+}
+

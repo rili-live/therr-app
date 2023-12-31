@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import axios from 'axios';
 import FormData from 'form-data';
+import * as globalConfig from '../../../../global-config';
 
 const oAuthFacebook = (authCode: string, {
     isDashboard = false,
@@ -16,7 +17,9 @@ const oAuthFacebook = (authCode: string, {
     const redirectUrl = isDashboard
         ? 'https://api.therr.com/v1/users-service/social-sync/oauth2-dashboard-facebook'
         : 'https://api.therr.com/v1/users-service/social-sync/oauth2-facebook';
-    const frontendRedirectUrl = isDashboard ? 'https://dashboard.therr.com/oauth2/facebook-instagram' : 'https://therr.com/oauth2/facebook-instagram';
+    const frontendRedirectUrl = isDashboard
+        ? `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/oauth2/facebook-instagram`
+        : `${globalConfig[process.env.NODE_ENV].hostFull}/facebook-instagram`;
     const redirectMatchUrl = isSocialSync ? redirectUrl : frontendRedirectUrl;
 
     form.append('client_id', appId);
