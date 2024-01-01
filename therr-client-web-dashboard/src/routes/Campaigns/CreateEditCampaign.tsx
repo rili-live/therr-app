@@ -135,7 +135,7 @@ interface ICreateEditCampaignState {
     alertVariation: string;
     alertTitle: string;
     alertMessage: string;
-    assetIdsToDelete: string[];
+    assetsToDelete: any[];
     files: any[];
     formEditingStage: number;
     hasFormChanged: boolean;
@@ -221,7 +221,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             alertVariation: 'success',
             alertTitle: '',
             alertMessage: '',
-            assetIdsToDelete: [],
+            assetsToDelete: [],
             files: [],
             formEditingStage: stage || 1,
             hasFormChanged: false,
@@ -245,51 +245,55 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         } = this.props;
         const { campaignId } = this.props.routeParams;
 
-        MapsService.searchMySpaces({
-            itemsPerPage: 50,
-            pageNumber: 1,
-        }).then((response) => {
-            const { inputs } = this.state;
-            const mySpaces = response?.data?.results || [];
-            this.setState({
-                mySpaces: response?.data?.results || [],
-                inputs: {
-                    ...this.state.inputs,
-                    spaceId: inputs.spaceId || mySpaces[0]?.id || undefined,
-                },
-            });
-        }).catch((err) => {
-            console.log(err);
+        this.fetchCampaign().then(() => {
+            // Check if campaign state is stored in localStorage from before user OAuth2 redirected.
+            // Clear it out after re-populating the form state.
+            const stateStr = localStorage.getItem(CAMPAIGN_DRAFT_KEY);
+            const fetchedState = stateStr && JSON.parse(stateStr).state;
+            localStorage.removeItem(CAMPAIGN_DRAFT_KEY);
+            if (fetchedState) {
+                this.setState(fetchedState, this.afterStateIsEstablished);
+            } else {
+                this.afterStateIsEstablished();
+            }
         });
-
-        // First check if campaign state is stored in localStorage from before user OAuth2 redirected.
-        // Clear it out after re-populating the form state.
-        const stateStr = localStorage.getItem(CAMPAIGN_DRAFT_KEY);
-        const fetchedState = stateStr && JSON.parse(stateStr).state;
-        localStorage.removeItem(CAMPAIGN_DRAFT_KEY);
-        if (fetchedState) {
-            this.setState(fetchedState, this.afterStateIsEstablished);
-        }
-
-        if (campaignId && !campaigns.campaigns[campaignId]) {
-            // TODO: Make sure assets are returned in search results or we store fetched campaigns separately
-            getCampaign(campaignId, {
-                withMedia: true,
-            }).then((response) => {
-                this.setState({
-                    inputs: getInputDefaults(response),
-                }, this.afterStateIsEstablished);
-            }).catch(() => {
-                //
-            });
-        } else if (!fetchedState) {
-            // TODO: Cache fetched state so this is no longer necessary
-            this.afterStateIsEstablished();
-        }
     }
 
     componentWillUnmount = () => {
         clearTimeout(this.throttleTimeoutId);
+    };
+
+    fetchCampaign = () => {
+        const {
+            getCampaign, campaigns, location, navigation,
+        } = this.props;
+        const { campaignId } = this.props.routeParams;
+
+        const spacesPromise = MapsService.searchMySpaces({
+            itemsPerPage: 50,
+            pageNumber: 1,
+        });
+        const campaignPromise = (campaignId && !campaigns.campaigns[campaignId])
+            ? getCampaign(campaignId, {
+                withMedia: true,
+            }) : Promise.resolve(null);
+
+        return Promise.all([spacesPromise, campaignPromise]).then(([spacesResponse, campaignResponse]) => new Promise((resolve) => {
+            const { inputs } = this.state;
+            const mySpaces = spacesResponse?.data?.results || [];
+
+            const inputsState = campaignResponse ? getInputDefaults(campaignResponse) : this.state.inputs;
+
+            this.setState({
+                mySpaces: spacesResponse?.data?.results || [],
+                inputs: {
+                    ...inputsState,
+                    spaceId: inputs.spaceId || mySpaces[0]?.id || undefined,
+                },
+            }, () => resolve(null));
+        })).catch((err) => {
+            this.alertOnError('Campaign Error', 'Failed to fetch business spaces. Please refresh the page or try again later.');
+        });
     };
 
     afterStateIsEstablished = (isInit = true) => {
@@ -311,23 +315,24 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                     facebook.getMyAdAccounts(user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.user_access_token),
                 ]).then(([myAccountResults, myAdAccountResults]) => {
                     const { fetchedIntegrationDetails } = this.state;
-                    const fbPageId = inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId
+                    const fbPageId = this.state.inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId
                         || myAccountResults?.data[0]?.id || undefined;
                     const newInputChanges = {
                         integrationDetails: {
+                            ...this.state.inputs?.integrationDetails,
                             [OAuthIntegrationProviders.FACEBOOK]: {
-                                pageId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId
+                                pageId: this.state.inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId
                                     || myAccountResults?.data[0]?.id || undefined,
-                                adAccountId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
+                                adAccountId: this.state.inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
                                     || myAdAccountResults?.data[0]?.id || undefined,
-                                campaignId: inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
+                                campaignId: this.state.inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
                             },
                         },
                     };
 
-                    const hasFormChanged = !inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId
-                        || !inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
-                        || !inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId;
+                    const hasFormChanged = !this.state.inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.pageId
+                        || !this.state.inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
+                        || !this.state.inputs?.integrationDetails[OAuthIntegrationProviders.FACEBOOK]?.campaignId;
                     if (hasFormChanged) {
                         this.setState({
                             hasFormChanged: true,
@@ -575,7 +580,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                     ? (inputs?.integrationDetails[target]?.pageId || igAccountResults?.data[0]?.id || undefined)
                     : igAccountResults?.data[0]?.id || undefined;
                 if (!igPageId) {
-                    this.onSubmitError('Missing IG Page ID', 'You must link an Instagram account to your Facebook page or remove the IG target', 'warning');
+                    this.alertOnError('Missing IG Page ID', 'You must link an Instagram account to your Facebook page or remove the IG target', 'warning');
                 }
 
                 const newInputChanges = {
@@ -731,7 +736,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         const { campaignId } = routeParams;
         const campaign = campaigns.campaigns[campaignId] || {};
         const {
-            assetIdsToDelete,
+            assetsToDelete,
             inputs,
             files,
             formEditingStage,
@@ -779,7 +784,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         }
 
         if (moment(scheduleStopAt).isSameOrBefore(moment(scheduleStartAt))) {
-            this.onSubmitError('Invalid Start/End Dates', 'Campaign stop date must be after campaign start date');
+            this.alertOnError('Invalid Start/End Dates', 'Campaign stop date must be after campaign start date');
             this.setState({
                 isSubmitting: false,
             });
@@ -787,7 +792,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         }
 
         if (moment(scheduleStopAt).isSameOrBefore(moment())) {
-            this.onSubmitError('Invalid Start/End Dates', 'Campaign stop date must be in the future');
+            this.alertOnError('Invalid Start/End Dates', 'Campaign stop date must be in the future');
             this.setState({
                 isSubmitting: false,
             });
@@ -826,7 +831,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                     // goal: adGroup.goal || originalAdGroup.goal,
                 },
             ],
-            assetIdsToDelete,
+            assetsToDelete,
         };
 
         if (!campaign?.status) {
@@ -841,7 +846,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 }));
                 const reformattedRequest = {
                     ...modifiedRequest,
-                    assetIdsToDelete,
+                    assetsToDelete,
                 };
 
                 reformattedRequest.adGroups[0].assets.push(...newMediaAssets);
@@ -893,14 +898,14 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                         }
                     });
             }).catch((error) => {
-                this.onSubmitError('Unknown Error', 'Failed to process your request. Please try again.');
+                this.alertOnError('Unknown Error', 'Failed to process your request. Please try again.');
                 this.setState({
                     isSubmitting: false,
                 });
             });
     };
 
-    onSubmitError = (errTitle: string, errMsg: string, alertVariation = 'danger') => {
+    alertOnError = (errTitle: string, errMsg: string, alertVariation = 'danger') => {
         this.setState({
             alertTitle: errTitle,
             alertMessage: errMsg,
@@ -909,9 +914,10 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         this.toggleAlert(true);
     };
 
-    removeMediaAsset = (assetId: string) => {
+    removeMediaAsset = (asset: any) => {
         const adGroup = JSON.parse(JSON.stringify(this.state.inputs.adGroup)); // make mutable
-        const removalAssetIndex = adGroup.assets?.findIndex((a) => a.id === assetId) || -1;
+        // TODO: Support removing images that have not been uploaded yet
+        const removalAssetIndex = asset.id ? (adGroup.assets?.findIndex((a) => a.id === asset.id) || -1) : -1;
         if (removalAssetIndex > -1) {
             adGroup.assets.splice(removalAssetIndex, removalAssetIndex);
         }
@@ -922,7 +928,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 ...this.state.inputs,
                 adGroup,
             },
-            assetIdsToDelete: [...this.state.assetIdsToDelete, assetId],
+            assetsToDelete: [...this.state.assetsToDelete, asset],
         });
     };
 
@@ -954,6 +960,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
             alertVariation,
             alertTitle,
             alertMessage,
+            assetsToDelete,
             hasFormChanged,
             inputs,
             isEditing,
@@ -969,6 +976,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
         const {
             mediaAssets,
         } = partitionAdGroups(campaign);
+        const assetIdsToDelete = assetsToDelete.map((a) => a.id);
 
         return (
             <div id="page_campaign_edit" className="flex-box column">
@@ -1020,6 +1028,7 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                             onSubmit={this.onSubmitCampaign}
                             mySpaces={mySpaces}
                             removeMediaAsset={this.removeMediaAsset}
+                            assetIdsToDelete={assetIdsToDelete}
                             user={user}
                         />
                     </Col>

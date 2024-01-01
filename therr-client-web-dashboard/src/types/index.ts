@@ -75,4 +75,5 @@ export interface ICampaignAsset {
   headline?: string; // if type is text
   linkUrl?: string;
   longText?: string; // if type is text
+  operation?: 'updated' | 'delete';
 }

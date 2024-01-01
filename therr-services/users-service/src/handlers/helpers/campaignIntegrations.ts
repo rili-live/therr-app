@@ -111,6 +111,7 @@ const createUpdateAssetIntegrations = (campaignRequest, integrationsAccess, late
         integrationDetails,
         scheduleStartAt,
         scheduleStopAt,
+        assetsToDelete, // TODO: Remove association with integration
     } = campaignRequest;
     const integrationDetailsEntries = Object.entries(integrationDetails as { [key: string]: any; });
     const integrationAssetPromises: Promise<any[]>[] = [];

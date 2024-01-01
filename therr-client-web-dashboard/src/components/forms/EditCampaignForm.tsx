@@ -62,6 +62,7 @@ const disabledProvidersStatus = {
 interface IEditCampaignFormProps {
     formStage: number;
     addressTypeAheadResults: any[],
+    assetIdsToDelete: string[];
     hasFormChanged: boolean;
     goBack: (event: React.MouseEvent<HTMLButtonElement>) => void;
     inputs: {
@@ -117,7 +118,7 @@ interface IEditCampaignFormProps {
     onSocialSyncPress: any;
     onSubmit: (event: React.MouseEvent<HTMLButtonElement>|React.FormEvent<HTMLButtonElement>) => void;
     onSelectMedia: (files: any[]) => any;
-    removeMediaAsset: (id: string) => any;
+    removeMediaAsset: (asset: any) => any;
     shouldShowAdvancedFields?: boolean;
     mySpaces: {
         id: string;
@@ -128,6 +129,7 @@ interface IEditCampaignFormProps {
 
 const EditCampaignForm = ({
     addressTypeAheadResults,
+    assetIdsToDelete,
     formStage,
     goBack,
     mediaUrl,
@@ -201,6 +203,7 @@ const EditCampaignForm = ({
         shadow: !isTwitterSelected,
         'shadow-sm': isTwitterSelected,
     });
+    const visibleMediaAssets = mediaAssets.filter((a) => !assetIdsToDelete.includes(a.id));
 
     return (
         <Card border="light" className="bg-white shadow-sm mb-4">
@@ -802,7 +805,7 @@ const EditCampaignForm = ({
                                             initialFileUrl={mediaUrl}
                                             onMediaSelect={onSelectMedia}
                                             multiple
-                                            disabled={mediaAssets.length > 4}
+                                            disabled={visibleMediaAssets.length > 4}
                                         />
                                     </Col>
                                 </Row>
@@ -810,14 +813,14 @@ const EditCampaignForm = ({
                                     <Col sm={12} className="d-flex align-items-center justify-content-center">
                                         <Row>
                                             {
-                                                mediaAssets.map((asset) => (
+                                                visibleMediaAssets.map((asset) => (
                                                     <Col key={asset.id} xs="6" sm="12" md="6" className="my-2">
                                                         <div className="image-preview-container">
                                                             <FontAwesomeIcon
                                                                 icon={faTimesCircle}
                                                                 className="text-danger remove-image"
                                                                 size="1x"
-                                                                onClick={() => removeMediaAsset(asset.id)}
+                                                                onClick={() => removeMediaAsset(asset)}
                                                             />
                                                             <img src={getUserContentUri(asset.media)} className="rounded" alt="" />
                                                         </div>
