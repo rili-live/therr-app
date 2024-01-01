@@ -35,6 +35,7 @@ import { ICampaignAsset } from '../../types';
 import { signAndUploadImage } from '../../utilities/media';
 import { onFBLoginPress } from '../../api/login';
 import PricingCards from '../../components/PricingCards';
+import CampaignInsights from '../../components/charts/CampaignInsights';
 
 const partitionAdGroups = (campaign) => {
     const combinedAssets = [];
@@ -265,11 +266,6 @@ export class CampaignPerformanceComponent extends React.Component<ICampaignPerfo
             alertVariation,
             alertTitle,
             alertMessage,
-            hasFormChanged,
-            isLoadingCampaign,
-            formEditingStage,
-            fetchedIntegrationDetails,
-            mySpaces,
             performanceSummary,
         } = this.state;
         const {
@@ -277,16 +273,7 @@ export class CampaignPerformanceComponent extends React.Component<ICampaignPerfo
         } = this.props;
         const { campaignId } = routeParams;
         const campaign = campaigns.campaigns[campaignId];
-        const {
-            mediaAssets,
-        } = partitionAdGroups(campaign);
         const isSubscriber = this.isSubscribed();
-        const isTherrSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.THERR);
-        const isGoogleSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.GOOGLE);
-        const isFacebookSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.FACEBOOK);
-        const isInstagramSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.INSTAGRAM);
-        const isTwitterSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.TWITTER);
-        const isLinkedInSelected = campaign?.integrationTargets?.includes(OAuthIntegrationProviders.LINKEDIN);
 
         return (
             <div id="page_campaign_performance" className="flex-box column">
@@ -298,79 +285,10 @@ export class CampaignPerformanceComponent extends React.Component<ICampaignPerfo
                                 user={user}
                             />
                         </div>
-                        <Row className="d-flex justify-content-around align-items-center py-4 text-center">
-                            <h1>Campaign Performance Summary</h1>
-                            <Row className="d-flex justify-content-center align-items-center">
-                                {
-                                    isTherrSelected
-                                    && <Col sm={12} md={6} lg={3} className="text-center mt-5">
-                                        <h2>
-                                            <Card.Img
-                                                src={'/assets/img/therr-logo-green.svg'}
-                                                alt="Therr Ads"
-                                                className={'text-therr mx-2 w-auto'}
-                                                height={32}
-                                                width={32}
-                                            />
-                                            Therr
-                                        </h2>
-                                        <h4 className="fw-normal">Clicks: <span className="fw-bolder">
-                                            {performanceSummary[OAuthIntegrationProviders.THERR]?.clicks || 'N/A'}
-                                        </span></h4>
-                                        <h4 className="fw-normal">
-                                            Unique Clicks: <span className="fw-bolder">
-                                                {performanceSummary[OAuthIntegrationProviders.THERR]?.unique_clicks || 'N/A'}
-                                            </span>
-                                        </h4>
-                                        <h4 className="fw-normal">CPM: <span className="fw-bolder">
-                                            {performanceSummary[OAuthIntegrationProviders.THERR]?.cpm || 'N/A'}
-                                        </span></h4>
-                                        <h4 className="fw-normal">Impressions: <span className="fw-bolder">
-                                            {performanceSummary[OAuthIntegrationProviders.THERR]?.impressions || 'N/A'}
-                                        </span></h4>
-                                        <h4 className="fw-normal">Reach: <span className="fw-bolder">
-                                            {performanceSummary[OAuthIntegrationProviders.THERR]?.reach || 'N/A'}
-                                        </span></h4>
-                                        <h4 className="fw-normal">Spend: <span className="fw-bolder">
-                                            {performanceSummary[OAuthIntegrationProviders.THERR]?.spend || 'N/A'}
-                                        </span></h4>
-                                    </Col>
-                                }
-                                {
-                                    (isFacebookSelected || isInstagramSelected)
-                                    && <Col sm={12} md={6} lg={3} className="text-center mt-5">
-                                        <h2>
-                                            <FontAwesomeIcon
-                                                icon={faFacebook}
-                                                className={'text-facebook mx-2'}
-                                                size="1x"
-                                            />
-                                            Facebook
-                                        </h2>
-                                        <h4 className="fw-normal">Clicks: <span className="fw-bolder">
-                                            {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.clicks || 'N/A'}
-                                        </span></h4>
-                                        <h4 className="fw-normal">
-                                            Unique Clicks: <span className="fw-bolder">
-                                                {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.unique_clicks || 'N/A'}
-                                            </span>
-                                        </h4>
-                                        <h4 className="fw-normal">CPM: <span className="fw-bolder">
-                                            {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.cpm || 'N/A'}
-                                        </span></h4>
-                                        <h4 className="fw-normal">Impressions: <span className="fw-bolder">
-                                            {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.impressions || 'N/A'}
-                                        </span></h4>
-                                        <h4 className="fw-normal">Reach: <span className="fw-bolder">
-                                            {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.reach || 'N/A'}
-                                        </span></h4>
-                                        <h4 className="fw-normal">Spend: <span className="fw-bolder">
-                                            {performanceSummary[OAuthIntegrationProviders.FACEBOOK]?.spend || 'N/A'}
-                                        </span></h4>
-                                    </Col>
-                                }
-                            </Row>
-                        </Row>
+                        <CampaignInsights
+                            campaign={campaign}
+                            performanceSummary={performanceSummary}
+                        />
                     </>
                 }
                 {

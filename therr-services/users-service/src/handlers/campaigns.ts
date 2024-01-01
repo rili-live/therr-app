@@ -49,7 +49,7 @@ const accessAndModifyCampaign = (
         scheduleStartAt,
         scheduleStopAt,
         adGroups,
-        assetsToDelete, // TODO: Delete these assets
+        assetsToDelete,
     } = campaignReqBody;
 
     // Get campaign, check it exists, and check current status

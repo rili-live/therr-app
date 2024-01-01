@@ -56,6 +56,7 @@ export interface ICampaign {
   costBiddingStrategy: string;
   targetLanguages: string[];
   targetLocations: string[];
+  integrationTargets: any;
   scheduleStartAt: Date;
   scheduleStopAt: Date;
   createdAt: Date;
@@ -76,4 +77,16 @@ export interface ICampaignAsset {
   linkUrl?: string;
   longText?: string; // if type is text
   operation?: 'updated' | 'delete';
+}
+
+export interface IInfluencerPairing {
+  id: string;
+  userName: string;
+  socialSyncs: {
+      id: string;
+      link: string;
+      platform: string;
+      platformUsername: string;
+      displayName: string;
+  }[];
 }

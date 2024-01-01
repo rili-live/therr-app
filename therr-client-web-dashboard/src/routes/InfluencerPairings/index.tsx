@@ -17,7 +17,6 @@ import {
     IMapState as IMapReduxState,
     IUserState,
     IUserConnectionsState,
-    ISearchQuery,
     AccessCheckType,
 } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
@@ -25,15 +24,13 @@ import { AxiosResponse } from 'axios';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faChevronLeft,
-    faChevronRight,
     faMapMarked,
-    faMapMarker,
-    faMarker,
     faQuestion,
     faSearch,
 } from '@fortawesome/free-solid-svg-icons';
-import { faFacebook, faInstagram, faTiktok, faTwitter, faYoutube } from '@fortawesome/free-brands-svg-icons';
+import {
+    faFacebook, faInstagram, faTiktok, faTwitter, faYoutube,
+} from '@fortawesome/free-brands-svg-icons';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 // import ManageSpacesMenu from '../../components/ManageSpacesMenu';
@@ -43,6 +40,7 @@ import { getWebsiteName } from '../../utilities/getHostContext';
 import UsersActions from '../../redux/actions/UsersActions';
 import * as globalConfig from '../../../../global-config';
 import PricingCards from '../../components/PricingCards';
+import InfluencersListTable from './components/InfluencersListTable';
 
 const ItemsPerPage = 50;
 
@@ -107,6 +105,7 @@ interface IInfluencerPairingResultsState {
     };
     spacesInView: ISpace[]; // TODO: Move to Redux
     isLoading: boolean;
+    isLoadingInfluencers: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -149,6 +148,7 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
             },
             spacesInView: [],
             isLoading: false,
+            isLoadingInfluencers: false,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -175,6 +175,9 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
             this.props.user,
         );
         if (isAuthorized) {
+            this.setState({
+                isLoadingInfluencers: true,
+            });
             searchInfluencerPairings(
                 {
                     query: '',
@@ -188,7 +191,7 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
                 })
                 .finally(() => {
                     this.setState({
-                        isLoading: false,
+                        isLoadingInfluencers: false,
                     });
                 });
         }
@@ -384,6 +387,27 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
         );
     };
 
+    renderInfluencers = (influencerPairings: any[]) => {
+        const { isLoadingInfluencers } = this.state;
+        if (influencerPairings?.length > 0 || isLoadingInfluencers) {
+            return (<Row className="mt-5 justify-content-center">
+                <Col md={12} lg={10}>
+                    <InfluencersListTable
+                        influencerPairings={influencerPairings}
+                        isLoading={isLoadingInfluencers}
+                    />
+                </Col>
+            </Row>);
+        }
+
+        return (
+            <h3 className="text-center mt-5">
+                <FontAwesomeIcon icon={faSearch} className="me-2" />
+                We Found 0 Influencers Related To Your Business Location(s)
+            </h3>
+        );
+    };
+
     public render(): JSX.Element | null {
         const {
             alertIsVisible,
@@ -393,6 +417,7 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
             pagination,
             spacesInView,
             isLoading,
+            isLoadingInfluencers,
         } = this.state;
         const { map, routeParams, user } = this.props;
         const influencerPairings: any[] = Object.values(user.influencerPairings || {});
@@ -429,12 +454,8 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
                                 <Col xs={12} xl={12} xxl={10}>
                                     <h1 className="text-center">Local Influencer Pairings</h1>
                                     {
-                                        isLoading
-                                            && <h3 className="text-center mt-5">Loading...</h3>
-                                    }
-                                    {
-                                        !spacesInView?.length && !isLoading
-                                            && <>
+                                        !spacesInView?.length && !isLoading && !isLoadingInfluencers
+                                            ? <>
                                                 <p className="text-center mt-1">
                                                     Claim a business space to start matching with local influencers today.
                                                 </p>
@@ -444,47 +465,7 @@ export class InfluencerPairingResultsComponent extends React.Component<IInfluenc
                                                     </Button>
                                                 </div>
                                             </>
-                                    }
-                                    {
-                                        (influencerPairings?.length > 0 && spacesInView?.length > 0 && !isLoading)
-                                            && <Row className="mt-5 justify-content-center">
-                                                <Col md={12} lg={6}>
-                                                    <ol>
-                                                        {
-                                                            influencerPairings.map((pairing) => (
-                                                                <li key={pairing.id}><a
-                                                                    href={`${globalConfig[process.env.NODE_ENV].hostFull}/users/${pairing.id}`}
-                                                                    rel="noreferrer"
-                                                                    target="_blank">
-                                                                    Therr - {pairing.userName}
-                                                                </a> | {pairing.socialSyncs
-                                                                    .map((sync, index) => (
-                                                                        <React.Fragment key={sync.id}>
-                                                                            <FontAwesomeIcon icon={getSocialIcon(sync.platform)} className="me-2" />
-                                                                            <a href={sync.link} rel="noreferrer" target="_blank">
-                                                                                {sync.displayName} - {sync.platformUsername}
-                                                                            </a>
-                                                                            {
-                                                                                index < pairing.socialSyncs.length - 1
-                                                                                && <span> | </span>
-                                                                            }
-                                                                        </React.Fragment>
-                                                                    ))}
-                                                                </li>
-                                                            ))
-                                                        }
-                                                    </ol>
-                                                </Col>
-                                            </Row>
-                                    }
-                                    {
-                                        !influencerPairings?.length && spacesInView?.length > 0 && !isLoading
-                                            && <>
-                                                <h3 className="text-center mt-5">
-                                                    <FontAwesomeIcon icon={faSearch} className="me-2" />
-                                                    We Found 0 Influencers Related To Your Business Location(s)
-                                                </h3>
-                                            </>
+                                            : this.renderInfluencers(influencerPairings)
                                     }
                                 </Col>
                             </Row>
