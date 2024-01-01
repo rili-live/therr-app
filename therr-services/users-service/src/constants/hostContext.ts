@@ -3,7 +3,46 @@
  */
 import * as globalConfig from '../../../../global-config';
 
-const hostContext = {
+interface IBrandConfig {
+    host: string;
+
+    // Branding
+    brandName: string;
+    websiteName: string;
+    contactEmail: string;
+    instagramHandle: string;
+    facebookHandle: string;
+    twitterHandle: string;
+    parentHomepageName: string;
+    parentHomepageUrl: string;
+    parentAboutUrl: string;
+    parentBlogUrl: string;
+    parentBlogName: string;
+    parentAppUrl: string;
+    parentAppName: string;
+    parentContactUrl: string;
+
+    // Email Context
+    emailTemplates: {
+        brandBackgroundHexDark: string;
+        brandBackgroundLight: string;
+        fromEmail: string;
+        homepageLinkUri: string;
+        logoRelativePath: string;
+        logoAltText: string;
+        headerImageRelativePath?: string; // 560 x 190
+        footerImageRelativePath?: string; // 560 x 190
+        unsubscribeUrl: string;
+        legalBusinessName: string;
+        businessCopyrightYear: string;
+    }
+}
+
+interface IBrandConfigs {
+    [key: string]: IBrandConfig
+}
+
+const hostContext: IBrandConfigs = {
     'therr.com': {
         host: 'therr.com',
 
@@ -25,10 +64,15 @@ const hostContext = {
 
         // Email Context
         emailTemplates: {
-            brandBackgroundDark: '#1C7F8A',
+            brandBackgroundHexDark: '#1C7F8A',
             brandBackgroundLight: '#ffffff',
-            fromEmail: process.env.AWS_SES_FROM_EMAIL,
-            hostFull: globalConfig[process.env.NODE_ENV].hostFull,
+            fromEmail: process.env.AWS_SES_FROM_EMAIL || '"Therr App" <info@therr.com>',
+            homepageLinkUri: globalConfig[process.env.NODE_ENV].hostFull,
+            logoRelativePath: 'assets/images/therr-splash-logo-200.png',
+            logoAltText: 'Therr logo',
+            unsubscribeUrl: 'https://therr.com/emails/unsubscribe', // TODO: Build an actual route and page for this
+            legalBusinessName: 'Therr Inc.',
+            businessCopyrightYear: '2021',
         },
     },
     'dashboard.therr.com': {
@@ -52,10 +96,15 @@ const hostContext = {
 
         // Email Context
         emailTemplates: {
-            brandBackgroundDark: '#1C7F8A',
+            brandBackgroundHexDark: '#1C7F8A',
             brandBackgroundLight: '#ffffff',
-            fromEmail: process.env.AWS_SES_FROM_EMAIL,
-            hostFull: globalConfig[process.env.NODE_ENV].hostFull,
+            fromEmail: process.env.AWS_SES_FROM_EMAIL || '"Therr App" <info@therr.com>',
+            homepageLinkUri: globalConfig[process.env.NODE_ENV].dashboardHostFull,
+            logoRelativePath: 'assets/images/therr-splash-logo-200.png',
+            logoAltText: 'Therr For Business logo',
+            unsubscribeUrl: 'https://therr.com/emails/unsubscribe', // TODO: Build an actual route and page for this
+            legalBusinessName: 'Therr Inc.',
+            businessCopyrightYear: '2021',
         },
     },
 };

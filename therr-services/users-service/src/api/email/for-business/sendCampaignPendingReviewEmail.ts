@@ -1,8 +1,6 @@
 /* eslint-disable quotes */
 /* eslint-disable max-len */
-import Handlebars from 'handlebars';
 import sendEmail from '../sendEmail';
-import templateString from '../template';
 import * as globalConfig from '../../../../../../global-config';
 
 export interface ISendCampaignPendingReviewEmailConfig {
@@ -19,7 +17,6 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendCampaignPendingReviewEmailConfig, templateParams: ITemplateParams) => {
-    const template = Handlebars.compile(templateString);
     const dearUser = 'Hey Therr,';
     const htmlConfig = {
         header: 'Campaign in Review',
@@ -32,11 +29,9 @@ export default (emailParams: ISendCampaignPendingReviewEmailConfig, templatePara
         buttonHref: `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/login`,
         buttonText: 'Go to Dashboard',
     };
-    const html = template(htmlConfig);
 
     return sendEmail({
         ...emailParams,
-        html,
         toAddresses: [...emailParams.toAddresses],
-    });
+    }, htmlConfig);
 };

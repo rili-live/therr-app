@@ -1,8 +1,6 @@
 /* eslint-disable max-len */
-import Handlebars from 'handlebars';
 import sendEmail from './sendEmail';
 import * as globalConfig from '../../../../../global-config';
-import templateString from './template';
 
 export interface ISendNewUserInviteEmailConfig {
     charset?: string;
@@ -21,7 +19,6 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendNewUserInviteEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
-    const template = Handlebars.compile(templateString);
     const htmlConfig = {
         header: 'Your Profile Awaits!',
         dearUser: `Hi, ${templateParams.toEmail}!`,
@@ -32,10 +29,8 @@ export default (emailParams: ISendNewUserInviteEmailConfig, templateParams: ITem
         buttonText: 'Go Therr',
         postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${globalConfig[process.env.NODE_ENV].hostFull}/verify-account?token=${templateParams.verificationCodeToken}`,
     };
-    const html = template(htmlConfig);
 
     return sendEmail({
         ...emailParams,
-        html,
-    });
+    }, htmlConfig);
 };

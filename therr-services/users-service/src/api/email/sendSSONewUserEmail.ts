@@ -1,8 +1,6 @@
 /* eslint-disable max-len */
-import Handlebars from 'handlebars';
 import sendEmail from './sendEmail';
 import * as globalConfig from '../../../../../global-config';
-import templateString from './template';
 
 export interface ISendSSONewUserConfig {
     charset?: string;
@@ -18,7 +16,6 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendSSONewUserConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
-    const template = Handlebars.compile(templateString);
     const linkUrl = isDashboardRegistration
         ? `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/login`
         : `${globalConfig[process.env.NODE_ENV].hostFull}/login`;
@@ -32,10 +29,8 @@ export default (emailParams: ISendSSONewUserConfig, templateParams: ITemplatePar
         buttonText: 'Go Therr',
         postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${linkUrl}`,
     };
-    const html = template(htmlConfig);
 
     return sendEmail({
         ...emailParams,
-        html,
-    });
+    }, htmlConfig);
 };

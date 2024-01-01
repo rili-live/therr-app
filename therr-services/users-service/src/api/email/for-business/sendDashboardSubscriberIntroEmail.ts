@@ -1,8 +1,6 @@
 /* eslint-disable max-len */
-import Handlebars from 'handlebars';
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
-import templateString from '../template';
 
 export interface ISendDashboardSubscriberIntroEmailConfig {
     charset?: string;
@@ -17,7 +15,6 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendDashboardSubscriberIntroEmailConfig, templateParams: ITemplateParams) => {
-    const template = Handlebars.compile(templateString);
     const linkUrl = `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/login`;
     const productPlanName = templateParams.productName || 'Business Marketing & Customer Metrics';
     const htmlConfig = {
@@ -31,10 +28,8 @@ export default (emailParams: ISendDashboardSubscriberIntroEmailConfig, templateP
         buttonText: 'Login or Register',
         postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${linkUrl}`,
     };
-    const html = template(htmlConfig);
 
     return sendEmail({
         ...emailParams,
-        html,
-    });
+    }, htmlConfig);
 };
