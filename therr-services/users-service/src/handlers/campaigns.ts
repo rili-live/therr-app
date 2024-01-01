@@ -49,7 +49,7 @@ const accessAndModifyCampaign = (
         scheduleStartAt,
         scheduleStopAt,
         adGroups,
-        assetIdsToDelete, // TODO: Delete these assets
+        assetsToDelete, // TODO: Delete these assets
     } = campaignReqBody;
 
     // Get campaign, check it exists, and check current status
@@ -64,6 +64,19 @@ const accessAndModifyCampaign = (
                 //     statusCode: 404,
                 // });
             }
+
+            Store.campaignAssets.delete(assetsToDelete.map((a) => a.id))
+                .catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: [`failed to delete underlying assets, ${JSON.stringify(assetsToDelete)}`],
+                        traceArgs: {
+                            'error.message': err?.message,
+                            'error.response': err?.response?.data,
+                        },
+                    });
+                });
 
             const integrationsAccess = decryptIntegrationsAccess(user.integrationsAccess);
 
