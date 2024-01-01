@@ -96,7 +96,7 @@ interface IBaseDashboardState {
     engagementMetricsPercentChange: number;
     totalEngagements: number;
     totalImpressions: number;
-    spacesInView: ISpace[]; // TODO: Move to Redux
+    spacesInView: ISpace[]; // TODO: This helps distinguish between my spaces and an admin viewing all spaces
     spanOfTime: 'week' | 'month';
     averageRating: number;
     totalRating: number;

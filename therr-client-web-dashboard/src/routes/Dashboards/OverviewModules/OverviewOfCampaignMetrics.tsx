@@ -1,25 +1,31 @@
 import React from 'react';
 import {
-    Button, ButtonGroup, Col, Row,
+    Button, ButtonGroup, Card, Col, Row,
 } from 'react-bootstrap';
 import {
     faChevronLeft, faChevronRight,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ISpace } from '../../../types';
+import { IUserState } from 'therr-react/types';
+import { ICampaign } from '../../../types';
 // import AdminManageCampaignsMenu from '../../../components/AdminManageCampaignsMenu';
-// import ManageCampaignsMenu from '../../../components/ManageCampaignsMenu';
+import ManageCampaignsMenu from '../../../components/ManageCampaignsMenu';
+import CampaignInsights from '../../../components/charts/CampaignInsights';
 
 interface OverviewOfCampaignMetrics {
     navigateHandler: any;
     onPrevCampaignClick: any;
     onNextCampaignClick: any;
     currentCampaignIndex: number;
-    campaignsInView: ISpace[]; // TODO: Move to Redux
+    campaignsInView: ICampaign[]; // TODO: Move to Redux
     spanOfTime: 'week' | 'month';
-    fetchCampaignMetrics: any;
+    fetchCampaignInsights: any;
     isLoading: boolean;
     isSuperAdmin: boolean;
+    performanceSummary: {
+        [key: string]: any;
+    }
+    user: IUserState;
 }
 
 const OverviewOfCampaignMetrics = ({
@@ -31,6 +37,8 @@ const OverviewOfCampaignMetrics = ({
     campaignsInView,
     spanOfTime,
     isSuperAdmin,
+    performanceSummary,
+    user,
 }: OverviewOfCampaignMetrics) => {
     if (isLoading) {
         return (
@@ -38,15 +46,22 @@ const OverviewOfCampaignMetrics = ({
         );
     }
 
+    const campaign = campaignsInView[currentCampaignIndex];
+
+    const campaignTitle = `${campaign ? campaign.title : 'No Data'}`;
+
     return (
         <>
             <div className="d-flex justify-content-around justify-content-md-between flex-wrap flex-md-nowrap align-items-center py-4">
-                {/* {
-                    isSuperAdmin && <AdminManageCampaignsMenu className="mb-2 mb-md-0" navigateHandler={navigateHandler} />
+                {
+                    isSuperAdmin && <ManageCampaignsMenu user={user} className="mb-2 mb-md-0" navigateHandler={navigateHandler} />
                 }
                 {
-                    !isSuperAdmin && <ManageCampaignsMenu className="mb-2 mb-md-0" navigateHandler={navigateHandler} />
-                } */}
+                    !isSuperAdmin && <ManageCampaignsMenu user={user} className="mb-2 mb-md-0" navigateHandler={navigateHandler} />
+                }
+                <h3 className="fw-normal mb-2 d-none d-xl-block" style={{ maxWidth: '30rem' }}>
+                    <span className="fw-bolder">{campaignTitle}</span>
+                </h3>
                 <ButtonGroup className="mb-2 mb-md-0">
                     {
                         currentCampaignIndex !== 0
@@ -62,7 +77,17 @@ const OverviewOfCampaignMetrics = ({
                     }
                 </ButtonGroup>
             </div>
-            <Row className="justify-content-md-center">Campaigns Metrics Placeholder...</Row>
+            <Card className="bg-white shadow-sm d-xl-none mb-3 mb-xl-4">
+                <Card.Header className="d-flex flex-row align-items-center flex-0">
+                    <h3 className="fw-bold text-center">
+                        Campaign: <span className="fw-bolder">{campaignTitle}</span>
+                    </h3>
+                </Card.Header>
+            </Card>
+            <CampaignInsights
+                campaign={campaign}
+                performanceSummary={performanceSummary}
+            />
         </>
     );
 };
