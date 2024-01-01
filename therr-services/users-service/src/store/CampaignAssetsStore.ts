@@ -119,8 +119,8 @@ export default class CampaignAssetsStore {
         return this.db.write.query(queryString).then((updateResponse) => updateResponse.rows);
     }
 
-    delete(id: string) {
-        const queryString = knexBuilder.where({ id })
+    delete(ids: string[]) {
+        const queryString = knexBuilder.whereIn('id', ids)
             .delete()
             .from(CAMPAIGN_ASSETS_TABLE_NAME)
             .returning('*')
