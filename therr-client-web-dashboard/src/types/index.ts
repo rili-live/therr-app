@@ -56,6 +56,7 @@ export interface ICampaign {
   costBiddingStrategy: string;
   targetLanguages: string[];
   targetLocations: string[];
+  integrationTargets: any;
   scheduleStartAt: Date;
   scheduleStopAt: Date;
   createdAt: Date;

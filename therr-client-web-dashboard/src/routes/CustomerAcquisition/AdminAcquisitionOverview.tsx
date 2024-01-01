@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { MapsService, UsersService } from 'therr-react/services';
+import { CampaignsService, MapsService, UsersService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels } from 'therr-js-utilities/constants';
@@ -38,15 +38,9 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
-const fetchAllSpaces = (latitude?: number, longitude?: number) => MapsService.searchSpaces({
-    query: 'connections',
+const fetchAllCampaigns = () => CampaignsService.searchAllCampaigns({
     itemsPerPage: 50,
     pageNumber: 1,
-    filterBy: 'fromUserIds',
-    latitude: latitude || DEFAULT_COORDINATES.latitude,
-    longitude: longitude || DEFAULT_COORDINATES.longitude,
-}, {
-    distanceOverride: 160934, // ~ 100 miles
 });
 
 /**
@@ -109,7 +103,7 @@ export class AdminAcquisitionOverviewComponent extends React.Component<IAdminAcq
     // eslint-disable-next-line class-methods-use-this
     public render(): JSX.Element | null {
         return (
-            <BaseAcquisitionDashboard isSuperAdmin={true} isSubscriber={this.isSubscribed()} />
+            <BaseAcquisitionDashboard fetchCampaigns={fetchAllCampaigns} isSuperAdmin={true} isSubscriber={this.isSubscribed()} />
         );
     }
 }

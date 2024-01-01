@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { MapsService, UsersService } from 'therr-react/services';
+import { CampaignsService, MapsService, UsersService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState, AccessCheckType } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels } from 'therr-js-utilities/constants';
@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
-const fetchMySpaces = () => MapsService.searchMySpaces({
+const fetchMyCampaigns = () => CampaignsService.searchMyCampaigns({
     itemsPerPage: 50,
     pageNumber: 1,
 });
@@ -118,7 +118,7 @@ export class AcquisitionOverviewComponent extends React.Component<IAcquisitionOv
     // eslint-disable-next-line class-methods-use-this
     public render(): JSX.Element | null {
         return (
-            <BaseAcquisitionDashboard isSuperAdmin={false} isSubscriber={this.isSubscribed()} />
+            <BaseAcquisitionDashboard fetchCampaigns={fetchMyCampaigns} isSuperAdmin={false} isSubscriber={this.isSubscribed()} />
         );
     }
 }

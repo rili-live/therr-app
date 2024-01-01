@@ -2,18 +2,23 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
+import { AxiosResponse } from 'axios';
 import classNames from 'classnames';
 import {
     Button,
     Col,
     Row,
 } from 'react-bootstrap';
-import { IUserState } from 'therr-react/types';
+import { ICampaignsState, IUserState } from 'therr-react/types';
+import { OAuthIntegrationProviders } from 'therr-js-utilities/constants';
 import { faBullhorn, faMapMarked, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { CampaignActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 import PricingCards from '../../components/PricingCards';
+import { ICampaign } from '../../types';
+import * as facebook from '../../api/facebook';
 import OverviewOfCampaignMetrics from '../Dashboards/OverviewModules/OverviewOfCampaignMetrics';
 
 interface IBaseAcquisitionDashboardRouterProps {
@@ -23,14 +28,17 @@ interface IBaseAcquisitionDashboardRouterProps {
 }
 
 interface IBaseAcquisitionDashboardDispatchProps {
+    getCampaign: Function;
 }
 
 interface IStoreProps extends IBaseAcquisitionDashboardDispatchProps {
+    campaigns: ICampaignsState;
     user: IUserState;
 }
 
 // Regular component props
 interface IBaseAcquisitionDashboardProps extends IBaseAcquisitionDashboardRouterProps, IStoreProps {
+    fetchCampaigns: () => Promise<AxiosResponse<any, any>>;
     isSuperAdmin: boolean;
     isSubscriber: boolean;
 }
@@ -38,16 +46,20 @@ interface IBaseAcquisitionDashboardProps extends IBaseAcquisitionDashboardRouter
 interface IBaseAcquisitionDashboardState {
     currentCampaignIndex: number;
     isLoadingCampaigns: boolean;
-    campaignsInView: any[]; // TODO: Move to Redux
-    // campaignsInView: ICampaign[]; // TODO: Move to Redux
+    performanceSummary: {
+        [key: string]: any;
+    };
+    campaignsInView: ICampaign[]; // This is distinguish between my campaigns and admin viewing campaigns
     spanOfTime: 'week' | 'month';
 }
 
 const mapStateToProps = (state: any) => ({
+    campaigns: state.campaigns,
     user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    getCampaign: CampaignActions.get,
 }, dispatch);
 
 /**
@@ -62,6 +74,9 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
         this.state = {
             currentCampaignIndex: 0,
             isLoadingCampaigns: false,
+            performanceSummary: {
+                [OAuthIntegrationProviders.THERR]: {},
+            },
             campaignsInView: [],
             spanOfTime: 'week',
         };
@@ -69,11 +84,73 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
+    componentDidMount = () => {
+        this.fetchCampaignInsights('week');
+    };
+
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
 
-    fetchCampaignMetrics = (timeSpan: 'week' | 'month') => {
+    fetchDashboardCampaigns = (latitude?: number, longitude?: number) => {
+        const { fetchCampaigns } = this.props;
+
+        return fetchCampaigns().then((response) => new Promise((resolve) => {
+            this.setState({
+                campaignsInView: response?.data?.results || [],
+            }, () => resolve(null));
+        }));
+    };
+
+    fetchCampaignInsights = (timeSpan: 'week' | 'month') => {
+        this.setState({
+            spanOfTime: timeSpan,
+        });
         const { campaignsInView } = this.state;
-        console.log(timeSpan, campaignsInView);
+        this.setState({
+            isLoadingCampaigns: true,
+        });
+        const prefetchPromise: Promise<any> = !campaignsInView.length ? this.fetchDashboardCampaigns() : Promise.resolve();
+
+        prefetchPromise.then(() => {
+            const { currentCampaignIndex, campaignsInView: updatedCampaignsInView } = this.state;
+            const campaign = updatedCampaignsInView[currentCampaignIndex];
+            const { campaigns, getCampaign, user } = this.props;
+
+            const campaignPromise = (campaign.id && !campaigns.campaigns[campaign.id])
+                ? getCampaign(campaign.id, {
+                    withMedia: true,
+                })
+                : Promise.resolve(campaigns.campaigns[campaign.id]);
+
+            campaignPromise.then((fetchedCampaign) => {
+                if (fetchedCampaign.integrationDetails?.[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
+                    && fetchedCampaign.integrationDetails?.[OAuthIntegrationProviders.FACEBOOK]?.campaignId
+                    && user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.user_access_token) {
+                    return facebook.getCampaignResults(
+                        user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
+                        fetchedCampaign.integrationDetails?.[OAuthIntegrationProviders.FACEBOOK]?.adAccountId,
+                        fetchedCampaign.integrationDetails?.[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
+                    ).then((response) => {
+                        this.setState({
+                            isLoadingCampaigns: false,
+                            performanceSummary: {
+                                ...this.state.performanceSummary,
+                                [OAuthIntegrationProviders.FACEBOOK]: response?.summary || {},
+                            },
+                        });
+                    });
+                }
+            }).catch((err) => {
+                console.log(err);
+            });
+
+            console.log('campaign selected', updatedCampaignsInView[currentCampaignIndex]);
+        }).catch((err) => {
+            console.log(err);
+        }).finally(() => {
+            this.setState({
+                isLoadingCampaigns: false,
+            });
+        });
     };
 
     onPrevCampaignClick = () => {
@@ -85,7 +162,7 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
             this.setState({
                 currentCampaignIndex: currentCampaignIndex - 1,
             }, () => {
-                this.fetchCampaignMetrics(spanOfTime);
+                this.fetchCampaignInsights(spanOfTime);
             });
         }
     };
@@ -100,7 +177,7 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
             this.setState({
                 currentCampaignIndex: currentCampaignIndex + 1,
             }, () => {
-                this.fetchCampaignMetrics(spanOfTime);
+                this.fetchCampaignInsights(spanOfTime);
             });
         }
     };
@@ -109,11 +186,13 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
         const {
             isSuperAdmin,
             isSubscriber,
+            user,
         } = this.props;
         const {
             campaignsInView,
             currentCampaignIndex,
             isLoadingCampaigns,
+            performanceSummary,
             spanOfTime,
         } = this.state;
         const containerClassNames = classNames({
@@ -137,9 +216,11 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
                                 currentCampaignIndex={currentCampaignIndex}
                                 campaignsInView={campaignsInView}
                                 spanOfTime={spanOfTime}
-                                fetchCampaignMetrics={this.fetchCampaignMetrics}
+                                fetchCampaignInsights={this.fetchCampaignInsights}
                                 isLoading={isLoadingCampaigns}
                                 isSuperAdmin={isSuperAdmin}
+                                performanceSummary={performanceSummary}
+                                user={user}
                             />
                         }
                         {
