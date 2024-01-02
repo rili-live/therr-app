@@ -1,8 +1,9 @@
 import { RequestHandler } from 'express';
 import moment from 'moment';
-import { getSearchQueryArgs } from 'therr-js-utilities/http';
+import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
+import { findUsers } from '../api/usersService';
 
 // CREATE
 const createForum = (req, res) => {
@@ -33,7 +34,11 @@ const createForum = (req, res) => {
 
 // READ
 const searchForums: RequestHandler = (req: any, res: any) => {
-    // const userId = req.headers['x-userid'];
+    const {
+        authorization,
+        locale,
+        userId,
+    } = parseHeaders(req.headers);
     const {
         filterBy,
         query,
@@ -54,18 +59,44 @@ const searchForums: RequestHandler = (req: any, res: any) => {
     const countPromise = Promise.resolve();
 
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
-        const response = {
-            results: results // TODO: RFRONT-25 - localize dates
-                .map((result) => ({ ...result, createdAt: moment(result.createdAt).format('M/D/YY, h:mma') })),
-            pagination: {
-                // totalItems: Number(countResult[0].count),
-                totalItems: 100, // arbitrary number because count is slow and not needed
-                itemsPerPage: Number(itemsPerPage),
-                pageNumber: Number(pageNumber),
-            },
-        };
+        const userIdSet = new Set<any>();
+        results.forEach((result) => userIdSet.add(result.authorId));
+        const userIds = [...userIdSet];
 
-        res.status(200).send(response);
+        findUsers({
+            authorization,
+            'x-userid': userId,
+            'x-localecode': locale,
+        }, userIds).then((usersResponse) => {
+            const users: any[] = usersResponse.data;
+            const usersById = users.reduce((acc, cur) => ({
+                ...acc,
+                [cur.id]: cur,
+            }), {});
+
+            const response = {
+                results: results // TODO: RFRONT-25 - localize dates
+                    .map((result) => {
+                        const user = usersById[result.authorId];
+
+                        return {
+                            ...result,
+                            createdAt: moment(result.createdAt).format('M/D/YY, h:mma'),
+                            author: {
+                                ...user,
+                            },
+                        };
+                    }),
+                pagination: {
+                    // totalItems: Number(countResult[0].count),
+                    totalItems: 100, // arbitrary number because count is slow and not needed
+                    itemsPerPage: Number(itemsPerPage),
+                    pageNumber: Number(pageNumber),
+                },
+            };
+
+            return res.status(200).send(response);
+        });
     })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
 };

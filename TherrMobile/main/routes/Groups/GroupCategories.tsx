@@ -5,6 +5,7 @@ import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import therrIconConfig from '../../assets/therr-font-config.json';
+import spacingStyles from '../../styles/layouts/spacing';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -35,22 +36,25 @@ const renderCategoryIcon = (category, theme, themeCategory) => {
     return (<MaterialIcon {...props} />);
 };
 
-const renderCategoryButton = (onCategoryPress, theme, themeCategory, themeForms) => {
+const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategory) => {
     return ({
         item: category,
     }) => {
-        const buttonStyle = category.isActive ? themeCategory.styles.categoryButtonActive : themeCategory.styles.categoryButton;
+        const buttonStyle = category.isActive ? themeButtons.styles.quickFiltersButtonTinyActive : themeButtons.styles.quickFiltersButtonTiny;
         const containerStyle = category.isActive ? themeCategory.styles.categoryButtonContainerActive : themeCategory.styles.categoryButtonContainer;
-        const titleStyle = category.isActive ? themeCategory.styles.categoryButtonTitleActive : themeCategory.styles.categoryButtonTitle;
+        const titleStyle = category.isActive ? themeButtons.styles.quickFiltersButtonTitleActive : themeButtons.styles.quickFiltersButtonTitle;
+        const titleCapped = category.name.charAt(0).toUpperCase() + category.name.slice(1);
 
         return (
             <Button
-                title={category.name}
+                title={titleCapped}
                 icon={renderCategoryIcon(category, theme, themeCategory)}
                 onPress={() => onCategoryPress(category)}
-                buttonStyle={[themeForms.styles.buttonPill, buttonStyle]}
-                containerStyle={[themeForms.styles.buttonPillContainer, containerStyle]}
-                titleStyle={[themeForms.styles.buttonPillTitle, titleStyle]}
+                buttonStyle={buttonStyle}
+                containerStyle={[containerStyle, spacingStyles.marginVertSm, spacingStyles.marginHorizSm, {
+                    height: themeButtons.styles.quickFiltersButtonTiny.height,
+                }]}
+                titleStyle={titleStyle}
             />
         );
     };
@@ -66,32 +70,34 @@ export default ({
     translate,
     theme,
     themeCategory,
-    themeForms,
+    themeButtons,
 }) => {
     return (
         <View style={[themeCategory.styles.outerContainer, style]}>
             <View style={themeCategory.styles.innerContainer}>
                 <Text style={[themeCategory.styles.header, { backgroundColor }]}>{translate('pages.groups.categories.title')}</Text>
+                <Button
+                    containerStyle={[themeCategory.styles.listToggleButtonContainer, { backgroundColor }]}
+                    buttonStyle={themeCategory.styles.listToggleButton}
+                    icon={
+                        <TherrIcon
+                            name={toggleChevronName}
+                            size={18}
+                            color={theme.colors.primary3}
+                        />
+                    }
+                    onPress={onCategoryTogglePress}
+                    type="clear"
+                />
                 <FlatList
                     horizontal={true}
                     keyExtractor={keyExtractor}
                     data={categories}
-                    renderItem={renderCategoryButton(onCategoryPress, theme, themeCategory, themeForms)}
+                    renderItem={renderCategoryButton(onCategoryPress, theme, themeButtons, themeCategory)}
                     contentContainerStyle={themeCategory.styles.listContainer}
+                    showsHorizontalScrollIndicator={false}
                 />
             </View>
-            <Button
-                containerStyle={[themeCategory.styles.listToggleButtonContainer, { backgroundColor }]}
-                icon={
-                    <TherrIcon
-                        name={toggleChevronName}
-                        size={16}
-                        color={theme.colors.primary3}
-                    />
-                }
-                onPress={onCategoryTogglePress}
-                type="clear"
-            />
         </View>
     );
 };

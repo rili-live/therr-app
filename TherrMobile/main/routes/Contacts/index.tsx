@@ -32,8 +32,8 @@ import GroupCategories from '../Groups/GroupCategories';
 const { width: viewportWidth } = Dimensions.get('window');
 const DEFAULT_PAGE_SIZE = 50;
 const tabMap = {
-    0: PEOPLE_CAROUSEL_TABS.PEOPLE,
-    1: PEOPLE_CAROUSEL_TABS.GROUPS,
+    0: PEOPLE_CAROUSEL_TABS.GROUPS,
+    1: PEOPLE_CAROUSEL_TABS.PEOPLE,
     2: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
 };
 
@@ -138,8 +138,8 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             isRefreshing: false,
             isRefreshingUserSearch: false,
             tabRoutes: [
-                { key: PEOPLE_CAROUSEL_TABS.PEOPLE, title: this.translate('menus.headerTabs.people') },
                 { key: PEOPLE_CAROUSEL_TABS.GROUPS, title: this.translate('menus.headerTabs.groups') },
+                { key: PEOPLE_CAROUSEL_TABS.PEOPLE, title: this.translate('menus.headerTabs.people') },
                 { key: PEOPLE_CAROUSEL_TABS.CONNECTIONS, title: this.translate('menus.headerTabs.connections') },
                 // { key: PEOPLE_CAROUSEL_TABS.INVITES, title: this.translate('menus.headerTabs.invite') },
             ],
@@ -256,8 +256,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     onTabSelect = (index: number) => {
+        const { navigation } = this.props;
         this.setState({
             activeTabIndex: index,
+        });
+
+        navigation.setParams({
+            activeTab: tabMap[index],
         });
     };
 
@@ -538,7 +543,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             onCategoryTogglePress={this.handleCategoryTogglePress}
                             toggleChevronName={toggleChevronName}
                             theme={this.theme}
-                            themeForms={this.themeForms}
+                            themeButtons={this.themeButtons}
                             themeCategory={this.themeCategory}
                         />}
                         renderItem={({ item: group }) => (

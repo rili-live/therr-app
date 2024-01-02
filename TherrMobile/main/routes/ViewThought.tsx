@@ -271,7 +271,8 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         });
     };
 
-    onSubmitReply = () => {
+    onSubmitReply = (e) => {
+        e.preventDefault();
         const {
             category,
             message,

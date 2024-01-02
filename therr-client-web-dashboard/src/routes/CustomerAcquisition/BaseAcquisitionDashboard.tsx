@@ -142,8 +142,6 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
             }).catch((err) => {
                 console.log(err);
             });
-
-            console.log('campaign selected', updatedCampaignsInView[currentCampaignIndex]);
         }).catch((err) => {
             console.log(err);
         }).finally(() => {
