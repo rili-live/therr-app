@@ -138,7 +138,8 @@ class DirectMessage extends React.Component<
         });
     };
 
-    handleSend = () => {
+    handleSend = (e) => {
+        e.preventDefault();
         const { msgInputVal } = this.state;
 
         if (msgInputVal) {
@@ -232,7 +233,7 @@ class DirectMessage extends React.Component<
                                 placeholder={this.translate(
                                     'pages.directMessage.inputPlaceholder'
                                 )}
-                                onSubmitEditing={() => this.handleSend()}
+                                onSubmitEditing={this.handleSend}
                                 containerStyle={this.themeMessage.styles.inputContainer}
                                 errorStyle={this.theme.styles.displayNone}
                                 themeForms={this.themeForms}

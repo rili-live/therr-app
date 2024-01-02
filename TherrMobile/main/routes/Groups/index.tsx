@@ -239,7 +239,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
                         onCategoryTogglePress={this.handleCategoryTogglePress}
                         toggleChevronName={toggleChevronName}
                         theme={this.theme}
-                        themeForms={this.themeForms}
+                        themeButtons={this.themeButtons}
                         themeCategory={this.themeCategory}
                     />
 

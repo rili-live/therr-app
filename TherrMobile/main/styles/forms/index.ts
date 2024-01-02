@@ -363,7 +363,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             padding: 0,
             margin: 0,
             borderRadius: 20,
-            height: 22,
+            height: 24,
             marginHorizontal: 4,
             marginTop: 14,
         },

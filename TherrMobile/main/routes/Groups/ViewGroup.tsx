@@ -1,21 +1,19 @@
 import React from 'react';
 import {
-    ActivityIndicator,
     FlatList,
     SafeAreaView,
     Text,
     View,
 } from 'react-native';
-import { Button, Image } from 'react-native-elements';
+import { Button } from 'react-native-elements';
 // import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 // import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import { SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { MessageActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { IMesssageState, IUserState, IUserConnectionsState } from 'therr-react/types';
-import randomColor from 'randomcolor';
 // import ViewChatButtonMenu from '../../components/ButtonMenu/ViewChatButtonMenu';
 import translator from '../../services/translator';
 // import RoundInput from '../../components/Input/Round';
@@ -31,60 +29,15 @@ import { getUserImageUri } from '../../utilities/content';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 import RoundInput from '../../components/Input/Round';
 import TherrIcon from '../../components/TherrIcon';
+import ForumMessage from './ForumMessage';
+import LoadingPlaceholder from './LoadingPlaceholder';
 
-const userColors: any = {}; // local state
-
-const renderMessage = ({
-    item,
-    theme,
-    themeChat,
-    themeMessage,
-    connectionDetails,
-    userDetails,
-}) => {
-    const senderTitle = !item.isAnnouncement ? item.fromUserName : '';
-    const timeSplit = item.time.split(', ');
-    const isYou = item.fromUserName?.toLowerCase().includes('you');
-    const yourColor = theme.colors.accent3;
-
-    if (!userColors[item.fromUserName]) {
-        userColors[item.fromUserName] = isYou ? yourColor : randomColor({
-            luminosity: 'dark',
-        });
-    }
-
-    const messageColor = isYou
-        ? (userColors[item.fromUserName] || yourColor)
-        : (userColors[item.fromUserName] || theme.colors.accentBlue);
-
-    return (
-        // eslint-disable-next-line react-native/no-inline-styles
-        <View style={[themeChat.styles.messageContainer, {
-            borderColor: messageColor,
-            paddingLeft: item.isAnnouncement ? 18 : 10,
-        }]}>
-            <Image
-                // source={{ uri: `${item.fromUserImgSrc}?size=50x50` }}
-                source={{ uri: getUserImageUri(isYou ? { details: userDetails } : { details: connectionDetails }, 50) }}
-                style={themeMessage.styles.userImage}
-                PlaceholderContent={<ActivityIndicator />}
-            />
-            <View style={themeChat.styles.messageContentContainer}>
-                <View style={themeChat.styles.messageHeader}>
-                    {
-                        !!senderTitle && <Text style={themeChat.styles.senderTitleText}>{senderTitle}</Text>
-                    }
-                    <Text style={themeChat.styles.messageTime}>{timeSplit[1]}</Text>
-                </View>
-                <Text style={themeChat.styles.messageText}>{item.text}</Text>
-            </View>
-        </View>
-    );
-};
+const ITEMS_PER_PAGE = 50;
 
 interface IViewChatDispatchProps {
     joinForum: Function;
     logout: Function;
+    searchForumMessages: Function;
     sendForumMessage: Function;
     searchUserConnections: Function;
 }
@@ -103,6 +56,8 @@ export interface IViewChatProps extends IStoreProps {
 
 interface IViewChatState {
     msgInputVal: string;
+    isLoading: boolean;
+    pageNumber: number;
 }
 
 const mapStateToProps = (state) => ({
@@ -115,6 +70,7 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             joinForum: SocketActions.joinForum,
+            searchForumMessages: MessageActions.searchForumMessages,
             sendForumMessage: SocketActions.sendForumMessage,
             searchUserConnections: UserConnectionsActions.search,
         },
@@ -123,7 +79,7 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
     private hashtags;
-    private flatListRef;
+    private flatListRef: FlatList<any> | null = null;
     private scrollViewRef;
     private translate: Function;
     private theme = buildStyles();
@@ -141,6 +97,8 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
 
         this.state = {
             msgInputVal: '',
+            isLoading: false,
+            pageNumber: 1,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -154,7 +112,12 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
     }
 
     componentDidMount() {
-        const { joinForum, navigation, route, user } = this.props;
+        const {
+            joinForum,
+            navigation,
+            route,
+            user,
+        } = this.props;
         const { title, id: forumId } = route.params;
 
         navigation.setOptions({
@@ -164,10 +127,63 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
         joinForum({
             roomId: forumId,
             roomName: title,
+            userId: user.details.id,
             userName: user.details.userName,
             userImgSrc: getUserImageUri(user.details, 100),
         });
+
+        // TODO: Add logic to update this when user navigates away then returns
+        this.searchForumMsgsByPage(1);
     }
+
+    searchForumMsgsByPage = (pageNumber: number) => {
+        const { searchForumMessages, user, route } = this.props;
+        const { id: forumId } = route.params;
+
+        this.setState({
+            isLoading: true,
+        });
+        return new Promise((resolve) => searchForumMessages(
+            forumId,
+            user.details.id,
+            {
+                itemsPerPage: ITEMS_PER_PAGE,
+                pageNumber,
+                // order: 'desc',
+            }
+        ).finally(() => {
+            this.setState({
+                isLoading: false,
+            }, () => resolve(null));
+        }));
+    };
+
+    tryLoadMore = () => {
+        const { pageNumber } = this.state;
+        const { messages, route } = this.props;
+        const { id: forumId } = route.params;
+        const msgs = messages.forumMsgs ? (messages.forumMsgs[forumId] || []) : [];
+
+        if (!msgs.length || msgs[msgs.length - 1].isFirstMessage || msgs.length > 200) {
+            // Don't load more than 200 historical messages
+            return;
+        }
+
+        const nextPage = pageNumber + 1;
+        this.searchForumMsgsByPage(nextPage);
+        this.setState({
+            pageNumber: nextPage,
+        });
+    };
+
+    goToUser = (userId) => {
+        const { navigation } = this.props;
+        navigation.navigate('ViewUser', {
+            userInView: {
+                id: userId,
+            },
+        });
+    };
 
     handleInputChange = (val) => {
         this.setState({
@@ -175,7 +191,8 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
         });
     };
 
-    handleSend = () => {
+    handleSend = (e) => {
+        e.preventDefault();
         const { msgInputVal } = this.state;
 
         if (msgInputVal) {
@@ -184,6 +201,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
             sendForumMessage({
                 roomId: user.socketDetails.currentRoom,
                 message: msgInputVal,
+                userId: user.details.id,
                 userName: user.details.userName,
                 userImgSrc: getUserImageUri(user.details, 100),
             });
@@ -195,7 +213,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
     };
 
     render() {
-        const { msgInputVal } = this.state;
+        const { isLoading, msgInputVal } = this.state;
         const { messages, navigation, route, user } = this.props;
         const { description, subtitle, id: forumId } = route.params;
         const mgs = messages.forumMsgs[forumId] || [];
@@ -207,38 +225,62 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                     <View
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
                     >
-                        <View style={[this.themeAccentLayout.styles.container, this.themeChat.styles.container]}>
-                            <FlatList
-                                data={mgs}
-                                keyExtractor={(item) => String(item.key)}
-                                ListHeaderComponent={
-                                    <View style={this.themeAccentLayout.styles.containerHeader}>
-                                        <Text><Text style={{ fontWeight: 'bold' }}>{this.translate('pages.groups.labels.subtitle')}</Text> {subtitle}</Text>
-                                        <Text>
-                                            <Text style={{ fontWeight: 'bold' }}>{this.translate('pages.groups.labels.description')}</Text> {description}
-                                        </Text>
-                                        <HashtagsContainer
-                                            hasIcon={false}
-                                            hashtags={this.hashtags}
-                                            onHashtagPress={() => {}}
-                                            styles={this.themeForms.styles}
-                                        />
-                                    </View>
-                                }
-                                renderItem={({ item }) => renderMessage({
-                                    item,
-                                    theme: this.theme,
-                                    themeChat: this.themeChat,
-                                    themeMessage: this.themeMessage,
-                                    userDetails: user.details,
-                                    connectionDetails: {
-                                        id: item.fromUserId,
-                                    },
-                                })}
-                                ref={(component) => (this.flatListRef = component)}
-                                style={this.theme.styles.stretch}
-                                onContentSizeChange={() => mgs.length && this.flatListRef.scrollToEnd({ animated: true })}
+                        <View style={this.themeAccentLayout.styles.containerHeader}>
+                            {
+                                subtitle &&
+                                <Text>
+                                    <Text style={{ fontWeight: 'bold' }}>{this.translate('pages.groups.labels.subtitle')}</Text> {subtitle}
+                                </Text>
+                            }
+                            <Text>
+                                <Text style={{ fontWeight: 'bold' }}>
+                                    {this.translate('pages.groups.labels.description')}
+                                </Text> {description}
+                            </Text>
+                            <HashtagsContainer
+                                hasIcon={false}
+                                hashtags={this.hashtags}
+                                onHashtagPress={() => {}}
+                                styles={this.themeForms.styles}
                             />
+                        </View>
+                        <View style={[this.themeAccentLayout.styles.container, this.themeChat.styles.container]}>
+                            {
+                                isLoading ?
+                                    <>
+                                        <LoadingPlaceholder />
+                                        <LoadingPlaceholder />
+                                        <LoadingPlaceholder />
+                                        <LoadingPlaceholder />
+                                    </> :
+                                    <FlatList
+                                        data={mgs}
+                                        inverted
+                                        stickyHeaderIndices={[0]}
+                                        renderItem={({ item }) => (
+                                            <ForumMessage
+                                                item={item}
+                                                theme={this.theme}
+                                                themeChat={this.themeChat}
+                                                themeMessage={this.themeMessage}
+                                                userDetails={user.details}
+                                                fromUserDetails={{
+                                                    id: item.fromUserId,
+                                                    userName: item.fromUserName,
+                                                    firstName: item.fromUserFirstName,
+                                                    lastName: item.fromUserLastName,
+                                                    media: item.fromUserMedia,
+                                                }}
+                                                goToUser={this.goToUser}
+                                            />
+                                        )}
+                                        ref={(component) => (this.flatListRef = component)}
+                                        style={this.theme.styles.stretch}
+                                        // onContentSizeChange={() => mgs.length && this.flatListRef.scrollToEnd({ animated: true })}
+                                        // onEndReached={this.tryLoadMore}
+                                        // onEndReachedThreshold={0.5}
+                                    />
+                            }
                         </View>
                     </View>
                     <View style={[this.themeAccentLayout.styles.footer, this.themeChat.styles.footer]}>
@@ -263,7 +305,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                             placeholder={this.translate(
                                 'pages.directMessage.inputPlaceholder'
                             )}
-                            onSubmitEditing={() => this.handleSend()}
+                            onSubmitEditing={this.handleSend}
                             containerStyle={this.themeMessage.styles.inputContainer}
                             errorStyle={this.theme.styles.displayNone}
                             themeForms={this.themeForms}

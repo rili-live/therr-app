@@ -227,7 +227,8 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
         });
     };
 
-    onSubmit = (isDraft = false) => {
+    onSubmit = (e, isDraft = false) => {
+        e.preventDefault();
         const { hashtags } = this.state;
         const {
             category,
@@ -622,7 +623,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                                     style={this.themeAccentForms.styles.submitButtonIcon}
                                 />
                             }
-                            onPress={() => this.onSubmit()}
+                            onPress={(e) => this.onSubmit(e)}
                             disabled={this.isFormDisabled()}
                         />
                     </View>
