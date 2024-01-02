@@ -1,8 +1,6 @@
 /* eslint-disable quotes */
 /* eslint-disable max-len */
-import Handlebars from 'handlebars';
 import sendEmail from '../sendEmail';
-import templateString from '../template';
 import * as globalConfig from '../../../../../../global-config';
 
 export interface ISendCampaignApprovedEmailConfig {
@@ -18,7 +16,6 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendCampaignApprovedEmailConfig, templateParams: ITemplateParams) => {
-    const template = Handlebars.compile(templateString);
     const dearUser = 'Hey Therr,';
     const htmlConfig = {
         header: 'Approved! Your ads campaign request was reviewed and accepted',
@@ -29,11 +26,9 @@ export default (emailParams: ISendCampaignApprovedEmailConfig, templateParams: I
         buttonHref: `${globalConfig[process.env.NODE_ENV].dashboardHostFull}`,
         buttonText: 'Go Therr',
     };
-    const html = template(htmlConfig);
 
     return sendEmail({
         ...emailParams,
-        html,
         toAddresses: [...emailParams.toAddresses],
-    });
+    }, htmlConfig);
 };

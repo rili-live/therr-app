@@ -1,16 +1,46 @@
+import Handlebars from 'handlebars';
 // eslint-disable-next-line import/extensions
 import emailValidator from 'therr-js-utilities/email-validator';
 import logSpan from 'therr-js-utilities/log-or-update-span'; // eslint-disable-line import/order
 import { awsSES } from '../aws';
 import Store from '../../store';
 import { getHostContext } from '../../constants/hostContext';
+import templateString from './template';
+
+type IMessageCategories = 'marketing';
+
+const defaultTherrEmailTemplate = Handlebars.compile(templateString);
 
 export interface ISendEmailConfig {
     charset?: string;
-    html: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+}
+
+export interface ISendEmailHtmlConfig {
+    header: string;
+    dearUser?: string;
+    body1: string;
+    body2?: string;
+    body3?: string;
+    bodyBold?: string;
+    bodyWarning?: string;
+    buttonHref?: string;
+    buttonText?: string; // Should be defined if buttonHref is defined
+    headerImageName?: string;
+    postBody1?: string;
+    messageCategory?: IMessageCategories;
+
+    // Brand/Agency Specific Params
+    brandBackgroundHexDark?: string;
+    homepageLinkUri?: string;
+    logoAltText?: string;
+    logoRelativePath?: string;
+    footerImageRelativePath?: string;
+    unsubscribeUrl?: string;
+    legalBusinessName?: string;
+    businessCopyrightYear?: string;
 }
 
 const failsafeBlackListRequest = (email) => Promise.all([
@@ -23,20 +53,37 @@ const failsafeBlackListRequest = (email) => Promise.all([
     return [];
 });
 
-export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
-    const contextConfig = getHostContext(config.agencyDomainName);
+export default (
+    emailConfig: ISendEmailConfig,
+    htmlConfig: ISendEmailHtmlConfig,
+    template: Handlebars.TemplateDelegate = defaultTherrEmailTemplate,
+) => new Promise((resolve, reject) => {
+    const contextConfig = getHostContext(emailConfig.agencyDomainName);
+    const sanitizedHtmlConfig: ISendEmailHtmlConfig = {
+        ...htmlConfig,
+        messageCategory: htmlConfig.messageCategory || 'marketing',
+        brandBackgroundHexDark: htmlConfig.brandBackgroundHexDark || contextConfig.emailTemplates.brandBackgroundHexDark,
+        homepageLinkUri: htmlConfig.homepageLinkUri || contextConfig.emailTemplates.homepageLinkUri,
+        logoAltText: htmlConfig.logoAltText || contextConfig.emailTemplates.logoAltText,
+        logoRelativePath: htmlConfig.logoRelativePath || contextConfig.emailTemplates.logoRelativePath,
+        footerImageRelativePath: htmlConfig.footerImageRelativePath || contextConfig.emailTemplates.footerImageRelativePath,
+        unsubscribeUrl: htmlConfig.unsubscribeUrl || contextConfig.emailTemplates.unsubscribeUrl,
+        legalBusinessName: htmlConfig.legalBusinessName || contextConfig.emailTemplates.legalBusinessName,
+        businessCopyrightYear: htmlConfig.businessCopyrightYear || contextConfig.emailTemplates.businessCopyrightYear,
+    };
+    const renderedHtml = template(sanitizedHtmlConfig);
     const params = {
         Content: {
             Simple: {
                 Body: {
                     Html: {
-                        Data: config.html,
-                        Charset: config.charset || 'UTF-8',
+                        Data: renderedHtml,
+                        Charset: emailConfig.charset || 'UTF-8',
                     },
                 },
                 Subject: {
-                    Data: config.subject,
-                    Charset: config.charset || 'UTF-8',
+                    Data: emailConfig.subject,
+                    Charset: emailConfig.charset || 'UTF-8',
                 },
             },
         },
@@ -47,22 +94,22 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
             // CcAddresses: [
             //     'STRING_VALUE',
             // ],
-            ToAddresses: config.toAddresses,
+            ToAddresses: emailConfig.toAddresses,
         },
         FromEmailAddress: contextConfig.emailTemplates.fromEmail,
     };
 
-    if (!config.toAddresses?.length) {
+    if (!emailConfig.toAddresses?.length) {
         resolve({});
         return;
     }
 
     // TODO: Validate email before sending
-    failsafeBlackListRequest(config.toAddresses[0]).then(([blacklistedEmails, userDetails]) => {
+    failsafeBlackListRequest(emailConfig.toAddresses[0]).then(([blacklistedEmails, userDetails]) => {
         // Skip if email is on bounce list or complaint list
         // Also skip if user account is unclaimed
         const emailIsBlacklisted = blacklistedEmails?.length || userDetails?.isUnclaimed;
-        if (emailValidator.validate(config.toAddresses[0]) && !emailIsBlacklisted) {
+        if (emailValidator.validate(emailConfig.toAddresses[0]) && !emailIsBlacklisted) {
             return awsSES.sendEmail(params, (err, data) => {
                 if (err) {
                     logSpan({
@@ -80,7 +127,7 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
             });
         }
 
-        console.warn(`Email is blacklisted/invalid or account is unclaimed: ${config.toAddresses[0]}`);
+        console.warn(`Email is blacklisted/invalid or account is unclaimed: ${emailConfig.toAddresses[0]}`);
 
         return resolve({});
     });
