@@ -65,18 +65,20 @@ const accessAndModifyCampaign = (
                 // });
             }
 
-            Store.campaignAssets.delete(assetsToDelete.map((a) => a.id))
-                .catch((err) => {
-                    logSpan({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: [`failed to delete underlying assets, ${JSON.stringify(assetsToDelete)}`],
-                        traceArgs: {
-                            'error.message': err?.message,
-                            'error.response': err?.response?.data,
-                        },
+            if (assetsToDelete?.length) {
+                Store.campaignAssets.delete(assetsToDelete.map((a) => a.id))
+                    .catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: [`failed to delete underlying assets, ${JSON.stringify(assetsToDelete)}`],
+                            traceArgs: {
+                                'error.message': err?.message,
+                                'error.response': err?.response?.data,
+                            },
+                        });
                     });
-                });
+            }
 
             const integrationsAccess = decryptIntegrationsAccess(user.integrationsAccess);
 
