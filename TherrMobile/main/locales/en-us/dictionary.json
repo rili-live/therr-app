@@ -349,7 +349,7 @@
       },
       "placeholders": {
         "title": "A searchable title...",
-        "subtitle": "Subtitle (optional)",
+        "subtitle": "Headline (optional)",
         "description": "A brief summary of the group...",
         "hashTags": "Tags (ie. my_tag, myTag)",
         "maxComments": "Max comments (per minute)",
@@ -938,7 +938,7 @@
       },
       "labels": {
         "description": "Description:",
-        "subtitle": "Subtitle:",
+        "subtitle": "Headline:"
       }
     },
     "landing": {

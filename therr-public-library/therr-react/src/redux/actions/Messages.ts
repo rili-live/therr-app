@@ -29,9 +29,7 @@ const Messages = {
                 data: {
                     roomId: forumId,
                     messages: response.data.results.map((forumMessage) => ({
-                        id: forumMessage.id,
-                        fromUserId: forumMessage.fromUserId,
-                        fromUserName: forumMessage.fromUserName,
+                        ...forumMessage,
                         text: forumMessage.message,
                         time: `${forumMessage.createdAt}`, // TODO: Format date with locale timezone in mind
                     })),

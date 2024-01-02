@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 import { Avatar, Badge, ListItem } from 'react-native-elements';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import { getUserImageUri } from '../../utilities/content';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -58,7 +58,8 @@ export default ({
             <Avatar
                 title={`${group.title?.substring(0, 1)}`}
                 rounded
-                source={{ uri: getUserImageUri({ details: { id: group.authorId } }, 150) }}
+                // TODO: Include use media in list groups response
+                source={{ uri: getUserImageUri({ details: { id: group.authorId, media: group.author?.media } }, 150) }}
                 size="medium"
             />
         </Pressable>

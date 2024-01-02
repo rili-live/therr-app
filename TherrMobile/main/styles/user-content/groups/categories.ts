@@ -4,6 +4,7 @@ import { EDGE_PADDING } from '.';
 import { getTheme } from '../../themes';
 
 const headerTop = -12;
+const buttonPadding = 4;
 
 const categoryButtonContainerStyle = {
     marginTop: 0,
@@ -36,7 +37,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             position: 'relative',
             margin: 0,
             padding: 0,
-            marginBottom: 8,
             marginTop: (0 - headerTop) + 4,
         },
         innerContainer: {
@@ -50,7 +50,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginTop: 5,
             paddingTop: 2,
             paddingBottom: 2,
-            marginBottom: 20,
         },
         header: {
             position: 'absolute',
@@ -63,9 +62,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         listToggleButtonContainer: {
             position: 'absolute',
             backgroundColor: therrTheme.colors.primary2,
-            bottom: 0,
-            right: 24,
+            top: headerTop - (buttonPadding / 2) - 2,
+            right: 10,
             zIndex: 10,
+            margin: 0,
+        },
+        listToggleButton: {
+            padding: 4,
         },
         listContainer: {
             display: 'flex',
@@ -103,6 +106,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         categoryIconActive: {
             ...categoryIconStyle,
+            color: therrTheme.colors.brandingWhite,
         },
     });
 

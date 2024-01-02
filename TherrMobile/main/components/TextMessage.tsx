@@ -27,6 +27,7 @@ export default ({
 
         return fullName;
     };
+    const onUserPress = () => goToUser(isYou() ? userDetails.id : connectionDetails.id);
     return (
         <>
             <View style={isLeft ? themeMessage.styles.messageContainerLeft : themeMessage.styles.messageContainerRight}>
@@ -41,7 +42,7 @@ export default ({
                 isFirstOfMessage &&
                 <View style={[themeMessage.styles.sectionContainer, { justifyContent: isYou() ? 'flex-end' : 'flex-start' }]}>
                     <Pressable
-                        onPress={() => goToUser(isYou() ? userDetails.id : connectionDetails.id)}
+                        onPress={onUserPress}
                     >
                         <Image
                             source={{ uri: getUserImageUri(isYou() ? { details: userDetails } : { details: connectionDetails }, 50) }}
@@ -49,7 +50,7 @@ export default ({
                             PlaceholderContent={<ActivityIndicator />}
                         />
                     </Pressable>
-                    <Text style={theme.styles.sectionTitle}>
+                    <Text style={theme.styles.sectionTitle} onPress={onUserPress}>
                         {getName()}
                     </Text>
                 </View>

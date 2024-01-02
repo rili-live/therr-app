@@ -26,7 +26,7 @@ const onFBLoginPress = (requestId: string, target = '_self') => {
         // 'pages_user_timezone',
         //
         'read_insights',
-        'instagram_manage_insights',
+        // 'instagram_manage_insights',
         // 'instagram_graph_user_profile',
     ];
     const dashboardHostFull = process.env.NODE_ENV === 'development'
