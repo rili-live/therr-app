@@ -21,6 +21,7 @@ export default (emailParams: ISendSubscriberVerificationEmailConfig, templatePar
         header: 'Therr App: Subscribed to Updates',
         dearUser: 'Welcome!',
         body1: 'You were successfully subscribed to our general updates channel. We\'ll only send updates for big events to keep you in the loop. If don\'t have the app yet, get the early release on Google Play or the Apple App Store.',
+        fromEmailTitle: 'Therr App Newsletter',
     };
 
     return sendEmail({

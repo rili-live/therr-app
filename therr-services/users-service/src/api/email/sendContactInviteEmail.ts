@@ -25,6 +25,7 @@ export default (emailParams: ISendContactInviteEmailConfig, templateParams: ITem
         buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}`,
         buttonText: 'Go Therr',
         postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${globalConfig[process.env.NODE_ENV].hostFull}`,
+        fromEmailTitle: `${templateParams.fromName}, Therr App`,
     };
 
     return sendEmail({

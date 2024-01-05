@@ -41,6 +41,9 @@ export interface ISendEmailHtmlConfig {
     unsubscribeUrl?: string;
     legalBusinessName?: string;
     businessCopyrightYear?: string;
+
+    // E-mail Appearance in Inbox
+    fromEmailTitle?: string;
 }
 
 const failsafeBlackListRequest = (email) => Promise.all([
@@ -96,7 +99,7 @@ export default (
             // ],
             ToAddresses: emailConfig.toAddresses,
         },
-        FromEmailAddress: contextConfig.emailTemplates.fromEmail,
+        FromEmailAddress: `"${htmlConfig.fromEmailTitle || contextConfig.emailTemplates.fromEmailTitle}" <${contextConfig.emailTemplates.fromEmail}>`,
     };
 
     if (!emailConfig.toAddresses?.length) {

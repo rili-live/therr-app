@@ -20,6 +20,7 @@ export default (emailParams: ISendPendingInviteEmailConfig, templateParams: ITem
         body1: `You have a new friend request from ${templateParams.fromName} on Therr app.`,
         buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}`,
         buttonText: 'Go Therr',
+        fromEmailTitle: `${templateParams.fromName}, Therr App`,
     };
 
     return sendEmail({

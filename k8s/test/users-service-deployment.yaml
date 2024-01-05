@@ -47,7 +47,7 @@ spec:
         - name: AWS_SES_REGION
           value: "us-east-2"
         - name: AWS_SES_FROM_EMAIL
-          value: '"Therr, Info" <info@therr.com>'
+          value: 'info@therr.com'
         - name: AWS_FEEDBACK_EMAIL_ADDRESS
           value: "info@therr.com"
         - name: USERS_SERVICE_API_PORT
