@@ -25,7 +25,7 @@ const onFBLoginPress = (requestId: string, target = '_self') => {
         // 'pages_user_locale',
         // 'pages_user_timezone',
         //
-        'read_insights',
+        // 'read_insights', // This may not be needed. This allow reading page insights but isn't necessary for reading ads insights
         // 'instagram_manage_insights',
         // 'instagram_graph_user_profile',
     ];

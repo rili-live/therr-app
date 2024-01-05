@@ -27,6 +27,7 @@ interface IBrandConfig {
         brandBackgroundHexDark: string;
         brandBackgroundLight: string;
         fromEmail: string;
+        fromEmailTitle: string;
         homepageLinkUri: string;
         logoRelativePath: string;
         logoAltText: string;
@@ -66,7 +67,8 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#1C7F8A',
             brandBackgroundLight: '#ffffff',
-            fromEmail: process.env.AWS_SES_FROM_EMAIL || '"Therr App" <info@therr.com>',
+            fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@therr.com',
+            fromEmailTitle: 'Therr App',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].hostFull,
             logoRelativePath: 'assets/images/therr-splash-logo-200.png',
             logoAltText: 'Therr logo',
@@ -98,7 +100,8 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#1C7F8A',
             brandBackgroundLight: '#ffffff',
-            fromEmail: process.env.AWS_SES_FROM_EMAIL || '"Therr App" <info@therr.com>',
+            fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@therr.com',
+            fromEmailTitle: 'Therr for Business',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].dashboardHostFull,
             logoRelativePath: 'assets/images/therr-splash-logo-200.png',
             logoAltText: 'Therr For Business logo',

@@ -387,7 +387,8 @@ export class CreateEditCampaignComponent extends React.Component<ICreateEditCamp
                 || !inputs.type
                 || !inputs.scheduleStartAt
                 || !inputs.scheduleStopAt
-                || (inputs.type === CampaignTypes.LOCAL && !inputs.spaceId)) {
+                || (inputs.type === CampaignTypes.LOCAL && !inputs.spaceId)
+                || !inputs.integrationTargets?.length) {
                 return true;
             }
         } else if (formEditingStage === 2) {
