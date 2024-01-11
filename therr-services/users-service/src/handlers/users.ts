@@ -187,11 +187,22 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 accessLevels: levels,
             }, false, undefined, !!inviteCode, req.headers['x-localecode'], whiteLabelOrigin).then((user) => res.status(201).send(user)));
         })
-        .catch((err) => handleHttpError({
-            err,
-            res,
-            message: 'SQL:USER_ROUTES:ERROR',
-        }));
+        .catch((err) => {
+            if (err?.message === 'invalid-password') {
+                return handleHttpError({
+                    err,
+                    res,
+                    message: translate(locale, 'errorMessages.auth.invalidPassword'),
+                    statusCode: 400,
+                });
+            }
+
+            return handleHttpError({
+                err,
+                res,
+                message: 'SQL:USER_ROUTES:ERROR',
+            });
+        });
 };
 
 // READ
@@ -556,7 +567,7 @@ const updateUser = (req, res) => {
                     if (!isMediaSafeForWork) {
                         return handleHttpError({
                             res,
-                            message: translate(locale, 'Restricted media'),
+                            message: translate(locale, 'errorMessages.privacy.restrictedMedia'),
                             statusCode: 400,
                         });
                     }

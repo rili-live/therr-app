@@ -1,10 +1,13 @@
 import * as React from 'react';
+import isValidPassword from 'therr-js-utilities/is-valid-password';
 
 interface IPasswordRequirementsProps {
     className: string;
     password: string;
     translate: any;
 }
+
+export const isPasswordValid = (password: string) => isValidPassword(password);
 
 const PasswordRequirements = ({
     className,
