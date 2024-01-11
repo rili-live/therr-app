@@ -65,7 +65,7 @@ describe('handlers/helpers/user', () => {
         it('handle basic auth', (done) => {
             const mockUserDetails = {
                 email: 'test.user@gmail.com', // this email should get normalized
-                password: 'string',
+                password: 'strinG123!',
                 firstName: 'bob',
                 isUnclaimed: false,
                 lastName: 'smith',

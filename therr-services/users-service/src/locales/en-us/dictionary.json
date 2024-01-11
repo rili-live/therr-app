@@ -4,7 +4,8 @@
             "accountNotVerified": "Account not verified. Check your E-mail for verification or navigate to /verify-account to resend",
             "noUserFound": "No user found with the entered username/e-mail",
             "oneTimeExpired": "One-time password has expired",
-            "incorrectUserPass": "Incorrect username/password combination"
+            "incorrectUserPass": "Incorrect username/password combination",
+            "invalidPassword": "Password is Invalid"
         },
         "posts": {
             "duplicatePost": "Duplicate posts are not allowed"
@@ -19,6 +20,9 @@
             "noUserFound": "No user found with the provided criteria",
             "noRequestSelf": "Cannot make a user connection with self",
             "mismatchTokenUserId": "Invalid requesting user ID"
+        },
+        "privacy": {
+            "restrictedMedia": "Restricted Media"
         }
     },
     "metrics": {

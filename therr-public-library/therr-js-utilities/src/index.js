@@ -29,6 +29,7 @@ const utilities = [
     'format-sql-join-as-json',
     'http-response',
     'is-valid-input',
+    'is-valid-password',
     'localization',
     'promiser',
     'scroll-to',

@@ -11,6 +11,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import * as yup from 'yup';
 import { VALIDATIONS } from 'therr-react/constants';
+import isValidPassword from 'therr-js-utilities/is-valid-password';
 import {
     PasswordRequirements,
 } from 'therr-react/components';
@@ -70,7 +71,8 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
     }
 
     isFormValid() {
-        return this.state.inputs.password === this.state.inputs.repeatPassword;
+        const { inputs } = this.state;
+        return inputs.password === inputs.repeatPassword && isValidPassword(inputs.password);
     }
 
     onSubmit = async (event: any) => {

@@ -2,6 +2,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
 import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
+import isValidPassword from 'therr-js-utilities/is-valid-password';
 import normalizeEmail from 'normalize-email';
 import Store from '../../store';
 import { hashPassword } from '../../utilities/userHelpers';
@@ -237,9 +238,14 @@ const createUserHelper = (
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
     // Create a different/random permanent password as a placeholder
-    const password = (isSSO || !!userByInviteDetails) ? generateOneTimePassword(8) : (userDetails.password || '');
+    const shouldGeneratePassword = (isSSO || !!userByInviteDetails);
+    const password = shouldGeneratePassword ? generateOneTimePassword(8) : (userDetails.password || '');
     const hasAgreedToTerms = !userByInviteDetails;
     let user;
+
+    if (!shouldGeneratePassword && !isValidPassword(password)) {
+        throw new Error('invalid-password');
+    }
 
     return Store.verificationCodes.createCode(verificationCode)
         .then(() => hashPassword(password))
