@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { isValidPhoneNumber } from 'react-phone-number-input';
+import isValidPassword from 'therr-js-utilities/is-valid-password';
 import {
     ButtonPrimary,
     Input,
@@ -43,7 +44,8 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
     }
 
     isFormValid() {
-        return this.state.inputs.password === this.state.inputs.repeatPassword;
+        const { inputs } = this.state;
+        return inputs.password === inputs.repeatPassword && isValidPassword(inputs.password);
     }
 
     onSubmit = (event: any) => {
