@@ -65,7 +65,6 @@ const rewardMomentPosted = ({
             return {
                 isClaimable: false,
                 space,
-
                 therrCoinIncentive,
             };
         }
@@ -87,13 +86,13 @@ const rewardMomentPosted = ({
             traceArgs: {
                 'space.incentive': therrCoinIncentive,
                 'space.isIncentiveClaimable': isClaimable,
-                'space.incentiveAmount': therrCoinIncentive.incentiveRewardValue,
+                'space.incentiveAmount': therrCoinIncentive?.incentiveRewardValue,
                 'user.id': userId,
                 'space.region': space?.region,
             },
         });
 
-        if (isClaimable) {
+        if (isClaimable && therrCoinIncentive) {
             return axios({ // Create companion reaction for user's own moment
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/rewards/transfer-coins`,
