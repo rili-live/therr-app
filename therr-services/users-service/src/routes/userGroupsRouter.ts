@@ -4,6 +4,7 @@ import {
     createUserGroup,
     updateUserGroup,
     deleteUserGroup,
+    notifyGroupMembers,
 } from '../handlers/userGroups';
 
 const router = express.Router();
@@ -15,5 +16,6 @@ router.get('/', getUserGroups);
 router.post('/', createUserGroup);
 router.put('/:id', updateUserGroup);
 router.delete('/:id', deleteUserGroup);
+router.post('/notify-members', notifyGroupMembers);
 
 export default router;
