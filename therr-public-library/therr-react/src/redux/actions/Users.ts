@@ -563,6 +563,48 @@ class UsersActions {
         return response?.data;
     });
 
+    // User Groups
+    createUserGroup = (data: any) => (dispatch: any) => UsersService.createUserGroup(data).then((response: any) => {
+        dispatch({
+            type: UserActionTypes.USER_GROUP_CREATED,
+            data: response.data,
+        });
+
+        return response.data;
+    });
+
+    getUserGroup = () => (dispatch: any) => UsersService.getUserGroups()
+        .then((response: any) => {
+            dispatch({
+                type: UserActionTypes.GET_USER_GROUPS,
+                data: response.data,
+            });
+
+            return response.data;
+        });
+
+    updateUserGroup = (groupId: string, data: any) => (dispatch: any) => UsersService.updateUserGroup(groupId, data)
+        .then((response: any) => {
+            dispatch({
+                type: UserActionTypes.USER_GROUP_UPDATED,
+                data: response.data,
+            });
+
+            return response.data;
+        });
+
+    deleteUserGroup = (groupId: string) => (dispatch: any) => UsersService.deleteUserGroup(groupId)
+        .then((response: any) => {
+            dispatch({
+                type: UserActionTypes.USER_GROUP_DELETED,
+                data: {
+                    id: groupId,
+                },
+            });
+
+            return response.data;
+        });
+
     // Thoughts
     createThought = (data: any) => (dispatch: any) => UsersService.createThought(data).then((response: any) => {
         dispatch({

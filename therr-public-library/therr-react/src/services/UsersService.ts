@@ -239,22 +239,21 @@ class UsersService {
         url: '/users-service/rewards/exchange-rate',
     });
 
-    // Forums (userGroups)
+    // UserGroups (aka forums)
     createUserGroup = (data: any) => axios({
         method: 'post',
         url: '/users-service/groups',
         data,
     });
 
-    getUserGroups = (id: number, args: any) => axios({
-        method: 'post',
-        url: `/users-service/groups/${id}`,
-        data: args,
+    getUserGroups = () => axios({
+        method: 'get',
+        url: '/users-service/groups',
     });
 
-    updateUserGroup = (data: any) => axios({
+    updateUserGroup = (id: string, data: any) => axios({
         method: 'put',
-        url: '/users-service/groups',
+        url: `/users-service/groups/${id}`,
         data,
     });
 
