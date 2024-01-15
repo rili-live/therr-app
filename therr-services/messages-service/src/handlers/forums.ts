@@ -33,6 +33,25 @@ const createForum = (req, res) => {
 };
 
 // READ
+const getForum = (req, res) => {
+    const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const { forumId } = req.params;
+
+    return Store.forums.getForum(forumId)
+        .then((forums) => {
+            if (!forums?.length) {
+                return handleHttpError({
+                    res,
+                    message: 'Forum not found',
+                    statusCode: 404,
+                });
+            }
+            return res.status(202).send(forums[0]);
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
+};
+
 const searchForums: RequestHandler = (req: any, res: any) => {
     const {
         authorization,
@@ -165,6 +184,7 @@ const updateForum = (req, res) => {
 export {
     createForum,
     searchCategories,
+    getForum,
     searchForums,
     updateForum,
 };

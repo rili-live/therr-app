@@ -161,6 +161,28 @@ const sendForumMessage = (socket: socketio.Socket, data: any, decodedAuthenticat
                 },
             },
         });
+
+        // TODO: Send a push notification to each user who is a member of the room (excluding sender)
+        // DO NOT create a db notification unless user lacks a sockedId in Redis
+        restRequest({
+            method: 'post',
+            url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users-groups/notify-members`,
+            data: {
+                groupId: data.roomId,
+                groupName: data.roomName,
+                excludedMembers: [data.userId],
+            },
+        }, socket, decodedAuthenticationToken).catch((err) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'SOCKET_IO_LOGS',
+                messages: err.toString(),
+                traceArgs: {
+                    'error.message': err?.message,
+                    source: 'messages.sendForumMessage',
+                },
+            });
+        });
     }).catch((err) => {
         // TODO: RSERV-36 - Emit error message
         logSpan({
@@ -169,7 +191,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any, decodedAuthenticat
             messages: err.toString(),
             traceArgs: {
                 'error.message': err?.message,
-                source: 'messages.sendMessage',
+                source: 'messages.sendForumMessage',
             },
         });
     });
