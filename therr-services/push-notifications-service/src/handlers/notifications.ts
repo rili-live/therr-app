@@ -88,6 +88,7 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             userId: headers.userId,
             userLocale: headers.locale,
             fromUserName: fromUserDetails?.userName,
+            groupName: groupDetails?.name,
             achievementsCount,
             likeCount,
             notificationsCount,
