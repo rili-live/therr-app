@@ -72,4 +72,14 @@ export default class UserForumsStore {
 
         return this.db.write.query(queryString).then((updateResponse) => updateResponse.rows);
     }
+
+    delete(id: string, userId: string) {
+        const queryString = knexBuilder.where({ id, userId })
+            .delete()
+            .into(USER_FORUMS_TABLE_NAME)
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((updateResponse) => updateResponse.rows);
+    }
 }

@@ -36,7 +36,44 @@ const createUserForum = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
 };
 
+const updateUserForum = (req, res) => {
+    const {
+        userId,
+    } = parseHeaders(req.headers);
+    const {
+        role,
+        status,
+    } = req.body;
+
+    return Store.userForums.update(req.params.id, {
+        role,
+        status,
+    })
+        .then((results) => res.status(201).send({
+            userForums: results,
+        }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
+};
+
+const deleteUserForum = (req, res) => {
+    const {
+        userId,
+    } = parseHeaders(req.headers);
+    const {
+        role,
+        status,
+    } = req.body;
+
+    return Store.userForums.delete(req.params.id, userId)
+        .then((results) => res.status(201).send({
+            userForums: results,
+        }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
+};
+
 export {
     getUserForums,
     createUserForum,
+    updateUserForum,
+    deleteUserForum,
 };
