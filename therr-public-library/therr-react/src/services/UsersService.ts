@@ -242,24 +242,24 @@ class UsersService {
     // UserGroups (aka forums)
     createUserGroup = (data: any) => axios({
         method: 'post',
-        url: '/users-service/groups',
+        url: '/users-service/users-groups',
         data,
     });
 
     getUserGroups = () => axios({
         method: 'get',
-        url: '/users-service/groups',
+        url: '/users-service/users-groups',
     });
 
     updateUserGroup = (id: string, data: any) => axios({
         method: 'put',
-        url: `/users-service/groups/${id}`,
+        url: `/users-service/users-groups/${id}`,
         data,
     });
 
     deleteUserGroup = (data: any) => axios({
         method: 'delete',
-        url: '/users-service/groups',
+        url: '/users-service/users-groups',
         data,
     });
 

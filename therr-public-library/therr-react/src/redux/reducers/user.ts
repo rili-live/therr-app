@@ -190,13 +190,13 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
             });
             return state.setIn(['myThoughts'], modifiedMyThought);
         case UserActionTypes.GET_USER_GROUPS:
-            return state.setIn(['myUserGroups'], action.data.results
+            return state.setIn(['myUserGroups'], action.data.userGroups
                 .reduce((acc, item) => ({
                     ...acc,
-                    [item.id]: item,
+                    [item.groupId]: item,
                 }), modifiedMyUserGroups));
         case UserActionTypes.USER_GROUP_CREATED:
-            modifiedMyUserGroups[action.data.id] = action.data;
+            modifiedMyUserGroups[action.data.groupId] = action.data;
             return state.setIn(['myUserGroups'], modifiedMyUserGroups);
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['isAuthenticated'], false)

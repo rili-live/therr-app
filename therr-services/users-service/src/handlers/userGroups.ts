@@ -1,5 +1,6 @@
 // import { RequestHandler } from 'express';
 import { parseHeaders } from 'therr-js-utilities/http';
+import { GroupRequestStatuses } from 'therr-js-utilities/constants';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 // import translate from '../utilities/translator';
@@ -20,19 +21,17 @@ const createUserGroup = (req, res) => {
     } = parseHeaders(req.headers);
     const {
         groupId,
-        role,
-        status,
     } = req.body;
+
+    // TODO: Check if group requires approval
+    const status = GroupRequestStatuses.APPROVED;
 
     return Store.userGroups.create({
         groupId,
         userId,
-        role,
         status,
     })
-        .then((results) => res.status(201).send({
-            userGroups: results,
-        }))
+        .then(([userGroup]) => res.status(201).send(userGroup))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
 };
 

@@ -107,7 +107,7 @@ class MainButtonMenuAlt extends ButtonMenu {
         const { isCompact, translate, themeMenu, user } = this.props;
         const activeRoute = this.getActiveRoute();
         // const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
-        const isConnectViewActive = activeRoute === 'Contacts';
+        const isConnectViewActive = activeRoute === 'Connect';
         let imageStyle = {
             height: 26,
             width: 26,
@@ -235,10 +235,10 @@ class MainButtonMenuAlt extends ButtonMenu {
                         />
                     }
                     onPress={() => {
-                        this.navTo('Contacts', {
+                        this.navTo('Connect', {
                             activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
                         });
-                        this.onNavPressDynamic('Contacts');
+                        this.onNavPressDynamic('Connect');
                     }}
                 />
                 <View style={

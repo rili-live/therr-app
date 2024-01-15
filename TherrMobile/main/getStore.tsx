@@ -44,6 +44,7 @@ const getStore = async () => {
             },
             thoughts: [],
             myThoughts: [],
+            myUserGroups: {},
         },
     };
     if (isAuthenticated) {

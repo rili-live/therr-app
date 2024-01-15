@@ -172,7 +172,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         successMsg: this.translate('forms.editGroup.backendSuccessMessage'),
                     });
                     setTimeout(() => {
-                        this.props.navigation.navigate('Contacts', {
+                        this.props.navigation.navigate('Connect', {
                             activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
                         });
                     }, 200);
@@ -340,7 +340,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         <Button
                             containerStyle={this.themeAccentForms.styles.backButtonContainer}
                             buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.navigate('Contacts', {
+                            onPress={() => navigation.navigate('Connect', {
                                 activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
                             })}
                             icon={

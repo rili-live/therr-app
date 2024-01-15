@@ -205,7 +205,7 @@ class Notifications extends React.Component<
                 });
             }
         } else if (notification.type === NotificationsEmuns.Types.NEW_DM_RECEIVED) {
-            navigation.navigate('Contacts');
+            navigation.navigate('Connect');
         }
     };
 
