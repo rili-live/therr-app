@@ -541,6 +541,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 ...this.state.inputs,
                 rating,
             },
+            isSubmitting: false,
         });
     };
 

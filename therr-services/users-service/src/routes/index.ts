@@ -31,6 +31,6 @@ router.use('/users/notifications', notificationsRouter);
 router.use('/users/metrics', userMetricsRouter);
 router.use('/users/organizations', userOrganizationsRouter);
 router.use('/users', usersRouter);
-router.use('/groups', userGroupsRouter);
+router.use('/users-groups', userGroupsRouter);
 
 export default router;

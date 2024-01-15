@@ -16,7 +16,7 @@ import Map from './Map';
 import Achievements from './Achievements';
 import AchievementClaim from './Achievements/AchievementClaim';
 import Areas from './Areas';
-import Contacts from './Contacts';
+import Connect from './Connect';
 import PhoneContacts from './Invite/PhoneContacts';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
@@ -32,7 +32,6 @@ import EditMoment from './EditMoment';
 import ViewSpace from './ViewSpace';
 import EditSpace from './EditSpace';
 import EditThought from './EditThought';
-import Groups from './Groups';
 import EditChat from './Groups/EditGroup';
 import ViewChat from './Groups/ViewGroup';
 import ExchangePointsDisclaimer from './Rewards/ExchangePointsDisclaimer';
@@ -200,10 +199,10 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'Contacts',
-        component: Contacts,
+        name: 'Connect',
+        component: Connect,
         options: () => ({
-            title: 'Contacts',
+            title: 'Connect',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -368,17 +367,17 @@ const routes: RouteConfig<
             },
         }),
     },
-    {
-        name: 'Groups',
-        component: Groups,
-        options: () => ({
-            title: 'Groups',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-        }),
-    },
+    // {
+    //     name: 'Groups',
+    //     component: Groups,
+    //     options: () => ({
+    //         title: 'Groups',
+    //         access: {
+    //             type: AccessCheckType.ALL,
+    //             levels: [AccessLevels.EMAIL_VERIFIED],
+    //         },
+    //     }),
+    // },
     {
         name: 'ViewChat',
         component: ViewChat,

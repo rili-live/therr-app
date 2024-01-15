@@ -1,6 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
-import { AccessLevels } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+import { GroupMemberRoles, GroupRequestStatuses } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 import { USER_GROUPS_TABLE_NAME } from './tableNames';
 
@@ -8,8 +8,8 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export interface ICreateUserGroupParams {
     userId: string;
     groupId: string;
-    role: string;
-    status: string;
+    role?: string;
+    status?: string;
     shouldMuteNotifs?: boolean;
     shouldShareLocation?: boolean;
     engagementCount?: number;
@@ -52,8 +52,8 @@ export default class UserGroupsStore {
     create(params: ICreateUserGroupParams) {
         const modifiedParams: any = {
             ...params,
-            role: params.role || 'member',
-            status: params.status || 'pending',
+            role: params.role || GroupMemberRoles.MEMBER,
+            status: params.status || GroupRequestStatuses.PENDING,
         };
         const queryString = knexBuilder.insert(modifiedParams)
             .into(USER_GROUPS_TABLE_NAME)

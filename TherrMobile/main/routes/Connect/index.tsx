@@ -39,7 +39,9 @@ const tabMap = {
 
 interface IContactsDispatchProps {
     createUserConnection: Function;
+    createUserGroup: Function;
     logout: Function;
+    getUserGroups: Function;
     searchCategories: Function;
     searchForums: Function;
     searchUserConnections: Function;
@@ -80,7 +82,9 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             createUserConnection: UserConnectionsActions.create,
+            createUserGroup: UsersActions.createUserGroup,
             searchCategories: ForumActions.searchCategories,
+            getUserGroups: UsersActions.getUserGroups,
             searchForums: ForumActions.searchForums,
             searchUserConnections: UserConnectionsActions.search,
             searchUsers: UsersActions.search,
@@ -161,7 +165,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     }
 
     componentDidMount() {
-        const { navigation, forums, searchCategories, user, userConnections } = this.props;
+        const {
+            getUserGroups, navigation, forums, searchCategories, user, userConnections,
+        } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.contacts.headerTitle'),
@@ -169,6 +175,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
         if ((userConnections.connections.length || 0) < DEFAULT_PAGE_SIZE) {
             this.handleRefresh();
+        }
+
+        if (!user.myUserGroups?.length) {
+            getUserGroups();
         }
 
         if ((Object.keys(user.users || {})?.length || 0) < DEFAULT_PAGE_SIZE) {
@@ -467,6 +477,16 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         });
     };
 
+    onJoinGroup = (group) => {
+        const { createUserGroup } = this.props;
+
+        createUserGroup({
+            groupId: group.id,
+        }).catch((err) => {
+            console.log(err);
+        });
+    };
+
     renderTabBar = props => {
         return (
             <TabBar
@@ -551,8 +571,11 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 group={group}
                                 onChatTilePress={this.handleChatTilePress}
                                 theme={this.theme}
+                                themeButtons={this.themeButtons}
                                 themeChatTile={this.themeTile}
-                                isActive={false}
+                                translate={this.translate}
+                                handleJoinGroup={this.onJoinGroup}
+                                user={user}
                             />
                         )}
                         ListEmptyComponent={

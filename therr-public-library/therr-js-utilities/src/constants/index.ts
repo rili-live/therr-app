@@ -21,6 +21,8 @@ import CampaignAdGoals from './enums/CampaignAdGoals';
 import CampaignAssetTypes from './enums/CampaignAssetTypes';
 import CampaignStatuses from './enums/CampaignStatuses';
 import CurrencyTransactionMessages from './enums/CurrencyTransactionMessages';
+import GroupMemberRoles from './enums/GroupMemberRoles';
+import GroupRequestStatuses from './enums/GroupRequestStatuses';
 import IncentiveRequirementKeys from './enums/IncentiveRequirementKeys';
 import IncentiveRewardKeys from './enums/IncentiveRewardKeys';
 import MetricNames from './enums/MetricNames';
@@ -46,6 +48,8 @@ export {
     CampaignAssetTypes,
     CampaignStatuses,
     CurrencyTransactionMessages,
+    GroupMemberRoles,
+    GroupRequestStatuses,
     Content,
     ErrorCodes,
     FilePaths,
