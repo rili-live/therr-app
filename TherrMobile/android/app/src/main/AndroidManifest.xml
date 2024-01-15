@@ -85,6 +85,10 @@
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
+            <action android:name="app.therrmobile.NEW_GROUP_MESSAGE" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
             <action android:name="app.therrmobile.NEW_LIKE_RECEIVED" />
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>

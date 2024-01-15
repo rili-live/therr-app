@@ -20,14 +20,15 @@ import withNavigation from '../wrappers/withNavigation';
 const userColors: any = {}; // local state
 
 const verifyAndJoinForum = (props) => {
-    if (!props.location?.state || !props.routePrams?.roomId) {
-        props.navigation.navigate('/create-forum');
-        return;
-    }
+    // if (!props.location?.state || !props.routeParams?.roomId) {
+    //     props.navigation.navigate('/create-forum');
+    //     return;
+    // }
 
     props.joinForum({
-        roomId: props.routePrams?.roomId,
+        roomId: props.routeParams?.roomId,
         roomName: (props.location?.state as any)?.roomName,
+        userId: props.user.details.id,
         userName: props.user.details.userName,
         userImgSrc: `https://robohash.org/${props.user.details.id}`,
     });
@@ -100,7 +101,7 @@ interface IForumDispatchProps {
 interface IStoreProps extends IForumDispatchProps {
     messages: IMessagesState;
     user: IUserState;
-    routePrams: IForumRouterProps
+    routeParams: IForumRouterProps
 }
 
 // Regular component props
@@ -134,12 +135,12 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  */
 export class ForumComponent extends React.Component<IForumProps, IForumState> {
     static getDerivedStateFromProps(nextProps: IForumProps, nextState: IForumState) {
-        if (nextState.isFirstLoad || nextProps.routePrams?.roomId !== nextState.previousRoomId) {
+        if (nextState.isFirstLoad || nextProps.routeParams?.roomId !== nextState.previousRoomId) {
             verifyAndJoinForum(nextProps);
 
             return {
                 isFirstLoad: false,
-                previousRoomId: nextProps.routePrams?.roomId,
+                previousRoomId: nextProps.routeParams?.roomId,
             };
         }
         return {};
@@ -157,7 +158,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         this.state = {
             inputs: {},
             isFirstLoad: true,
-            previousRoomId: props.routePrams?.roomId,
+            previousRoomId: props.routeParams?.roomId,
         };
 
         this.messageInputRef = React.createRef();
@@ -168,9 +169,10 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         const { isFirstLoad } = this.state;
         document.title = `Therr | ${this.translate('pages.chatForum.pageTitle')}`;
         this.messageInputRef.current.inputEl.focus();
-        if (isFirstLoad) {
-            verifyAndJoinForum(this.props);
-        }
+        // if (isFirstLoad) {
+        //     verifyAndJoinForum(this.props);
+        // }
+        verifyAndJoinForum(this.props);
     }
 
     componentDidUpdate(prevProps: IForumProps) {
@@ -183,7 +185,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
     componentWillUnmount() {
         this.props.leaveForum({
-            roomId: this.props.routePrams?.roomId,
+            roomId: this.props.routeParams?.roomId,
             userName: this.props.user.details.userName,
             userImgSrc: `https://robohash.org/${this.props.user.details.id}`,
         });
@@ -209,6 +211,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                 this.props.sendForumMessage({
                     roomId: this.props.user.socketDetails.currentRoom,
                     message: this.state.inputs.message,
+                    userId: this.props.user.details.id,
                     userName: this.props.user.details.userName,
                     userImgSrc: `https://robohash.org/${this.props.user.details.id}`,
                 });

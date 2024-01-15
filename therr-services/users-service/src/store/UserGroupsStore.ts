@@ -22,13 +22,16 @@ export default class UserGroupsStore {
         this.db = dbConnection;
     }
 
-    get(conditions: { userId?: string, groupId?: string }) {
+    get(conditions: { userId?: string, groupId?: string, status?: string }) {
         const whereConditions: any = {};
         if (conditions.userId) {
             whereConditions.userId = conditions.userId;
         }
         if (conditions.groupId) {
             whereConditions.groupId = conditions.groupId;
+        }
+        if (conditions.status) {
+            whereConditions.status = conditions.status;
         }
         const queryString = knexBuilder
             .select('*')
