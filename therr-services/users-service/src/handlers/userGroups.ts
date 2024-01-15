@@ -32,6 +32,7 @@ const createUserGroup = (req, res) => {
         groupId,
         userId,
         status,
+        shouldMuteNotifs: false,
     })
         .then(([userGroup]) => res.status(201).send(userGroup))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
@@ -90,8 +91,16 @@ const notifyGroupMembers = (req, res) => {
         return acc;
     }, {}) || {};
 
+    if (!groupId) {
+        return handleHttpError({
+            res,
+            message: 'Group not found',
+            statusCode: 404,
+        });
+    }
+
     // TODO: Fetch group name
-    axios({
+    return axios({
         method: 'get',
         url: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}/forums/${groupId}`,
         headers: {
