@@ -164,7 +164,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any, decodedAuthenticat
 
         // TODO: Send a push notification to each user who is a member of the room (excluding sender)
         // DO NOT create a db notification unless user lacks a sockedId in Redis
-        restRequest({
+        return restRequest({
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users-groups/notify-members`,
             data: {
