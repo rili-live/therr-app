@@ -709,7 +709,8 @@
         "invite": "Invite",
         "searchContacts": "Search Contacts",
         "createConnection": "Add Connection",
-        "connect": "Connect"
+        "connect": "Connect",
+        "join": "Join"
       }
     },
     "filters": {

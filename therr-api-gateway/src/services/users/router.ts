@@ -239,22 +239,22 @@ usersServiceRouter.post('/users/verify/:token', verifyUserAccountValidation, han
 }));
 
 // UserGroups
-usersServiceRouter.post('/users/groups', handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'post',
-}));
-
-usersServiceRouter.get('/users/groups', handleServiceRequest({
+usersServiceRouter.get('/users-groups', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
 
-usersServiceRouter.put('/users/groups/:id', handleServiceRequest({
+usersServiceRouter.post('/users-groups', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.put('/users-groups/:id', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
 
-usersServiceRouter.delete('/users/groups/:id', handleServiceRequest({
+usersServiceRouter.delete('/users-groups/:id', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
 }));

@@ -287,7 +287,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                         <Button
                             containerStyle={this.themeAccentForms.styles.backButtonContainerFixed}
                             buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.navigate('Contacts', {
+                            onPress={() => navigation.navigate('Connect', {
                                 activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
                             })}
                             icon={

@@ -44,7 +44,7 @@ import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
-import { AndroidChannelIds, PressActionIds, getAndroidChannel } from '../constants';
+import { AndroidChannelIds, PEOPLE_CAROUSEL_TABS, PressActionIds, getAndroidChannel } from '../constants';
 import { socketIO } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 
@@ -364,12 +364,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         );
 
         let targetRouteView = '';
+        let targetRouteParams: any = {};
         if (data && !Array.isArray(data) && typeof(data) === 'object') {
             if (data.action === 'app.therrmobile.ACHIEVEMENT_COMPLETED'
                 || data.action === 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER') {
                 targetRouteView = 'Achievements';
             } else if (data.action === 'app.therrmobile.NEW_CONNECTION') {
-                targetRouteView = 'Contacts';
+                targetRouteView = 'Connect';
+                targetRouteParams = {
+                    activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
+                };
             } else if (data.action === 'app.therrmobile.CREATE_A_MOMENT_REMINDER') {
                 targetRouteView = 'Map';
             } else if (data.action === 'app.therrmobile.LATEST_POST_LIKES_STATS'
@@ -381,7 +385,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 || data.action === 'app.therrmobile.NEW_LIKE_RECEIVED') {
                 targetRouteView = 'Notifications';
             } else if (data.action === 'app.therrmobile.NEW_DIRECT_MESSAGE') {
-                targetRouteView = 'Contacts';
+                targetRouteView = 'Connect';
+                targetRouteParams = {
+                    activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
+                };
             }
         }
 
@@ -394,7 +401,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // TODO: Find a way to get data from the push notification that was selected
             // Otherwise the best alternative is to link to a generic, associated view
             if (targetRouteView) {
-                RootNavigation.navigate(targetRouteView);
+                RootNavigation.navigate(targetRouteView, targetRouteParams);
             }
         }
     };
@@ -649,7 +656,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     screenOptions={({ navigation }) => {
                         const themeName = this.props?.user?.settings?.mobileThemeName;
                         const currentScreen = this.getCurrentScreen(navigation);
-                        const isContacts = currentScreen === 'Contacts';
+                        const isConnect = currentScreen === 'Connect';
                         const isAreas = currentScreen === 'Areas';
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
                         const isMap = currentScreen === 'Map';
@@ -695,7 +702,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 themeForms={this.themeForms}
                             />;
                         }
-                        if (isContacts) {
+                        if (isConnect) {
                             headerTitle = () => <HeaderSearchUsersInput
                                 navigation={navigation}
                                 theme={this.theme}

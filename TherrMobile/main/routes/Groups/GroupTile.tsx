@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Avatar, Badge, ListItem } from 'react-native-elements';
+import { Avatar, Badge, Button, ListItem } from 'react-native-elements';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -43,45 +43,66 @@ const renderChatIcon = (item, style = {}) => {
 export default ({
     onChatTilePress,
     theme,
+    themeButtons,
     themeChatTile,
+    translate,
     group,
-    isActive,
-}) => (
-    <ListItem
-        onPress={() => onChatTilePress(group)}
-        bottomDivider
-        containerStyle={theme.styles.listItemCard}
-    >
-        <Pressable
+    handleJoinGroup,
+    user,
+}) => {
+    const membershipStatus = user?.myUserGroups[group.id]?.status || '';
+    const onPressJoinGroup = () => {
+        handleJoinGroup(group);
+    };
+    const unreadMsgCount = 0;
+
+    return (
+        <ListItem
             onPress={() => onChatTilePress(group)}
+            bottomDivider
+            containerStyle={theme.styles.listItemCard}
         >
-            <Avatar
-                title={`${group.title?.substring(0, 1)}`}
-                rounded
-                // TODO: Include use media in list groups response
-                source={{ uri: getUserImageUri({ details: { id: group.authorId, media: group.author?.media } }, 150) }}
-                size="medium"
-            />
-        </Pressable>
-        <View style={spacingStyles.flexOne}>
-            <ListItem.Title>{group.title}</ListItem.Title>
-            <ListItem.Subtitle>{group.description}</ListItem.Subtitle>
-            <View style={themeChatTile.styles.footer}>
-                <View style={themeChatTile.styles.footerIconsContainer}>
-                    {
-                        group.categories && group.categories.map((cat) => renderChatIcon(cat))
-                    }
+            <Pressable
+                onPress={() => onChatTilePress(group)}
+            >
+                <Avatar
+                    title={`${group.title?.substring(0, 1)}`}
+                    rounded
+                    // TODO: Include use media in list groups response
+                    source={{ uri: getUserImageUri({ details: { id: group.authorId, media: group.author?.media } }, 150) }}
+                    size="medium"
+                />
+            </Pressable>
+            <View style={spacingStyles.flexOne}>
+                <ListItem.Title>{group.title}</ListItem.Title>
+                <ListItem.Subtitle>{group.description}</ListItem.Subtitle>
+                <View style={themeChatTile.styles.footer}>
+                    <View style={themeChatTile.styles.footerIconsContainer}>
+                        {
+                            group.categories && group.categories.map((cat) => renderChatIcon(cat))
+                        }
+                    </View>
                 </View>
             </View>
-        </View>
-        {
-            isActive ?
-                <Badge
-                    badgeStyle={{ backgroundColor: theme.colors.accentLime }}
-                /> :
-                <Badge
-                    badgeStyle={{ backgroundColor: theme.colors.accentDivider }}
-                />
-        }
-    </ListItem>
-);
+            {
+                membershipStatus && unreadMsgCount > 0 &&
+                    <Badge
+                        badgeStyle={{ backgroundColor: theme.colors.brandingRed }}
+                        value={unreadMsgCount}
+                    />
+            }
+            <View>
+                {
+                    !membershipStatus &&
+                        <Button
+                            onPress={onPressJoinGroup}
+                            containerStyle={themeButtons.styles.buttonPillContainerSquare}
+                            buttonStyle={themeButtons.styles.buttonPill}
+                            titleStyle={themeButtons.styles.buttonPillTitle}
+                            title={translate('menus.connections.buttons.join')}
+                        />
+                }
+            </View>
+        </ListItem>
+    );
+};
