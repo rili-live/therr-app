@@ -39,6 +39,7 @@ export interface IUserState extends Immutable.ImmutableObject<any> {
   thoughts: any;
   myThoughts: any;
   users: any;
+  myUserGroups: any;
 }
 
 export enum UserActionTypes {
@@ -58,5 +59,9 @@ export enum UserActionTypes {
   GET_THOUGHT_DETAILS = 'GET_THOUGHT_DETAILS',
   GET_THOUGHTS = 'GET_THOUGHTS',
   GET_MY_THOUGHTS = 'GET_MY_THOUGHTS',
-  THOUGHT_DELETED = 'THOUGHT_DELETED'
+  THOUGHT_DELETED = 'THOUGHT_DELETED',
+  USER_GROUP_CREATED = 'USER_GROUP_CREATED',
+  USER_GROUP_UPDATED = 'USER_GROUP_UPDATED',
+  USER_GROUP_DELETED = 'USER_GROUP_DELETED',
+  GET_USER_GROUPS = 'GET_USER_GROUPS',
 }

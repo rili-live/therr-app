@@ -15,7 +15,7 @@ import UserAchievementsStore from './UserAchievementsStore';
 import UserConnectionsStore from './UserConnectionsStore';
 import UserMetricsStore from './UserMetricsStore';
 import UserOrganizationsStore from './UserOrganizationsStore';
-import UserForumsStore from './UserForumsStore';
+import UserGroupsStore from './UserGroupsStore';
 import UsersStore from './UsersStore';
 import VerificationCodesStore from './VerificationCodesStore';
 
@@ -48,7 +48,7 @@ class Store {
 
     userOrganizations: UserOrganizationsStore;
 
-    userForums: UserForumsStore;
+    userGroups: UserGroupsStore;
 
     invites: InvitesStore;
 
@@ -73,7 +73,7 @@ class Store {
         this.userConnections = new UserConnectionsStore(this.db);
         this.userMetrics = new UserMetricsStore(this.db);
         this.userOrganizations = new UserOrganizationsStore(this.db);
-        this.userForums = new UserForumsStore(this.db);
+        this.userGroups = new UserGroupsStore(this.db);
         this.subscribers = new SubscribersStore(this.db);
         this.socialSyncs = new SocialSyncsStore(this.db);
         this.thoughts = new ThoughtsStore(this.db, this.users);

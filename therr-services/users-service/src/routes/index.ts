@@ -6,6 +6,7 @@ import paymentsRouter from './paymentsRouter';
 import socialSyncRouter from './socialSyncRouter';
 import subscribersRouter from './subscribersRouter';
 import usersRouter from './usersRouter';
+import userGroupsRouter from './userGroupsRouter';
 import userAchievementsRouter from './userAchievementsRouter';
 import notificationsRouter from './notificationsRouter';
 import rewardsRouter from './rewardsRouter';
@@ -30,5 +31,6 @@ router.use('/users/notifications', notificationsRouter);
 router.use('/users/metrics', userMetricsRouter);
 router.use('/users/organizations', userOrganizationsRouter);
 router.use('/users', usersRouter);
+router.use('/groups', userGroupsRouter);
 
 export default router;

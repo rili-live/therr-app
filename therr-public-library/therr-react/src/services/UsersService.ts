@@ -239,6 +239,30 @@ class UsersService {
         url: '/users-service/rewards/exchange-rate',
     });
 
+    // UserGroups (aka forums)
+    createUserGroup = (data: any) => axios({
+        method: 'post',
+        url: '/users-service/groups',
+        data,
+    });
+
+    getUserGroups = () => axios({
+        method: 'get',
+        url: '/users-service/groups',
+    });
+
+    updateUserGroup = (id: string, data: any) => axios({
+        method: 'put',
+        url: `/users-service/groups/${id}`,
+        data,
+    });
+
+    deleteUserGroup = (data: any) => axios({
+        method: 'delete',
+        url: '/users-service/groups',
+        data,
+    });
+
     // Thoughts
     createThought = (data: ICreateThoughtBody) => axios({
         method: 'post',

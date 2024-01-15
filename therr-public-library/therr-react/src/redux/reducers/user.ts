@@ -16,6 +16,7 @@ const initialState: IUserState = Immutable.from({
     myThoughts: Immutable.from([]),
     users: Immutable.from({}),
     influencerPairings: Immutable.from({}),
+    myUserGroups: Immutable.from({}),
 });
 
 const getUserReducer = (socketIO) => (state: IUserState = initialState, action: any) => {
@@ -32,6 +33,12 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
         return acc;
     }, {});
     const modifiedInfluencerPairings = Object.entries(state.influencerPairings || {}).slice(0, 100).reduce((acc, cur) => {
+        const [key, value] = cur;
+        acc[key] = value;
+
+        return acc;
+    }, {});
+    const modifiedMyUserGroups = Object.entries(state.myUserGroups || {}).slice(0, 100).reduce((acc, cur) => {
         const [key, value] = cur;
         acc[key] = value;
 
@@ -139,11 +146,6 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                     settingsTherrCoinTotal: parseFloat(state.settings.settingsTherrCoinTotal)
                         + parseFloat(action.data.settingsTherrCoinTotal),
                 });
-        case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['isAuthenticated'], false)
-                .setIn(['socketDetails'], {})
-                .setIn(['users'], {})
-                .setIn(['details'], { id: state.details.id, userName: state.details.userName, media: state.details.media });
 
         // THOUGHTS //
         case UserActionTypes.GET_THOUGHTS:
@@ -187,6 +189,21 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                 return !action.data.ids.includes(thought.id);
             });
             return state.setIn(['myThoughts'], modifiedMyThought);
+        case UserActionTypes.GET_USER_GROUPS:
+            return state.setIn(['myUserGroups'], action.data.results
+                .reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), modifiedMyUserGroups));
+        case UserActionTypes.USER_GROUP_CREATED:
+            modifiedMyUserGroups[action.data.id] = action.data;
+            return state.setIn(['myUserGroups'], modifiedMyUserGroups);
+        case SocketClientActionTypes.LOGOUT:
+            return state.setIn(['isAuthenticated'], false)
+                .setIn(['socketDetails'], {})
+                .setIn(['myUserGroups'], {})
+                .setIn(['users'], {})
+                .setIn(['details'], { id: state.details.id, userName: state.details.userName, media: state.details.media });
         default:
             return state;
     }
