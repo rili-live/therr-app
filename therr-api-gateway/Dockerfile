@@ -1,4 +1,4 @@
-ARG NODE_VERSION=20.5.1
+ARG NODE_VERSION=20.11.0
 FROM node:$NODE_VERSION
 
 RUN apt-get update && apt-get install -y iputils-ping

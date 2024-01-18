@@ -1,6 +1,7 @@
 const apiGatewayPort = 7770;
 const websocketPort = 7743;
-const hostDev = '192.168.1.91'; // Must use computer's ip address for dev to connect socket.io
+// const hostDev = '192.168.1.91'; // Must use computer's ip address for dev to connect socket.io
+const hostDev = 'localhost'; // Zacks Macbook
 const hostProd = 'therr.com';
 const googleOAuth2WebClientId = '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com';
 
