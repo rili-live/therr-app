@@ -23,6 +23,7 @@ import TherrIcon from '../../components/TherrIcon';
 import RoundInput from '../../components/Input/Round';
 import RoundTextInput from '../../components/Input/TextInput/Round';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
+import Toast from 'react-native-toast-message';
 
 interface IEditChatDispatchProps {
     logout: Function;
@@ -192,8 +193,9 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             this.props
                 .createHostedChat(createArgs)
                 .then(() => {
-                    this.setState({
-                        successMsg: this.translate('forms.editGroup.backendSuccessMessage'),
+                    Toast.show({
+                        type: 'success',
+                        text1: this.translate('forms.editGroup.backendSuccessMessage'),
                     });
                     setTimeout(() => {
                         this.props.navigation.navigate('Connect', {
@@ -207,16 +209,21 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         error.statusCode === 401 ||
                         error.statusCode === 404
                     ) {
-                        this.setState({
-                            errorMsg: `${error.message}${
-                                error.parameters
-                                    ? '(' + error.parameters.toString() + ')'
-                                    : ''
-                            }`,
+                        const errorMessage = `${error.message}${
+                            error.parameters
+                                ? '(' + error.parameters.toString() + ')'
+                                : ''
+                        }`;
+                        Toast.show({
+                            type: 'errorBig',
+                            text1: this.translate('alertTitles.backendErrorMessage'),
+                            text2: errorMessage,
                         });
                     } else if (error.statusCode >= 500) {
-                        this.setState({
-                            errorMsg: this.translate('forms.editGroup.backendErrorMessage'),
+                        Toast.show({
+                            type: 'errorBig',
+                            text1: this.translate('alertTitles.backendErrorMessage'),
+                            text2: this.translate('forms.editGroup.backendErrorMessage'),
                         });
                     }
                 })
