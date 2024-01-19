@@ -20,6 +20,7 @@ import { getUserImageUri } from '../utilities/content';
 import UsersActions from '../redux/actions/UsersActions';
 import InfoModal from './Modals/InfoModal';
 import TherrIcon from './TherrIcon';
+import { PEOPLE_CAROUSEL_TABS } from '../constants';
 
 const ANIMATION_DURATION = 180;
 
@@ -115,6 +116,8 @@ class HeaderMenuRight extends React.PureComponent<
     navTo = (routeName, params = {}) => {
         const { location, navigation, updateGpsStatus } = this.props;
 
+        const currentScreen = this.getCurrentScreen();
+
         if (routeName === 'Map') {
             requestLocationServiceActivation({
                 isGpsEnabled: location.settings.isGpsEnabled,
@@ -138,7 +141,11 @@ class HeaderMenuRight extends React.PureComponent<
         } else {
             this.toggleOverlay();
 
-            navigation.navigate(routeName, params);
+            if (routeName === 'Connect' && currentScreen.startsWith('Connect')) {
+                navigation.replace(routeName, params);
+            } else {
+                navigation.navigate(routeName, params);
+            }
         }
     };
 
@@ -186,11 +193,14 @@ class HeaderMenuRight extends React.PureComponent<
 
     getCurrentScreen = () => {
         const navState = this.props.navigation.getState();
+        if (navState.routes[navState.routes.length - 1]) {
+            if (navState.routes[navState.routes.length - 1]?.params?.activeTab) {
+                return `${navState.routes[navState.routes.length - 1].name}-${navState.routes[navState.routes.length - 1]?.params?.activeTab}`;
+            }
+            return navState.routes[navState.routes.length - 1].name;
+        }
 
-        return (
-            navState.routes[navState.routes.length - 1] &&
-            navState.routes[navState.routes.length - 1].name
-        );
+        return '';
     };
 
     togglePointsInfoModal = () => {
@@ -488,6 +498,88 @@ class HeaderMenuRight extends React.PureComponent<
                                             />
                                             <Button
                                                 buttonStyle={
+                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.CONNECTIONS}`
+                                                        ? themeMenu.styles.buttonsActive
+                                                        : themeMenu.styles.buttons
+                                                }
+                                                titleStyle={
+                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.CONNECTIONS}`
+                                                        ? themeMenu.styles.buttonsTitleActive
+                                                        : themeMenu.styles.buttonsTitle
+                                                }
+                                                title={this.translate('components.headerMenuRight.menuItems.chat')}
+                                                icon={
+                                                    <TherrIcon
+                                                        style={
+                                                            currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.CONNECTIONS}`
+                                                                ? themeMenu.styles.iconStyleActive
+                                                                : themeMenu.styles.iconStyle
+                                                        }
+                                                        name="chat-smile"
+                                                        size={24}
+                                                    />
+                                                }
+                                                iconRight
+                                                onPress={() => this.navTo('Connect', {
+                                                    activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
+                                                })}
+                                            />
+                                            <Button
+                                                buttonStyle={
+                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.GROUPS}`
+                                                        ? themeMenu.styles.buttonsActive
+                                                        : themeMenu.styles.buttons
+                                                }
+                                                titleStyle={
+                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.GROUPS}`
+                                                        ? themeMenu.styles.buttonsTitleActive
+                                                        : themeMenu.styles.buttonsTitle
+                                                }
+                                                title={this.translate('components.headerMenuRight.menuItems.groups')}
+                                                icon={
+                                                    <TherrIcon
+                                                        style={
+                                                            currentScreen === 'Connect'
+                                                                ? themeMenu.styles.iconStyleActive
+                                                                : themeMenu.styles.iconStyle
+                                                        }
+                                                        name="group"
+                                                        size={24}
+                                                    />
+                                                }
+                                                iconRight
+                                                onPress={() => this.navTo('Connect', {
+                                                    activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                                                })}
+                                            />
+                                            <Button
+                                                buttonStyle={
+                                                    currentScreen === 'Invite'
+                                                        ? themeMenu.styles.buttonsActive
+                                                        : themeMenu.styles.buttons
+                                                }
+                                                titleStyle={
+                                                    currentScreen === 'Invite'
+                                                        ? themeMenu.styles.buttonsTitleActive
+                                                        : themeMenu.styles.buttonsTitle
+                                                }
+                                                title={this.translate('components.headerMenuRight.menuItems.addConnection')}
+                                                icon={
+                                                    <TherrIcon
+                                                        style={
+                                                            currentScreen === 'Invite'
+                                                                ? themeMenu.styles.iconStyleActive
+                                                                : themeMenu.styles.iconStyle
+                                                        }
+                                                        name="key-plus"
+                                                        size={24}
+                                                    />
+                                                }
+                                                iconRight
+                                                onPress={() => this.navTo('Invite')}
+                                            />
+                                            <Button
+                                                buttonStyle={
                                                     currentScreen === 'MyDrafts'
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons
@@ -539,58 +631,6 @@ class HeaderMenuRight extends React.PureComponent<
                                                 }
                                                 iconRight
                                                 onPress={() => this.navTo('BookMarked')}
-                                            />
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === 'Connect'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === 'Connect'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.chat')}
-                                                icon={
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'Connect'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="chat-smile"
-                                                        size={24}
-                                                    />
-                                                }
-                                                iconRight
-                                                onPress={() => this.navTo('Connect')}
-                                            />
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === 'Invite'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === 'Invite'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.addConnection')}
-                                                icon={
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'Invite'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="key-plus"
-                                                        size={24}
-                                                    />
-                                                }
-                                                iconRight
-                                                onPress={() => this.navTo('Invite')}
                                             />
                                             {/* <Button
                                                 buttonStyle={

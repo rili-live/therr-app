@@ -32,8 +32,8 @@ import GroupCategories from '../Groups/GroupCategories';
 const { width: viewportWidth } = Dimensions.get('window');
 const DEFAULT_PAGE_SIZE = 50;
 const tabMap = {
-    0: PEOPLE_CAROUSEL_TABS.GROUPS,
-    1: PEOPLE_CAROUSEL_TABS.PEOPLE,
+    0: PEOPLE_CAROUSEL_TABS.PEOPLE,
+    1: PEOPLE_CAROUSEL_TABS.GROUPS,
     2: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
 };
 
@@ -142,8 +142,8 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             isRefreshing: false,
             isRefreshingUserSearch: false,
             tabRoutes: [
-                { key: PEOPLE_CAROUSEL_TABS.GROUPS, title: this.translate('menus.headerTabs.groups') },
                 { key: PEOPLE_CAROUSEL_TABS.PEOPLE, title: this.translate('menus.headerTabs.people') },
+                { key: PEOPLE_CAROUSEL_TABS.GROUPS, title: this.translate('menus.headerTabs.groups') },
                 { key: PEOPLE_CAROUSEL_TABS.CONNECTIONS, title: this.translate('menus.headerTabs.connections') },
                 // { key: PEOPLE_CAROUSEL_TABS.INVITES, title: this.translate('menus.headerTabs.invite') },
             ],
@@ -385,7 +385,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         const { navigation } = this.props;
 
         if (tabMap[activeTabIndex] === PEOPLE_CAROUSEL_TABS.GROUPS) {
-            navigation.navigate('EditChat');
+            navigation.navigate('EditGroup');
         } else {
             navigation.navigate('Invite');
         }
@@ -679,16 +679,13 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     themeModal={this.themeConfirmModal}
                     themeButtons={this.themeButtons}
                 />
-                {
-                    tabMap[activeTabIndex] !== PEOPLE_CAROUSEL_TABS.GROUPS
-                    && <CreateConnectionButton
-                        onPress={this.onCreatePress}
-                        themeButtons={this.themeButtons}
-                        title={createButtonTitle}
-                    />
-                }
+                <CreateConnectionButton
+                    onPress={this.onCreatePress}
+                    themeButtons={this.themeButtons}
+                    title={createButtonTitle}
+                />
                 <MainButtonMenu
-                    activeRoute="Contacts"
+                    activeRoute="Connect"
                     navigation={navigation}
                     onActionButtonPress={this.scrollTop}
                     translate={this.translate}

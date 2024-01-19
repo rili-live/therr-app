@@ -167,7 +167,7 @@
 //         const { forums, navigation } = this.props;
 //         const categories = (forums && forums.forumCategories) || [];
 
-//         navigation.navigate('EditChat', { categories });
+//         navigation.navigate('EditGroup', { categories });
 //     };
 
 //     onJoinGroup = (group) => {

@@ -8,7 +8,7 @@ const initialState: IForumsState = Immutable.from({
     myForumsSearchResults: Immutable.from([]),
     myForumsPagination: Immutable.from([]),
     searchResults: Immutable.from([]),
-    pagination: Immutable.from([]),
+    pagination: Immutable.from({}),
 });
 
 const messages = (state: IForumsState = initialState, action: any) => {
@@ -18,6 +18,11 @@ const messages = (state: IForumsState = initialState, action: any) => {
     }
 
     switch (action.type) {
+        case ForumActionTypes.CREATE_FORUM:
+            return state.setIn(['searchResults'], [
+                (action.data?.forum || action.data), // TODO: Cleanup this backwards compatibility hack
+                ...state.searchResults,
+            ]);
         case ForumActionTypes.SEARCH_FORUMS:
             return state.setIn(['searchResults'], action.data.results)
                 .setIn(['pagination'], action.data.pagination);

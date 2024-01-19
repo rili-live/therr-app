@@ -7,12 +7,13 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { ForumActions } from 'therr-react/redux/actions';
-import { IUserState } from 'therr-react/types';
+import { IForumsState, IUserState } from 'therr-react/types';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
 import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
+import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import formatHashtags from '../../utilities/formatHashtags';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
@@ -22,10 +23,12 @@ import TherrIcon from '../../components/TherrIcon';
 import RoundInput from '../../components/Input/Round';
 import RoundTextInput from '../../components/Input/TextInput/Round';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
+import Toast from 'react-native-toast-message';
 
 interface IEditChatDispatchProps {
     logout: Function;
     createHostedChat: Function;
+    searchCategories: Function;
 }
 
 interface IStoreProps extends IEditChatDispatchProps {
@@ -36,6 +39,7 @@ interface IStoreProps extends IEditChatDispatchProps {
 export interface IEditChatProps extends IStoreProps {
     navigation: any;
     route: any;
+    forums: IForumsState;
 }
 
 interface IEditChatState {
@@ -49,6 +53,7 @@ interface IEditChatState {
 }
 
 const mapStateToProps = (state) => ({
+    forums: state.forums,
     user: state.user,
 });
 
@@ -56,6 +61,7 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             createHostedChat: ForumActions.createForum,
+            searchCategories: ForumActions.searchCategories,
         },
         dispatch
     );
@@ -66,8 +72,19 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
     private theme = buildStyles();
     private themeAccentLayout = buildAccentStyles();
     private themeAccentForms = buildAccentFormStyles();
+    private themeButtons = buildButtonStyles();
     private themeCategory = buildCategoryStyles();
     private themeForms = buildFormStyles();
+
+    static getDerivedStateFromProps(nextProps: IEditChatProps, nextState: IEditChatState) {
+        if (!nextState.categories || !nextState.categories.length) {
+            return {
+                categories: nextProps.forums.forumCategories,
+            };
+        }
+
+        return null;
+    }
 
     constructor(props) {
         super(props);
@@ -95,11 +112,19 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
     }
 
     componentDidMount() {
-        const { navigation } = this.props;
+        const { forums, navigation, searchCategories } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.editChat.headerTitleCreate'),
         });
+
+        if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
+            searchCategories({
+                itemsPerPage: 100,
+                pageNumber: 1,
+                order: 'desc',
+            }, {});
+        }
     }
 
     handleHashtagPress = (tag) => {
@@ -168,8 +193,9 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             this.props
                 .createHostedChat(createArgs)
                 .then(() => {
-                    this.setState({
-                        successMsg: this.translate('forms.editGroup.backendSuccessMessage'),
+                    Toast.show({
+                        type: 'success',
+                        text1: this.translate('forms.editGroup.backendSuccessMessage'),
                     });
                     setTimeout(() => {
                         this.props.navigation.navigate('Connect', {
@@ -183,16 +209,21 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         error.statusCode === 401 ||
                         error.statusCode === 404
                     ) {
-                        this.setState({
-                            errorMsg: `${error.message}${
-                                error.parameters
-                                    ? '(' + error.parameters.toString() + ')'
-                                    : ''
-                            }`,
+                        const errorMessage = `${error.message}${
+                            error.parameters
+                                ? '(' + error.parameters.toString() + ')'
+                                : ''
+                        }`;
+                        Toast.show({
+                            type: 'errorBig',
+                            text1: this.translate('alertTitles.backendErrorMessage'),
+                            text2: errorMessage,
                         });
                     } else if (error.statusCode >= 500) {
-                        this.setState({
-                            errorMsg: this.translate('forms.editGroup.backendErrorMessage'),
+                        Toast.show({
+                            type: 'errorBig',
+                            text1: this.translate('alertTitles.backendErrorMessage'),
+                            text2: this.translate('forms.editGroup.backendErrorMessage'),
                         });
                     }
                 })
@@ -277,8 +308,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             onCategoryTogglePress={this.handleCategoryTogglePress}
                             toggleChevronName={toggleChevronName}
                             theme={this.theme}
+                            themeButtons={this.themeButtons}
                             themeCategory={this.themeCategory}
-                            themeForms={this.themeForms}
                         />
                         <View style={[this.themeAccentLayout.styles.container, {
                             position: 'relative',
