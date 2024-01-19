@@ -1,3 +1,6 @@
 {
-  "validation": "The required parameters were not provided."
+  "validation": "The required parameters were not provided.",
+  "errors": {
+    "matureText": "Invalid text. Please try again."
+  }
 }

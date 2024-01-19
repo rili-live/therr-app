@@ -3,12 +3,27 @@ import moment from 'moment';
 import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
-import { findUsers } from '../api/usersService';
+import { createUserForum, findUsers } from '../api/usersService';
+import { isTextUnsafe } from '../utilities/contentSafety';
+import translate from '../utilities/translator';
 
 // CREATE
 const createForum = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+    } = parseHeaders(req.headers);
+
+    const isTextMature = isTextUnsafe([req.body.title, req.body.subtitle, req.body.description]);
+
+    if (isTextMature) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errors.matureText'),
+            statusCode: 400,
+        });
+    }
 
     return Store.forums.createForum({
         authorId: userId,
@@ -28,7 +43,17 @@ const createForum = (req, res) => {
         doesExpire: req.body.doesExpire || true,
         isPublic: req.body.isPublic || true,
     })
-        .then(([forum]) => res.status(201).send(forum))
+        .then(([forum]) => createUserForum({
+            'x-userid': userId,
+            'x-localecode': locale,
+        }, forum.id).then((response) => {
+            const userGroup = response.data;
+
+            return res.status(201).send({
+                forum,
+                userGroup,
+            });
+        }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
 };
 

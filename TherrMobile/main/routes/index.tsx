@@ -32,7 +32,7 @@ import EditMoment from './EditMoment';
 import ViewSpace from './ViewSpace';
 import EditSpace from './EditSpace';
 import EditThought from './EditThought';
-import EditChat from './Groups/EditGroup';
+import EditGroup from './Groups/EditGroup';
 import ViewChat from './Groups/ViewGroup';
 import ExchangePointsDisclaimer from './Rewards/ExchangePointsDisclaimer';
 import Invite from './Invite';
@@ -342,8 +342,8 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'EditChat',
-        component: EditChat,
+        name: 'EditGroup',
+        component: EditGroup,
         options: () => ({
             title: 'Create/Edit Group',
             access: {

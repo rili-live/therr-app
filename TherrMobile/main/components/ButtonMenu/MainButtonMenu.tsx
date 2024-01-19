@@ -236,7 +236,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                     }
                     onPress={() => {
                         this.navTo('Connect', {
-                            activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                            activeTab: PEOPLE_CAROUSEL_TABS.PEOPLE,
                         });
                         this.onNavPressDynamic('Connect');
                     }}

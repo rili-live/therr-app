@@ -1,6 +1,7 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 import { IUserState, UserActionTypes } from '../../types/redux/user';
+import { ForumActionTypes } from '../../types';
 
 const initialState: IUserState = Immutable.from({
     achievements: {},
@@ -195,6 +196,11 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                     ...acc,
                     [item.groupId]: item,
                 }), modifiedMyUserGroups));
+        case ForumActionTypes.CREATE_FORUM:
+            if (action.data?.userGroup) {
+                modifiedMyUserGroups[action.data?.userGroup.groupId] = action.data?.userGroup;
+            }
+            return state.setIn(['myUserGroups'], modifiedMyUserGroups);
         case UserActionTypes.USER_GROUP_CREATED:
             modifiedMyUserGroups[action.data.groupId] = action.data;
             return state.setIn(['myUserGroups'], modifiedMyUserGroups);
