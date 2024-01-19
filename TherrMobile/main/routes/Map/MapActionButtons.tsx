@@ -345,9 +345,9 @@ export default ({
                 onConfirm={confirmCheckInModal}
                 renderImage={renderCheckInImage}
                 text={translate('modals.confirmModal.body.checkIn')}
-                text2={translate('modals.confirmModal.body.checkInVisiting', {
+                text2={checkInBusName ? translate('modals.confirmModal.body.checkInVisiting', {
                     spaceName: checkInBusName,
-                })}
+                }) : ''}
                 textConfirm={translate('modals.confirmModal.checkIn')}
                 textCancel={translate('modals.confirmModal.notNow')}
                 translate={translate}

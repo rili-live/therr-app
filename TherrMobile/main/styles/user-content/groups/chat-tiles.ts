@@ -62,15 +62,18 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         footer: {
             display: 'flex',
             flexDirection: 'row',
-            justifyContent: 'center',
-            paddingHorizontal: 10,
-            paddingTop: 10,
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            paddingHorizontal: 0,
+            paddingTop: 8,
         },
         footerIconsContainer: {
             minWidth: 50,
             display: 'flex',
             flexDirection: 'row',
-            justifyContent: 'flex-end',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+
         },
     });
 
