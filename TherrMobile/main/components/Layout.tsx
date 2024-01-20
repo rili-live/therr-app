@@ -365,7 +365,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         let targetRouteView = '';
         let targetRouteParams: any = {};
-        if (data && !Array.isArray(data) && typeof (data) === 'object') {
+        if (data && !Array.isArray(data) && typeof(data) === 'object') {
             if (data.action === 'app.therrmobile.ACHIEVEMENT_COMPLETED'
                 || data.action === 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER') {
                 targetRouteView = 'Achievements';
@@ -633,49 +633,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         return logout(userDetails);
     };
 
-    renderHeaderTitle = ({
-        hasLogoHeaderTitle,
-        isAreas,
-        isMap,
-        isConnect,
-    }, navigation) => {
-        if (hasLogoHeaderTitle) {
-            return (
-                <HeaderTherrLogo navigation={navigation} theme={this.theme} />
-            );
-        }
-        if (isAreas) {
-            return (
-                <HeaderSearchInput
-                    isAdvancedSearch
-                    navigation={navigation}
-                    theme={this.theme}
-                    themeForms={this.themeForms}
-                />
-            );
-        }
-        if (isMap) {
-            return (
-                <HeaderSearchInput
-                    navigation={navigation}
-                    theme={this.theme}
-                    themeForms={this.themeForms}
-                />
-            );
-        }
-        if (isConnect) {
-            return (
-                <HeaderSearchUsersInput
-                    navigation={navigation}
-                    theme={this.theme}
-                    themeForms={this.themeForms}
-                />
-            );
-        }
-
-        return null;
-    };
-
     render() {
         const { location, notifications, updateGpsStatus, user } = this.props;
 
@@ -718,43 +675,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         const isAccentPage = currentScreen === 'EditMoment'
                             || currentScreen === 'EditSpace'
                             || currentScreen === 'ViewMoment'
+                            || currentScreen === 'ViewGroup'
                             || currentScreen === 'ViewSpace';
-                        const getHeaderTitle = () => this.renderHeaderTitle({
-                            hasLogoHeaderTitle,
-                            isAreas,
-                            isMap,
-                            isConnect,
-                        }, navigation);
-                        const getHeaderLeft = () => (
-                            <HeaderMenuLeft
-                                styleName={headerStyleName}
-                                navigation={navigation}
-                                isAuthenticated={user.isAuthenticated}
-                                isEmailVerifed={this.isUserEmailVerified()}
-                                theme={this.theme}
-                            />
-                        );
-                        const getHeaderRight = () => this.shouldShowTopRightMenu() ?
-                            <HeaderMenuRight
-                                navigation={navigation}
-                                notifications={notifications}
-                                styleName={headerStyleName}
-                                isEmailVerifed={this.isUserEmailVerified()}
-                                isVisible={this.shouldShowTopRightMenu()}
-                                location={location}
-                                logout={this.logout}
-                                updateGpsStatus={updateGpsStatus}
-                                user={user}
-                                theme={this.theme}
-                                themeButtons={this.themeButtons}
-                                themeModal={this.themeModal}
-                                themeMenu={this.themeMenu}
-                            /> :
-                            <HeaderLinkRight
-                                navigation={navigation}
-                                themeForms={this.themeForms}
-                                styleName={headerStyleName}
-                            />;
+                        let headerTitle;
                         let headerStyle = this.theme.styles.headerStyle;
                         let headerStyleName: any = 'light';
                         let headerTitleColor = themeName === 'light'
@@ -767,12 +690,63 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         if (isAccentPage) {
                             headerStyle = this.theme.styles.headerStyleAccent;
                         }
+                        if (hasLogoHeaderTitle) {
+                            headerTitle = () => <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
+                        }
+                        if (isAreas) {
+                            headerTitle = () => <HeaderSearchInput
+                                isAdvancedSearch
+                                navigation={navigation}
+                                theme={this.theme}
+                                themeForms={this.themeForms}
+                            />;
+                        }
+                        if (isMap) {
+                            headerTitle = () => <HeaderSearchInput
+                                navigation={navigation}
+                                theme={this.theme}
+                                themeForms={this.themeForms}
+                            />;
+                        }
+                        if (isConnect) {
+                            headerTitle = () => <HeaderSearchUsersInput
+                                navigation={navigation}
+                                theme={this.theme}
+                                themeForms={this.themeForms}
+                            />;
+                        }
 
                         return ({
                             animationEnabled: true,
                             cardStyleInterpolator: forFade,
-                            headerLeft: getHeaderLeft,
-                            headerRight: getHeaderRight,
+                            headerLeft: () => <HeaderMenuLeft
+                                styleName={headerStyleName}
+                                navigation={navigation}
+                                isAuthenticated={user.isAuthenticated}
+                                isEmailVerifed={this.isUserEmailVerified()}
+                                theme={this.theme}
+                            />,
+                            headerRight: () => this.shouldShowTopRightMenu() ?
+                                <HeaderMenuRight
+                                    navigation={navigation}
+                                    notifications={notifications}
+                                    styleName={headerStyleName}
+                                    isEmailVerifed={this.isUserEmailVerified()}
+                                    isVisible={this.shouldShowTopRightMenu()}
+                                    location={location}
+                                    logout={this.logout}
+                                    updateGpsStatus={updateGpsStatus}
+                                    user={user}
+                                    theme={this.theme}
+                                    themeButtons={this.themeButtons}
+                                    themeModal={this.themeModal}
+                                    themeMenu={this.themeMenu}
+                                /> :
+                                <HeaderLinkRight
+                                    navigation={navigation}
+                                    themeForms={this.themeForms}
+                                    styleName={headerStyleName}
+                                />,
                             headerTitleStyle: {
                                 ...this.theme.styles.headerTitleStyle,
                                 color: headerTitleColor,
@@ -784,7 +758,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             headerTransparent: false,
                             headerBackVisible: false,
                             headerBackTitleVisible: false,
-                            headerTitle: getHeaderTitle,
+                            headerTitle,
                         });
                     }}
                 >

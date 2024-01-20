@@ -33,7 +33,7 @@ import ViewSpace from './ViewSpace';
 import EditSpace from './EditSpace';
 import EditThought from './EditThought';
 import EditGroup from './Groups/EditGroup';
-import ViewChat from './Groups/ViewGroup';
+import ViewGroup from './Groups/ViewGroup';
 import ExchangePointsDisclaimer from './Rewards/ExchangePointsDisclaimer';
 import Invite from './Invite';
 import ViewThought from './ViewThought';
@@ -379,10 +379,10 @@ const routes: RouteConfig<
     //     }),
     // },
     {
-        name: 'ViewChat',
-        component: ViewChat,
+        name: 'ViewGroup',
+        component: ViewGroup,
         options: () => ({
-            title: 'View Chat',
+            title: 'View Group',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

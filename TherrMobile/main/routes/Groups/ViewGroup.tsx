@@ -311,6 +311,8 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                 msgInputVal: '',
             });
         }
+
+        this.onTabSelect(0);
     };
 
     getEmptyListMessage = (activeTab) => {

@@ -424,7 +424,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     handleChatTilePress = (chat) => {
         const { navigation } = this.props;
 
-        navigation.navigate('ViewChat', chat);
+        navigation.navigate('ViewGroup', chat);
     };
 
     searchForumsWithFilters = (text, modifiedCategories?) => {
