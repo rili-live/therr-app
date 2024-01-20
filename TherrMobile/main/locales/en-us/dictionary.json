@@ -658,7 +658,9 @@
     },
     "headerTabs": {
       "discoveries": "Moments",
+      "members": "Members",
       "moments": "Moments",
+      "chat": "Chat",
       "connections": "Connections",
       "groups": "Groups",
       "people": "People",
@@ -835,6 +837,17 @@
     "requestSpace": {
       "headerTitle": "Request a Space",
       "previewHeader": "Preview:"
+    },
+    "viewGroup": {
+      "noChatsFound": "No messages found",
+      "noEventsFound": "No current or upcoming events found. This group has not posted any events. Ask a moderator to nominate you as an event host.",
+      "noMembersFound": "No group members found",
+      "membershipRoles": {
+        "default": "Member",
+        "creator": "Group Creator",
+        "admin": "Admin / Moderator",
+        "eventHost": "Event Host"
+      }
     },
     "viewSpace": {
       "actionLinks": {

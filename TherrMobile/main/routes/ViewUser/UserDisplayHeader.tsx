@@ -222,7 +222,7 @@ const MainActionButton = ({
                     name={iconName}
                     size={30}
                     color={themeUser.colors.brandingWhite}
-                    style={{ marginRight: 14 }}
+                    style={spacingStyles.marginRtLg}
                 />
             }
         />
@@ -397,7 +397,7 @@ const UserDisplayHeader = ({
                 }
                 <Button
                     containerStyle={spacingStyles.marginRtLg}
-                    buttonStyle={[themeForms.styles.buttonRoundAltSmall, { width: 42 }]}
+                    buttonStyle={[themeForms.styles.buttonRoundAltSmall, themeForms.styles.buttonRoundAltSmallWidth]}
                     onPress={() => onToggleMoreBottomSheet(true)}
                     icon={
                         <TherrIcon

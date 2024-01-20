@@ -1,13 +1,18 @@
 import { StyleSheet } from 'react-native';
 
-const small = 6;
-const medium = 10;
-const large = 16;
+export const small = 6;
+export const medium = 10;
+export const large = 16;
+export const xlarge = 20;
 
 const styles = StyleSheet.create({
     // FLEX
     flex: {
         display: 'flex',
+    },
+    flexRow: {
+        display: 'flex',
+        flexDirection: 'row',
     },
     flexOne: {
         flex: 1,
@@ -130,6 +135,12 @@ const styles = StyleSheet.create({
     marginTopLg: {
         marginTop: large,
     },
+    marginTopXLg: {
+        marginTop: xlarge,
+    },
+    marginBotNone: {
+        marginBottom: 0,
+    },
     marginBotSm: {
         marginBottom: small,
     },
@@ -165,6 +176,9 @@ const styles = StyleSheet.create({
     },
     marginVertLg: {
         marginVertical: large,
+    },
+    marginVertXLg: {
+        marginVertical: xlarge,
     },
 });
 

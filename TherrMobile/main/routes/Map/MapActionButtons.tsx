@@ -113,7 +113,7 @@ export default ({
             && Date.now() - recentEngagements[space.id].timestamp < MIN_TIME_BTW_CHECK_INS_MS);
     });
     const validRewardMoments = nearbySpaces.filter((space) => {
-        return space?.featuredIncentiveRewardValue &&!(recentEngagements[space.id]
+        return space?.featuredIncentiveRewardValue && !(recentEngagements[space.id]
             && recentEngagements[space.id].engagementType === 'moment'
             && Date.now() - recentEngagements[space.id].timestamp < MIN_TIME_BTW_MOMENTS_MS);
     });

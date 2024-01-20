@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { medium } from '../layouts/spacing';
 
 export default StyleSheet.create({
     hashtagsContainer: {
@@ -8,7 +9,7 @@ export default StyleSheet.create({
         justifyContent: 'flex-start',
         alignItems: 'center',
         flexDirection: 'row',
-        marginBottom: 10,
+        marginBottom: medium,
         marginHorizontal: 14,
     },
     preview: {

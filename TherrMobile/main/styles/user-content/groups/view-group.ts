@@ -21,7 +21,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingVertical: 10,
             borderRadius: 4,
             elevation: 3,
-            borderLeftWidth: 5,
             paddingLeft: 10,
             borderWidth: 1,
         },

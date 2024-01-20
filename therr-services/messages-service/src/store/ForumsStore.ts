@@ -109,6 +109,7 @@ export default class ForumsStore {
                 `${FORUMS_TABLE_NAME}.maxCommentsPerMin`,
                 `${FORUMS_TABLE_NAME}.doesExpire`,
                 `${FORUMS_TABLE_NAME}.isPublic`,
+                `${FORUMS_TABLE_NAME}.media`,
                 `${FORUMS_TABLE_NAME}.createdAt`,
                 `${FORUMS_TABLE_NAME}.updatedAt`,
             ])

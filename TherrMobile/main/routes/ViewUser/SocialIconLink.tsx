@@ -82,7 +82,11 @@ export default ({
                 iconName === 'instagram' && userInView.socialSyncs?.instagram?.followerCount ?
                     <View style={[themeUser.styles.socialIcon, { height: iconSize, width: iconSize }]}>
                         <MaskedView
-                            style={{ flex: 1, flexDirection: 'row', height: iconSize }}
+                            style={[
+                                spacingStyles.flexOne,
+                                spacingStyles.flexRow,
+                                { height: iconSize },
+                            ]}
                             maskElement={
                                 <View
                                     style={themeUser.styles.socialIconInstaContainer}>

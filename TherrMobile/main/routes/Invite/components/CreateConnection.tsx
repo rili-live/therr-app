@@ -351,7 +351,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
 
         return (
             <KeyboardAvoidingView
-                style={{ flex: 1 }}
+                style={spacingStyles.flexOne}
                 behavior={Platform.OS === 'ios' ? 'position' : 'height'}
             >
                 <FlatList

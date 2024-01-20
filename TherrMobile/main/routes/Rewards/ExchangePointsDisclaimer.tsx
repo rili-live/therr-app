@@ -162,6 +162,7 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
         const pageHeaderYourWallet = this.translate('pages.exchangePointsDisclaimer.pageHeaderYourWallet');
         const pageHeaderExchangeRate = this.translate('pages.exchangePointsDisclaimer.pageHeaderExchangeRate');
         const pageHeaderHow = this.translate('pages.exchangePointsDisclaimer.pageHeaderHow');
+        const stepContainerStyle = [{ width: 50 }, spacingStyles.alignCenter];
 
         return (
             <>
@@ -243,8 +244,8 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                 <Text style={this.theme.styles.sectionTitleCenter}>
                                     {pageHeaderHow}
                                 </Text>
-                                <View style={{ display: 'flex', flexDirection: 'row' }}>
-                                    <View style={{ width: 50, alignItems: 'center' }}>
+                                <View style={spacingStyles.flexRow}>
+                                    <View style={stepContainerStyle}>
                                         <MaterialIcon
                                             name="looks-one"
                                             size={23}
@@ -255,8 +256,8 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                         {this.translate('pages.exchangePointsDisclaimer.info.stepOne')}
                                     </Text>
                                 </View>
-                                <View style={{ display: 'flex', flexDirection: 'row' }}>
-                                    <View style={{ width: 50, alignItems: 'center' }}>
+                                <View style={spacingStyles.flexRow}>
+                                    <View style={stepContainerStyle}>
                                         <MaterialIcon
                                             name="looks-two"
                                             size={23}
@@ -269,8 +270,8 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                         })}
                                     </Text>
                                 </View>
-                                <View style={{ display: 'flex', flexDirection: 'row' }}>
-                                    <View style={{ width: 50, alignItems: 'center' }}>
+                                <View style={spacingStyles.flexRow}>
+                                    <View style={stepContainerStyle}>
                                         <MaterialIcon
                                             name="looks-3"
                                             size={23}
@@ -281,8 +282,8 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                         {this.translate('pages.exchangePointsDisclaimer.info.stepThree')}
                                     </Text>
                                 </View>
-                                <View style={{ display: 'flex', flexDirection: 'row' }}>
-                                    <View style={{ width: 50, alignItems: 'center' }}>
+                                <View style={spacingStyles.flexRow}>
+                                    <View style={stepContainerStyle}>
                                         <MaterialIcon
                                             name="looks-4"
                                             size={23}
