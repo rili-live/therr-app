@@ -251,6 +251,11 @@ class UsersService {
         url: '/users-service/users-groups',
     });
 
+    getGroupMembers = (groupId: string) => axios({
+        method: 'get',
+        url: `/users-service/users-groups/${groupId}`,
+    });
+
     updateUserGroup = (id: string, data: any) => axios({
         method: 'put',
         url: `/users-service/users-groups/${id}`,

@@ -927,7 +927,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             }
                             // Get Location Success Handler
                             const positionSuccessCallback = (position) => {
-                                const { location } = this.props;
                                 const coords = {
                                     latitude:
                                         position.coords
@@ -938,7 +937,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 };
                                 this.updateCircleCenter(coords);
                                 setInitialUserLocation();
-                                if (coords.latitude !== location?.user?.latitude || coords.longitude !== location?.user?.longitude) {
+                                if (coords.latitude !== this.props.location?.user?.latitude || coords.longitude !== location?.user?.longitude) {
                                     updateUserCoordinates(coords);
                                 }
 

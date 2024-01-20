@@ -37,6 +37,7 @@ import { getReactionUpdateArgs } from '../utilities/reactions';
 import TherrIcon from '../components/TherrIcon';
 import RoundTextInput from '../components/Input/TextInput/Round';
 import { HAPTIC_FEEDBACK_TYPE } from '../constants';
+import spacingStyles from '../styles/layouts/spacing';
 // import AccentInput from '../components/Input/Accent';
 
 const hapticFeedbackOptions = {
@@ -450,7 +451,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyView]}
                         contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyViewScroll]}
                     >
-                        <View style={[this.themeAccentLayout.styles.container, this.themeThought.styles.inspectThoughtContainer, { paddingHorizontal: 4 }]}>
+                        <View style={[this.themeAccentLayout.styles.container, this.themeThought.styles.inspectThoughtContainer, spacingStyles.padHorizSm]}>
                             <ThoughtDisplay
                                 translate={this.translate}
                                 date={this.date}

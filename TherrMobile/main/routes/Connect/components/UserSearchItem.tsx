@@ -2,12 +2,14 @@ import React from 'react';
 import { Pressable, View } from 'react-native';
 import { Avatar, Button, ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
+import { IUserState } from 'therr-react/types';
 import { getUserImageUri } from '../../../utilities/content';
 import { ITherrThemeColors } from '../../../styles/themes';
 import spacingStyles from '../../../styles/layouts/spacing';
 
 interface IUserSearchItemProps {
-    userDetails: any;
+    user: IUserState;
+    userDetails: any; // Search Item
     getUserSubtitle: any;
     goToViewUser: any;
     onSendConnectRequest: any;
@@ -23,6 +25,7 @@ interface IUserSearchItemProps {
 }
 
 const UserSearchItem: React.FunctionComponent<IUserSearchItemProps> = ({
+    user,
     userDetails,
     getUserSubtitle,
     goToViewUser,
@@ -32,6 +35,7 @@ const UserSearchItem: React.FunctionComponent<IUserSearchItemProps> = ({
     translate,
 }) => {
     const handleConnectionRequest = () => onSendConnectRequest(userDetails);
+    const isMe = user.details?.id === userDetails.id;
 
     return (
         <ListItem
@@ -57,7 +61,7 @@ const UserSearchItem: React.FunctionComponent<IUserSearchItemProps> = ({
             </View>
             <View>
                 {
-                    !userDetails.isConnected &&
+                    !userDetails.isConnected && !isMe &&
                         <Button
                             onPress={handleConnectionRequest}
                             containerStyle={themeButtons.styles.buttonPillContainerSquare}

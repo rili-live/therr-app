@@ -7,6 +7,11 @@ const CAROUSEL_TABS = {
     THOUGHTS: 'thoughts',
     NEWS: 'news',
 };
+const GROUP_CAROUSEL_TABS = {
+    CHAT: 'chat',
+    EVENTS: 'events',
+    MEMBERS: 'members',
+};
 const PEOPLE_CAROUSEL_TABS = {
     PEOPLE: 'people',
     GROUPS: 'groups',
@@ -103,6 +108,7 @@ const getAndroidChannel = (channelId: AndroidChannelIds, vibration = true): Andr
 export {
     // Carousel
     CAROUSEL_TABS,
+    GROUP_CAROUSEL_TABS,
     PEOPLE_CAROUSEL_TABS,
     PROFILE_CAROUSEL_TABS,
 

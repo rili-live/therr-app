@@ -16,7 +16,51 @@ const getUserGroups = (req, res) => Store.userGroups.get({
     }))
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
 
+const getGroupMembers = (req, res) => Store.userGroups.get({
+    groupId: req.params.id,
+    status: GroupRequestStatuses.APPROVED,
+})
+    .then((results) => Store.users.findUsers({
+        ids: results.map((r) => r.userId),
+    }).then((users) => {
+        const usersById = users.reduce((acc, cur) => ({
+            ...acc,
+            [cur.id]: cur,
+        }), {});
+
+        return res.status(200).send({
+            userGroups: results.map((userGroup) => ({
+                ...userGroup,
+                user: usersById[userGroup.userId] || {},
+            })),
+        });
+    }))
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
+
 // WRITE
+const internalCreateUserGroup = (req, res) => {
+    const {
+        userId,
+    } = parseHeaders(req.headers);
+    const {
+        groupId,
+        role,
+    } = req.body;
+
+    // TODO: Check if group requires approval
+    const status = GroupRequestStatuses.APPROVED;
+
+    return Store.userGroups.create({
+        groupId,
+        userId,
+        status,
+        shouldMuteNotifs: false,
+        role,
+    })
+        .then(([userGroup]) => res.status(201).send(userGroup))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
+};
+
 const createUserGroup = (req, res) => {
     const {
         userId,
@@ -163,6 +207,8 @@ const notifyGroupMembers = (req, res) => {
 
 export {
     getUserGroups,
+    getGroupMembers,
+    internalCreateUserGroup,
     createUserGroup,
     updateUserGroup,
     deleteUserGroup,

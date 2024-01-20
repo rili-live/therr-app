@@ -529,6 +529,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 theme={this.theme}
                                 themeButtons={this.themeButtons}
                                 translate={this.translate}
+                                user={user}
                             />
                         )}
                         ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(

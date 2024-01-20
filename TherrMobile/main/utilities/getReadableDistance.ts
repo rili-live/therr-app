@@ -1,4 +1,3 @@
-// eslint-disable-next-line arrow-body-style
 const getReadableDistance = (distanceInMiles: number) => {
     return distanceInMiles < 0.1
         ? `${Math.round(distanceInMiles * 5280)} ft`

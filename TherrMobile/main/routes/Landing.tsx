@@ -12,12 +12,11 @@ import { buildStyles } from '../styles';
 import { buildStyles as buildFTUIStyles } from '../styles/first-time-ui';
 import { buildStyles as buildAuthFormStyles } from '../styles/forms/authenticationForms';
 import { buildStyles as buildFormStyles } from '../styles/forms';
-
+import spacingStyles from '../styles/layouts/spacing';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
 import BaseStatusBar from '../components/BaseStatusBar';
 import OrDivider from '../components/Input/OrDivider';
-
 // import ftuiClaim from '../assets/discover.json';
 import ftuiClaim from '../assets/ftui-claim.json';
 import ftuiDiscover from '../assets/ftui-discover.json';
@@ -144,11 +143,11 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                         style={graphicStyles}
                     />
                 </View>
-                <View style={[this.theme.styles.sectionContainerWide, { marginBottom: 0 }]}>
+                <View style={[this.theme.styles.sectionContainerWide, spacingStyles.marginBotNone]}>
                     <Text style={[this.themeFTUI.styles.titleWithNoSpacing, this.theme.styles.textCenter]}>
                         {title}
                     </Text>
-                    <Text style={[this.themeFTUI.styles.subtitle, this.theme.styles.textCenter, { marginBottom: 0 }]}>
+                    <Text style={[this.themeFTUI.styles.subtitle, this.theme.styles.textCenter, spacingStyles.marginBotNone]}>
                         {subtitle}
                     </Text>
                 </View>
