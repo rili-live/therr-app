@@ -37,6 +37,7 @@ const SearchTypeAheadResults = ({
     searchPredictionResults,
     themeSearch,
 }: ISearchTypeAheadProps) => {
+    const getItemSeparator = () => <View style={themeSearch.styles.separator} />;
 
     return (
         <View
@@ -47,7 +48,7 @@ const SearchTypeAheadResults = ({
                 data={searchPredictionResults}
                 keyExtractor={(item) => String(item.place_id)}
                 renderItem={({ item }) => renderListItem(item, { handleSelect, styles: themeSearch.styles })}
-                ItemSeparatorComponent={() => <View style={themeSearch.styles.separator} />}
+                ItemSeparatorComponent={getItemSeparator}
                 keyboardShouldPersistTaps="always"
                 // ref={(component) => (this.flatListRef = component)}
                 // style={styles.stretch}

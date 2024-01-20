@@ -20,6 +20,10 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData, decodedAuthenticatio
     const now = moment(Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
     const roomId = `${FORUM_PREFIX}${data.roomId}`;
 
+    if (socket.rooms.has(roomId)) {
+        return;
+    }
+
     socket.join(roomId);
 
     const socketMessage = `You joined the room, ${data.roomName}`;

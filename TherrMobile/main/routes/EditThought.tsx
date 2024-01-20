@@ -527,7 +527,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                                 styles={this.themeForms.styles}
                             />
                             <Button
-                                containerStyle={[spacingStyles.marginBotMd, { marginTop: 20 }]}
+                                containerStyle={[spacingStyles.marginBotMd, spacingStyles.marginTopXLg]}
                                 buttonStyle={this.themeForms.styles.buttonRoundAlt}
                                 // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                 disabledStyle={this.themeForms.styles.buttonRoundDisabled}
@@ -540,7 +540,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                                 onPress={this.toggleVisibilityBottomSheet}
                                 raised={false}
                             />
-                            <View style={[this.themeForms.styles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
+                            <View style={[this.themeForms.styles.input, spacingStyles.flexRow, spacingStyles.alignCenter]}>
                                 <DropDown
                                     onChange={(newValue) =>
                                         this.onInputChange('category', newValue || 'uncategorized')
@@ -633,7 +633,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                         themeModal={this.themeModal}
                     >
                         <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
+                            containerStyle={[spacingStyles.marginBotMd, spacingStyles.fullWidth]}
                             buttonStyle={this.themeForms.styles.buttonRound}
                             // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                             disabledStyle={this.themeForms.styles.buttonRoundDisabled}
@@ -679,7 +679,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                         themeModal={this.themeModal}
                     >
                         <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
+                            containerStyle={[spacingStyles.marginBotMd, spacingStyles.fullWidth]}
                             buttonStyle={this.themeForms.styles.buttonRound}
                             // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                             disabledStyle={this.themeForms.styles.buttonRoundDisabled}

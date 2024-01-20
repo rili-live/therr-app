@@ -295,6 +295,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderRadius: 8,
             height: 42,
         },
+        buttonRoundAltSmallWidth: {
+            width: 42,
+        },
         buttonWarning: {
             backgroundColor: therrTheme.colors.ternary2,
         },

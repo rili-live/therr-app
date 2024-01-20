@@ -14,6 +14,7 @@ import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
 import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
 import { ISSOUserDetails } from '../Login/LoginForm';
 import TherrIcon from '../../components/TherrIcon';
+import spacingStyles from '../../styles/layouts/spacing';
 
 // Regular component props
 interface IRegisterFormProps {
@@ -248,7 +249,7 @@ export class RegisterFormComponent extends React.Component<
     };
 
     openPrivacyPolicy = () => {
-        Linking.openURL("https://www.therr.app/privacy-policy.html");
+        Linking.openURL('https://www.therr.app/privacy-policy.html');
     };
 
     public render() {
@@ -259,6 +260,7 @@ export class RegisterFormComponent extends React.Component<
             prevRegisterError,
         } = this.state;
         const { theme, themeAlerts, themeForms, themeAuthForm, toggleEULA } = this.props;
+        const marginBottom25 = { marginBottom: 25 };
 
         return (
             <>
@@ -358,7 +360,7 @@ export class RegisterFormComponent extends React.Component<
                     type={'error'}
                     themeAlerts={themeAlerts}
                 />
-                <Text style={[theme.styles.sectionDescription, { marginBottom: 25 }]}>
+                <Text style={[theme.styles.sectionDescription, marginBottom25]}>
                     {this.translate('forms.registerForm.subtitles.disclaimer')}
                     <Text
                         style={themeForms.styles.buttonLink}
@@ -382,7 +384,7 @@ export class RegisterFormComponent extends React.Component<
                     <OrDivider
                         translate={this.translate}
                         themeForms={themeForms}
-                        containerStyle={{ marginVertical: 20 }}
+                        containerStyle={spacingStyles.marginVertXLg}
                     />
                     <View style={themeAuthForm.styles.submitButtonContainer}>
                         <GoogleSignInButton

@@ -463,9 +463,10 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         spaceInView,
     }) {
         const { isUserInSpace } = this.state;
+        const stepContainerStyle = [{ width: 50 }, spacingStyles.alignCenter];
 
         return (
-            <View style={{ width: '100%' }}>
+            <View style={spacingStyles.fullWidth}>
                 <View style={this.theme.styles.sectionContainer}>
                     <Text style={this.theme.styles.sectionTitleCenter}>
                         {this.translate('pages.viewSpace.h2.claimRewards')}
@@ -515,8 +516,8 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                             <Text style={this.theme.styles.sectionTitleCenter}>
                                 {this.translate('pages.viewSpace.h2.requirements')}
                             </Text>
-                            <View style={{ display: 'flex', flexDirection: 'row' }}>
-                                <View style={{ width: 50, alignItems: 'center' }}>
+                            <View style={spacingStyles.flexRow}>
+                                <View style={stepContainerStyle}>
                                     <MaterialIcon
                                         name="looks-one"
                                         size={23}
@@ -529,8 +530,8 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                     })}
                                 </Text>
                             </View>
-                            <View style={{ display: 'flex', flexDirection: 'row' }}>
-                                <View style={{ width: 50, alignItems: 'center' }}>
+                            <View style={spacingStyles.flexRow}>
+                                <View style={stepContainerStyle}>
                                     <MaterialIcon
                                         name="looks-two"
                                         size={23}
@@ -541,8 +542,8 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                     {this.translate('pages.viewSpace.info.shareAMoment.stepTwo')}
                                 </Text>
                             </View>
-                            <View style={{ display: 'flex', flexDirection: 'row' }}>
-                                <View style={{ width: 50, alignItems: 'center' }}>
+                            <View style={spacingStyles.flexRow}>
+                                <View style={stepContainerStyle}>
                                     <MaterialIcon
                                         name="looks-3"
                                         size={23}
@@ -553,8 +554,8 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                     {this.translate('pages.viewSpace.info.shareAMoment.stepThree')}
                                 </Text>
                             </View>
-                            <View style={{ display: 'flex', flexDirection: 'row' }}>
-                                <View style={{ width: 50, alignItems: 'center' }}>
+                            <View style={spacingStyles.flexRow}>
+                                <View style={stepContainerStyle}>
                                     <MaterialIcon
                                         name="priority-high"
                                         size={23}

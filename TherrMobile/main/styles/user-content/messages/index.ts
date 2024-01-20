@@ -78,9 +78,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         userImage: {
             // color: therrTheme.colors.primary3,
             marginRight: 10,
-            height: 30,
-            width: 30,
-            borderRadius: 15,
+            height: 50,
+            width: 50,
+            borderRadius: 25,
         },
         icon: {
             color: therrTheme.colors.brandingWhite,

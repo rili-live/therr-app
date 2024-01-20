@@ -244,6 +244,11 @@ usersServiceRouter.get('/users-groups', handleServiceRequest({
     method: 'get',
 }));
 
+usersServiceRouter.get('/users-groups/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 usersServiceRouter.post('/users-groups', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',

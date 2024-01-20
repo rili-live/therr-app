@@ -1,6 +1,7 @@
 import React from 'react';
 import { FlatList, SafeAreaView } from 'react-native';
 import 'react-native-gesture-handler';
+import { Button } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
@@ -17,7 +18,8 @@ import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import RoundInput from '../../components/Input/Round';
 import ListEmpty from '../../components/ListEmpty';
 import PhoneContactItem from './components/PhoneContactItem';
-import { Button } from 'react-native-elements';
+import spacingStyles from '../../styles/layouts/spacing';
+
 
 interface IPhoneContactsDispatchProps {
     logout: Function;
@@ -193,7 +195,11 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                         )} />}
                         ListHeaderComponent={<RoundInput
                             autoCapitalize="none"
-                            containerStyle={{ paddingHorizontal: 10, backgroundColor: this.theme.colors.primary, paddingTop: 10 }}
+                            containerStyle={[
+                                spacingStyles.padHorizMd,
+                                spacingStyles.padTopMd,
+                                { backgroundColor: this.theme.colors.primary },
+                            ]}
                             placeholder={this.translate(
                                 'forms.groups.searchPlaceholder'
                             )}

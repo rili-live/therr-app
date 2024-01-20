@@ -675,6 +675,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         const isAccentPage = currentScreen === 'EditMoment'
                             || currentScreen === 'EditSpace'
                             || currentScreen === 'ViewMoment'
+                            || currentScreen === 'ViewGroup'
                             || currentScreen === 'ViewSpace';
                         let headerTitle;
                         let headerStyle = this.theme.styles.headerStyle;

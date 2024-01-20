@@ -153,7 +153,7 @@
 //     handleChatTilePress = (chat) => {
 //         const { navigation } = this.props;
 
-//         navigation.navigate('ViewChat', chat);
+//         navigation.navigate('ViewGroup', chat);
 //     };
 
 //     handleCategoryTogglePress = () => {
