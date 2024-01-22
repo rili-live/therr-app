@@ -44,6 +44,10 @@
       "title": "New Group Messages",
       "body": "You have unread messages in group {groupName}"
     },
+    "newGroupMembers": {
+      "title": "New Group Members",
+      "body": "New member(s) {members} joined your group, {groupName}"
+    },
     "newLikeReceived": {
       "title": "New Reaction",
       "body": "{userName} liked your post"

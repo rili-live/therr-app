@@ -389,7 +389,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteParams = {
                     activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
                 };
-            } else if (data.action === 'app.therrmobile.NEW_GROUP_MESSAGE') {
+            } else if (data.action === 'app.therrmobile.NEW_GROUP_MESSAGE'
+                || data.action === 'app.therrmobile.NEW_GROUP_MEMBERS') {
                 targetRouteView = 'Connect';
                 targetRouteParams = {
                     activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,

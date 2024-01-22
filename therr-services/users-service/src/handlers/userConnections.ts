@@ -8,7 +8,7 @@ import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
 import emailValidator from 'therr-js-utilities/email-validator';
 import deepEmailValidate from 'deep-email-validator';
-import sendPushNotificationAndEmail from '../utilities/sendPushNotificationAndEmail';
+import sendEmailAndOrPushNotification from '../utilities/sendEmailAndOrPushNotification';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
@@ -212,7 +212,8 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             }
 
             // NOTE: no need to refetch user from DB
-            sendPushNotificationAndEmail(() => Promise.resolve([acceptingUser as {
+            // eslint-disable-next-line no-empty-pattern
+            sendEmailAndOrPushNotification(({}, []) => Promise.resolve<any>([acceptingUser as {
                 deviceMobileFirebaseToken: string;
                 email: string;
                 isUnclaimed: boolean;
@@ -225,17 +226,6 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 type: 'new-connection-request',
                 retentionEmailType: PushNotifications.Types.newConnectionRequest,
                 whiteLabelOrigin,
-            }).catch((err) => {
-                logSpan({
-                    level: 'error',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['Error while sending push notification and email for new connection request'],
-                    traceArgs: {
-                        'error.message': err?.message,
-                        'req.routeName': 'CreateUserConnection',
-                        method: sendPushNotificationAndEmail,
-                    },
-                });
             });
 
             return connectionPromise.then(([userConnection]) => Store.notifications.createNotification({
@@ -260,7 +250,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     traceArgs: {
                         'error.message': err?.message,
                         'req.routeName': 'CreateUserConnection',
-                        method: sendPushNotificationAndEmail,
+                        method: sendEmailAndOrPushNotification,
                     },
                 });
             })).then((userConnection) => res.status(201).send(userConnection));
@@ -457,7 +447,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                 // 5a. Send notifications to each new connection request
                 newConnectionUsers.forEach((acceptingUser) => {
                     // NOTE: no need to refetch user from DB
-                    sendPushNotificationAndEmail(() => Promise.resolve([acceptingUser as {
+                    sendEmailAndOrPushNotification(() => Promise.resolve([acceptingUser as {
                         deviceMobileFirebaseToken: string;
                         email: string;
                         isUnclaimed: boolean;
@@ -654,7 +644,7 @@ const updateUserConnection = (req, res) => {
                     });
                 }
 
-                sendPushNotificationAndEmail(Store.users.findUser, {
+                sendEmailAndOrPushNotification(Store.users.findUser, {
                     authorization,
                     fromUserName: fromUserName || '',
                     fromUserId: userId,

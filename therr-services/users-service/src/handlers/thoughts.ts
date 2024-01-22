@@ -11,7 +11,7 @@ import { findReactions, hasUserReacted } from '../api/reactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
-import createSendTotalNotification from '../utilities/createSendTotalNotification';
+import notifyUserOfUpdate from '../utilities/notifyUserOfUpdate';
 import { createOrUpdateAchievement } from './helpers/achievements';
 
 // CREATE
@@ -115,7 +115,7 @@ const createThought = async (req, res) => {
                                 });
                             });
                         }
-                        return createSendTotalNotification({
+                        return notifyUserOfUpdate({
                             authorization,
                             locale,
                             whiteLabelOrigin,
@@ -134,7 +134,11 @@ const createThought = async (req, res) => {
                             fromUser: {
                                 id: userId,
                             },
-                        }, true).catch((err) => {
+                        }, {
+                            shouldCreateDBNotification: true,
+                            shouldSendPushNotification: true,
+                            shouldSendEmail: true,
+                        }).catch((err) => {
                             logSpan({
                                 level: 'error',
                                 messageOrigin: 'API_SERVER',
