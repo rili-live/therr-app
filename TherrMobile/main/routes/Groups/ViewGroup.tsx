@@ -18,7 +18,7 @@ import { MessageActions, SocketActions, UserConnectionsActions } from 'therr-rea
 import { IForumsState, IMesssageState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import { GroupMemberRoles } from 'therr-js-utilities/constants';
-// import ViewChatButtonMenu from '../../components/ButtonMenu/ViewChatButtonMenu';
+// import ViewGroupButtonMenu from '../../components/ButtonMenu/ViewGroupButtonMenu';
 import translator from '../../services/translator';
 // import RoundInput from '../../components/Input/Round';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -51,7 +51,7 @@ const tabMap = {
     2: GROUP_CAROUSEL_TABS.MEMBERS,
 };
 
-interface IViewChatDispatchProps {
+interface IViewGroupDispatchProps {
     createUserConnection: Function;
     joinForum: Function;
     logout: Function;
@@ -61,7 +61,7 @@ interface IViewChatDispatchProps {
     searchUpdateUser: Function;
 }
 
-interface IStoreProps extends IViewChatDispatchProps {
+interface IStoreProps extends IViewGroupDispatchProps {
     messages: IMesssageState;
     forums: IForumsState;
     user: IUserState;
@@ -69,12 +69,12 @@ interface IStoreProps extends IViewChatDispatchProps {
 }
 
 // Regular component props
-export interface IViewChatProps extends IStoreProps {
+export interface IViewGroupProps extends IStoreProps {
     navigation: any;
     route: any;
 }
 
-interface IViewChatState {
+interface IViewGroupState {
     activeTabIndex: number;
     groupMembers: any[];
     msgInputVal: string;
@@ -103,7 +103,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
+class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
     private hashtags;
     private chatListRef;
     private eventsListRef;
@@ -214,13 +214,15 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
         const { route } = this.props;
         const { id: forumId } = route.params;
 
-        UsersService.getGroupMembers(forumId).then((response) => {
-            this.setState({
-                groupMembers: response.data?.userGroups || [],
+        if (UsersService.getGroupMembers) {
+            UsersService.getGroupMembers(forumId).then((response) => {
+                this.setState({
+                    groupMembers: response.data?.userGroups || [],
+                });
+            }).catch((err) => {
+                console.log('failed to fetch group members', err);
             });
-        }).catch((err) => {
-            console.log('failed to fetch group members', err);
-        });
+        }
     };
 
     tryLoadMore = () => {
@@ -402,7 +404,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                 return (<FlatList
                     data={mgs}
                     inverted={mgs?.length > 0}
-                    stickyHeaderIndices={[0]}
+                    stickyHeaderIndices={[]}
                     renderItem={({ item }) => (
                         <ForumMessage
                             item={item}
@@ -611,11 +613,11 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                         />
                     </View>
                 </SafeAreaView>
-                {/* <ViewChatButtonMenu navigation={navigation} translate={this.translate} user={user} /> */}
+                {/* <ViewGroupButtonMenu navigation={navigation} translate={this.translate} user={user} /> */}
                 {/* Create Chat button */}
             </>
         );
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ViewChat);
+export default connect(mapStateToProps, mapDispatchToProps)(ViewGroup);

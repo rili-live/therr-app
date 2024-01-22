@@ -27,6 +27,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         notificationsCount,
         totalAreasActivated,
         viewCount,
+        groupName,
+        groupMembersList,
     } = req.body;
 
     return predictAndSendNotification(
@@ -47,6 +49,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             notificationsCount,
             totalAreasActivated,
             viewCount,
+            groupName,
+            groupMembersList,
         },
     )
         .then(() => res.status(201).send({}))
