@@ -3,14 +3,24 @@ import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
-import createSendTotalNotification from '../utilities/createSendTotalNotification';
+import notifyUserOfUpdate from '../utilities/notifyUserOfUpdate';
 import TherrEventEmitter from '../api/TherrEventEmitter';
 // import * as globalConfig from '../../../../global-config';
 
-export const translateNotification = (notification, locale = 'en-us') => ({
-    ...notification,
-    message: translate(locale, notification.messageLocaleKey, notification.messageParams),
-});
+export const translateNotification = (notification?: {
+    messageLocaleKey: string;
+    messageParams?: any;
+}, locale = 'en-us') => {
+    if (!notification) {
+        return {
+            message: '',
+        };
+    }
+    return {
+        ...notification,
+        message: translate(locale, notification.messageLocaleKey, notification?.messageParams),
+    };
+};
 
 // CREATE
 const createNotification = (req, res) => {
@@ -20,7 +30,7 @@ const createNotification = (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
 
-    return createSendTotalNotification({
+    return notifyUserOfUpdate({
         authorization: req.headers.authorization,
         locale,
         whiteLabelOrigin,
@@ -37,6 +47,10 @@ const createNotification = (req, res) => {
             name: req.body.fromUserName,
             id: req.headers['x-userid'],
         },
+    }, {
+        shouldCreateDBNotification: true,
+        shouldSendPushNotification: false,
+        shouldSendEmail: false,
     })
         .then((notification) => res.status(202).send(translateNotification(notification, locale)))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));

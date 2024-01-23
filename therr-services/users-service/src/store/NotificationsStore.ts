@@ -1,5 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
-import { Notifications } from 'therr-js-utilities/constants';
+import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import { getDbCountQueryString } from 'therr-js-utilities/db';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
@@ -18,6 +18,8 @@ export interface ICreateNotificationParams {
     messageLocaleKey?: any;
     // messageLocaleKey?: Notifications.MessageKeys;
     messageParams?: any;
+    retentionEmailType?: PushNotifications.Types;
+    groupName?: string;
 }
 
 export interface IUpdateNotificationConditions {

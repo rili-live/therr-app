@@ -1,8 +1,9 @@
 import { achievementsByClass } from 'therr-js-utilities/config';
 import { Notifications } from 'therr-js-utilities/constants';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../../store';
 import { ICreateOrUpdateResponse, IDBAchievement } from '../../store/UserAchievementsStore';
-import createSendTotalNotification from '../../utilities/createSendTotalNotification';
+import notifyUserOfUpdate from '../../utilities/notifyUserOfUpdate';
 
 const getAchIdNumber = (id: string) => {
     const arr = id.split('_');
@@ -54,7 +55,7 @@ const createOrUpdateAchievement: (requesterDetails: IRequesterDetails, requestBo
                 // NOTE: Does not include e-mail because scheduler will e-mail users
                 // who have not claimed rewards
                 if (authorization && achievement.completedAt) {
-                    createSendTotalNotification({
+                    notifyUserOfUpdate({
                         authorization,
                         locale,
                         whiteLabelOrigin,
@@ -69,7 +70,18 @@ const createOrUpdateAchievement: (requesterDetails: IRequesterDetails, requestBo
                         fromUser: {
                             id: userId,
                         },
-                    }, true);
+                    }, {
+                        shouldCreateDBNotification: true,
+                        shouldSendPushNotification: true,
+                        shouldSendEmail: true,
+                    }).catch((err) => logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Failed to send ACHIEVEMENT_COMPLETED notification'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    }));
                 }
             });
 

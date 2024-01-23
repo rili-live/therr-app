@@ -22,6 +22,7 @@ interface ICreateMessageConfig {
     userId: string | string[];
     userLocale: string;
     viewCount?: number;
+    groupMembersList?: string[],
 }
 
 interface INotificationMetrics {
@@ -191,6 +192,18 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             });
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_GROUP_MESSAGE';
             return baseMessage;
+        case PushNotifications.Types.newGroupMembers:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.newGroupMembers.title'),
+                notificationBody: translate(config.userLocale, 'notifications.newGroupMembers.body', {
+                    groupName: config.groupName,
+                    members: config.groupMembersList?.slice(0, 3).join(', '),
+                }),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_GROUP_MEMBERS';
+            return baseMessage;
         case PushNotifications.Types.newLikeReceived:
             baseMessage = createBaseMessage({
                 data: modifiedData,
@@ -306,6 +319,10 @@ const predictAndSendNotification = (
             }
 
             if (type === PushNotifications.Types.newGroupMessage) {
+                return admin.messaging().send(message);
+            }
+
+            if (type === PushNotifications.Types.newGroupMembers) {
                 return admin.messaging().send(message);
             }
 
