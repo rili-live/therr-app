@@ -8,6 +8,8 @@ import MediaStore, { ICreateMediaParams } from './MediaStore';
 import getBucket from '../utilities/getBucket';
 import findUsers from '../utilities/findUsers';
 import { isTextUnsafe } from '../utilities/contentSafety';
+import { ICreateAreaParams, IDeleteAreasParams } from './common/models';
+import { sanitizeNotificationMsg } from './common/utils';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -21,38 +23,11 @@ interface INearbySpacesSnapshot {
     title: string;
 }
 
-export interface ICreateMomentParams {
-    areaType?: string;
-    category?: any;
-    createdAt?: any;
-    expiresAt?: any;
-    fromUserId: string;
-    spaceId?: string;
-    locale: string;
-    isPublic?: boolean;
+export interface ICreateMomentParams extends ICreateAreaParams {
     isDraft?: boolean;
-    isMatureContent?: boolean;
-    message: string;
-    notificationMsg?: string;
-    mediaIds?: string;
-    media?: ICreateMediaParams[];
-    mentionsIds?: string;
-    hashTags?: string;
-    maxViews?: number;
-    maxProximity?: number;
-    latitude: number;
-    longitude: number;
     nearbySpacesSnapshot?: INearbySpacesSnapshot[];
-    radius?: number;
-    polygonCoords?: string;
+    spaceId?: string;
 }
-
-interface IDeleteMomentsParams {
-    fromUserId: string;
-    ids: string[];
-}
-
-const sanitizeNotificationMsg = (message = '') => message.replace(/\r?\n+|\r+/gm, ' ');
 
 const getMomentsToMediaAndUsers = (moments: any[], media?: any[], users?: any[]) => {
     const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
@@ -504,7 +479,7 @@ export default class MomentsStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
-    deleteMoments(params: IDeleteMomentsParams) {
+    deleteMoments(params: IDeleteAreasParams) {
         // TODO: RSERV-52 | Consider archiving only, and delete associated reactions from reactions-service
         const queryString = knexBuilder.delete()
             .from(MOMENTS_TABLE_NAME)

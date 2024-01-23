@@ -9,6 +9,8 @@ import getBucket from '../utilities/getBucket';
 import findUsers from '../utilities/findUsers';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import { SPACE_INCENTIVES_TABLE_NAME } from './SpaceIncentivesStore';
+import { ICreateAreaParams, IDeleteAreasParams } from './common/models';
+import { sanitizeNotificationMsg } from './common/utils';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -18,30 +20,11 @@ const countryReverseGeo = countryGeo.country_reverse_geocoding();
 const maxNotificationMsgLength = 100;
 const DEFAULT_RADIUS_MEDIUM = 10; // Small radius default to prevent overlap db constraint
 
-export interface ICreateSpaceParams {
+export interface ICreateSpaceParams extends ICreateAreaParams {
     addressReadable?: string;
-    areaType?: string;
-    category?: string;
-    expiresAt?: any;
-    fromUserId: string;
     requestedByUserId?: string;
     organizationId?: string;
-    locale: string;
-    isPublic?: boolean;
-    isMatureContent?: boolean;
-    message: string;
-    notificationMsg?: string;
-    mediaIds?: string;
-    media?: ICreateMediaParams[];
-    mentionsIds?: string;
-    hashTags?: string;
     isClaimPending?: boolean;
-    maxViews?: number;
-    maxProximity?: number;
-    latitude: number;
-    longitude: number;
-    radius?: number;
-    polygonCoords?: any;
     thirdPartyRatings?: any;
     openingHours?: any;
     featuredIncentiveKey?: string;
@@ -63,13 +46,6 @@ export interface ICreateSpaceParams {
     postalCode?: number;
     priceRange?: number;
 }
-
-interface IDeleteSpacesParams {
-    fromUserId: string;
-    ids: string[];
-}
-
-const sanitizeNotificationMsg = (message = '') => message.replace(/\r?\n+|\r+/gm, ' ');
 
 export default class SpacesStore {
     db: IConnection;
@@ -590,7 +566,7 @@ export default class SpacesStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
-    deleteSpaces(params: IDeleteSpacesParams) {
+    deleteSpaces(params: IDeleteAreasParams) {
         // TODO: RSERV-52 | Consider archiving only, and delete associated reactions from reactions-service
         const queryString = knexBuilder.delete()
             .from(SPACES_TABLE_NAME)
