@@ -15,6 +15,7 @@ const createForumMessage = (req, res) => {
         forumId: req.body.forumId,
         message: req.body.message,
         fromUserId: req.body.fromUserId,
+        isAnnouncement: req.body.isAnnouncement,
         fromUserLocale: locale,
     })
         .then(([directMessage]) => res.status(201).send(directMessage))
