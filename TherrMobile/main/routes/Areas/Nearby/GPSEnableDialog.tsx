@@ -27,7 +27,7 @@ const GpsEnableButtonDialog = ({ handleEnableLocationPress, theme, themeForms, t
             style={theme.styles.bodyFlex}
             contentContainerStyle={theme.styles.bodyScroll}
         >
-            <View style={theme.styles.sectionContainer}>
+            <View style={[theme.styles.sectionContainer, { marginTop: 0 }]}>
                 <View style={{ flex: 1, height: 100, marginBottom: 30 }}>
                     <LottieView
                         source={earthLoader}
@@ -45,9 +45,9 @@ const GpsEnableButtonDialog = ({ handleEnableLocationPress, theme, themeForms, t
                 <Text style={theme.styles.sectionDescriptionCentered}>
                     {translate('pages.nearby.locationDescription1')}
                 </Text>
-                <Text style={theme.styles.sectionDescriptionCentered}>
+                {/* <Text style={theme.styles.sectionDescriptionCentered}>
                     {translate('pages.nearby.locationDescription2')}
-                </Text>
+                </Text> */}
                 <Text style={[theme.styles.sectionDescriptionCentered]} />
                 <Button
                     buttonStyle={themeForms.styles.button}

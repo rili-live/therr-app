@@ -4,7 +4,12 @@ import { AccessLevels } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
-import { createCheckInLimiter, createMomentLimiter, createSpaceLimiter } from './limitation/map';
+import {
+    createCheckInLimiter,
+    createEventLimiter,
+    createMomentLimiter,
+    createSpaceLimiter,
+} from './limitation/map';
 import { createCheckInValidation, getSignedUrlValidation } from './validation';
 import {
     createAreaValidation,
@@ -25,6 +30,7 @@ import {
 import CacheStore from '../../store';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import authorize, { AccessCheckType } from '../../middleware/authorize';
+import { getEventDetailsValidation } from './validation/events';
 
 const mapsServiceRouter = express.Router();
 
@@ -32,6 +38,59 @@ const mapsServiceRouter = express.Router();
 mapsServiceRouter.post('/media/signed-urls', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
+}));
+
+// Events
+// Limited to prevent abuse
+mapsServiceRouter.post('/events', createEventLimiter, createAreaValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+mapsServiceRouter.put('/events/:eventId', updateAreaValidation, validate, async (req, res, next) => {
+    await CacheStore.mapsService.invalidateAreaDetails('events', req.params.eventId);
+
+    return next();
+}, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'put',
+}));
+
+mapsServiceRouter.post('/events/:eventId/details', authenticateOptional, getEventDetailsValidation, validate, async (req, res, next) => {
+    const eventDetails = await CacheStore.mapsService.getAreaDetails('events', req.params.eventId);
+
+    if (eventDetails) {
+        return res.status(200).send({ ...eventDetails, cached: true });
+    }
+
+    return next();
+}, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}, (response, reqBody) => {
+    if (reqBody.withMedia && reqBody.withUser) {
+        return CacheStore.mapsService.setAreaDetails('events', response);
+    }
+}));
+
+// mapsServiceRouter.post('/events/search', searchAreasValidation, validate, handleServiceRequest({
+//     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+//     method: 'post',
+// }));
+
+mapsServiceRouter.post('/events/search/me', searchMyAreasValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+mapsServiceRouter.get('/events/signed-url/public', getSignedUrlValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}));
+
+mapsServiceRouter.get('/events/signed-url/private', getSignedUrlValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
 }));
 
 // Moments

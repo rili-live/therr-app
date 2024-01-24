@@ -4,6 +4,7 @@ import { IMapState, MapActionTypes } from '../../types/redux/maps';
 import { ContentActionTypes } from '../../types/redux/content';
 
 const initialState: IMapState = Immutable.from({
+    events: Immutable.from({}),
     moments: Immutable.from({}),
     spaces: Immutable.from({}),
     searchPredictions: Immutable.from({}),
@@ -24,6 +25,13 @@ const map = (state: IMapState = initialState, action: any) => {
     }
 
     // Slice to keep total from overflowing
+    const slicedEvents = Object.entries(state.events).slice(0, 300).reduce((acc, cur) => {
+        const [key, value] = cur;
+        acc[key] = value;
+
+        return acc;
+    }, {});
+    const modifiedEvents = { ...slicedEvents };
     const slicedMoments = Object.entries(state.moments).slice(0, 300).reduce((acc, cur) => {
         const [key, value] = cur;
         acc[key] = value;
@@ -40,6 +48,50 @@ const map = (state: IMapState = initialState, action: any) => {
     const modifiedSpaces = { ...slicedSpaces };
 
     switch (action.type) {
+        case MapActionTypes.GET_EVENTS:
+        case MapActionTypes.GET_MY_EVENTS:
+            // Convert array to object for faster lookup and de-duping
+            return state.setIn(['events'], action.data.results.filter((a) => a.longitude && a.latitude)
+                .reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), modifiedEvents));
+        case ContentActionTypes.SEARCH_ACTIVE_EVENTS_BY_IDS:
+            // Convert array to object for faster lookup and de-duping
+            return state.setIn(['events'], action.data.events.filter((a) => a.longitude && a.latitude)
+                .reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), modifiedEvents));
+        case MapActionTypes.GET_EVENT_DETAILS:
+            if (action.data?.event?.id) {
+                if (!modifiedEvents[action.data.event.id]) {
+                    modifiedEvents[action.data.event.id] = action.data.event;
+                } else {
+                    modifiedEvents[action.data.event.id] = {
+                        ...modifiedEvents[action.data.event.id],
+                        ...action.data.event,
+                    };
+                }
+            }
+            return state.setIn(['events'], modifiedEvents);
+        case MapActionTypes.EVENT_CREATED:
+            modifiedEvents[action.data?.id] = action.data;
+            return state.setIn(['events'], modifiedEvents);
+        case MapActionTypes.EVENT_UPDATED:
+            if (!modifiedEvents[action.data.id]) {
+                modifiedEvents[action.data.id] = action.data;
+            } else {
+                modifiedEvents[action.data.id] = {
+                    ...modifiedEvents[action.data.id],
+                    ...action.data,
+                };
+            }
+            return state.setIn(['events'], modifiedEvents);
+        case MapActionTypes.EVENT_DELETED:
+            delete modifiedEvents[action.data.id];
+            return state.setIn(['events'], modifiedEvents);
+        // // // // // // // // // // // //
         case MapActionTypes.GET_MOMENTS:
         case MapActionTypes.GET_MY_MOMENTS:
             // Convert array to object for faster lookup and de-duping
@@ -163,7 +215,9 @@ const map = (state: IMapState = initialState, action: any) => {
                 .setIn(['searchPredictions', 'results'], [])
                 .setIn(['searchPredictions', 'isSearchDropdownVisible'], false)
                 .setIn(['hasUserLocationLoaded'], false)
-                .setIn(['moments'], Immutable.from({}));
+                .setIn(['moments'], Immutable.from({}))
+                .setIn(['spaces'], Immutable.from({}))
+                .setIn(['events'], Immutable.from({}));
         // // // // // // // // // // // //
         case MapActionTypes.SET_MAP_FILTERS:
             return state.setIn(['filtersAuthor'], action.data.filtersAuthor || state.filtersAuthor)

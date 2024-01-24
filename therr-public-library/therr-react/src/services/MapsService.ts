@@ -44,15 +44,32 @@ interface ICreateAreaBody {
     mentionsIds?: string;
     hashTags?: string;
     maxViews?: number;
-    nearbySpacesSnapshot?: { // moment only
-        id: string;
-        title: string
-    }[]
+    maxProximity?: number;
     latitude: string;
     longitude: string;
     radius?: string;
-    spaceId?: string; // moment only
     polygonCoords?: string;
+}
+
+interface ICreateEventBody extends ICreateAreaBody {
+    groupId?: string;
+    spaceId?: string;
+    isDraft?: boolean;
+    nearbySpacesSnapshot?: {
+        id: string;
+        title: string
+    }[]
+    scheduleStartAt: Date;
+    scheduleStopAt: Date;
+}
+
+interface ICreateMomentBody extends ICreateAreaBody {
+    spaceId?: string;
+    isDraft?: boolean;
+    nearbySpacesSnapshot?: {
+        id: string;
+        title: string
+    }[]
 }
 
 interface ICreateSpaceBody extends ICreateAreaBody {
@@ -118,7 +135,7 @@ class MapsService {
         data,
     });
 
-    updateArea = (areaType: IAreaType, id: string, data: ICreateAreaBody) => axios({
+    updateArea = (areaType: IAreaType, id: string, data: ICreateMomentBody) => axios({
         method: 'put',
         url: `/maps-service/${areaType}/${id}`,
         data,
@@ -156,6 +173,19 @@ class MapsService {
         data,
     });
 
+    // Events
+    createEvent = (data: ICreateEventBody) => this.createArea('events', data);
+
+    updateEvent = (id: string, data: ICreateEventBody) => this.updateArea('events', id, data);
+
+    getEventDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('events', id, args);
+
+    // searchEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('events', query, data);
+
+    searchMyEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('events', query, data);
+
+    deleteEvents = (data: IDeleteAreasBody) => this.deleteAreas('events', data);
+
     // Moments
     createMoment = (data: ICreateAreaBody) => this.createArea('moments', data);
 
@@ -169,7 +199,7 @@ class MapsService {
         },
     });
 
-    updateMoment = (id: string, data: ICreateAreaBody) => this.updateArea('moments', id, data);
+    updateMoment = (id: string, data: ICreateMomentBody) => this.updateArea('moments', id, data);
 
     getMomentDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('moments', id, args);
 

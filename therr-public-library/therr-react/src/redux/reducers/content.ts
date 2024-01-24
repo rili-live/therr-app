@@ -6,6 +6,9 @@ import { MapActionTypes } from '../../types';
 // TODO: Rather than using Set to remove duplicates, store this data as a Map keyed on area ID
 
 const initialState: IContentState = Immutable.from({
+    activeEvents: Immutable.from([]),
+    activeEventsPagination: Immutable.from({}),
+    bookmarkedEvents: Immutable.from([]),
     activeMoments: Immutable.from([]),
     activeMomentsPagination: Immutable.from({}),
     bookmarkedMoments: Immutable.from([]),
@@ -30,9 +33,11 @@ const content = (state: IContentState = initialState, action: any) => {
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
+    let modifiedActiveEvents = [];
     let modifiedActiveMoments = [];
     let modifiedActiveSpaces = [];
     let modifiedActiveThoughts = [];
+    let modifiedBookmarkedEvents = [];
     let modifiedBookmarkedMoments = [];
     let modifiedBookmarkedSpaces = [];
     let modifiedBookmarkedThoughts = [];
@@ -40,6 +45,26 @@ const content = (state: IContentState = initialState, action: any) => {
     let moddedActiveIndex = -1;
     let moddedBookmarkedIndex = -1;
     let moddedDraftIndex = -1;
+
+    // Events
+    if (state.activeEvents) {
+        modifiedActiveEvents = JSON.parse(JSON.stringify(state.activeEvents));
+        modifiedBookmarkedEvents = JSON.parse(JSON.stringify(state.bookmarkedEvents));
+        moddedActiveIndex = modifiedActiveEvents.findIndex((event) => event.id === action.data?.eventId);
+        moddedBookmarkedIndex = modifiedBookmarkedEvents.findIndex((event) => event.id === action.data?.eventId);
+
+        if (moddedActiveIndex !== -1) {
+            if (action.type === ContentActionTypes.UPDATE_ACTIVE_EVENT_REACTION) {
+                modifiedActiveEvents[moddedActiveIndex].reaction = { ...action.data };
+            } else if (action.type === ContentActionTypes.REMOVE_ACTIVE_EVENTS) {
+                modifiedActiveEvents.splice(moddedActiveIndex, 1);
+            }
+        }
+
+        if (moddedBookmarkedIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_EVENT_REACTION) {
+            modifiedBookmarkedEvents[moddedBookmarkedIndex].reaction = { ...action.data };
+        }
+    }
 
     // Moments
     if (state.activeMoments) {
@@ -113,12 +138,41 @@ const content = (state: IContentState = initialState, action: any) => {
         }
     }
 
+    const modifiedActiveEventsMap = {};
     const modifiedActiveMomentsMap = {};
     const modifiedActiveSpacesMap = {};
     const modifiedActiveThoughtsMap = {};
 
     // TODO: consider storing as Set to prevent duplicates
     switch (action.type) {
+        // Events
+        case ContentActionTypes.INSERT_ACTIVE_EVENTS:
+            // Add latest events to start
+            return state.setIn(['activeEvents'], [...new Set([...action.data, ...modifiedActiveEvents])]);
+        case ContentActionTypes.REMOVE_ACTIVE_EVENTS:
+            // Remove (reported) events
+            return state.setIn(['activeEvents'], [...new Set(modifiedActiveEvents)]);
+        case ContentActionTypes.UPDATE_ACTIVE_EVENT_REACTION:
+            return state.setIn(['activeEvents'], [...new Set(modifiedActiveEvents)])
+                .setIn(['bookmarkedEvents'], modifiedBookmarkedEvents);
+        case ContentActionTypes.SEARCH_ACTIVE_EVENTS:
+            // Add next offset of events to end
+            action.data.events.concat(modifiedActiveEvents).forEach((m) => {
+                if (!modifiedActiveEventsMap[m.id]) {
+                    modifiedActiveEventsMap[m.id] = m;
+                }
+            });
+            return state.setIn(['activeEvents'], Object.values(modifiedActiveEventsMap))
+                .setIn(['activeEventsPagination'], { ...action.data.pagination });
+        case ContentActionTypes.UPDATE_ACTIVE_EVENTS:
+            // Reset events from scratch
+            return state.setIn(['activeEvents'], action.data.events)
+                .setIn(['activeEventsPagination'], { ...action.data.pagination });
+        case ContentActionTypes.SEARCH_BOOKMARKED_EVENTS:
+            // Add next offset of events to end
+            return state.setIn(['bookmarkedEvents'], action.data.events)
+                .setIn(['media'], { ...state.media, ...action.data.media });
+
         // Moments
         case ContentActionTypes.INSERT_ACTIVE_MOMENTS:
             // Add latest moments to start
@@ -244,6 +298,7 @@ const content = (state: IContentState = initialState, action: any) => {
             return state.setIn(['media'], { ...state.media, ...action.data });
         case ContentActionTypes.SET_ACTIVE_AREAS_FILTERS:
             return state.setIn(['activeAreasFilters'], { ...action.data });
+        case MapActionTypes.GET_EVENT_DETAILS:
         case MapActionTypes.GET_MOMENT_DETAILS:
         case MapActionTypes.GET_SPACE_DETAILS:
             // Reset moments from scratch
@@ -252,7 +307,9 @@ const content = (state: IContentState = initialState, action: any) => {
             return state.setIn(['activeMoments'], Immutable.from([]))
                 .setIn(['bookmarkedMoments'], Immutable.from([]))
                 .setIn(['activeSpaces'], Immutable.from([]))
-                .setIn(['bookmarkedSpaces'], Immutable.from([]));
+                .setIn(['bookmarkedSpaces'], Immutable.from([]))
+                .setIn(['activeThoughts'], Immutable.from([]))
+                .setIn(['bookmarkedThoughts'], Immutable.from([]));
         default:
             return state;
     }
