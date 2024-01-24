@@ -13,7 +13,7 @@ import { sanitizeNotificationMsg } from './common/utils';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-export const MOMENTS_TABLE_NAME = 'main.moments';
+export const EVENTS_TABLE_NAME = 'main.events';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 const maxNotificationMsgLength = 100;
@@ -23,27 +23,30 @@ interface INearbySpacesSnapshot {
     title: string;
 }
 
-export interface ICreateMomentParams extends ICreateAreaParams {
+export interface ICreateEventParams extends ICreateAreaParams {
+    groupId?: string;
+    spaceId?: string;
     isDraft?: boolean;
     nearbySpacesSnapshot?: INearbySpacesSnapshot[];
-    spaceId?: string;
+    scheduleStartAt: Date;
+    scheduleStopAt: Date;
 }
 
-const getMomentsToMediaAndUsers = (moments: any[], media?: any[], users?: any[]) => {
+const getEventsToMediaAndUsers = (events: any[], media?: any[], users?: any[]) => {
     const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
     const matchingUsers: any = {};
     const signingPromises: any = [];
 
     // TODO: Optimize
-    const mappedMoments = moments.map((moment) => {
-        const modifiedMoment = moment;
-        modifiedMoment.media = [];
-        modifiedMoment.user = {};
+    const mappedEvents = events.map((event) => {
+        const modifiedEvent = event;
+        modifiedEvent.media = [];
+        modifiedEvent.user = {};
 
         // MEDIA
-        if (media && moment.mediaIds) {
-            const ids = modifiedMoment.mediaIds.split(',');
-            modifiedMoment.media = media.filter((m) => {
+        if (media && event.mediaIds) {
+            const ids = modifiedEvent.mediaIds.split(',');
+            modifiedEvent.media = media.filter((m) => {
                 if (ids.includes(m.id)) {
                     const bucket = getBucket(m.type);
                     if (bucket) {
@@ -65,7 +68,7 @@ const getMomentsToMediaAndUsers = (moments: any[], media?: any[], users?: any[])
                             });
                         signingPromises.push(promise);
                     } else {
-                        console.log('MomentsStore.ts: bucket is undefined');
+                        console.log('EventsStore.ts: bucket is undefined');
                     }
 
                     return true;
@@ -77,27 +80,27 @@ const getMomentsToMediaAndUsers = (moments: any[], media?: any[], users?: any[])
 
         // USER
         if (users) {
-            const matchingUser = users.find((user) => user.id === modifiedMoment.fromUserId);
+            const matchingUser = users.find((user) => user.id === modifiedEvent.fromUserId);
             if (matchingUser) {
                 matchingUsers[matchingUser.id] = matchingUser;
-                modifiedMoment.fromUserName = matchingUser.userName;
-                modifiedMoment.fromUserFirstName = matchingUser.firstName;
-                modifiedMoment.fromUserLastName = matchingUser.lastName;
-                modifiedMoment.fromUserMedia = matchingUser.media;
+                modifiedEvent.fromUserName = matchingUser.userName;
+                modifiedEvent.fromUserFirstName = matchingUser.firstName;
+                modifiedEvent.fromUserLastName = matchingUser.lastName;
+                modifiedEvent.fromUserMedia = matchingUser.media;
             }
         }
 
-        return modifiedMoment;
+        return modifiedEvent;
     });
 
     return {
         matchingUsers,
-        mappedMoments,
+        mappedEvents,
         signingPromises,
     };
 };
 
-export default class MomentsStore {
+export default class EventsStore {
     db: IConnection;
 
     mediaStore: MediaStore;
@@ -108,7 +111,7 @@ export default class MomentsStore {
     }
 
     /**
-     * This is used to check for duplicates before creating a new moments
+     * This is used to check for duplicates before creating a new events
      */
     get(filters) {
         const notificationMsg = filters.notificationMsg
@@ -116,7 +119,7 @@ export default class MomentsStore {
             : `${sanitizeNotificationMsg(filters.message).substring(0, maxNotificationMsgLength)}`;
         // hard limit to prevent overloading client
         const query = knexBuilder
-            .from(MOMENTS_TABLE_NAME)
+            .from(EVENTS_TABLE_NAME)
             .where({
                 fromUserId: filters.fromUserId,
                 message: filters.message,
@@ -133,7 +136,7 @@ export default class MomentsStore {
             proximityMax = params.query;
         }
         let queryString = knexBuilder
-            .from(MOMENTS_TABLE_NAME)
+            .from(EVENTS_TABLE_NAME)
             .count('*')
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${proximityMax})`));
@@ -154,7 +157,7 @@ export default class MomentsStore {
     }
 
     // eslint-disable-next-line default-param-last
-    searchMoments(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
+    searchEvents(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let proximityMax = overrides?.distanceOverride || Location.AREA_PROXIMITY_METERS;
@@ -163,9 +166,9 @@ export default class MomentsStore {
         }
         let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
-            .from(MOMENTS_TABLE_NAME)
-            // TODO: Determine a better way to select moments that are most relevant to the user
-            // .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
+            .from(EVENTS_TABLE_NAME)
+            // TODO: Determine a better way to select events that are most relevant to the user
+            // .orderBy(`${EVENTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)) // eslint-disable-line quotes, max-len
             .andWhere({
@@ -207,7 +210,7 @@ export default class MomentsStore {
     }
 
     // eslint-disable-next-line default-param-last
-    searchMyMoments(
+    searchMyEvents(
         userId: string,
         requirements: any = {},
         conditions: any = {},
@@ -226,7 +229,7 @@ export default class MomentsStore {
         }
         let queryString: any = knexBuilder
             .select(returning)
-            .from(MOMENTS_TABLE_NAME);
+            .from(EVENTS_TABLE_NAME);
 
         if (modifiedConditions.longitude && modifiedConditions.latitude) {
             // NOTE // Sorting by updatedAt is very expensive/slow
@@ -243,49 +246,49 @@ export default class MomentsStore {
             .toString();
 
         return this.db.read.query(queryString).then(async (response) => {
-            const moments = formatSQLJoinAsJSON(response.rows, []);
+            const events = formatSQLJoinAsJSON(response.rows, []);
 
             if (overrides.withMedia) {
                 const mediaIds: string[] = [];
-                const momentDetailsPromises: Promise<any>[] = [];
+                const eventDetailsPromises: Promise<any>[] = [];
 
-                moments.forEach((moment) => {
-                    if (overrides.withMedia && moment.mediaIds) {
-                        mediaIds.push(...moment.mediaIds.split(','));
+                events.forEach((event) => {
+                    if (overrides.withMedia && event.mediaIds) {
+                        mediaIds.push(...event.mediaIds.split(','));
                     }
                 });
                 // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                momentDetailsPromises.push(overrides.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                eventDetailsPromises.push(overrides.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
 
-                const [media] = await Promise.all(momentDetailsPromises);
+                const [media] = await Promise.all(eventDetailsPromises);
 
-                const momentsMedia = getMomentsToMediaAndUsers(moments, media);
+                const eventsMedia = getEventsToMediaAndUsers(events, media);
 
-                return Promise.all(momentsMedia.signingPromises).then((signedUrlResponses) => ({
-                    moments: momentsMedia.mappedMoments,
+                return Promise.all(eventsMedia.signingPromises).then((signedUrlResponses) => ({
+                    events: eventsMedia.mappedEvents,
                     media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
                 }));
             }
 
             return {
-                moments,
+                events,
                 media: {},
             };
         });
     }
 
-    findMoments(momentIds, filters, options: any = {}) {
+    findEvents(eventIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         let restrictedLimit = filters?.limit || 1000;
         restrictedLimit = restrictedLimit > 1000 ? 1000 : restrictedLimit;
-        const orderBy = filters.orderBy || `${MOMENTS_TABLE_NAME}.updatedAt`;
+        const orderBy = filters.orderBy || `${EVENTS_TABLE_NAME}.updatedAt`;
         const order = filters.order || 'DESC';
 
         let query = knexBuilder
-            .from(MOMENTS_TABLE_NAME)
+            .from(EVENTS_TABLE_NAME)
             .orderBy(orderBy, order)
             .where('createdAt', '<', filters.before || new Date())
-            .whereIn('id', momentIds || [])
+            .whereIn('id', eventIds || [])
             .limit(restrictedLimit);
 
         if (filters.isDraft != null) {
@@ -306,44 +309,44 @@ export default class MomentsStore {
             query = query.where({ isMatureContent: false });
         }
 
-        return this.db.read.query(query.toString()).then(async ({ rows: moments }) => {
+        return this.db.read.query(query.toString()).then(async ({ rows: events }) => {
             if (options.withMedia || options.withUser) {
                 const mediaIds: string[] = [];
                 const userIds: string[] = [];
-                const momentDetailsPromises: Promise<any>[] = [];
+                const eventDetailsPromises: Promise<any>[] = [];
 
-                moments.forEach((moment) => {
-                    if (options.withMedia && moment.mediaIds) {
-                        mediaIds.push(...moment.mediaIds.split(','));
+                events.forEach((event) => {
+                    if (options.withMedia && event.mediaIds) {
+                        mediaIds.push(...event.mediaIds.split(','));
                     }
                     if (options.withUser) {
-                        userIds.push(moment.fromUserId);
+                        userIds.push(event.fromUserId);
                     }
                 });
                 // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                momentDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
-                momentDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                eventDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                eventDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
 
-                const [media, users] = await Promise.all(momentDetailsPromises);
+                const [media, users] = await Promise.all(eventDetailsPromises);
 
-                const momentsMediaUsers = getMomentsToMediaAndUsers(moments, media, users);
+                const eventsMediaUsers = getEventsToMediaAndUsers(events, media, users);
 
-                return Promise.all(momentsMediaUsers.signingPromises).then((signedUrlResponses) => ({
-                    moments: momentsMediaUsers.mappedMoments,
+                return Promise.all(eventsMediaUsers.signingPromises).then((signedUrlResponses) => ({
+                    events: eventsMediaUsers.mappedEvents,
                     media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
-                    users: momentsMediaUsers.matchingUsers,
+                    users: eventsMediaUsers.matchingUsers,
                 }));
             }
 
             return {
-                moments,
+                events,
                 media: {},
                 users: {},
             };
         });
     }
 
-    createMoment(params: ICreateMomentParams) {
+    createEvent(params: ICreateEventParams) {
         const region = countryReverseGeo.get_country(params.latitude, params.longitude);
         const notificationMsg = params.notificationMsg
             ? `${sanitizeNotificationMsg(params.notificationMsg).substring(0, maxNotificationMsgLength)}`
@@ -370,7 +373,7 @@ export default class MomentsStore {
 
         return mediaPromise.then((mediaIds: string | undefined) => {
             const sanitizedParams = {
-                areaType: params.areaType || 'moments',
+                areaType: params.areaType || 'events',
                 category: params.category || 'uncategorized',
                 createdAt: params.createdAt || undefined, // TODO: make more secure (only for social sync)
                 expiresAt: params.expiresAt,
@@ -387,8 +390,8 @@ export default class MomentsStore {
                 hashTags: params.hashTags || '',
                 maxViews: params.maxViews || 0,
                 maxProximity: params.maxProximity,
-                // nearbySpacesSnapshot is used for drafted moments so we can get nearby spaces without requiring location
-                // to edit a drafted moment
+                // nearbySpacesSnapshot is used for drafted events so we can get nearby spaces without requiring location
+                // to edit a drafted event
                 nearbySpacesSnapshot: params.nearbySpacesSnapshot ? JSON.stringify(params.nearbySpacesSnapshot) : JSON.stringify([]),
                 latitude: params.latitude,
                 longitude: params.longitude,
@@ -399,7 +402,7 @@ export default class MomentsStore {
             };
 
             const queryString = knexBuilder.insert(sanitizedParams)
-                .into(MOMENTS_TABLE_NAME)
+                .into(EVENTS_TABLE_NAME)
                 .returning('*')
                 .toString();
 
@@ -407,7 +410,7 @@ export default class MomentsStore {
         });
     }
 
-    updateMoment(id: string, params: ICreateMomentParams) {
+    updateEvent(id: string, params: ICreateEventParams) {
         const region = countryReverseGeo.get_country(params.latitude, params.longitude);
         const notificationMsg = params.notificationMsg
             ? `${sanitizeNotificationMsg(params.notificationMsg).substring(0, maxNotificationMsgLength)}`
@@ -434,7 +437,7 @@ export default class MomentsStore {
 
         return mediaPromise.then((mediaIds: string | undefined) => {
             const sanitizedParams = {
-                areaType: params.areaType || 'moments',
+                areaType: params.areaType || 'events',
                 category: params.category || 'uncategorized',
                 expiresAt: params.expiresAt,
                 fromUserId: params.fromUserId,
@@ -461,7 +464,7 @@ export default class MomentsStore {
             };
 
             const queryString = knexBuilder.update(sanitizedParams)
-                .into(MOMENTS_TABLE_NAME)
+                .into(EVENTS_TABLE_NAME)
                 .where({ id })
                 .returning('*')
                 .toString();
@@ -472,17 +475,17 @@ export default class MomentsStore {
 
     delete(fromUserId: string) {
         const queryString = knexBuilder.delete()
-            .from(MOMENTS_TABLE_NAME)
+            .from(EVENTS_TABLE_NAME)
             .where('fromUserId', fromUserId)
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
-    deleteMoments(params: IDeleteAreasParams) {
+    deleteEvents(params: IDeleteAreasParams) {
         // TODO: RSERV-52 | Consider archiving only, and delete associated reactions from reactions-service
         const queryString = knexBuilder.delete()
-            .from(MOMENTS_TABLE_NAME)
+            .from(EVENTS_TABLE_NAME)
             .where('fromUserId', params.fromUserId)
             .whereIn('id', params.ids)
             .toString();

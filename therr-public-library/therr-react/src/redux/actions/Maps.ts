@@ -15,7 +15,7 @@ interface IMapFilters {
     filtersVisibility: any[],
 }
 
-export type IEngagementTypes = 'check-in' | 'moment';
+export type IEngagementTypes = 'check-in' | 'moment' | 'event';
 
 const Maps = {
     // Media
@@ -26,6 +26,102 @@ const Maps = {
         });
 
         return response?.data;
+    }),
+
+    // Events
+    createEvent: (data: any) => (dispatch: any) => MapsService.createEvent(data).then((response: any) => {
+        if (data.isDraft) {
+            dispatch({
+                type: ContentActionTypes.EVENT_DRAFT_CREATED,
+                data: response.data,
+            });
+        } else {
+            dispatch({
+                type: MapActionTypes.EVENT_CREATED,
+                data: response.data,
+            });
+        }
+
+        if (data.spaceId) {
+            dispatch({
+                type: MapActionTypes.UPDATE_RECENT_ENGAGEMENTS,
+                data: {
+                    spaceId: data.spaceId,
+                    engagementType: 'event',
+                    timestamp: Date.now(),
+                },
+            });
+        }
+
+        return response?.data;
+    }),
+    updateEvent: (id: string, data: any, isCompletedDraft: false) => (dispatch: any) => MapsService
+        .updateEvent(id, data).then((response: any) => {
+            if (isCompletedDraft) {
+                dispatch({
+                    type: MapActionTypes.EVENT_CREATED,
+                    data: {
+                        id: response.data.id,
+                        ...data,
+                    }, // server doesn't return changes, so use request data
+                });
+            }
+
+            // TODO: Not sure if this is necessary if transitioning from draft, but it doesn't hurt
+            dispatch({
+                type: MapActionTypes.EVENT_UPDATED,
+                data: {
+                    id: response.data.id,
+                    ...data,
+                }, // server doesn't return changes, so use request data
+            });
+        }),
+    getEventDetails: (id: number, data: any) => (dispatch: any) => MapsService.getEventDetails(id, data)
+        .then((response: any) => {
+            dispatch({
+                type: MapActionTypes.GET_EVENT_DETAILS,
+                data: {
+                    event: {}, // sometimes event is undefined if recently deleted
+                    ...response.data,
+                },
+            });
+
+            return response.data;
+        }),
+    // searchEvents: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
+    //     .searchEvents(query, data).then((response: any) => {
+    //         if (query.query === 'connections') {
+    //             dispatch({
+    //                 type: MapActionTypes.GET_EVENTS,
+    //                 data: response.data,
+    //             });
+    //         }
+
+    //         if (query.query === 'me') {
+    //             dispatch({
+    //                 type: MapActionTypes.GET_MY_EVENTS,
+    //                 data: response.data,
+    //             });
+    //         }
+
+    //         // Return so we can react by searching for associated reactions
+    //         return Promise.resolve(response.data);
+    //     }),
+    deleteEvent: (args: { ids: string[] }) => (dispatch: any) => MapsService.deleteEvents(args).then(() => {
+        dispatch({
+            type: MapActionTypes.EVENT_DELETED,
+            data: {
+                ids: args.ids,
+            },
+        });
+        args.ids.forEach((id) => {
+            dispatch({
+                type: ContentActionTypes.REMOVE_ACTIVE_EVENTS,
+                data: {
+                    eventId: id,
+                },
+            });
+        });
     }),
 
     // Moments

@@ -1,4 +1,5 @@
 import connection, { IConnection } from './connection';
+import EventsStore from './EventsStore';
 import ExternalMediaIntegrationsStore from './ExternalMediaIntegrationsStore';
 import MediaStore from './MediaStore';
 import MomentsStore from './MomentsStore';
@@ -9,6 +10,8 @@ import SpaceIncentiveCouponsStore from './SpaceIncentiveCouponsStore';
 
 class Store {
     db: IConnection;
+
+    events: EventsStore;
 
     externalMediaIntegrations: ExternalMediaIntegrationsStore;
 
@@ -30,6 +33,8 @@ class Store {
         this.externalMediaIntegrations = new ExternalMediaIntegrationsStore(this.db);
 
         this.media = new MediaStore(this.db);
+
+        this.events = new EventsStore(this.db, this.media);
 
         this.moments = new MomentsStore(this.db, this.media);
 

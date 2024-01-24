@@ -12,6 +12,7 @@ export interface ICreateForumMessageParams {
     message: string;
     fromUserId: string;
     fromUserLocale: number;
+    isAnnouncement?: boolean;
 }
 
 export interface IUpdateForumMessageConditions {
@@ -48,7 +49,10 @@ export default class ForumMessagesStore {
         let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(FORUM_MESSAGES_TABLE_NAME)
-            .where('forumId', forumId)
+            .where({
+                forumId,
+                isAnnouncement: false,
+            })
             .orderBy(`${FORUM_MESSAGES_TABLE_NAME}.createdAt`, 'desc');
 
         if (conditions.filterBy && conditions.query) {

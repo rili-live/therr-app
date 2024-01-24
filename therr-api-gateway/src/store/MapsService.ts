@@ -25,7 +25,13 @@ class MapsServiceCache {
     }
 
     public setAreaDetails(areaType: IAreaType, data: any, ttl = DEFAULT_TTL_SECONDS) {
-        const areaId = areaType === 'moments' ? data?.moment?.id : data?.space?.id;
+        let areaId = data?.moment?.id;
+        if (areaType === 'events') {
+            areaId = data?.event?.id;
+        }
+        if (areaType === 'spaces') {
+            areaId = data?.space?.id;
+        }
 
         if (!areaId) {
             return null;
