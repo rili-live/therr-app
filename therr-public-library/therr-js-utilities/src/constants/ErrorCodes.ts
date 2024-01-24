@@ -8,6 +8,7 @@ const ErrorCodes = {
     INSUFFICIENT_THERR_COIN_FUNDS: 'InsufficientTherrCoinFunds',
     METRIC_ACCESS_RESTRICTED: 'MetricAccessRestricted',
     MOMENT_ACCESS_RESTRICTED: 'MomentAccessRestricted',
+    EVENT_ACCESS_RESTRICTED: 'EventAccessRestricted',
     TOO_MANY_ACCOUNTS: 'OnlyThreeAccountsPerPhoneNumber',
     THOUGHT_ACCESS_RESTRICTED: 'ThoughtAccessRestricted',
     SPACE_ACCESS_RESTRICTED: 'SpaceAccessRestricted',

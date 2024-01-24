@@ -37,6 +37,7 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData, decodedAuthenticatio
             message: dbMessage,
             fromUserId: data.userId,
             isUnread: false, // TODO: RSERV-36 - derive from frontend message
+            isAnnouncement: true,
         },
     }, socket, decodedAuthenticationToken).then(({ data: createdMessage }) => {
         // Emits an event back to the client who joined

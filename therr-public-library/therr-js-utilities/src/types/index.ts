@@ -1,4 +1,4 @@
-type IAreaType = 'moments' | 'spaces';
+type IAreaType = 'moments' | 'spaces' | 'events';
 type IPostType = 'thoughts' | IAreaType;
 
 export {

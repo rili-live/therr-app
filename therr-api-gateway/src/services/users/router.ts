@@ -48,6 +48,7 @@ import {
 } from './validation/thoughts';
 import CacheStore from '../../store';
 import authorize, { AccessCheckType } from '../../middleware/authorize';
+import { createGroupLimiter } from './limitation/groups';
 
 const usersServiceRouter = express.Router();
 
@@ -249,7 +250,7 @@ usersServiceRouter.get('/users-groups/:id', handleServiceRequest({
     method: 'get',
 }));
 
-usersServiceRouter.post('/users-groups', handleServiceRequest({
+usersServiceRouter.post('/users-groups', createGroupLimiter, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

@@ -4,6 +4,7 @@ export interface IMapState extends Immutable.ImmutableObject<any> {
     hasUserLocationLoaded?: boolean;
     longitude?: number;
     latitude?: number;
+    events: { [id: string]: any };
     moments: { [id: string]: any };
     spaces: { [id: string]: any };
     radiusOfAwareness: number,
@@ -16,6 +17,14 @@ export interface IMapState extends Immutable.ImmutableObject<any> {
 }
 
 export enum MapActionTypes {
+    // Events
+    EVENT_CREATED = 'EVENT_CREATED',
+    EVENT_UPDATED = 'EVENT_UPDATED',
+    EVENT_DELETED = 'EVENT_DELETED',
+    GET_EVENT_DETAILS = 'GET_EVENT_DETAILS',
+    GET_EVENTS = 'GET_EVENTS',
+    GET_MY_EVENTS = 'GET_MY_EVENTS',
+
     // Moments
     MOMENT_CREATED = 'MOMENT_CREATED',
     MOMENT_UPDATED = 'MOMENT_UPDATED',

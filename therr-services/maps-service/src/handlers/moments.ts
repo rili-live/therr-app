@@ -85,6 +85,7 @@ const rewardMomentPosted = ({
             messages: ['User attempted to claim rewards'],
             traceArgs: {
                 'space.incentive': therrCoinIncentive,
+                'space.incentiveKey': IncentiveRequirementKeys.SHARE_A_MOMENT,
                 'space.isIncentiveClaimable': isClaimable,
                 'space.incentiveAmount': therrCoinIncentive?.incentiveRewardValue,
                 'user.id': userId,

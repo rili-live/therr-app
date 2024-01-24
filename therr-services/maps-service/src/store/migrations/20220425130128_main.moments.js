@@ -3,5 +3,5 @@ exports.up = (knex) => knex.schema.withSchema('main').alterTable('moments', asyn
 });
 
 exports.down = (knex) => knex.schema.withSchema('main').alterTable('moments', (table) => {
-    table.dropColumn('areaType');
+    table.dropColumn('isDraft');
 });
