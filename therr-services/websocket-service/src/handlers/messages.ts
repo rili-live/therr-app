@@ -124,17 +124,21 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
 };
 
 const sendForumMessage = (socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
-    restRequest({
-        method: 'post',
-        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseMessagesServiceRoute}/forums-messages`,
-        data: {
-            forumId: data.roomId,
-            message: data.message,
-            fromUserId: data.userId,
-            isUnread: false, // TODO: RSERV-36 - derive from frontend message
-        },
-    }, socket, decodedAuthenticationToken).then(({ data: message }) => {
-        const timeFormatted = moment(message.createdAt || Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
+    // Don't persist announcements
+    const createDbMessagePromise = data.isAnnouncement && data.message?.includes('joined the room')
+        ? Promise.resolve({ data: {} })
+        : restRequest({
+            method: 'post',
+            url: `${globalConfig[process.env.NODE_ENV || 'development'].baseMessagesServiceRoute}/forums-messages`,
+            data: {
+                forumId: data.roomId,
+                message: data.message,
+                fromUserId: data.userId,
+                isUnread: false, // TODO: RSERV-36 - derive from frontend message
+            },
+        }, socket, decodedAuthenticationToken);
+    createDbMessagePromise.then(({ data: message }) => {
+        const timeFormatted = moment(message?.createdAt || Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
         socket.emit('action', {
             type: SocketServerActionTypes.SEND_MESSAGE,
             data: {
