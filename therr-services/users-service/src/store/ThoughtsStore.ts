@@ -147,8 +147,7 @@ export default class ThoughtsStore {
         // hard limit to prevent overloading client
         let query = knexBuilder
             .from(THOUGHTS_TABLE_NAME)
-            .where(`${THOUGHTS_TABLE_NAME}.id`, thoughtId)
-            .andWhere(`${THOUGHTS_TABLE_NAME}.parentId`, null);
+            .where(`${THOUGHTS_TABLE_NAME}.id`, thoughtId);
 
         if (options.withReplies) {
             query = query

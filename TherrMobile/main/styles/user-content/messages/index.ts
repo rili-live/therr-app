@@ -74,6 +74,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             alignItems: 'center',
             justifyContent: 'center',
             paddingVertical: 12,
+            height: 80,
         },
         userImage: {
             // color: therrTheme.colors.primary3,
