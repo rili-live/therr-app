@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, FlatList, View } from 'react-native';
+import { SafeAreaView, FlatList, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -15,6 +15,7 @@ import RoundInput from '../../components/Input/Round';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import TherrIcon from '../../components/TherrIcon';
 import LoadingPlaceholder from './LoadingPlaceholder';
+import spacingStyles from '../../styles/layouts/spacing';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -193,19 +194,24 @@ class DirectMessage extends React.Component<
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={[this.theme.styles.safeAreaView]}>
-                    <View style={this.themeMessage.styles.container}>
+                    <KeyboardAvoidingView
+                        behavior="padding"
+                        style={this.themeMessage.styles.container}
+                        keyboardVerticalOffset={this.themeMessage.styles.sendInputsContainer.height}
+                        enabled={Platform.OS === 'ios'}
+                    >
                         {
                             isLoading ?
-                                <>
+                                <View style={spacingStyles.flex}>
                                     <LoadingPlaceholder />
                                     <LoadingPlaceholder />
                                     <LoadingPlaceholder />
                                     <LoadingPlaceholder />
-                                </> :
+                                </View> :
                                 <FlatList
                                     data={dms}
                                     inverted
-                                    keyExtractor={(item) => String(item.key)}
+                                    keyExtractor={(item) => String(item.id || item.key)}
                                     renderItem={({ item, index }) => (
                                         <TextMessage
                                             connectionDetails={connectionDetails}
@@ -245,7 +251,7 @@ class DirectMessage extends React.Component<
                                 onPress={this.handleSend}
                             />
                         </View>
-                    </View>
+                    </KeyboardAvoidingView>
                 </SafeAreaView>
             </>
         );

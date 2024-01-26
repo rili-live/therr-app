@@ -2,6 +2,8 @@ import React from 'react';
 import {
     Dimensions,
     FlatList,
+    KeyboardAvoidingView,
+    Platform,
     SafeAreaView,
     Text,
     View,
@@ -578,40 +580,48 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             />
                         </View>
                     </View>
-                    <View style={[this.themeAccentLayout.styles.footer, this.themeChat.styles.footer]}>
-                        <Button
-                            containerStyle={this.themeAccentForms.styles.backButtonContainerFixed}
-                            buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.navigate('Connect', {
-                                activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
-                            })}
-                            icon={
-                                <FontAwesome5Icon
-                                    name="arrow-left"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                        <RoundInput
-                            value={msgInputVal}
-                            onChangeText={this.handleInputChange}
-                            placeholder={this.translate(
-                                'pages.directMessage.inputPlaceholder'
-                            )}
-                            onSubmitEditing={this.handleSend}
-                            containerStyle={this.themeMessage.styles.inputContainer}
-                            errorStyle={this.theme.styles.displayNone}
-                            themeForms={this.themeForms}
-                        />
-                        <Button
-                            icon={<TherrIcon name="send" size={26} style={this.themeMessage.styles.icon} />}
-                            buttonStyle={this.themeMessage.styles.sendBtn}
-                            containerStyle={[this.themeMessage.styles.sendBtnContainer, this.themeChat.styles.sendBtnContainer]}
-                            onPress={this.handleSend}
-                        />
-                    </View>
+                    <KeyboardAvoidingView
+                        behavior="position"
+                        keyboardVerticalOffset={this.themeAccentLayout.styles.footer.height - 8}
+                        enabled={Platform.OS === 'ios'}
+                    >
+                        <View
+                            style={[this.themeAccentLayout.styles.footer, this.themeChat.styles.footer]}
+                        >
+                            <Button
+                                containerStyle={this.themeAccentForms.styles.backButtonContainerFixed}
+                                buttonStyle={this.themeAccentForms.styles.backButton}
+                                onPress={() => navigation.navigate('Connect', {
+                                    activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                                })}
+                                icon={
+                                    <FontAwesome5Icon
+                                        name="arrow-left"
+                                        size={25}
+                                        color={'black'}
+                                    />
+                                }
+                                type="clear"
+                            />
+                            <RoundInput
+                                value={msgInputVal}
+                                onChangeText={this.handleInputChange}
+                                placeholder={this.translate(
+                                    'pages.directMessage.inputPlaceholder'
+                                )}
+                                onSubmitEditing={this.handleSend}
+                                containerStyle={this.themeMessage.styles.inputContainer}
+                                errorStyle={this.theme.styles.displayNone}
+                                themeForms={this.themeForms}
+                            />
+                            <Button
+                                icon={<TherrIcon name="send" size={26} style={this.themeMessage.styles.icon} />}
+                                buttonStyle={this.themeMessage.styles.sendBtn}
+                                containerStyle={[this.themeMessage.styles.sendBtnContainer, this.themeChat.styles.sendBtnContainer]}
+                                onPress={this.handleSend}
+                            />
+                        </View>
+                    </KeyboardAvoidingView>
                 </SafeAreaView>
                 {/* <ViewGroupButtonMenu navigation={navigation} translate={this.translate} user={user} /> */}
                 {/* Create Chat button */}

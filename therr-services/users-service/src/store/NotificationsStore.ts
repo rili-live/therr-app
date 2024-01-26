@@ -18,8 +18,6 @@ export interface ICreateNotificationParams {
     messageLocaleKey?: any;
     // messageLocaleKey?: Notifications.MessageKeys;
     messageParams?: any;
-    retentionEmailType?: PushNotifications.Types;
-    groupName?: string;
 }
 
 export interface IUpdateNotificationConditions {

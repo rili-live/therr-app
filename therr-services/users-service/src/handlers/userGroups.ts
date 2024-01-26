@@ -93,6 +93,7 @@ const createUserGroup = (req, res) => {
             },
             ['id', 'email', 'userName', 'isUnclaimed', 'deviceMobileFirebaseToken'],
         ).then((users) => {
+            // NOTE: Users should already be a member of their own group, but no reason to error in that case
             if (users.length !== 2 && userId !== group.authorId) {
                 return handleHttpError({
                     res,
@@ -100,7 +101,7 @@ const createUserGroup = (req, res) => {
                     statusCode: 400,
                 });
             }
-            const fromUserNames = [users[0].userName];
+            const fromUserNames = [(users.find((u) => u.id !== group.authorId) || users[0])?.userName];
 
             return Store.userGroups.create({
                 groupId,

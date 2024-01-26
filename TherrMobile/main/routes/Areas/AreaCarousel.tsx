@@ -104,7 +104,7 @@ const renderItem = ({ item: post }, {
                     toggleThoughtOptions={toggleContentOptions}
                     hashtags={post.hashTags ? post.hashTags.split(',') : []}
                     thought={post}
-                    inspectThought={() => inspectContent(post)} // TODO
+                    inspectThought={inspectContent} // TODO
                     // TODO: Get username from response
                     user={user}
                     contentUserDetails={userDetails}

@@ -37,7 +37,7 @@ interface IThoughtDisplayProps {
     date: string;
     toggleThoughtOptions: Function;
     hashtags: any[];
-    inspectThought: () => any;
+    inspectThought: (thought: any) => any;
     isDarkMode: boolean;
     isExpanded?: boolean;
     isRepliable?: boolean;
@@ -94,9 +94,9 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
 
     // TODO: Open full screen reply editor
     onCommentPress = () => {
-        const { inspectThought } = this.props;
+        const { inspectThought, thought } = this.props;
 
-        inspectThought();
+        inspectThought(thought);
     };
 
     onLikePress = (thought) => {
@@ -125,7 +125,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             toggleThoughtOptions,
             hashtags,
             isDarkMode,
-            // inspectThought,
+            inspectThought,
             isExpanded,
             isRepliable,
             thought,
@@ -198,6 +198,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                     likeCount={likeCount}
                                     isRepliable={isRepliable}
                                     likeColor={likeColor}
+                                    inspectThought={inspectThought}
                                     onBookmarkPress={this.onBookmarkPress}
                                     onCommentPress={this.onCommentPress}
                                     onLikePress={this.onLikePress}
@@ -220,6 +221,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                             isRepliable={isRepliable}
                             likeColor={likeColor}
                             likeCount={likeCount}
+                            inspectThought={inspectThought}
                             onBookmarkPress={this.onBookmarkPress}
                             onCommentPress={this.onCommentPress}
                             onLikePress={this.onLikePress}
@@ -243,6 +245,7 @@ const ThoughtContent = ({
     isRepliable,
     likeColor,
     likeCount,
+    inspectThought,
     onBookmarkPress,
     onCommentPress,
     onLikePress,
@@ -252,7 +255,7 @@ const ThoughtContent = ({
     thought,
 }) => {
     return (
-        <View style={themeViewContent.styles.thoughtContentContainer}>
+        <Pressable style={themeViewContent.styles.thoughtContentContainer} onPress={() => inspectThought(thought)}>
             <View style={spacingStyles.flexOne}>
                 <Text style={themeViewContent.styles.thoughtMessage} numberOfLines={isExpanded ? undefined : 7}>
                     <Autolink
@@ -331,7 +334,7 @@ const ThoughtContent = ({
                     }
                 </View>
             </View>
-        </View>
+        </Pressable>
     );
 };
 

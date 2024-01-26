@@ -69,7 +69,7 @@ const ForumMessage = ({
                     }
                     <Text style={themeChat.styles.messageTime}>{timeSplit[1]}</Text>
                 </View>
-                <Text style={themeChat.styles.messageText}>{item.text}</Text>
+                <Text selectable style={themeChat.styles.messageText}>{item.text}</Text>
             </View>
         </View>
     );
