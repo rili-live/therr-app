@@ -38,6 +38,7 @@ import TherrIcon from '../components/TherrIcon';
 import RoundTextInput from '../components/Input/TextInput/Round';
 import { HAPTIC_FEEDBACK_TYPE } from '../constants';
 import spacingStyles from '../styles/layouts/spacing';
+import { navToViewContent } from '../utilities/postViewHelpers';
 // import AccentInput from '../components/Input/Accent';
 
 const hapticFeedbackOptions = {
@@ -370,9 +371,14 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
     };
 
     goBack = () => {
-        const { navigation, route } = this.props;
+        const { navigation, route, user } = this.props;
         const { previousView } = route.params;
-        if (previousView && (previousView === 'Areas' || previousView === 'Notifications')) {
+        const { fetchedThought } = this.state;
+        if (fetchedThought?.parentId) {
+            navToViewContent({
+                id: fetchedThought.parentId,
+            }, user, navigation.replace);
+        } else if (previousView && (previousView === 'Areas' || previousView === 'Notifications')) {
             if (previousView === 'Areas') {
                 navigation.goBack();
             } else if (previousView === 'Notifications') {
@@ -393,6 +399,12 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                 id: userId,
             },
         });
+    };
+
+    goToContent = (content) => {
+        const { navigation, user } = this.props;
+
+        navToViewContent(content, user, navigation.replace);
     };
 
     onUpdateThoughtReaction = (thoughtId, data) => {
@@ -508,7 +520,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                                         hashtags={this.hashtags}
                                         isDarkMode={true}
                                         isExpanded={false}
-                                        inspectThought={() => null}
+                                        inspectThought={this.goToContent} // Links to child/nested thought
                                         key={reply.id}
                                         thought={reply}
                                         goToViewUser={this.goToViewUser}
