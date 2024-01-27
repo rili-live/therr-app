@@ -1,10 +1,12 @@
 import { RequestHandler } from 'express';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import sendUserFeedbackEmail from '../api/email/admin/sendUserFeedbackEmail';
 import sendSubscriberVerificationEmail from '../api/email/sendSubscriberVerificationEmail';
+import { redactUserCreds } from './helpers/user';
 
 // CREATE
 const createFeedback: RequestHandler = (req: any, res: any) => {
@@ -83,7 +85,75 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
         }));
 };
 
+const updateSubscriptions: RequestHandler = (req: any, res: any) => {
+    const {
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
+
+    const {
+        email,
+        settingsEmailMarketing,
+        settingsEmailBackground,
+        settingsEmailInvites,
+        settingsEmailLikes,
+        settingsEmailMentions,
+        settingsEmailMessages,
+        settingsEmailReminders,
+        settingsEmailBusMarketing,
+    } = req.body;
+
+    if (!email) {
+        return handleHttpError({
+            res,
+            message: 'E-mail is a required field',
+            statusCode: 400,
+            errorCode: ErrorCodes.UNKNOWN_ERROR,
+        });
+    }
+
+    return Store.users.updateUser({
+        settingsEmailMarketing,
+        settingsEmailBusMarketing,
+        settingsEmailBackground,
+        settingsEmailInvites,
+        settingsEmailLikes,
+        settingsEmailMentions,
+        settingsEmailMessages,
+        settingsEmailReminders,
+    }, {
+        id: userId,
+        email,
+    }).then(([updatedUser]) => {
+        if (!updatedUser) {
+            return handleHttpError({
+                res,
+                message: 'User not found',
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            });
+        }
+
+        redactUserCreds(updatedUser);
+
+        return res.status(201).send({
+            message: 'E-mail preferences successfully updated',
+            result: {
+                settingsEmailMarketing: updatedUser.settingsEmailMarketing,
+                settingsEmailBusMarketing: updatedUser.settingsEmailBusMarketing,
+                settingsEmailBackground: updatedUser.settingsEmailBackground,
+                settingsEmailInvites: updatedUser.settingsEmailInvites,
+                settingsEmailLikes: updatedUser.settingsEmailLikes,
+                settingsEmailMentions: updatedUser.settingsEmailMentions,
+                settingsEmailMessages: updatedUser.settingsEmailMessages,
+                settingsEmailReminders: updatedUser.settingsEmailReminders,
+            },
+        });
+    });
+};
+
 export {
     createFeedback,
     createSubscriber,
+    updateSubscriptions,
 };

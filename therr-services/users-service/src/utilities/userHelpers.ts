@@ -42,3 +42,22 @@ export const createUserToken = (user: any, userOrgs: any[], rememberMe?: boolean
         },
     );
 };
+
+export const createUserEmailToken = (user: { id: string, email: string }) => {
+    const {
+        id,
+        email,
+    } = user;
+
+    // Sign the JWT
+    return jwt.sign(
+        {
+            id,
+            email,
+        },
+        (process.env.JWT_EMAIL_SECRET || ''),
+        {
+            algorithm: 'HS256',
+        },
+    );
+};

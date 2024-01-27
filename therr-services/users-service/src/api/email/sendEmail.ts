@@ -6,6 +6,7 @@ import { awsSES } from '../aws';
 import Store from '../../store';
 import { getHostContext } from '../../constants/hostContext';
 import templateString from './template';
+import { createUserEmailToken } from '../../utilities/userHelpers';
 
 type IMessageCategories = 'marketing';
 
@@ -16,6 +17,10 @@ export interface ISendEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    recipientIdentifiers?: {
+        id: string;
+        accountEmail: string;
+    };
 }
 
 export interface ISendEmailHtmlConfig {
@@ -62,6 +67,19 @@ export default (
     template: Handlebars.TemplateDelegate = defaultTherrEmailTemplate,
 ) => new Promise((resolve, reject) => {
     const contextConfig = getHostContext(emailConfig.agencyDomainName);
+    let unsubscribeUrl = htmlConfig.unsubscribeUrl || contextConfig.emailTemplates.unsubscribeUrl;
+    // TODO: Generate user email token based on host context
+    const unsubscribeUrlToken = emailConfig.recipientIdentifiers
+        ? createUserEmailToken({
+            id: emailConfig.recipientIdentifiers.id,
+            email: emailConfig.recipientIdentifiers.accountEmail,
+        })
+        : '';
+    // TODO: User better query string param logic
+    if (unsubscribeUrlToken && !unsubscribeUrl?.includes('?token')) {
+        unsubscribeUrl = `${unsubscribeUrl}?token=${unsubscribeUrlToken}`;
+    }
+
     const sanitizedHtmlConfig: ISendEmailHtmlConfig = {
         ...htmlConfig,
         messageCategory: htmlConfig.messageCategory || 'marketing',
@@ -70,7 +88,7 @@ export default (
         logoAltText: htmlConfig.logoAltText || contextConfig.emailTemplates.logoAltText,
         logoRelativePath: htmlConfig.logoRelativePath || contextConfig.emailTemplates.logoRelativePath,
         footerImageRelativePath: htmlConfig.footerImageRelativePath || contextConfig.emailTemplates.footerImageRelativePath,
-        unsubscribeUrl: htmlConfig.unsubscribeUrl || contextConfig.emailTemplates.unsubscribeUrl,
+        unsubscribeUrl,
         legalBusinessName: htmlConfig.legalBusinessName || contextConfig.emailTemplates.legalBusinessName,
         businessCopyrightYear: htmlConfig.businessCopyrightYear || contextConfig.emailTemplates.businessCopyrightYear,
     };

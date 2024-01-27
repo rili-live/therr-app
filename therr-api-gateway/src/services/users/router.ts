@@ -38,6 +38,7 @@ import {
     userConnectionLimiter,
     multiInviteLimiter,
     subscribeAttemptLimiter,
+    unsubscribeAttemptLimiter,
 } from './limitation/auth';
 import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
 import {
@@ -49,6 +50,7 @@ import {
 import CacheStore from '../../store';
 import authorize, { AccessCheckType } from '../../middleware/authorize';
 import { createGroupLimiter } from './limitation/groups';
+import authenticateUnsubscribe from '../../middleware/authenticateUnsubscribe';
 
 const usersServiceRouter = express.Router();
 
@@ -319,6 +321,11 @@ usersServiceRouter.post('/subscribers/send-feedback', feedbackAttemptLimiter, se
 }));
 
 usersServiceRouter.post('/subscribers/signup', subscribeAttemptLimiter, subscribersSignupValidation, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.post('/subscribers/unsubscribe', authenticateUnsubscribe, unsubscribeAttemptLimiter, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
