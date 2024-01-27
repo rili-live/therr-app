@@ -90,3 +90,8 @@ spec:
             secretKeyRef:
               name: therrjwtsecret
               key: THERRJWT_SECRET
+        - name: JWT_EMAIL_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: therrjwtemailsecret
+              key: THERRJWT_EMAIL_SECRET

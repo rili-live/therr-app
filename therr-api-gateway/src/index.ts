@@ -57,6 +57,7 @@ app.use(authenticate.unless({
         { url: '/', methods: ['GET'] }, // healthcheck
         // { url: '/favicon.ico', methods: ['GET'] }, // favicon
         { url: '/v1/users-service/subscribers/signup', methods: ['POST'] }, // email marketing subscribe
+        { url: '/v1/users-service/subscribers/unsubscribe', methods: ['POST'] }, // Update E-mail subscription settings
         { url: '/v1/users-service/auth', methods: ['POST'] }, // login
         { url: '/v1/users-service/payments/webhook', methods: ['POST'] }, // webhook
         { url: '/v1/users-service/users', methods: ['POST'] }, // register
