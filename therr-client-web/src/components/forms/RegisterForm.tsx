@@ -4,6 +4,7 @@ import { isValidPhoneNumber } from 'react-phone-number-input';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
 import {
     ButtonPrimary,
+    CheckBox,
     Input,
     PasswordRequirements,
 } from 'therr-react/components';
@@ -40,7 +41,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
     }
 
     isFormDisabled() {
-        return !this.state.inputs.email || !this.state.inputs.password || !this.isFormValid();
+        return !this.state.inputs.email || !this.state.inputs.password || !this.state.inputs.hasAgreedToTerms || !this.isFormValid();
     }
 
     isFormValid() {
@@ -64,6 +65,21 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
         if (name === 'userName') {
             newInputChanges[name] = value.toLowerCase();
         }
+
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                ...newInputChanges,
+            },
+        });
+    };
+
+    onCheckboxChange: React.ChangeEventHandler<HTMLInputElement> = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name } = event.currentTarget;
+
+        const newInputChanges = {
+            [name]: !this.state.inputs[name],
+        };
 
         this.setState({
             inputs: {
@@ -150,14 +166,23 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                         translate={this.translate}
                     />
 
-                    <div className="text-left">
-                        <Link to="/login">{this.translate('components.registerForm.buttons.backToLogin')}</Link>
-                    </div>
+                    <CheckBox
+                        id="terms_and_conditions"
+                        name="hasAgreedToTerms"
+                        label={this.translate('components.registerForm.labels.termsAndConditions')}
+                        value={this.state.inputs.hasAgreedToTerms}
+                        onChange={this.onCheckboxChange}
+                        className="text-center"
+                    />
 
                     <div className="form-field text-right">
                         <ButtonPrimary
                             id="register"
                             text={this.translate('components.registerForm.buttons.register')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
+                    </div>
+
+                    <div className="text-left">
+                        <Link to="/login">{this.translate('components.registerForm.buttons.backToLogin')}</Link>
                     </div>
 
                     <div className="text-center margin-top-lg">
