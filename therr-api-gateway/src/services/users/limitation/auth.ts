@@ -10,6 +10,7 @@ const rewardRequestLimitReachedMessage = 'Too many requests to exchange coins.';
 const userConnectionLimitReachedMessage = 'Too many user connection requests';
 const multiInviteLimitReachedMessage = 'Too many invite requests';
 const subscribeLimitReachedMessage = 'Too many requests to subscribe.';
+const unsubscribeLimitReachedMessage = 'Too many requests to unsubscribe.';
 
 const loginAttemptLimiter = RateLimit({
     store: RateLimiterRedisStore,
@@ -47,6 +48,7 @@ const rewardRequestAttemptLimiter = buildRateLimiter(rewardRequestLimitReachedMe
 const userConnectionLimiter = buildRateLimiter(userConnectionLimitReachedMessage, 5, 60); // 5 requests per hour (60 minutes)
 const multiInviteLimiter = buildRateLimiter(multiInviteLimitReachedMessage, 1, 5);
 const subscribeAttemptLimiter = buildRateLimiter(subscribeLimitReachedMessage);
+const unsubscribeAttemptLimiter = buildRateLimiter(unsubscribeLimitReachedMessage);
 
 export {
     loginAttemptLimiter,
@@ -56,4 +58,5 @@ export {
     userConnectionLimiter,
     multiInviteLimiter,
     subscribeAttemptLimiter,
+    unsubscribeAttemptLimiter,
 };
