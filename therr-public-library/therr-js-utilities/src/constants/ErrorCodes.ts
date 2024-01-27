@@ -1,5 +1,6 @@
 const ErrorCodes = {
     ACCESS_DENIED: 'AccessDenied',
+    BAD_REQUEST: 'BadRequest',
     UNKNOWN_ERROR: 'UnknownError',
     DUPLICATE_POST: 'DuplicatePost',
     NOT_FOUND: 'NotFound',
