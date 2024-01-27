@@ -7,6 +7,7 @@ import PaginationControls from './PaginationControls';
 import {
     ButtonPrimary,
     ButtonSecondary,
+    CheckBox,
     SvgButton,
     Input,
     PasswordRequirements,
@@ -29,6 +30,7 @@ export {
     PaginationControls,
     ButtonPrimary,
     ButtonSecondary,
+    CheckBox,
     SvgButton,
     Input,
     PasswordRequirements,
