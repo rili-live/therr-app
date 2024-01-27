@@ -33,7 +33,9 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
         super(props);
 
         this.state = {
-            inputs: {},
+            inputs: {
+                settingsEmailMarketing: true,
+            },
             isPhoneNumberValid: false,
         };
 
@@ -164,6 +166,15 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                         className="password-requirements mb-2 px-2"
                         password={this.state.inputs.password}
                         translate={this.translate}
+                    />
+
+                    <CheckBox
+                        id="newsletter"
+                        name="settingsEmailMarketing"
+                        label={this.translate('components.registerForm.labels.newsletter')}
+                        value={this.state.inputs.settingsEmailMarketing}
+                        onChange={this.onCheckboxChange}
+                        className="text-center"
                     />
 
                     <CheckBox
