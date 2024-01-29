@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 import sendEmail from '../sendEmail';
+import { getHostContext } from '../../../constants/hostContext';
 
 export interface ISendNewUserAdminNotificationEmailConfig {
     charset?: string;
@@ -21,12 +22,14 @@ export interface IAccountTypeParams {
 }
 
 export default (emailParams: ISendNewUserAdminNotificationEmailConfig, templateParams: ITemplateParams, accountTypeParams: IAccountTypeParams) => {
+    const contextConfig = getHostContext(emailParams.agencyDomainName);
+
     const otherEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',');
     const dearUser = templateParams.inviterEmail
         ? `Welcome the new user, ${templateParams.name}, invited by ${templateParams.inviterEmail}!`
         : `Welcome the new user, ${templateParams.name}!`;
     const htmlConfig = {
-        header: 'Therr App: New User Registration 🎉',
+        header: `${contextConfig.brandName}: New User Registration 🎉`,
         dearUser,
         body1: `A new user signed up for the app 🎉 (${JSON.stringify(accountTypeParams)})`,
     };

@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 import sendEmail from './sendEmail';
 import * as globalConfig from '../../../../../global-config';
+import { getHostContext } from '../../constants/hostContext';
 
 export interface ISendVerificationEmailConfig {
     charset?: string;
@@ -16,11 +17,13 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendVerificationEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
+    const contextConfig = getHostContext(emailParams.agencyDomainName);
+
     const linkUrl = isDashboardRegistration
         ? `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/verify-account?token=${templateParams.verificationCodeToken}`
         : `${globalConfig[process.env.NODE_ENV].hostFull}/verify-account?token=${templateParams.verificationCodeToken}`;
     const htmlConfig = {
-        header: 'Therr App: User Account Verification',
+        header: `${contextConfig.brandName}: User Account Verification`,
         dearUser: `Welcome, ${templateParams.name}!`,
         body1: 'Your new user account was successfully created. Click the following link to verify your account.',
         buttonHref: linkUrl,

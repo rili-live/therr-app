@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 import sendEmail from '../sendEmail';
 // import * as globalConfig from '../../../../../global-config';
+import { getHostContext } from '../../../constants/hostContext';
 
 export interface ISendUserFeedbackEmailConfig {
     charset?: string;
@@ -16,8 +17,10 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendUserFeedbackEmailConfig, templateParams: any) => {
+    const contextConfig = getHostContext(emailParams.agencyDomainName);
+
     const htmlConfig = {
-        header: 'Therr App: New Feedback',
+        header: `${contextConfig.brandName}: New Feedback`,
         dearUser: `Hello from userId ${templateParams.fromUserId},`,
         body1: `Feedback: ${templateParams.feedback}`,
     };
