@@ -61,7 +61,7 @@ export default (
             if (retentionEmailType === PushNotifications.Types.newConnectionRequest) {
                 if (fromUserName) {
                     sendEmail = () => sendPendingInviteEmail({
-                        subject: `[New Connection Request] ${fromUserName} sent you a request on Therr App`,
+                        subject: `[New Connection Request] ${fromUserName} sent you a request`,
                         toAddresses: [destinationUser.email],
                         agencyDomainName: whiteLabelOrigin,
                     }, {

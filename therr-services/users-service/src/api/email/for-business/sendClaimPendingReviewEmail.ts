@@ -2,6 +2,7 @@
 /* eslint-disable max-len */
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
+import { getHostContext } from '../../../constants/hostContext';
 
 export interface ISendClaimPendingReviewEmailConfig {
     charset?: string;
@@ -15,7 +16,9 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendClaimPendingReviewEmailConfig, templateParams: ITemplateParams) => {
-    const dearUser = 'Hey Therr,';
+    const contextConfig = getHostContext(emailParams.agencyDomainName);
+
+    const dearUser = `${contextConfig.brandGreeting},`;
     const htmlConfig = {
         header: 'Business Space Request in Review',
         dearUser,

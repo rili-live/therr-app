@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 import sendEmail from '../sendEmail';
+import { getHostContext } from '../../../constants/hostContext';
 
 export interface ISendUserDeletedEmailConfig {
     charset?: string;
@@ -14,9 +15,11 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendUserDeletedEmailConfig, templateParams: ITemplateParams) => {
+    const contextConfig = getHostContext(emailParams.agencyDomainName);
+
     const otherEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',');
     const htmlConfig = {
-        header: 'Therr App: Account Deleted',
+        header: `${contextConfig.brandName}: Account Deleted`,
         dearUser: `User, ${templateParams.userName}, with id ${templateParams.userId} has deleted their account.`,
         body1: 'This use deleted their account. Ensure that any user content was also deleted.',
     };

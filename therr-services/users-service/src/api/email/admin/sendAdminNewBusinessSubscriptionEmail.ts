@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 import sendEmail from '../sendEmail';
+import { getHostContext } from '../../../constants/hostContext';
 
 export interface ISendAdminNewBusinessSubscriptionEmailConfig {
     charset?: string;
@@ -21,10 +22,12 @@ export interface IAccountTypeParams {
 }
 
 export default (emailParams: ISendAdminNewBusinessSubscriptionEmailConfig, templateParams: ITemplateParams, orderDetails: IAccountTypeParams) => {
+    const contextConfig = getHostContext(emailParams.agencyDomainName);
+
     const otherEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',');
     const dearUser = `Welcome the new business dashboard subscriber, ${templateParams.customerEmail}`;
     const htmlConfig = {
-        header: 'Therr App: New Business Subscriber 🎉',
+        header: `${contextConfig.brandName}: New Business Subscriber 🎉`,
         dearUser,
         body1: `A new user subscribed to the dashboard 🎉 (${JSON.stringify(orderDetails)})`,
     };

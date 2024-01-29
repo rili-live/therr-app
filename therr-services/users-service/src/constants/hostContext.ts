@@ -8,6 +8,8 @@ interface IBrandConfig {
 
     // Branding
     brandName: string;
+    brandGreeting: string;
+    brandGoLinkText: string;
     websiteName: string;
     contactEmail: string;
     instagramHandle: string;
@@ -49,6 +51,8 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Therr App',
+        brandGreeting: 'Hey Therr',
+        brandGoLinkText: 'Go Therr',
         websiteName: 'Therr App',
         contactEmail: 'info@therr.com',
         instagramHandle: 'therr.app',
@@ -82,6 +86,8 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Therr for Business',
+        brandGreeting: 'Hey Therr',
+        brandGoLinkText: 'Go Therr',
         websiteName: 'Therr for Business',
         contactEmail: 'info@therr.com',
         instagramHandle: 'therr.for.business',
@@ -107,6 +113,41 @@ const hostContext: IBrandConfigs = {
             logoAltText: 'Therr For Business logo',
             unsubscribeUrl: 'https://therr.com/emails/unsubscribe', // TODO: Build an actual route and page for this
             legalBusinessName: 'Therr Inc.',
+            businessCopyrightYear: '2021',
+        },
+    },
+    'dashboard.appymeal.com': {
+        host: 'dashboard.appymeal.com',
+
+        // Branding
+        brandName: 'AppyMeal',
+        brandGreeting: 'Hey',
+        brandGoLinkText: 'Get Appy',
+        websiteName: 'AppyMeal Marketing',
+        contactEmail: 'team@appymeal.com',
+        instagramHandle: 'appy_meal',
+        facebookHandle: 'AppyMealApp',
+        twitterHandle: 'AppyMealApp',
+        parentHomepageName: 'AppyMeal',
+        parentHomepageUrl: 'https://appymeal.net',
+        parentAboutUrl: 'https://appymeal.net/local-restaurants',
+        parentBlogUrl: 'https://appymeal.net/category/news',
+        parentBlogName: 'The Official \'AppyMeal\' Blog',
+        parentAppUrl: 'https://appymeal.com/',
+        parentAppName: 'AppyMeal Delivery',
+        parentContactUrl: 'https://appymeal.net/contact',
+
+        // Email Context
+        emailTemplates: {
+            brandBackgroundHexDark: '#bf1f2e',
+            brandBackgroundLight: '#ffffff',
+            fromEmail: 'team@appymeal.com',
+            fromEmailTitle: 'AppyMeal',
+            homepageLinkUri: 'https://dashboard.appymeal.com',
+            logoRelativePath: 'assets/images/appymeal-splash-logo-200.png', // TODO
+            logoAltText: 'AppyMeal logo',
+            unsubscribeUrl: 'https://dashboard.appymeal.com/emails/unsubscribe', // TODO: Build an actual route and page for this
+            legalBusinessName: 'AppyMeal LLC',
             businessCopyrightYear: '2021',
         },
     },

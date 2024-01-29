@@ -2,6 +2,7 @@
 /* eslint-disable max-len */
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
+import { getHostContext } from '../../../constants/hostContext';
 
 export interface ISendCampaignPendingReviewEmailConfig {
     charset?: string;
@@ -17,7 +18,9 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendCampaignPendingReviewEmailConfig, templateParams: ITemplateParams) => {
-    const dearUser = 'Hey Therr,';
+    const contextConfig = getHostContext(emailParams.agencyDomainName);
+
+    const dearUser = `${contextConfig.brandGreeting},`;
     const htmlConfig = {
         header: 'Campaign in Review',
         dearUser,
