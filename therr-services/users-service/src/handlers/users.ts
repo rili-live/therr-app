@@ -1158,11 +1158,18 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
                     statusCode: 404,
                 });
             }
+
+            redactUserCreds(users[0]);
+
             return Promise.all([
                 sendClaimPendingReviewEmail({
                     subject: 'Business Space Request in Review',
                     toAddresses: [users[0].email],
                     agencyDomainName: whiteLabelOrigin,
+                    recipientIdentifiers: {
+                        id: users[0].id,
+                        accountEmail: users[0].email,
+                    },
                 }, {
                     spaceName: title || notificationMsg,
                 }),
@@ -1224,10 +1231,16 @@ const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
                 });
             }
 
+            redactUserCreds(users[0]);
+
             return sendClaimApprovedEmail({
                 subject: 'Approved: Business Space Request',
                 toAddresses: [users[0].email],
                 agencyDomainName: whiteLabelOrigin,
+                recipientIdentifiers: {
+                    id: users[0].id,
+                    accountEmail: users[0].email,
+                },
             }, {
                 spaceName: title || notificationMsg,
                 spaceId,

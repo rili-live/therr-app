@@ -69,15 +69,15 @@ export default (
     const contextConfig = getHostContext(emailConfig.agencyDomainName);
     let unsubscribeUrl = htmlConfig.unsubscribeUrl || contextConfig.emailTemplates.unsubscribeUrl;
     // TODO: Generate user email token based on host context
-    const unsubscribeUrlToken = emailConfig.recipientIdentifiers
+    const unsubscribeUrlToken = unsubscribeUrl && emailConfig.recipientIdentifiers
         ? createUserEmailToken({
             id: emailConfig.recipientIdentifiers.id,
             email: emailConfig.recipientIdentifiers.accountEmail,
         })
         : '';
     // TODO: User better query string param logic
-    if (unsubscribeUrlToken && !unsubscribeUrl?.includes('?token')) {
-        unsubscribeUrl = `${unsubscribeUrl}?token=${unsubscribeUrlToken}`;
+    if (unsubscribeUrlToken && !unsubscribeUrl?.includes('?emailToken')) {
+        unsubscribeUrl = `${unsubscribeUrl}?emailToken=${unsubscribeUrlToken}`;
     }
 
     const sanitizedHtmlConfig: ISendEmailHtmlConfig = {

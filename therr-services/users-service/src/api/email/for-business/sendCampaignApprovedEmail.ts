@@ -9,6 +9,10 @@ export interface ISendCampaignApprovedEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    recipientIdentifiers: {
+        id: string;
+        accountEmail: string;
+    };
 }
 
 export interface ITemplateParams {

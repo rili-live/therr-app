@@ -8,7 +8,7 @@ import sendCampaignPendingReviewEmail from '../api/email/for-business/sendCampai
 import Store from '../store';
 import translate from '../utilities/translator';
 import { createUpdateAssetIntegrations, createUpdateCampaignIntegrations } from './helpers/campaignIntegrations';
-import { getUserOrgsIdsFromHeaders } from './helpers/user';
+import { getUserOrgsIdsFromHeaders, redactUserCreds } from './helpers/user';
 import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 import handleHttpError from '../utilities/handleHttpError';
 import sendCampaignApprovedEmail from '../api/email/for-business/sendCampaignApprovedEmail';
@@ -53,7 +53,7 @@ const accessAndModifyCampaign = (
     } = campaignReqBody;
 
     // Get campaign, check it exists, and check current status
-    return Store.users.getUserById(context.userActorId, ['email', 'integrationsAccess'])
+    return Store.users.getUserById(context.userActorId, ['id', 'email', 'integrationsAccess'])
         .then(([user]) => getCampaignPromise.then(([fetchedCampaign]) => [user, fetchedCampaign]))
         .then(([user, fetchedCampaign]) => {
             if (!fetchedCampaign) {
@@ -160,6 +160,10 @@ const accessAndModifyCampaign = (
                                         subject: `Campaign in Review | ${title}`,
                                         toAddresses: [user.email],
                                         agencyDomainName: context.whiteLabelOrigin,
+                                        recipientIdentifiers: {
+                                            id: user.id,
+                                            accountEmail: user.email,
+                                        },
                                     }, {
                                         campaignName: title,
                                         isPastSchedule: isCampaignCompleted,
@@ -601,11 +605,16 @@ const updateCampaignStatus = async (req, res) => {
         .then((campaigns) => {
             // TODO: Send campaign updated email
             Store.users.getUserById(creatorId)
-                .then((users) => {
+                .then(([user]) => {
+                    redactUserCreds(user);
                     sendCampaignApprovedEmail({
                         subject: 'Campaign Update Approved',
-                        toAddresses: [users[0].email],
+                        toAddresses: [user.email],
                         agencyDomainName: whiteLabelOrigin,
+                        recipientIdentifiers: {
+                            id: user.id,
+                            accountEmail: user.email,
+                        },
                     }, {
                         campaignName: campaigns[0].title,
                         integrationTargets: campaigns[0].integrationTargets,

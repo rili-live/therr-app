@@ -7,6 +7,10 @@ export interface ISendDashboardSubscriberUserNotFoundEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    recipientIdentifiers: {
+        id: string;
+        accountEmail: string;
+    };
 }
 
 export interface ITemplateParams {
