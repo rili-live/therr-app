@@ -1,12 +1,17 @@
 /* eslint-disable max-len */
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
+import { getHostContext } from '../../../constants/hostContext';
 
 export interface ISendDashboardSubscriberIntroEmailConfig {
     charset?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    recipientIdentifiers: {
+        id: string;
+        accountEmail: string;
+    };
 }
 
 export interface ITemplateParams {
@@ -15,10 +20,12 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendDashboardSubscriberIntroEmailConfig, templateParams: ITemplateParams) => {
+    const contextConfig = getHostContext(emailParams.agencyDomainName);
+
     const linkUrl = `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/login`;
     const productPlanName = templateParams.productName || 'Business Marketing & Customer Metrics';
     const htmlConfig = {
-        header: 'Therr For Business: Marketing & Metrics Plan',
+        header: `${contextConfig.brandName}: Marketing & Metrics Plan`,
         dearUser: 'Welcome!',
         body1: `Your business is now activated for "${productPlanName}", and your subscription will auto-renew at the end of the free trial. If you already have a dashboard account, login to manage your business space.`,
         body2: 'Otherwise, follow the link to register and get started. Claim your space and update your business details for the best results. Our marketing campaigns cater directly to your unique business needs with advance AI and automation.',

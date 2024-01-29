@@ -93,10 +93,10 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         const { location } = props;
 
         this.state = {
-            alertHeading: 'Success!',
-            alertMessage: (location.state as any)?.successMessage || '',
-            alertVariation: 'success',
-            alertIsVisible: location.state && (location.state as any).successMessage,
+            alertHeading: (location.state as any)?.errorMessage ? 'Oops! Something went wrong.' : 'Success!',
+            alertMessage: (location.state as any)?.successMessage || (location.state as any)?.errorMessage || '',
+            alertVariation: (location.state as any)?.errorMessage ? 'danger' : 'success',
+            alertIsVisible: (location.state as any)?.successMessage || (location.state as any)?.errorMessage,
             inputs: {},
             requestId: uuidv4().toString(),
         };

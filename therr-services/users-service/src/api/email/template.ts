@@ -105,8 +105,12 @@ const template = `
               <tr>
                 <td class="content-block" style="font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; font-size: 12px; color: #999999; text-align: center;">
                   <p class="apple-link" style="color: #e2e0e0; font-size: 12px; text-align: center;">All rights reserved © <a href="{{homepageLinkUri}}" style="color: #e2e0e0;">{{legalBusinessName}}</a> {{businessCopyrightYear}}</p>
+                  {{#if unsubscribeUrl}}
+                  <p class="apple-link" style="color: #e2e0e0; font-size: 12px; text-align: center;">Not interested in these emails? <a href="{{unsubscribeUrl}}" style="text-decoration: underline; color: #e2e0e0; font-size: 12px; text-align: center;">Unsubscribe</a></p>
+                  {{/if}}
+                  {{#unless unsubscribeUrl}}
                   <p class="apple-link" style="color: #e2e0e0; font-size: 12px; text-align: center;">Reply "Unsubscribe" to stop receiving {{messageCategory}} e-mails</p>
-                  <!-- <br> Don't like these emails? <a href="{{unsubscribeUrl}}" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">Unsubscribe</a>. -->
+                  {{/unless}}
                 </td>
               </tr>
             </table>

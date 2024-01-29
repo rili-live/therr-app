@@ -8,6 +8,56 @@ import sendUserFeedbackEmail from '../api/email/admin/sendUserFeedbackEmail';
 import sendSubscriberVerificationEmail from '../api/email/sendSubscriberVerificationEmail';
 import { redactUserCreds } from './helpers/user';
 
+// READ
+const getSubscriptionSettings: RequestHandler = (req: any, res: any) => {
+    const {
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
+
+    return Store.users.findUser({
+        id: userId,
+    }, [
+        'email',
+        'settingsEmailMarketing',
+        'settingsEmailBusMarketing',
+        'settingsEmailBackground',
+        'settingsEmailInvites',
+        'settingsEmailLikes',
+        'settingsEmailMentions',
+        'settingsEmailMessages',
+        'settingsEmailReminders',
+    ]).then(([user]) => {
+        if (!user) {
+            return handleHttpError({
+                res,
+                message: 'User not found',
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            });
+        }
+
+        redactUserCreds(user);
+
+        return res.status(200).send({
+            id: userId,
+            email: user.email,
+            settingsEmailMarketing: user.settingsEmailMarketing,
+            settingsEmailBusMarketing: user.settingsEmailBusMarketing,
+            settingsEmailBackground: user.settingsEmailBackground,
+            settingsEmailInvites: user.settingsEmailInvites,
+            settingsEmailLikes: user.settingsEmailLikes,
+            settingsEmailMentions: user.settingsEmailMentions,
+            settingsEmailMessages: user.settingsEmailMessages,
+            settingsEmailReminders: user.settingsEmailReminders,
+        });
+    }).catch((err) => handleHttpError({
+        err,
+        res,
+        message: 'SQL:USER_ROUTES:ERROR',
+    }));
+};
+
 // CREATE
 const createFeedback: RequestHandler = (req: any, res: any) => {
     const fromUserId = req.headers['x-userid'];
@@ -149,10 +199,15 @@ const updateSubscriptions: RequestHandler = (req: any, res: any) => {
                 settingsEmailReminders: updatedUser.settingsEmailReminders,
             },
         });
-    });
+    }).catch((err) => handleHttpError({
+        err,
+        res,
+        message: 'SQL:USER_ROUTES:ERROR',
+    }));
 };
 
 export {
+    getSubscriptionSettings,
     createFeedback,
     createSubscriber,
     updateSubscriptions,
