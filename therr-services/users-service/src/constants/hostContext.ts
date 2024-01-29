@@ -111,7 +111,7 @@ const hostContext: IBrandConfigs = {
             homepageLinkUri: globalConfig[process.env.NODE_ENV].dashboardHostFull,
             logoRelativePath: 'assets/images/therr-splash-logo-200.png',
             logoAltText: 'Therr For Business logo',
-            unsubscribeUrl: 'https://therr.com/emails/unsubscribe', // TODO: Build an actual route and page for this
+            unsubscribeUrl: 'https://dashboard.therr.com/emails/unsubscribe', // TODO: Build an actual route and page for this
             legalBusinessName: 'Therr Inc.',
             businessCopyrightYear: '2021',
         },

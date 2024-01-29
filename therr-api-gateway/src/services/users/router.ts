@@ -330,6 +330,11 @@ usersServiceRouter.post('/subscribers/unsubscribe', authenticateUnsubscribe, uns
     method: 'post',
 }));
 
+usersServiceRouter.get('/subscribers/preferences', authenticateUnsubscribe, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 // Thoughts
 usersServiceRouter.post('/thoughts', createThoughtValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,

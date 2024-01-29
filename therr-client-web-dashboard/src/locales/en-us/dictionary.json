@@ -135,6 +135,33 @@
     "editSpace": {
       "pageTitle": "Create/Edit Space"
     },
+    "emailPreferences": {
+      "pageTitle": "E-mail Subscription Preferences",
+      "buttons": {
+        "send": "Update"
+      },
+      "successMessage": "E-mail preferences successfully updated!",
+      "failedToFetchMessage": "An error occurred while trying to fetch your existing e-mail preferences.",
+      "failedTokenMessage": "The e-mail token provided was invalid. Please login to update your e-mail preferences.",
+      "failedToUpdateMessage": "An error occurred while trying to update your e-mail preferences Please try again later.",
+      "failedMessageUserNotFound": "No user found.",
+      "labels": {
+        "email": "E-mail",
+        "settingsEmailBusMarketing": "Business Dashboard marketing e-mails",
+        "settingsEmailMarketing": "Social App marketing e-mails",
+        "settingsEmailLikes": "Social App engagement e-mails",
+        "settingsEmailInvites": "Social App user invite e-mails",
+        "settingsEmailMentions": "Social App 'mentions' e-mails",
+        "settingsEmailMessages": "Social App 'messages' e-mails",
+        "settingsEmailReminders": "Social App reminder e-mails",
+        "settingsEmailBackground": "Social App automated e-mails"
+      },
+      "returnToLogin": "Return to login page",
+      "sectionHeaders": {
+        "marketing": "Marketing E-mails",
+        "social": "Social App E-mails"
+      }
+    },
     "emailVerification": {
       "buttons": {
         "send": "Send E-mail"
@@ -149,7 +176,7 @@
       },
       "pageTitle": "Account Verification",
       "returnToLogin": "Return to login page",
-      "successMessage": "Your!",
+      "successMessage": "Success!",
       "successVerifiedMessage": "Your account has been verified. Log in to continue."
     },
     "paymentComplete": {

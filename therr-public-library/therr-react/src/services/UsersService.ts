@@ -194,6 +194,33 @@ class UsersService {
         data,
     });
 
+    // Subscribers
+    getSubscriptionPreferences = (emailToken: string) => axios({
+        method: 'get',
+        url: '/users-service/subscribers/preferences',
+        headers: {
+            'x-subscriber-token': emailToken,
+        },
+    });
+
+    updateSubscriptionPreferences = (preferences: {
+        settingsEmailMarketing: boolean;
+        settingsEmailBusMarketing: boolean;
+        settingsEmailBackground: boolean;
+        settingsEmailInvites: boolean;
+        settingsEmailLikes: boolean;
+        settingsEmailMentions: boolean;
+        settingsEmailMessages: boolean;
+        settingsEmailReminders: boolean;
+    }, emailToken: string) => axios({
+        method: 'post',
+        url: '/users-service/subscribers/unsubscribe',
+        headers: {
+            'x-subscriber-token': emailToken,
+        },
+        data: preferences,
+    });
+
     sendFeedback = (feedback: string) => axios({
         method: 'post',
         url: '/users-service/subscribers/send-feedback',

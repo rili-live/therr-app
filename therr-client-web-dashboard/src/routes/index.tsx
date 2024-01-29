@@ -25,6 +25,7 @@ import InfluencerPairings from './InfluencerPairings';
 import OAuth2Landing from './OAuth2Landing';
 import PaymentComplete from './PaymentComplete';
 import CampaignPerformance from './Campaigns/CampaignPerformance';
+import EmailPreferences from './EmailPreferences';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -295,6 +296,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/reset-password',
         element: <ResetPassword />,
+    },
+    {
+        path: '/email/unsubscribe',
+        element: <EmailPreferences />,
     },
     {
         path: '/verify-account',
