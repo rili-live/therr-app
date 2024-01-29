@@ -81,6 +81,7 @@
         "terms": "Terms & Conditions"
       },
       "labels": {
+        "newsletter": "Join our Marketing Newsletter?",
         "email": "E-mail",
         "firstName": "First Name",
         "lastName": "Last Name",

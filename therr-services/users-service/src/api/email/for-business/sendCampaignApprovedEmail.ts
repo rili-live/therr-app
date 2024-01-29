@@ -2,6 +2,7 @@
 /* eslint-disable max-len */
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
+import { getHostContext } from '../../../constants/hostContext';
 
 export interface ISendCampaignApprovedEmailConfig {
     charset?: string;
@@ -16,7 +17,9 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendCampaignApprovedEmailConfig, templateParams: ITemplateParams) => {
-    const dearUser = 'Hey Therr,';
+    const contextConfig = getHostContext(emailParams.agencyDomainName);
+
+    const dearUser = `${contextConfig.brandGreeting},`;
     const htmlConfig = {
         header: 'Approved! Your ads campaign request was reviewed and accepted',
         dearUser,
@@ -24,7 +27,7 @@ export default (emailParams: ISendCampaignApprovedEmailConfig, templateParams: I
         body2: 'Visit the dashboard for a real-time summary of campaign performance.',
         body3: `If you have any questions, don't hesitate to contact support at info@therr.com.`,
         buttonHref: `${globalConfig[process.env.NODE_ENV].dashboardHostFull}`,
-        buttonText: 'Go Therr',
+        buttonText: contextConfig.brandGoLinkText,
     };
 
     return sendEmail({
