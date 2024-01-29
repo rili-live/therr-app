@@ -485,7 +485,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             || location.pathname === '/login'
             || location.pathname === '/register'
             || location.pathname === '/verify-account'
-            || location.pathname === '/email/unsubscribe'
+            || location.pathname === '/emails/unsubscribe'
             || location.pathname === '/reset-password';
         const isMinimumAuthorized = UsersService.isAuthorized(
             {

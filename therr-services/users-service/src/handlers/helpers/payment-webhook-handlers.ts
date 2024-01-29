@@ -62,6 +62,10 @@ const handleSubscriptionCreateUpdate = async (event) => {
                     subject: 'Free Trial Activated: Therr for Business',
                     toAddresses: [normedEmail],
                     agencyDomainName: productIdMap[eventObject.product?.id]?.domain || '',
+                    recipientIdentifiers: {
+                        id: user.id,
+                        accountEmail: user.email,
+                    },
                 }, {
                     productName: product.name,
                 });
@@ -84,6 +88,10 @@ const handleSubscriptionCreateUpdate = async (event) => {
                     subject: 'Subscriber Missing Email | Not Found',
                     toAddresses: [normedEmail, process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                     agencyDomainName: productIdMap[product.id].domain,
+                    recipientIdentifiers: {
+                        id: user.id,
+                        accountEmail: user.email,
+                    },
                 }, {
                     productName: product.name,
                 });

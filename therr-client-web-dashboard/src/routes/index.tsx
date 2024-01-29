@@ -298,7 +298,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <ResetPassword />,
     },
     {
-        path: '/email/unsubscribe',
+        path: '/emails/unsubscribe',
         element: <EmailPreferences />,
     },
     {
