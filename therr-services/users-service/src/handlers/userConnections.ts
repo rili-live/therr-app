@@ -14,7 +14,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { translateNotification } from './notifications';
 import { createUserHelper } from './helpers/user';
-import sendContactInviteEmail from '../api/email/sendContactInviteEmail';
+import sendContactInviteEmail from '../api/email/for-social/sendContactInviteEmail';
 import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
 import { parseConfigValue } from './config';
@@ -56,6 +56,8 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         id?: string,
         deviceMobileFirebaseToken?: string;
         email?: string;
+        isUnclaimed?: boolean;
+        settingsEmailInvites?: boolean;
     } = {
         id: acceptingUserId,
         email: acceptingUserEmail,
@@ -70,12 +72,12 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     }
 
     // 1. Lookup User in DB and send e-mail invite if not found
-    if (!acceptingUserId) {
+    if (!acceptingUser.id || acceptingUser.isUnclaimed == null || acceptingUser.settingsEmailInvites == null) {
         try {
             const userResults = await Store.users.findUser({
                 phoneNumber: acceptingUserPhoneNumber,
                 email: acceptingUserEmail,
-            }, ['id', 'deviceMobileFirebaseToken', 'email', 'isUnclaimed']);
+            }, ['id', 'deviceMobileFirebaseToken', 'email', 'isUnclaimed', 'settingsEmailInvites']);
 
             let unverifiedUser;
 
@@ -137,7 +139,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         try {
             const userResults = await Store.users.findUser({
                 id: acceptingUserId,
-            }, ['id', 'deviceMobileFirebaseToken', 'email', 'isUnclaimed']);
+            }, ['id', 'deviceMobileFirebaseToken', 'email', 'isUnclaimed', 'settingsEmailInvites']);
 
             // 1b. Capture user id for step 2 when found in DB
             acceptingUser = userResults[0];
@@ -217,6 +219,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 deviceMobileFirebaseToken: string;
                 email: string;
                 isUnclaimed: boolean;
+                settingsEmailInvites: boolean;
             }]), {
                 authorization,
                 fromUserName: fromUserFullName,
@@ -250,7 +253,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     traceArgs: {
                         'error.message': err?.message,
                         'req.routeName': 'CreateUserConnection',
-                        method: sendEmailAndOrPushNotification,
+                        method: 'sendEmailAndOrPushNotification',
                     },
                 });
             })).then((userConnection) => res.status(201).send(userConnection));
@@ -425,7 +428,13 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             return Store.userConnections.findUserConnections(userId, existingUsers.map((user) => user.id)).then((connections) => {
                 // TODO: Determine if we can replace this logic in the SQL query
                 const newConnectionUserIds: any = [];
-                const newConnectionUsers: { id: string; deviceMobileFirebaseToken: string; email: string; isUnclaimed: boolean; }[] = [];
+                const newConnectionUsers: {
+                    id: string;
+                    deviceMobileFirebaseToken: string;
+                    email: string;
+                    isUnclaimed: boolean;
+                    settingsEmailInvites: boolean;
+                }[] = [];
                 existingUsers
                     .forEach((user) => {
                         if (!connections.find((conn) => conn.acceptingUserId === user.id || conn.requestingUser === user.id)) {
@@ -435,6 +444,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                                 deviceMobileFirebaseToken: user.deviceMobileFirebaseToken,
                                 email: user.email,
                                 isUnclaimed: user.isUnclaimed,
+                                settingsEmailInvites: user.settingsEmailInvites,
                             });
                         }
                     });
@@ -451,6 +461,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                         deviceMobileFirebaseToken: string;
                         email: string;
                         isUnclaimed: boolean;
+                        settingsEmailInvites: boolean;
                     }]), {
                         authorization,
                         fromUserName: fromUserFullName,

@@ -148,9 +148,9 @@
       "labels": {
         "email": "E-mail",
         "settingsEmailBusMarketing": "Business Dashboard marketing e-mails",
-        "settingsEmailMarketing": "Social App marketing e-mails",
+        "settingsEmailMarketing": "Social Health marketing e-mails",
         "settingsEmailLikes": "Social App engagement e-mails",
-        "settingsEmailInvites": "Social App user invite e-mails",
+        "settingsEmailInvites": "Social App user or group invite e-mails",
         "settingsEmailMentions": "Social App 'mentions' e-mails",
         "settingsEmailMessages": "Social App 'messages' e-mails",
         "settingsEmailReminders": "Social App reminder e-mails",

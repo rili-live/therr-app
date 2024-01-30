@@ -9,6 +9,7 @@ interface ICheckBox {
     onChange: React.ChangeEventHandler<HTMLInputElement>;
     className?: string;
     formClassName?: string;
+    disabled?: boolean;
 }
 
 const CheckBox = ({
@@ -19,6 +20,7 @@ const CheckBox = ({
     onChange,
     className,
     formClassName,
+    disabled,
 }: ICheckBox) => (
     <div className={`form-field ${className || ''} ${formClassName || ''}`}>
         <label htmlFor={id}>
@@ -28,6 +30,7 @@ const CheckBox = ({
                 type="checkbox"
                 checked={value}
                 onChange={onChange}
+                disabled={disabled}
             />
             {label}
         </label>

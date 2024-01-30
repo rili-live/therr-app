@@ -11,7 +11,7 @@ import generateCode from '../../utilities/generateCode';
 import { sendVerificationEmail } from '../../api/email';
 import generateOneTimePassword from '../../utilities/generateOneTimePassword';
 import sendSSONewUserEmail from '../../api/email/sendSSONewUserEmail';
-import sendNewUserInviteEmail from '../../api/email/sendNewUserInviteEmail';
+import sendNewUserInviteEmail from '../../api/email/for-social/sendNewUserInviteEmail';
 import sendNewUserAdminNotificationEmail from '../../api/email/admin/sendNewUserAdminNotificationEmail';
 import * as globalConfig from '../../../../../global-config';
 import handleHttpError from '../../utilities/handleHttpError';
@@ -442,7 +442,6 @@ const createUserHelper = (
                             subject: `${userByInviteDetails?.fromName} Invited You to Therr app`,
                             toAddresses: [userByInviteDetails?.toEmail || ''],
                             agencyDomainName: whiteLabelOrigin,
-
                         }, {
                             fromName: userByInviteDetails?.fromName || '',
                             fromEmail: userByInviteDetails?.fromEmail || '',
