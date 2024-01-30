@@ -23,6 +23,7 @@ import Discovered from './Discovered';
 import UnderConstruction from './UnderConstruction';
 import ViewMoment from './ViewMoment';
 import ViewUser from './ViewUser';
+import EmailPreferences from './EmailPreferences';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -93,6 +94,14 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/verify-account',
         element: <EmailVerification />,
+    },
+    {
+        path: '/verify-account',
+        element: <EmailVerification />,
+    },
+    {
+        path: '/emails/unsubscribe',
+        element: <EmailPreferences />,
     },
     {
         path: '/login',

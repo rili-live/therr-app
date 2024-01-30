@@ -4,7 +4,7 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import sendRewardsExchangeEmail from '../api/email/admin/sendRewardsExchangeEmail';
 import { parseConfigValue } from './config';
-import sendCoinsReceivedEmail from '../api/email/sendCoinsReceivedEmail';
+import sendCoinsReceivedEmail from '../api/email/for-social/sendCoinsReceivedEmail';
 import sendInsufficientFundsEmail from '../api/email/admin/sendInsufficientFundsEmail';
 
 const calculateExchangeRate = (totalCoins, therrDollarReserves = 100) => {
@@ -107,7 +107,7 @@ const transferCoins = (req, res) => {
         fromUserId, toUserId, amount, spaceId, spaceName,
     } = req.body;
 
-    return Store.users.getUsers({ id: fromUserId }, { id: toUserId }, {}, ['id', 'email', 'userName']).then((usersResult) => {
+    return Store.users.getUsers({ id: fromUserId }, { id: toUserId }, {}, ['id', 'email', 'userName', 'settingsEmailReminders']).then((usersResult) => {
         if (!usersResult || !usersResult.length) {
             return handleHttpError({
                 res,
@@ -150,12 +150,22 @@ const transferCoins = (req, res) => {
                     });
                 }
 
-                const { userName, email } = usersResult.find((user) => user.id === toUserId);
+                const {
+                    id,
+                    userName,
+                    email,
+                    settingsEmailReminders,
+                } = usersResult.find((user) => user.id === toUserId);
                 if (amount > 0 && userName && email) {
                     sendCoinsReceivedEmail({
                         subject: `[Coins Received] You earned ${amount} TherrCoin(s)!`,
                         toAddresses: [email],
                         agencyDomainName: whiteLabelOrigin,
+                        recipientIdentifiers: {
+                            id,
+                            accountEmail: email,
+                            settingsEmailReminders,
+                        },
                     }, {
                         coinTotal: amount,
                         userName,

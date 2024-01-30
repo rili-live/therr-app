@@ -351,7 +351,6 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                                                         </FormCheck.Label>
                                                     </FormCheck>
                                                 </Form.Group>
-
                                                 <Form.Group className='mb-5' controlId="user_name">
                                                     <FormCheck id="settingsEmailBackground" type="checkbox" className="d-flex mb-3">
                                                         <FormCheck.Input
