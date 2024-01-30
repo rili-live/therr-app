@@ -270,7 +270,7 @@ export default class UsersStore {
 
     findUsersByContactInfo(
         contacts: IFindUsersByContactInfo[],
-        returning: any = ['id', 'email', 'phoneNumber', 'deviceMobileFirebaseToken', 'isUnclaimed'],
+        returning: any = ['id', 'email', 'phoneNumber', 'deviceMobileFirebaseToken', 'isUnclaimed', 'settingsEmailInvites'],
     ) {
         const emails: string[] = [];
         const phoneNumbers: string[] = [];

@@ -11,6 +11,7 @@ import translator from '../../services/translator';
 // Regular component props
 interface ILoginFormProps {
     alert?: string;
+    alertVariation?: 'success' | 'error';
     login: Function;
     title?: string;
     className?: string;
@@ -109,7 +110,12 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
 
     public render(): JSX.Element | null {
         const { prevLoginError } = this.state;
-        const { alert, className, title } = this.props;
+        const {
+            alert,
+            alertVariation,
+            className,
+            title,
+        } = this.props;
 
         return (
             <div className={`login-container ${className}`}>
@@ -117,11 +123,11 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                     <h1 className="text-title-medium">{ title || this.translate('components.loginForm.defaultTitle') }</h1>
                     {
                         alert && !prevLoginError
-                        && <div className="text-center alert-success">{alert}</div>
+                        && <div className={`text-center alert-${alertVariation} mb-2`}>{alert}</div>
                     }
                     {
                         prevLoginError
-                        && <div className="text-center alert-error backed padding-sm">{prevLoginError}</div>
+                        && <div className="text-center alert-error backed padding-sm mb-2">{prevLoginError}</div>
                     }
                     {/* <label htmlFor="user_name">{this.translate('components.loginForm.labels.userName')}:</label> */}
                     <Input

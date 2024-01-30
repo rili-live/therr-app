@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { PushNotifications } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
-import sendPendingInviteEmail from '../api/email/retention/sendPendingInviteEmail';
-import sendNewGroupMembersEmail from '../api/email/sendNewGroupMembersEmail';
+import sendPendingInviteEmail from '../api/email/for-social/retention/sendPendingInviteEmail';
+import sendNewGroupMembersEmail from '../api/email/for-social/sendNewGroupMembersEmail';
 import * as globalConfig from '../../../../global-config';
 import { IFindUserArgs } from '../store/UsersStore';
 
@@ -29,6 +29,7 @@ export default (
         deviceMobileFirebaseToken: string;
         email: string;
         isUnclaimed: boolean;
+        settingsEmailInvites: boolean;
     }[]>,
     {
         authorization,
@@ -46,7 +47,7 @@ export default (
         shouldSendPushNotification: true,
         shouldSendEmail: true,
     },
-): Promise<any> => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email', 'isUnclaimed'])
+): Promise<any> => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email', 'isUnclaimed', 'settingsEmailInvites'])
     .then((userResults) => {
         const destinationUser = userResults?.[0];
         if (!destinationUser || destinationUser.isUnclaimed) {
@@ -64,6 +65,11 @@ export default (
                         subject: `[New Connection Request] ${fromUserName} sent you a request`,
                         toAddresses: [destinationUser.email],
                         agencyDomainName: whiteLabelOrigin,
+                        recipientIdentifiers: {
+                            id: toUserId,
+                            accountEmail: destinationUser.email,
+                            settingsEmailInvites: destinationUser.settingsEmailInvites,
+                        },
                     }, {
                         fromName: fromUserName,
                     });
@@ -83,6 +89,11 @@ export default (
                     subject: 'New Member(s) Joined Your Group!',
                     toAddresses: [destinationUser.email],
                     agencyDomainName: whiteLabelOrigin,
+                    recipientIdentifiers: {
+                        id: toUserId,
+                        accountEmail: destinationUser.email,
+                        settingsEmailInvites: destinationUser.settingsEmailInvites,
+                    },
                 }, {
                     groupName,
                     membersList: fromUserNames,

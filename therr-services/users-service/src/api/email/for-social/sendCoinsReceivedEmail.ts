@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import sendEmail from './sendEmail';
+import sendEmail from '../sendEmail';
 // import * as globalConfig from '../../../../../global-config';
 
 export interface ISendCoinsReceivedEmailConfig {
@@ -7,6 +7,11 @@ export interface ISendCoinsReceivedEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    recipientIdentifiers: {
+        id: string;
+        accountEmail: string;
+        settingsEmailReminders: boolean;
+    };
 }
 
 export interface ITemplateParams {
@@ -16,6 +21,10 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendCoinsReceivedEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
+    if (!emailParams.recipientIdentifiers.settingsEmailReminders) {
+        return Promise.resolve({});
+    }
+
     const htmlConfig = {
         header: 'You earned TherrCoins!',
         dearUser: `Congratulations, ${templateParams.userName}!`,

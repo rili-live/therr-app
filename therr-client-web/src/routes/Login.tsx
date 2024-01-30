@@ -87,11 +87,12 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
 
     public render(): JSX.Element | null {
         const { location } = this.props;
-        const alertSuccessMessage = location.state && (location.state as any).successMessage;
+        const alertMessage = (location.state as any)?.successMessage || (location.state as any)?.errorMessage;
+        const alertVariation = (location.state as any)?.successMessage ? 'success' : 'error';
 
         return (
             <div id="page_login" className="flex-box center space-evenly column">
-                <LoginForm className="self-center" login={this.login} alert={alertSuccessMessage}/>
+                <LoginForm className="self-center" login={this.login} alert={alertMessage} alertVariation={alertVariation} />
                 <div className="store-image-links margin-top-lg">
                     <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
                         <img

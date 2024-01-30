@@ -1,13 +1,18 @@
 /* eslint-disable max-len */
-import sendEmail from './sendEmail';
-import * as globalConfig from '../../../../../global-config';
-import { getHostContext } from '../../constants/hostContext';
+import sendEmail from '../sendEmail';
+import * as globalConfig from '../../../../../../global-config';
+import { getHostContext } from '../../../constants/hostContext';
 
 export interface ISendNewGroupMembersEmailConfig {
     charset?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    recipientIdentifiers: {
+        id: string;
+        accountEmail: string;
+        settingsEmailInvites: boolean;
+    };
 }
 
 export interface ITemplateParams {
@@ -17,6 +22,10 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendNewGroupMembersEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
+    if (!emailParams.recipientIdentifiers.settingsEmailInvites) {
+        return Promise.resolve({});
+    }
+
     const contextConfig = getHostContext(emailParams.agencyDomainName);
 
     const htmlConfig = {

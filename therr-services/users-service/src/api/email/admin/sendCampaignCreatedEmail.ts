@@ -19,7 +19,7 @@ export default (emailParams: ISendCampaignCreatedEmailConfig, templateParams: IT
     const htmlConfig = {
         header: 'New Campaign Request 🎉',
         dearUser,
-        body1: `User ${templateParams.userId} requested to create a campaign (${JSON.stringify(templateParams.campaignDetails)})`,
+        body1: `User ${emailParams.toAddresses} with ID, ${templateParams.userId}, requested to create a campaign (${JSON.stringify(templateParams.campaignDetails)})`,
     };
 
     return sendEmail({
