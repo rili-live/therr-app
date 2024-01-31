@@ -515,6 +515,7 @@ const updateCampaign = async (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
     const writeAccessOrgIds = getUserOrgsIdsFromHeaders(userOrgsAccess, 'write');
+    console.log('DEBUG-whiteLabelOrigin', whiteLabelOrigin);
 
     const {
         organizationId,

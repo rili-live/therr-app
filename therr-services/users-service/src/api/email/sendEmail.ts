@@ -71,8 +71,8 @@ export default (
     // TODO: Generate user email token based on host context
     const unsubscribeUrlToken = unsubscribeUrl && emailConfig.recipientIdentifiers
         ? createUserEmailToken({
-            id: emailConfig.recipientIdentifiers.id,
-            email: emailConfig.recipientIdentifiers.accountEmail,
+            id: emailConfig.recipientIdentifiers?.id,
+            email: emailConfig.recipientIdentifiers?.accountEmail,
         })
         : '';
     // TODO: User better query string param logic

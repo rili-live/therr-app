@@ -154,6 +154,10 @@ const hostContext: IBrandConfigs = {
 };
 
 export const getHostContext = (host: string) => {
+    if (!host) {
+        return hostContext['therr.com'];
+    }
+
     // For local dev fallback
     if (host === globalConfig[process.env.NODE_ENV].host) {
         return hostContext['therr.com'];
@@ -165,7 +169,7 @@ export const getHostContext = (host: string) => {
     }
 
     // For incorrect or undefined host fallback
-    return (hostContext[host || ''] || hostContext['therr.com']);
+    return (hostContext[host] || hostContext['therr.com']);
 };
 
 export default hostContext;
