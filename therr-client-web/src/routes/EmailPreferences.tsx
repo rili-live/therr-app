@@ -212,7 +212,7 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                                     && <p className={`alert-${alertVariation}`}>{alertMessage}</p>
                                 }
                                 {
-                                    alertVariation === 'error'
+                                    (alertVariation === 'error' || alertVariation === 'warning')
                                     && <p className={`alert-${alertVariation}`}>{alertMessage}</p>
                                 }
                             </div>
