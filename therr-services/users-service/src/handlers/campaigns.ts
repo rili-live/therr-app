@@ -80,7 +80,12 @@ const accessAndModifyCampaign = (
                     });
             }
 
-            const integrationsAccess = decryptIntegrationsAccess(user.integrationsAccess);
+            let integrationsAccess;
+            try {
+                integrationsAccess = decryptIntegrationsAccess(user.integrationsAccess);
+            } catch (e) {
+                throw new Error('403: Unable to decrypt integration access');
+            }
 
             const integrationDetailsEntries = Object.entries(integrationDetails as { [key: string]: any; });
 
@@ -515,24 +520,9 @@ const updateCampaign = async (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
     const writeAccessOrgIds = getUserOrgsIdsFromHeaders(userOrgsAccess, 'write');
-    console.log('DEBUG-whiteLabelOrigin', whiteLabelOrigin);
 
     const {
-        organizationId,
-        spaceId,
-        title,
-        description,
-        type,
         status,
-        targetDailyBudget,
-        costBiddingStrategy,
-        targetLanguages,
-        targetLocations,
-        integrationTargets,
-        integrationDetails,
-        scheduleStartAt,
-        scheduleStopAt,
-        adGroups,
     } = req.body;
 
     const storedStatus = status === CampaignStatuses.PAUSED || status === CampaignStatuses.REMOVED || !status
