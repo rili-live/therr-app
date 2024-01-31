@@ -96,7 +96,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             alertHeading: (location.state as any)?.errorMessage ? 'Oops! Something went wrong.' : 'Success!',
             alertMessage: (location.state as any)?.successMessage || (location.state as any)?.errorMessage || '',
             alertVariation: (location.state as any)?.errorMessage ? 'danger' : 'success',
-            alertIsVisible: (location.state as any)?.successMessage || (location.state as any)?.errorMessage,
+            alertIsVisible: !!((location.state as any)?.successMessage || (location.state as any)?.errorMessage),
             inputs: {},
             requestId: uuidv4().toString(),
         };
@@ -199,7 +199,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                     </section>
                 </main>
                 <ToastContainer className="p-3" position={'bottom-end'}>
-                    <Toast bg={alertVariation} show={alertIsVisible && !!alertMessage} onClose={() => this.toggleAlert(false)}>
+                    <Toast bg={alertVariation} show={!!alertIsVisible && !!alertMessage} onClose={() => this.toggleAlert(false)}>
                         <Toast.Header>
                             <img src="holder.js/20x20?text=%20" className="rounded me-2" alt="" />
                             <strong className="me-auto">{alertHeading}</strong>
