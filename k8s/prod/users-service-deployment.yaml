@@ -157,6 +157,11 @@ spec:
             secretKeyRef:
               name: twitter-app-bearer-token
               key: TWITTERAPPBEARERTOKEN
+        - name: JWT_EMAIL_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: therrjwtemailsecret
+              key: THERRJWT_EMAIL_SECRET
       - name: cloud-sql-proxy
         # It is recommended to use the latest version of the Cloud SQL proxy
         # Make sure to update on a regular schedule!
