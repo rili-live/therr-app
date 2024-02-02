@@ -12,6 +12,10 @@ const DEFAULT_QUERY_LOCALES = {
         latitude: 41.8336152,
         longitude: -87.8967677,
     },
+    connecticut: {
+        latitude: 41.2982621,
+        longitude: -73.007034,
+    },
     detroit: {
         latitude: 42.3526815,
         longitude: -83.1816047,
