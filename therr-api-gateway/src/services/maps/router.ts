@@ -30,7 +30,7 @@ import {
 import CacheStore from '../../store';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import authorize, { AccessCheckType } from '../../middleware/authorize';
-import { getEventDetailsValidation } from './validation/events';
+import { createEventValidations, getEventDetailsValidation } from './validation/events';
 
 const mapsServiceRouter = express.Router();
 
@@ -42,7 +42,7 @@ mapsServiceRouter.post('/media/signed-urls', validate, handleServiceRequest({
 
 // Events
 // Limited to prevent abuse
-mapsServiceRouter.post('/events', createEventLimiter, createAreaValidation, validate, handleServiceRequest({
+mapsServiceRouter.post('/events', createEventLimiter, createEventValidations, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));

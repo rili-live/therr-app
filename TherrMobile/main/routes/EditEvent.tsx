@@ -303,6 +303,9 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             !inputs.message ||
             !inputs.notificationMsg ||
             !inputs.groupId ||
+            !inputs.addressReadable ||
+            !inputs.addressLatitude ||
+            !inputs.addressLongitude ||
             isSubmitting
         );
     }
@@ -327,7 +330,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         // Use public method for public spaces
         return signImageUrl(isPublic, {
             action: 'write',
-            filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
+            filename: `content/events/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
         }).then((response) => {
             const signedUrl = response?.data?.url && response?.data?.url[0];
             createArgs.media = [{}];
@@ -707,6 +710,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                 ...this.state.inputs,
             };
             if (formatted_address) {
+                modifiedInputs.addressInputText = formatted_address;
                 modifiedInputs.addressReadable = formatted_address;
             }
             if (!modifiedInputs.addressNotificationMsg && result?.name) {
@@ -732,6 +736,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                 modifiedInputs.addressIntlPhone = result?.international_phone_number.replace(/\s/g, '').replace(/-/g, '');
             }
             this.setState({
+                addressInputText: result?.name || formatted_address,
                 inputs: modifiedInputs,
             });
         }).catch((error) => {
@@ -796,7 +801,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             const pickerOptions: any = {
                 mediaType: 'photo',
                 includeBase64: false,
-                height: 4 * viewportWidth,
+                height: 3 * viewportWidth,
                 width: 4 * viewportWidth,
                 multiple: false,
                 cropping: true,
@@ -991,6 +996,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
 
     renderEditingForm = () => {
         const {
+            addressInputText,
             errorMsg,
             hashtags,
             inputs,
@@ -1014,7 +1020,10 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                         <View style={this.themeAreas.styles.mediaContainer}>
                             <Image
                                 source={{ uri: imagePreviewPath }}
-                                style={this.themeAreas.styles.mediaImage}
+                                style={[this.themeAreas.styles.mediaImage, {
+                                    width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                }]}
+                                resizeMode='contain'
                             />
                         </View>
                     }
@@ -1051,7 +1060,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             placeholder={this.translate(
                                 'forms.editEvent.labels.address'
                             )}
-                            value={inputs.address}
+                            value={addressInputText}
                             onChangeText={(text) =>
                                 this.onAddressInputChange(text)
                             }

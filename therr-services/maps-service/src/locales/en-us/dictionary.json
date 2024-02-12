@@ -2,7 +2,8 @@
   "errorMessages": {
     "accessDenied": "Access to this resource is denied",
     "posts": {
-        "duplicatePost": "Duplicate posts are not allowed"
+        "duplicatePost": "Duplicate posts are not allowed",
+        "spaceNotFound": "Space not found for given ID"
     }
   },
   "validation": "The required parameters were not provided.",

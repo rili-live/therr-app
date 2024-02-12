@@ -377,7 +377,10 @@ export default class EventsStore {
                 category: params.category || 'uncategorized',
                 createdAt: params.createdAt || undefined, // TODO: make more secure (only for social sync)
                 expiresAt: params.expiresAt,
+                scheduleStartAt: params.scheduleStartAt,
+                scheduleStopAt: params.scheduleStopAt,
                 fromUserId: params.fromUserId,
+                groupId: params.groupId,
                 spaceId: params.spaceId,
                 locale: params.locale,
                 isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content

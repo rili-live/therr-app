@@ -185,11 +185,8 @@ const createEvent = async (req, res) => {
             message,
             notificationMsg,
             spaceId,
-        } = req.body;
+            groupId,
 
-        const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
-
-        const {
             addressReadable,
             postalCode,
             addressStreetAddress,
@@ -199,14 +196,27 @@ const createEvent = async (req, res) => {
             phoneNumber,
             openingHours,
             thirdPartyRatings,
-            addressLatitude,
-            addressLongitude,
+            latitude,
+            longitude,
         } = req.body;
 
-        let existingSpaces = await Store.spaces.getByLocation({
-            latitude: addressLatitude,
-            longitude: addressLongitude,
-        });
+        const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
+
+        let existingSpaces = spaceId
+            ? await Store.spaces.getById(spaceId)
+            : await Store.spaces.getByLocation({
+                latitude,
+                longitude,
+            });
+        if (spaceId && !existingSpaces.length) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.posts.spaceNotFound'),
+                statusCode: 400,
+                errorCode: ErrorCodes.BAD_REQUEST,
+            });
+        }
+
         // TODO: Create space from address params (if not already exist)
         if (!existingSpaces.length) {
             existingSpaces = await Store.spaces.createSpace({
@@ -222,9 +232,10 @@ const createEvent = async (req, res) => {
 
                 fromUserId: userId,
                 locale,
-                latitude: addressLatitude,
-                longitude: addressLongitude,
+                latitude,
+                longitude,
                 message: addressReadable,
+                isPublic: req.body.isPublic,
             });
         }
 

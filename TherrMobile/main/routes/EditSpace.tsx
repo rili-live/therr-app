@@ -709,6 +709,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 ...this.state.inputs,
             };
             if (formatted_address) {
+                modifiedInputs.address = formatted_address;
                 modifiedInputs.addressReadable = formatted_address;
             }
             if (!modifiedInputs.notificationMsg && result?.name) {
@@ -734,6 +735,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 modifiedInputs.addressIntlPhone = result?.international_phone_number.replace(/\s/g, '').replace(/-/g, '');
             }
             this.setState({
+                addressInputText: result?.name || formatted_address,
                 inputs: modifiedInputs,
             });
         }).catch((error) => {
@@ -889,6 +891,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
 
     renderEditingForm = () => {
         const {
+            addressInputText,
             errorMsg,
             hashtags,
             inputs,
@@ -948,7 +951,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                     placeholder={this.translate(
                                         'forms.editSpace.labels.address'
                                     )}
-                                    value={inputs.address}
+                                    value={addressInputText}
                                     onChangeText={(text) =>
                                         this.onAddressInputChange(text)
                                     }
