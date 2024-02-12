@@ -87,6 +87,14 @@ export default class ForumsStore {
         return this.db.write.query(forumQueryString).then((response) => response.rows);
     }
 
+    findForums(ids: string[]) {
+        const queryString = knexBuilder.select(['id', 'title'])
+            .from(FORUMS_TABLE_NAME)
+            .whereIn('id', ids)
+            .toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     // eslint-disable-next-line default-param-last
     async searchForums(conditions: any = {}, returning, options: ISearchForumOptions) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);

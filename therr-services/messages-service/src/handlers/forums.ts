@@ -77,6 +77,19 @@ const getForum = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
 };
 
+const findForums: RequestHandler = (req: any, res: any) => {
+    const {
+        authorization,
+        locale,
+        userId,
+    } = parseHeaders(req.headers);
+    const {
+        ids,
+    } = req.body;
+
+    return Store.forums.findForums(ids).then((results) => res.status(200).send(results));
+};
+
 const searchForums: RequestHandler = (req: any, res: any) => {
     const {
         authorization,
@@ -210,6 +223,7 @@ export {
     createForum,
     searchCategories,
     getForum,
+    findForums,
     searchForums,
     updateForum,
 };

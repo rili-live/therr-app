@@ -75,7 +75,7 @@ const getUserEventHostGroups = (userGroups: any[]) => userGroups?.filter((userGr
     GroupMemberRoles.EVENT_HOST,
 ].includes(userGroup.role)).map((uGroup) => ({
     id: uGroup.groupId,
-    label: uGroup.groupName || uGroup.groupId,
+    label: uGroup.group?.title || uGroup.groupName || uGroup.groupId,
     value: uGroup.groupId,
 }));
 
@@ -262,7 +262,9 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
 
         // TODO: Fetch user groups and redirect if user does not have a userGroup with admin or event host role
         if (!userGroups?.length) {
-            getUserGroups().then((result) => {
+            getUserGroups({
+                withGroups: true,
+            }).then((result) => {
                 const eventHostUserGroups = getUserEventHostGroups(result?.userGroups);
                 this.setState({
                     userGroups: eventHostUserGroups,
