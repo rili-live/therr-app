@@ -687,6 +687,34 @@ const searchMyEvents: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENTS_ROUTES:ERROR' }));
 };
 
+const searchSpaceEvents: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    const {
+        spaceIds,
+    } = req.body;
+    const {
+        query,
+        itemsPerPage,
+        pageNumber,
+        withMedia,
+    } = req.query;
+
+    const searchPromise = Store.events.findSpaceEvents(spaceIds || []);
+
+    return Promise.all([searchPromise]).then(([events]) => {
+        const response = {
+            results: events,
+            pagination: {
+                itemsPerPage: Number(itemsPerPage),
+                pageNumber: Number(pageNumber),
+            },
+        };
+
+        res.status(200).send(response);
+    })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENTS_ROUTES:ERROR' }));
+};
+
 // NOTE: This should remain a non-public endpoint
 const findEvents: RequestHandler = async (req: any, res: any) => {
     // const userId = req.headers['x-userid'];
@@ -740,6 +768,7 @@ export {
     updateEvent,
     getEventDetails,
     // searchEvents,
+    searchSpaceEvents,
     searchMyEvents,
     findEvents,
     getSignedUrlPrivateBucket,

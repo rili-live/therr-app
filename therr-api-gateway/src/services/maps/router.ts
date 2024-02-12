@@ -83,6 +83,11 @@ mapsServiceRouter.post('/events/search/me', searchMyAreasValidation, validate, h
     method: 'post',
 }));
 
+mapsServiceRouter.post('/events/search/for-space-ids', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
 mapsServiceRouter.get('/events/signed-url/public', getSignedUrlValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'get',

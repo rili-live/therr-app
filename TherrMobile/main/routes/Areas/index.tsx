@@ -115,6 +115,10 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            // searchActiveEvents: ContentActions.searchActiveEvents,
+            // updateActiveEventsStream: ContentActions.updateActiveEventsStream,
+            // createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
+
             searchActiveMoments: ContentActions.searchActiveMoments,
             updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
@@ -606,7 +610,16 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     />
                 );
             case CAROUSEL_TABS.EVENTS:
-                const eventsData = [];
+                const eventsData = isLoading ? [] : getActiveCarouselData({
+                    activeTab: route.key,
+                    content,
+                    isForBookmarks: false,
+                    shouldIncludeEvents: true,
+                    shouldIncludeThoughts: false,
+                    shouldIncludeMoments: false,
+                    // TODO: Include promoted spaces in discoveries
+                    shouldIncludeSpaces: false,
+                }, 'reaction.createdAt', categoriesFilter);
                 return (
                     (<AreaCarousel
                         activeData={eventsData}

@@ -79,7 +79,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         bodyViewScroll: {
             backgroundColor: therrTheme.colors.accent1,
-            paddingBottom: 100,
+            paddingBottom: 110,
         },
         footer: {
             display: 'flex',

@@ -20,8 +20,10 @@ const Content = {
         type: ContentActionTypes.INSERT_ACTIVE_MOMENTS,
         data: newActiveMoments,
     }),
-    searchActiveMoments: (options: ISearchActiveAreasParams,
-        limit = 21) => (dispatch: any) => ReactionsService
+    searchActiveMoments: (
+        options: ISearchActiveAreasParams,
+        limit = 21,
+    ) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {
             dispatch({

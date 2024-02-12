@@ -346,6 +346,19 @@ export default class EventsStore {
         });
     }
 
+    findSpaceEvents(spaceIds: string[], limit = 100, offset = 0) {
+        const query = knexBuilder
+            .from(EVENTS_TABLE_NAME)
+            .limit(limit)
+            .offset(offset)
+            .whereIn('spaceId', spaceIds)
+            .where({
+                isPublic: true,
+            });
+
+        return this.db.read.query(query.toString()).then((response) => response.rows);
+    }
+
     createEvent(params: ICreateEventParams) {
         const region = countryReverseGeo.get_country(params.latitude, params.longitude);
         const notificationMsg = params.notificationMsg
