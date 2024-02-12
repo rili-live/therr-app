@@ -67,6 +67,76 @@ export const spaceCategories = [
     'event/space',
 ];
 
+export const addAddressParams = (area, unsanitizedAddress) => {
+    const modifiedArea = {
+        ...area,
+    };
+    if (unsanitizedAddress.addressReadable) {
+        modifiedArea.addressReadable = unsanitizedAddress.addressReadable;
+        if (unsanitizedAddress.addressReadable.endsWith('USA')) {
+            const split = unsanitizedAddress.addressReadable.split(', ');
+            const stateNZip = split[split.length - 2];
+            const state = stateNZip.split(' ')[0];
+            const zip = stateNZip.split(' ')[1];
+            modifiedArea.postalCode = zip;
+            modifiedArea.addressStreetAddress = split[0];
+            modifiedArea.addressRegion = state;
+            modifiedArea.addressLocality = split[split.length - 3];
+        }
+    }
+    if (unsanitizedAddress.addressWebsite) {
+        modifiedArea.websiteUrl = unsanitizedAddress.addressWebsite;
+    }
+    if (unsanitizedAddress.addressIntlPhone) {
+        modifiedArea.phoneNumber = unsanitizedAddress.addressIntlPhone;
+    }
+    if (unsanitizedAddress.addressOpeningHours) {
+        const mapped = {};
+        unsanitizedAddress.addressOpeningHours.forEach((day) => {
+            const split = day.split(': ');
+            if (split[1] !== 'Closed') {
+                const timeEntry = split[1] === 'Open 24 hours' ? '00:00 AM – 11:59 PM' : split[1];
+                if (!mapped[timeEntry]) {
+                    mapped[timeEntry] = split[0].substring(0,2);
+                } else {
+                    mapped[timeEntry] = [mapped[timeEntry], split[0].substring(0,2)].join(',');
+                }
+            }
+        });
+        const schema: string[] = [];
+        for (const [key, value] of Object.entries(mapped)) {
+            let keyLeft = key.split(' – ')[0];
+            let keyRight = key.split(' – ')[1];
+            if (keyLeft == null || keyRight == null) {
+                console.log(key);
+            }
+            const isLeftPM = keyLeft.endsWith('PM');
+            const isRightPM = keyRight.endsWith('PM');
+            keyLeft = keyLeft.replace(' AM', '').replace(' PM', '');
+            keyRight = keyRight.replace(' AM', '').replace(' PM', '');
+            if (isLeftPM) {
+                const leftSplit = keyLeft.split(':');
+                keyLeft = `${Number(leftSplit[0]) + 12}:${leftSplit[1]}`;
+            }
+            if (isRightPM) {
+                const rightSplit = keyRight.split(':');
+                keyRight = `${Number(rightSplit[0]) + 12}:${rightSplit[1]}`;
+            }
+            schema.push(`${value} ${keyLeft}-${keyRight}`);
+        };
+        modifiedArea.openingHours = {
+            schema,
+            timezone: 'UTC',
+            isConfirmed: true,
+        };
+    }
+    if (unsanitizedAddress.addressRating) {
+        modifiedArea.thirdPartyRatings = unsanitizedAddress.addressRating;
+    }
+
+    return modifiedArea;
+};
+
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
     ignoreAndroidSystemSettings: false,
@@ -393,7 +463,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             longitude,
         } = route.params;
 
-        const createArgs: any = {
+        let createArgs: any = {
             category,
             featuredIncentiveKey,
             featuredIncentiveValue: featuredIncentiveValue ? Number(featuredIncentiveValue) : featuredIncentiveValue,
@@ -423,68 +493,15 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 isSubmitting: true,
             });
 
-            if (addressReadable) {
-                createArgs.addressReadable = addressReadable;
-                if (addressReadable.endsWith('USA')) {
-                    const split = addressReadable.split(', ');
-                    const stateNZip = split[split.length - 2];
-                    const state = stateNZip.split(' ')[0];
-                    const zip = stateNZip.split(' ')[1];
-                    createArgs.postalCode = zip;
-                    createArgs.addressStreetAddress = split[0];
-                    createArgs.addressRegion = state;
-                    createArgs.addressLocality = split[split.length - 3];
-                }
-            }
-            if (addressWebsite) {
-                createArgs.websiteUrl = addressWebsite;
-            }
-            if (addressIntlPhone) {
-                createArgs.phoneNumber = addressIntlPhone;
-            }
-            if (addressOpeningHours) {
-                const mapped = {};
-                addressOpeningHours.forEach((day) => {
-                    const split = day.split(': ');
-                    if (split[1] !== 'Closed') {
-                        const timeEntry = split[1] === 'Open 24 hours' ? '00:00 AM – 11:59 PM' : split[1];
-                        if (!mapped[timeEntry]) {
-                            mapped[timeEntry] = split[0].substring(0,2);
-                        } else {
-                            mapped[timeEntry] = [mapped[timeEntry], split[0].substring(0,2)].join(',');
-                        }
-                    }
-                });
-                const schema: string[] = [];
-                for (const [key, value] of Object.entries(mapped)) {
-                    let keyLeft = key.split(' – ')[0];
-                    let keyRight = key.split(' – ')[1];
-                    if (keyLeft == null || keyRight == null) {
-                        console.log(key);
-                    }
-                    const isLeftPM = keyLeft.endsWith('PM');
-                    const isRightPM = keyRight.endsWith('PM');
-                    keyLeft = keyLeft.replace(' AM', '').replace(' PM', '');
-                    keyRight = keyRight.replace(' AM', '').replace(' PM', '');
-                    if (isLeftPM) {
-                        const leftSplit = keyLeft.split(':');
-                        keyLeft = `${Number(leftSplit[0]) + 12}:${leftSplit[1]}`;
-                    }
-                    if (isRightPM) {
-                        const rightSplit = keyRight.split(':');
-                        keyRight = `${Number(rightSplit[0]) + 12}:${rightSplit[1]}`;
-                    }
-                    schema.push(`${value} ${keyLeft}-${keyRight}`);
-                };
-                createArgs.openingHours = {
-                    schema,
-                    timezone: 'UTC',
-                    isConfirmed: true,
-                };
-            }
-            if (addressRating) {
-                createArgs.thirdPartyRatings = addressRating;
-            }
+            createArgs = addAddressParams(createArgs, {
+                addressReadable,
+                addressLatitude,
+                addressLongitude,
+                addressWebsite,
+                addressIntlPhone,
+                addressOpeningHours,
+                addressRating,
+            });
 
             const createSpaceMethod = isBusinessAccount ? this.props.createSpace : MapsService.requestClaim;
 
@@ -920,6 +937,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                     </Text>
                     <View style={{
                         position: 'relative',
+                        marginBottom: !isBusinessAccount ? 50 : 0,
                     }}>
                         {
                             !isBusinessAccount &&
@@ -972,6 +990,20 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             }
                             themeForms={this.themeForms}
                         />
+                        <View style={[
+                            spacingStyles.padBotMd,
+                            spacingStyles.flexRow,
+                            spacingStyles.alignCenter,
+                        ]}>
+                            <DropDown
+                                onChange={(newValue) =>
+                                    this.onInputChange('category', newValue || 'uncategorized')
+                                }
+                                options={this.categoryOptions}
+                                formStyles={this.themeForms.styles}
+                                initialValue={inputs.category}
+                            />
+                        </View>
                         <RoundTextInput
                             placeholder={this.translate(
                                 'forms.editSpace.labels.message'
@@ -984,16 +1016,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             numberOfLines={7}
                             themeForms={this.themeForms}
                         />
-                        <View style={[this.themeForms.styles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
-                            <DropDown
-                                onChange={(newValue) =>
-                                    this.onInputChange('category', newValue || 'uncategorized')
-                                }
-                                options={this.categoryOptions}
-                                formStyles={this.themeForms.styles}
-                                initialValue={inputs.category}
-                            />
-                        </View>
                         <RoundInput
                             autoCorrect={false}
                             errorStyle={this.theme.styles.displayNone}

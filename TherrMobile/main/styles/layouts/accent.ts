@@ -92,7 +92,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             alignItems: 'center',
             justifyContent: 'flex-end',
             width: '100%',
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.primary,
         },
     });
 

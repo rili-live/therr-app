@@ -2,15 +2,17 @@ import React from 'react';
 import { Text, Modal, Pressable } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { IAreaType } from 'therr-react/types';
 import spacingStyles from '../../styles/layouts/spacing';
 
 export type IAcknowledgementType = 'accept' | 'deny' | 'close';
 
 interface ILocationUseDisclosureModal {
+    areaType?: IAreaType;
     isVisible: boolean;
     onRequestClose: any;
     translate: Function;
-    onSelect: (type: IAcknowledgementType) => any;
+    onSelect: (type: IAcknowledgementType, areaType?: IAreaType) => any;
     themeButtons: {
         styles: any;
     }
@@ -39,6 +41,7 @@ const ModalButton = ({ title, iconName, onPress, themeButtons }) => (
 );
 
 export default ({
+    areaType,
     isVisible,
     onRequestClose,
     translate,
@@ -68,7 +71,7 @@ export default ({
                     <ModalButton
                         iconName="close"
                         title={translate('permissions.locationGps.close')}
-                        onPress={() => onSelect('close')}
+                        onPress={() => onSelect('close', areaType)}
                         themeButtons={themeButtons}
                     />
                 </Pressable>

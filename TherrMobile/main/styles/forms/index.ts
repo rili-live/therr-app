@@ -66,6 +66,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '600',
             fontFamily: therrFontFamily,
         },
+        inputLabel: {
+            fontSize: 16,
+            fontWeight: '500',
+            fontFamily: therrFontFamily,
+        },
         placeholderText: {
             fontWeight: '600',
             fontFamily: therrFontFamily,
@@ -460,6 +465,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         headerInputBadge: {
             backgroundColor: therrTheme.colors.tertiary,
+        },
+        label: {
+            fontSize: 16,
+            fontWeight: '500',
+            fontFamily: therrFontFamily,
         },
     });
 

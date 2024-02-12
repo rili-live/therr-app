@@ -154,7 +154,8 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         this.notificationMsg = (space.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
         this.hashtags = space.hashTags ? space.hashTags.split(',') : [];
 
-        this.date = formatDate(space.updatedAt);
+        const dateTime = formatDate(space.updatedAt);
+        this.date = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
 
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }

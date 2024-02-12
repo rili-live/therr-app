@@ -35,6 +35,7 @@ import missingImageIdea from '../../assets/missing-image-idea.json';
 import missingImageMusic from '../../assets/missing-image-music.json';
 import missingImageNature from '../../assets/missing-image-nature.json';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
+import formatDate from '../../utilities/formatDate';
 
 const envConfig = getConfig();
 const placeholderMedia = require('../../assets/placeholder-content-media.png');
@@ -56,7 +57,6 @@ interface IUserDetails {
 
 interface IAreaDisplayProps {
     translate: Function;
-    date: string;
     toggleAreaOptions: any;
     hashtags: any[];
     isDarkMode: boolean;
@@ -278,7 +278,6 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
     render() {
         const {
-            date,
             toggleAreaOptions,
             hashtags,
             isDarkMode,
@@ -297,6 +296,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         } = this.props;
         const { likeCount } = this.state;
 
+        const dateTime = formatDate(area.createdAt);
+        const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
         const isBookmarked = area.reaction?.userBookmarkCategory;
         const isLiked = area.reaction?.userHasLiked;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
@@ -380,7 +381,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                         </Text>
                                     }
                                     <Text style={themeViewArea.styles.dateTime}>
-                                        {date}
+                                        {dateStr}
                                     </Text>
                                 </View>
                             </>

@@ -12,7 +12,6 @@ import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/
 import { buildStyles as buildThoughtStyles } from '../../styles/user-content/thoughts/viewing';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
-import formatDate from '../../utilities/formatDate';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 import ListEmpty from '../../components/ListEmpty';
 import { getUserContentUri } from '../../utilities/content';
@@ -54,7 +53,6 @@ const renderItem = ({ item: post }, {
     inspectContent,
     toggleContentOptions,
     fetchMedia,
-    formattedDate,
     goToViewMap,
     goToViewUser,
     translate,
@@ -78,7 +76,7 @@ const renderItem = ({ item: post }, {
         ? getUserContentUri(post.media[0], screenWidth, screenWidth)
         : media && media[post.media && post.media[0]?.id];
     const isMe = user.details.id === post.fromUserId;
-    let userDetails = {
+    let userDetails: any = {
         userName: post.fromUserName || (user.details.id === post.fromUserId ? user.details.userName : translate('alertTitles.nameUnknown')),
     };
 
@@ -99,7 +97,6 @@ const renderItem = ({ item: post }, {
             >
                 <ThoughtDisplay
                     translate={translate}
-                    date={formattedDate}
                     goToViewUser={goToViewUser}
                     toggleThoughtOptions={toggleContentOptions}
                     hashtags={post.hashTags ? post.hashTags.split(',') : []}
@@ -129,7 +126,6 @@ const renderItem = ({ item: post }, {
                 displaySize === 'medium' ?
                     <AreaDisplayMedium
                         translate={translate}
-                        date={formattedDate}
                         goToViewMap={goToViewMap}
                         goToViewUser={goToViewUser}
                         toggleAreaOptions={toggleContentOptions}
@@ -148,7 +144,6 @@ const renderItem = ({ item: post }, {
                     /> :
                     <AreaDisplay
                         translate={translate}
-                        date={formattedDate}
                         goToViewMap={goToViewMap}
                         goToViewUser={goToViewUser}
                         toggleAreaOptions={toggleContentOptions}
@@ -232,7 +227,6 @@ const AreaCarousel = ({
     //                 renderItem={(itemObj) => renderItem(itemObj, {
     //                     content,
     //                     inspectContent,
-    //                     formattedDate: formatDate(itemObj.item.createdAt),
     //                     translate,
     //                 })}
     //                 sliderWidth={viewportWidth}
@@ -269,7 +263,6 @@ const AreaCarousel = ({
                         displaySize: displaySize || 'large', // default to large
                         inspectContent,
                         fetchMedia,
-                        formattedDate: formatDate(itemObj.item.createdAt),
                         goToViewMap,
                         goToViewUser,
                         toggleContentOptions,

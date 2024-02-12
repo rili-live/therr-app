@@ -151,6 +151,8 @@ const createEvent = async (req, res) => {
     })
         .then((events) => events?.length);
 
+    // TODO: Ensure userLatitude/userLongitude is within n miles of event latitude/longitude
+
     if (isDuplicate) {
         return handleHttpError({
             res,
@@ -175,7 +177,7 @@ const createEvent = async (req, res) => {
         })
         : Promise.resolve();
 
-    return rewardsPromise.then(() => {
+    return rewardsPromise.then(async () => {
         // 2. If successful, create the event
         const {
             hashTags,
@@ -187,8 +189,48 @@ const createEvent = async (req, res) => {
 
         const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
 
+        const {
+            addressReadable,
+            postalCode,
+            addressStreetAddress,
+            addressRegion,
+            addressLocality,
+            websiteUrl,
+            phoneNumber,
+            openingHours,
+            thirdPartyRatings,
+            addressLatitude,
+            addressLongitude,
+        } = req.body;
+
+        let existingSpaces = await Store.spaces.getByLocation({
+            latitude: addressLatitude,
+            longitude: addressLongitude,
+        });
+        // TODO: Create space from address params (if not already exist)
+        if (!existingSpaces.length) {
+            existingSpaces = await Store.spaces.createSpace({
+                addressReadable,
+                postalCode,
+                addressStreetAddress,
+                addressRegion,
+                addressLocality,
+                websiteUrl,
+                phoneNumber,
+                openingHours,
+                thirdPartyRatings,
+
+                fromUserId: userId,
+                locale,
+                latitude: addressLatitude,
+                longitude: addressLongitude,
+                message: addressReadable,
+            });
+        }
+
         return Store.events.createEvent({
             ...req.body,
+            spaceId: existingSpaces[0].id,
             locale,
             fromUserId: userId,
         })

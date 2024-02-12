@@ -126,7 +126,8 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         this.notificationMsg = (moment.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
         this.hashtags = moment.hashTags ? moment.hashTags.split(',') : [];
 
-        this.date = formatDate(moment.updatedAt);
+        const dateTime = formatDate(moment.updatedAt);
+        this.date = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
 
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }

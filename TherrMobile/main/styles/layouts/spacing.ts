@@ -20,6 +20,12 @@ const styles = StyleSheet.create({
     alignCenter: {
         alignItems: 'center',
     },
+    justifyAround: {
+        justifyContent: 'space-around',
+    },
+    justifyBetween: {
+        justifyContent: 'space-between',
+    },
     justifyCenter: {
         justifyContent: 'center',
     },
@@ -37,6 +43,9 @@ const styles = StyleSheet.create({
     },
     heightLg: {
         height: 100,
+    },
+    minWidthMd: {
+        minWidth: 60,
     },
 
     // PADDING
@@ -149,6 +158,9 @@ const styles = StyleSheet.create({
     },
     marginBotLg: {
         marginBottom: large,
+    },
+    marginBotXl: {
+        marginBottom: xlarge,
     },
     marginSm: {
         margin: small,
