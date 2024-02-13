@@ -18,6 +18,7 @@ import spacingStyles from '../../styles/layouts/spacing';
 import { getUserImageUri } from '../../utilities/content';
 import TherrIcon from '../TherrIcon';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
+import formatDate from '../../utilities/formatDate';
 
 
 const hapticFeedbackOptions = {
@@ -34,7 +35,6 @@ interface IUserDetails {
 
 interface IThoughtDisplayProps {
     translate: Function;
-    date: string;
     toggleThoughtOptions: Function;
     hashtags: any[];
     inspectThought: (thought: any) => any;
@@ -121,7 +121,6 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
 
     render() {
         const {
-            date,
             toggleThoughtOptions,
             hashtags,
             isDarkMode,
@@ -140,6 +139,8 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         const isBookmarked = thought.reaction?.userBookmarkCategory;
         const isLiked = thought.reaction?.userHasLiked;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
+        const dateTime = formatDate(thought.createdAt);
+        const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
 
         return (
             <>
@@ -169,7 +170,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                         </Text>
                                 }
                                 <Text style={themeViewContent.styles.dateTime}>
-                                    {date}
+                                    {dateStr}
                                 </Text>
                             </View>
                             <Button

@@ -136,6 +136,14 @@ const navToViewContent = (content, user, navigate, previousView = 'Areas', previ
             moment: content,
             momentDetails: {},
         });
+    }  else if (content.areaType === 'events') {
+        navigate('ViewEvent', {
+            isMyContent: isMyContent(content, user),
+            previousView,
+            previousViewParams,
+            moment: content,
+            momentDetails: {},
+        });
     } else {
         navigate('ViewThought', {
             isMyContent: isMyContent(content, user),

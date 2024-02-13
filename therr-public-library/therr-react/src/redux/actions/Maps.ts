@@ -88,25 +88,25 @@ const Maps = {
 
             return response.data;
         }),
-    // searchEvents: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
-    //     .searchEvents(query, data).then((response: any) => {
-    //         if (query.query === 'connections') {
-    //             dispatch({
-    //                 type: MapActionTypes.GET_EVENTS,
-    //                 data: response.data,
-    //             });
-    //         }
+    searchEvents: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
+        .searchEvents(query, data).then((response: any) => {
+            if (query.query === 'connections') {
+                dispatch({
+                    type: MapActionTypes.GET_EVENTS,
+                    data: response.data,
+                });
+            }
 
-    //         if (query.query === 'me') {
-    //             dispatch({
-    //                 type: MapActionTypes.GET_MY_EVENTS,
-    //                 data: response.data,
-    //             });
-    //         }
+            if (query.query === 'me') {
+                dispatch({
+                    type: MapActionTypes.GET_MY_EVENTS,
+                    data: response.data,
+                });
+            }
 
-    //         // Return so we can react by searching for associated reactions
-    //         return Promise.resolve(response.data);
-    //     }),
+            // Return so we can react by searching for associated reactions
+            return Promise.resolve(response.data);
+        }),
     deleteEvent: (args: { ids: string[] }) => (dispatch: any) => MapsService.deleteEvents(args).then(() => {
         dispatch({
             type: MapActionTypes.EVENT_DELETED,

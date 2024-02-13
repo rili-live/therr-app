@@ -26,7 +26,6 @@ const placeholderMedia = require('../../assets/placeholder-content-media.png');
 interface IAreaDisplayCardProps {
     exchangeRate: number;
     translate: Function;
-    date: string;
     cardWidth: number;
     cardHeight: number;
     isDarkMode: boolean;

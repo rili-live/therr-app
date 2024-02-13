@@ -67,6 +67,7 @@ interface IGetActiveDataArgs {
     content: any;
     isForBookmarks?: boolean;
     isForDrafts?: boolean;
+    shouldIncludeEvents?: boolean;
     shouldIncludeThoughts?: boolean;
     shouldIncludeMoments?: boolean;
     shouldIncludeSpaces?: boolean;
@@ -77,6 +78,7 @@ export default ({
     content,
     isForBookmarks,
     isForDrafts,
+    shouldIncludeEvents,
     shouldIncludeThoughts,
     shouldIncludeMoments,
     shouldIncludeSpaces,
@@ -114,6 +116,9 @@ export default ({
 
     if (shouldIncludeThoughts) {
         sortedData = mergeSortByCreatedAt(sortedData, content.activeThoughts, sortBy === 'reaction.createdAt');
+    } else if (shouldIncludeEvents) {
+        sortedData = content.activeEvents;
+
     }
 
     // TODO: performance optimize to prevent loading unnecessary data

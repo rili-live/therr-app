@@ -15,11 +15,14 @@
     "phoneNumberAlreadyInUse": "Invalid Phone Number",
     "errorWithAppleSSO": "Error With Apple SSO",
     "errorWithGoogleSSO": "Error With Google SSO",
+    "eventCreatedSuccess": "Event Created  🎉",
+    "eventDraftSuccess": "Event Saved as Draft",
     "momentCreatedSuccess": "Moment Created  🎉",
     "momentDraftSuccess": "Moment Saved as Draft",
     "spaceCreatedSuccess": "You Claimed a Space",
     "spaceRequestSuccess": "Request Sent",
     "ssoLoginError": "Error With Single Sign-On",
+    "startDateAfterEndDate" : "Invalid State/End Dates",
     "walkCloser": "Too Far Away",
     "nameUnknown": "Anonymous User",
     "newAreasActivated": "New Areas Activated",
@@ -37,11 +40,14 @@
     "errorWithAppleSSO": "An unknown Apple SSO error occurred. Please Try another login method.",
     "errorWithGoogleSSO": "An unknown Google SSO error occurred. Please Try another login method.",
     "ssoLoginError": "Please try logging in with you account username/password",
+    "eventCreatedSuccess": "Your event was successfully posted!",
+    "eventDraftSuccess": "Your event was successfully saved as a draft. Continue editing?",
     "momentCreatedSuccess": "Your moment was successfully posted!",
     "momentDraftSuccess": "Your moment was successfully saved as a draft. Continue editing?",
     "spaceCreatedSuccess": "You have successfully claimed this space!",
     "spaceRequestSuccess": "You have successfully requested to add a new business space!",
     "pleaseTryAgain": "Connection error. Please try again later.",
+    "startDateAfterEndDate" : "End date must occur after start date.",
     "walkCloser": "Walk closer to claim rewards. Check the map for details.",
     "newAreasActivated": "You recently activated {total} new moments/spaces.",
     "draftReminder": "Did you remember to finish your drafted post?",
@@ -423,6 +429,83 @@
       "backendSuccessMessage": "Your moment was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
+    "editEvent": {
+      "buttons": {
+        "addImage": "Attach an Image",
+        "replaceImage": "Replace Image",
+        "captureNew": "Capture a New Photo",
+        "selectExisting": "Select an Existing Photo",
+        "draft": "Draft",
+        "goToGroups": "Go to Groups Listing",
+        "next": "Next",
+        "continue": "Continue",
+        "submit": "Publish",
+        "delete": "Delete?",
+        "confirm": "Delete",
+        "cancel": "Cancel",
+        "startsAt": "Start: ",
+        "endsAt": "End: ",
+        "visibilityPublic": "Visibility: Public",
+        "visibilityPrivate": "Visibility: Members Only"
+      },
+      "categories": {
+        "uncategorized": "Select a Category",
+        "storefront/shop": "Storefront / Shop",
+        "restaurant/food": "Restaurant / Food",
+        "bar/drinks": "Bar / Drinks",
+        "marketplace/festival": "Marketplace / Festival",
+        "artwork/expression": "Artwork / Expression",
+        "music/concerts": "Music / Concerts",
+        "nature/parks": "Nature / Parks",
+        "hotels/lodging": "Hotels / Lodging",
+        "event/space": "Events Space",
+        "art": "Art",
+        "geocache": "Geocache",
+        "menu": "Menu",
+        "music": "Music",
+        "deals": "Deals / Coupons",
+        "fitness": "Sports / Fitness",
+        "storefront": "Storefront Promotion",
+        "idea": "Idea / Observation",
+        "gaming": "Gaming",
+        "food": "Food",
+        "nature": "Nature / Park",
+        "travel": "Travel / Tourism",
+        "warning": "Warning / Alert",
+        "seasonal": "Seasonal / Holidays",
+        "drinks": "Happy Hour / Drinks",
+        "nightLife": "Night Life / Social"
+      },
+      "labels": {
+        "address": "Event location...",
+        "addNearbySpaceNote": "Is this moment related to a nearby space?",
+        "addImageNote": "Select an existing image or capture a new one to represent the event.",
+        "groupName": "Group Name",
+        "selectAGroup": "Select a Group",
+        "noUserGroups": "You must be a group owner, admin, or event host to create events. Join a group or request group role promotion.",
+        "message": "Add an event description...",
+        "notificationMsg": "Event Name",
+        "hashTags": "Hashtags (ie. my_tag, myTag)",
+        "maxViews": "Max views (per person)",
+        "expiresAt": "Countdown",
+        "radius": "Radius: {meters} meters",
+        "unselected": "Select a Space",
+        "incentiveRequirement": "Reward Requirement",
+        "unselectedIncentiveRequirement": "Select a Requirement",
+        "incentiveReward": "Reward for Attending",
+        "unselectedIncentiveReward": "Select an Incentive"
+      },
+      "headers": {
+        "rating": "Rating / Review"
+      },
+      "modal": {
+        "insufficientFundsTitle": "No TherrCoins Available",
+        "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TherrCoin. We have notified them for an update.",
+        "insufficientFundsMessage2": "Continue creating content without rewards?"
+      },
+      "backendSuccessMessage": "Your moment was successfully saved!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
     "editSpace": {
       "buttons": {
         "addImage": "Attach an Image",
@@ -458,7 +541,7 @@
         "featuredIncentiveRewardValuePlaceholder": "ex. 5.00",
         "featuredIncentiveCurrencyId": "Reward Currency",
         "featuredIncentiveCurrencyIdPlaceholder": "ex. USD",
-        "message": "Describe the location, event, business, promotion, etc...",
+        "message": "Describe the location, business, promotion, etc...",
         "notificationMsg": "Title or Location Name",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
         "maxViews": "Max views (per person)",
@@ -827,6 +910,10 @@
       "headerTitle": "Create a Moment",
       "previewHeader": "Preview:"
     },
+    "editEvent": {
+      "headerTitle": "Create an Event",
+      "previewHeader": "Preview:"
+    },
     "editSpace": {
       "headerTitle": "Claim a Space",
       "previewHeader": "Preview:"
@@ -866,7 +953,8 @@
       },
       "h2": {
         "claimRewards": "Claim Your Rewards",
-        "requirements": "Steps"
+        "requirements": "Steps",
+        "events": "Upcoming Events"
       },
       "info": {
         "shareAMoment": {

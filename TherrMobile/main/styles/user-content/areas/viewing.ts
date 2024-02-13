@@ -190,6 +190,12 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             paddingHorizontal: 14,
             paddingBottom: 4,
         },
+        eventText: {
+            fontSize: 16,
+            fontWeight: '600',
+            fontFamily: therrFontFamily,
+            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
+        },
         areaDistance: {
             ...getAreaDistanceStyle(therrTheme, isDarkMode),
         },

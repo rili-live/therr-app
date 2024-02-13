@@ -20,6 +20,7 @@ import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../PressableWithDoubleTap';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
+import formatDate from '../../utilities/formatDate';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -40,7 +41,6 @@ interface IUserDetails {
 
 interface IAreaDisplayMediumProps {
     translate: Function;
-    date: string;
     toggleAreaOptions: Function;
     hashtags: any[];
     isDarkMode: boolean;
@@ -113,7 +113,6 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
 
     render() {
         const {
-            date,
             toggleAreaOptions,
             hashtags,
             isDarkMode,
@@ -127,6 +126,8 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
             themeViewArea,
         } = this.props;
         const { mediaWidth } = this.state;
+        const dateTime = formatDate(area.createdAt);
+        const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
 
         const isBookmarked = area.reaction?.userBookmarkCategory;
         const toggleOptions = () => toggleAreaOptions(area);
@@ -161,7 +162,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                                 </Text>
                         }
                         <Text style={themeViewArea.styles.dateTime}>
-                            {date}
+                            {dateStr}
                         </Text>
                     </View>
                     <Button

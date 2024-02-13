@@ -609,7 +609,6 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
         // TODO: Fetch missing media
         const fetchMedia = () => {};
-
         const activeData = isLoading ? [] : getActiveCarouselData({
             activeTab,
             content,
@@ -628,11 +627,12 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
             return formatted;
         });
+        const shouldRenderAreaFeed = shouldRenderNearbyAreaFeed(location);
 
         return (
             <>
                 {
-                    shouldRenderNearbyAreaFeed(location) &&
+                    shouldRenderAreaFeed &&
                         <AreaCarousel
                             activeData={formattedActiveData}
                             content={content}
@@ -664,7 +664,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                         />
                 }
                 {
-                    !shouldRenderNearbyAreaFeed(location) && <GpsEnableButtonDialog
+                    !shouldRenderAreaFeed && <GpsEnableButtonDialog
                         handleEnableLocationPress={this.handleEnableLocationPress}
                         theme={this.theme}
                         themeForms={this.themeForms}

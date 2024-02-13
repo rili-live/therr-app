@@ -76,6 +76,20 @@ export default class SpacesStore {
         return this.db.read.query(query.toString()).then((response) => response.rows);
     }
 
+    /**
+     * This is used to check for duplicates before creating a new spaces for events
+     */
+    getByLocation(coords) {
+        const query = knexBuilder
+            .from(SPACES_TABLE_NAME)
+            .where({
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+            });
+
+        return this.db.read.query(query.toString()).then((response) => response.rows);
+    }
+
     // eslint-disable-next-line default-param-last
     searchMySpaces(conditions: any = {}, returning, userId: string, overrides?: any, includePublicResults = true) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);

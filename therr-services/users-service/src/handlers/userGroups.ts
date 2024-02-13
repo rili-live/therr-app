@@ -1,7 +1,12 @@
 // import { RequestHandler } from 'express';
 import axios from 'axios';
 import { parseHeaders } from 'therr-js-utilities/http';
-import { GroupRequestStatuses, Notifications, PushNotifications } from 'therr-js-utilities/constants';
+import {
+    GroupMemberRoles,
+    GroupRequestStatuses,
+    Notifications,
+    PushNotifications,
+} from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
@@ -13,9 +18,50 @@ import notifyUserOfUpdate from '../utilities/notifyUserOfUpdate';
 const getUserGroups = (req, res) => Store.userGroups.get({
     userId: req.headers['x-userid'],
 })
-    .then((results) => res.status(200).send({
-        userGroups: results,
-    }))
+    .then(async (results) => {
+        let userGroups = results;
+        let groups: any[] = [];
+        if (req.query.withGroups) {
+            const {
+                authorization,
+                locale,
+                whiteLabelOrigin,
+                userId,
+            } = parseHeaders(req.headers);
+
+            const groupResponse = await axios({
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}/forums/find`,
+                headers: {
+                    'x-localecode': locale,
+                    'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
+                },
+                data: {
+                    ids: userGroups.filter((userGroup) => [
+                        GroupMemberRoles.ADMIN,
+                        GroupMemberRoles.CREATOR,
+                        GroupMemberRoles.EVENT_HOST,
+                    ].includes(userGroup.role)).map((userGroup) => userGroup.groupId),
+                },
+            });
+
+            groups = groupResponse?.data || [];
+            const groupsMap = (groups).reduce((acc, cur) => {
+                acc[cur.id] = cur;
+                return acc;
+            }, {});
+            userGroups = userGroups.map((userGroup) => ({
+                ...userGroup,
+                group: groupsMap[userGroup.groupId],
+            }));
+        }
+
+        return res.status(200).send({
+            userGroups,
+            groups,
+        });
+    })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_GROUPS_ROUTES:ERROR' }));
 
 const getGroupMembers = (req, res) => Store.userGroups.get({

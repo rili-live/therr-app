@@ -46,6 +46,7 @@ export interface ISendEmailHtmlConfig {
     unsubscribeUrl?: string;
     legalBusinessName?: string;
     businessCopyrightYear?: string;
+    shouldIncludeSocialIcons?: string;
 
     // E-mail Appearance in Inbox
     fromEmailTitle?: string;
@@ -91,6 +92,7 @@ export default (
         unsubscribeUrl,
         legalBusinessName: htmlConfig.legalBusinessName || contextConfig.emailTemplates.legalBusinessName,
         businessCopyrightYear: htmlConfig.businessCopyrightYear || contextConfig.emailTemplates.businessCopyrightYear,
+        shouldIncludeSocialIcons: htmlConfig.shouldIncludeSocialIcons || contextConfig.emailTemplates.shouldIncludeSocialIcons,
     };
     const renderedHtml = template(sanitizedHtmlConfig);
     const params = {

@@ -35,6 +35,7 @@ import missingImageIdea from '../../assets/missing-image-idea.json';
 import missingImageMusic from '../../assets/missing-image-music.json';
 import missingImageNature from '../../assets/missing-image-nature.json';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
+import formatDate from '../../utilities/formatDate';
 
 const envConfig = getConfig();
 const placeholderMedia = require('../../assets/placeholder-content-media.png');
@@ -56,7 +57,6 @@ interface IUserDetails {
 
 interface IAreaDisplayProps {
     translate: Function;
-    date: string;
     toggleAreaOptions: any;
     hashtags: any[];
     isDarkMode: boolean;
@@ -158,6 +158,30 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 userHasLiked: !area.reaction?.userHasLiked,
             }, area.fromUserId, user?.details?.userName);
         }
+    };
+
+    renderEventItem = (event) => {
+        const { themeViewArea } = this.props;
+
+        return (
+            <View style={[
+                { width: viewportWidth },
+                spacingStyles.marginBotMd,
+                spacingStyles.flex,
+                spacingStyles.justifyCenter,
+                spacingStyles.padHorizMd,
+            ]}>
+                <Text>
+                    {/* eslint-disable-next-line max-len */}
+                    {formatDate(event.scheduleStartAt, 'short').date} {formatDate(event.scheduleStartAt).time} - {formatDate(event.scheduleStopAt, 'short').date} {formatDate(event.scheduleStopAt).time}
+                </Text>
+                <Text numberOfLines={2} style={[
+                    themeViewArea.styles.eventText,
+                    themeViewArea.styles.flexShrinkOne]}>
+                    {event?.notificationMsg}
+                </Text>
+            </View>
+        );
     };
 
     renderActionLink = ({ item }) => {
@@ -278,7 +302,6 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
     render() {
         const {
-            date,
             toggleAreaOptions,
             hashtags,
             isDarkMode,
@@ -297,6 +320,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         } = this.props;
         const { likeCount } = this.state;
 
+        const dateTime = formatDate(area.createdAt);
+        const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
         const isBookmarked = area.reaction?.userBookmarkCategory;
         const isLiked = area.reaction?.userHasLiked;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
@@ -380,7 +405,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                         </Text>
                                     }
                                     <Text style={themeViewArea.styles.dateTime}>
-                                        {date}
+                                        {dateStr}
                                     </Text>
                                 </View>
                             </>
@@ -569,6 +594,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         </Pressable>
                     </Pressable>
                 }
+                {
+                    area.distance != null &&
+                    <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
+                }
                 <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
                     <Autolink
                         text={area.message}
@@ -586,6 +615,19 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         styles={themeForms.styles}
                     />
                 </View>
+                {
+                    isExpanded && area.events?.length > 0
+                    && <View style={spacingStyles.padHorizMd}>
+                        <Text style={theme.styles.sectionTitleCenter}>
+                            {translate('pages.viewSpace.h2.events')}
+                        </Text>
+                        <View style={[spacingStyles.fullWidth]}>
+                            {
+                                area.events?.map((event) => this.renderEventItem(event))
+                            }
+                        </View>
+                    </View>
+                }
                 {
                     isSpace
                     && area.fromUserId === envConfig.superAdminId
@@ -608,10 +650,6 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             onPress={this.claimSpace}
                         />
                     </View>
-                }
-                {
-                    area.distance != null &&
-                    <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
                 }
             </>
         );
