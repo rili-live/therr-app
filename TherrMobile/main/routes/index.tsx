@@ -27,6 +27,7 @@ import Register from './Register';
 import Settings from './Settings';
 import ManageAccount from './Settings/ManageAccount';
 import SocialSync from './ViewUser/SocialSync';
+import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
 import EditMoment from './EditMoment';
 import EditEvent from './EditEvent';
@@ -392,6 +393,19 @@ const routes: RouteConfig<
             headerTitleAlign: 'left',
             cardStyleInterpolator: undefined,
             transitionSpec: momentTransitionSpec,
+        }),
+    },
+    {
+        name: 'ViewEvent',
+        component: ViewEvent,
+        options: () => ({
+            title: 'View Event',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            headerLeft: () => null,
+            headerTitleAlign: 'left',
         }),
     },
     {

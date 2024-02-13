@@ -953,7 +953,8 @@
       },
       "h2": {
         "claimRewards": "Claim Your Rewards",
-        "requirements": "Steps"
+        "requirements": "Steps",
+        "events": "Upcoming Events"
       },
       "info": {
         "shareAMoment": {

@@ -193,7 +193,7 @@ class MapsService {
         });
     };
 
-    // searchEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('events', query, data);
+    searchEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('events', query, data);
 
     searchMyEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('events', query, data);
 

@@ -133,6 +133,9 @@ export const addAddressParams = (area, unsanitizedAddress) => {
     if (unsanitizedAddress.addressRating) {
         modifiedArea.thirdPartyRatings = unsanitizedAddress.addressRating;
     }
+    if (unsanitizedAddress.addressNotificationMsg) {
+        modifiedArea.addressNotificationMsg = unsanitizedAddress.addressNotificationMsg;
+    }
 
     return modifiedArea;
 };

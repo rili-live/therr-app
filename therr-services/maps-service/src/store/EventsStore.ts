@@ -158,6 +158,7 @@ export default class EventsStore {
 
     // eslint-disable-next-line default-param-last
     searchEvents(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
+        const now = new Date();
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let proximityMax = overrides?.distanceOverride || Location.AREA_PROXIMITY_METERS;
@@ -171,6 +172,7 @@ export default class EventsStore {
             // .orderBy(`${EVENTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)) // eslint-disable-line quotes, max-len
+            .where('scheduleStartAt', '>', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000))
             .andWhere({
                 // TODO: Check user settings to determine if content should be included
                 isMatureContent: false, // content that has been blocked
@@ -347,6 +349,7 @@ export default class EventsStore {
     }
 
     findSpaceEvents(spaceIds: string[], limit = 100, offset = 0) {
+        const now = new Date();
         const query = knexBuilder
             .from(EVENTS_TABLE_NAME)
             .limit(limit)
@@ -354,7 +357,8 @@ export default class EventsStore {
             .whereIn('spaceId', spaceIds)
             .where({
                 isPublic: true,
-            });
+            })
+            .where('scheduleStartAt', '>', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
 
         return this.db.read.query(query.toString()).then((response) => response.rows);
     }

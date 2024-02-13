@@ -610,7 +610,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     />
                 );
             case CAROUSEL_TABS.EVENTS:
-                const eventsData = isLoading ? [] : getActiveCarouselData({
+                let eventsData = isLoading ? [] : getActiveCarouselData({
                     activeTab: route.key,
                     content,
                     isForBookmarks: false,
@@ -620,6 +620,9 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     // TODO: Include promoted spaces in discoveries
                     shouldIncludeSpaces: false,
                 }, 'reaction.createdAt', categoriesFilter);
+                eventsData = eventsData?.length
+                    ? eventsData
+                    : Object.values(map.events || {});
                 return (
                     (<AreaCarousel
                         activeData={eventsData}

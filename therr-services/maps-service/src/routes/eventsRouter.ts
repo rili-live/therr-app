@@ -3,7 +3,7 @@ import {
     createEvent,
     updateEvent,
     getEventDetails,
-    // searchEvents,
+    searchEvents,
     searchMyEvents,
     searchSpaceEvents,
     findEvents,
@@ -20,7 +20,7 @@ router.put('/:eventId', updateEvent);
 
 // SEARCH
 router.post('/:eventId/details', getEventDetails);
-// router.post('/search', searchEvents);
+router.post('/search', searchEvents);
 router.post('/search/me', searchMyEvents);
 router.post('/search/for-space-ids', searchSpaceEvents);
 router.post('/find', findEvents);

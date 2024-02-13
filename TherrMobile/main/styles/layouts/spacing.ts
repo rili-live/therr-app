@@ -14,8 +14,14 @@ const styles = StyleSheet.create({
         display: 'flex',
         flexDirection: 'row',
     },
+    flexWrap: {
+        flexWrap: 'wrap',
+    },
     flexOne: {
         flex: 1,
+    },
+    flexShrinkOne: {
+        flexShrink: 1,
     },
     alignCenter: {
         alignItems: 'center',

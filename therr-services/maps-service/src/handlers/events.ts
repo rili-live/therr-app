@@ -188,6 +188,7 @@ const createEvent = async (req, res) => {
             groupId,
 
             addressReadable,
+            addressNotificationMsg,
             postalCode,
             addressStreetAddress,
             addressRegion,
@@ -235,6 +236,7 @@ const createEvent = async (req, res) => {
                 latitude,
                 longitude,
                 message: addressReadable,
+                notificationMsg: addressNotificationMsg,
                 isPublic: req.body.isPublic,
             });
         }
@@ -560,82 +562,82 @@ const getEventDetails = (req, res) => {
 };
 
 // TODO: This should only return events from public groups
-// const searchEvents: RequestHandler = async (req: any, res: any) => {
-//     const userId = req.headers['x-userid'];
-//     const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+const searchEvents: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
 
-//     const {
-//         // filterBy,
-//         query,
-//         itemsPerPage,
-//         // longitude,
-//         // latitude,
-//         pageNumber,
-//     } = req.query;
-//     const {
-//         distanceOverride,
-//     } = req.body;
+    const {
+        // filterBy,
+        query,
+        itemsPerPage,
+        // longitude,
+        // latitude,
+        pageNumber,
+    } = req.query;
+    const {
+        distanceOverride,
+    } = req.body;
 
-//     const integerColumns = ['maxViews', 'longitude', 'latitude'];
-//     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-//     let fromUserIds;
-//     if (query === 'me') {
-//         fromUserIds = [userId];
-//     } else if (query === 'connections') {
-//         let queryString = getSearchQueryString({
-//             filterBy: 'acceptingUserId',
-//             query: userId,
-//             itemsPerPage,
-//             pageNumber: 1,
-//             orderBy: 'interactionCount',
-//             order: 'desc',
-//         });
-//         queryString = `${queryString}&shouldCheckReverse=true`;
-//         const connectionsResponse: any = await axios({
-//             method: 'get',
-//             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
-//             headers: {
-//                 authorization: req.headers.authorization,
-//                 'x-localecode': req.headers['x-localecode'] || 'en-us',
-//                 'x-userid': userId,
-//                 'x-therr-origin-host': whiteLabelOrigin,
-//             },
-//         }).catch((err) => {
-//             console.log(err);
-//             return {
-//                 data: {
-//                     results: [],
-//                 },
-//             };
-//         });
-//         fromUserIds = connectionsResponse.data.results
-//             .map((connection: any) => connection.users.filter((user: any) => user.id != userId)[0].id); // eslint-disable-line eqeqeq
-//     }
-//     const searchPromise = Store.events.searchEvents(searchArgs[0], searchArgs[1], fromUserIds, { distanceOverride }, query !== 'me');
-//     // const countPromise = Store.events.countRecords({
-//     //     filterBy,
-//     //     query,
-//     //     longitude,
-//     //     latitude,
-//     // }, fromUserIds);
-//     const countPromise = Promise.resolve();
+    const integerColumns = ['maxViews', 'longitude', 'latitude'];
+    const searchArgs = getSearchQueryArgs(req.query, integerColumns);
+    let fromUserIds;
+    if (query === 'me') {
+        fromUserIds = [userId];
+    } else if (query === 'connections') {
+        let queryString = getSearchQueryString({
+            filterBy: 'acceptingUserId',
+            query: userId,
+            itemsPerPage,
+            pageNumber: 1,
+            orderBy: 'interactionCount',
+            order: 'desc',
+        });
+        queryString = `${queryString}&shouldCheckReverse=true`;
+        const connectionsResponse: any = await axios({
+            method: 'get',
+            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
+            headers: {
+                authorization: req.headers.authorization,
+                'x-localecode': req.headers['x-localecode'] || 'en-us',
+                'x-userid': userId,
+                'x-therr-origin-host': whiteLabelOrigin,
+            },
+        }).catch((err) => {
+            console.log(err);
+            return {
+                data: {
+                    results: [],
+                },
+            };
+        });
+        fromUserIds = connectionsResponse.data.results
+            .map((connection: any) => connection.users.filter((user: any) => user.id != userId)[0].id); // eslint-disable-line eqeqeq
+    }
+    const searchPromise = Store.events.searchEvents(searchArgs[0], searchArgs[1], fromUserIds, { distanceOverride }, query !== 'me');
+    // const countPromise = Store.events.countRecords({
+    //     filterBy,
+    //     query,
+    //     longitude,
+    //     latitude,
+    // }, fromUserIds);
+    const countPromise = Promise.resolve();
 
-//     // TODO: Get associated reactions for user and return limited details if event is not yet activated
-//     return Promise.all([searchPromise, countPromise]).then(([results]) => {
-//         const response = {
-//             results,
-//             pagination: {
-//                 // totalItems: Number(countResult[0].count),
-//                 totalItems: Number(100), // arbitraty number because count is slow and not needed
-//                 itemsPerPage: Number(itemsPerPage),
-//                 pageNumber: Number(pageNumber),
-//             },
-//         };
+    // TODO: Get associated reactions for user and return limited details if event is not yet activated
+    return Promise.all([searchPromise, countPromise]).then(([results]) => {
+        const response = {
+            results,
+            pagination: {
+                // totalItems: Number(countResult[0].count),
+                totalItems: Number(100), // arbitraty number because count is slow and not needed
+                itemsPerPage: Number(itemsPerPage),
+                pageNumber: Number(pageNumber),
+            },
+        };
 
-//         res.status(200).send(response);
-//     })
-//         .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENTS_ROUTES:ERROR' }));
-// };
+        res.status(200).send(response);
+    })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENTS_ROUTES:ERROR' }));
+};
 
 const searchMyEvents: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
@@ -769,6 +771,7 @@ export {
     getEventDetails,
     // searchEvents,
     searchSpaceEvents,
+    searchEvents,
     searchMyEvents,
     findEvents,
     getSignedUrlPrivateBucket,

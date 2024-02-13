@@ -160,6 +160,30 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         }
     };
 
+    renderEventItem = (event) => {
+        const { themeViewArea } = this.props;
+
+        return (
+            <View style={[
+                { width: viewportWidth },
+                spacingStyles.marginBotMd,
+                spacingStyles.flex,
+                spacingStyles.justifyCenter,
+                spacingStyles.padHorizMd,
+            ]}>
+                <Text>
+                    {/* eslint-disable-next-line max-len */}
+                    {formatDate(event.scheduleStartAt, 'short').date} {formatDate(event.scheduleStartAt).time} - {formatDate(event.scheduleStopAt, 'short').date} {formatDate(event.scheduleStopAt).time}
+                </Text>
+                <Text numberOfLines={2} style={[
+                    themeViewArea.styles.eventText,
+                    themeViewArea.styles.flexShrinkOne]}>
+                    {event?.notificationMsg}
+                </Text>
+            </View>
+        );
+    };
+
     renderActionLink = ({ item }) => {
         const { area, themeForms, translate } = this.props;
 
@@ -570,6 +594,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         </Pressable>
                     </Pressable>
                 }
+                {
+                    area.distance != null &&
+                    <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
+                }
                 <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
                     <Autolink
                         text={area.message}
@@ -587,6 +615,19 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         styles={themeForms.styles}
                     />
                 </View>
+                {
+                    isExpanded && area.events?.length > 0
+                    && <View style={spacingStyles.padHorizMd}>
+                        <Text style={theme.styles.sectionTitleCenter}>
+                            {translate('pages.viewSpace.h2.events')}
+                        </Text>
+                        <View style={[spacingStyles.fullWidth]}>
+                            {
+                                area.events?.map((event) => this.renderEventItem(event))
+                            }
+                        </View>
+                    </View>
+                }
                 {
                     isSpace
                     && area.fromUserId === envConfig.superAdminId
@@ -609,10 +650,6 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             onPress={this.claimSpace}
                         />
                     </View>
-                }
-                {
-                    area.distance != null &&
-                    <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
                 }
             </>
         );

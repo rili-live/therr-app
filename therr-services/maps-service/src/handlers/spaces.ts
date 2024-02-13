@@ -287,6 +287,7 @@ const getSpaceDetails = (req, res) => {
             const events = shouldFetchEvents
                 ? await Store.events.findSpaceEvents([space.id])
                 : [];
+            serializedSpace.events = events;
 
             return userHasAccessPromise().then((isActivated) => res.status(200).send({
                 events,
