@@ -14,4 +14,10 @@
         <item name="postSplashScreenTheme">@style/AppTheme</item>
     </style>
 
+    <style name="DatePickerTheme" parent="DatePickerBaseTheme">
+        <style name="DatePickerTheme" parent="DatePickerBaseTheme">
+        <item name="android:colorControlNormal">@color/therr_blue</item>
+        <item name="colorAccent">@color/therr_blue</item>
+    </style>
+
 </resources>

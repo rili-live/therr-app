@@ -188,10 +188,12 @@ const getSpaceDetails = (req, res) => {
     const { spaceId } = req.params;
 
     const {
+        withEvents,
         withMedia,
         withUser,
     } = req.body;
 
+    const shouldFetchEvents = !!withEvents;
     const shouldFetchMedia = !!withMedia;
     const shouldFetchUser = !!withUser;
 
@@ -203,7 +205,7 @@ const getSpaceDetails = (req, res) => {
         withUser: shouldFetchUser,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
     })
-        .then(({ spaces, media, users }) => {
+        .then(async ({ spaces, media, users }) => {
             const space = spaces[0];
             if (!space) {
                 return handleHttpError({
@@ -282,7 +284,13 @@ const getSpaceDetails = (req, res) => {
                 message: space.message?.replace(/"/g, '\\"'),
             };
 
+            const events = shouldFetchEvents
+                ? await Store.events.findSpaceEvents([space.id])
+                : [];
+            serializedSpace.events = events;
+
             return userHasAccessPromise().then((isActivated) => res.status(200).send({
+                events,
                 space: serializedSpace,
                 media,
                 users,

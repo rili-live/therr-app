@@ -5,7 +5,14 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
-import { IContentState, ILocationState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import {
+    IAreaType,
+    IContentState,
+    ILocationState,
+    IMapState,
+    IUserState,
+    IUserConnectionsState,
+} from 'therr-react/types';
 import { TabBar, TabView } from 'react-native-tab-view';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas';
@@ -89,6 +96,7 @@ interface IAreasState {
     activeTabIndex: number;
     isLoading: boolean;
     isLocationUseDisclosureModalVisible: boolean;
+    locationDisclosureAreaType: IAreaType;
     areAreaOptionsVisible: boolean;
     areThoughtOptionsVisible: boolean;
     selectedArea: any;
@@ -107,6 +115,10 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            // searchActiveEvents: ContentActions.searchActiveEvents,
+            // updateActiveEventsStream: ContentActions.updateActiveEventsStream,
+            // createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
+
             searchActiveMoments: ContentActions.searchActiveMoments,
             updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
@@ -154,6 +166,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             activeTabIndex: 0,
             isLoading: true,
             isLocationUseDisclosureModalVisible: false,
+            locationDisclosureAreaType: 'moments',
             areAreaOptionsVisible: false,
             areThoughtOptionsVisible: false,
             selectedArea: {},
@@ -258,8 +271,20 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         navigation.navigate('EditThought', {});
     };
 
+    handleCreateEvent = () => {
+        return this.handleCreateArea('events');
+    };
+
     handleCreateMoment = () => {
+        return this.handleCreateArea('moments');
+    };
+
+    handleCreateArea = (areaType: IAreaType) => {
         const { location, navigation, updateLocationDisclosure, updateGpsStatus } = this.props;
+
+        this.setState({
+            locationDisclosureAreaType: areaType,
+        });
 
         if (!(location?.user?.latitude && location?.user?.longitude)) {
             navigation.navigate('Map', {
@@ -312,7 +337,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                             },
                         },
                         {
-                            name: 'EditMoment',
+                            name: areaType === 'events' ? 'EditEvent' : 'EditMoment',
                             params: {
                                 latitude: location?.user?.latitude,
                                 longitude: location?.user?.longitude,
@@ -327,13 +352,13 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         });
     };
 
-    handleLocationDisclosureSelect = (selection) => {
+    handleLocationDisclosureSelect = (selection, areaType: IAreaType) => {
         const { updateLocationDisclosure } = this.props;
         // TODO: Decide if selection should be dynamic
-        console.log(selection);
+        // console.log(selection);
         updateLocationDisclosure(true).then(() => {
             this.toggleLocationUseDisclosure();
-            this.handleCreateMoment();
+            this.handleCreateArea(areaType);
         });
     };
 
@@ -585,7 +610,19 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     />
                 );
             case CAROUSEL_TABS.EVENTS:
-                const eventsData = [];
+                let eventsData = isLoading ? [] : getActiveCarouselData({
+                    activeTab: route.key,
+                    content,
+                    isForBookmarks: false,
+                    shouldIncludeEvents: true,
+                    shouldIncludeThoughts: false,
+                    shouldIncludeMoments: false,
+                    // TODO: Include promoted spaces in discoveries
+                    shouldIncludeSpaces: false,
+                }, 'reaction.createdAt', categoriesFilter);
+                eventsData = eventsData?.length
+                    ? eventsData
+                    : Object.values(map.events || {});
                 return (
                     (<AreaCarousel
                         activeData={eventsData}
@@ -605,7 +642,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         updateSpaceReaction={createOrUpdateSpaceReaction}
                         updateThoughtReaction={createOrUpdateThoughtReaction}
                         emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.EVENTS)}
-                        emptyIconName="ticket"
+                        emptyIconName="calendar"
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
                         user={user}
@@ -652,6 +689,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             areAreaOptionsVisible,
             areThoughtOptionsVisible,
             isLocationUseDisclosureModalVisible,
+            locationDisclosureAreaType,
             selectedThought,
             selectedArea,
             tabRoutes,
@@ -705,6 +743,22 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     />
                 }
                 {
+                    tabName === CAROUSEL_TABS.EVENTS
+                    && <Button
+                        containerStyle={this.themeButtons.styles.addAThought}
+                        buttonStyle={this.themeButtons.styles.btnLarge}
+                        icon={
+                            <TherrIcon
+                                name={'plus'}
+                                size={27}
+                                style={this.themeButtons.styles.btnIcon}
+                            />
+                        }
+                        raised={true}
+                        onPress={this.handleCreateEvent}
+                    />
+                }
+                {
                     tabName === CAROUSEL_TABS.DISCOVERIES
                     && <Button
                         containerStyle={this.themeButtons.styles.addAThought}
@@ -743,6 +797,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     onSelect={this.handleLocationDisclosureSelect}
                     themeButtons={this.themeButtons}
                     themeDisclosure={this.themeDisclosure}
+                    areaType={locationDisclosureAreaType}
                 />
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
                 <MainButtonMenu

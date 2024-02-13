@@ -273,10 +273,18 @@ class UsersService {
         data,
     });
 
-    getUserGroups = () => axios({
-        method: 'get',
-        url: '/users-service/users-groups',
-    });
+    getUserGroups = (query: {
+        withGroups?: boolean;
+    } = {}) => {
+        let queryStr = '';
+        if (query.withGroups) {
+            queryStr = '?withGroups=true';
+        }
+        return axios({
+            method: 'get',
+            url: `/users-service/users-groups${queryStr}`,
+        });
+    };
 
     getGroupMembers = (groupId: string) => axios({
         method: 'get',

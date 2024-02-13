@@ -154,7 +154,8 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         this.notificationMsg = (space.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
         this.hashtags = space.hashTags ? space.hashTags.split(',') : [];
 
-        this.date = formatDate(space.updatedAt);
+        const dateTime = formatDate(space.updatedAt);
+        this.date = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
 
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
@@ -169,6 +170,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
 
         // Move space details out of route params and into redux
         getSpaceDetails(space.id, {
+            withEvents: true,
             withMedia: !spaceMedia,
             withUser: shouldFetchUser,
         }).then((data) => {
@@ -618,6 +620,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             ...fetchedSpace,
         };
         const spaceUserName = isMyContent ? user.details.userName : spaceInView.fromUserName;
+        const spaceUserMedia = isMyContent ? user.details.media : (spaceInView.fromUserMedia || {});
         const mediaId = (spaceInView.media && spaceInView.media[0]?.id) || (spaceInView.mediaIds?.length && spaceInView.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
         const mediaPath = (spaceInView.media && spaceInView.media[0]?.path);
@@ -649,7 +652,6 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                     }) :
                                     <AreaDisplay
                                         translate={this.translate}
-                                        date={this.date}
                                         toggleAreaOptions={this.toggleAreaOptions}
                                         hashtags={this.hashtags}
                                         isDarkMode={true}
@@ -663,6 +665,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                         // TODO: User Username from response
                                         user={user}
                                         areaUserDetails={{
+                                            media: spaceUserMedia,
                                             userName: areaUserName,
                                         }}
                                         areaMedia={spaceMedia}

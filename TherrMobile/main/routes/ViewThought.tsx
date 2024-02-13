@@ -29,7 +29,6 @@ import { buildStyles as buildThoughtStyles } from '../styles/user-content/though
 // import userContentStyles from '../styles/user-content';
 // import { youtubeLinkRegex } from '../constants';
 import ThoughtDisplay from '../components/UserContent/ThoughtDisplay';
-import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyContent as checkIsMyContent } from '../utilities/content';
 import ThoughtOptionsModal, { ISelectionType } from '../components/Modals/ThoughtOptionsModal';
@@ -141,8 +140,6 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         this.hashtags = thought.hashTags ? thought.hashTags.split(',') : [];
-
-        this.date = formatDate(thought.createdAt);
 
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
@@ -466,7 +463,6 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                         <View style={[this.themeAccentLayout.styles.container, this.themeThought.styles.inspectThoughtContainer, spacingStyles.padHorizSm]}>
                             <ThoughtDisplay
                                 translate={this.translate}
-                                date={this.date}
                                 toggleThoughtOptions={() => this.toggleThoughtOptions(thoughtInView)}
                                 hashtags={this.hashtags}
                                 isDarkMode={true}
@@ -515,7 +511,6 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                                 replies?.map((reply) => (
                                     <ThoughtDisplay
                                         translate={this.translate}
-                                        date={formatDate(reply.createdAt)}
                                         toggleThoughtOptions={() => this.toggleThoughtOptions(reply)}
                                         hashtags={this.hashtags}
                                         isDarkMode={true}

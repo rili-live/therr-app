@@ -95,13 +95,109 @@ const template = `
 
           <!-- END MAIN CONTENT AREA -->
           </table>
+          {{#if footerImageRelativePath}}
+            <img src="${imagesHost}/{{footerImageRelativePath}}" alt="E-mail footer image" style="height: auto; width: 100%" />
+          {{/if}}
+
 
           <!-- START FOOTER -->
           <div class="footer" style="clear: both; margin-top: 10px; text-align: center; width: 100%;">
-            <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
-            {{#if footerImageRelativePath}}
-              <img src="${imagesHost}/{{footerImageRelativePath}}" alt="E-mail footer image" style="height: auto; width: 100%" />
+            {{#if shouldIncludeSocialIcons}}
+              <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tbody>
+                  <tr>
+                      <td align="center">
+                          <a
+                              href="https://www.facebook.com/therrapp"
+                              style="display: inline-block;"
+                              target="_blank"
+                          >
+                              <img
+                                  border="0"
+                                  src="${imagesHost}/assets/images/social-icons/facebook.png"
+                                  alt="Facebook"
+                                  width="48"
+                                  height="48"
+                                  style="width: 48px; vertical-align: middle;"
+                              />
+                          </a>
+                          <a
+                              href="https://twitter.com/therr_app"
+                              style="display: inline-block;"
+                              target="_blank"
+                          >
+                              <img
+                                  border="0"
+                                  src="${imagesHost}/assets/images/social-icons/twitter.png"
+                                  alt="Twitter"
+                                  width="48"
+                                  height="48"
+                                  style="width: 48px; vertical-align: middle;"
+                              />
+                          </a>
+                          <a
+                              href="https://www.instagram.com/therr.app/"
+                              style="display: inline-block;"
+                              target="_blank"
+                          >
+                              <img
+                                  border="0"
+                                  src="${imagesHost}/assets/images/social-icons/instagram.png"
+                                  alt="Instagram"
+                                  width="48"
+                                  height="48"
+                                  style="width: 48px; vertical-align: middle;"
+                              />
+                          </a>
+                          <a
+                              href="https://www.linkedin.com/company/therr"
+                              style="display: inline-block;"
+                              target="_blank"
+                          >
+                              <img
+                                  border="0"
+                                  src="${imagesHost}/assets/images/social-icons/linkedin.png"
+                                  alt="LinkedIn"
+                                  width="48"
+                                  height="48"
+                                  style="width: 48px; vertical-align: middle;"
+                              />
+                          </a>
+                          <a
+                              href="https://www.youtube.com/@therrapp"
+                              style="display: inline-block;"
+                              target="_blank"
+                          >
+                              <img
+                                  border="0"
+                                  src="${imagesHost}/assets/images/social-icons/youtube.png"
+                                  alt="YouTube"
+                                  width="48"
+                                  height="48"
+                                  style="width: 48px; vertical-align: middle;"
+                              />
+                          </a>
+                          <a
+                              href="https://www.tiktok.com/@therr.app"
+                              style="display: inline-block;"
+                              target="_blank"
+                          >
+                              <img
+                                  border="0"
+                                  src="${imagesHost}/assets/images/social-icons/tiktok.png"
+                                  alt="TikTok"
+                                  width="48"
+                                  height="48"
+                                  style="width: 48px; vertical-align: middle;"
+                              />
+                          </a>
+                      </td>
+                  </tr>
+                </tbody>
+              </table>
             {{/if}}
+
+            <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
               <tr>
                 <td class="content-block" style="font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; font-size: 12px; color: #999999; text-align: center;">
                   <p class="apple-link" style="color: #e2e0e0; font-size: 12px; text-align: center;">All rights reserved © <a href="{{homepageLinkUri}}" style="color: #e2e0e0;">{{legalBusinessName}}</a> {{businessCopyrightYear}}</p>

@@ -39,24 +39,24 @@ import TherrIcon from '../components/TherrIcon';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-interface IViewMomentDispatchProps {
-    getMomentDetails: Function;
-    deleteMoment: Function;
-    createOrUpdateMomentReaction: Function;
+interface IViewEventDispatchProps {
+    getEventDetails: Function;
+    deleteEvent: Function;
+    createOrUpdateEventReaction: Function;
 }
 
-interface IStoreProps extends IViewMomentDispatchProps {
+interface IStoreProps extends IViewEventDispatchProps {
     content: IContentState;
     user: IUserState;
 }
 
 // Regular component props
-export interface IViewMomentProps extends IStoreProps {
+export interface IViewEventProps extends IStoreProps {
     navigation: any;
     route: any;
 }
 
-interface IViewMomentState {
+interface IViewEventState {
     areAreaOptionsVisible: boolean;
     errorMsg: string;
     successMsg: string;
@@ -74,12 +74,12 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    getMomentDetails: MapActions.getMomentDetails,
-    deleteMoment: MapActions.deleteMoment,
-    createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
+    getEventDetails: MapActions.getEventDetails,
+    deleteEvent: MapActions.deleteEvent,
+    createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
 }, dispatch);
 
-export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
+export class ViewEvent extends React.Component<IViewEventProps, IViewEventState> {
     private date;
     private notificationMsg;
     private hashtags;
@@ -133,7 +133,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     }
 
     componentDidMount() {
-        const { content, getMomentDetails, navigation, route } = this.props;
+        const { content, getEventDetails, navigation, route } = this.props;
         const { moment } = route.params;
 
         const shouldFetchUser = !moment?.fromUserMedia || !moment.fromUserName;
@@ -141,7 +141,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         const momentMedia = content?.media[mediaId];
 
         // Move moment details out of route params and into redux
-        getMomentDetails(moment.id, {
+        getEventDetails(moment.id, {
             withMedia: !momentMedia,
             withUser: shouldFetchUser,
         }).then((data) => {
@@ -208,14 +208,14 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     };
 
     onDeleteConfirm = () => {
-        const { deleteMoment, navigation, route, user } = this.props;
+        const { deleteEvent, navigation, route, user } = this.props;
         const { moment } = route.params;
 
         this.setState({
             isDeleting: true,
         });
         if (checkIsMyMoment(moment, user)) {
-            deleteMoment({ ids: [moment.id] })
+            deleteEvent({ ids: [moment.id] })
                 .then(() => {
                     navigation.navigate('Map', {
                         shouldShowPreview: false,
@@ -322,7 +322,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     };
 
     onUpdateMomentReaction = (momentId, data) => {
-        const { createOrUpdateMomentReaction, navigation, route, user } = this.props;
+        const { createOrUpdateEventReaction, navigation, route, user } = this.props;
         const { moment } = route.params;
         navigation.setParams({
             moment: {
@@ -333,7 +333,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 },
             },
         });
-        return createOrUpdateMomentReaction(momentId, data, moment.fromUserId, user.details.userName);
+        return createOrUpdateEventReaction(momentId, data, moment.fromUserId, user.details.userName);
     };
 
     toggleAreaOptions = (displayArea?: any) => {
@@ -513,4 +513,4 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ViewMoment);
+export default connect(mapStateToProps, mapDispatchToProps)(ViewEvent);

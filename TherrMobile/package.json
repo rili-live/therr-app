@@ -68,6 +68,7 @@
     "react-native-config": "^1.4.2",
     "react-native-contacts": "^7.0.4",
     "react-native-country-picker-modal": "^2.0.0",
+    "react-native-date-picker": "^4.3.5",
     "react-native-device-info": "^10.0.0",
     "react-native-dotenv": "^3.2.0",
     "react-native-elements": "^3.0.0",

@@ -39,7 +39,6 @@ import mapStyles from '../../styles/map';
 import mapCustomStyle from '../../styles/map/googleCustom';
 import MarkerIcon from './MarkerIcon';
 import { getUserContentUri, isMyContent } from '../../utilities/content';
-import formatDate from '../../utilities/formatDate';
 import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
 
 const { width: viewPortWidth, height: viewPortHeight } = Dimensions.get('window');
@@ -1090,7 +1089,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         >
                             {
                                 areasInPreview.map((area, idx) => {
-                                    const formattedDate = formatDate(area.createdAt);
                                     const mediaIdsSplit = (area.mediaIds || '').split(',');
                                     const mediaId = content.media
                                         && (area.media && area.media[0]?.id || mediaIdsSplit && mediaIdsSplit[0]);
@@ -1106,7 +1104,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                             areaMedia={areaMedia}
                                             cardWidth={CARD_WIDTH}
                                             cardHeight={CARD_HEIGHT}
-                                            date={formattedDate}
                                             isDarkMode={false}
                                             key={area.id}
                                             isFocused={areaInPreviewIndex === idx}

@@ -3,6 +3,7 @@ import {
     createForum,
     searchCategories,
     getForum,
+    findForums,
     searchForums,
     updateForum,
 } from '../handlers/forums';
@@ -13,6 +14,7 @@ const router = express.Router();
 router.post('/', createForum);
 
 // READ
+router.post('/find', findForums); // internal route
 router.post('/search', searchForums);
 router.get('/categories', searchCategories);
 router.get('/:forumId', getForum);

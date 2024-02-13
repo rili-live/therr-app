@@ -38,6 +38,7 @@ interface IBrandConfig {
         unsubscribeUrl?: string;
         legalBusinessName: string;
         businessCopyrightYear: string;
+        shouldIncludeSocialIcons?: string;
     }
 }
 
@@ -79,6 +80,7 @@ const hostContext: IBrandConfigs = {
             unsubscribeUrl: 'https://therr.com/emails/unsubscribe', // TODO: Build an actual route and page for this
             legalBusinessName: 'Therr Inc.',
             businessCopyrightYear: '2021',
+            shouldIncludeSocialIcons: 'true',
         },
     },
     'dashboard.therr.com': {

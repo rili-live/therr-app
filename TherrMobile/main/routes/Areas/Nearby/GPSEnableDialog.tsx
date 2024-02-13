@@ -25,7 +25,7 @@ const GpsEnableButtonDialog = ({ handleEnableLocationPress, theme, themeForms, t
         <KeyboardAwareScrollView
             contentInsetAdjustmentBehavior="automatic"
             style={theme.styles.bodyFlex}
-            contentContainerStyle={theme.styles.bodyScroll}
+            contentContainerStyle={theme.styles.bodyScrollTop}
         >
             <View style={[theme.styles.sectionContainer, { marginTop: 0 }]}>
                 <View style={{ flex: 1, height: 100, marginBottom: 30 }}>

@@ -124,6 +124,7 @@ interface IMapDispatchProps {
     updateUserCoordinates: Function;
     updateMapViewCoordinates: Function;
     setMapFilters: Function;
+    searchEvents: Function;
     searchMoments: Function;
     searchSpaces: Function;
     setInitialUserLocation: Function;
@@ -210,6 +211,7 @@ const mapDispatchToProps = (dispatch: any) =>
             captureClickTarget: UserInterfaceActions.captureClickEvent,
             updateUserCoordinates: MapActions.updateUserCoordinates,
             updateMapViewCoordinates: MapActions.updateMapViewCoordinates,
+            searchEvents: MapActions.searchEvents,
             searchMoments: MapActions.searchMoments,
             searchSpaces: MapActions.searchSpaces,
             setInitialUserLocation: MapActions.setInitialUserLocation,
@@ -1077,7 +1079,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             meItemsPerPage: number,
         },
         distanceOverride?: any) => {
-        const { findMomentReactions, findSpaceReactions, searchMoments, searchSpaces } = this.props;
+        const {
+            findMomentReactions,
+            findSpaceReactions,
+            searchEvents,
+            searchMoments,
+            searchSpaces,
+        } = this.props;
 
         return Promise.all([
             searchMoments({
@@ -1096,6 +1104,14 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 filterBy: 'fromUserIds',
                 ...longLat,
             }, distanceOverride),
+            searchEvents({
+                query: 'connections',
+                itemsPerPage: conditions.itemsPerPage,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...longLat,
+            }, distanceOverride),
             searchMoments({
                 query: 'me',
                 itemsPerPage: conditions.meItemsPerPage,
@@ -1112,7 +1128,16 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 filterBy: 'fromUserIds',
                 ...longLat,
             }, distanceOverride),
+            searchEvents({
+                query: 'me',
+                itemsPerPage: conditions.meItemsPerPage,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...longLat,
+            }, distanceOverride),
         ]).then(([moments, spaces]) => {
+            // TODO: Find event reactions
             if (moments?.results?.length) {
                 findMomentReactions({
                     momentIds: moments?.results?.map(moment => moment.id),

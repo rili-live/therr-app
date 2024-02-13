@@ -27,8 +27,10 @@ import Register from './Register';
 import Settings from './Settings';
 import ManageAccount from './Settings/ManageAccount';
 import SocialSync from './ViewUser/SocialSync';
+import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
 import EditMoment from './EditMoment';
+import EditEvent from './EditEvent';
 import ViewSpace from './ViewSpace';
 import EditSpace from './EditSpace';
 import EditThought from './EditThought';
@@ -394,6 +396,19 @@ const routes: RouteConfig<
         }),
     },
     {
+        name: 'ViewEvent',
+        component: ViewEvent,
+        options: () => ({
+            title: 'View Event',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            headerLeft: () => null,
+            headerTitleAlign: 'left',
+        }),
+    },
+    {
         name: 'ViewMoment',
         component: ViewMoment,
         options: () => ({
@@ -411,6 +426,21 @@ const routes: RouteConfig<
         component: EditMoment,
         options: () => ({
             title: 'Edit Moment',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            headerLeft: () => null,
+            headerTitleAlign: 'left',
+            cardStyleInterpolator: undefined,
+            transitionSpec: momentTransitionSpec,
+        }),
+    },
+    {
+        name: 'EditEvent',
+        component: EditEvent,
+        options: () => ({
+            title: 'Edit Event',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

@@ -79,7 +79,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         bodyViewScroll: {
             backgroundColor: therrTheme.colors.accent1,
-            paddingBottom: 100,
+            paddingBottom: 110,
         },
         footer: {
             display: 'flex',
@@ -92,7 +92,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             alignItems: 'center',
             justifyContent: 'flex-end',
             width: '100%',
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.primary,
         },
     });
 

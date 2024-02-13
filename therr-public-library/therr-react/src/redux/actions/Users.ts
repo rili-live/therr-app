@@ -573,7 +573,9 @@ class UsersActions {
         return response.data;
     });
 
-    getUserGroups = () => (dispatch: any) => UsersService.getUserGroups()
+    getUserGroups = (query: {
+        withGroups?: boolean;
+    } = {}) => (dispatch: any) => UsersService.getUserGroups(query)
         .then((response: any) => {
             dispatch({
                 type: UserActionTypes.GET_USER_GROUPS,

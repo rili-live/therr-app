@@ -12,6 +12,7 @@ export interface ISearchAreasArgs {
 }
 
 interface IGetAreaDetailsArgs {
+    withEvents?: boolean;
     withMedia?: boolean;
     withUser?: boolean;
 }
@@ -180,7 +181,19 @@ class MapsService {
 
     getEventDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('events', id, args);
 
-    // searchEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('events', query, data);
+    getSpaceEvents = (query: ISearchQuery, spaceIds: string[], withMedia = false) => {
+        const queryString = getSearchQueryString(query);
+
+        return axios({
+            method: 'post',
+            url: `/maps-service/events/search/for-space-ids${queryString}`,
+            data: {
+                spaceIds,
+            },
+        });
+    };
+
+    searchEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('events', query, data);
 
     searchMyEvents = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('events', query, data);
 
