@@ -100,7 +100,8 @@ export default ({
                     </View>
                 }
                 <View style={themeNotification.styles.dateContainer}>
-                    <Text style={themeNotification.styles.dateText}>{formatDate(notification.createdAt)}</Text>
+                    {/* eslint-disable-next-line max-len */}
+                    <Text style={themeNotification.styles.dateText}>{formatDate(notification.createdAt, 'short').date} | {formatDate(notification.createdAt, 'short').time}</Text>
                 </View>
             </View>
             <Pressable

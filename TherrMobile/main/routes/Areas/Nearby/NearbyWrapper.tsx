@@ -45,6 +45,10 @@ interface INearbyWrapperDispatchProps {
     updateUserCoordinates: Function;
     updateUserRadius: Function;
 
+    searchActiveEvents: Function;
+    updateActiveEventsStream: Function;
+    createOrUpdateEventReaction: Function;
+
     searchActiveMoments: Function;
     updateActiveMomentsStream: Function;
     createOrUpdateMomentReaction: Function;
@@ -104,6 +108,10 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             updateUserCoordinates: MapActions.updateUserCoordinates,
             updateUserRadius: MapActions.updateUserRadius,
+
+            searchActiveEvents: ContentActions.searchActiveEvents,
+            updateActiveEventsStream: ContentActions.updateActiveEventsStream,
+            createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
 
             searchActiveMoments: ContentActions.searchActiveMoments,
             updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
@@ -343,7 +351,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
     onAreaOptionSelect = (type: ISelectionType) => {
         const { selectedArea } = this.state;
-        const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
+        const { createOrUpdateEventReaction, createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
 
         if (type === 'getDirections') {
             getDirections({
@@ -354,6 +362,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
         } else {
             handleAreaReaction(selectedArea, type, {
                 user,
+                createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
                 toggleAreaOptions: this.toggleAreaOptions,
@@ -598,6 +607,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
         } = this.state;
         const {
             carouselRef,
+            createOrUpdateEventReaction,
             createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction,
             content,
@@ -647,6 +657,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                             handleRefresh={this.handleRefresh}
                             isLoading={isLoading}
                             onEndReached={this.tryLoadMore}
+                            updateEventReaction={createOrUpdateEventReaction}
                             updateMomentReaction={createOrUpdateMomentReaction}
                             updateSpaceReaction={createOrUpdateSpaceReaction}
                             emptyListMessage={this.getEmptyListMessage()}

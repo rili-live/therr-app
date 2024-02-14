@@ -4,6 +4,7 @@ import { IReactionsState, ReactionActionTypes } from '../../types/redux/reaction
 import { ContentActionTypes } from '../../types/redux/content';
 
 const initialState: IReactionsState = Immutable.from({
+    myEventReactions: Immutable.from({}), // mapEventIdToReactions
     myMomentReactions: Immutable.from({}), // mapMomentIdToReactions
     mySpaceReactions: Immutable.from({}), // mapSpaceIdToReactions
     myThoughtReactions: Immutable.from({}), // mapThoughtIdToReactions
@@ -15,6 +16,8 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
+    const modifiedEventReactions = { ...state.myEventReactions };
+
     const modifiedMomentReactions = { ...state.myMomentReactions };
 
     const modifiedSpaceReactions = { ...state.mySpaceReactions };
@@ -22,6 +25,28 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
     const modifiedThoughtReactions = { ...state.myThoughtReactions };
 
     switch (action.type) {
+        // Events
+        case ReactionActionTypes.GET_EVENT_REACTIONS:
+            return state.setIn(['myEventReactions'], action.data);
+        case ReactionActionTypes.EVENT_REACTION_CREATED_OR_UPDATED:
+            modifiedEventReactions[action.data.eventId] = action.data;
+
+            return state.setIn(['myEventReactions'], modifiedEventReactions);
+        case ContentActionTypes.INSERT_ACTIVE_EVENTS:
+            if (action.data?.length) {
+                action.data.forEach((event: any) => {
+                    if (!modifiedEventReactions[event.id]) {
+                        // Add a placeholder reaction without needing to fetch from server
+                        // This allows us to display the area on the map as activated
+                        modifiedEventReactions[event.id] = {
+                            eventId: event.id,
+                        };
+                    }
+                });
+            }
+
+            return state.setIn(['myEventReactions'], modifiedEventReactions);
+
         // Moments
         case ReactionActionTypes.GET_MOMENT_REACTIONS:
             return state.setIn(['myMomentReactions'], action.data);
@@ -48,7 +73,7 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
         case ReactionActionTypes.GET_SPACE_REACTIONS:
             return state.setIn(['mySpaceReactions'], action.data);
         case ReactionActionTypes.SPACE_REACTION_CREATED_OR_UPDATED:
-            modifiedSpaceReactions[action.data.momentId] = action.data;
+            modifiedSpaceReactions[action.data.spaceId] = action.data;
 
             return state.setIn(['mySpaceReactions'], modifiedSpaceReactions);
         case ContentActionTypes.INSERT_ACTIVE_SPACES:
@@ -77,6 +102,7 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
         // Logout
         case SocketClientActionTypes.LOGOUT:
             return state
+                .setIn(['myEventReactions'], Immutable.from({}))
                 .setIn(['myMomentReactions'], Immutable.from({}))
                 .setIn(['mySpaceReactions'], Immutable.from({}))
                 .setIn(['myThoughtReactions'], Immutable.from({}));

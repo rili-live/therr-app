@@ -5,17 +5,22 @@ import { getReactionUpdateArgs } from './reactions';
 
 const handleAreaReaction = (selectedArea, reactionType: ISelectionType, {
     user,
+    createOrUpdateEventReaction,
     createOrUpdateMomentReaction,
     createOrUpdateSpaceReaction,
     toggleAreaOptions,
 }) => {
     const requestArgs: any = getReactionUpdateArgs(reactionType);
 
-    if (selectedArea.areaType === 'spaces') {
-        createOrUpdateSpaceReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
+    if (selectedArea.areaType === 'events') {
+        createOrUpdateEventReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
             toggleAreaOptions(selectedArea);
         });
     } else if (selectedArea.areaType === 'spaces') {
+        createOrUpdateSpaceReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
+            toggleAreaOptions(selectedArea);
+        });
+    } else if (selectedArea.areaType === 'moments') {
         createOrUpdateMomentReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
             toggleAreaOptions(selectedArea);
         });
@@ -141,8 +146,8 @@ const navToViewContent = (content, user, navigate, previousView = 'Areas', previ
             isMyContent: isMyContent(content, user),
             previousView,
             previousViewParams,
-            moment: content,
-            momentDetails: {},
+            event: content,
+            eventDetails: {},
         });
     } else {
         navigate('ViewThought', {

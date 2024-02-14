@@ -3,7 +3,7 @@ import * as globalConfig from '../../../../global-config';
 
 const baseReactionsServiceRoute = globalConfig[process.env.NODE_ENV || 'development'].baseReactionsServiceRoute;
 
-export default (areaType: 'moment' | 'space', areaId: string, headers) => axios({
+export default (areaType: 'moment' | 'space' | 'event', areaId: string, headers) => axios({
     method: 'get',
     url: `${baseReactionsServiceRoute}/${areaType}-reactions/${areaId}`,
     headers,

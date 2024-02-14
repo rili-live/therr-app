@@ -24,13 +24,13 @@ import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
 import { buildStyles as buildButtonsStyles } from '../styles/buttons';
-import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/viewing';
+import { buildStyles as buildEventStyles } from '../styles/user-content/areas/viewing';
 import userContentStyles from '../styles/user-content';
 import { youtubeLinkRegex } from '../constants';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
-import { isMyContent as checkIsMyMoment, getUserContentUri } from '../utilities/content';
+import { isMyContent as checkIsMyEvent, getUserContentUri } from '../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
@@ -62,10 +62,10 @@ interface IViewEventState {
     successMsg: string;
     isDeleting: boolean;
     isVerifyingDelete: boolean;
-    fetchedMoment: any;
+    fetchedEvent: any;
     previewLinkId?: string;
     previewStyleState: any;
-    selectedMoment: any;
+    selectedEvent: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -89,7 +89,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
     private theme = buildStyles();
     private themeAccentLayout = buildAccentStyles();
     private themeButtons = buildButtonsStyles();
-    private themeArea = buildMomentStyles();
+    private themeArea = buildEventStyles();
     private themeReactionsModal = buildReactionsModalStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
@@ -98,9 +98,9 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         super(props);
 
         const { route } = props;
-        const { moment } = route.params;
+        const { event } = route.params;
 
-        const youtubeMatches = (moment.message || '').match(youtubeLinkRegex);
+        const youtubeMatches = (event.message || '').match(youtubeLinkRegex);
 
         this.state = {
             areAreaOptionsVisible: false,
@@ -108,25 +108,25 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
             successMsg: '',
             isDeleting: false,
             isVerifyingDelete: false,
-            fetchedMoment: {},
+            fetchedEvent: {},
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
-            selectedMoment: {},
+            selectedEvent: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
-        this.themeArea = buildMomentStyles(props.user.settings?.mobileThemeName, true);
+        this.themeArea = buildEventStyles(props.user.settings?.mobileThemeName, true);
         this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
-        this.notificationMsg = (moment.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
-        this.hashtags = moment.hashTags ? moment.hashTags.split(',') : [];
+        this.notificationMsg = (event.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
+        this.hashtags = event.hashTags ? event.hashTags.split(',') : [];
 
-        const dateTime = formatDate(moment.updatedAt);
+        const dateTime = formatDate(event.updatedAt);
         this.date = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
 
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
@@ -134,25 +134,25 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
 
     componentDidMount() {
         const { content, getEventDetails, navigation, route } = this.props;
-        const { moment } = route.params;
+        const { event } = route.params;
 
-        const shouldFetchUser = !moment?.fromUserMedia || !moment.fromUserName;
-        const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
-        const momentMedia = content?.media[mediaId];
+        const shouldFetchUser = !event?.fromUserMedia || !event.fromUserName;
+        const mediaId = (event.media && event.media[0]?.id) || (event.mediaIds?.length && event.mediaIds?.split(',')[0]);
+        const eventMedia = content?.media[mediaId];
 
-        // Move moment details out of route params and into redux
-        getEventDetails(moment.id, {
-            withMedia: !momentMedia,
+        // Move event details out of route params and into redux
+        getEventDetails(event.id, {
+            withMedia: !eventMedia,
             withUser: shouldFetchUser,
         }).then((data) => {
-            if (data?.moment?.notificationMsg) {
-                this.notificationMsg = (data?.moment?.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
+            if (data?.event?.notificationMsg) {
+                this.notificationMsg = (data?.event?.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
                 navigation.setOptions({
                     title: this.notificationMsg,
                 });
             }
             this.setState({
-                fetchedMoment: data?.moment,
+                fetchedEvent: data?.event,
             });
         });
 
@@ -209,20 +209,20 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
 
     onDeleteConfirm = () => {
         const { deleteEvent, navigation, route, user } = this.props;
-        const { moment } = route.params;
+        const { event } = route.params;
 
         this.setState({
             isDeleting: true,
         });
-        if (checkIsMyMoment(moment, user)) {
-            deleteEvent({ ids: [moment.id] })
+        if (checkIsMyEvent(event, user)) {
+            deleteEvent({ ids: [event.id] })
                 .then(() => {
                     navigation.navigate('Map', {
                         shouldShowPreview: false,
                     });
                 })
                 .catch((err) => {
-                    console.log('Error deleting moment', err);
+                    console.log('Error deleting event', err);
                     this.setState({
                         isDeleting: true,
                         isVerifyingDelete: false,
@@ -231,23 +231,23 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         }
     };
 
-    onMomentOptionSelect = (type: ISelectionType) => {
-        const { selectedMoment } = this.state;
+    onEventOptionSelect = (type: ISelectionType) => {
+        const { selectedEvent } = this.state;
 
         if (type === 'getDirections') {
             getDirections({
-                latitude: selectedMoment.latitude,
-                longitude: selectedMoment.longitude,
-                title: selectedMoment.notificationMsg,
+                latitude: selectedEvent.latitude,
+                longitude: selectedEvent.longitude,
+                title: selectedEvent.notificationMsg,
             });
         } else if (type === 'shareALink') {
             Share.share({
-                message: this.translate('modals.contentOptions.shareLink.messageMoment', {
-                    momentId: selectedMoment.id,
+                message: this.translate('modals.contentOptions.shareLink.messageEvent', {
+                    eventId: selectedEvent.id,
                 }),
-                url: `https://www.therr.com/moments/${selectedMoment.id}`,
-                title: this.translate('modals.contentOptions.shareLink.titleMoment', {
-                    momentTitle: selectedMoment.notificationMsg,
+                url: `https://www.therr.com/events/${selectedEvent.id}`,
+                title: this.translate('modals.contentOptions.shareLink.titleEvent', {
+                    eventTitle: selectedEvent.notificationMsg,
                 }),
             }).then((response) => {
                 if (response.action === Share.sharedAction) {
@@ -265,7 +265,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         } else {
             const requestArgs: any = getReactionUpdateArgs(type);
 
-            this.onUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
+            this.onUpdateEventReaction(selectedEvent.id, requestArgs).finally(() => {
                 this.toggleAreaOptions();
             });
         }
@@ -296,15 +296,15 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         });
     };
 
-    goToViewSpace = (moment) => {
+    goToViewSpace = (event) => {
         const { navigation, user } = this.props;
 
-        if (moment.spaceId) {
+        if (event.spaceId) {
             navigation.navigate('ViewSpace', {
-                isMyContent: moment.space?.fromUserId === user.details.id,
+                isMyContent: event.space?.fromUserId === user.details.id,
                 previousView: 'Areas',
                 space: {
-                    id: moment.spaceId,
+                    id: event.spaceId,
                 },
                 spaceDetails: {},
             });
@@ -321,58 +321,58 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         });
     };
 
-    onUpdateMomentReaction = (momentId, data) => {
+    onUpdateEventReaction = (eventId, data) => {
         const { createOrUpdateEventReaction, navigation, route, user } = this.props;
-        const { moment } = route.params;
+        const { event } = route.params;
         navigation.setParams({
-            moment: {
-                ...moment,
+            event: {
+                ...event,
                 reaction: {
-                    ...moment.reaction,
+                    ...event.reaction,
                     ...data,
                 },
             },
         });
-        return createOrUpdateEventReaction(momentId, data, moment.fromUserId, user.details.userName);
+        return createOrUpdateEventReaction(eventId, data, event.fromUserId, user.details.userName);
     };
 
     toggleAreaOptions = (displayArea?: any) => {
-        const { areAreaOptionsVisible, fetchedMoment } = this.state;
-        const { moment } = this.props.route.params;
+        const { areAreaOptionsVisible, fetchedEvent } = this.state;
+        const { event } = this.props.route.params;
         const area = {
-            ...moment,
-            ...fetchedMoment,
+            ...event,
+            ...fetchedEvent,
         };
 
         this.setState({
             areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedMoment: areAreaOptionsVisible ? {} : (area || displayArea),
+            selectedEvent: areAreaOptionsVisible ? {} : (area || displayArea),
         });
     };
 
     render() {
         const {
             areAreaOptionsVisible,
-            fetchedMoment,
+            fetchedEvent,
             isDeleting,
             isVerifyingDelete,
             previewLinkId,
             previewStyleState,
         } = this.state;
         const { content, route, user } = this.props;
-        const { moment, isMyContent } = route.params;
-        const momentInView = {
-            ...moment,
-            ...fetchedMoment,
+        const { event, isMyContent } = route.params;
+        const eventInView = {
+            ...event,
+            ...fetchedEvent,
         };
-        const momentUserName = isMyContent ? user.details.userName : momentInView.fromUserName;
-        const momentUserMedia = isMyContent ? user.details.media : (momentInView.fromUserMedia || {});
-        const mediaId = (momentInView.media && momentInView.media[0]?.id) || (momentInView.mediaIds?.length && momentInView.mediaIds?.split(',')[0]);
+        const eventUserName = isMyContent ? user.details.userName : eventInView.fromUserName;
+        const eventUserMedia = isMyContent ? user.details.media : (eventInView.fromUserMedia || {});
+        const mediaId = (eventInView.media && eventInView.media[0]?.id) || (eventInView.mediaIds?.length && eventInView.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = (momentInView.media && momentInView.media[0]?.path);
-        const mediaType = (momentInView.media && momentInView.media[0]?.type);
-        const momentMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri(momentInView.media[0], screenWidth, screenWidth)
+        const mediaPath = (eventInView.media && eventInView.media[0]?.path);
+        const mediaType = (eventInView.media && eventInView.media[0]?.type);
+        const eventMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+            ? getUserContentUri(eventInView.media[0], screenWidth, screenWidth)
             : content?.media[mediaId];
 
         return (
@@ -393,18 +393,18 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                                 isDarkMode={true}
                                 isExpanded={true}
                                 inspectContent={() => null}
-                                area={momentInView}
+                                area={eventInView}
                                 goToViewMap={this.goToViewMap}
                                 goToViewSpace={this.goToViewSpace}
                                 goToViewUser={this.goToViewUser}
-                                updateAreaReaction={this.onUpdateMomentReaction}
+                                updateAreaReaction={this.onUpdateEventReaction}
                                 // TODO: User Username from response
                                 user={user}
                                 areaUserDetails={{
-                                    media: momentUserMedia,
-                                    userName: momentUserName || this.translate('alertTitles.nameUnknown') || '',
+                                    media: eventUserMedia,
+                                    userName: eventUserName || this.translate('alertTitles.nameUnknown') || '',
                                 }}
-                                areaMedia={momentMedia}
+                                areaMedia={eventMedia}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
                                 themeViewArea={this.themeArea}
@@ -449,7 +449,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                                                 titleStyle={this.themeAccentForms.styles.submitButtonTitle}
                                                 containerStyle={this.themeAccentForms.styles.submitButtonContainer}
                                                 title={this.translate(
-                                                    'forms.editMoment.buttons.delete'
+                                                    'forms.editEvent.buttons.delete'
                                                 )}
                                                 icon={
                                                     <FontAwesome5Icon
@@ -473,7 +473,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                                                 titleStyle={this.themeAccentForms.styles.submitButtonTitle}
                                                 containerStyle={this.themeAccentForms.styles.submitCancelButtonContainer}
                                                 title={this.translate(
-                                                    'forms.editMoment.buttons.cancel'
+                                                    'forms.editEvent.buttons.cancel'
                                                 )}
                                                 onPress={this.onDeleteCancel}
                                                 disabled={isDeleting}
@@ -486,7 +486,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                                                 titleStyle={this.themeAccentForms.styles.submitButtonTitleLight}
                                                 containerStyle={this.themeAccentForms.styles.submitButtonContainer}
                                                 title={this.translate(
-                                                    'forms.editMoment.buttons.confirm'
+                                                    'forms.editEvent.buttons.confirm'
                                                 )}
                                                 onPress={this.onDeleteConfirm}
                                                 disabled={isDeleting}
@@ -503,7 +503,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                     isVisible={areAreaOptionsVisible}
                     onRequestClose={this.toggleAreaOptions}
                     translate={this.translate}
-                    onSelect={this.onMomentOptionSelect}
+                    onSelect={this.onEventOptionSelect}
                     themeButtons={this.themeButtons}
                     themeReactionsModal={this.themeReactionsModal}
                     shouldIncludeShareButton={true}

@@ -66,6 +66,7 @@ interface IViewUserDispatchProps {
     blockUser: Function;
     getIntegratedMoments: Function;
     getUser: Function;
+    createOrUpdateEventReaction: Function;
     createOrUpdateMomentReaction: Function;
     createOrUpdateThoughtReaction: Function;
     createOrUpdateSpaceReaction: Function;
@@ -114,6 +115,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     blockUser: UsersActions.block,
     getIntegratedMoments: MapActions.getIntegratedMoments,
     getUser: UsersActions.get,
+    createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
     createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
     createOrUpdateThoughtReaction: ContentActions.createOrUpdateThoughtReaction,
     createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
@@ -445,7 +447,7 @@ class ViewUser extends React.Component<
 
     onAreaOptionSelect = (type: ISelectionType) => {
         const { selectedArea } = this.state;
-        const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
+        const { createOrUpdateEventReaction, createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
 
         if (type === 'getDirections') {
             getDirections({
@@ -456,6 +458,7 @@ class ViewUser extends React.Component<
         } else {
             handleAreaReaction(selectedArea, type, {
                 user,
+                createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
                 toggleAreaOptions: this.toggleAreaOptions,
@@ -629,6 +632,7 @@ class ViewUser extends React.Component<
                         containerRef={(component) => { this.carouselMomentsRef = component; }}
                         handleRefresh={this.handleUserMomentsRefresh}
                         onEndReached={noop} // TODO
+                        updateEventReaction={noop}
                         updateMomentReaction={this.createUpdateMomentReaction}
                         updateSpaceReaction={noop}
                         updateThoughtReaction={noop}
@@ -658,6 +662,7 @@ class ViewUser extends React.Component<
                         containerRef={(component) => { this.carouselThoughtsRef = component; }}
                         handleRefresh={this.handleUserThoughtsRefresh}
                         onEndReached={noop} // TODO
+                        updateEventReaction={noop}
                         updateMomentReaction={noop}
                         updateSpaceReaction={noop}
                         updateThoughtReaction={this.createUpdateThoughtReaction}

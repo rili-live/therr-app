@@ -338,6 +338,21 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         });
     };
 
+    goToViewEvent = (event) => {
+        const { navigation, user } = this.props;
+
+        if (event.id) {
+            navigation.navigate('ViewEvent', {
+                isMyContent: event?.fromUserId === user.details.id,
+                previousView: 'Areas',
+                event: {
+                    id: event.id,
+                },
+                eventDetails: {},
+            });
+        }
+    };
+
     goToViewUser = (userId) => {
         const { navigation } = this.props;
 
@@ -658,6 +673,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                         isExpanded={true}
                                         inspectContent={() => null}
                                         area={spaceInView}
+                                        goToViewEvent={this.goToViewEvent}
                                         goToViewMap={this.goToViewMap}
                                         goToViewUser={this.goToViewUser}
                                         goToViewIncentives={this.goToViewIncentives}

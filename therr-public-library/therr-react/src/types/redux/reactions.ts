@@ -1,12 +1,15 @@
 import * as Immutable from 'seamless-immutable';
 
 export interface IReactionsState extends Immutable.ImmutableObject<any> {
+    myEventReactions: any;
     myMomentReactions: any;
     mySpaceReactions: any;
     myThoughtReactions: any;
 }
 
 export enum ReactionActionTypes {
+    GET_EVENT_REACTIONS = 'GET_EVENT_REACTIONS',
+    EVENT_REACTION_CREATED_OR_UPDATED = 'EVENT_REACTION_CREATED_OR_UPDATED',
     GET_MOMENT_REACTIONS = 'GET_MOMENT_REACTIONS',
     MOMENT_REACTION_CREATED_OR_UPDATED = 'MOMENT_REACTION_CREATED_OR_UPDATED',
     GET_SPACE_REACTIONS = 'GET_SPACE_REACTIONS',

@@ -7,6 +7,9 @@
     }
   },
   "validation": "The required parameters were not provided.",
+  "eventReactions": {
+    "eventNotActivated": "This user is not permitted to access content without first joining the event group"
+  },
   "momentReactions": {
     "momentNotActivated": "This user is not permitted to access content without first activating the moment"
   },
