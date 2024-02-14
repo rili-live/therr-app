@@ -1275,8 +1275,10 @@
       },
       "shareLink": {
         "message": "You can find this location on Therr App: https://www.therr.com/spaces/{spaceId}",
+        "messageEvent": "You can find this event on Therr App: https://www.therr.com/events/{momentId}",
         "messageMoment": "You can find this moment on Therr App: https://www.therr.com/moments/{momentId}",
         "title": "{spaceTitle} | Therr App",
+        "titleEvent": "{eventTitle} | Therr App",
         "titleMoment": "{momentTitle} | Therr App",
         "titleUser": "{userName} | Therr App"
       }

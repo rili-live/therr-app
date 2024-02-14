@@ -34,6 +34,7 @@ interface IAreaCarouselProps {
     toggleAreaOptions: any;
     toggleThoughtOptions?: any;
     translate: any;
+    updateEventReaction: any;
     updateMomentReaction: any;
     updateSpaceReaction: any;
     updateThoughtReaction?: any;
@@ -188,6 +189,7 @@ const AreaCarousel = ({
     toggleAreaOptions,
     toggleThoughtOptions,
     translate,
+    updateEventReaction,
     updateMomentReaction,
     updateSpaceReaction,
     updateThoughtReaction,
@@ -252,9 +254,12 @@ const AreaCarousel = ({
                 data={activeData}
                 keyExtractor={(item) => String(item.id)}
                 renderItem={(itemObj) => {
-                    const updateReaction = (!itemObj.item.areaType && !!updateThoughtReaction)
+                    let updateReaction = (!itemObj.item.areaType && !!updateThoughtReaction)
                         ? updateThoughtReaction
                         : (itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction);
+                    if (itemObj.item.areaType === 'events') {
+                        updateReaction = updateEventReaction;
+                    }
                     const toggleContentOptions = (!itemObj.item.areaType && !!toggleThoughtOptions)
                         ? toggleThoughtOptions
                         : toggleAreaOptions;

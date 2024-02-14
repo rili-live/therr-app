@@ -7,7 +7,7 @@ import Store from '../store';
 // import translate from '../utilities/translator';
 import * as globalConfig from '../../../../global-config';
 
-const searchActiveMoments = async (req: any, res: any) => {
+const searchActiveEvents = async (req: any, res: any) => {
     const {
         authorization,
         locale,
@@ -46,20 +46,20 @@ const searchActiveMoments = async (req: any, res: any) => {
 
     let reactions;
 
-    // TODO: Rather than offset, this should have a last moment id and filter for results earlier than that
-    return Store.momentReactions.get(conditions, undefined, {
+    // TODO: Rather than offset, this should have a last event id and filter for results earlier than that
+    return Store.eventReactions.get(conditions, undefined, {
         limit,
         offset,
         order: order || 0,
     }, customs)
         .then((reactionsResponse) => {
             reactions = reactionsResponse;
-            const momentIds = reactions?.map((reaction) => reaction.momentId) || [];
+            const eventIds = reactions?.map((reaction) => reaction.eventId) || [];
 
             // TODO: Add way to search by authorId
             return axios({
                 method: 'post',
-                url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/moments/find`,
+                url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/events/find`,
                 headers: {
                     authorization,
                     'x-localecode': locale,
@@ -67,7 +67,7 @@ const searchActiveMoments = async (req: any, res: any) => {
                     'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
-                    momentIds,
+                    eventIds,
                     limit,
                     order,
                     withMedia,
@@ -79,38 +79,38 @@ const searchActiveMoments = async (req: any, res: any) => {
             });
         })
         .then((response) => {
-            let moments = response?.data?.moments;
-            moments = moments.map((moment) => {
-                const alteredMoment = moment;
+            let events = response?.data?.events;
+            events = events.map((event) => {
+                const alteredEvent = event;
                 if (userLatitude && userLongitude) {
                     const distance = distanceTo({
-                        lon: moment.longitude,
-                        lat: moment.latitude,
+                        lon: event.longitude,
+                        lat: event.latitude,
                     }, {
                         lon: userLongitude,
                         lat: userLatitude,
                     }) / 1069.344; // convert meters to miles
-                    alteredMoment.distance = getReadableDistance(distance);
+                    alteredEvent.distance = getReadableDistance(distance);
                 }
                 return {
-                    ...alteredMoment,
-                    reaction: reactions.find((reaction) => reaction.momentId === moment.id) || {},
+                    ...alteredEvent,
+                    reaction: reactions.find((reaction) => reaction.eventId === event.id) || {},
                 };
-            }).filter((moment) => !blockedUsers.includes(moment.fromUserId));
+            }).filter((event) => !blockedUsers.includes(event.fromUserId));
             return res.status(200).send({
-                moments,
+                events,
                 media: response?.data?.media,
                 pagination: {
                     itemsPerPage: limit,
                     offset,
-                    isLastPage: reactions.length < limit && response?.data?.moments?.length < limit,
+                    isLastPage: reactions.length < limit && response?.data?.events?.length < limit,
                 },
             });
         })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENTMOMENT_REACTIONS_ROUTES:ERROR' }));
 };
 
-const searchActiveMomentsByIds = async (req: any, res: any) => {
+const searchActiveEventsByIds = async (req: any, res: any) => {
     const {
         authorization,
         locale,
@@ -118,7 +118,7 @@ const searchActiveMomentsByIds = async (req: any, res: any) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
     const {
-        momentIds,
+        eventIds,
         blockedUsers,
         shouldHideMatureContent,
         withMedia,
@@ -145,14 +145,14 @@ const searchActiveMomentsByIds = async (req: any, res: any) => {
 
     let reactions;
 
-    return Store.momentReactions.get(conditions, momentIds, undefined, customs)
+    return Store.eventReactions.get(conditions, eventIds, undefined, customs)
         .then((reactionsResponse) => {
             reactions = reactionsResponse;
-            const activatedMomentIds = reactions?.map((reaction) => reaction.momentId) || [];
+            const activatedEventIds = reactions?.map((reaction) => reaction.eventId) || [];
 
             return axios({
                 method: 'post',
-                url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/moments/find`,
+                url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/events/find`,
                 headers: {
                     authorization,
                     'x-localecode': locale,
@@ -160,7 +160,7 @@ const searchActiveMomentsByIds = async (req: any, res: any) => {
                     'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
-                    momentIds: activatedMomentIds,
+                    eventIds: activatedEventIds,
                     limit: 100,
                     order: 'DESC',
                     withMedia,
@@ -170,40 +170,40 @@ const searchActiveMomentsByIds = async (req: any, res: any) => {
             });
         })
         .then((response) => {
-            let moments = response?.data?.moments;
-            moments = moments.map((moment) => {
-                const alteredMoment = moment;
+            let events = response?.data?.events;
+            events = events.map((event) => {
+                const alteredEvent = event;
                 if (userLatitude && userLongitude) {
                     const distance = distanceTo({
-                        lon: moment.longitude,
-                        lat: moment.latitude,
+                        lon: event.longitude,
+                        lat: event.latitude,
                     }, {
                         lon: userLongitude,
                         lat: userLatitude,
                     }) / 1069.344; // convert meters to miles
-                    alteredMoment.distance = getReadableDistance(distance);
+                    alteredEvent.distance = getReadableDistance(distance);
                 }
                 return {
-                    ...alteredMoment,
-                    reaction: reactions.find((reaction) => reaction.momentId === moment.id) || {},
+                    ...alteredEvent,
+                    reaction: reactions.find((reaction) => reaction.eventId === event.id) || {},
                 };
-            }).filter((moment) => !blockedUsers.includes(moment.fromUserId));
+            }).filter((event) => !blockedUsers.includes(event.fromUserId));
             return res.status(200).send({
-                moments,
+                events,
                 media: response?.data?.media,
             });
         })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENT_REACTIONS_ROUTES:ERROR' }));
 };
 
-const searchBookmarkedMoments = async (req: any, res: any) => {
+const searchBookmarkedEvents = async (req: any, res: any) => {
     req.body.withBookmark = true;
 
-    return searchActiveMoments(req, res);
+    return searchActiveEvents(req, res);
 };
 
 export {
-    searchActiveMoments,
-    searchActiveMomentsByIds,
-    searchBookmarkedMoments,
+    searchActiveEvents,
+    searchActiveEventsByIds,
+    searchBookmarkedEvents,
 };

@@ -1,6 +1,7 @@
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import ReactionsService, {
     ISearchActiveAreasParams,
+    ICreateOrUpdateEventReactionBody,
     ICreateOrUpdateAreaReactionBody,
     ISearchActiveAreasByIdsParams,
     ICreateOrUpdateSpaceReactionBody,
@@ -15,6 +16,75 @@ interface IActiveMomentsFilters {
 }
 
 const Content = {
+    // Events
+    insertActiveEvents: (newActiveEvents: any) => (dispatch: any) => {
+        dispatch({
+            type: ContentActionTypes.INSERT_ACTIVE_EVENTS,
+            data: newActiveEvents,
+        });
+    },
+    searchActiveEvents: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+        .searchActiveEvents(options, limit)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_ACTIVE_EVENTS,
+                data: response?.data,
+            });
+        }),
+    searchActiveEventsByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
+        .searchActiveEventsByIds(options, ids)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_ACTIVE_EVENTS_BY_IDS,
+                data: response?.data,
+            });
+        }),
+    updateActiveEventsStream: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+        .searchActiveEvents(options, limit)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_ACTIVE_EVENTS,
+                data: response?.data,
+            });
+        }),
+    createOrUpdateEventReaction: (
+        eventId: number,
+        params: ICreateOrUpdateEventReactionBody,
+        eventUserId: string,
+        reactorUserName: string,
+    ) => (dispatch: any) => ReactionsService
+        .createOrUpdateEventReaction(eventId, params)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_ACTIVE_EVENT_REACTION,
+                data: response?.data,
+            });
+            dispatch({
+                type: SocketClientActionTypes.CREATE_OR_UPDATE_REACTION,
+                data: {
+                    areaUserId: eventUserId,
+                    reactorUserName,
+                    eventReaction: response?.data,
+                },
+            });
+            if (params?.userHasReported) {
+                dispatch({
+                    type: ContentActionTypes.REMOVE_ACTIVE_EVENTS,
+                    data: {
+                        eventId,
+                    },
+                });
+            }
+        }),
+    searchBookmarkedEvents: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
+        .searchBookmarkedEvents(options, 100)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_BOOKMARKED_EVENTS,
+                data: response?.data,
+            });
+        }),
+
     // Moments
     insertActiveMoments: (newActiveMoments: any) => (dispatch: any) => dispatch({
         type: ContentActionTypes.INSERT_ACTIVE_MOMENTS,

@@ -60,6 +60,10 @@ function getRandomLoaderId(): ILottieId {
 }
 
 interface IAreasDispatchProps {
+    searchActiveEvents: Function;
+    updateActiveEventsStream: Function;
+    createOrUpdateEventReaction: Function;
+
     searchActiveMoments: Function;
     updateActiveMomentsStream: Function;
     createOrUpdateMomentReaction: Function;
@@ -115,9 +119,9 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            // searchActiveEvents: ContentActions.searchActiveEvents,
-            // updateActiveEventsStream: ContentActions.updateActiveEventsStream,
-            // createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
+            searchActiveEvents: ContentActions.searchActiveEvents,
+            updateActiveEventsStream: ContentActions.updateActiveEventsStream,
+            createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
 
             searchActiveMoments: ContentActions.searchActiveMoments,
             updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
@@ -423,7 +427,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
 
     onAreaOptionSelect = (type: ISelectionType) => {
         const { selectedArea } = this.state;
-        const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
+        const { createOrUpdateEventReaction, createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
 
         if (type === 'getDirections') {
             getDirections({
@@ -434,6 +438,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         } else {
             handleAreaReaction(selectedArea, type, {
                 user,
+                createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
                 toggleAreaOptions: this.toggleAreaOptions,
@@ -522,6 +527,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         const {
             content,
             map,
+            createOrUpdateEventReaction,
             createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction,
             createOrUpdateThoughtReaction,
@@ -559,6 +565,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         containerRef={(component) => { this.carouselDiscoveriesRef = component; }}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
+                        updateEventReaction={createOrUpdateEventReaction}
                         updateMomentReaction={createOrUpdateMomentReaction}
                         updateSpaceReaction={createOrUpdateSpaceReaction}
                         updateThoughtReaction={createOrUpdateThoughtReaction}
@@ -596,6 +603,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         containerRef={(component) => { this.carouselThoughtsRef = component; }}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
+                        updateEventReaction={createOrUpdateEventReaction}
                         updateMomentReaction={createOrUpdateMomentReaction}
                         updateSpaceReaction={createOrUpdateSpaceReaction}
                         updateThoughtReaction={createOrUpdateThoughtReaction}
@@ -638,6 +646,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         containerRef={(component) => { this.carouselEventsRef = component; }}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
+                        updateEventReaction={createOrUpdateEventReaction}
                         updateMomentReaction={createOrUpdateMomentReaction}
                         updateSpaceReaction={createOrUpdateSpaceReaction}
                         updateThoughtReaction={createOrUpdateThoughtReaction}
@@ -668,6 +677,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         containerRef={(component) => { this.carouselNewsRef = component; }}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
+                        updateEventReaction={createOrUpdateEventReaction}
                         updateMomentReaction={createOrUpdateMomentReaction}
                         updateSpaceReaction={createOrUpdateSpaceReaction}
                         updateThoughtReaction={createOrUpdateThoughtReaction}

@@ -66,6 +66,7 @@ interface IAreaDisplayProps {
     goToViewIncentives?: Function;
     goToViewUser: Function;
     goToViewMap: (lat: string, long: string) => any;
+    goToViewEvent?: (area: any) => any;
     goToViewSpace?: (area: any) => any;
     inspectContent: () => any;
     updateAreaReaction: Function;
@@ -161,7 +162,12 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     };
 
     renderEventItem = (event) => {
-        const { themeViewArea } = this.props;
+        const { goToViewEvent, themeViewArea } = this.props;
+        const onViewEvent = () => {
+            if (goToViewEvent) {
+                goToViewEvent(event);
+            }
+        };
 
         return (
             <View style={[
@@ -175,7 +181,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     {/* eslint-disable-next-line max-len */}
                     {formatDate(event.scheduleStartAt, 'short').date} {formatDate(event.scheduleStartAt).time} - {formatDate(event.scheduleStopAt, 'short').date} {formatDate(event.scheduleStopAt).time}
                 </Text>
-                <Text numberOfLines={2} style={[
+                <Text onPress={onViewEvent} numberOfLines={2} style={[
                     themeViewArea.styles.eventText,
                     themeViewArea.styles.flexShrinkOne]}>
                     {event?.notificationMsg}
@@ -330,6 +336,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
         const shouldDisplayRelatedSpaceBanner = isExpanded && area.spaceId;
         const toggleOptions = () => toggleAreaOptions(area);
+        const isEvent = area.areaType === 'events';
         const isSpace = area.areaType === 'spaces';
         const actionLinks = !isSpace ? [] : [
             {
@@ -455,7 +462,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 }}
                                 style={{
                                     width: viewportWidth,
-                                    height: viewportWidth,
+                                    height: isEvent ? (viewportWidth * (3 / 4)) : viewportWidth,
                                 }}
                                 resizeMode='contain'
                                 PlaceholderContent={<ActivityIndicator />}
@@ -525,6 +532,27 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         </>
                     }
                 </View>
+                {
+                    isEvent &&
+                    <View style={themeViewArea.styles.banner}>
+                        <View style={themeViewArea.styles.bannerTitle}>
+                            <Button
+                                type="clear"
+                                icon={
+                                    <TherrIcon
+                                        name="calendar"
+                                        size={26}
+                                        style={themeViewArea.styles.bannerTitleIcon}
+                                    />
+                                }
+                            />
+                            <Text numberOfLines={1} style={themeViewArea.styles.bannerTitleText}>
+                                {/* eslint-disable-next-line max-len */}
+                                {formatDate(area.scheduleStartAt, 'short').date} {formatDate(area.scheduleStartAt).time} - {formatDate(area.scheduleStopAt, 'short').date} {formatDate(area.scheduleStopAt).time}
+                            </Text>
+                        </View>
+                    </View>
+                }
                 {
                     shouldDisplayRewardsBanner &&
                     <Pressable style={themeViewArea.styles.banner} onPress={this.onClaimRewardPress}>
@@ -617,7 +645,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 </View>
                 {
                     isExpanded && area.events?.length > 0
-                    && <View style={spacingStyles.padHorizMd}>
+                    && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
                         <Text style={theme.styles.sectionTitleCenter}>
                             {translate('pages.viewSpace.h2.events')}
                         </Text>

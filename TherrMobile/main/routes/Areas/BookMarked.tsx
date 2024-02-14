@@ -31,6 +31,7 @@ function getRandomLoaderId(): ILottieId {
 interface IBookMarkedDispatchProps {
     searchBookmarkedMoments: Function;
     searchBookmarkedSpaces: Function;
+    createOrUpdateEventReaction: Function;
     createOrUpdateMomentReaction: Function;
     createOrUpdateSpaceReaction: Function;
 }
@@ -63,6 +64,7 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             searchBookmarkedMoments: ContentActions.searchBookmarkedMoments,
+            createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
             searchBookmarkedSpaces: ContentActions.searchBookmarkedSpaces,
             createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
@@ -85,7 +87,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         super(props);
 
         this.state = {
-            activeTab: CAROUSEL_TABS.SOCIAL,
+            activeTab: CAROUSEL_TABS.DISCOVERIES,
             isLoading: true,
             areAreaOptionsVisible: false,
             selectedArea: {},
@@ -160,7 +162,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     };
 
     getEmptyListMessage = (activeTab) => {
-        if (activeTab === CAROUSEL_TABS.SOCIAL) {
+        if (activeTab === CAROUSEL_TABS.DISCOVERIES) {
             return this.translate('pages.bookmarked.noSocialBookmarksFound');
         }
 
@@ -211,7 +213,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
     onAreaOptionSelect = (type: ISelectionType) => {
         const { selectedArea } = this.state;
-        const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
+        const { createOrUpdateEventReaction, createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
 
         if (type === 'getDirections') {
             getDirections({
@@ -222,6 +224,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         } else {
             handleAreaReaction(selectedArea, type, {
                 user,
+                createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
                 toggleAreaOptions: this.toggleAreaOptions,
@@ -231,7 +234,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
     render() {
         const { activeTab, areAreaOptionsVisible, isLoading, selectedArea } = this.state;
-        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, content, navigation, user } = this.props;
+        const { createOrUpdateEventReaction, createOrUpdateMomentReaction, createOrUpdateSpaceReaction, content, navigation, user } = this.props;
 
         // TODO: Fetch missing media
         const fetchMedia = () => {};
@@ -240,6 +243,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             activeTab,
             content,
             isForBookmarks: true,
+            shouldIncludeEvents: true,
             shouldIncludeMoments: true,
             shouldIncludeSpaces: true,
             // shouldIncludeThoughts: true,
@@ -262,6 +266,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                         toggleAreaOptions={this.toggleAreaOptions}
                         isLoading={isLoading}
                         onEndReached={this.tryLoadMore}
+                        updateEventReaction={createOrUpdateEventReaction}
                         updateMomentReaction={createOrUpdateMomentReaction}
                         updateSpaceReaction={createOrUpdateSpaceReaction}
                         emptyListMessage={this.getEmptyListMessage(activeTab)}

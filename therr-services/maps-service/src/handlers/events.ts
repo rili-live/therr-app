@@ -14,6 +14,7 @@ import {
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
+import getReactions from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -90,7 +91,7 @@ const rewardEventPosted = ({
         });
 
         if (isClaimable && therrCoinIncentive) {
-            return axios({ // Create companion reaction for user's own event
+            return axios({
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/rewards/transfer-coins`,
                 headers: {
@@ -247,7 +248,19 @@ const createEvent = async (req, res) => {
             locale,
             fromUserId: userId,
         })
-            .then(([event]) => {
+            .then(([event]) => axios({ // Create companion reaction for user's own event
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/event-reactions/${event.id}`,
+                headers: {
+                    authorization,
+                    'x-localecode': locale,
+                    'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
+                },
+                data: {
+                    userHasActivated: true,
+                },
+            }).then(({ data: reaction }) => {
                 logSpan({
                     level: 'info',
                     messageOrigin: 'API_SERVER',
@@ -332,9 +345,10 @@ const createEvent = async (req, res) => {
 
                 return res.status(201).send({
                     ...event,
+                    reaction,
                     therrCoinRewarded,
                 });
-            });
+            }));
     }).catch((err) => {
         if (err?.message === CurrencyTransactionMessages.INSUFFICIENT_FUNDS) {
             return handleHttpError({
@@ -489,7 +503,7 @@ const getEventDetails = (req, res) => {
 
                     // Private events require a reactions/activation
                     if (userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
-                        // TODO: Check if user is a member of the group hosting this event
+                        // Check if user is a member of the group hosting this event
                         return getUserGroup(event.groupId, {
                             'x-userid': userId || undefined,
                         });
@@ -622,7 +636,7 @@ const searchEvents: RequestHandler = async (req: any, res: any) => {
     // }, fromUserIds);
     const countPromise = Promise.resolve();
 
-    // TODO: Get associated reactions for user and return limited details if event is not yet activated
+    // TODO: Get associated userGroups for user and return limited details if event is not public
     return Promise.all([searchPromise, countPromise]).then(([results]) => {
         const response = {
             results,

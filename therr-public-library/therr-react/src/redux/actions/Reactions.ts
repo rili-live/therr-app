@@ -1,6 +1,9 @@
 import { ReactionActionTypes } from '../../types/redux/reactions';
 import ReactionsService, {
     ICreateOrUpdateAreaReactionBody,
+    ICreateOrUpdateEventReactionBody,
+    IGetEventReactionParams,
+    IFindEventReactionParams,
     IGetMomentReactionParams,
     IFindMomentReactionParams,
     IGetSpaceReactionParams,
@@ -11,6 +14,34 @@ import ReactionsService, {
 } from '../../services/ReactionsService';
 
 const Reactions = {
+    // Events
+    createOrUpdateEventReaction: (eventId: number, data: ICreateOrUpdateEventReactionBody) => (dispatch: any) => ReactionsService
+        .createOrUpdateEventReaction(eventId, data).then((response: any) => {
+            dispatch({
+                type: ReactionActionTypes.EVENT_REACTION_CREATED_OR_UPDATED,
+                data: response.data,
+            });
+        }),
+    getEventReactions: (query: IGetEventReactionParams) => (dispatch: any) => ReactionsService.getEventReactions(query)
+        .then((response: any) => {
+            dispatch({
+                type: ReactionActionTypes.GET_EVENT_REACTIONS,
+                data: response.data,
+            });
+        }),
+    findEventReactions: (query: IFindEventReactionParams) => (dispatch: any) => ReactionsService.findEventReactions(query)
+        .then((response: any) => {
+            const reactionsById = {};
+
+            (response.data?.reactions || []).forEach((reaction) => {
+                reactionsById[reaction.eventId] = reaction;
+            });
+            dispatch({
+                type: ReactionActionTypes.GET_EVENT_REACTIONS,
+                data: reactionsById,
+            });
+        }),
+
     // Moments
     createOrUpdateMomentReaction: (momentId: number, data: ICreateOrUpdateAreaReactionBody) => (dispatch: any) => ReactionsService
         .createOrUpdateMomentReaction(momentId, data).then((response: any) => {
