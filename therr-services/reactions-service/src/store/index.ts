@@ -1,10 +1,13 @@
 import connection, { IConnection } from './connection';
+import EventReactionsStore from './EventReactionsStore';
 import MomentReactionsStore from './MomentReactionsStore';
 import SpaceReactionsStore from './SpaceReactionsStore';
 import ThoughtReactionsStore from './ThoughtReactionsStore';
 
 class Store {
     db: IConnection;
+
+    eventReactions: EventReactionsStore;
 
     momentReactions: MomentReactionsStore;
 
@@ -14,6 +17,8 @@ class Store {
 
     constructor(dbConnection) {
         this.db = dbConnection;
+
+        this.eventReactions = new EventReactionsStore(this.db);
 
         this.momentReactions = new MomentReactionsStore(this.db);
 

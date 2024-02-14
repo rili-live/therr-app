@@ -94,7 +94,7 @@ const rewardMomentPosted = ({
         });
 
         if (isClaimable && therrCoinIncentive) {
-            return axios({ // Create companion reaction for user's own moment
+            return axios({
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/rewards/transfer-coins`,
                 headers: {

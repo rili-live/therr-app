@@ -1371,6 +1371,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             return true;
         }
 
+        if (type === 'events') {
+            return !!reactions.myEventReactions[area.id];
+        }
+
         if (type === 'moments') {
             return !!reactions.myMomentReactions[area.id];
         }

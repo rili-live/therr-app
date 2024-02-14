@@ -4,6 +4,12 @@ import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
 import { searchActiveAreasValidation, searchActiveAreasByIdsValidation, searchBookmarkedAreasValidation } from './validation/areaReactions';
 import {
+    getEventReactionsValidation,
+    getEventReactionsByEventIdValidation,
+    createOrUpdateEventReactionValidation,
+    findEventReactionsDynamicValidation,
+} from './validation/eventReactions';
+import {
     getMomentReactionsValidation,
     getMomentReactionsByMomentIdValidation,
     createOrUpdateMomentReactionValidation,
@@ -25,6 +31,47 @@ import {
 } from './validation/thoughtReactions';
 
 const reactionsServiceRouter = express.Router();
+
+// Event Reactions
+reactionsServiceRouter.post('/event-reactions/:eventId', createOrUpdateEventReactionValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
+
+reactionsServiceRouter.get('/event-reactions', getEventReactionsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'get',
+}));
+
+reactionsServiceRouter.get('/event-reactions/:eventId/ratings', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'get',
+}));
+
+reactionsServiceRouter.get('/event-reactions/:eventId', getEventReactionsByEventIdValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'get',
+}));
+
+reactionsServiceRouter.post('/event-reactions/find/dynamic', findEventReactionsDynamicValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
+
+reactionsServiceRouter.post('/events/active/search', searchActiveAreasValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
+
+reactionsServiceRouter.post('/events/active/search/ids', searchActiveAreasByIdsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
+
+reactionsServiceRouter.post('/events/bookmarked/search', searchBookmarkedAreasValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
 
 // Moment Reactions
 reactionsServiceRouter.post('/moment-reactions/:momentId', createOrUpdateMomentReactionValidation, validate, handleServiceRequest({

@@ -48,6 +48,29 @@ export interface ISearchActiveAreasByIdsParams {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ISearchBookmarkedAreasParams extends ISearchActiveAreasParams {}
 
+export interface ICreateEventReactionBody extends ICreateAreaReactionBody {
+    eventId: number;
+    rating?: number;
+}
+export interface ICreateOrUpdateEventReactionBody extends ICreateOrUpdateAreaReactionBody {
+    eventId: number;
+    rating?: number;
+}
+
+export interface IGetEventReactionParams {
+    limit?: number;
+    eventId?: number;
+    eventIds?: number[];
+}
+
+export interface IFindEventReactionParams {
+    limit?: number;
+    offset?: number;
+    order?: number;
+    eventIds?: number[];
+    userHasActivated?: boolean;
+}
+
 export interface ICreateMomentReactionBody extends ICreateAreaReactionBody {
     momentId: number;
 }
@@ -166,6 +189,61 @@ class ReactionsService {
             shouldHideMatureContent: !!options.shouldHideMatureContent,
         },
     });
+
+    // Events
+    createOrUpdateEventReaction = (id: number, data: ICreateOrUpdateEventReactionBody) => this.createOrUpdatePostReaction(
+        'events',
+        id,
+        data,
+    );
+
+    getEventReactions = (queryParams: IGetEventReactionParams) => {
+        let queryString = `?limit=${queryParams.limit || 100}`;
+
+        if (queryParams.eventId) {
+            queryString = `${queryString}&eventId=${queryParams.eventId}`;
+        }
+
+        if (queryParams.eventIds) {
+            queryString = `${queryString}&eventIds=${queryParams.eventIds.join(',')}`;
+        }
+
+        return axios({
+            method: 'get',
+            url: `/reactions-service/event-reactions${queryString}`,
+        });
+    };
+
+    getEventRatings = (eventId: string) => axios({
+        method: 'get',
+        url: `/reactions-service/event-reactions/${eventId}/ratings`,
+    });
+
+    findEventReactions = (params: IFindEventReactionParams) => axios({
+        method: 'post',
+        url: '/reactions-service/event-reactions/find/dynamic',
+        data: params,
+    });
+
+    getReactionsByEventId = (id: number, limit: number) => {
+        const queryString = `?limit=${limit || 100}`;
+
+        return axios({
+            method: 'get',
+            url: `/reactions-service/event-reactions/${id}${queryString}`,
+        });
+    };
+
+    searchActiveEvents = (options: ISearchActiveAreasParams, limit = 21) => this.searchActivePosts('events', options, limit);
+
+    searchActiveEventsByIds = (options: ISearchActiveAreasByIdsParams, ids: string[]) => this
+        .searchActivePostsByIds('events', options, ids);
+
+    searchBookmarkedEvents = (options: ISearchBookmarkedAreasParams, limit = 21) => this.searchBookmarkedAreas(
+        'events',
+        options,
+        limit,
+    );
 
     // Moments
     createOrUpdateMomentReaction = (id: number, data: ICreateOrUpdateAreaReactionBody) => this.createOrUpdatePostReaction(

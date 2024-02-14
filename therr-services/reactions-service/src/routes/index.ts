@@ -1,4 +1,6 @@
 import * as express from 'express';
+import eventReactionsRouter from './eventReactionsRouter';
+import eventsRouter from './eventsRouter';
 import momentReactionsRouter from './momentReactionsRouter';
 import momentsRouter from './momentsRouter';
 import spaceReactionsRouter from './spaceReactionsRouter';
@@ -11,6 +13,8 @@ const router = express.Router();
 
 router.delete('/delete-user-data', deleteUserData);
 
+router.use('/event-reactions', eventReactionsRouter);
+router.use('/events', eventsRouter);
 router.use('/moment-reactions', momentReactionsRouter);
 router.use('/moments', momentsRouter);
 router.use('/space-reactions', spaceReactionsRouter);
