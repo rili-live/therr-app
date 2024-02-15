@@ -1,6 +1,9 @@
 {
   "errorMessages": {
     "accessDenied": "Access to this resource is denied",
+    "events": {
+      "toFarFromEvent": "Users can only create local events"
+    },
     "posts": {
         "duplicatePost": "Duplicate posts are not allowed",
         "spaceNotFound": "Space not found for given ID"

@@ -98,6 +98,17 @@ mapsServiceRouter.get('/events/signed-url/private', getSignedUrlValidation, vali
     method: 'get',
 }));
 
+mapsServiceRouter.delete('/events', deleteAreasValidation, validate, (req, res, next) => {
+    (req.body?.ids || []).forEach((id) => {
+        CacheStore.mapsService.invalidateAreaDetails('events', id);
+    });
+
+    return next();
+}, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'delete',
+}));
+
 // Moments
 // Limited to prevent abuse
 // TODO: We should add backend logic to ensure user location isn't being spoofed (rapidly changing location)
