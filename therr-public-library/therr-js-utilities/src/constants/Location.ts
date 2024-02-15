@@ -9,6 +9,7 @@ const locationConstants = {
     MAX_RADIUS_OF_AWARENESS: 160934,
     MIN_RADIUS_OF_INFLUENCE: 10,
     MAX_RADIUS_OF_INFLUENCE: 16093.4,
+    MAX_DISTANCE_TO_EVENT: 1609340, // ~ 1000 miles
 };
 
 export default locationConstants;
