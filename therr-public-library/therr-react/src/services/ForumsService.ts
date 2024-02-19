@@ -27,6 +27,11 @@ export interface ISearchForumsArgs {
 }
 
 class ForumsService {
+    getForum = (forumId: string) => axios({
+        method: 'get',
+        url: `/messages-service/forums/${forumId}`,
+    });
+
     createForum = (data: ICreateForumBody) => axios({
         method: 'post',
         url: '/messages-service/forums',

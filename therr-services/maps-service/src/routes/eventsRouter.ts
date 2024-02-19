@@ -5,6 +5,7 @@ import {
     getEventDetails,
     searchEvents,
     searchMyEvents,
+    searchGroupEvents,
     searchSpaceEvents,
     findEvents,
     getSignedUrlPublicBucket,
@@ -22,6 +23,7 @@ router.put('/:eventId', updateEvent);
 router.post('/:eventId/details', getEventDetails);
 router.post('/search', searchEvents);
 router.post('/search/me', searchMyEvents);
+router.post('/search/for-group-ids', searchGroupEvents);
 router.post('/search/for-space-ids', searchSpaceEvents);
 router.post('/find', findEvents);
 

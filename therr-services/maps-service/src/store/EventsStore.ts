@@ -348,6 +348,21 @@ export default class EventsStore {
         });
     }
 
+    findGroupEvents(groupIds: string[], limit = 100, offset = 0) {
+        const now = new Date();
+        const query = knexBuilder
+            .from(EVENTS_TABLE_NAME)
+            .limit(limit)
+            .offset(offset)
+            .whereIn('groupId', groupIds)
+            .where({
+                isPublic: true,
+            })
+            .where('scheduleStartAt', '>', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
+
+        return this.db.read.query(query.toString()).then((response) => response.rows);
+    }
+
     findSpaceEvents(spaceIds: string[], limit = 100, offset = 0) {
         const now = new Date();
         const query = knexBuilder

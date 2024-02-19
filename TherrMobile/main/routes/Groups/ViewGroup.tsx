@@ -4,6 +4,7 @@ import {
     FlatList,
     KeyboardAvoidingView,
     Platform,
+    Pressable,
     SafeAreaView,
     Text,
     View,
@@ -16,16 +17,17 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import { MessageActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { ContentActions, MessageActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { IForumsState, IMesssageState, IUserState, IUserConnectionsState } from 'therr-react/types';
-import { UsersService } from 'therr-react/services';
-import { GroupMemberRoles } from 'therr-js-utilities/constants';
+import { ForumsService, UsersService } from 'therr-react/services';
+import { Content, GroupMemberRoles } from 'therr-js-utilities/constants';
 // import ViewGroupButtonMenu from '../../components/ButtonMenu/ViewGroupButtonMenu';
 import translator from '../../services/translator';
 // import RoundInput from '../../components/Input/Round';
 import spacingStyles from '../../styles/layouts/spacing';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
+import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/viewing';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildChatStyles } from '../../styles/user-content/groups/view-group';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
@@ -43,6 +45,8 @@ import ListEmpty from '../../components/ListEmpty';
 import LazyPlaceholder from '../Areas/components/LazyPlaceholder';
 import UserSearchItem from '../Connect/components/UserSearchItem';
 import UsersActions from '../../redux/actions/UsersActions';
+import AreaDisplay from '../../components/UserContent/AreaDisplay';
+import { navToViewContent } from '../../utilities/postViewHelpers';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -54,6 +58,7 @@ const tabMap = {
 };
 
 interface IViewGroupDispatchProps {
+    createOrUpdateEventReaction: Function;
     createUserConnection: Function;
     joinForum: Function;
     logout: Function;
@@ -78,6 +83,7 @@ export interface IViewGroupProps extends IStoreProps {
 
 interface IViewGroupState {
     activeTabIndex: number;
+    groupEvents: any[];
     groupMembers: any[];
     msgInputVal: string;
     isLoading: boolean;
@@ -95,6 +101,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
             createUserConnection: UserConnectionsActions.create,
             joinForum: SocketActions.joinForum,
             searchForumMessages: MessageActions.searchForumMessages,
@@ -115,6 +122,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
     private themeChat = buildChatStyles();
     private themeButtons = buildButtonsStyles();
     private themeAccentLayout = buildAccentStyles();
+    private themeArea = buildAreaStyles();
     private themeMenu = buildMenuStyles();
     private themeMessage = buildMessageStyles();
     private themeForms = buildFormStyles();
@@ -144,6 +152,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         this.state = {
             activeTabIndex,
             groupMembers: [],
+            groupEvents: [],
             msgInputVal: '',
             isLoading: false,
             pageNumber: 1,
@@ -156,6 +165,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
+        this.themeArea = buildAreaStyles(props.user.settings?.mobileThemeName);
         this.themeChat = buildChatStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
@@ -183,6 +193,14 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
             userId: user.details.id,
             userName: user.details.userName,
             userImgSrc: getUserImageUri(user.details, 100),
+        });
+
+        ForumsService.getForum(forumId).then((response) => {
+            this.setState({
+                groupEvents: response.data?.events || [],
+            });
+        }).catch((err) => {
+            console.log(err);
         });
 
         // TODO: Add logic to update this when user navigates away then returns
@@ -363,6 +381,31 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         return nonDefaultRoles.concat(defaultRoles);
     };
 
+    goToContent = (content) => {
+        const { navigation, user } = this.props;
+
+        navToViewContent(content, user, navigation.navigate);
+    };
+
+    goToViewMap = (lat, long) => {
+        const { navigation } = this.props;
+
+        navigation.replace('Map', {
+            latitude: lat,
+            longitude: long,
+        });
+    };
+
+    goToViewUser = (userId) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('ViewUser', {
+            userInView: {
+                id: userId,
+            },
+        });
+    };
+
     onSendConnectRequest = (acceptingUser: any) => {
         const { createUserConnection, user, searchUpdateUser } = this.props;
         // TODO: Send connection request
@@ -397,7 +440,8 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
     };
 
     renderSceneMap = ({ route }) => {
-        const { messages, user } = this.props;
+        const { groupEvents } = this.state;
+        const { createOrUpdateEventReaction, messages, user } = this.props;
         const { id: forumId } = this.props.route.params;
         const mgs = messages.forumMsgs[forumId] || [];
 
@@ -436,10 +480,74 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                     // onEndReachedThreshold={0.5}
                 />);
             case GROUP_CAROUSEL_TABS.EVENTS:
+                const noop = () => {};
+
                 return (
-                    <View style={spacingStyles.marginHorizLg}>
-                        <ListEmpty iconName="calendar" theme={this.theme} text={this.getEmptyListMessage(GROUP_CAROUSEL_TABS.EVENTS)} />
-                    </View>
+                    <FlatList
+                        ref={(component) => this.eventsListRef = component}
+                        data={groupEvents}
+                        keyExtractor={(item) => String(item.id)}
+                        renderItem={({ item: event }) =>
+                        {
+                            const media = {};
+                            const mediaPath = (event.media && event.media[0]?.path);
+                            const mediaType = (event.media && event.media[0]?.type);
+                            const eventMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+                                ? getUserContentUri(event.media[0], viewportWidth / 4, viewportWidth / 4)
+                                : media && media[event.media && event.media[0]?.id];
+                            const isMe = user.details.id === event.fromUserId;
+                            let userDetails: any = {
+                                userName: event.fromUserName || (user.details.id === event.fromUserId
+                                    ? user.details.userName
+                                    : this.translate('alertTitles.nameUnknown')),
+                            };
+                            if (isMe) {
+                                userDetails = {
+                                    ...user.details,
+                                    ...userDetails,
+                                };
+                            }
+                            return (
+                                <Pressable
+                                    key={event.id}
+                                    style={this.theme.styles.areaContainer}
+                                    onPress={() => this.goToContent(event)}
+                                >
+                                    <AreaDisplay
+                                        translate={this.translate}
+                                        goToViewMap={this.goToViewMap}
+                                        goToViewUser={this.goToViewUser}
+                                        toggleAreaOptions={noop}
+                                        hashtags={event.hashTags ? event.hashTags.split(',') : []}
+                                        area={event}
+                                        inspectContent={() => this.goToContent(event)}
+                                        // TODO: Get username from response
+                                        user={user}
+                                        areaUserDetails={userDetails}
+                                        updateAreaReaction={createOrUpdateEventReaction}
+                                        areaMedia={eventMedia}
+                                        isDarkMode={false}
+                                        theme={this.theme}
+                                        themeForms={this.themeForms}
+                                        themeViewArea={this.themeArea}
+                                    />
+                                </Pressable>
+                            );
+                        }}
+                        ListEmptyComponent={<View style={spacingStyles.marginHorizLg}>
+                            <ListEmpty iconName="calendar" theme={this.theme} text={this.getEmptyListMessage(GROUP_CAROUSEL_TABS.EVENTS)} />
+                        </View>}
+                        stickyHeaderIndices={[]}
+                        // refreshControl={<RefreshControl
+                        //     refreshing={isRefreshingUserSearch}
+                        //     onRefresh={this.handleRefreshUsersSearch}
+                        // />}
+                        onContentSizeChange={this.scrollTop}
+                        // onEndReached={this.trySearchMoreUsers}
+                        // onEndReachedThreshold={0.5}
+                        ListFooterComponent={<View />}
+                        ListFooterComponentStyle={{ marginBottom: 80 }}
+                    />
                 );
             case GROUP_CAROUSEL_TABS.MEMBERS:
                 const people: any[] = this.getMembersList();

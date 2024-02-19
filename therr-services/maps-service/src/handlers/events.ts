@@ -29,6 +29,7 @@ import { isTextUnsafe } from '../utilities/contentSafety';
 import userMetricsService from '../api/userMetricsService';
 import areaMetricsService from '../api/areaMetricsService';
 import getUserGroup from '../utilities/getUserGroup';
+import { DEFAULT_RADIUS_MEDIUM } from '../store/SpacesStore';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 
@@ -225,12 +226,13 @@ const createEvent = async (req, res) => {
 
         const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
 
+        const newSpaceRadius = DEFAULT_RADIUS_MEDIUM;
         let existingSpaces = spaceId
             ? await Store.spaces.getById(spaceId)
             : await Store.spaces.getByLocation({
                 latitude,
                 longitude,
-            });
+            }, newSpaceRadius);
         if (spaceId && !existingSpaces.length) {
             return handleHttpError({
                 res,
@@ -241,8 +243,6 @@ const createEvent = async (req, res) => {
         }
 
         if (!existingSpaces.length) {
-            // TODO: Handle error if create hits an overlap constraint
-            // Consider using the overlap query above to find the closest space
             existingSpaces = await Store.spaces.createSpace({
                 addressReadable,
                 postalCode,
@@ -261,6 +261,7 @@ const createEvent = async (req, res) => {
                 message: addressReadable,
                 notificationMsg: addressNotificationMsg,
                 isPublic: req.body.isPublic,
+                radius: newSpaceRadius,
             });
         }
 
@@ -725,6 +726,34 @@ const searchMyEvents: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENTS_ROUTES:ERROR' }));
 };
 
+const searchGroupEvents: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    const {
+        groupIds,
+    } = req.body;
+    const {
+        query,
+        itemsPerPage,
+        pageNumber,
+        withMedia,
+    } = req.query;
+
+    const searchPromise = Store.events.findGroupEvents(groupIds || []);
+
+    return Promise.all([searchPromise]).then(([events]) => {
+        const response = {
+            results: events,
+            pagination: {
+                itemsPerPage: Number(itemsPerPage),
+                pageNumber: Number(pageNumber),
+            },
+        };
+
+        res.status(200).send(response);
+    })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENTS_ROUTES:ERROR' }));
+};
+
 const searchSpaceEvents: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     const {
@@ -806,6 +835,7 @@ export {
     updateEvent,
     getEventDetails,
     // searchEvents,
+    searchGroupEvents,
     searchSpaceEvents,
     searchEvents,
     searchMyEvents,
