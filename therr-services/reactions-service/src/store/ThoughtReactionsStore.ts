@@ -46,6 +46,26 @@ export default class ThoughtReactionsStore {
         this.db = dbConnection;
     }
 
+    getCounts(thoughtIds: string[], conditions: any, countBy = 'userHasLiked') {
+        if (!thoughtIds?.length) {
+            return Promise.resolve([]);
+        }
+        let queryString = knexBuilder.count('*', { as: 'count' })
+            .select(['thoughtId'])
+            .from(THOUGHT_REACTIONS_TABLE_NAME)
+            .where({
+                ...conditions,
+                [countBy]: true,
+            })
+            .groupBy('thoughtId');
+
+        if (thoughtIds && thoughtIds.length) {
+            queryString = queryString.whereIn('thoughtId', thoughtIds);
+        }
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
+    }
+
     get(conditions: any, thoughtIds?, filters = { limit: 100, offset: 0, order: 'DESC' }, customs: any = {}) {
         const restrictedLimit = Math.min(filters.limit || 100, 1000);
 

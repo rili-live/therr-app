@@ -94,7 +94,7 @@ interface IAreaDisplayState {
 export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAreaDisplayState> {
     static getDerivedStateFromProps(nextProps: IAreaDisplayProps, nextState: IAreaDisplayState) {
         if (nextProps.area?.likeCount != null
-            && nextState.likeCount == null) {
+            && (nextState.likeCount == null)) {
             return {
                 likeCount: nextProps.area?.likeCount,
             };
@@ -522,7 +522,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 }
                                 onPress={() => this.onLikePress(area)}
                                 type="clear"
-                                title={(isExpanded && likeCount && likeCount > 0) ? likeCount.toString() : ''}
+                                title={(likeCount && likeCount > 0) ? likeCount.toString() : ''}
                                 titleStyle={[
                                     themeViewArea.styles.areaReactionButtonTitle,
                                     { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
