@@ -454,6 +454,8 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                 text2: this.translate('alertMessages.startDateAfterEndDate'),
                 visibilityTime: 3500,
             });
+
+            return;
         }
 
         if (!this.isFormDisabled()) {

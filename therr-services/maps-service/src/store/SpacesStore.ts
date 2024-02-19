@@ -18,7 +18,7 @@ export const SPACES_TABLE_NAME = 'main.spaces';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 const maxNotificationMsgLength = 100;
-const DEFAULT_RADIUS_MEDIUM = 10; // Small radius default to prevent overlap db constraint
+export const DEFAULT_RADIUS_MEDIUM = 10; // Small radius default to prevent overlap db constraint
 
 export interface ICreateSpaceParams extends ICreateAreaParams {
     addressReadable?: string;
@@ -77,15 +77,15 @@ export default class SpacesStore {
     }
 
     /**
-     * This is used to check for duplicates before creating a new spaces for events
+     * This is used to check for duplicates/overlaps before creating a new spaces for events
      */
-    getByLocation(coords) {
+    getByLocation(coords, radius = DEFAULT_RADIUS_MEDIUM) {
+        const newGeom = `ST_SetSRID(ST_Buffer(ST_MakePoint(${coords.longitude}, ${coords.latitude})::geography, ${radius})::geometry, 4326)`;
         const query = knexBuilder
             .from(SPACES_TABLE_NAME)
-            .where({
-                latitude: coords.latitude,
-                longitude: coords.longitude,
-            });
+            .where(knexBuilder.raw(`
+                ST_Relate(geom, ${newGeom}, '2********')
+            `));
 
         return this.db.read.query(query.toString()).then((response) => response.rows);
     }
