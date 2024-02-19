@@ -8,10 +8,12 @@ import {
     ErrorCodes,
     IncentiveRequirementKeys,
     IncentiveRewardKeys,
+    Location,
     MetricNames,
     MetricValueTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { distanceTo } from 'geolocation-utils';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
 import getReactions from '../utilities/getReactions';
@@ -152,14 +154,35 @@ const createEvent = async (req, res) => {
     })
         .then((events) => events?.length);
 
-    // TODO: Ensure userLatitude/userLongitude is within n miles of event latitude/longitude
-
     if (isDuplicate) {
         return handleHttpError({
             res,
             message: translate(locale, 'errorMessages.posts.duplicatePost'),
             statusCode: 400,
             errorCode: ErrorCodes.DUPLICATE_POST,
+        });
+    }
+
+    const {
+        latitude,
+        longitude,
+        userLatitude,
+        userLongitude,
+    } = req.body;
+    const distanceBetween = distanceTo({
+        lon: longitude,
+        lat: latitude,
+    }, {
+        lon: userLongitude,
+        lat: userLatitude,
+    });
+
+    if (distanceBetween > Location.MAX_DISTANCE_TO_EVENT) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.events.toFarFromEvent'),
+            statusCode: 400,
+            errorCode: ErrorCodes.BAD_REQUEST,
         });
     }
 
@@ -198,8 +221,6 @@ const createEvent = async (req, res) => {
             phoneNumber,
             openingHours,
             thirdPartyRatings,
-            latitude,
-            longitude,
         } = req.body;
 
         const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
@@ -219,8 +240,9 @@ const createEvent = async (req, res) => {
             });
         }
 
-        // TODO: Create space from address params (if not already exist)
         if (!existingSpaces.length) {
+            // TODO: Handle error if create hits an overlap constraint
+            // Consider using the overlap query above to find the closest space
             existingSpaces = await Store.spaces.createSpace({
                 addressReadable,
                 postalCode,
