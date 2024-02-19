@@ -54,6 +54,10 @@ const searchActiveSpaces = async (req: any, res: any) => {
     }, customs)
         .then((reactionsResponse) => {
             reactions = reactionsResponse;
+            const spaceIdToReaction = reactions?.reduce((acc, cur) => ({
+                ...acc,
+                [cur.spaceId]: cur,
+            }), {});
             const spaceIds = reactions?.map((reaction) => reaction.spaceId) || [];
 
             return axios({
@@ -74,36 +78,42 @@ const searchActiveSpaces = async (req: any, res: any) => {
                     lastContentCreatedAt,
                     isDraft: false,
                 },
-            });
-        })
-        .then((response) => {
-            let spaces = response?.data?.spaces;
-            spaces = spaces.map((space) => {
-                const alteredSpace = space;
-                if (userLatitude && userLongitude) {
-                    const distance = distanceTo({
-                        lon: space.longitude,
-                        lat: space.latitude,
-                    }, {
-                        lon: userLongitude,
-                        lat: userLatitude,
-                    }) / 1069.344; // convert meters to miles
-                    alteredSpace.distance = getReadableDistance(distance);
-                }
-                return {
-                    ...alteredSpace,
-                    reaction: reactions.find((reaction) => reaction.spaceId === space.id) || {},
-                };
-            }).filter((space) => !blockedUsers.includes(space.fromUserId));
-            return res.status(200).send({
-                spaces,
-                media: response?.data?.media,
-                pagination: {
-                    itemsPerPage: limit,
-                    offset,
-                    isLastPage: reactions.length < limit && response?.data?.spaces?.length < limit,
-                },
-            });
+            })
+                .then(async (response) => {
+                    let spaces = response?.data?.spaces;
+                    const results = await Store.spaceReactions.getCounts(spaces.map((m) => m.id), {}, 'userHasLiked');
+                    const likeCountBySpaceId = results.reduce((acc, cur) => ({
+                        ...acc,
+                        [cur.spaceId]: cur.count,
+                    }), {});
+                    spaces = spaces.map((space) => {
+                        const alteredSpace = space;
+                        if (userLatitude && userLongitude) {
+                            const distance = distanceTo({
+                                lon: space.longitude,
+                                lat: space.latitude,
+                            }, {
+                                lon: userLongitude,
+                                lat: userLatitude,
+                            }) / 1069.344; // convert meters to miles
+                            alteredSpace.distance = getReadableDistance(distance);
+                        }
+                        return {
+                            ...alteredSpace,
+                            reaction: spaceIdToReaction[space.id] || {},
+                            likeCount: parseInt(likeCountBySpaceId[space.id] || 0, 10),
+                        };
+                    }).filter((space) => !blockedUsers.includes(space.fromUserId));
+                    return res.status(200).send({
+                        spaces,
+                        media: response?.data?.media,
+                        pagination: {
+                            itemsPerPage: limit,
+                            offset,
+                            isLastPage: reactions.length < limit && response?.data?.spaces?.length < limit,
+                        },
+                    });
+                });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
 };

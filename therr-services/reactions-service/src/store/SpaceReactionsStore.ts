@@ -48,6 +48,26 @@ export default class SpaceReactionsStore {
         this.db = dbConnection;
     }
 
+    getCounts(spaceIds: string[], conditions: any, countBy = 'userHasLiked') {
+        if (!spaceIds?.length) {
+            return Promise.resolve([]);
+        }
+        let queryString = knexBuilder.count('*', { as: 'count' })
+            .select(['spaceId'])
+            .from(SPACE_REACTIONS_TABLE_NAME)
+            .where({
+                ...conditions,
+                [countBy]: true,
+            })
+            .groupBy('spaceId');
+
+        if (spaceIds && spaceIds.length) {
+            queryString = queryString.whereIn('spaceId', spaceIds);
+        }
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
+    }
+
     get(conditions: any, spaceIds?, filters = { limit: 100, offset: 0, order: 'DESC' }, customs: any = {}) {
         const restrictedLimit = Math.min(filters.limit || 100, 1000);
 

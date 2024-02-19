@@ -44,8 +44,6 @@ const searchActiveMoments = async (req: any, res: any) => {
         customs.withBookmark = true;
     }
 
-    let reactions;
-
     // TODO: Rather than offset, this should have a last moment id and filter for results earlier than that
     return Store.momentReactions.get(conditions, undefined, {
         limit,
@@ -53,7 +51,11 @@ const searchActiveMoments = async (req: any, res: any) => {
         order: order || 0,
     }, customs)
         .then((reactionsResponse) => {
-            reactions = reactionsResponse;
+            const reactions = reactionsResponse;
+            const momentIdToReaction = reactions?.reduce((acc, cur) => ({
+                ...acc,
+                [cur.momentId]: cur,
+            }), {});
             const momentIds = reactions?.map((reaction) => reaction.momentId) || [];
 
             // TODO: Add way to search by authorId
@@ -76,36 +78,42 @@ const searchActiveMoments = async (req: any, res: any) => {
                     authorId,
                     isDraft: false,
                 },
-            });
-        })
-        .then((response) => {
-            let moments = response?.data?.moments;
-            moments = moments.map((moment) => {
-                const alteredMoment = moment;
-                if (userLatitude && userLongitude) {
-                    const distance = distanceTo({
-                        lon: moment.longitude,
-                        lat: moment.latitude,
-                    }, {
-                        lon: userLongitude,
-                        lat: userLatitude,
-                    }) / 1069.344; // convert meters to miles
-                    alteredMoment.distance = getReadableDistance(distance);
-                }
-                return {
-                    ...alteredMoment,
-                    reaction: reactions.find((reaction) => reaction.momentId === moment.id) || {},
-                };
-            }).filter((moment) => !blockedUsers.includes(moment.fromUserId));
-            return res.status(200).send({
-                moments,
-                media: response?.data?.media,
-                pagination: {
-                    itemsPerPage: limit,
-                    offset,
-                    isLastPage: reactions.length < limit && response?.data?.moments?.length < limit,
-                },
-            });
+            })
+                .then(async (response) => {
+                    let moments = response?.data?.moments;
+                    const results = await Store.momentReactions.getCounts(moments.map((m) => m.id), {}, 'userHasLiked');
+                    const likeCountByMomentId = results.reduce((acc, cur) => ({
+                        ...acc,
+                        [cur.momentId]: cur.count,
+                    }), {});
+                    moments = moments.map((moment) => {
+                        const alteredMoment = moment;
+                        if (userLatitude && userLongitude) {
+                            const distance = distanceTo({
+                                lon: moment.longitude,
+                                lat: moment.latitude,
+                            }, {
+                                lon: userLongitude,
+                                lat: userLatitude,
+                            }) / 1069.344; // convert meters to miles
+                            alteredMoment.distance = getReadableDistance(distance);
+                        }
+                        return {
+                            ...alteredMoment,
+                            reaction: momentIdToReaction[moment.id] || {},
+                            likeCount: parseInt(likeCountByMomentId[moment.id] || 0, 10),
+                        };
+                    }).filter((moment) => !blockedUsers.includes(moment.fromUserId));
+                    return res.status(200).send({
+                        moments,
+                        media: response?.data?.media,
+                        pagination: {
+                            itemsPerPage: limit,
+                            offset,
+                            isLastPage: reactions.length < limit && response?.data?.moments?.length < limit,
+                        },
+                    });
+                });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };

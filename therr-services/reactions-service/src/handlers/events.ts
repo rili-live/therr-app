@@ -54,6 +54,10 @@ const searchActiveEvents = async (req: any, res: any) => {
     }, customs)
         .then((reactionsResponse) => {
             reactions = reactionsResponse;
+            const eventIdToReaction = reactions?.reduce((acc, cur) => ({
+                ...acc,
+                [cur.eventId]: cur,
+            }), {});
             const eventIds = reactions?.map((reaction) => reaction.eventId) || [];
 
             // TODO: Add way to search by authorId
@@ -76,35 +80,40 @@ const searchActiveEvents = async (req: any, res: any) => {
                     authorId,
                     isDraft: false,
                 },
-            });
-        })
-        .then((response) => {
-            let events = response?.data?.events;
-            events = events.map((event) => {
-                const alteredEvent = event;
-                if (userLatitude && userLongitude) {
-                    const distance = distanceTo({
-                        lon: event.longitude,
-                        lat: event.latitude,
-                    }, {
-                        lon: userLongitude,
-                        lat: userLatitude,
-                    }) / 1069.344; // convert meters to miles
-                    alteredEvent.distance = getReadableDistance(distance);
-                }
-                return {
-                    ...alteredEvent,
-                    reaction: reactions.find((reaction) => reaction.eventId === event.id) || {},
-                };
-            }).filter((event) => !blockedUsers.includes(event.fromUserId));
-            return res.status(200).send({
-                events,
-                media: response?.data?.media,
-                pagination: {
-                    itemsPerPage: limit,
-                    offset,
-                    isLastPage: reactions.length < limit && response?.data?.events?.length < limit,
-                },
+            }).then(async (response) => {
+                let events = response?.data?.events;
+                const results = await Store.eventReactions.getCounts(events.map((m) => m.id), {}, 'userHasLiked');
+                const likeCountByEventId = results.reduce((acc, cur) => ({
+                    ...acc,
+                    [cur.eventId]: cur.count,
+                }), {});
+                events = events.map((event) => {
+                    const alteredEvent = event;
+                    if (userLatitude && userLongitude) {
+                        const distance = distanceTo({
+                            lon: event.longitude,
+                            lat: event.latitude,
+                        }, {
+                            lon: userLongitude,
+                            lat: userLatitude,
+                        }) / 1069.344; // convert meters to miles
+                        alteredEvent.distance = getReadableDistance(distance);
+                    }
+                    return {
+                        ...alteredEvent,
+                        reaction: eventIdToReaction[event.id] || {},
+                        likeCount: parseInt(likeCountByEventId[event.id] || 0, 10),
+                    };
+                }).filter((event) => !blockedUsers.includes(event.fromUserId));
+                return res.status(200).send({
+                    events,
+                    media: response?.data?.media,
+                    pagination: {
+                        itemsPerPage: limit,
+                        offset,
+                        isLastPage: reactions.length < limit && response?.data?.events?.length < limit,
+                    },
+                });
             });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENTMOMENT_REACTIONS_ROUTES:ERROR' }));

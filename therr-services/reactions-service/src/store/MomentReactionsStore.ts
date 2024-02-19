@@ -46,6 +46,26 @@ export default class MomentReactionsStore {
         this.db = dbConnection;
     }
 
+    getCounts(momentIds: string[], conditions: any, countBy = 'userHasLiked') {
+        if (!momentIds?.length) {
+            return Promise.resolve([]);
+        }
+        let queryString = knexBuilder.count('*', { as: 'count' })
+            .select(['momentId'])
+            .from(MOMENT_REACTIONS_TABLE_NAME)
+            .where({
+                ...conditions,
+                [countBy]: true,
+            })
+            .groupBy('momentId');
+
+        if (momentIds && momentIds.length) {
+            queryString = queryString.whereIn('momentId', momentIds);
+        }
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
+    }
+
     get(conditions: any, momentIds?, filters = { limit: 100, offset: 0, order: 'DESC' }, customs: any = {}) {
         const restrictedLimit = Math.min(filters.limit || 100, 1000);
 
