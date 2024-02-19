@@ -48,6 +48,26 @@ export default class EventReactionsStore {
         this.db = dbConnection;
     }
 
+    getCounts(eventIds: string[], conditions: any, countBy = 'userHasLiked') {
+        if (!eventIds?.length) {
+            return Promise.resolve([]);
+        }
+        let queryString = knexBuilder.count('*', { as: 'count' })
+            .select(['eventId'])
+            .from(EVENT_REACTIONS_TABLE_NAME)
+            .where({
+                ...conditions,
+                [countBy]: true,
+            })
+            .groupBy('eventId');
+
+        if (eventIds && eventIds.length) {
+            queryString = queryString.whereIn('eventId', eventIds);
+        }
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
+    }
+
     get(conditions: any, eventIds?, filters = { limit: 100, offset: 0, order: 'DESC' }, customs: any = {}) {
         const restrictedLimit = Math.min(filters.limit || 100, 1000);
 

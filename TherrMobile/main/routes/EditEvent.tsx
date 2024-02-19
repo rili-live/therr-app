@@ -447,7 +447,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             nearbySpacesSnapshot: nearbySpaces,
         };
 
-        if (scheduleStopAt - scheduleStartAt < 0) {
+        if (scheduleStopAt - scheduleStartAt <= 0) {
             Toast.show({
                 type: 'error',
                 text1: this.translate('alertTitles.startDateAfterEndDate'),
@@ -580,20 +580,26 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             error.statusCode === 401 ||
                             error.statusCode === 404
                         ) {
-                            this.setState({
-                                errorMsg: `${error.message}${
+                            Toast.show({
+                                type: 'error',
+                                text1: this.translate('alertTitles.backendErrorMessage'),
+                                text2: `${error.message}${
                                     error.parameters
                                         ? '(' + error.parameters.toString() + ')'
                                         : ''
                                 }`,
+                                visibilityTime: 3500,
                             });
 
                             if (error.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
                                 this.toggleInfoModal();
                             }
                         } else if (error.statusCode >= 500) {
-                            this.setState({
-                                errorMsg: this.translate('forms.editEvent.backendErrorMessage'),
+                            Toast.show({
+                                type: 'error',
+                                text1: this.translate('alertTitles.backendErrorMessage'),
+                                text2: this.translate('forms.editEvent.backendErrorMessage'),
+                                visibilityTime: 3500,
                             });
                         }
                     })

@@ -204,6 +204,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             activeTab: defaultActiveTab,
             content,
             isForBookmarks: false,
+            shouldIncludeEvents: true,
             shouldIncludeThoughts: true,
             shouldIncludeMoments: true,
             shouldIncludeSpaces: true,
@@ -367,37 +368,58 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
     };
 
     handleRefresh = () => {
+        const { activeTabIndex } = this.state;
         const { content, updateActiveMomentsStream, updateActiveSpacesStream, updateActiveThoughtsStream, user } = this.props;
         this.setState({ isLoading: true });
 
-        const activeMomentsPromise = updateActiveMomentsStream({
-            withMedia: true,
-            withUser: true,
-            offset: 0,
-            ...content.activeAreasFilters,
-            blockedUsers: user.details.blockedUsers,
-            shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
+        const activeMomentsPromise = tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES
+            ? updateActiveMomentsStream({
+                withMedia: true,
+                withUser: true,
+                offset: 0,
+                ...content.activeAreasFilters,
+                blockedUsers: user.details.blockedUsers,
+                shouldHideMatureContent: user.details.shouldHideMatureContent,
+            })
+            : Promise.resolve({});
 
-        const activeSpacesPromise = updateActiveSpacesStream({
-            withMedia: true,
-            withUser: true,
-            offset: 0,
-            ...content.activeAreasFilters,
-            blockedUsers: user.details.blockedUsers,
-            shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
+        const activeSpacesPromise = tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES
+            ? updateActiveSpacesStream({
+                withMedia: true,
+                withUser: true,
+                offset: 0,
+                ...content.activeAreasFilters,
+                blockedUsers: user.details.blockedUsers,
+                shouldHideMatureContent: user.details.shouldHideMatureContent,
+            })
+            : Promise.resolve({});
 
-        const activeThoughtsPromise = updateActiveThoughtsStream({
-            withUser: true,
-            withReplies: true,
-            offset: 0,
-            // ...content.activeAreasFilters,
-            blockedUsers: user.details.blockedUsers,
-            shouldHideMatureContent: user.details.shouldHideMatureContent,
-        },);
 
-        return Promise.all([activeMomentsPromise, activeSpacesPromise, activeThoughtsPromise]).finally(() => {
+        // TODO
+        const activeEventsPromise = Promise.resolve({});
+        // const activeEventsPromise = tabMap[activeTabIndex] === CAROUSEL_TABS.EVENTS
+        //     ? updateActiveEventsStream({
+        //         withMedia: true,
+        //         withUser: true,
+        //         offset: 0,
+        //         ...content.activeAreasFilters,
+        //         blockedUsers: user.details.blockedUsers,
+        //         shouldHideMatureContent: user.details.shouldHideMatureContent,
+        //     })
+        //     : Promise.resolve({});
+
+        const activeThoughtsPromise = tabMap[activeTabIndex] === CAROUSEL_TABS.THOUGHTS
+            ? updateActiveThoughtsStream({
+                withUser: true,
+                withReplies: true,
+                offset: 0,
+                // ...content.activeAreasFilters,
+                blockedUsers: user.details.blockedUsers,
+                shouldHideMatureContent: user.details.shouldHideMatureContent,
+            })
+            : Promise.resolve({});
+
+        return Promise.all([activeMomentsPromise, activeSpacesPromise, activeEventsPromise, activeThoughtsPromise]).finally(() => {
             this.loadTimeoutId = setTimeout(() => {
                 this.setState({ isLoading: false });
             }, 400);

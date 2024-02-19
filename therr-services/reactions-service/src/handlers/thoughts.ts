@@ -52,6 +52,10 @@ const searchActiveThoughts = async (req: any, res: any) => {
     }, customs)
         .then((reactionsResponse) => {
             reactions = reactionsResponse;
+            const thoughtIdToReaction = reactions?.reduce((acc, cur) => ({
+                ...acc,
+                [cur.thoughtId]: cur,
+            }), {});
             const thoughtIds = reactions?.map((reaction) => reaction.thoughtId) || [];
 
             return axios({
@@ -74,25 +78,30 @@ const searchActiveThoughts = async (req: any, res: any) => {
                     authorId,
                     isDraft: false,
                 },
-            });
-        })
-        .then((response) => {
-            let thoughts = response?.data?.thoughts;
-            thoughts = thoughts.map((thought) => {
-                const alteredThought = thought; // TODO: personalized for user performing the search?
-                return {
-                    ...alteredThought,
-                    reaction: reactions.find((reaction) => reaction.thoughtId === thought.id) || {},
-                };
-            }).filter((thought) => !blockedUsers.includes(thought.fromUserId));
-            return res.status(200).send({
-                thoughts,
-                media: response?.data?.media,
-                pagination: {
-                    itemsPerPage: limit,
-                    offset,
-                    isLastPage: reactions.length < limit && response?.data?.isLastPage,
-                },
+            }).then(async (response) => {
+                let thoughts = response?.data?.thoughts;
+                const results = await Store.thoughtReactions.getCounts(thoughts.map((m) => m.id), {}, 'userHasLiked');
+                const likeCountByThoughtId = results.reduce((acc, cur) => ({
+                    ...acc,
+                    [cur.thoughtId]: cur.count,
+                }), {});
+                thoughts = thoughts.map((thought) => {
+                    const alteredThought = thought; // TODO: personalized for user performing the search?
+                    return {
+                        ...alteredThought,
+                        reaction: thoughtIdToReaction[thought.id] || {},
+                        likeCount: parseInt(likeCountByThoughtId[thought.id] || 0, 10),
+                    };
+                }).filter((thought) => !blockedUsers.includes(thought.fromUserId));
+                return res.status(200).send({
+                    thoughts,
+                    media: response?.data?.media,
+                    pagination: {
+                        itemsPerPage: limit,
+                        offset,
+                        isLastPage: reactions.length < limit && response?.data?.isLastPage,
+                    },
+                });
             });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
