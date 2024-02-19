@@ -70,7 +70,7 @@ interface ISearchQuery {
     pageNumber?: number;
     returning?: string;
     shouldCheckReverse?: string;
-    withMedia?: string;
+    withMedia?: boolean;
     longitude?: number;
     latitude?: number;
 }

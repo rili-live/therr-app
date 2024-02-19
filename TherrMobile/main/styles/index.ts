@@ -126,6 +126,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
     const styles = StyleSheet.create({
+        areaContainer: {
+
+        },
         safeAreaView: {
             marginTop: Platform.OS === 'ios' ? 0 : 0,
             flex: 1,

@@ -1,6 +1,8 @@
+import axios from 'axios';
 import { RequestHandler } from 'express';
 import moment from 'moment';
-import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
+import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
+import * as globalConfig from '../../../../global-config';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { createUserForum, findUsers } from '../api/usersService';
@@ -59,22 +61,50 @@ const createForum = (req, res) => {
 
 // READ
 const getForum = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     const { forumId } = req.params;
+    const queryString = getSearchQueryString({
+        itemsPerPage: 20,
+        pageNumber: 1,
+        withMedia: true,
+    });
 
-    return Store.forums.getForum(forumId)
-        .then((forums) => {
-            if (!forums?.length) {
-                return handleHttpError({
-                    res,
-                    message: 'Forum not found',
-                    statusCode: 404,
+    return axios({
+        method: 'post',
+        url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/events/search/for-group-ids${queryString}`,
+        headers: {
+            authorization,
+            'x-localecode': locale,
+            'x-userid': userId,
+            'x-therr-origin-host': whiteLabelOrigin,
+        },
+        data: {
+            groupIds: [forumId],
+        },
+    }).then((response) => {
+        const events = response?.data?.results || [];
+
+        return Store.forums.getForum(forumId)
+            .then((forums) => {
+                if (!forums?.length) {
+                    return handleHttpError({
+                        res,
+                        message: 'Forum not found',
+                        statusCode: 404,
+                    });
+                }
+                return res.status(202).send({
+                    ...forums[0],
+                    events,
                 });
-            }
-            return res.status(202).send(forums[0]);
-        })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
+            })
+            .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
+    });
 };
 
 const findForums: RequestHandler = (req: any, res: any) => {
