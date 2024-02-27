@@ -31,7 +31,7 @@ export default class SocialSyncsStore {
 
         const queryString = knexBuilder.insert(sanitizedSyncs)
             .into(SOCIAL_SYNCS_TABLE_NAME)
-            .onConflict(['userId', 'link'])
+            .onConflict(['userId', 'platformUserId'])
             .merge()
             .returning('*')
             .toString();
