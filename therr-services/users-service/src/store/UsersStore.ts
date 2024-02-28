@@ -210,7 +210,7 @@ export default class UsersStore {
 
             return this.db.read.query(connectionsQueryString.toString()).then(({ rows: connections }) => {
                 connections.forEach((connection) => {
-                    if (connection.requestingUserId === requestingUserId) {
+                    if (connection.requestingUserId === requestingUserId || connection.acceptingUserId === requestingUserId) {
                         usersById[connection.acceptingUserId].isConnected = connection.requestStatus !== UserConnectionTypes.MIGHT_KNOW;
                     }
                 });
