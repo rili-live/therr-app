@@ -72,7 +72,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     }
 
     // 1. Lookup User in DB and send e-mail invite if not found
-    if (!acceptingUser.id || acceptingUser.isUnclaimed == null || acceptingUser.settingsEmailInvites == null) {
+    if (!acceptingUser.id) {
         try {
             const userResults = await Store.users.findUser({
                 phoneNumber: acceptingUserPhoneNumber,
@@ -82,7 +82,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             let unverifiedUser;
 
             // 1a. Send email invite when user does not exist
-            if (!userResults.length) {
+            if (!userResults.length && acceptingUserEmail) {
                 const blacklistedEmails = await failsafeBlackListRequest(acceptingUserEmail);
                 const emailIsBlacklisted = blacklistedEmails?.length;
                 const deepEmailValidation = await deepEmailValidate({
