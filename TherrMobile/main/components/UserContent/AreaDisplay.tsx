@@ -15,7 +15,6 @@ import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import LottieView from 'lottie-react-native';
 import Toast from 'react-native-toast-message';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
@@ -28,17 +27,11 @@ import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
-import missingImageDeals from '../../assets/missing-image-deals.json';
-import missingImageFood from '../../assets/missing-image-food.json';
-import missingImageStorefront from '../../assets/missing-image-storefront.json';
-import missingImageIdea from '../../assets/missing-image-idea.json';
-import missingImageMusic from '../../assets/missing-image-music.json';
-import missingImageNature from '../../assets/missing-image-nature.json';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
+import MissingImagePlaceholder from './MissingImagePlaceholder';
 
 const envConfig = getConfig();
-const placeholderMedia = require('../../assets/placeholder-content-media.png');
 const { width: viewportWidth } = Dimensions.get('window');
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
@@ -240,60 +233,6 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         );
     };
 
-    renderMissingImage = () => {
-        const { area, placeholderMediaType } = this.props;
-
-        if (area?.category) {
-            let missingImage: any = missingImageFood;
-            if (area?.category === 'food' || area?.category === 'menu') {
-                missingImage = missingImageFood;
-            }
-            if (area?.category === 'deals') {
-                missingImage = missingImageDeals;
-            }
-            if (area?.category === 'storefront') {
-                missingImage = missingImageStorefront;
-            }
-            if (area?.category === 'idea') {
-                missingImage = missingImageIdea;
-            }
-            if (area?.category === 'music') {
-                missingImage = missingImageMusic;
-            }
-            if (area?.category === 'nature') {
-                missingImage = missingImageNature;
-            }
-            return (
-                <View style={{
-                    width: viewportWidth,
-                    height: viewportWidth,
-                }}>
-                    <LottieView
-                        source={missingImage}
-                        resizeMode="contain"
-                        speed={1}
-                        progress={placeholderMediaType === 'autoplay' ? 0 : 1}
-                        autoPlay={placeholderMediaType === 'autoplay'}
-                        loop={false}
-                        style={[{ position: 'absolute', width: '100%', height: '100%' }]}
-                    />
-                </View>
-            );
-        }
-
-        return (
-            <Image
-                source={placeholderMedia}
-                style={{
-                    width: viewportWidth,
-                    height: viewportWidth,
-                }}
-                resizeMode='contain'
-                PlaceholderContent={<ActivityIndicator />}
-            />
-        );
-    };
-
     claimSpace = () => {
         const { area, translate } = this.props;
         MapsService.claimSpace(area.id).then(() => {
@@ -467,7 +406,15 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 resizeMode='contain'
                                 PlaceholderContent={<ActivityIndicator />}
                             /> :
-                            placeholderMediaType && this.renderMissingImage()
+                            placeholderMediaType && <MissingImagePlaceholder
+                                area={area}
+                                themeViewArea={themeViewArea}
+                                placeholderMediaType={placeholderMediaType}
+                                dimensions={{
+                                    height: viewportWidth,
+                                    width: viewportWidth,
+                                }}
+                            />
                     }
                 </PresssableWithDoubleTap>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>

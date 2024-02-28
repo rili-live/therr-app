@@ -5,6 +5,7 @@ import MarkerIconGeocache from './MarkerIconGeocache';
 import MarkerIconCamera from './MarkerIconCamera';
 import MarkerIconDiscount from './MarkerIconDiscount';
 import MarkerIconDrinks from './MarkerIconDrinks';
+import MarkerIconEvent from './MarkerIconEvent';
 import MarkerIconFitness from './MarkerIconFitness';
 import MarkerIconFood from './MarkerIconFood';
 import MarkerIconHotel from './MarkerIconHotel';
@@ -28,6 +29,9 @@ const getMarkerConfigs = (theme: ITherrTheme) => ({
     },
     thought: {
         fill: theme.colors.brandingMapYellow,
+    },
+    event: {
+        fill: theme.colors.brandingBlueGreen,
     },
     drinks: {
         fill: theme.colors.brandingBlack,
@@ -72,6 +76,12 @@ const MarkerIcon = function MarkerIcon({
     area,
     theme,
 }) {
+    if (areaType === 'events') {
+        return (
+            <MarkerIconEvent {...getMarkerConfigs(theme).event} />
+        );
+    }
+
     // TODO: Add all categories
     if (area.category === 'art' || area.category === 'artwork/idea') {
         return (

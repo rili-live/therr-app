@@ -392,6 +392,7 @@
         "hotels/lodging": "Hotels / Lodging",
         "event/space": "Events Space",
         "art": "Art",
+        "gaming": "Gaming",
         "geocache": "Geocache",
         "menu": "Menu",
         "music": "Music",
@@ -758,6 +759,7 @@
     "mapActions": {
       "create": "Create",
       "claimASpace": "Claim a Space",
+      "createEvent": "Create an Event",
       "addACheckIn": "Check In",
       "requestASpace": "Request a Space",
       "shareAThought": "Share a Thought",
@@ -1098,6 +1100,7 @@
       "labels": {
         "public": "Public",
         "private": "Private",
+        "events": "Events",
         "moments": "Moments",
         "spaces": "Spaces",
         "showAll": "Show All Categories",
