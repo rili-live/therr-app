@@ -17,7 +17,7 @@ router.get('/:id', getGroupMembers);
 
 // WRITE
 router.post('/', createUserGroup);
-router.post('/priviledged', internalCreateUserGroup);
+router.post('/privileged', internalCreateUserGroup);
 router.put('/:id', updateUserGroup);
 router.delete('/:id', deleteUserGroup);
 router.post('/notify-members', notifyGroupMembers);

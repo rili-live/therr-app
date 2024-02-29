@@ -67,6 +67,9 @@ const getUserGroups = (req, res) => Store.userGroups.get({
 const getGroupMembers = (req, res) => Store.userGroups.get({
     groupId: req.params.id,
     status: GroupRequestStatuses.APPROVED,
+}, {
+    limit: req.query.limit,
+    returning: req.query.returning,
 })
     .then((results) => Store.users.findUsers({
         ids: results.map((r) => r.userId),

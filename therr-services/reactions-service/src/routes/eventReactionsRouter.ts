@@ -2,6 +2,7 @@ import * as express from 'express';
 import {
     createOrUpdateEventReaction,
     createOrUpdateMultiEventReactions,
+    createOrUpdateMultiUserReactions,
     getEventReactions,
     getEventRatings,
     getReactionsByEventId,
@@ -14,6 +15,8 @@ const router = express.Router();
 router.post('/:eventId', createOrUpdateEventReaction);
 
 router.post('/create-update/multiple', createOrUpdateMultiEventReactions);
+
+router.post('/create-update/multiple-users', createOrUpdateMultiUserReactions);
 // GET
 router.get('/', getEventReactions);
 

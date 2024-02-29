@@ -284,6 +284,58 @@ const createEvent = async (req, res) => {
                     userHasActivated: true,
                 },
             }).then(({ data: reaction }) => {
+                // Create reaction for first n group members
+                const MEMBERS_LIMIT = 200;
+                axios({ // Create companion reaction for user's own event
+                    method: 'get',
+                    url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/${groupId}?limit=${MEMBERS_LIMIT}&returning=simple`,
+                    headers: {
+                        authorization,
+                        'x-localecode': locale,
+                        'x-userid': userId,
+                        'x-therr-origin-host': whiteLabelOrigin,
+                    },
+                }).then((response) => axios({ // Create companion reaction for user's own event
+                    method: 'post',
+                    url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/event-reactions/create-update/multiple-users`,
+                    headers: {
+                        authorization,
+                        'x-localecode': locale,
+                        'x-userid': userId,
+                        'x-therr-origin-host': whiteLabelOrigin,
+                    },
+                    data: {
+                        eventId: event.id,
+                        userIds: response.data?.userGroups?.map((g) => g.userId),
+                    },
+                }).then((reactionsResponse) => {
+                    logSpan({
+                        level: 'info',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Group Member Event Reactions Created'],
+                        traceArgs: {
+                            action: 'create-event',
+                            logCategory: 'user-sentiment',
+                            createdCount: reactionsResponse?.data?.created?.length,
+                            updatedCount: reactionsResponse?.data?.updated?.length,
+                        },
+                    });
+                })).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while creating group member event reactions'],
+                        traceArgs: {
+                            // TODO: Add a sentiment analysis property
+                            action: 'create-event-reactions',
+                            logCategory: 'user-sentiment',
+                            'event.groupId': event.groupId,
+                            'event.spaceId': event.spaceId,
+                            'event.region': event.region,
+                            'user.id': userId,
+                        },
+                    });
+                });
                 logSpan({
                     level: 'info',
                     messageOrigin: 'API_SERVER',
@@ -729,6 +781,7 @@ const searchMyEvents: RequestHandler = async (req: any, res: any) => {
 const searchGroupEvents: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     const {
+        withUser,
         groupIds,
     } = req.body;
     const {
@@ -738,11 +791,15 @@ const searchGroupEvents: RequestHandler = async (req: any, res: any) => {
         withMedia,
     } = req.query;
 
-    const searchPromise = Store.events.findGroupEvents(groupIds || []);
+    const searchPromise = Store.events.findGroupEvents(groupIds || [], {
+        withUser,
+        withMedia,
+    });
 
-    return Promise.all([searchPromise]).then(([events]) => {
+    return Promise.all([searchPromise]).then(([result]) => {
         const response = {
-            results: events,
+            results: result.events,
+            media: result.media,
             pagination: {
                 itemsPerPage: Number(itemsPerPage),
                 pageNumber: Number(pageNumber),

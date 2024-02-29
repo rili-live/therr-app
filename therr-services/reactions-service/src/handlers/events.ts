@@ -47,7 +47,7 @@ const searchActiveEvents = async (req: any, res: any) => {
     let reactions;
 
     // TODO: Rather than offset, this should have a last event id and filter for results earlier than that
-    return Store.eventReactions.get(conditions, undefined, {
+    return Store.eventReactions.get(conditions, undefined, undefined, {
         limit,
         offset,
         order: order || 0,
@@ -154,7 +154,7 @@ const searchActiveEventsByIds = async (req: any, res: any) => {
 
     let reactions;
 
-    return Store.eventReactions.get(conditions, eventIds, undefined, customs)
+    return Store.eventReactions.get(conditions, eventIds, undefined, undefined, customs)
         .then((reactionsResponse) => {
             reactions = reactionsResponse;
             const activatedEventIds = reactions?.map((reaction) => reaction.eventId) || [];

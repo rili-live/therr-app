@@ -348,7 +348,10 @@ export default class EventsStore {
         });
     }
 
-    findGroupEvents(groupIds: string[], limit = 100, offset = 0) {
+    findGroupEvents(groupIds: string[], overrides = {
+        withMedia: false,
+        withUser: false,
+    }, limit = 100, offset = 0) {
         const now = new Date();
         const query = knexBuilder
             .from(EVENTS_TABLE_NAME)
@@ -360,7 +363,41 @@ export default class EventsStore {
             })
             .where('scheduleStartAt', '>', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
 
-        return this.db.read.query(query.toString()).then((response) => response.rows);
+        return this.db.read.query(query.toString()).then(async (response) => {
+            const events = response.rows;
+            if (overrides.withMedia || overrides.withUser) {
+                const mediaIds: string[] = [];
+                const userIds: string[] = [];
+                const eventDetailsPromises: Promise<any>[] = [];
+
+                events.forEach((event) => {
+                    if (overrides.withMedia && event.mediaIds) {
+                        mediaIds.push(...event.mediaIds.split(','));
+                    }
+                    if (overrides.withUser) {
+                        userIds.push(event.fromUserId);
+                    }
+                });
+                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
+                eventDetailsPromises.push(overrides.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                eventDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+
+                const [media, users] = await Promise.all(eventDetailsPromises);
+
+                const eventsMediaUsers = getEventsToMediaAndUsers(events, media, users);
+
+                return Promise.all(eventsMediaUsers.signingPromises).then((signedUrlResponses) => ({
+                    events: eventsMediaUsers.mappedEvents,
+                    media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
+                    users: eventsMediaUsers.matchingUsers,
+                }));
+            }
+
+            return {
+                events,
+                media: [],
+            };
+        });
     }
 
     findSpaceEvents(spaceIds: string[], limit = 100, offset = 0) {
