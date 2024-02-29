@@ -571,18 +571,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         // Filters have been populated and "Select All" is not checked
         if (mapFilters.filtersVisibility.length && !mapFilters.filtersVisibility[0]?.isChecked) {
-            const shouldHide = mapFilters.filtersVisibility.some(filter => {
-                if (filter.isChecked) {
-                    if (filter.name === 'moments' && area.areaType !== 'moments') {
-                        return true;
-                    }
-
-                    if (filter.name === 'spaces' && area.areaType !== 'spaces') {
-                        return true;
-                    }
-                }
-            });
-            passesFilterVisibility = !shouldHide && mapFilters.filtersVisibility.some(filter => {
+            const shouldHide = mapFilters.filtersVisibility.filter((f) => ['events', 'moments', 'spaces'].includes(f.name))
+                .every(filter => !filter.isChecked);
+            const shouldHide2 = mapFilters.filtersVisibility.filter((f) => ['events', 'moments', 'spaces'].includes(f.name))
+                .some(filter => !filter.isChecked && filter.name === area.areaType);
+            passesFilterVisibility = !shouldHide && !shouldHide2 && mapFilters.filtersVisibility.some(filter => {
                 if (!filter.isChecked) {
                     return false;
                 }
@@ -746,6 +739,30 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                         },
                         {
                             name: 'EditMoment',
+                            params: {
+                                ...circleCenter,
+                                imageDetails: {},
+                                nearbySpaces,
+                                area: {},
+                            },
+                        },
+                    ],
+                });
+                return;
+            }
+
+            if (action === 'event') {
+                navigation.reset({
+                    index: 1,
+                    routes: [
+                        {
+                            name: 'Map',
+                            params: {
+                                ...circleCenter,
+                            },
+                        },
+                        {
+                            name: 'EditEvent',
                             params: {
                                 ...circleCenter,
                                 imageDetails: {},
@@ -1267,8 +1284,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         if (this.quickFilterButtons[index].title === this.translate('pages.map.filterButtons.events')) {
             setMapFilters({
                 filtersAuthor: authorFilters,
-                filtersCategory: this.initialCategoryFilters.map(x => ({ ...x, isChecked: x.name === 'event/space'})),
-                filtersVisibility: visibilityFilters,
+                filtersCategory: categoryFilters,
+                filtersVisibility: this.initialVisibilityFilters.map(x => ({ ...x, isChecked: x.name.includes('event') || x.name.includes('public')})),
             });
         }
 
@@ -1635,9 +1652,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             filtersCategory: map.filtersCategory,
             filtersVisibility: map.filtersVisibility,
         };
+        const filteredEvents = this.getFilteredAreas(map.events, mapFilters);
         const filteredMoments = this.getFilteredAreas(map.moments, mapFilters);
         const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters);
-        const filteredAreasCount = filteredMoments.length + filteredSpaces.length;
+        const filteredAreasCount = filteredEvents.length + filteredMoments.length + filteredSpaces.length;
         this.onRegionChangeComplete(region, filteredAreasCount);
     };
 
@@ -1675,6 +1693,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             filtersCategory: map.filtersCategory,
             filtersVisibility: map.filtersVisibility,
         };
+        const filteredEvents = this.getFilteredAreas(map.events, mapFilters);
         const filteredMoments = this.getFilteredAreas(map.moments, mapFilters);
         const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters);
 
@@ -1713,6 +1732,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 expandBottomSheet={this.expandBottomSheet}
                                 exchangeRate={exchangeRate}
                                 route={route}
+                                filteredEvents={filteredEvents}
                                 filteredMoments={filteredMoments}
                                 filteredSpaces={filteredSpaces}
                                 mapRef={this.updateMapRef}

@@ -22,7 +22,7 @@ export default class UserGroupsStore {
         this.db = dbConnection;
     }
 
-    get(conditions: { userId?: string, groupId?: string, status?: string }) {
+    get(conditions: { userId?: string, groupId?: string, status?: string }, overrides: any = {}) {
         const whereConditions: any = {};
         if (conditions.userId) {
             whereConditions.userId = conditions.userId;
@@ -33,13 +33,16 @@ export default class UserGroupsStore {
         if (conditions.status) {
             whereConditions.status = conditions.status;
         }
-        const queryString = knexBuilder
-            .select('*')
+        let queryString = knexBuilder
+            .select(overrides?.returning === 'simple' ? ['userId'] : '*')
             .from(USER_GROUPS_TABLE_NAME)
-            .where(whereConditions)
-            .toString();
+            .where(whereConditions);
 
-        return this.db.read.query(queryString)
+        if (overrides?.limit) {
+            queryString = queryString.limit(overrides?.limit);
+        }
+
+        return this.db.read.query(queryString.toString())
             .then((response) => response.rows);
     }
 

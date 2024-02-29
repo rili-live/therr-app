@@ -21,6 +21,7 @@ import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../PressableWithDoubleTap';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
+import MissingImagePlaceholder from './MissingImagePlaceholder';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -194,19 +195,27 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                             onLayout={this.onUserMediaLayout}
                         /> */}
                         {
-                            areaMedia &&
-                            <Image
-                                source={{
-                                    uri: areaMedia,
-                                }}
-                                style={{
-                                    width: mediaWidth,
-                                    height: mediaWidth,
-                                    borderRadius: 7,
-                                }}
-                                resizeMode='contain'
-                                PlaceholderContent={<ActivityIndicator />}
-                            />
+                            areaMedia ?
+                                <Image
+                                    source={{
+                                        uri: areaMedia,
+                                    }}
+                                    style={{
+                                        width: mediaWidth,
+                                        height: mediaWidth,
+                                        borderRadius: 7,
+                                    }}
+                                    resizeMode='contain'
+                                    PlaceholderContent={<ActivityIndicator />}
+                                /> :
+                                <MissingImagePlaceholder
+                                    area={area}
+                                    themeViewArea={themeViewArea}
+                                    dimensions={{
+                                        width: mediaWidth,
+                                        height: mediaWidth,
+                                    }}
+                                />
                         }
                     </PresssableWithDoubleTap>
                     <View style={spacingStyles.flexOne}>

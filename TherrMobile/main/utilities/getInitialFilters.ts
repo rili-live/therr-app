@@ -11,6 +11,7 @@ export const visibilityOptions: { name: string; isChecked?: boolean }[] = [
     { name: 'private' },
     { name: 'moments' },
     { name: 'spaces' },
+    { name: 'events' },
 ];
 
 

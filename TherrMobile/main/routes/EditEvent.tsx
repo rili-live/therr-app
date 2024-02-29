@@ -260,8 +260,8 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             title: this.translate('pages.editEvent.headerTitle'),
         });
 
-        // TODO: Fetch user groups and redirect if user does not have a userGroup with admin or event host role
-        if (!userGroups?.length) {
+        // Fetch if user groups are missing title/groupName
+        if (!userGroups?.length || userGroups?.some((group) => !group.title && !group.groupName)) {
             getUserGroups({
                 withGroups: true,
             }).then((result) => {

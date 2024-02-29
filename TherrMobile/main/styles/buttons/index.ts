@@ -246,6 +246,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 24,
             bottom: 180 + buttonMenuHeight - collapseOffset,
         },
+        createEvent: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 24,
+            bottom: 240 + buttonMenuHeight - collapseOffset,
+        },
         uploadMoment: {
             ...getFloatingBtnContainer(therrTheme),
             right: 24,
