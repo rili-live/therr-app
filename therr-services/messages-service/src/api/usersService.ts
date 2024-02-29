@@ -4,7 +4,7 @@ import * as globalConfig from '../../../../global-config';
 
 const createUserForum = (headers: any, groupId: string) => axios({
     method: 'post',
-    url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/priviledged`,
+    url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/privileged`,
     headers,
     data: {
         groupId,

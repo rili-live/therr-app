@@ -12,7 +12,7 @@ import claimASpace from '../../assets/claim-a-space.json';
 import { MIN_TIME_BTW_CHECK_INS_MS, MIN_TIME_BTW_MOMENTS_MS } from '../../constants';
 import numberToCurrencyStr from '../../utilities/numberToCurrencyStr';
 
-export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in';
+export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in' | 'event';
 
 interface MapActionButtonsProps {
     exchangeRate: number;
@@ -150,6 +150,13 @@ export default ({
     const momentRewardValue = validRewardMoments?.length > 0
         ? numberToCurrencyStr(Math.round((Number((validRewardMoments[0].featuredIncentiveRewardValue || 0) * exchangeRate) + Number.EPSILON) * 100) / 100)
         : 0;
+    const hasNearbySpaces = !isBusinessAccount && isGpsEnabled && nearbySpaces?.length > 0;
+    const hasValidCheckinSpaces = validCheckInSpaces?.length > 0 && !shouldShowCreateActions;
+    const createEventDynamicStyle = hasNearbySpaces
+        ? {
+            bottom: themeButtons.styles.createEvent.bottom + 60,
+        }
+        : {};
 
     return (
         <>
@@ -241,10 +248,10 @@ export default ({
                 onPress={() => toggleCreateActions()}
             />
             {
-                !isBusinessAccount && isGpsEnabled && nearbySpaces?.length > 0 &&
+                hasNearbySpaces &&
                 <>
                     {
-                        validCheckInSpaces?.length > 0 && !shouldShowCreateActions &&
+                        hasValidCheckinSpaces &&
                         <View style={themeButtons.styles.addACheckInBadge}>
                             <Badge
                                 value={`$${checkinValue}`}
@@ -275,8 +282,29 @@ export default ({
                     </View>
                 </>
             }
+            <View style={[
+                themeButtons.styles.createEvent,
+                createEventDynamicStyle,
+            ]}>
+                <Button
+                    containerStyle={themeButtons.styles.btnContainer}
+                    buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
+                    icon={
+                        <TherrIcon
+                            // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
+                            name="calendar"
+                            size={22}
+                            style={themeButtons.styles.btnIcon}
+                        />
+                    }
+                    iconRight
+                    raised
+                    title={shouldShowCreateActions && translate('menus.mapActions.createEvent')}
+                    titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                    onPress={() => handleCreate('event')}
+                />
+            </View>
             <View style={themeButtons.styles.claimASpace}>
-                {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text> */}
                 <Button
                     containerStyle={themeButtons.styles.btnContainer}
                     buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}

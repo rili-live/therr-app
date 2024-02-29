@@ -82,6 +82,7 @@ export interface ITherrMapViewProps extends IStoreProps {
     circleCenter: { longitude: number, latitude: number };
     exchangeRate: number;
     expandBottomSheet: any;
+    filteredEvents: any;
     filteredMoments: any;
     filteredSpaces: any;
     hideCreateActions: () => any;
@@ -319,6 +320,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             circleCenter,
             createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction,
+            // filteredEvents, // TODO
             filteredMoments,
             filteredSpaces,
             navigation,
@@ -497,32 +499,33 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         let modifiedAreasInPreview = [...areasInPreview];
         if (!isPreviewBottomSheetVisible) {
             // TODO: Fetch media
-            const { filteredSpaces } = this.props;
+            const { filteredEvents, filteredSpaces } = this.props;
 
             // Label with user's location if available, but sort by distance from pressedCoord
-            const sortedAreasWithDistance = Object.values(filteredSpaces).filter((a: any) => a.latitude && a.longitude).map((area: any) => {
-                const milesFromPress = distanceTo({
-                    lon: pressedCoords.longitude,
-                    lat: pressedCoords.latitude,
-                }, {
-                    lon: area.longitude,
-                    lat: area.latitude,
-                }) / 1069.344; // convert meters to miles
-                const milesFromUser = !(location?.user?.longitude && location?.user?.latitude)
-                    ? milesFromPress
-                    : distanceTo({
-                        lon: location?.user?.longitude,
-                        lat: location?.user?.latitude,
+            const sortedAreasWithDistance = Object.values(filteredSpaces).concat(Object.values(filteredEvents))
+                .filter((a: any) => a.latitude && a.longitude).map((area: any) => {
+                    const milesFromPress = distanceTo({
+                        lon: pressedCoords.longitude,
+                        lat: pressedCoords.latitude,
                     }, {
                         lon: area.longitude,
                         lat: area.latitude,
                     }) / 1069.344; // convert meters to miles
-                return {
-                    ...area,
-                    distanceFromUser: milesFromUser,
-                    distanceFromPress: milesFromPress,
-                };
-            }).sort((a, b) => a.distanceFromPress - b.distanceFromPress);
+                    const milesFromUser = !(location?.user?.longitude && location?.user?.latitude)
+                        ? milesFromPress
+                        : distanceTo({
+                            lon: location?.user?.longitude,
+                            lat: location?.user?.latitude,
+                        }, {
+                            lon: area.longitude,
+                            lat: area.latitude,
+                        }) / 1069.344; // convert meters to miles
+                    return {
+                        ...area,
+                        distanceFromUser: milesFromUser,
+                        distanceFromPress: milesFromPress,
+                    };
+                }).sort((a, b) => a.distanceFromPress - b.distanceFromPress);
 
             const areasArray: any[] = [];
             let pressedAreas: any[] = [];
@@ -820,6 +823,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             circleCenter,
             content,
             exchangeRate,
+            filteredEvents,
             filteredMoments,
             filteredSpaces,
             isScrollEnabled,
@@ -828,6 +832,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             map,
         } = this.props;
         const { areasInPreview, areaInPreviewIndex, isPreviewBottomSheetVisible, isMapReady } = this.state;
+        const filteredEventValues = Object.values(filteredEvents);
         const filteredMomentValues = Object.values(filteredMoments);
         const filteredSpaceValues = Object.values(filteredSpaces);
         const animatedOverlayHeight = CARD_HEIGHT
@@ -881,6 +886,30 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             fillColor={this.theme.colors.map.userCircleFill}
                             zIndex={0}
                         />
+                    }
+                    {
+                        isMapReady && filteredEventValues.map((event: any) => {
+                            return (
+                                <Marker
+                                    anchor={{
+                                        x: 0.5,
+                                        y: 0.5,
+                                    }}
+                                    key={event.id}
+                                    coordinate={{
+                                        longitude: event.longitude,
+                                        latitude: event.latitude,
+                                    }}
+                                    onPress={this.handleMapPress}
+                                    stopPropagation={true}
+                                    tracksViewChanges={false} // Note: Supposedly affects performance but not sure the implications
+                                >
+                                    <View style={{ /* transform: [{ translateY: 0 }] */ }}>
+                                        <MarkerIcon area={event} areaType="events" theme={this.theme} />
+                                    </View>
+                                </Marker>
+                            );
+                        })
                     }
                     {
                         isMapReady && filteredMomentValues.map((moment: any) => {

@@ -85,6 +85,7 @@ const getForum = (req, res) => {
         },
         data: {
             groupIds: [forumId],
+            withUser: true,
         },
     }).then((response) => {
         const events = response?.data?.results || [];

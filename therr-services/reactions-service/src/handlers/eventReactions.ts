@@ -82,6 +82,49 @@ const createOrUpdateMultiEventReactions = (req, res) => {
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:EVENT_REACTIONS_ROUTES:ERROR' }));
 };
 
+const createOrUpdateMultiUserReactions = (req, res) => {
+    // TODO: This endpoint should be secure/non-public so user's cannot activate events on demand
+    const locale = req.headers['x-localecode'] || 'en-us';
+
+    const { eventId, userIds } = req.body;
+    const params = { ...req.body };
+    delete params.userIds;
+
+    return Store.eventReactions.get({
+        eventId,
+    }, undefined, userIds).then((existing) => {
+        const existingMapped = {};
+        const existingReactions: string[][] = existing.map((reaction) => {
+            existingMapped[reaction.userId] = reaction;
+            return [reaction.userId, reaction.eventId];
+        });
+        let updatedReactions;
+        if (existing?.length) {
+            Store.eventReactions.update({}, {
+                userLocale: locale,
+            }, {
+                columns: ['userId', 'eventId'],
+                whereInArray: existingReactions,
+            })
+                .then((eventReactions) => { updatedReactions = eventReactions; });
+        }
+
+        const createArray = userIds
+            .filter((id) => !existingMapped[id])
+            .map((uId) => ({
+                userId: uId,
+                eventId,
+                ...params,
+                userLocale: locale,
+            }));
+
+        return Store.eventReactions.create(createArray).then((createdReactions) => res.status(200).send({
+            created: createdReactions,
+            updated: updatedReactions,
+        }));
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:EVENT_REACTIONS_ROUTES:ERROR' }));
+};
+
 // READ
 const getEventReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
@@ -96,7 +139,7 @@ const getEventReactions: RequestHandler = async (req: any, res: any) => {
 
     delete queryParams.eventIds;
 
-    return Store.eventReactions.get(queryParams, eventIds, {
+    return Store.eventReactions.get(queryParams, eventIds, undefined, {
         limit: parseInt(req.query.limit, 10),
         offset: 0,
         order: req.query.order || 'DESC',
@@ -167,7 +210,7 @@ const findEventReactions: RequestHandler = async (req: any, res: any) => {
         conditions.userHasActivated = userHasActivated;
     }
 
-    return Store.eventReactions.get(conditions, eventIds, {
+    return Store.eventReactions.get(conditions, eventIds, undefined, {
         limit,
         offset,
         order,
@@ -184,5 +227,6 @@ export {
     getReactionsByEventId,
     createOrUpdateEventReaction,
     createOrUpdateMultiEventReactions,
+    createOrUpdateMultiUserReactions,
     findEventReactions,
 };

@@ -68,7 +68,7 @@ export default class EventReactionsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
-    get(conditions: any, eventIds?, filters = { limit: 100, offset: 0, order: 'DESC' }, customs: any = {}) {
+    get(conditions: any, eventIds?: string[], userIds?: string[], filters = { limit: 100, offset: 0, order: 'DESC' }, customs: any = {}) {
         const restrictedLimit = Math.min(filters.limit || 100, 1000);
 
         let queryString = knexBuilder.select('*')
@@ -84,6 +84,10 @@ export default class EventReactionsStore {
 
         if (eventIds && eventIds.length) {
             queryString = queryString.whereIn('eventId', eventIds);
+        }
+
+        if (userIds && userIds.length) {
+            queryString = queryString.whereIn('userId', userIds);
         }
 
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
