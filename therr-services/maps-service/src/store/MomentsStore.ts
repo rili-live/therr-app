@@ -274,6 +274,59 @@ export default class MomentsStore {
         });
     }
 
+    findSpaceMoments(spaceIds: string[], options = {
+        withMedia: false,
+        withUser: false,
+    }, limit = 100, offset = 0, returning = '*') {
+        const now = new Date();
+        const query = knexBuilder
+            .from(MOMENTS_TABLE_NAME)
+            .returning(returning)
+            .limit(limit)
+            .offset(offset)
+            .whereIn('spaceId', spaceIds)
+            .where({
+                isPublic: true, // TODO: Show activated posts from friends/connections
+            })
+            .where('createdAt', '>', new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000));
+
+        return this.db.read.query(query.toString()).then(async ({ rows: moments }) => {
+            if (options.withMedia || options.withUser) {
+                const mediaIds: string[] = [];
+                const userIds: string[] = [];
+                const momentDetailsPromises: Promise<any>[] = [];
+
+                moments.forEach((moment) => {
+                    if (options.withMedia && moment.mediaIds) {
+                        mediaIds.push(...moment.mediaIds.split(','));
+                    }
+                    if (options.withUser) {
+                        userIds.push(moment.fromUserId);
+                    }
+                });
+                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
+                momentDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                momentDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+
+                const [media, users] = await Promise.all(momentDetailsPromises);
+
+                const momentsMediaUsers = getMomentsToMediaAndUsers(moments, media, users);
+
+                return Promise.all(momentsMediaUsers.signingPromises).then((signedUrlResponses) => ({
+                    moments: momentsMediaUsers.mappedMoments,
+                    media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
+                    users: momentsMediaUsers.matchingUsers,
+                }));
+            }
+
+            return {
+                moments,
+                media: {},
+                users: {},
+            };
+        });
+    }
+
     findMoments(momentIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         let restrictedLimit = filters?.limit || 1000;

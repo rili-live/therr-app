@@ -8,6 +8,7 @@ import {
     getIntegratedMoments,
     searchMoments,
     searchMyMoments,
+    searchSpaceMoments,
     findMoments,
     getSignedUrlPublicBucket,
     getSignedUrlPrivateBucket,
@@ -27,6 +28,7 @@ router.get('/integrated/:userId', getIntegratedMoments);
 router.post('/:momentId/details', getMomentDetails);
 router.post('/search', searchMoments);
 router.post('/search/me', searchMyMoments);
+router.post('/search/for-space-ids', searchSpaceMoments);
 router.post('/find', findMoments);
 
 // GCS

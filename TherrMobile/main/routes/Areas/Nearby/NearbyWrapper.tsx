@@ -338,12 +338,13 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
     };
 
     tryLoadMore = () => {
-        const { content, location, searchActiveMoments, searchActiveSpaces, user } = this.props;
+        const { content, location, searchActiveEvents, searchActiveMoments, searchActiveSpaces, user } = this.props;
 
         loadMoreAreas({
             content,
             location,
             user,
+            searchActiveEvents,
             searchActiveMoments,
             searchActiveSpaces,
         });

@@ -43,6 +43,7 @@ interface ILoadMoreAreas {
     content: any;
     location?: any;
     user: any;
+    searchActiveEvents: any;
     searchActiveMoments: any;
     searchActiveSpaces: any;
 }
@@ -55,9 +56,27 @@ const loadMoreAreas = ({
     content,
     location,
     user,
+    searchActiveEvents,
     searchActiveMoments,
     searchActiveSpaces,
 }: ILoadMoreAreas) => {
+    if (!content.activeEventsPagination.isLastPage) {
+        // NOTE: This helps prevent duplicate content from being loaded, but we should debug and test further to ensure this is the best approach
+        const lastContentCreatedAt = content.activeEvents?.length ? content.activeEvents[content.activeEvents.length - 1].createdAt : null;
+
+        searchActiveEvents({
+            userLatitude: location?.user?.latitude,
+            userLongitude: location?.user?.longitude,
+            withMedia: true,
+            withUser: true,
+            offset: content.activeEventsPagination.offset + content.activeEventsPagination.itemsPerPage,
+            ...content.activeAreasFilters,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
+            lastContentCreatedAt,
+        });
+    }
+
     if (!content.activeMomentsPagination.isLastPage) {
         // NOTE: This helps prevent duplicate content from being loaded, but we should debug and test further to ensure this is the best approach
         const lastContentCreatedAt = content.activeMoments?.length ? content.activeMoments[content.activeMoments.length - 1].createdAt : null;
@@ -97,6 +116,7 @@ const loadMorePosts = ({
     content,
     location,
     user,
+    searchActiveEvents,
     searchActiveMoments,
     searchActiveSpaces,
     searchActiveThoughts,
@@ -105,6 +125,7 @@ const loadMorePosts = ({
         content,
         location,
         user,
+        searchActiveEvents,
         searchActiveMoments,
         searchActiveSpaces,
     });

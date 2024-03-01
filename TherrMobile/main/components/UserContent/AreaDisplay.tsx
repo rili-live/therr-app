@@ -24,7 +24,7 @@ import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
-import { getUserImageUri } from '../../utilities/content';
+import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
@@ -56,10 +56,12 @@ interface IAreaDisplayProps {
     isExpanded?: boolean;
     area: any;
     areaMedia: string;
+    areaMediaPadding?: number;
     goToViewIncentives?: Function;
     goToViewUser: Function;
     goToViewMap: (lat: string, long: string) => any;
     goToViewEvent?: (area: any) => any;
+    goToViewMoment?: (area: any) => any;
     goToViewSpace?: (area: any) => any;
     inspectContent: () => any;
     updateAreaReaction: Function;
@@ -183,6 +185,75 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         );
     };
 
+    renderMomentItem = (moment) => {
+        const { goToViewMoment, goToViewUser, theme, themeViewArea } = this.props;
+        const onViewMoment = () => {
+            if (goToViewMoment) {
+                goToViewMoment(moment);
+            }
+        };
+
+        return (
+            <View style={[
+                { width: viewportWidth },
+                spacingStyles.marginBotMd,
+                spacingStyles.flexRow,
+                spacingStyles.justifyCenter,
+                spacingStyles.padHorizMd,
+            ]}>
+                <Pressable
+                    onPress={() => goToViewUser(moment.fromUserId)}
+                >
+                    <Image
+                        source={{
+                            uri: getUserImageUri({
+                                details: {
+                                    media: moment.fromUserMedia,
+                                    id: moment.fromUserId,
+                                },
+                            }, 52),
+                        }}
+                        style={themeViewArea.styles.areaUserAvatarImg}
+                        containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
+                        height={themeViewArea.styles.areaUserAvatarImg.height}
+                        width={themeViewArea.styles.areaUserAvatarImg.width}
+                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                        transition={false}
+                    />
+                </Pressable>
+                <View style={[
+                    spacingStyles.flexOne,
+                    spacingStyles.marginLtSm,
+                ]}>
+                    <Text onPress={() => goToViewUser(moment.fromUserId)}>
+                        {moment.fromUserName}
+                    </Text>
+                    <Text onPress={onViewMoment} numberOfLines={2} style={[
+                        themeViewArea.styles.eventText,
+                        themeViewArea.styles.flexShrinkOne]}>
+                        {moment?.notificationMsg}
+                    </Text>
+                </View>
+                {
+                    moment.media?.length > 0 &&
+                    <Image
+                        onPress={onViewMoment}
+                        source={{
+                            uri: getUserContentUri(moment.media[0], 100, 100),
+                        }}
+                        style={{
+                            width: 100,
+                            height: 100,
+                            borderRadius: 5,
+                        }}
+                        resizeMode='contain'
+                        PlaceholderContent={<ActivityIndicator />}
+                    />
+                }
+            </View>
+        );
+    };
+
     renderActionLink = ({ item }) => {
         const { area, themeForms, translate } = this.props;
 
@@ -253,6 +324,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             isExpanded,
             area,
             areaMedia,
+            areaMediaPadding,
             goToViewUser,
             inspectContent,
             areaUserDetails,
@@ -267,6 +339,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
         const dateTime = formatDate(area.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
+        const mediaPadding = areaMediaPadding || 0;
         const isBookmarked = area.reaction?.userBookmarkCategory;
         const isLiked = area.reaction?.userHasLiked;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
@@ -277,6 +350,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         const toggleOptions = () => toggleAreaOptions(area);
         const isEvent = area.areaType === 'events';
         const isSpace = area.areaType === 'spaces';
+        const mediaDimensions = {
+            width: viewportWidth - (mediaPadding * 2),
+            height: isEvent ? ((viewportWidth - (mediaPadding * 2)) * (3 / 4)) : viewportWidth - (mediaPadding * 2),
+        };
         const actionLinks = !isSpace ? [] : [
             {
                 url: area.websiteUrl,
@@ -400,8 +477,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                     uri: areaMedia,
                                 }}
                                 style={{
-                                    width: viewportWidth,
-                                    height: isEvent ? (viewportWidth * (3 / 4)) : viewportWidth,
+                                    width: mediaDimensions.width,
+                                    height: mediaDimensions.height,
                                 }}
                                 resizeMode='contain'
                                 PlaceholderContent={<ActivityIndicator />}
@@ -411,8 +488,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 themeViewArea={themeViewArea}
                                 placeholderMediaType={placeholderMediaType}
                                 dimensions={{
-                                    height: viewportWidth,
-                                    width: viewportWidth,
+                                    height: mediaDimensions.width,
+                                    width: mediaDimensions.height,
                                 }}
                             />
                     }
@@ -591,7 +668,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     />
                 </View>
                 {
-                    isExpanded && area.events?.length > 0
+                    isSpace && isExpanded && area.events?.length > 0
                     && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
                         <Text style={theme.styles.sectionTitleCenter}>
                             {translate('pages.viewSpace.h2.events')}
@@ -599,6 +676,19 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         <View style={[spacingStyles.fullWidth]}>
                             {
                                 area.events?.map((event) => this.renderEventItem(event))
+                            }
+                        </View>
+                    </View>
+                }
+                {
+                    isSpace && isExpanded && area.associatedMoments?.length > 0
+                    && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
+                        <Text style={theme.styles.sectionTitleCenter}>
+                            {translate('pages.viewSpace.h2.moments')}
+                        </Text>
+                        <View style={[spacingStyles.fullWidth]}>
+                            {
+                                area.associatedMoments?.map((moment) => this.renderMomentItem(moment))
                             }
                         </View>
                     </View>
