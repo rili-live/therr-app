@@ -168,6 +168,11 @@ mapsServiceRouter.post('/moments/search/me', searchMyAreasValidation, validate, 
     method: 'post',
 }));
 
+mapsServiceRouter.post('/moments/search/for-space-ids', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
 mapsServiceRouter.get('/moments/signed-url/public', getSignedUrlValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'get',

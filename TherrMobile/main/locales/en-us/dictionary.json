@@ -956,7 +956,8 @@
       "h2": {
         "claimRewards": "Claim Your Rewards",
         "requirements": "Steps",
-        "events": "Upcoming Events"
+        "events": "Upcoming Events",
+        "moments": "Guest Posts"
       },
       "info": {
         "shareAMoment": {

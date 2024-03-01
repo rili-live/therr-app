@@ -902,6 +902,39 @@ const searchMyMoments: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
+// TODO: Order by most relevant post
+const searchSpaceMoments: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    const {
+        spaceIds,
+        withUser,
+    } = req.body;
+    const {
+        query,
+        itemsPerPage,
+        pageNumber,
+        withMedia,
+    } = req.query;
+
+    const searchPromise = Store.moments.findSpaceMoments(spaceIds || [], {
+        withMedia,
+        withUser,
+    }, itemsPerPage || 100);
+
+    return Promise.all([searchPromise]).then(([moments]) => {
+        const response = {
+            results: moments,
+            pagination: {
+                itemsPerPage: Number(itemsPerPage),
+                pageNumber: Number(pageNumber),
+            },
+        };
+
+        res.status(200).send(response);
+    })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENTS_ROUTES:ERROR' }));
+};
+
 // NOTE: This should remain a non-public endpoint
 const findMoments: RequestHandler = async (req: any, res: any) => {
     // const userId = req.headers['x-userid'];
@@ -959,6 +992,7 @@ export {
     getIntegratedMoments,
     searchMoments,
     searchMyMoments,
+    searchSpaceMoments,
     findMoments,
     getSignedUrlPrivateBucket,
     getSignedUrlPublicBucket,

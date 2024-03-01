@@ -790,18 +790,26 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;
     };
 
-    goToSpace = (area: any) => {
+    goToArea = (area: any) => {
         const { navigation, user } = this.props;
 
         // TODO: Should handle space or moment
         // TODO: Activate spaces on click
         this.getAreaDetails(area)
             .then((details) => {
-                navigation.navigate('ViewSpace', {
-                    isMyContent: isMyContent(area, user),
-                    space: area,
-                    spaceDetails: details,
-                });
+                if (area?.areaType === 'events') {
+                    navigation.navigate('ViewEvent', {
+                        isMyContent: isMyContent(area, user),
+                        event: area,
+                        eventDetails: details,
+                    });
+                } else if (area?.areaType === 'spaces') {
+                    navigation.navigate('ViewSpace', {
+                        isMyContent: isMyContent(area, user),
+                        space: area,
+                        spaceDetails: details,
+                    });
+                }
             })
             .catch(() => {
                 // TODO: Add error handling
@@ -1140,7 +1148,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                             isDarkMode={false}
                                             key={area.id}
                                             isFocused={areaInPreviewIndex === idx}
-                                            onPress={this.goToSpace}
+                                            onPress={this.goToArea}
                                             theme={this.theme}
                                             themeViewArea={this.themeViewArea}
                                             translate={this.translate}

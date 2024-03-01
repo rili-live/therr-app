@@ -725,7 +725,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                 modifiedInputs.addressInputText = formatted_address;
                 modifiedInputs.addressReadable = formatted_address;
             }
-            if (!modifiedInputs.addressNotificationMsg && result?.name) {
+            if (result?.name) {
                 modifiedInputs.addressNotificationMsg = result.name;
             }
             if (geometry?.location) {
@@ -1032,7 +1032,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                         <View style={this.themeAreas.styles.mediaContainer}>
                             <Image
                                 source={{ uri: imagePreviewPath }}
-                                style={[this.themeAreas.styles.mediaImage, {
+                                style={[this.themeAreas.styles.mediaImageEvent, {
                                     width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
                                 }]}
                                 resizeMode='contain'
