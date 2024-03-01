@@ -83,10 +83,6 @@ export default ({
     shouldIncludeMoments,
     shouldIncludeSpaces,
 }: IGetActiveDataArgs, sortBy = 'createdAt', categories: string[] = [SELECT_ALL]) => {
-    if (activeTab === CAROUSEL_TABS.EVENTS) {
-        return [];
-    }
-
     if (activeTab === CAROUSEL_TABS.NEWS) {
         return [];
     }
@@ -118,7 +114,6 @@ export default ({
         sortedData = mergeSortByCreatedAt(sortedData, content.activeThoughts, sortBy === 'reaction.createdAt');
     } else if (shouldIncludeEvents) {
         sortedData = content.activeEvents;
-
     }
 
     // TODO: performance optimize to prevent loading unnecessary data

@@ -369,7 +369,14 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
 
     handleRefresh = () => {
         const { activeTabIndex } = this.state;
-        const { content, updateActiveMomentsStream, updateActiveSpacesStream, updateActiveThoughtsStream, user } = this.props;
+        const {
+            content,
+            updateActiveEventsStream,
+            updateActiveMomentsStream,
+            updateActiveSpacesStream,
+            updateActiveThoughtsStream,
+            user,
+        } = this.props;
         this.setState({ isLoading: true });
 
         const activeMomentsPromise = tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES
@@ -396,17 +403,16 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
 
 
         // TODO
-        const activeEventsPromise = Promise.resolve({});
-        // const activeEventsPromise = tabMap[activeTabIndex] === CAROUSEL_TABS.EVENTS
-        //     ? updateActiveEventsStream({
-        //         withMedia: true,
-        //         withUser: true,
-        //         offset: 0,
-        //         ...content.activeAreasFilters,
-        //         blockedUsers: user.details.blockedUsers,
-        //         shouldHideMatureContent: user.details.shouldHideMatureContent,
-        //     })
-        //     : Promise.resolve({});
+        const activeEventsPromise = tabMap[activeTabIndex] === CAROUSEL_TABS.EVENTS
+            ? updateActiveEventsStream({
+                withMedia: true,
+                withUser: true,
+                offset: 0,
+                ...content.activeAreasFilters,
+                blockedUsers: user.details.blockedUsers,
+                shouldHideMatureContent: user.details.shouldHideMatureContent,
+            })
+            : Promise.resolve({});
 
         const activeThoughtsPromise = tabMap[activeTabIndex] === CAROUSEL_TABS.THOUGHTS
             ? updateActiveThoughtsStream({
@@ -435,12 +441,13 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
 
     // TODO: We don't need to load more areas when scrolling thoughts and vice versa
     tryLoadMore = () => {
-        const { content, location, searchActiveMoments, searchActiveSpaces, searchActiveThoughts, user } = this.props;
+        const { content, location, searchActiveEvents, searchActiveMoments, searchActiveSpaces, searchActiveThoughts, user } = this.props;
 
         loadMorePosts({
             content,
             user,
             location,
+            searchActiveEvents,
             searchActiveMoments,
             searchActiveSpaces,
             searchActiveThoughts,
@@ -640,7 +647,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     />
                 );
             case CAROUSEL_TABS.EVENTS:
-                let eventsData = isLoading ? [] : getActiveCarouselData({
+                const eventsData = isLoading ? [] : getActiveCarouselData({
                     activeTab: route.key,
                     content,
                     isForBookmarks: false,
@@ -650,9 +657,6 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     // TODO: Include promoted spaces in discoveries
                     shouldIncludeSpaces: false,
                 }, 'reaction.createdAt', categoriesFilter);
-                eventsData = eventsData?.length
-                    ? eventsData
-                    : Object.values(map.events || {});
                 return (
                     (<AreaCarousel
                         activeData={eventsData}

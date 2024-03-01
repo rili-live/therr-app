@@ -476,6 +476,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                         </View>
                     }
                     onContentSizeChange={this.scrollTop}
+                    showsVerticalScrollIndicator={false}
                     // onEndReached={this.tryLoadMore}
                     // onEndReachedThreshold={0.5}
                 />);
@@ -493,7 +494,11 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             const mediaPath = (event.media && event.media[0]?.path);
                             const mediaType = (event.media && event.media[0]?.type);
                             const eventMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-                                ? getUserContentUri(event.media[0], viewportWidth / 4, viewportWidth / 4)
+                                ? getUserContentUri(
+                                    event.media[0],
+                                    (viewportWidth - (this.theme.styles.bodyFlex.padding * 2)) * 3 / 4,
+                                    (viewportWidth - (this.theme.styles.bodyFlex.padding * 2))
+                                )
                                 : media && media[event.media && event.media[0]?.id];
                             const isMe = user.details.id === event.fromUserId;
                             let userDetails: any = {
@@ -526,6 +531,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                         areaUserDetails={userDetails}
                                         updateAreaReaction={createOrUpdateEventReaction}
                                         areaMedia={eventMedia}
+                                        areaMediaPadding={this.theme.styles.bodyFlex.padding}
                                         isDarkMode={false}
                                         theme={this.theme}
                                         themeForms={this.themeForms}
@@ -547,6 +553,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                         // onEndReachedThreshold={0.5}
                         ListFooterComponent={<View />}
                         ListFooterComponentStyle={{ marginBottom: 80 }}
+                        showsVerticalScrollIndicator={false}
                     />
                 );
             case GROUP_CAROUSEL_TABS.MEMBERS:
@@ -583,6 +590,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                         // onEndReachedThreshold={0.5}
                         ListFooterComponent={<View />}
                         ListFooterComponentStyle={{ marginBottom: 80 }}
+                        showsVerticalScrollIndicator={false}
                     />
                 );
         }

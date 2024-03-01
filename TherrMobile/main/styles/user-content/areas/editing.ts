@@ -65,6 +65,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         mediaImage: {
             width: '100%',
             height: '100%',
+            aspectRatio: 1,
+            borderRadius: 16,
+        },
+        mediaImageEvent: {
+            width: '100%',
+            height: '100%',
             aspectRatio: 4 / 3,
             borderRadius: 16,
         },

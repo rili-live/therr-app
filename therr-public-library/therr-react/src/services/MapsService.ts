@@ -216,6 +216,19 @@ class MapsService {
 
     getMomentDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('moments', id, args);
 
+    getSpaceMoments = (query: ISearchQuery, spaceIds: string[], withUser = false) => {
+        const queryString = getSearchQueryString(query);
+
+        return axios({
+            method: 'post',
+            url: `/maps-service/moments/search/for-space-ids${queryString}`,
+            data: {
+                spaceIds,
+                withUser,
+            },
+        });
+    };
+
     getIntegratedMoments = (userId: string) => axios({
         method: 'get',
         url: `/maps-service/moments/integrated/${userId}`,

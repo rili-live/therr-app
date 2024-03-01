@@ -16,7 +16,7 @@ import Toast from 'react-native-toast-message';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
-// import { MapsService } from 'therr-react/services';
+import { MapsService } from 'therr-react/services';
 import { Content, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -82,6 +82,7 @@ interface IViewSpaceState {
     isUserInSpace: boolean;
     isVerifyingDelete: boolean;
     isViewingIncentives: boolean;
+    moments: any[];
     fetchedSpace: any;
     previewLinkId?: string;
     previewStyleState: any;
@@ -136,6 +137,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             isUserInSpace: true,
             isVerifyingDelete: false,
             isViewingIncentives: false,
+            moments: [],
             fetchedSpace: {},
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
@@ -185,6 +187,19 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             });
         }).catch(() => {
             // Happens when space is not yet activated, but that is OK
+        });
+
+        // TODO: Fetch and render moments for this spaces
+        MapsService.getSpaceMoments({
+            itemsPerPage: 5,
+            pageNumber: 1,
+            withMedia: true,
+        }, [space.id], true).then((response) => {
+            this.setState({
+                moments: response.data?.results?.moments || [],
+            });
+        }).catch((err) => {
+            console.log(err);
         });
 
         navigation.setOptions({
@@ -246,14 +261,14 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     };
 
     onDeleteConfirm = () => {
-        const { deleteSpace, navigation, route, user } = this.props;
-        const { space } = route.params;
+        const { deleteSpace, navigation, user } = this.props;
+        const { fetchedSpace } = this.state;
 
         this.setState({
             isDeleting: true,
         });
-        if (checkIsMySpace(space, user)) {
-            deleteSpace({ ids: [space.id] })
+        if (checkIsMySpace(fetchedSpace, user)) {
+            deleteSpace({ ids: [fetchedSpace.id] })
                 .then(() => {
                     navigation.navigate('Map', {
                         shouldShowPreview: false,
@@ -266,6 +281,11 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                         isVerifyingDelete: false,
                     });
                 });
+        } else {
+            this.setState({
+                isDeleting: false,
+                isVerifyingDelete: false,
+            });
         }
     };
 
@@ -349,6 +369,21 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                     id: event.id,
                 },
                 eventDetails: {},
+            });
+        }
+    };
+
+    goToViewMoment = (moment) => {
+        const { navigation, user } = this.props;
+
+        if (moment.id) {
+            navigation.navigate('ViewMoment', {
+                isMyContent: moment?.fromUserId === user.details.id,
+                previousView: 'Areas',
+                moment: {
+                    id: moment.id,
+                },
+                momentDetails: {},
             });
         }
     };
@@ -624,6 +659,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             isDeleting,
             isVerifyingDelete,
             isViewingIncentives,
+            moments,
             fetchedSpace,
             previewLinkId,
             previewStyleState,
@@ -633,6 +669,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         const spaceInView = {
             ...space,
             ...fetchedSpace,
+            associatedMoments: moments,
         };
         const spaceUserName = isMyContent ? user.details.userName : spaceInView.fromUserName;
         const spaceUserMedia = isMyContent ? user.details.media : (spaceInView.fromUserMedia || {});
@@ -674,6 +711,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                         inspectContent={() => null}
                                         area={spaceInView}
                                         goToViewEvent={this.goToViewEvent}
+                                        goToViewMoment={this.goToViewMoment}
                                         goToViewMap={this.goToViewMap}
                                         goToViewUser={this.goToViewUser}
                                         goToViewIncentives={this.goToViewIncentives}
