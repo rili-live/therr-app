@@ -178,10 +178,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         tabText: {
             color: therrTheme.colorVariations.textWhiteLightFade,
             fontFamily: therrFontFamily,
+            textAlign: 'center',
         },
         tabTextFocused: {
             color: therrTheme.colors.textWhite,
             fontFamily: therrFontFamily,
+            textAlign: 'center',
         },
         tabFocusedIndicator: {
             backgroundColor: therrTheme.colors.primary3,
