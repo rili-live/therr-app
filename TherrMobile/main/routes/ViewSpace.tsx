@@ -673,6 +673,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         };
         const spaceUserName = isMyContent ? user.details.userName : spaceInView.fromUserName;
         const spaceUserMedia = isMyContent ? user.details.media : (spaceInView.fromUserMedia || {});
+        const spaceUserIsSuperUser = isMyContent ? user.details.isSuperUser : (spaceInView.fromUserIsSuperUser || {});
         const mediaId = (spaceInView.media && spaceInView.media[0]?.id) || (spaceInView.mediaIds?.length && spaceInView.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
         const mediaPath = (spaceInView.media && spaceInView.media[0]?.path);
@@ -706,7 +707,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                         translate={this.translate}
                                         toggleAreaOptions={this.toggleAreaOptions}
                                         hashtags={this.hashtags}
-                                        isDarkMode={true}
+                                        isDarkMode={user.settings?.mobileThemeName === 'retro'}
                                         isExpanded={true}
                                         inspectContent={() => null}
                                         area={spaceInView}
@@ -721,6 +722,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                         areaUserDetails={{
                                             media: spaceUserMedia,
                                             userName: areaUserName,
+                                            isSuperUser: spaceUserIsSuperUser,
                                         }}
                                         areaMedia={spaceMedia}
                                         placeholderMediaType="autoplay"

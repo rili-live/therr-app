@@ -9,6 +9,7 @@ import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import spacingStyles from '../../styles/layouts/spacing';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import TherrIcon from '../../components/TherrIcon';
+import SuperUserStatusIcon from '../../components/SuperUserStatusIcon';
 
 const LogoIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -252,6 +253,7 @@ const FullName = ({
 
 const UserDisplayHeader = ({
     navigation,
+    isDarkMode,
     onBlockUser,
     onConnectionRequest,
     onMessageUser,
@@ -293,12 +295,28 @@ const UserDisplayHeader = ({
                     />
                 </Pressable>
                 <View style={themeUser.styles.profileSummaryContainer}>
-                    <FullName
-                        isMe={isMe}
-                        themeUser={themeUser}
-                        translate={translate}
-                        userInView={userInView}
-                    />
+                    <View style={[
+                        spacingStyles.flexRow,
+                        spacingStyles.alignCenter,
+                    ]}>
+                        <FullName
+                            isMe={isMe}
+                            themeUser={themeUser}
+                            translate={translate}
+                            userInView={userInView}
+                        />
+                        <SuperUserStatusIcon
+                            isSuperUser={userInView.isSuperUser}
+                            size={16}
+                            isDarkMode={isDarkMode}
+                            style={[
+                                {
+                                    marginBottom: themeUser.styles.profileFullName.marginBottom,
+                                },
+                                spacingStyles.padLtSm,
+                            ]}
+                        />
+                    </View>
                     <Text style={themeUser.styles.profileBio} numberOfLines={3}>
                         {userInView.settingsBio || translate('user.profile.labels.noBioYet')}
                     </Text>

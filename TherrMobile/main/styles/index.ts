@@ -49,6 +49,12 @@ const loaderStyles = StyleSheet.create({
     },
 });
 
+export const logoStyles = {
+    elevation: 1,
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
+};
+
 const getBodyStyles = (theme) => ({
     backgroundColor: theme.colors.primary,
     color: theme.colors.textWhite,
@@ -195,20 +201,16 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginLeft: 2,
         },
         logoIconDark: {
+            ...logoStyles,
             color: therrTheme.colorVariations.primary2Darken,
             marginLeft: 2,
-            elevation: 1,
-            textShadowOffset: { width: 1, height: 1 },
-            textShadowRadius: 5,
             height: 32,
             width: 32,
         },
         logoIconBlack: {
+            ...logoStyles,
             color: therrTheme.colors.accentTextBlack,
             marginLeft: 2,
-            elevation: 1,
-            textShadowOffset: { width: 1, height: 1 },
-            textShadowRadius: 5,
             height: 32,
             width: 32,
         },

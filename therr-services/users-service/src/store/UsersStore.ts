@@ -107,7 +107,7 @@ export default class UsersStore {
 
     getByPhoneNumber = (phoneNumber: string) => {
         const normalizedPhone = normalizePhoneNumber(phoneNumber as string);
-        let queryString: any = knexBuilder.select(['email', 'phoneNumber', 'isBusinessAccount', 'isCreatorAccount']).from(USERS_TABLE_NAME)
+        let queryString: any = knexBuilder.select(['email', 'phoneNumber', 'isBusinessAccount', 'isCreatorAccount', 'isSuperUser']).from(USERS_TABLE_NAME)
             .where({ phoneNumber: normalizedPhone });
 
         queryString = queryString.toString();
@@ -140,7 +140,7 @@ export default class UsersStore {
 
     findUsers({
         ids,
-    }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media']) {
+    }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser']) {
         let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
             .whereIn('id', ids || []);
 
@@ -154,7 +154,7 @@ export default class UsersStore {
         queryColumnName,
         limit,
         offset,
-    }: ISearchUsersArgs, withConnections = false, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media']) {
+    }: ISearchUsersArgs, withConnections = false, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser']) {
         const supportedSearchColumns = ['firstName', 'lastName', 'userName'];
         const MAX_LIMIT = 200;
         const throttledLimit = Math.min(limit || 100, MAX_LIMIT);
@@ -211,7 +211,12 @@ export default class UsersStore {
             return this.db.read.query(connectionsQueryString.toString()).then(({ rows: connections }) => {
                 connections.forEach((connection) => {
                     if (connection.requestingUserId === requestingUserId || connection.acceptingUserId === requestingUserId) {
-                        usersById[connection.acceptingUserId].isConnected = connection.requestStatus !== UserConnectionTypes.MIGHT_KNOW;
+                        if (usersById[connection.acceptingUserId]) {
+                            usersById[connection.acceptingUserId].isConnected = connection.requestStatus !== UserConnectionTypes.MIGHT_KNOW;
+                        }
+                        if (usersById[connection.requestingUserId]) {
+                            usersById[connection.requestingUserId].isConnected = connection.requestStatus !== UserConnectionTypes.MIGHT_KNOW;
+                        }
                     }
                 });
                 return Object.values(usersById);
@@ -225,7 +230,7 @@ export default class UsersStore {
         queryColumnName,
         limit,
         offset,
-    }: ISearchUsersArgs, returning: any = [`${USERS_TABLE_NAME}.id`, 'userName', 'firstName', 'lastName', 'media']) {
+    }: ISearchUsersArgs, returning: any = [`${USERS_TABLE_NAME}.id`, 'userName', 'firstName', 'lastName', 'media', 'isSuperUser']) {
         const supportedSearchColumns = ['firstName', 'lastName', 'userName'];
         const MAX_LIMIT = 200;
         const throttledLimit = Math.min(limit || 100, MAX_LIMIT);
@@ -270,7 +275,7 @@ export default class UsersStore {
 
     findUsersByContactInfo(
         contacts: IFindUsersByContactInfo[],
-        returning: any = ['id', 'email', 'phoneNumber', 'deviceMobileFirebaseToken', 'isUnclaimed', 'settingsEmailInvites'],
+        returning: any = ['id', 'email', 'phoneNumber', 'deviceMobileFirebaseToken', 'isUnclaimed', 'settingsEmailInvites', 'isSuperUser'],
     ) {
         const emails: string[] = [];
         const phoneNumbers: string[] = [];

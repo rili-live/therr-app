@@ -86,6 +86,7 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
         lastName: userResult.lastName,
         isBusinessAccount: userResult.isBusinessAccount,
         isCreatorAccount: userResult.isCreatorAccount,
+        isSuperUser: userResult.isSuperUser,
         isBlocked: userResult.isBlocked,
         media: userResult.media, // TODO: Hide alt text if it includes first/lastname
         createdAt: userResult.createdAt,
@@ -187,7 +188,9 @@ const getUserHelper = ({
         const isMe = Boolean(isAuthorized && requestingUserId && requestingUserId === userResult.id);
 
         const userPromises: Promise<any>[] = [];
-        const countPromise = Store.userConnections.countUserConnections(userResult.id);
+        const countPromise = Store.userConnections.countUserConnections(userResult.id, {
+            requestStatus: UserConnectionTypes.COMPLETE,
+        });
         const syncsPromise = Store.socialSyncs.getSyncs(userResult.id).then((syncResults) => getMappedSocialSyncResults(isMe, syncResults));
         const friendPromise: Promise<undefined | { [key: string]: any }> = getUserFriendship(isMe, userResult.id, requestingUserId);
 

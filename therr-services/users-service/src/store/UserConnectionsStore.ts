@@ -64,11 +64,12 @@ export default class UserConnectionsStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    countUserConnections(userId) {
+    countUserConnections(userId, conditions = {}) {
         const queryString = knexBuilder.count('*')
             .from(USER_CONNECTIONS_TABLE_NAME)
             .where({
                 requestingUserId: userId,
+                ...conditions,
             })
             .orWhere({
                 acceptingUserId: userId,

@@ -367,6 +367,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         };
         const momentUserName = isMyContent ? user.details.userName : momentInView.fromUserName;
         const momentUserMedia = isMyContent ? user.details.media : (momentInView.fromUserMedia || {});
+        const momentUserIsSuperUser = isMyContent ? user.details.isSuperUser : (momentInView.fromUserIsSuperUser || {});
         const mediaId = (momentInView.media && momentInView.media[0]?.id) || (momentInView.mediaIds?.length && momentInView.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
         const mediaPath = (momentInView.media && momentInView.media[0]?.path);
@@ -390,7 +391,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 translate={this.translate}
                                 toggleAreaOptions={this.toggleAreaOptions}
                                 hashtags={this.hashtags}
-                                isDarkMode={true}
+                                isDarkMode={user.settings?.mobileThemeName === 'retro'}
                                 isExpanded={true}
                                 inspectContent={() => null}
                                 area={momentInView}
@@ -403,6 +404,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 areaUserDetails={{
                                     media: momentUserMedia,
                                     userName: momentUserName || this.translate('alertTitles.nameUnknown') || '',
+                                    isSuperUser: momentUserIsSuperUser,
                                 }}
                                 areaMedia={momentMedia}
                                 theme={this.theme}

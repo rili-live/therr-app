@@ -218,6 +218,7 @@ export default class ThoughtsStore {
                         modifiedThought.fromUserFirstName = matchingUser.firstName;
                         modifiedThought.fromUserLastName = matchingUser.lastName;
                         modifiedThought.fromUserMedia = matchingUser.media;
+                        modifiedThought.fromUserIsSuperUser = matchingUser.isSuperUser;
 
                         // Replies
                         if (options.withReplies) {
@@ -230,6 +231,7 @@ export default class ThoughtsStore {
                                     modifiedReply.fromUserFirstName = matchingReplyUser.firstName;
                                     modifiedReply.fromUserLastName = matchingReplyUser.lastName;
                                     modifiedReply.fromUserMedia = matchingReplyUser.media;
+                                    modifiedReply.fromUserIsSuperUser = matchingReplyUser.isSuperUser;
                                 }
 
                                 return modifiedReply;
@@ -335,6 +337,7 @@ export default class ThoughtsStore {
                             modifiedThought.fromUserFirstName = matchingUser.firstName;
                             modifiedThought.fromUserLastName = matchingUser.lastName;
                             modifiedThought.fromUserMedia = matchingUser.media;
+                            modifiedThought.fromUserIsSuperUser = matchingUser.isSuperUser;
                         }
                     }
 
