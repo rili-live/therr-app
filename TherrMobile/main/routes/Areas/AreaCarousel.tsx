@@ -300,7 +300,7 @@ const AreaCarousel = ({
                 onRefresh={isUsingBottomSheet ? onRefresh : undefined}
                 style={[rootStyles.stretch, theme.styles.areaCarousel]}
                 onEndReached={onEndReached}
-                onEndReachedThreshold={0.5}
+                onEndReachedThreshold={0.65}
                 // onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
             />
         </>

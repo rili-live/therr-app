@@ -11,6 +11,8 @@ import { ISearchAreasArgs } from '../../services/MapsService';
 import { MapsService } from '../../services';
 import { ISearchQuery } from '../../types';
 
+const POST_FEED_PAGE_SIZE = 31;
+
 interface IActiveMomentsFilters {
     order: 'ASC' | 'DESC';
 }
@@ -23,7 +25,7 @@ const Content = {
             data: newActiveEvents,
         });
     },
-    searchActiveEvents: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+    searchActiveEvents: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveEvents(options, limit)
         .then((response: any) => {
             dispatch({
@@ -39,7 +41,7 @@ const Content = {
                 data: response?.data,
             });
         }),
-    updateActiveEventsStream: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+    updateActiveEventsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveEvents(options, limit)
         .then((response: any) => {
             dispatch({
@@ -92,7 +94,7 @@ const Content = {
     }),
     searchActiveMoments: (
         options: ISearchActiveAreasParams,
-        limit = 21,
+        limit = POST_FEED_PAGE_SIZE,
     ) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {
@@ -113,7 +115,7 @@ const Content = {
         type: ContentActionTypes.SET_ACTIVE_AREAS_FILTERS,
         data: filters,
     }),
-    updateActiveMomentsStream: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+    updateActiveMomentsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {
             dispatch({
@@ -181,7 +183,7 @@ const Content = {
             data: newActiveSpaces,
         });
     },
-    searchActiveSpaces: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+    searchActiveSpaces: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveSpaces(options, limit)
         .then((response: any) => {
             dispatch({
@@ -197,7 +199,7 @@ const Content = {
                 data: response?.data,
             });
         }),
-    updateActiveSpacesStream: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+    updateActiveSpacesStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveSpaces(options, limit)
         .then((response: any) => {
             dispatch({
@@ -250,7 +252,7 @@ const Content = {
             data: newActiveThoughts,
         });
     },
-    searchActiveThoughts: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+    searchActiveThoughts: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveThoughts(options, limit)
         .then((response: any) => {
             dispatch({
@@ -258,7 +260,7 @@ const Content = {
                 data: response?.data,
             });
         }),
-    updateActiveThoughtsStream: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+    updateActiveThoughtsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveThoughts(options, limit)
         .then((response: any) => {
             dispatch({
