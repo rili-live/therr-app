@@ -98,6 +98,7 @@ export interface IAreasProps extends IStoreProps {
 
 interface IAreasState {
     activeTabIndex: number;
+    areCreateActionsVisible: boolean;
     isLoading: boolean;
     isLocationUseDisclosureModalVisible: boolean;
     locationDisclosureAreaType: IAreaType;
@@ -167,6 +168,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             translator('en-us', key, params);
 
         this.state = {
+            areCreateActionsVisible: false,
             activeTabIndex: 0,
             isLoading: true,
             isLocationUseDisclosureModalVisible: false,
@@ -267,6 +269,12 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             userInView: {
                 id: userId,
             },
+        });
+    };
+
+    handleCreate = () => {
+        this.setState({
+            areCreateActionsVisible: !this.state.areCreateActionsVisible,
         });
     };
 
@@ -721,6 +729,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
 
     render() {
         const {
+            areCreateActionsVisible,
             activeTabIndex,
             areAreaOptionsVisible,
             areThoughtOptionsVisible,
@@ -798,6 +807,38 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     tabName === CAROUSEL_TABS.DISCOVERIES
                     && <Button
                         containerStyle={this.themeButtons.styles.addAThought}
+                        buttonStyle={this.themeButtons.styles.btnLarge}
+                        icon={
+                            <TherrIcon
+                                name={areCreateActionsVisible ? 'minus' : 'plus'}
+                                size={27}
+                                style={this.themeButtons.styles.btnIcon}
+                            />
+                        }
+                        raised={true}
+                        onPress={this.handleCreate}
+                    />
+                }
+                {
+                    tabName === CAROUSEL_TABS.DISCOVERIES && areCreateActionsVisible
+                    && <Button
+                        containerStyle={this.themeButtons.styles.addAThoughtDiscovered}
+                        buttonStyle={this.themeButtons.styles.btnLarge}
+                        icon={
+                            <TherrIcon
+                                name={'idea'}
+                                size={27}
+                                style={this.themeButtons.styles.btnIcon}
+                            />
+                        }
+                        raised={true}
+                        onPress={this.handleEditThought}
+                    />
+                }
+                {
+                    tabName === CAROUSEL_TABS.DISCOVERIES && areCreateActionsVisible
+                    && <Button
+                        containerStyle={this.themeButtons.styles.addAMomentDiscovered}
                         buttonStyle={this.themeButtons.styles.btnLarge}
                         icon={
                             <TherrIcon
