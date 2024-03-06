@@ -367,6 +367,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         };
         const eventUserName = isMyContent ? user.details.userName : eventInView.fromUserName;
         const eventUserMedia = isMyContent ? user.details.media : (eventInView.fromUserMedia || {});
+        const eventUserIsSuperUser = isMyContent ? user.details.isSuperUser : (eventInView.fromUserIsSuperUser || {});
         const mediaId = (eventInView.media && eventInView.media[0]?.id) || (eventInView.mediaIds?.length && eventInView.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
         const mediaPath = (eventInView.media && eventInView.media[0]?.path);
@@ -390,7 +391,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                                 translate={this.translate}
                                 toggleAreaOptions={this.toggleAreaOptions}
                                 hashtags={this.hashtags}
-                                isDarkMode={true}
+                                isDarkMode={user.settings?.mobileThemeName === 'retro'}
                                 isExpanded={true}
                                 inspectContent={() => null}
                                 area={eventInView}
@@ -403,6 +404,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                                 areaUserDetails={{
                                     media: eventUserMedia,
                                     userName: eventUserName || this.translate('alertTitles.nameUnknown') || '',
+                                    isSuperUser: eventUserIsSuperUser,
                                 }}
                                 areaMedia={eventMedia}
                                 theme={this.theme}

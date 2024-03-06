@@ -89,7 +89,6 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                         carouselRef={(component) => this.carouselRef = component}
                         displaySize={displaySize}
                         navigation={navigation}
-                        shouldHideNavbar={shouldHideNavbar}
                         shouldDisableLocationSendEvent={shouldDisableLocationSendEvent}
                     />
                 </SafeAreaView>

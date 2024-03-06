@@ -47,8 +47,8 @@ const { width: viewportWidth } = Dimensions.get('window');
 const tabMap = {
     0: CAROUSEL_TABS.DISCOVERIES,
     1: CAROUSEL_TABS.EVENTS,
-    2: CAROUSEL_TABS.THOUGHTS,
-    3: CAROUSEL_TABS.NEWS,
+    // 2: CAROUSEL_TABS.THOUGHTS,
+    // 3: CAROUSEL_TABS.NEWS,
 };
 
 const defaultActiveTab = tabMap[0];
@@ -178,7 +178,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             tabRoutes: [
                 { key: CAROUSEL_TABS.DISCOVERIES, title: this.translate('menus.headerTabs.discoveries') },
                 { key: CAROUSEL_TABS.EVENTS, title: this.translate('menus.headerTabs.events') },
-                { key: CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
+                // { key: CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
                 // { key: CAROUSEL_TABS.NEWS, title: this.translate('menus.headerTabs.news') },
             ],
         };
@@ -573,7 +573,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     activeTab: route.key,
                     content,
                     isForBookmarks: false,
-                    shouldIncludeThoughts: false,
+                    shouldIncludeThoughts: true,
                     shouldIncludeMoments: true,
                     // TODO: Include promoted spaces in discoveries
                     shouldIncludeSpaces: !content?.activeMoments?.length,

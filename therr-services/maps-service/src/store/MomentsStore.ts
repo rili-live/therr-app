@@ -84,6 +84,7 @@ const getMomentsToMediaAndUsers = (moments: any[], media?: any[], users?: any[])
                 modifiedMoment.fromUserFirstName = matchingUser.firstName;
                 modifiedMoment.fromUserLastName = matchingUser.lastName;
                 modifiedMoment.fromUserMedia = matchingUser.media;
+                modifiedMoment.fromUserIsSuperUser = matchingUser.isSuperUser;
             }
         }
 

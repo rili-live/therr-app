@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 
+export const tiny = 3;
 export const small = 6;
 export const medium = 10;
 export const large = 16;
@@ -63,6 +64,9 @@ const styles = StyleSheet.create({
     },
     padRtLg: {
         paddingRight: large,
+    },
+    padLtTiny: {
+        paddingLeft: tiny,
     },
     padLtSm: {
         paddingLeft: small,

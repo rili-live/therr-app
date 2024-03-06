@@ -327,8 +327,10 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                     shouldIncludeMoments: true,
                     shouldIncludeSpaces: true,
                 }, 'distance');
-                const hasRenderedFirstContent = data.length;
-                this.setState({ isFirstLoad: !hasRenderedFirstContent });
+                const hasRenderedFirstContent = data?.[0]?.distance != null;
+                if (hasRenderedFirstContent) {
+                    this.setState({ isFirstLoad: false });
+                }
             })
             .finally(() => {
                 this.loadTimeoutId = setTimeout(() => {

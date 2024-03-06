@@ -741,7 +741,7 @@
       }
     },
     "headerTabs": {
-      "discoveries": "Moments",
+      "discoveries": "Discovered Posts",
       "members": "Members",
       "moments": "Moments",
       "chat": "Chat",
@@ -750,7 +750,7 @@
       "people": "People",
       "search": "Search",
       "social": "Social",
-      "events": "Events",
+      "events": "Upcoming Events",
       "invite": "+",
       "media": "Media",
       "news": "News",

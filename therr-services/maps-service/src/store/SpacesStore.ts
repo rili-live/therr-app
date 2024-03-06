@@ -380,6 +380,7 @@ export default class SpacesStore {
                             modifiedSpace.fromUserFirstName = matchingUser.firstName;
                             modifiedSpace.fromUserLastName = matchingUser.lastName;
                             modifiedSpace.fromUserMedia = matchingUser.media;
+                            modifiedSpace.fromUserIsSuperUser = matchingUser.isSuperUser;
                         }
                     }
 

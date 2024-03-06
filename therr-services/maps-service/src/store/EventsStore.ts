@@ -87,6 +87,7 @@ const getEventsToMediaAndUsers = (events: any[], media?: any[], users?: any[]) =
                 modifiedEvent.fromUserFirstName = matchingUser.firstName;
                 modifiedEvent.fromUserLastName = matchingUser.lastName;
                 modifiedEvent.fromUserMedia = matchingUser.media;
+                modifiedEvent.fromUserIsSuperUser = matchingUser.isSuperUser;
             }
         }
 

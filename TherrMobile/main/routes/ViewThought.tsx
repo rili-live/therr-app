@@ -465,7 +465,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                                 translate={this.translate}
                                 toggleThoughtOptions={() => this.toggleThoughtOptions(thoughtInView)}
                                 hashtags={this.hashtags}
-                                isDarkMode={true}
+                                isDarkMode={user.settings?.mobileThemeName === 'retro'}
                                 isExpanded={true}
                                 isRepliable={true}
                                 inspectThought={() => null}
@@ -476,6 +476,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                                 user={user}
                                 contentUserDetails={{
                                     userName: thoughtUserName || thoughtInView.fromUserId,
+                                    isSuperUser: thoughtInView.fromUserIsSuperUser,
                                 }}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
@@ -513,7 +514,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                                         translate={this.translate}
                                         toggleThoughtOptions={() => this.toggleThoughtOptions(reply)}
                                         hashtags={this.hashtags}
-                                        isDarkMode={true}
+                                        isDarkMode={user.settings?.mobileThemeName === 'retro'}
                                         isExpanded={false}
                                         inspectThought={this.goToContent} // Links to child/nested thought
                                         key={reply.id}
@@ -525,6 +526,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                                         contentUserDetails={{
                                             userName: this.getReplyUserName(reply),
                                             media: this.getReplyUserMedia(reply),
+                                            isSuperUser: reply.fromUserIsSuperUser,
                                         }}
                                         theme={this.theme}
                                         themeForms={this.themeForms}

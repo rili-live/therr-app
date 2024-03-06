@@ -19,6 +19,7 @@ import { getUserImageUri } from '../../utilities/content';
 import TherrIcon from '../TherrIcon';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
+import SuperUserStatusIcon from '../SuperUserStatusIcon';
 
 
 const hapticFeedbackOptions = {
@@ -31,6 +32,7 @@ interface IUserDetails {
         profilePicture: any;
     };
     userName: string;
+    isSuperUser?: boolean;
 }
 
 interface IThoughtDisplayProps {
@@ -165,9 +167,25 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                             <View style={themeViewContent.styles.thoughtAuthorTextContainer}>
                                 {
                                     contentUserDetails &&
-                                        <Text style={themeViewContent.styles.thoughtUserName} numberOfLines={1}>
-                                            {`${contentUserDetails.userName}`}
-                                        </Text>
+                                        <View style={[
+                                            spacingStyles.flexRow,
+                                            spacingStyles.alignCenter,
+                                        ]}>
+                                            <Text style={themeViewContent.styles.thoughtUserName} numberOfLines={1}>
+                                                {`${contentUserDetails.userName}`}
+                                            </Text>
+                                            <SuperUserStatusIcon
+                                                isSuperUser={contentUserDetails.isSuperUser}
+                                                size={14}
+                                                isDarkMode={isDarkMode}
+                                                style={[
+                                                    {
+                                                        marginBottom: themeViewContent.styles.thoughtUserName.marginBottom,
+                                                    },
+                                                    spacingStyles.padLtTiny,
+                                                ]}
+                                            />
+                                        </View>
                                 }
                                 <Text style={themeViewContent.styles.dateTime}>
                                     {dateStr}

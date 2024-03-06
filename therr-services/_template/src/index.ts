@@ -1,9 +1,8 @@
-import beeline from './beeline'; // eslint-disable-line import/order
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import * as path from 'path';
-import printLogs from 'therr-js-utilities/print-logs';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import router from './routes';
 import honey from './middleware/honey';
 import { version as packageVersion } from '../package.json';
@@ -47,11 +46,10 @@ app.use(API_BASE_ROUTE, router);
 const { NEW_SERVICE_API_PORT } = process.env;
 
 const server = app.listen(NEW_SERVICE_API_PORT, () => {
-    printLogs({
+    logSpan({
         level: 'info',
         messageOrigin: 'API_SERVER',
         messages: [`Server (new service) running on port ${NEW_SERVICE_API_PORT} with process id`, process.pid],
-        tracer: beeline,
         traceArgs: {
             port: NEW_SERVICE_API_PORT,
             processId: process.pid,
