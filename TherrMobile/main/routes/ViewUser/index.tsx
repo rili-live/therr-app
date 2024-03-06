@@ -250,7 +250,7 @@ class ViewUser extends React.Component<
         });
     };
 
-    gotToThought = (content) => {
+    goToThought = (content) => {
         const { navigation, route, user } = this.props;
         const { userInView } = route.params;
 
@@ -741,6 +741,7 @@ class ViewUser extends React.Component<
                             <View style={this.themeUser.styles.container}>
                                 <UserDisplayHeader
                                     navigation={navigation}
+                                    isDarkMode={user.settings?.mobileThemeName === 'retro'}
                                     onProfilePicturePress={this.onProfilePicturePress}
                                     onBlockUser={this.onBlockUser}
                                     onConnectionRequest={this.onConnectionRequest}

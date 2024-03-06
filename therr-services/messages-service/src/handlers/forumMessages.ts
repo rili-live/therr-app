@@ -72,6 +72,7 @@ const searchForumMessages: RequestHandler = (req: any, res: any) => {
                             fromUserFirstName: user?.firstName,
                             fromUserLastName: user?.lastName,
                             fromUserMedia: user?.media || {},
+                            fromUserIsSuperUser: user?.isSuperUser || false,
                         };
                     }),
                 pagination: {

@@ -30,6 +30,7 @@ import TherrIcon from '../TherrIcon';
 import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
+import SuperUserStatusIcon from '../SuperUserStatusIcon';
 
 const envConfig = getConfig();
 const { width: viewportWidth } = Dimensions.get('window');
@@ -46,6 +47,7 @@ interface IUserDetails {
             path: string;
         };
     },
+    isSuperUser?: boolean;
 }
 
 interface IAreaDisplayProps {
@@ -423,9 +425,25 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 <View style={themeViewArea.styles.areaAuthorTextContainer}>
                                     {
                                         areaUserDetails &&
-                                        <Text style={themeViewArea.styles.areaUserName} numberOfLines={1}>
-                                            {`${areaUserDetails.userName}`}
-                                        </Text>
+                                        <View style={[
+                                            spacingStyles.flexRow,
+                                            spacingStyles.alignCenter,
+                                        ]}>
+                                            <Text style={themeViewArea.styles.areaUserName} numberOfLines={1}>
+                                                {`${areaUserDetails.userName}`}
+                                            </Text>
+                                            <SuperUserStatusIcon
+                                                isSuperUser={areaUserDetails.isSuperUser}
+                                                size={14}
+                                                isDarkMode={isDarkMode}
+                                                style={[
+                                                    {
+                                                        marginBottom: themeViewArea.styles.areaUserName.marginBottom,
+                                                    },
+                                                    spacingStyles.padLtTiny,
+                                                ]}
+                                            />
+                                        </View>
                                     }
                                     <Text style={themeViewArea.styles.dateTime}>
                                         {dateStr}

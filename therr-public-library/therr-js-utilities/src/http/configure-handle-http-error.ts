@@ -14,7 +14,7 @@ export interface IErrorArgs {
     errorCode?: string;
 }
 
-const configureHandleHttpError = (beeline?: any) => ({
+const configureHandleHttpError = () => ({
     err,
     res,
     message,
@@ -24,17 +24,9 @@ const configureHandleHttpError = (beeline?: any) => ({
 }: IErrorArgs) => {
     debugHttp((err && err.message) || err || message);
 
-    // TODO: Remove beeline
-    if (beeline) {
-        beeline.addContext({
-            errorMessage: err ? err.stack : message,
-        });
-    } else {
-        const activeSpan = opentelemetry?.trace?.getActiveSpan();
-        activeSpan?.setAttribute('error.message', err?.message);
-        activeSpan?.setAttribute('error.stack', err?.stack);
-        activeSpan?.setAttribute('message', message);
-    }
+    const activeSpan = opentelemetry?.trace?.getActiveSpan();
+    activeSpan?.setAttribute('error.message', err?.message);
+    activeSpan?.setAttribute('error.stack', err?.stack);
 
     return res.status(statusCode || 500).send({
         statusCode: statusCode || 500,
