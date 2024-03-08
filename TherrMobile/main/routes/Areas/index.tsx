@@ -422,7 +422,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             })
             : Promise.resolve({});
 
-        const activeThoughtsPromise = tabMap[activeTabIndex] === CAROUSEL_TABS.THOUGHTS
+        const activeThoughtsPromise = (tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES || tabMap[activeTabIndex] === CAROUSEL_TABS.THOUGHTS)
             ? updateActiveThoughtsStream({
                 withUser: true,
                 withReplies: true,
