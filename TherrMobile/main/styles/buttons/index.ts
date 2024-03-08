@@ -279,6 +279,16 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 20,
             bottom: 20 + buttonMenuHeight,
         },
+        addAThoughtDiscovered: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 20,
+            bottom: 20 + 60 + 50 + buttonMenuHeight,
+        },
+        addAMomentDiscovered: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 20,
+            bottom: 20 + 60 + buttonMenuHeight,
+        },
         applyFilters: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,
