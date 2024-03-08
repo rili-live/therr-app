@@ -266,7 +266,7 @@ export default class ThoughtsStore {
             .from(THOUGHTS_TABLE_NAME)
             .orderBy(orderBy, order)
             .offset(filters.offset || 0)
-            .where(`${THOUGHTS_TABLE_NAME}.createdAt`, '<', filters.before || new Date())
+            .where(`${THOUGHTS_TABLE_NAME}.createdAt`, '<', filters.before || new Date(Date.now() + 24 * 60 * 60 * 1000))
             .andWhere(`${THOUGHTS_TABLE_NAME}.parentId`, null)
             .limit(restrictedLimit);
 

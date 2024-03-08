@@ -27,11 +27,17 @@ const styles = StyleSheet.create({
     alignCenter: {
         alignItems: 'center',
     },
+    alignSelfStart: {
+        alignSelf: 'flex-start',
+    },
     justifyAround: {
         justifyContent: 'space-around',
     },
     justifyBetween: {
         justifyContent: 'space-between',
+    },
+    justifyStart: {
+        justifyContent: 'flex-start',
     },
     justifyCenter: {
         justifyContent: 'center',
@@ -56,6 +62,9 @@ const styles = StyleSheet.create({
     },
 
     // PADDING
+    padRtTiny: {
+        paddingRight: tiny,
+    },
     padRtSm: {
         paddingRight: small,
     },

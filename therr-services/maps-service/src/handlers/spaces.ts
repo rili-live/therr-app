@@ -190,11 +190,13 @@ const getSpaceDetails = (req, res) => {
     const {
         withEvents,
         withMedia,
+        withRatings,
         withUser,
     } = req.body;
 
     const shouldFetchEvents = !!withEvents;
     const shouldFetchMedia = !!withMedia;
+    const shouldFetchRating = !!withRatings;
     const shouldFetchUser = !!withUser;
 
     // TODO: Fetch own reaction or reaction count for own space
@@ -203,6 +205,7 @@ const getSpaceDetails = (req, res) => {
     }, {
         withMedia: shouldFetchMedia,
         withUser: shouldFetchUser,
+        withRatings: shouldFetchRating,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
     })
         .then(async ({ spaces, media, users }) => {
