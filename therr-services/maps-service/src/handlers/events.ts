@@ -545,10 +545,12 @@ const getEventDetails = (req, res) => {
     const {
         withMedia,
         withUser,
+        withRatings,
     } = req.body;
 
     const shouldFetchMedia = !!withMedia;
     const shouldFetchUser = !!withUser;
+    const shouldFetchRating = !!withRatings;
 
     // TODO: Fetch own reaction or reaction count for own event
     return Store.events.findEvents([eventId], {
@@ -556,6 +558,7 @@ const getEventDetails = (req, res) => {
     }, {
         withMedia: shouldFetchMedia,
         withUser: shouldFetchUser,
+        withRatings: shouldFetchRating,
     })
         .then(({ events, media, users }) => {
             const event = events[0];

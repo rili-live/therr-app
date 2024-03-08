@@ -10,6 +10,7 @@ import findUsers from '../utilities/findUsers';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import { ICreateAreaParams, IDeleteAreasParams } from './common/models';
 import { sanitizeNotificationMsg } from './common/utils';
+import { getRatings } from '../utilities/getReactions';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -32,16 +33,17 @@ export interface ICreateEventParams extends ICreateAreaParams {
     scheduleStopAt: Date;
 }
 
-const getEventsToMediaAndUsers = (events: any[], media?: any[], users?: any[]) => {
+const getEventsToMediaAndUsers = (events: any[], media?: any[], users?: any[], ratings?: any[]) => {
     const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
     const matchingUsers: any = {};
     const signingPromises: any = [];
 
     // TODO: Optimize
-    const mappedEvents = events.map((event) => {
+    const mappedEvents = events.map((event, index) => {
         const modifiedEvent = event;
         modifiedEvent.media = [];
         modifiedEvent.user = {};
+        modifiedEvent.rating = ratings?.[index] || {};
 
         // MEDIA
         if (media && event.mediaIds) {
@@ -290,7 +292,7 @@ export default class EventsStore {
         let query = knexBuilder
             .from(EVENTS_TABLE_NAME)
             .orderBy(orderBy, order)
-            .where('createdAt', '<', filters.before || new Date())
+            .where('createdAt', '<', filters.before || new Date(Date.now() + 24 * 60 * 60 * 1000))
             .whereIn('id', eventIds || [])
             .limit(restrictedLimit);
 
@@ -316,6 +318,7 @@ export default class EventsStore {
             if (options.withMedia || options.withUser) {
                 const mediaIds: string[] = [];
                 const userIds: string[] = [];
+                const eventResultIds: string[] = [];
                 const eventDetailsPromises: Promise<any>[] = [];
 
                 events.forEach((event) => {
@@ -325,14 +328,18 @@ export default class EventsStore {
                     if (options.withUser) {
                         userIds.push(event.fromUserId);
                     }
+                    if (options.withRatings) {
+                        eventResultIds.push(event.id);
+                    }
                 });
                 // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
                 eventDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
                 eventDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                eventDetailsPromises.push(options.withRatings ? getRatings('space', eventResultIds) : Promise.resolve(null));
 
-                const [media, users] = await Promise.all(eventDetailsPromises);
+                const [media, users, ratings] = await Promise.all(eventDetailsPromises);
 
-                const eventsMediaUsers = getEventsToMediaAndUsers(events, media, users);
+                const eventsMediaUsers = getEventsToMediaAndUsers(events, media, users, ratings);
 
                 return Promise.all(eventsMediaUsers.signingPromises).then((signedUrlResponses) => ({
                     events: eventsMediaUsers.mappedEvents,

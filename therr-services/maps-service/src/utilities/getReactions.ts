@@ -15,3 +15,20 @@ export default (areaType: 'moment' | 'space' | 'event', areaId: string, headers)
         }
         throw err;
     });
+
+export const getRating = (areaType: 'space' | 'event', areaId: string, headers?) => axios({
+    method: 'get',
+    url: `${baseReactionsServiceRoute}/${areaType}-reactions/${areaId}/ratings`,
+    headers,
+})
+    .then(({ data: rating }) => rating)
+    .catch((err) => {
+        if (err?.response?.data?.statusCode === 403) {
+            return false;
+        }
+        throw err;
+    });
+
+export const getRatings = (areaType: 'space' | 'event', areaIds: string[], headers?) => Promise.all(
+    areaIds.map((id) => getRating(areaType, id, headers)),
+);

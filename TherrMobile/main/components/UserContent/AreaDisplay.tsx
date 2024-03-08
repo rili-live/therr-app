@@ -31,6 +31,8 @@ import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
+import SpaceRating from '../../components/Input/SpaceRating';
+
 
 const envConfig = getConfig();
 const { width: viewportWidth } = Dimensions.get('window');
@@ -664,10 +666,59 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         </Pressable>
                     </Pressable>
                 }
-                {
-                    area.distance != null &&
-                    <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
-                }
+                <View style={[
+                    spacingStyles.flexRow,
+                ]}>
+                    <View style={[
+                        spacingStyles.flexOne,
+                        spacingStyles.padLtSm,
+                        spacingStyles.padBotMd,
+                    ]}>
+                        {
+                            area.rating?.avgRating &&
+                            <View style={[
+                                spacingStyles.alignCenter,
+                                spacingStyles.flexRow,
+                            ]}>
+                                <Text style={[
+                                    spacingStyles.padRtTiny,
+                                    {
+                                        fontWeight: '300',
+                                    },
+                                ]}>{area.rating?.avgRating}</Text>
+                                <SpaceRating
+                                    themeForms={themeForms}
+                                    initialRating={area.rating?.avgRating}
+                                    starSize={20}
+                                    style={[
+                                        spacingStyles.alignCenter,
+                                        spacingStyles.justifyStart,
+                                        {
+                                            width: 'auto',
+                                        },
+                                    ]}
+                                />
+                                <Text style={[
+                                    spacingStyles.padLtTiny,
+                                    {
+                                        fontWeight: '300',
+                                    },
+                                ]}>
+                                    ({area.rating.totalRatings})
+                                </Text>
+                            </View>
+                        }
+                    </View>
+                    {
+                        area.distance != null &&
+                        <Text style={[
+                            themeViewArea.styles.areaDistanceRight,
+                            {
+                                width: 'auto',
+                            },
+                        ]}>{`${area.distance}`}</Text>
+                    }
+                </View>
                 <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
                     <Autolink
                         text={area.message}

@@ -175,6 +175,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             withEvents: true,
             withMedia: !spaceMedia,
             withUser: shouldFetchUser,
+            withRatings: true,
         }).then((data) => {
             if (data?.space?.notificationMsg) {
                 this.notificationMsg = (data?.space?.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
