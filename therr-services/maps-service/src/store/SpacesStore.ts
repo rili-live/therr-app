@@ -11,6 +11,7 @@ import { isTextUnsafe } from '../utilities/contentSafety';
 import { SPACE_INCENTIVES_TABLE_NAME } from './SpaceIncentivesStore';
 import { ICreateAreaParams, IDeleteAreasParams } from './common/models';
 import { sanitizeNotificationMsg } from './common/utils';
+import { getRatings } from '../utilities/getReactions';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -308,9 +309,10 @@ export default class SpacesStore {
         }
 
         return this.db.read.query(query.toString()).then(async ({ rows: spaces }) => {
-            if (options.withMedia || options.withUser) {
+            if (options.withMedia || options.withUser || options.withRatings) {
                 const mediaIds: string[] = [];
                 const userIds: string[] = [];
+                const spaceResultIds: string[] = [];
                 const signingPromises: any = [];
                 const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
                 const spaceDetailsPromises: Promise<any>[] = [];
@@ -323,18 +325,23 @@ export default class SpacesStore {
                     if (options.withUser) {
                         userIds.push(space.fromUserId);
                     }
+                    if (options.withRatings) {
+                        spaceResultIds.push(space.id);
+                    }
                 });
                 // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
                 spaceDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
                 spaceDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                spaceDetailsPromises.push(options.withRatings ? getRatings('space', spaceResultIds) : Promise.resolve(null));
 
-                const [media, users] = await Promise.all(spaceDetailsPromises);
+                const [media, users, ratings] = await Promise.all(spaceDetailsPromises);
 
                 // TODO: Optimize
-                const mappedSpaces = spaces.map((space) => {
+                const mappedSpaces = spaces.map((space, index) => {
                     const modifiedSpace = space;
                     modifiedSpace.media = [];
                     modifiedSpace.user = {};
+                    modifiedSpace.rating = ratings?.[index] || {};
 
                     // MEDIA
                     if (options.withMedia && space.mediaIds) {

@@ -15,6 +15,7 @@ interface IGetAreaDetailsArgs {
     withEvents?: boolean;
     withMedia?: boolean;
     withUser?: boolean;
+    withRatings?: boolean;
 }
 
 export interface ICreateSpaceCheckInMetricsArgs {
