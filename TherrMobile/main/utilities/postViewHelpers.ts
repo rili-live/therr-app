@@ -43,9 +43,9 @@ interface ILoadMoreAreas {
     content: any;
     location?: any;
     user: any;
-    searchActiveEvents: any;
-    searchActiveMoments: any;
-    searchActiveSpaces: any;
+    searchActiveEvents?: any;
+    searchActiveMoments?: any;
+    searchActiveSpaces?: any;
 }
 
 interface ILoadMorePosts extends ILoadMoreAreas{
@@ -60,7 +60,7 @@ const loadMoreAreas = ({
     searchActiveMoments,
     searchActiveSpaces,
 }: ILoadMoreAreas) => {
-    if (!content.activeEventsPagination.isLastPage) {
+    if (searchActiveEvents && !content.activeEventsPagination.isLastPage) {
         // NOTE: This helps prevent duplicate content from being loaded, but we should debug and test further to ensure this is the best approach
         const lastContentCreatedAt = content.activeEvents?.length ? content.activeEvents[content.activeEvents.length - 1].createdAt : null;
 
@@ -77,7 +77,7 @@ const loadMoreAreas = ({
         });
     }
 
-    if (!content.activeMomentsPagination.isLastPage) {
+    if (searchActiveMoments && !content.activeMomentsPagination.isLastPage) {
         // NOTE: This helps prevent duplicate content from being loaded, but we should debug and test further to ensure this is the best approach
         const lastContentCreatedAt = content.activeMoments?.length ? content.activeMoments[content.activeMoments.length - 1].createdAt : null;
 
@@ -94,7 +94,7 @@ const loadMoreAreas = ({
         });
     }
 
-    if (!content.activeSpacesPagination.isLastPage) {
+    if (searchActiveSpaces && !content.activeSpacesPagination.isLastPage) {
         // NOTE: This helps prevent duplicate content from being loaded, but we should debug and test further to ensure this is the best approach
         const lastContentCreatedAt = content.activeSpaces?.length ? content.activeSpaces[content.activeSpaces.length - 1].createdAt : null;
 
@@ -130,7 +130,7 @@ const loadMorePosts = ({
         searchActiveSpaces,
     });
 
-    if (!content.activeThoughtsPagination.isLastPage) {
+    if (searchActiveThoughts && !content.activeThoughtsPagination.isLastPage) {
         // NOTE: This helps prevent duplicate content from being loaded, but we should debug and test further to ensure this is the best approach
         const lastContentCreatedAt = content.activeThoughts?.length ? content.activeThoughts[content.activeThoughts.length - 1].createdAt : null;
         searchActiveThoughts({
