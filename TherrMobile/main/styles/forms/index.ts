@@ -265,6 +265,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         buttonLink: {
             color: themeName === 'retro' ? therrTheme.colors.textWhite : therrTheme.colors.primary4,
             fontFamily: therrFontFamily,
+            borderColor: themeName === 'retro' ? therrTheme.colors.primary : therrTheme.colors.textWhite,
         },
         buttonLinkHeader: {
             color: themeName === 'retro' ? therrTheme.colors.textWhite : therrTheme.colors.primary3,

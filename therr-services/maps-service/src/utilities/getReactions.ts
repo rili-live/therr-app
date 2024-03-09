@@ -29,6 +29,7 @@ export const getRating = (areaType: 'space' | 'event', areaId: string, headers?)
         throw err;
     });
 
+// TODO: This would be more performance as a single request to reactions-service
 export const getRatings = (areaType: 'space' | 'event', areaIds: string[], headers?) => Promise.all(
     areaIds.map((id) => getRating(areaType, id, headers)),
 );
