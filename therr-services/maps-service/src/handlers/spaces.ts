@@ -905,7 +905,7 @@ const deleteSpaces = (req, res) => {
         ...req.body,
         fromUserId: userId,
     })
-        .then(([spaces]) => res.status(202).send(spaces))
+        .then(([spaces]) => Store.events.deleteSpaceEvents(req.body.ids).then(() => res.status(202).send(spaces)))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 

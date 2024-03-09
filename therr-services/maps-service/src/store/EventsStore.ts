@@ -10,7 +10,7 @@ import findUsers from '../utilities/findUsers';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import { ICreateAreaParams, IDeleteAreasParams } from './common/models';
 import { sanitizeNotificationMsg } from './common/utils';
-import { getRatings } from '../utilities/getReactions';
+import getReactions, { getRatings } from '../utilities/getReactions';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -568,6 +568,16 @@ export default class EventsStore {
             .from(EVENTS_TABLE_NAME)
             .where('fromUserId', params.fromUserId)
             .whereIn('id', params.ids)
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    deleteSpaceEvents(spaceIds: string[]) {
+        // TODO: RSERV-52 | Consider archiving only, and delete associated reactions from reactions-service
+        const queryString = knexBuilder.delete()
+            .from(EVENTS_TABLE_NAME)
+            .whereIn('spaceId', spaceIds)
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);

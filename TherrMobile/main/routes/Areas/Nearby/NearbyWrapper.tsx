@@ -670,7 +670,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                             rootStyles={this.theme.styles}
                             renderFooter={
                                 isInMapView
-                                    ? () => <View style={this.theme.styles.nearbyWrapperFooter} />
+                                    ? () => <View style={this.theme.styles.carouselSpacingFooter} />
                                     : null
                             }
                             // viewportHeight={viewportHeight}

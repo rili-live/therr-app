@@ -610,6 +610,10 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         emptyIconName="map"
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                        renderFooter={() => <View style={[
+                            this.theme.styles.carouselSpacingFooter,
+                            { backgroundColor: this.theme.colors.brandingWhite },
+                        ]} />}
                         user={user}
                         rootStyles={this.theme.styles}
                         // viewportHeight={viewportHeight}
@@ -648,6 +652,10 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         emptyIconName="idea"
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                        renderFooter={() => <View style={[
+                            this.theme.styles.carouselSpacingFooter,
+                            { backgroundColor: this.theme.colors.brandingWhite },
+                        ]} />}
                         user={user}
                         rootStyles={this.theme.styles}
                         // viewportHeight={viewportHeight}
@@ -688,6 +696,10 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         emptyIconName="calendar"
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                        renderFooter={() => <View style={[
+                            this.theme.styles.carouselSpacingFooter,
+                            { backgroundColor: this.theme.colors.brandingWhite },
+                        ]} />}
                         user={user}
                         rootStyles={this.theme.styles}
                         // viewportHeight={viewportHeight}
@@ -718,6 +730,10 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.NEWS)}
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                        renderFooter={() => <View style={[
+                            this.theme.styles.carouselSpacingFooter,
+                            { backgroundColor: this.theme.colors.brandingWhite },
+                        ]} />}
                         user={user}
                         rootStyles={this.theme.styles}
                         // viewportHeight={viewportHeight}
