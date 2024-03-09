@@ -119,6 +119,7 @@ interface IMapDispatchProps {
     captureClickTarget: Function;
     createOrUpdateMomentReaction: Function;
     createOrUpdateSpaceReaction: Function;
+    findEventReactions: Function;
     findMomentReactions: Function;
     findSpaceReactions: Function;
     updateUserCoordinates: Function;
@@ -221,6 +222,7 @@ const mapDispatchToProps = (dispatch: any) =>
             createSpaceCheckInMetrics: MapActions.createSpaceCheckInMetrics,
             createOrUpdateMomentReaction: ReactionActions.createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction: ReactionActions.createOrUpdateSpaceReaction,
+            findEventReactions: ReactionActions.findEventReactions,
             findMomentReactions: ReactionActions.findMomentReactions,
             findSpaceReactions: ReactionActions.findSpaceReactions,
             updateGpsStatus: LocationActions.updateGpsStatus,
@@ -1097,6 +1099,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         },
         distanceOverride?: any) => {
         const {
+            findEventReactions,
             findMomentReactions,
             findSpaceReactions,
             searchEvents,
@@ -1153,8 +1156,14 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 filterBy: 'fromUserIds',
                 ...longLat,
             }, distanceOverride),
-        ]).then(([moments, spaces]) => {
+        ]).then(([moments, spaces, events]) => {
             // TODO: Find event reactions
+            if (events?.results?.length) {
+                findEventReactions({
+                    eventIds: events?.results?.map(event => event.id),
+                    userHasActivated: true,
+                });
+            }
             if (moments?.results?.length) {
                 findMomentReactions({
                     momentIds: moments?.results?.map(moment => moment.id),

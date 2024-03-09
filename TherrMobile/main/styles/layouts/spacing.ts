@@ -104,6 +104,9 @@ const styles = StyleSheet.create({
     padBotLg: {
         paddingBottom: large,
     },
+    padBotXlg: {
+        paddingBottom: xlarge,
+    },
     padSm: {
         padding: small,
     },

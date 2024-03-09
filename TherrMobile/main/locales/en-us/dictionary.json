@@ -502,7 +502,20 @@
       "modal": {
         "insufficientFundsTitle": "No TherrCoins Available",
         "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TherrCoin. We have notified them for an update.",
-        "insufficientFundsMessage2": "Continue creating content without rewards?"
+        "insufficientFundsMessage2": "Continue creating content without rewards?",
+        "attendingModal": {
+          "title": "Attend this Event?",
+          "buttons": {
+            "save": "Save",
+            "update": "Update"
+          },
+          "labels": {
+            "bringingGuests": "Bringing Guests?",
+            "guests": "Guest Count",
+            "no": "No",
+            "yes": "Yes"
+          }
+        }
       },
       "backendSuccessMessage": "Your moment was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
@@ -776,7 +789,7 @@
         "connect": "Connect",
         "bookmarked": "Saved",
         "goToTop": "Go To Top",
-        "list": "Discover",
+        "list": "Discovered",
         "map": "Map",
         "messages": "Messages",
         "nearby": "Nearby",
@@ -948,6 +961,9 @@
         "share": "Share"
       },
       "buttons": {
+        "attendThisEvent": "Attend this Event?",
+        "attendingConfirmed": "You have already RSVP'd",
+        "editRSVP": "Edit",
         "claimRewards": "Claim Rewards?",
         "coinReward": "Earn {count} TherrCoin(s)",
         "coinRewardDollars": "Earn ~${amount}",

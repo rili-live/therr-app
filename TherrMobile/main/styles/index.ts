@@ -390,7 +390,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             width: '100%',
             flex: 1,
         },
-        nearbyWrapperFooter: {
+        carouselSpacingFooter: {
             height: buttonMenuHeight,
         },
     });

@@ -18,7 +18,7 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import Toast from 'react-native-toast-message';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
-import { MapsService } from 'therr-react/services';
+import { MapsService, ReactionsService } from 'therr-react/services';
 import getConfig from '../../utilities/getConfig';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
@@ -55,6 +55,7 @@ interface IUserDetails {
 interface IAreaDisplayProps {
     translate: Function;
     toggleAreaOptions: any;
+    toggleAttendingModal?: any;
     hashtags: any[];
     isDarkMode: boolean;
     isExpanded?: boolean;
@@ -68,6 +69,7 @@ interface IAreaDisplayProps {
     goToViewMoment?: (area: any) => any;
     goToViewSpace?: (area: any) => any;
     inspectContent: () => any;
+    myReaction?: any;
     updateAreaReaction: Function;
     user: IUserState;
     areaUserDetails: IUserDetails;
@@ -109,6 +111,16 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             likeCount: props.area.likeCount,
         };
     }
+
+    onAttendEventPress = () => {
+        const { toggleAttendingModal } = this.props;
+        toggleAttendingModal();
+    };
+
+    onAttendEventEditPress = () => {
+        const { toggleAttendingModal } = this.props;
+        toggleAttendingModal();
+    };
 
     onClaimRewardPress = () => {
         const { goToViewIncentives, inspectContent } = this.props;
@@ -323,6 +335,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     render() {
         const {
             toggleAreaOptions,
+            toggleAttendingModal,
             hashtags,
             isDarkMode,
             isExpanded,
@@ -331,6 +344,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             areaMediaPadding,
             goToViewUser,
             inspectContent,
+            myReaction,
             areaUserDetails,
             placeholderMediaType,
             theme,
@@ -726,6 +740,82 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         phone="sms"
                     />
                 </Text>
+                {
+                    isExpanded && isEvent &&
+                    <View style={[
+                        spacingStyles.flexOne,
+                        spacingStyles.fullWidth,
+                        spacingStyles.padHorizLg,
+                        spacingStyles.padVertMd,
+                        spacingStyles.marginTopMd,
+                    ]}>
+                        {
+                            myReaction?.attendingCount < 1 &&
+                            <Button
+                                buttonStyle={[
+                                    themeForms.styles.buttonPrimarySmall,
+                                    {
+                                        backgroundColor: themeForms.colors.primary4,
+                                    },
+                                ]}
+                                titleStyle={themeForms.styles.buttonTitle}
+                                title={translate('pages.viewSpace.buttons.attendThisEvent')}
+                                // type="outline"
+                                // icon={
+                                //     <FontAwesome5Icon
+                                //         name="sync"
+                                //         size={22}
+                                //         style={themeForms.styles.buttonIconAlt}
+                                //     />
+                                // }
+                                raised={false}
+                                onPress={toggleAttendingModal}
+                            />
+                        }
+                        {
+                            myReaction?.attendingCount > 0 &&
+                            <>
+                                <Button
+                                    buttonStyle={[
+                                        themeForms.styles.buttonPrimarySmall,
+                                        {
+                                            backgroundColor: themeForms.colors.primary4,
+                                        },
+                                    ]}
+                                    titleStyle={themeForms.styles.buttonTitle}
+                                    title={
+                                        `${translate('pages.viewSpace.buttons.attendingConfirmed')} (${myReaction?.attendingCount})`
+                                    }
+                                    // type="outline"
+                                    // icon={
+                                    //     <FontAwesome5Icon
+                                    //         name="sync"
+                                    //         size={22}
+                                    //         style={themeForms.styles.buttonIconAlt}
+                                    //     />
+                                    // }
+                                    disabled={true}
+                                    raised={false}
+                                    onPress={toggleAttendingModal}
+                                />
+                                <Button
+                                    titleStyle={themeForms.styles.buttonTitleLink}
+                                    title={translate('pages.viewSpace.buttons.editRSVP')}
+                                    type="clear"
+                                    // icon={
+                                    //     <FontAwesome5Icon
+                                    //         name="sync"
+                                    //         size={22}
+                                    //         style={themeForms.styles.buttonIconAlt}
+                                    //     />
+                                    // }
+                                    raised={false}
+                                    onPress={this.onAttendEventEditPress}
+                                />
+                            </>
+                        }
+                    </View>
+                }
                 <View>
                     <HashtagsContainer
                         hasIcon={false}
