@@ -14,9 +14,9 @@ import {
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { distanceTo } from 'geolocation-utils';
+import { getReadableDistance } from 'therr-js-utilities/location';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
-import getReactions from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -668,6 +668,8 @@ const searchEvents: RequestHandler = async (req: any, res: any) => {
     } = req.query;
     const {
         distanceOverride,
+        userLatitude,
+        userLongitude,
     } = req.body;
 
     const integerColumns = ['maxViews', 'longitude', 'latitude'];
@@ -716,8 +718,23 @@ const searchEvents: RequestHandler = async (req: any, res: any) => {
 
     // TODO: Get associated userGroups for user and return limited details if event is not public
     return Promise.all([searchPromise, countPromise]).then(([results]) => {
+        const resultsWithDistance = results.map((event) => {
+            const alteredEvent = event;
+            if (userLatitude && userLongitude) {
+                const distance = distanceTo({
+                    lon: event.longitude,
+                    lat: event.latitude,
+                }, {
+                    lon: userLongitude,
+                    lat: userLatitude,
+                }) / 1069.344; // convert meters to miles
+                alteredEvent.distance = getReadableDistance(distance);
+            }
+
+            return alteredEvent;
+        });
         const response = {
-            results,
+            results: resultsWithDistance,
             pagination: {
                 // totalItems: Number(countResult[0].count),
                 totalItems: Number(100), // arbitraty number because count is slow and not needed

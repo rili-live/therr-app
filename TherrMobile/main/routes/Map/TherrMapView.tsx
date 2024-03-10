@@ -9,9 +9,9 @@ import { ITherrMapViewState as ITherrMapViewReduxState, INotificationsState, IRe
 import { MapActions, ReactionActions } from 'therr-react/redux/actions';
 import { IAreaType, IContentState } from 'therr-js-utilities/types';
 import { Content } from 'therr-js-utilities/constants';
+import { getReadableDistance } from 'therr-js-utilities/location';
 import { distanceTo, insideCircle, isLatLon } from 'geolocation-utils';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import getReadableDistance from '../../utilities/getReadableDistance';
 import { ILocationState } from '../../types/redux/location';
 import translator from '../../services/translator';
 import {

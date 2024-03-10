@@ -10,6 +10,7 @@ import { PushNotificationsService } from 'therr-react/services';
 // import { Location } from 'therr-js-utilities/constants';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Geolocation from 'react-native-geolocation-service';
+import { getReadableDistance } from 'therr-js-utilities/location';
 import { buildStyles } from '../../../styles';
 import { buildStyles as buildButtonsStyles } from '../../../styles/buttons';
 import { buildStyles as buildDisclosureStyles } from '../../../styles/modal/locationDisclosure';
@@ -25,7 +26,7 @@ import AreaOptionsModal, { ISelectionType } from '../../../components/Modals/Are
 import LottieLoader, { ILottieId } from '../../../components/LottieLoader';
 import getActiveCarouselData from '../../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../../constants';
-import { handleAreaReaction, loadMoreAreas, navToViewContent } from '../../../utilities/postViewHelpers';
+import { handleAreaReaction, navToViewContent } from '../../../utilities/postViewHelpers';
 import requestLocationServiceActivation from '../../../utilities/requestLocationServiceActivation';
 import { checkAndroidPermission, isLocationPermissionGranted, requestOSMapPermissions } from '../../../utilities/requestOSPermissions';
 import LocationActions from '../../../redux/actions/LocationActions';
@@ -33,7 +34,6 @@ import { ILocationState } from '../../../types/redux/location';
 import LocationUseDisclosureModal from '../../../components/Modals/LocationUseDisclosureModal';
 import getDirections from '../../../utilities/getDirections';
 import GpsEnableButtonDialog from './GPSEnableDialog';
-import getReadableDistance from '../../../utilities/getReadableDistance';
 
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
@@ -42,19 +42,15 @@ function getRandomLoaderId(): ILottieId {
 }
 
 interface INearbyWrapperDispatchProps {
+    fetchMedia: Function;
+    searchEvents: Function;
+    searchMoments: Function;
+
     updateUserCoordinates: Function;
     updateUserRadius: Function;
 
-    searchActiveEvents: Function;
-    updateActiveEventsStream: Function;
     createOrUpdateEventReaction: Function;
-
-    searchActiveMoments: Function;
-    updateActiveMomentsStream: Function;
     createOrUpdateMomentReaction: Function;
-
-    searchActiveSpaces: Function;
-    updateActiveSpacesStream: Function;
     createOrUpdateSpaceReaction: Function;
 
     updateGpsStatus: Function;
@@ -106,19 +102,15 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            fetchMedia: MapActions.fetchMedia,
+            searchEvents: MapActions.searchEvents,
+            searchMoments: MapActions.searchMoments,
+
             updateUserCoordinates: MapActions.updateUserCoordinates,
             updateUserRadius: MapActions.updateUserRadius,
 
-            searchActiveEvents: ContentActions.searchActiveEvents,
-            updateActiveEventsStream: ContentActions.updateActiveEventsStream,
             createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
-
-            searchActiveMoments: ContentActions.searchActiveMoments,
-            updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
-
-            searchActiveSpaces: ContentActions.searchActiveSpaces,
-            updateActiveSpacesStream: ContentActions.updateActiveSpacesStream,
             createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
 
             updateGpsStatus: LocationActions.updateGpsStatus,
@@ -190,6 +182,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             title: this.translate('pages.nearby.headerTitle'),
         });
 
+        // TODO: Reduce duplicate requests since MapView does the same thing
         this.handleRefreshConditionally();
 
         this.unsubscribeNavigationBlurListener = navigation.addListener('blur', () => {
@@ -267,14 +260,6 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             });
         }
 
-        // const activeData = getActiveCarouselData({
-        //     activeTab,
-        //     content,
-        //     isForBookmarks: false,
-        //     shouldIncludeMoments: true,
-        //     shouldIncludeSpaces: true,
-        // }, 'distance');
-
         if (shouldRenderNearbyAreaFeed(location)
         ) {
             return this.handleRefresh(false);
@@ -286,8 +271,56 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
         }
     };
 
+    searchMapAreas = (
+        longLat: { longitude: string, latitude: string },
+        conditions: {
+            itemsPerPage: number,
+            meItemsPerPage: number,
+        },
+        overrides?: any) => {
+        const {
+            searchEvents,
+            searchMoments,
+        } = this.props;
+
+        return Promise.all([
+            searchMoments({
+                query: 'connections',
+                itemsPerPage: conditions.itemsPerPage,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...longLat,
+            }, overrides),
+            searchEvents({
+                query: 'connections',
+                itemsPerPage: conditions.itemsPerPage,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...longLat,
+            }, overrides),
+            searchMoments({
+                query: 'me',
+                itemsPerPage: conditions.meItemsPerPage,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...longLat,
+            }, overrides),
+            searchEvents({
+                query: 'me',
+                itemsPerPage: conditions.meItemsPerPage,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...longLat,
+            }, overrides),
+        ]).catch((err) => console.log(err));
+    };
+
     handleRefresh = (shouldShowLoader = false) => {
-        const { content, location, updateActiveMomentsStream, updateActiveSpacesStream, user } = this.props;
+        const { content, location } = this.props;
         const { activeTab } = this.state;
 
         if (shouldShowLoader) {
@@ -296,36 +329,24 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             });
         }
 
-        const activeMomentsPromise = updateActiveMomentsStream({
+        return this.searchMapAreas({
+            latitude: location?.user?.latitude,
+            longitude: location?.user?.longitude,
+        }, {
+            itemsPerPage: 100,
+            meItemsPerPage: 20,
+        }, {
+            distanceOverride: 32000, // ~ 20 miles
             userLatitude: location?.user?.latitude,
             userLongitude: location?.user?.longitude,
-            withMedia: true,
-            withUser: true,
-            offset: 0,
-            ...content.activeAreasFilters,
-            blockedUsers: user.details.blockedUsers,
-            shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
-
-        const activeSpacesPromise = updateActiveSpacesStream({
-            userLatitude: location?.user?.latitude,
-            userLongitude: location?.user?.longitude,
-            withMedia: true,
-            withUser: true,
-            offset: 0,
-            ...content.activeAreasFilters,
-            blockedUsers: user.details.blockedUsers,
-            shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
-
-        return Promise.all([activeMomentsPromise, activeSpacesPromise])
+        })
             .then(() => {
                 const data = getActiveCarouselData({
                     activeTab,
                     content,
                     isForBookmarks: false,
+                    shouldIncludeEvents: true,
                     shouldIncludeMoments: true,
-                    shouldIncludeSpaces: true,
                 }, 'distance');
                 const hasRenderedFirstContent = data?.[0]?.distance != null;
                 if (hasRenderedFirstContent) {
@@ -337,19 +358,6 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                     this.setState({ isLoading: false });
                 }, 400);
             });
-    };
-
-    tryLoadMore = () => {
-        const { content, location, searchActiveEvents, searchActiveMoments, searchActiveSpaces, user } = this.props;
-
-        loadMoreAreas({
-            content,
-            location,
-            user,
-            searchActiveEvents,
-            searchActiveMoments,
-            searchActiveSpaces,
-        });
     };
 
     onAreaOptionSelect = (type: ISelectionType) => {
@@ -434,6 +442,11 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
     positionErrorCallback = (error) => {
         console.log('geolocation error', error.code);
+    };
+
+    fetchMissingMedia = (mediaIds: string[]) => {
+        const { fetchMedia } = this.props;
+        return fetchMedia(mediaIds);
     };
 
     handleEnableLocationPress = () => {
@@ -542,8 +555,6 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
         });
     };
 
-
-
     renderHeader = () => {
         // const { radiusOfAwareness, radiusOfInfluence } = this.props.map;
 
@@ -616,21 +627,34 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             content,
             displaySize,
             isInMapView,
+            map,
             location,
             user,
         } = this.props;
 
         // TODO: Fetch missing media
         const fetchMedia = () => {};
-        const activeData = isLoading ? [] : getActiveCarouselData({
+
+        const activatedData = isLoading ? [] : getActiveCarouselData({
             activeTab,
-            content,
+            content: {
+                activeEvents: Object.values(map.events),
+                activeMoments: Object.values(map.moments),
+            },
             isForBookmarks: false,
             isForDrafts: false,
+            shouldIncludeEvents: true,
             shouldIncludeMoments: true,
             shouldIncludeSpaces: false, // spaces are best viewed in the animated preview
         }, 'distance');
-        const formattedActiveData = activeData.map(d => {
+        let missingMediaIds: any[] = [];
+        const formattedActiveData = activatedData.map(d => {
+            if (d.mediaIds?.length && !d?.media?.length) {
+                const areaMediaIds = d.mediaIds.split(",");
+                if (!content?.media[areaMediaIds[0]]) {
+                    missingMediaIds.push(...d.mediaIds.split(","));
+                }
+            }
             const formatted = {
                 ...d,
             };
@@ -640,6 +664,11 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
             return formatted;
         });
+        if (missingMediaIds.length) {
+            this.fetchMissingMedia(missingMediaIds).catch((err) => {
+                console.log(err);
+            });
+        }
         const shouldRenderAreaFeed = shouldRenderNearbyAreaFeed(location);
 
         return (
@@ -659,7 +688,6 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                             containerRef={(component) => { this.carouselRef = component; carouselRef && carouselRef(component); }}
                             handleRefresh={this.handleRefresh}
                             isLoading={isLoading}
-                            onEndReached={this.tryLoadMore}
                             updateEventReaction={createOrUpdateEventReaction}
                             updateMomentReaction={createOrUpdateMomentReaction}
                             updateSpaceReaction={createOrUpdateSpaceReaction}

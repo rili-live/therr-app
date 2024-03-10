@@ -22,6 +22,7 @@ utilities.forEach((utilityPath) => {
         || utilityPath === 'config/index'
         || utilityPath === 'db/index'
         || utilityPath === 'http/index'
+        || utilityPath === 'location/index'
         || utilityPath === 'metrics/index'
         || utilityPath === 'middleware/index') {
         entry[utilityPath.split('/')[0]] = `${PATHS.app}/${utilityPath}.ts`;

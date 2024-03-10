@@ -113,7 +113,7 @@ export default ({
     if (shouldIncludeThoughts) {
         sortedData = mergeSortByCreatedAt(sortedData, content.activeThoughts, sortBy === 'reaction.createdAt');
     } else if (shouldIncludeEvents) {
-        sortedData = content.activeEvents;
+        sortedData = mergeAreas(sortedData as any, content.activeEvents, sortBy);
     }
 
     // TODO: performance optimize to prevent loading unnecessary data

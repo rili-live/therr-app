@@ -9,6 +9,8 @@ let googleDynamicSessionToken = uuid.v4(); // This gets stored in the local stat
 
 export interface ISearchAreasArgs {
     distanceOverride?: number;
+    userLatitude?: number;
+    userLongitude?: number;
 }
 
 interface IGetAreaDetailsArgs {
