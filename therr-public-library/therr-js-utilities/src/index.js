@@ -14,6 +14,9 @@ const utilities = [
     // HTTP/REST Helpers
     'http/index',
 
+    // Location
+    'location/index',
+
     // Metrics
     'metrics/index',
 

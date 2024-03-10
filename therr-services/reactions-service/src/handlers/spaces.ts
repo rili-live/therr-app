@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { distanceTo } from 'geolocation-utils';
 import { parseHeaders } from 'therr-js-utilities/http';
+import { getReadableDistance } from 'therr-js-utilities/location';
 import handleHttpError from '../utilities/handleHttpError';
-import getReadableDistance from '../utilities/getReadableDistance';
 import Store from '../store';
 // import translate from '../utilities/translator';
 import * as globalConfig from '../../../../global-config';

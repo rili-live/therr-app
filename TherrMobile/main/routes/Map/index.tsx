@@ -1051,6 +1051,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     // TODO: Call this when user has traveled a certain distance from origin
     handleRefreshMoments = (overrideThrottle = false, coords?: any) => {
         const { isMinLoadTimeComplete } = this.state;
+        const { location } = this.props;
 
         clearTimeout(this.timeoutIdRefreshMoments);
 
@@ -1079,6 +1080,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         return this.searchMapAreas(userCoords, {
             itemsPerPage: AREAS_SEARCH_COUNT,
             meItemsPerPage: 50,
+        }, {
+            userLatitude: location?.user?.latitude,
+            userLongitude: location?.user?.longitude,
         })
             .finally(() =>{
                 this.setState({
@@ -1329,6 +1333,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     handleSearchThisLocation = (searchRadius?, latitude?, longitude?): Promise<any> => {
         const { region } = this.state;
+        const { location } = this.props;
         this.setState({
             isSearchThisLocationBtnVisible: false,
         });
@@ -1362,6 +1367,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 meItemsPerPage: 20,
             }, {
                 distanceOverride: radius,
+                userLatitude: location?.user?.latitude,
+                userLongitude: location?.user?.longitude,
             }).finally(() =>{
                 this.setState({
                     isSearchLoading: false,

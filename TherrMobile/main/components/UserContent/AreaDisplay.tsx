@@ -18,7 +18,7 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import Toast from 'react-native-toast-message';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
-import { MapsService, ReactionsService } from 'therr-react/services';
+import { MapsService } from 'therr-react/services';
 import getConfig from '../../utilities/getConfig';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';

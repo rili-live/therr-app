@@ -12,6 +12,8 @@ import {
     MetricValueTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { getReadableDistance } from 'therr-js-utilities/location';
+import { distanceTo } from 'geolocation-utils';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
 import getReactions from '../utilities/getReactions';
@@ -789,6 +791,8 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
     } = req.query;
     const {
         distanceOverride,
+        userLatitude,
+        userLongitude,
     } = req.body;
 
     const integerColumns = ['maxViews', 'longitude', 'latitude'];
@@ -837,8 +841,23 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
 
     // TODO: Get associated reactions for user and return limited details if moment is not yet activated
     return Promise.all([searchPromise, countPromise]).then(([results]) => {
+        const resultsWithDistance = results.map((moment) => {
+            const alteredMoment = moment;
+            if (userLatitude && userLongitude) {
+                const distance = distanceTo({
+                    lon: moment.longitude,
+                    lat: moment.latitude,
+                }, {
+                    lon: userLongitude,
+                    lat: userLatitude,
+                }) / 1069.344; // convert meters to miles
+                alteredMoment.distance = getReadableDistance(distance);
+            }
+
+            return alteredMoment;
+        });
         const response = {
-            results,
+            results: resultsWithDistance,
             pagination: {
                 // totalItems: Number(countResult[0].count),
                 totalItems: Number(100), // arbitraty number because count is slow and not needed

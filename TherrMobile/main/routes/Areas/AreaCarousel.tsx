@@ -30,7 +30,7 @@ interface IAreaCarouselProps {
     goToViewUser: any;
     handleRefresh: any;
     isLoading: any;
-    onEndReached: any;
+    onEndReached?: any;
     toggleAreaOptions: any;
     toggleThoughtOptions?: any;
     translate: any;
@@ -63,6 +63,7 @@ const renderItem = ({ item: post }, {
     updateReaction,
     user,
 }) => {
+    const mediaIdsSplit = (post.mediaIds || '').split(',');
     const mediaPath = (post.media && post.media[0]?.path);
     const mediaType = (post.media && post.media[0]?.type);
 
@@ -73,9 +74,14 @@ const renderItem = ({ item: post }, {
     }
 
     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-    const postMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+    let postMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
         ? getUserContentUri(post.media[0], screenWidth, screenWidth)
         : media && media[post.media && post.media[0]?.id];
+    if (!postMedia) {
+        const mediaId = media
+            && (mediaIdsSplit && mediaIdsSplit[0]);
+        postMedia = media[mediaId];
+    }
     const isMe = user.details.id === post.fromUserId;
     let userDetails: any = {
         userName: post.fromUserName || (user.details.id === post.fromUserId ? user.details.userName : translate('alertTitles.nameUnknown')),
