@@ -19,6 +19,7 @@ export type IEngagementTypes = 'check-in' | 'moment' | 'event';
 
 const Maps = {
     // Media
+    // TODO: Accept device dimensions and optimize image size when response contains imageKit urls
     fetchMedia: (mediaIds: string[]) => (dispatch: any) => MapsService.fetchMedia(mediaIds).then((response: any) => {
         dispatch({
             type: ContentActionTypes.FETCH_MEDIA,
