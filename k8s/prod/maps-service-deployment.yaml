@@ -45,6 +45,10 @@ spec:
             secretKeyRef:
               name: honeycomb-writekey
               key: HONEYCOMB
+        - name: IMAGE_KIT_URL
+          value: "https://ik.imagekit.io/qmtvldd7sl/"
+        - name: IMAGE_KIT_URL_PRIVATE
+          value: "https://ik.imagekit.io/qmtvldd7sl/private/"
         - name: OTEL_EXPORTER_OTLP_PROTOCOL
           value: "grpc"
         - name: LOG_LEVEL
