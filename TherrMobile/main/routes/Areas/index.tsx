@@ -540,7 +540,9 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         });
     };
 
-    renderFooter = (content) => {
+    renderFooter = ({
+        content,
+    }) => {
         if (content?.length < 1) {
             return null;
         }
