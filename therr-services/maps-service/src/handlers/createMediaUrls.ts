@@ -1,3 +1,4 @@
+import { Content } from 'therr-js-utilities/constants';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import getBucket from '../utilities/getBucket';
@@ -17,22 +18,34 @@ const createMediaUrls = (req, res) => {
         media.forEach((m) => {
             const bucket = getBucket(m.type);
             if (bucket) {
-                // TODO: Consider alternatives to cache these urls (per user) and their expire time
-                const promise = storage
-                    .bucket(bucket)
-                    .file(m.path)
-                    .getSignedUrl({
-                        version: 'v4',
-                        action: 'read',
-                        expires: imageExpireTime,
-                    })
-                    .then((urls) => ({
-                        [m.id]: urls[0],
-                    }))
-                    .catch((err) => {
-                        console.log(err);
-                        return {};
+                let promise;
+                if (bucket === getBucket(Content.mediaTypes.USER_IMAGE_PRIVATE)) {
+                    promise = Promise.resolve({
+                        [m.id]: `${process.env.IMAGE_KIT_URL_PRIVATE}${m.path}`,
                     });
+                } else if (bucket === getBucket(Content.mediaTypes.USER_IMAGE_PUBLIC)) {
+                    promise = Promise.resolve({
+                        [m.id]: `${process.env.IMAGE_KIT_URL}${m.path}`,
+                    });
+                } else {
+                    promise = storage
+                        .bucket(bucket)
+                        .file(m.path)
+                        .getSignedUrl({
+                            version: 'v4',
+                            action: 'read',
+                            expires: imageExpireTime,
+                        })
+                        .then((urls) => ({
+                            [m.id]: urls[0],
+                        }))
+                        .catch((err) => {
+                            console.log(err);
+                            return {};
+                        });
+                }
+                // TODO: Consider alternatives to cache these urls (per user) and their expire time
+
                 urlPromises.push(promise);
             } else {
                 console.log('MomentsStore.ts: bucket is undefined');

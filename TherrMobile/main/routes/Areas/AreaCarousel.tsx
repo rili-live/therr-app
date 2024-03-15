@@ -67,9 +67,10 @@ const renderItem = ({ item: post }, {
     const mediaPath = (post.media && post.media[0]?.path);
     const mediaType = (post.media && post.media[0]?.type);
 
-    if (post.media && (!media || !media[post.media[0]?.id])
+    if ((post.media || post.mediaIds) && (!media?.[post.media?.[0]?.id || mediaIdsSplit?.[0]])
         && (!mediaPath || mediaType !== Content.mediaTypes.USER_IMAGE_PUBLIC)) {
-        // Only fetch when we need signed urls
+        // TODO: Only fetch when we need signed urls
+        // TODO: Apply Imagekit transforms to optimize performance
         fetchMedia(post.media[0]?.id);
     }
 
@@ -78,8 +79,7 @@ const renderItem = ({ item: post }, {
         ? getUserContentUri(post.media[0], screenWidth, screenWidth)
         : media && media[post.media && post.media[0]?.id];
     if (!postMedia) {
-        const mediaId = media
-            && (mediaIdsSplit && mediaIdsSplit[0]);
+        const mediaId = media && mediaIdsSplit?.[0];
         postMedia = media[mediaId];
     }
     const isMe = user.details.id === post.fromUserId;
@@ -290,7 +290,7 @@ const AreaCarousel = ({
                 ListHeaderComponent={renderHeader()}
                 ListFooterComponent={
                     renderFooter
-                        ? renderFooter()
+                        ? renderFooter({ content: activeData })
                         : <View style={theme.styles.areaCarouselFooter} />
                 }
                 ref={(component) => {
