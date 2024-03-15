@@ -50,6 +50,10 @@ mapsServiceRouter.post('/events', createEventLimiter, createEventValidations, va
 mapsServiceRouter.put('/events/:eventId', updateAreaValidation, validate, async (req, res, next) => {
     await CacheStore.mapsService.invalidateAreaDetails('events', req.params.eventId);
 
+    if (req.body.spaceId) {
+        CacheStore.mapsService.invalidateAreaDetails('spaces', req.body.spaceId);
+    }
+
     return next();
 }, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
@@ -61,6 +65,10 @@ mapsServiceRouter.post('/events/:eventId/details', authenticateOptional, getEven
 
     if (eventDetails) {
         return res.status(200).send({ ...eventDetails, cached: true });
+    }
+
+    if (req.body.spaceId) {
+        CacheStore.mapsService.invalidateAreaDetails('spaces', req.body.spaceId);
     }
 
     return next();
@@ -99,6 +107,8 @@ mapsServiceRouter.get('/events/signed-url/private', getSignedUrlValidation, vali
 }));
 
 mapsServiceRouter.delete('/events', deleteAreasValidation, validate, (req, res, next) => {
+    // TODO: Invalidate spaces since events are listed on spaces
+    // OR load space events from a separate endpoint
     (req.body?.ids || []).forEach((id) => {
         CacheStore.mapsService.invalidateAreaDetails('events', id);
     });
@@ -210,10 +220,10 @@ mapsServiceRouter.put('/spaces/:spaceId', updateSpaceValidation, validate, async
 }));
 
 mapsServiceRouter.post('/spaces/:spaceId/details', authenticateOptional, getSpaceDetailsValidation, validate, async (req, res, next) => {
-    const momentDetails = await CacheStore.mapsService.getAreaDetails('spaces', req.params.spaceId);
+    const spaceDetails = await CacheStore.mapsService.getAreaDetails('spaces', req.params.spaceId);
 
-    if (momentDetails) {
-        return res.status(200).send({ ...momentDetails, cached: true });
+    if (spaceDetails) {
+        return res.status(200).send({ ...spaceDetails, cached: true });
     }
 
     return next();
