@@ -638,8 +638,8 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
         const activatedData = isLoading ? [] : getActiveCarouselData({
             activeTab,
             content: {
-                activeEvents: Object.values(map.events),
-                activeMoments: Object.values(map.moments),
+                activeEvents: Object.values(map?.events || {}),
+                activeMoments: Object.values(map?.moments || {}),
             },
             isForBookmarks: false,
             isForDrafts: false,
@@ -648,17 +648,17 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             shouldIncludeSpaces: false, // spaces are best viewed in the animated preview
         }, 'distance');
         let missingMediaIds: any[] = [];
-        const formattedActiveData = activatedData.map(d => {
-            if (d.mediaIds?.length && !d?.media?.length) {
-                const areaMediaIds = d.mediaIds.split(",");
-                if (!content?.media[areaMediaIds[0]]) {
+        const formattedActiveData = activatedData?.map(d => {
+            if (d?.mediaIds?.length && !d?.media?.length) {
+                const areaMediaIds = d?.mediaIds?.split(",");
+                if (!content?.media?.[areaMediaIds[0]]) {
                     missingMediaIds.push(...d.mediaIds.split(","));
                 }
             }
             const formatted = {
                 ...d,
             };
-            if (d.distance != null && !d.distance.toString().includes(' ')) {
+            if (d?.distance != null && !d?.distance?.toString().includes(' ')) {
                 formatted.distance = getReadableDistance(formatted.distance);
             }
 

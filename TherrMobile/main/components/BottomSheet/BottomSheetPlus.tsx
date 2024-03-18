@@ -44,7 +44,7 @@ const BottomSheetPlus = ({
         if (index === -1) {
             onClose();
         }
-        if (index === initialSnapPoints.length - 1) {
+        if (index === initialSnapPoints?.length - 1) {
             setBorderRadius(0);
         } else {
             setBorderRadius(defaultBorderRadius);

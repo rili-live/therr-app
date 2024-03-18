@@ -6,7 +6,7 @@ require Pod::Executable.execute_command('node', ['-p',
   )', __dir__]).strip
 
 # IOS_VERSION = min_ios_version_supported
-IOS_VERSION = '13'
+IOS_VERSION = '13.4'
 
 platform :ios, IOS_VERSION
 prepare_react_native_project!
@@ -27,43 +27,43 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-def add_flipper_pods!(versions = {})
-  versions['Flipper'] ||= '~> 0.125.0'
-  versions['DoubleConversion'] ||= '3.2.0.1'
-  versions['Flipper-Folly'] ||= '~> 2.6.0'
-  versions['Flipper-Glog'] ||= '0.5.0.5'
-  versions['Flipper-PeerTalk'] ||= '~> 0.0.4'
-  versions['Flipper-RSocket'] ||= '~> 1.4.0'
+# def add_flipper_pods!(versions = {})
+#   versions['Flipper'] ||= '~> 0.125.0'
+#   versions['DoubleConversion'] ||= '3.2.0.1'
+#   versions['Flipper-Folly'] ||= '~> 2.6.0'
+#   versions['Flipper-Glog'] ||= '0.5.0.5'
+#   versions['Flipper-PeerTalk'] ||= '~> 0.0.4'
+#   versions['Flipper-RSocket'] ||= '~> 1.4.0'
 
-  pod 'FlipperKit', versions['Flipper'], :configuration => 'Debug'
-  pod 'FlipperKit/FlipperKitLayoutPlugin', versions['Flipper'], :configuration => 'Debug'
-  pod 'FlipperKit/SKIOSNetworkPlugin', versions['Flipper'], :configuration => 'Debug'
-  pod 'FlipperKit/FlipperKitUserDefaultsPlugin', versions['Flipper'], :configuration => 'Debug'
-  pod 'FlipperKit/FlipperKitReactPlugin', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit/FlipperKitLayoutPlugin', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit/SKIOSNetworkPlugin', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit/FlipperKitUserDefaultsPlugin', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit/FlipperKitReactPlugin', versions['Flipper'], :configuration => 'Debug'
 
-  # List all transitive dependencies for FlipperKit pods
-  # to avoid them being linked in Release builds
-  pod 'Flipper', versions['Flipper'], :configuration => 'Debug'
-  pod 'Flipper-DoubleConversion', versions['DoubleConversion'], :configuration => 'Debug'
-  pod 'Flipper-Folly', versions['Flipper-Folly'], :configuration => 'Debug'
-  pod 'Flipper-Glog', versions['Flipper-Glog'], :configuration => 'Debug'
-  pod 'Flipper-PeerTalk', versions['Flipper-PeerTalk'], :configuration => 'Debug'
-  pod 'Flipper-RSocket', versions['Flipper-RSocket'], :configuration => 'Debug'
-  pod 'FlipperKit/Core', versions['Flipper'], :configuration => 'Debug'
-  pod 'FlipperKit/CppBridge', versions['Flipper'], :configuration => 'Debug'
-  pod 'FlipperKit/FBCxxFollyDynamicConvert', versions['Flipper'], :configuration => 'Debug'
-  pod 'FlipperKit/FBDefines', versions['Flipper'], :configuration => 'Debug'
-  pod 'FlipperKit/FKPortForwarding', versions['Flipper'], :configuration => 'Debug'
-  pod 'FlipperKit/FlipperKitHighlightOverlay', versions['Flipper'], :configuration => 'Debug'
-  pod 'FlipperKit/FlipperKitLayoutTextSearchable', versions['Flipper'], :configuration => 'Debug'
-  pod 'FlipperKit/FlipperKitNetworkPlugin', versions['Flipper'], :configuration => 'Debug'
-end
+#   # List all transitive dependencies for FlipperKit pods
+#   # to avoid them being linked in Release builds
+#   pod 'Flipper', versions['Flipper'], :configuration => 'Debug'
+#   pod 'Flipper-DoubleConversion', versions['DoubleConversion'], :configuration => 'Debug'
+#   pod 'Flipper-Folly', versions['Flipper-Folly'], :configuration => 'Debug'
+#   pod 'Flipper-Glog', versions['Flipper-Glog'], :configuration => 'Debug'
+#   pod 'Flipper-PeerTalk', versions['Flipper-PeerTalk'], :configuration => 'Debug'
+#   pod 'Flipper-RSocket', versions['Flipper-RSocket'], :configuration => 'Debug'
+#   pod 'FlipperKit/Core', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit/CppBridge', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit/FBCxxFollyDynamicConvert', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit/FBDefines', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit/FKPortForwarding', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit/FlipperKitHighlightOverlay', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit/FlipperKitLayoutTextSearchable', versions['Flipper'], :configuration => 'Debug'
+#   pod 'FlipperKit/FlipperKitNetworkPlugin', versions['Flipper'], :configuration => 'Debug'
+# end
 
 target 'Therr' do
   project 'Therr', 'Therr_Debug' => :debug, 'Debug' => :debug, 'Therr_Release' => :release, 'Release' => :release
   # React Native Maps dependencies
   # The following line is only needed if building on an Apple silicon Mac without rosetta.
-  pod 'Google-Maps-iOS-Utils', :git => 'https://github.com/Simon-TechForm/google-maps-ios-utils.git', :branch => 'feat/support-apple-silicon'
+  # pod 'Google-Maps-iOS-Utils', :git => 'https://github.com/Simon-TechForm/google-maps-ios-utils.git', :branch => 'feat/support-apple-silicon'
   rn_maps_path = '../node_modules/react-native-maps'
   pod 'react-native-google-maps', :path => rn_maps_path
   pod 'GoogleMaps'
@@ -73,15 +73,8 @@ target 'Therr' do
 
   config = use_native_modules!
 
-  # Flags change depending on the env values.
-  flags = get_default_flags()
-
   use_react_native!(
     :path => config[:reactNativePath],
-    # Hermes is now enabled by default. Disable by setting this flag to false.
-    :hermes_enabled => false,
-    # :hermes_enabled => flags[:hermes_enabled],
-    :fabric_enabled => flags[:fabric_enabled],
     # Enables Flipper.
     #
     # Note that if you have use_frameworks! enabled, Flipper will not work and
@@ -124,7 +117,7 @@ target 'Therr' do
   pod 'React-cxxreact', :path => '../node_modules/react-native/ReactCommon/cxxreact'
   pod 'React-jsi', :path => '../node_modules/react-native/ReactCommon/jsi'
   pod 'React-jsiexecutor', :path => '../node_modules/react-native/ReactCommon/jsiexecutor'
-  pod 'React-jsinspector', :path => '../node_modules/react-native/ReactCommon/jsinspector'
+  # pod 'React-jsinspector', :path => '../node_modules/react-native/ReactCommon/jsinspector'
   # pod 'ReactCommon/callinvoker', :path => "../node_modules/react-native/ReactCommon"
   pod 'ReactCommon/turbomodule/core', :path => "../node_modules/react-native/ReactCommon"
   pod 'Yoga', :path => '../node_modules/react-native/ReactCommon/yoga', :modular_headers => true
@@ -158,7 +151,6 @@ target 'Therr' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = IOS_VERSION

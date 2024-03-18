@@ -17,7 +17,7 @@ import LogRocket from '@logrocket/react-native';
 import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
 import { UsersService } from 'therr-react/services';
-import { AccessCheckType, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
+import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { NavigationContainer } from '@react-navigation/native';
@@ -47,6 +47,7 @@ import HeaderLinkRight from './HeaderLinkRight';
 import { AndroidChannelIds, PEOPLE_CAROUSEL_TABS, PressActionIds, getAndroidChannel } from '../constants';
 import { socketIO } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
+import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
 
 const Stack = createStackNavigator();
 
@@ -58,18 +59,23 @@ const forFade = ({ current }) => ({
 
 interface ILayoutDispatchProps {
     getMyAchievements: Function;
+    getUserGroups: Function;
     logout: Function;
     addNotification: Function;
     searchActiveMomentsByIds: Function;
     searchActiveSpacesByIds: Function;
     searchCategories: Function;
     searchNotifications: Function;
+    searchUsers: Function;
+    updateActiveMomentsStream: Function;
+    updateActiveEventsStream: Function;
     updateGpsStatus: Function;
     updateLocationPermissions: Function;
     updateUser: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
+    content: IContentState;
     forums: IForumsState;
     location: ILocationState;
     notifications: INotificationsState;
@@ -84,6 +90,7 @@ interface ILayoutState {
 }
 
 const mapStateToProps = (state: any) => ({
+    content: state.content,
     forums: state.forums,
     location: state.location,
     notifications: state.notifications,
@@ -94,12 +101,16 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             getMyAchievements: UsersActions.getMyAchievements,
+            getUserGroups: UsersActions.getUserGroups,
             logout: UsersActions.logout,
             addNotification: NotificationActions.add,
             searchNotifications: NotificationActions.search,
+            searchUsers: UsersActions.search,
             searchActiveMomentsByIds: ContentActions.searchActiveMomentsByIds,
             searchActiveSpacesByIds: ContentActions.searchActiveSpacesByIds,
             searchCategories: ForumActions.searchCategories,
+            updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
+            updateActiveEventsStream: ContentActions.updateActiveEventsStream,
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
             updateUser: UsersActions.update,
@@ -333,14 +344,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
     prefetchContent = () => {
         const {
+            content,
             getMyAchievements,
+            getUserGroups,
             searchNotifications,
+            searchUsers,
             user,
+            updateActiveMomentsStream,
+            updateActiveEventsStream,
         } = this.props;
         if (user.isAuthenticated) {
-            // Pre-load achievements
-            getMyAchievements();
-
             // Pre-load notifications
             searchNotifications({
                 filterBy: 'userId',
@@ -348,6 +361,53 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 itemsPerPage: 20,
                 pageNumber: 1,
                 order: 'desc',
+            }).catch((err) => {
+                console.log(err);
+            });
+
+            // Pre-load activated content
+            if (!content?.content?.activeMoments?.length || !content?.content?.activeThoughts?.length) {
+                const activeMomentsPromise = updateActiveMomentsStream({
+                    withMedia: true,
+                    withUser: true,
+                    offset: 0,
+                    ...content.activeAreasFilters,
+                    blockedUsers: user.details.blockedUsers,
+                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                });
+
+                const activeEventsPromise = updateActiveEventsStream({
+                    withMedia: true,
+                    withUser: true,
+                    offset: 0,
+                    ...content.activeAreasFilters,
+                    blockedUsers: user.details.blockedUsers,
+                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                });
+
+                Promise.all([activeMomentsPromise, activeEventsPromise]).catch((err) => {
+                    console.log(err);
+                });
+            }
+
+            // Pre-load achievements
+            getMyAchievements().catch((err) => {
+                console.log(err);
+            });
+
+            searchUsers(
+                {
+                    query: '',
+                    limit: DEFAULT_PAGE_SIZE,
+                    offset: 0,
+                    withMedia: true,
+                },
+            ).catch((err) => {
+                console.log(err);
+            });
+
+            getUserGroups().catch((err) => {
+                console.log(err);
             });
         }
     };
