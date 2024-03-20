@@ -827,7 +827,10 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     tabName === CAROUSEL_TABS.DISCOVERIES && areCreateActionsVisible
                     && <Button
                         containerStyle={this.themeButtons.styles.addAThoughtDiscovered}
-                        buttonStyle={this.themeButtons.styles.btnLarge}
+                        buttonStyle={this.themeButtons.styles.btnLargeWithText}
+                        title={this.translate('menus.mapActions.shareAThought')}
+                        titleStyle={this.themeButtons.styles.btnLargeTitleLeft}
+                        iconRight
                         icon={
                             <TherrIcon
                                 name={'idea'}
@@ -843,7 +846,10 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     tabName === CAROUSEL_TABS.DISCOVERIES && areCreateActionsVisible
                     && <Button
                         containerStyle={this.themeButtons.styles.addAMomentDiscovered}
-                        buttonStyle={this.themeButtons.styles.btnLarge}
+                        buttonStyle={this.themeButtons.styles.btnLargeWithText}
+                        title={this.translate('menus.mapActions.uploadAMoment')}
+                        titleStyle={this.themeButtons.styles.btnLargeTitleLeft}
+                        iconRight
                         icon={
                             <TherrIcon
                                 name={'map-marker-plus'}

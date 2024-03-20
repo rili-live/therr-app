@@ -605,6 +605,19 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }
             }
+        } else if (url?.includes('https://therr.com/emails/unsubscribe')) {
+            const isOnboardingComplete = UsersService.isAuthorized(
+                {
+                    type: AccessCheckType.ALL,
+                    levels: [AccessLevels.EMAIL_VERIFIED],
+                    isPublic: true,
+                },
+                user
+            );
+            // TODO: Add afterLogin param to send user to settings after auth
+            if (isOnboardingComplete) {
+                RootNavigation.navigate('ManageNotifications');
+            }
         } else if (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex)) {
             const momentId = (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex))[1];
             if (momentId) {
