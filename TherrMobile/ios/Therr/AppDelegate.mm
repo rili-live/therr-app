@@ -41,8 +41,6 @@
   NSString *googleMapsApiKey = [ReactNativeConfig envFor:@"GOOGLE_APIS_IOS_KEY"];
   +  [GMSServices provideAPIKey:googleMapsApiKey]; // add this line using the api key obtained from Google Console
 
-  [RNBootSplash initWithStoryboard:@"BootSplash" rootView:self.window.rootViewController.view];
-
   // [REQUIRED] Register BackgroundFetch
   [[TSBackgroundFetch sharedInstance] didFinishLaunching];
   
@@ -61,6 +59,18 @@
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
+}
+
+- (UIView *)createRootViewWithBridge:(RCTBridge *)bridge
+                          moduleName:(NSString *)moduleName
+                           initProps:(NSDictionary *)initProps {
+  UIView *rootView = [super createRootViewWithBridge:bridge
+                                          moduleName:moduleName
+                                           initProps:initProps];
+
+  [RNBootSplash initWithStoryboard:@"BootSplash" rootView:rootView]; // ⬅️ initialize the splash screen
+
+  return rootView;
 }
 
 @end
