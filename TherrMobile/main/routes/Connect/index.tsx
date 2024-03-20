@@ -30,7 +30,7 @@ import GroupTile from '../Groups/GroupTile';
 import GroupCategories from '../Groups/GroupCategories';
 
 const { width: viewportWidth } = Dimensions.get('window');
-const DEFAULT_PAGE_SIZE = 50;
+export const DEFAULT_PAGE_SIZE = 50;
 const tabMap = {
     0: PEOPLE_CAROUSEL_TABS.PEOPLE,
     1: PEOPLE_CAROUSEL_TABS.GROUPS,
@@ -174,7 +174,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         });
 
         if ((userConnections.connections.length || 0) < DEFAULT_PAGE_SIZE) {
-            this.handleRefresh();
+            this.handleRefreshUserConnections();
         }
 
         if (!user.myUserGroups?.length) {
@@ -318,7 +318,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             });
     };
 
-    handleRefresh = () => {
+    handleRefreshUserConnections = () => {
         const { user } = this.props;
 
         this.setState({
@@ -626,7 +626,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         stickyHeaderIndices={[]}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
-                            onRefresh={this.handleRefresh}
+                            onRefresh={this.handleRefreshUserConnections}
                         />}
                         onContentSizeChange={this.scrollTop}
                     />

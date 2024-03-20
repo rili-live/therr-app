@@ -70,7 +70,6 @@ const renderItem = ({ item: post }, {
     if ((post.media || post.mediaIds) && (!media?.[post.media?.[0]?.id || mediaIdsSplit?.[0]])
         && (!mediaPath || mediaType !== Content.mediaTypes.USER_IMAGE_PUBLIC)) {
         // TODO: Only fetch when we need signed urls
-        // TODO: Apply Imagekit transforms to optimize performance
         fetchMedia(post.media[0]?.id);
     }
 

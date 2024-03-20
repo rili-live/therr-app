@@ -80,10 +80,11 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
+		<!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
 		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
 		<true/>
-		<key>NSExceptionDomains</key>
-		<dict/>
 	</dict>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>This permission allows the user to access and share audio files from their library to the social space of the app.</string>
