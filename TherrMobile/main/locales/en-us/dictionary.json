@@ -675,7 +675,18 @@
       "buttons": {
         "submit": "Save",
         "manageAccount": "Manage Account",
-        "deleteAccount": "Delete Account?"
+        "manageNotifications": "Manage Email Settings",
+        "deleteAccount": "Delete Account?",
+        "settingsEmailBusMarketing": "Business Insights marketing e-mails",
+        "settingsEmailMarketing": "Social App marketing e-mails",
+        "settingsEmailLikes": "User 'likes' e-mails",
+        "settingsEmailInvites": "User or group invite e-mails",
+        "settingsEmailMentions": "User 'mentions' e-mails",
+        "settingsEmailMessages": "User 'messages' e-mails",
+        "settingsEmailReminders": "Social App reminder e-mails",
+        "settingsEmailBackground": "Social App automated e-mails",
+        "on": "On",
+        "off": "Off"
       },
       "errorMessages": {
         "repeatPassword": "Passwords do not match",
@@ -936,6 +947,18 @@
     "invite": {
       "headerTitle": "Invite"
     },
+    "manageNotifications": {
+      "headerTitle": "Email & Alert Settings",
+      "pageHeaderEmailSettings": "Email Preferences",
+      "alertTitles": {
+        "notificationSettingsUpdated": "Account Updated",
+        "accountError": "Unknown Error"
+      },
+      "alertMessages": {
+        "notificationSettingsUpdated": "Your notification & alert settings have been updated.",
+        "notificationSettingsUpdatedError": "Oops! Something went wrong."
+      }
+    },
     "requestSpace": {
       "headerTitle": "Request a Space",
       "previewHeader": "Preview:"
@@ -1171,8 +1194,9 @@
       "pageHeaderRewardsSettings": "Therr Rewards",
       "pageHeaderUser": "User Profile",
       "pageHeaderPassword": "Update Password",
-      "pageHeaderSettings": "Content Settings",
       "pageHeaderAdvancedSettings": "Advanced Settings",
+      "pageHeaderContentSettings": "Content Settings",
+      "pageHeaderNotificationSettings": "Emails & Alert Settings",
       "labels": {
         "nightMode": "Night Mode?",
         "enableRewards": "Opt-In?"

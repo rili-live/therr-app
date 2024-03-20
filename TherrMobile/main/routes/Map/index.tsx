@@ -346,7 +346,14 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     }
 
     componentDidMount = async () => {
-        const { navigation, setSearchDropdownVisibility, updateFirstTimeUI, updateTour, route, user } = this.props;
+        const {
+            navigation,
+            setSearchDropdownVisibility,
+            updateFirstTimeUI,
+            updateTour,
+            route,
+            user,
+        } = this.props;
         UsersService.getExchangeRate().then((response) => {
             this.setState({
                 exchangeRate: response.data?.exchangeRate,

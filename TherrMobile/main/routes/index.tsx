@@ -26,6 +26,7 @@ import Notifications from './Notifications';
 import Register from './Register';
 import Settings from './Settings';
 import ManageAccount from './Settings/ManageAccount';
+import ManageNotifications from './Settings/ManageNotifications';
 import SocialSync from './ViewUser/SocialSync';
 import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
@@ -326,6 +327,17 @@ const routes: RouteConfig<
         component: ManageAccount,
         options: () => ({
             title: 'ManageAccount',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'ManageNotifications',
+        component: ManageNotifications,
+        options: () => ({
+            title: 'ManageNotifications',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

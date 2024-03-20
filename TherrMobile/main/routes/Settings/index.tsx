@@ -105,6 +105,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         navigation.push('ManageAccount');
     };
 
+    goToManageNotifications = () => {
+        const { navigation } = this.props;
+
+        navigation.push('ManageNotifications');
+    };
+
     isFormDisabled() {
         const { inputs, isSubmitting } = this.state;
 
@@ -329,8 +335,9 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
         const pageHeaderDisplaySettings = this.translate('pages.settings.pageHeaderDisplaySettings');
         const pageHeaderRewardsSettings = this.translate('pages.settings.pageHeaderRewardsSettings');
-        const pageHeaderSettings = this.translate('pages.settings.pageHeaderSettings');
+        const pageHeaderContentSettings = this.translate('pages.settings.pageHeaderContentSettings');
         const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
+        const pageHeaderNotificationSettings = this.translate('pages.settings.pageHeaderNotificationSettings');
         const currentUserImageUri = getUserImageUri(user, 200);
         const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 
@@ -405,6 +412,18 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         />
                                     </View>
                                 </View>
+                            </View>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
+                                    {pageHeaderNotificationSettings}
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={this.goToManageNotifications}>{this.translate('forms.settings.buttons.manageNotifications')}</Text>
+                                </Text>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
@@ -529,7 +548,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
-                                    {pageHeaderSettings}
+                                    {pageHeaderContentSettings}
                                 </Text>
                             </View>
                             <View style={this.themeSettingsForm.styles.settingsContainer}>
