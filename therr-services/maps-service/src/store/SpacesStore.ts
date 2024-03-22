@@ -48,6 +48,76 @@ export interface ICreateSpaceParams extends ICreateAreaParams {
     priceRange?: number;
 }
 
+const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?: any[], ratings?: any[]) => {
+    const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
+    const matchingUsers: any = {};
+    const signingPromises: any = [];
+
+    // TODO: Optimize
+    const mappedSpaces = spaces.map((space, index) => {
+        const modifiedSpace = space;
+        modifiedSpace.media = [];
+        modifiedSpace.user = {};
+        modifiedSpace.rating = ratings?.[index] || {};
+
+        // MEDIA
+        if (media && space.mediaIds) {
+            const ids = modifiedSpace.mediaIds.split(',');
+            modifiedSpace.media = media.filter((m) => {
+                if (ids.includes(m.id)) {
+                    const bucket = getBucket(m.type);
+                    if (bucket) {
+                        // TODO: Consider alternatives to cache these urls (per user) and their expire time
+                        const promise = storage
+                            .bucket(bucket)
+                            .file(m.path)
+                            .getSignedUrl({
+                                version: 'v4',
+                                action: 'read',
+                                expires: imageExpireTime,
+                            })
+                            .then((urls) => ({
+                                [m.id]: urls[0],
+                            }))
+                            .catch((err) => {
+                                console.log(err);
+                                return {};
+                            });
+                        signingPromises.push(promise);
+                    } else {
+                        console.log('SpacesStore.ts: bucket is undefined');
+                    }
+
+                    return true;
+                }
+
+                return false;
+            });
+        }
+
+        // USER
+        if (users) {
+            const matchingUser = users.find((user) => user.id === modifiedSpace.fromUserId);
+            if (matchingUser) {
+                matchingUsers[matchingUser.id] = matchingUser;
+                modifiedSpace.fromUserName = matchingUser.userName;
+                modifiedSpace.fromUserFirstName = matchingUser.firstName;
+                modifiedSpace.fromUserLastName = matchingUser.lastName;
+                modifiedSpace.fromUserMedia = matchingUser.media;
+                modifiedSpace.fromUserIsSuperUser = matchingUser.isSuperUser;
+            }
+        }
+
+        return modifiedSpace;
+    });
+
+    return {
+        matchingUsers,
+        mappedSpaces,
+        signingPromises,
+    };
+};
+
 export default class SpacesStore {
     db: IConnection;
 
@@ -313,10 +383,7 @@ export default class SpacesStore {
                 const mediaIds: string[] = [];
                 const userIds: string[] = [];
                 const spaceResultIds: string[] = [];
-                const signingPromises: any = [];
-                const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
                 const spaceDetailsPromises: Promise<any>[] = [];
-                const matchingUsers: any = {};
 
                 spaces.forEach((space) => {
                     if (options.withMedia && space.mediaIds) {
@@ -336,68 +403,12 @@ export default class SpacesStore {
 
                 const [media, users, ratings] = await Promise.all(spaceDetailsPromises);
 
-                // TODO: Optimize
-                const mappedSpaces = spaces.map((space, index) => {
-                    const modifiedSpace = space;
-                    modifiedSpace.media = [];
-                    modifiedSpace.user = {};
-                    modifiedSpace.rating = ratings?.[index] || {};
+                const spacesMedia = getSpacesToMediaAndUsersAndRatings(spaces, media, users, ratings);
 
-                    // MEDIA
-                    if (options.withMedia && space.mediaIds) {
-                        const ids = modifiedSpace.mediaIds.split(',');
-                        modifiedSpace.media = media.filter((m) => {
-                            if (ids.includes(m.id)) {
-                                const bucket = getBucket(m.type);
-                                if (bucket) {
-                                    // TODO: Consider alternatives to cache these urls (per user) and their expire time
-                                    const promise = storage
-                                        .bucket(bucket)
-                                        .file(m.path)
-                                        .getSignedUrl({
-                                            version: 'v4',
-                                            action: 'read',
-                                            expires: imageExpireTime,
-                                        })
-                                        .then((urls) => ({
-                                            [m.id]: urls[0],
-                                        }))
-                                        .catch((err) => {
-                                            console.log(err);
-                                            return {};
-                                        });
-                                    signingPromises.push(promise);
-                                } else {
-                                    console.log('MomentsStore.ts: bucket is undefined');
-                                }
-
-                                return true;
-                            }
-
-                            return false;
-                        });
-                    }
-
-                    // USER
-                    if (options.withUser) {
-                        const matchingUser = users.find((user) => user.id === modifiedSpace.fromUserId);
-                        if (matchingUser) {
-                            matchingUsers[matchingUser.id] = matchingUser;
-                            modifiedSpace.fromUserName = matchingUser.userName;
-                            modifiedSpace.fromUserFirstName = matchingUser.firstName;
-                            modifiedSpace.fromUserLastName = matchingUser.lastName;
-                            modifiedSpace.fromUserMedia = matchingUser.media;
-                            modifiedSpace.fromUserIsSuperUser = matchingUser.isSuperUser;
-                        }
-                    }
-
-                    return modifiedSpace;
-                });
-
-                return Promise.all(signingPromises).then((signedUrlResponses) => ({
-                    spaces: mappedSpaces,
+                return Promise.all(spacesMedia.signingPromises).then((signedUrlResponses) => ({
+                    spaces: spacesMedia.mappedSpaces,
                     media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
-                    users: matchingUsers,
+                    users: spacesMedia.matchingUsers,
                 }));
             }
 
@@ -481,6 +492,10 @@ export default class SpacesStore {
                 geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${radius})::geometry, 4326)`),
             };
 
+            if (params.medias) {
+                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+            }
+
             if (params.openingHours) {
                 sanitizedParams.openingHours = JSON.stringify(params.openingHours);
             }
@@ -549,6 +564,10 @@ export default class SpacesStore {
                 postalCode: params.postalCode,
                 priceRange: params.priceRange,
             };
+
+            if (params.medias) {
+                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+            }
 
             if (params.thirdPartyRatings) {
                 sanitizedParams.thirdPartyRatings = JSON.stringify(params.thirdPartyRatings);
