@@ -10,7 +10,7 @@ import findUsers from '../utilities/findUsers';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import { ICreateAreaParams, IDeleteAreasParams } from './common/models';
 import { sanitizeNotificationMsg } from './common/utils';
-import getReactions, { getRatings } from '../utilities/getReactions';
+import { getRatings } from '../utilities/getReactions';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -449,7 +449,7 @@ export default class EventsStore {
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
 
         return mediaPromise.then((mediaIds: string | undefined) => {
-            const sanitizedParams = {
+            const sanitizedParams: any = {
                 areaType: params.areaType || 'events',
                 category: params.category || 'uncategorized',
                 createdAt: params.createdAt || undefined, // TODO: make more secure (only for social sync)
@@ -480,6 +480,10 @@ export default class EventsStore {
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
                 geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
             };
+
+            if (params.medias) {
+                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+            }
 
             const queryString = knexBuilder.insert(sanitizedParams)
                 .into(EVENTS_TABLE_NAME)
@@ -516,7 +520,7 @@ export default class EventsStore {
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
 
         return mediaPromise.then((mediaIds: string | undefined) => {
-            const sanitizedParams = {
+            const sanitizedParams: any = {
                 areaType: params.areaType || 'events',
                 category: params.category || 'uncategorized',
                 expiresAt: params.expiresAt,
@@ -542,6 +546,10 @@ export default class EventsStore {
                 // geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
                 updatedAt: new Date(),
             };
+
+            if (params.medias) {
+                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+            }
 
             const queryString = knexBuilder.update(sanitizedParams)
                 .into(EVENTS_TABLE_NAME)

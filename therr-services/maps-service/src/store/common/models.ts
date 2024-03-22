@@ -17,6 +17,11 @@ export interface ICreateAreaParams {
     message: string;
     notificationMsg?: string;
     mediaIds?: string;
+    medias?: {
+        altText: string;
+        type: string;
+        path: string;
+    }[];
     media?: ICreateMediaParams[];
     mentionsIds?: string;
     hashTags?: string;

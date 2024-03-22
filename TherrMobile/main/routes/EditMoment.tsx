@@ -259,8 +259,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         }).then((response) => {
             const signedUrl = response?.data?.url && response?.data?.url[0];
             createArgs.media = [{}];
+            createArgs.media[0].altText = notificationMsg;
             createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
             createArgs.media[0].path = response?.data?.path;
+            // TODO: Replace media with medias after migrations
+            createArgs.medias = createArgs.media;
 
             const localFileCroppedPath = `${imageDetails?.path}`;
 

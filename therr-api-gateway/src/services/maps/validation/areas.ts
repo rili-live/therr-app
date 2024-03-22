@@ -18,6 +18,7 @@ export const createAreaValidation = [
     body('message').isString().exists(),
     body('notificationMsg').isString().optional(),
     body('mediaIds').isString().optional(),
+    body('medias').isArray().optional(), // TODO: Add granularity
     body('mentionsIds').isString().optional(),
     body('hashTags').isString().optional(),
     body('maxViews').isNumeric().optional(),
