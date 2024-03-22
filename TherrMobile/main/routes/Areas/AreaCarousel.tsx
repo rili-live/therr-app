@@ -64,19 +64,20 @@ const renderItem = ({ item: post }, {
     user,
 }) => {
     const mediaIdsSplit = (post.mediaIds || '').split(',');
-    const mediaPath = (post.media && post.media[0]?.path);
-    const mediaType = (post.media && post.media[0]?.type);
+    const mediaPath = post.medias?.[0]?.path || post.media?.[0]?.path;
+    const mediaType = post.medias?.[0]?.type || post.media?.[0]?.type;
 
-    if ((post.media || post.mediaIds) && (!media?.[post.media?.[0]?.id || mediaIdsSplit?.[0]])
+    // TODO: Everything should use post.medias after migrations
+    if ((post.media || post.mediaIds) && (!media?.[(post.medias || post.media)?.[0]?.id || mediaIdsSplit?.[0]])
         && (!mediaPath || mediaType !== Content.mediaTypes.USER_IMAGE_PUBLIC)) {
         // TODO: Only fetch when we need signed urls
-        fetchMedia(post.media[0]?.id);
+        fetchMedia(post.media?.[0]?.id || mediaIdsSplit?.[0]);
     }
 
     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
     let postMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(post.media[0], screenWidth, screenWidth)
-        : media && media[post.media && post.media[0]?.id];
+        ? getUserContentUri((post.medias?.[0] || post.media[0]), screenWidth, screenWidth)
+        : media?.[(post.medias || post.media)?.[0]?.id];
     if (!postMedia) {
         const mediaId = media && mediaIdsSplit?.[0];
         postMedia = media[mediaId];

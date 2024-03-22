@@ -475,12 +475,12 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         const eventUserName = isMyContent ? user.details.userName : eventInView.fromUserName;
         const eventUserMedia = isMyContent ? user.details.media : (eventInView.fromUserMedia || {});
         const eventUserIsSuperUser = isMyContent ? user.details.isSuperUser : (eventInView.fromUserIsSuperUser || {});
-        const mediaId = (eventInView.media && eventInView.media[0]?.id) || (eventInView.mediaIds?.length && eventInView.mediaIds?.split(',')[0]);
+        const mediaId = ((eventInView.medias || eventInView.media)[0]?.id) || (eventInView.mediaIds?.length && eventInView.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = (eventInView.media && eventInView.media[0]?.path);
-        const mediaType = (eventInView.media && eventInView.media[0]?.type);
+        const mediaPath = ((eventInView.medias || eventInView.media)[0]?.path);
+        const mediaType = ((eventInView.medias || eventInView.media)[0]?.type);
         const eventMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri(eventInView.media[0], screenWidth, screenWidth)
+            ? getUserContentUri((eventInView.medias || eventInView.media)?.[0], screenWidth, screenWidth)
             : content?.media[mediaId];
 
         return (

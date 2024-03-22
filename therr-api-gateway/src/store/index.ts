@@ -20,8 +20,8 @@ class CacheStore {
         this.cache = cacheClient;
         this.ephemeralCache = ephemeralClient;
         this.filesService = new FilesServiceStore(this.ephemeralCache);
-        this.usersService = new UsersServiceStore(this.cache);
-        this.mapsService = new MapsServiceStore(this.cache);
+        this.usersService = new UsersServiceStore(this.ephemeralCache);
+        this.mapsService = new MapsServiceStore(this.ephemeralCache);
     }
 }
 
