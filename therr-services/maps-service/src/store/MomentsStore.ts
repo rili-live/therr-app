@@ -423,7 +423,7 @@ export default class MomentsStore {
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
 
         return mediaPromise.then((mediaIds: string | undefined) => {
-            const sanitizedParams = {
+            const sanitizedParams: any = {
                 areaType: params.areaType || 'moments',
                 category: params.category || 'uncategorized',
                 createdAt: params.createdAt || undefined, // TODO: make more secure (only for social sync)
@@ -451,6 +451,10 @@ export default class MomentsStore {
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
                 geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
             };
+
+            if (params.medias) {
+                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+            }
 
             const queryString = knexBuilder.insert(sanitizedParams)
                 .into(MOMENTS_TABLE_NAME)
@@ -487,7 +491,7 @@ export default class MomentsStore {
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
 
         return mediaPromise.then((mediaIds: string | undefined) => {
-            const sanitizedParams = {
+            const sanitizedParams: any = {
                 areaType: params.areaType || 'moments',
                 category: params.category || 'uncategorized',
                 expiresAt: params.expiresAt,
@@ -513,6 +517,10 @@ export default class MomentsStore {
                 // geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
                 updatedAt: new Date(),
             };
+
+            if (params.medias) {
+                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+            }
 
             const queryString = knexBuilder.update(sanitizedParams)
                 .into(MOMENTS_TABLE_NAME)

@@ -85,7 +85,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 304
         versionName "2.58.3"
-        manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "AIzaSyBIZAIv0DPRlXdBJRyZSm2bOAunHuCv1-c"]
+        manifestPlaceholders = [GOOGLE_APIS_ANDROID_KEY: "$System.env.GOOGLE_APIS_ANDROID_KEY"]
         vectorDrawables.useSupportLibrary = true
     }
     signingConfigs {
