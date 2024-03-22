@@ -7,11 +7,13 @@
         <item name="android:statusBarColor">@color/therr_blue</item>
     </style>
 
-    <style name="Theme.CustomSplashScreenTheme" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/therr_blue</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
-        <item name="windowSplashScreenAnimationDuration">300</item>
-        <item name="postSplashScreenTheme">@style/AppTheme</item>
+    <!-- BootTheme should inherit from Theme.BootSplash or Theme.BootSplash.EdgeToEdge -->
+    <style name="BootTheme" parent="Theme.BootSplash">
+        <item name="bootSplashBackground">@color/bootsplash_background</item>
+        <item name="bootSplashLogo">@drawable/bootsplash_logo</item>
+        <!-- <item name="windowSplashScreenAnimationDuration">300</item> -->
+        <!-- <item name="bootSplashBrand">@drawable/bootsplash_brand</item> Only if you have a brand image -->
+        <item name="postBootSplashTheme">@style/AppTheme</item>
     </style>
 
     <style name="DatePickerTheme" parent="DatePickerBaseTheme">

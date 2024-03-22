@@ -35,7 +35,7 @@
 			</array>
 		</dict>
 		<dict>
-			<key></key>
+			<key/>
 			<string></string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
@@ -74,13 +74,12 @@
 		<string>dgis</string>
 		<string>lftgpas</string>
 		<string>tel</string>
-  		<string>telprompt</string>
+		<string>telprompt</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
@@ -139,7 +138,7 @@
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
-	<string>BootSplash</string>
+	<string>BootSplash.storyboard</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
