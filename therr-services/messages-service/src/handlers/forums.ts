@@ -99,6 +99,14 @@ const getForum = (req, res) => {
                         statusCode: 404,
                     });
                 }
+
+                // Update forum to main most recently updated/active
+                Store.forums.updateForum({
+                    id: forums[0].id,
+                }, {}).catch((err) => {
+                    console.log(err);
+                });
+
                 return res.status(202).send({
                     ...forums[0],
                     events,
@@ -230,9 +238,8 @@ const updateForum = (req, res) => {
 
     return Store.forums.updateForum({
         id: forumId,
-    }, {
         authorId: userId,
-        authorLocale: locale,
+    }, {
         administratorIds: req.body.administratorIds,
         title: req.body.title,
         subtitle: req.body.subtitle,

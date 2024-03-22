@@ -10,7 +10,7 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export const FORUMS_TABLE_NAME = 'main.forums';
 
 export interface ICreateForumParams {
-    authorId: number;
+    authorId: string;
     authorLocale: string;
     administratorIds: string;
     categoryTags: string[];
@@ -29,11 +29,12 @@ export interface ICreateForumParams {
 }
 
 export interface IUpdateForumConditions {
-    id: number;
+    id: string;
+    authorId?: string;
 }
 
 export interface IUpdateForumParams {
-    authorId?: number;
+    authorId?: string;
     authorLocale?: string;
     administratorIds?: string;
     title?: string[];

@@ -38,6 +38,12 @@ class ForumsService {
         data,
     });
 
+    updateForum = (id: string, data: ICreateForumBody) => axios({
+        method: 'post',
+        url: `/messages-service/forums/${id}`,
+        data,
+    });
+
     searchCategories = (query: ISearchQuery) => {
         const queryString = getSearchQueryString(query);
 
