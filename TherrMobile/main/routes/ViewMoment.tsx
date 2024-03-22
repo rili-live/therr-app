@@ -368,12 +368,14 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         const momentUserName = isMyContent ? user.details.userName : momentInView.fromUserName;
         const momentUserMedia = isMyContent ? user.details.media : (momentInView.fromUserMedia || {});
         const momentUserIsSuperUser = isMyContent ? user.details.isSuperUser : (momentInView.fromUserIsSuperUser || {});
-        const mediaId = (momentInView.media && momentInView.media[0]?.id) || (momentInView.mediaIds?.length && momentInView.mediaIds?.split(',')[0]);
+
+        // TODO: Everything should use post.medias after migrations
+        const mediaId = ((momentInView.medias || momentInView.media)?.[0]?.id) || (momentInView.mediaIds?.length && momentInView.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = (momentInView.media && momentInView.media[0]?.path);
-        const mediaType = (momentInView.media && momentInView.media[0]?.type);
+        const mediaPath = ((momentInView.medias || momentInView.media)?.[0]?.path);
+        const mediaType = ((momentInView.medias || momentInView.media)?.[0]?.type);
         const momentMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri(momentInView.media[0], screenWidth, screenWidth)
+            ? getUserContentUri((momentInView.medias || momentInView.media)?.[0], screenWidth, screenWidth)
             : content?.media[mediaId];
 
         return (
