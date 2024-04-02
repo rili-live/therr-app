@@ -1,6 +1,21 @@
 $profileImgWidth: rem-calc(100px);
 
 #page_view_space {
+    .action-links {
+        .action-container {
+            margin: 0 1rem 0 0;
+
+            .action-link {
+                border: 1px $therr-primary-1;
+                border-radius: 3px;
+                background: $therr-white;
+                color: $therr-primary-1;
+                text-decoration: none;
+                padding: .5rem 1rem;
+            }
+        }
+    }
+
     .store-image-links {
         display: flex;
         flex-direction: row;
@@ -8,20 +23,47 @@ $profileImgWidth: rem-calc(100px);
         flex-wrap: wrap;
     }
 
-    .space-image-container {
-        flex: 1;
-        width: 100%;
-        height: 100%;
+    .space-header {
         display: flex;
-        justify-content: center;
-        align-items: center;
-        box-sizing: border-box;
+        flex-direction: row-reverse;
+        flex-wrap: wrap-reverse;
 
-        .space-image {
-            width: 100%;
-            height: 100%;
-            border-radius: rem-calc(16px);
+        .space-details {
+            flex: 1;
+            min-width: 100%;
         }
+        .space-featured-image {
+            position: relative;
+            width: 100%;
+            flex: 1;
+            height: 85vw;
+            min-height: 4rem;
+            min-width: 4rem;
+
+            .space-image-container {
+                position: absolute;
+                top: 0;
+                flex: 1;
+                width: 100%;
+                // height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                box-sizing: border-box;
+        
+                .space-image {
+                    width: 100%;
+                    height: 100%;
+                    border: none;
+                    border-radius: 0;
+                    box-sizing: border-box;
+                }
+            }
+        }
+    }
+
+    .space-body {
+
     }
 }
 
@@ -35,5 +77,37 @@ $profileImgWidth: rem-calc(100px);
 }
 
 @media only screen and (min-width: $screen-small) {
+    #page_view_space {
+        .space-header {
+            flex-direction: row;
+            flex-wrap: wrap;
+
+            .space-details {
+                flex: 3;
+                min-width: auto;
+            }
+            .space-featured-image {
+                position: relative;
+                flex: 1;
+                height: rem-calc(162px);
+                width: rem-calc(162px);
+                min-height: 4rem;
+                min-width: 4rem;
     
+                .space-image-container {
+                    position: absolute;
+                    top: -50%;
+            
+                    .space-image {
+                        border: rem-calc(6px) solid $therr-white;
+                        border-radius: .5rem;
+                    }
+                }
+            }
+        }
+    
+        .space-body {
+    
+        }
+    }
 }
