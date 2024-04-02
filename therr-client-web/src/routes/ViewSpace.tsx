@@ -100,12 +100,13 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         const { spaceId } = this.state;
         const space = map?.spaces[spaceId];
 
-        const mediaId = (space.media && space.media[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
+        // TODO: Everything should use post.medias after migrations
+        const mediaId = ((space.medias || space.media)?.[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = (space.media && space.media[0]?.path);
-        const mediaType = (space.media && space.media[0]?.type);
+        const mediaPath = ((space.medias || space.media)?.[0]?.path);
+        const mediaType = ((space.medias || space.media)?.[0]?.type);
         const spaceMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri(space.media[0], 480, 480, true)
+            ? getUserContentUri((space.medias || space.media)?.[0], 480, 480, true)
             : content?.media[mediaId];
 
         return (
@@ -113,63 +114,69 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 <div className="login-container info-container">
                     {
                         space
-                            && <div className="flex fill max-wide-40">
-                                <h1 className="text-title-medium no-bot-margin fill">
-                                    {space?.notificationMsg}
-                                </h1>
-                                {
-                                    space?.addressReadable
-                                        && <h2 className="text-title-small no-bot-margin fill">
-                                            {space?.addressReadable}
-                                        </h2>
-                                }
-                                {
-                                    space?.websiteUrl
-                                        && <h3 className="text-title-small no-bot-margin fill">
-                                            <a href={space?.websiteUrl} target="_blank">Website</a>
-                                        </h3>
-                                }
-                                {
-                                    space?.menuUrl
-                                        && <h3 className="text-title-small no-bot-margin fill">
-                                            <a href={space?.menuUrl} target="_blank">Menu</a>
-                                        </h3>
-                                }
-                                {
-                                    space?.phoneNumber
-                                    && <h3 className="text-title-small no-bot-margin fill">
-                                        <a href={`tel:${space?.phoneNumber}`} target="_blank">Phone</a>
-                                    </h3>
-                                }
-                                {
-                                    space?.orderUrl
-                                        && <h3 className="text-title-small no-bot-margin fill">
-                                            <a href={space?.orderUrl} target="_blank">Order Delivery</a>
-                                        </h3>
-                                }
-                                {
-                                    space?.reservationUrl
-                                        && <h3 className="text-title-small no-bot-margin fill">
-                                            <a href={space?.reservationUrl} target="_blank">Make Reservations</a>
-                                        </h3>
-                                }
-                                <p className="info-text fill">{space?.message}</p>
-                            </div>
-                    }
-                </div>
-                <div className="login-container info-container">
-                    {
-                        space
-                            && <div className="flex fill max-wide-30">
-                                <div className="space-image-container">
-                                    {spaceMedia
-                                    && <img
-                                        className="space-image"
-                                        src={spaceMedia}
-                                        alt={space.notificationMsg}
-                                        height={480}
-                                        width={480}
-                                    />}
+                            && <div className="flex fill max-wide-60">
+                                <div className="space-header flex">
+                                    <div className="space-details">
+                                        <h1 className="text-title-medium no-bot-margin fill">
+                                            {space?.notificationMsg}
+                                        </h1>
+                                        {
+                                            space?.addressReadable
+                                                && <h2 className="text-title-small no-bot-margin fill">
+                                                    {space?.addressReadable}
+                                                </h2>
+                                        }
+                                        <div className="action-links flex-box row justify-start">
+                                            {
+                                                space?.websiteUrl
+                                                    && <p className="action-container text-title-small no-bot-margin">
+                                                        <a href={space?.websiteUrl} className="action-link" target="_blank">Website</a>
+                                                    </p>
+                                            }
+                                            {
+                                                space?.menuUrl
+                                                    && <p className="action-container text-title-small no-bot-margin">
+                                                        <a href={space?.menuUrl} className="action-link" target="_blank">Menu</a>
+                                                    </p>
+                                            }
+                                            {
+                                                space?.phoneNumber
+                                                && <p className="action-container text-title-small no-bot-margin">
+                                                    <a href={`tel:${space?.phoneNumber}`} className="action-link" target="_blank">Phone</a>
+                                                </p>
+                                            }
+                                            {
+                                                space?.orderUrl
+                                                    && <p className="action-container text-title-small no-bot-margin">
+                                                        <a href={space?.orderUrl} className="action-link" target="_blank">Order Delivery</a>
+                                                    </p>
+                                            }
+                                            {
+                                                space?.reservationUrl
+                                                    && <p className="action-container text-title-small no-bot-margin">
+                                                        <a href={space?.reservationUrl} className="action-link" target="_blank">Make Reservations</a>
+                                                    </p>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div className="space-featured-image">
+                                        {
+                                            space
+                                                && <div className="space-image-container">
+                                                    {spaceMedia
+                                                    && <img
+                                                        className="space-image"
+                                                        src={spaceMedia}
+                                                        alt={space.notificationMsg}
+                                                        height={480}
+                                                        width={480}
+                                                    />}
+                                                </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div className="space-body">
+                                    <p className="info-text fill">{space?.message}</p>
                                 </div>
                             </div>
                     }

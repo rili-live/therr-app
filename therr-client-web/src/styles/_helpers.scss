@@ -29,6 +29,18 @@
     align-self: auto !important;
 }
 
+.justify-center {
+    justify-content: center;
+}
+
+.justify-start {
+    justify-content: flex-start;
+}
+
+.justify-end {
+    justify-content: flex-end;
+}
+
 @media only screen and (min-width: $screen-medium) {
     .password-requirements {
         p {
