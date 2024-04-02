@@ -104,7 +104,7 @@ spec:
 
           # Replace DB_PORT with the port the proxy should listen on
           # Defaults: MySQL: 3306, Postgres: 5432, SQLServer: 1433
-          - "-instances=therr-app:us-central1:psql-main-db-prod=tcp:5432"
+          - "-instances=therr-app:us-central1:therr-db-main-prod=tcp:5432"
         securityContext:
           # The default Cloud SQL proxy image runs as the
           # "nonroot" user and group (uid: 65532) by default.
