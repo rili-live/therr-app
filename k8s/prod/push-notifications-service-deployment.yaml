@@ -90,7 +90,7 @@ spec:
       - name: cloud-sql-proxy
         # It is recommended to use the latest version of the Cloud SQL proxy
         # Make sure to update on a regular schedule!
-        image: gcr.io/cloudsql-docker/gce-proxy:1.34.1
+        image: gcr.io/cloudsql-docker/gce-proxy:2.10.1
         resources:
           limits:
             memory: "64Mi"
