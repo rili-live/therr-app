@@ -2,8 +2,11 @@ $profileImgWidth: rem-calc(100px);
 
 #page_view_space {
     .action-links {
+        flex-wrap: wrap;
+
         .action-container {
-            margin: 0 1rem 0 0;
+            display: flex;
+            margin: 0 1rem 1rem 0;
 
             .action-link {
                 border: 1px $therr-primary-1;

@@ -129,33 +129,33 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                         <div className="action-links flex-box row justify-start">
                                             {
                                                 space?.websiteUrl
-                                                    && <p className="action-container text-title-small no-bot-margin">
+                                                    && <span className="action-container text-title-small no-bot-margin">
                                                         <a href={space?.websiteUrl} className="action-link" target="_blank">Website</a>
-                                                    </p>
+                                                    </span>
                                             }
                                             {
                                                 space?.menuUrl
-                                                    && <p className="action-container text-title-small no-bot-margin">
+                                                    && <span className="action-container text-title-small no-bot-margin">
                                                         <a href={space?.menuUrl} className="action-link" target="_blank">Menu</a>
-                                                    </p>
+                                                    </span>
                                             }
                                             {
                                                 space?.phoneNumber
-                                                && <p className="action-container text-title-small no-bot-margin">
+                                                && <span className="action-container text-title-small no-bot-margin">
                                                     <a href={`tel:${space?.phoneNumber}`} className="action-link" target="_blank">Phone</a>
-                                                </p>
+                                                </span>
                                             }
                                             {
                                                 space?.orderUrl
-                                                    && <p className="action-container text-title-small no-bot-margin">
+                                                    && <span className="action-container text-title-small no-bot-margin">
                                                         <a href={space?.orderUrl} className="action-link" target="_blank">Order Delivery</a>
-                                                    </p>
+                                                    </span>
                                             }
                                             {
                                                 space?.reservationUrl
-                                                    && <p className="action-container text-title-small no-bot-margin">
+                                                    && <span className="action-container text-title-small no-bot-margin">
                                                         <a href={space?.reservationUrl} className="action-link" target="_blank">Make Reservations</a>
-                                                    </p>
+                                                    </span>
                                             }
                                         </div>
                                     </div>
