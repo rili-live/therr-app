@@ -96,7 +96,7 @@ spec:
 
           # Replace DB_PORT with the port the proxy should listen on
           - "--port=5432"
-          - "therr-app:us-central1:therr-db-main-prod"
+          - "therr-app:us-central1:therr-db-main-prod-14"
         securityContext:
           # The default Cloud SQL proxy image runs as the
           # "nonroot" user and group (uid: 65532) by default.
