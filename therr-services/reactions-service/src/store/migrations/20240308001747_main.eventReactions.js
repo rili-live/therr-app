@@ -5,6 +5,7 @@ exports.up = (knex) => knex.schema.withSchema('main').alterTable('eventReactions
 });
 
 exports.down = (knex) => knex.schema.withSchema('main').alterTable('eventReactions', async (table) => {
+    table.dropColumn('attendingCount');
     table.dropIndex(['userId', 'userHasActivated', 'userHasReported']);
     table.dropIndex([], 'idx_eventreactions_is_attending');
 });
