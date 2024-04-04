@@ -34,6 +34,7 @@ $profileImgWidth: rem-calc(100px);
         .space-details {
             flex: 1;
             min-width: 100%;
+            padding-right: 0;
         }
         .space-featured-image {
             position: relative;
@@ -88,6 +89,7 @@ $profileImgWidth: rem-calc(100px);
             .space-details {
                 flex: 3;
                 min-width: auto;
+                padding-right: 1rem;
             }
             .space-featured-image {
                 position: relative;
