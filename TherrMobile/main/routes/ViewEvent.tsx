@@ -151,8 +151,8 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         const { event } = route.params;
 
         const shouldFetchUser = !event?.fromUserMedia || !event.fromUserName;
-        const mediaId = (event.media && event.media[0]?.id) || (event.mediaIds?.length && event.mediaIds?.split(',')[0]);
-        const eventMedia = content?.media[mediaId];
+        const mediaPath = event.medias?.[0]?.path;
+        const eventMedia = content?.media[mediaPath];
 
         // Move event details out of route params and into redux
         getEventDetails(event.id, {
@@ -475,13 +475,12 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         const eventUserName = isMyContent ? user.details.userName : eventInView.fromUserName;
         const eventUserMedia = isMyContent ? user.details.media : (eventInView.fromUserMedia || {});
         const eventUserIsSuperUser = isMyContent ? user.details.isSuperUser : (eventInView.fromUserIsSuperUser || {});
-        const mediaId = ((eventInView.medias || eventInView.media)[0]?.id) || (eventInView.mediaIds?.length && eventInView.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = ((eventInView.medias || eventInView.media)[0]?.path);
-        const mediaType = ((eventInView.medias || eventInView.media)[0]?.type);
+        const mediaPath = eventInView.medias[0]?.path;
+        const mediaType = eventInView.medias[0]?.type;
         const eventMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri((eventInView.medias || eventInView.media)?.[0], screenWidth, screenWidth)
-            : content?.media[mediaId];
+            ? getUserContentUri(eventInView.medias?.[0], screenWidth, screenWidth)
+            : content?.media[mediaPath];
 
         return (
             <>

@@ -120,7 +120,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperState> {
+class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrapperState> {
     private carouselRef;
     private translate: (key: string, params?: any) => any;
     private loaderId: ILottieId;
@@ -447,11 +447,6 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
         console.log('geolocation error', error.code);
     };
 
-    fetchMissingMedia = (mediaIds: string[]) => {
-        const { fetchMedia } = this.props;
-        return fetchMedia(mediaIds);
-    };
-
     handleEnableLocationPress = () => {
         const {
             location,
@@ -650,14 +645,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             shouldIncludeMoments: true,
             shouldIncludeSpaces: false, // spaces are best viewed in the animated preview
         }, 'distance');
-        let missingMediaIds: any[] = [];
         const formattedActiveData = activatedData?.map(d => {
-            if (d?.mediaIds?.length && !d?.media?.length) {
-                const areaMediaIds = d?.mediaIds?.split(",");
-                if (!content?.media?.[areaMediaIds[0]]) {
-                    missingMediaIds.push(...d.mediaIds.split(","));
-                }
-            }
             const formatted = {
                 ...d,
             };
@@ -667,11 +655,6 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
             return formatted;
         });
-        if (missingMediaIds.length) {
-            this.fetchMissingMedia(missingMediaIds).catch((err) => {
-                console.log(err);
-            });
-        }
         const shouldRenderAreaFeed = shouldRenderNearbyAreaFeed(location);
 
         return (

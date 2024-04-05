@@ -372,8 +372,8 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
             isEditing,
         } = this.state;
         const { content, map, user } = this.props;
-        const mediaId = (fetchedSpace?.media && fetchedSpace?.media[0]?.id) || (fetchedSpace?.mediaIds?.length && fetchedSpace?.mediaIds?.split(',')[0]);
-        const spaceMediaUrl = content?.media[mediaId];
+        const mediaPath = fetchedSpace?.medias?.[0]?.path;
+        const spaceMediaUrl = content?.media[mediaPath];
 
         return (
             <div id="page_settings" className="flex-box column">

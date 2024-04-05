@@ -72,7 +72,7 @@ const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?
                         // TODO: Consider alternatives to cache these urls (per user) and their expire time
                         if (bucket === getBucket(Content.mediaTypes.USER_IMAGE_PRIVATE)) {
                             promise = Promise.resolve({
-                                [m.id]: `${process.env.IMAGE_KIT_URL_PRIVATE}${m.path}`,
+                                [m.path]: `${process.env.IMAGE_KIT_URL_PRIVATE}${m.path}`,
                             });
                         } else {
                             promise = storage
@@ -88,7 +88,7 @@ const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?
                                     },
                                 })
                                 .then((urls) => ({
-                                    [m.id]: urls[0],
+                                    [m.path]: urls[0],
                                 }))
                                 .catch((err) => {
                                     console.log(err);

@@ -105,13 +105,12 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         }
 
         // TODO: Everything should use post.medias after migrations
-        const mediaId = ((space.medias || space.media)?.[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = ((space.medias || space.media)?.[0]?.path);
-        const mediaType = ((space.medias || space.media)?.[0]?.type);
+        const mediaPath = (space.medias?.[0]?.path);
+        const mediaType = (space.medias?.[0]?.type);
         const spaceMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri((space.medias || space.media)?.[0], 480, 480, true)
-            : content?.media[mediaId];
+            ? getUserContentUri(space.medias?.[0], 480, 480, true)
+            : content?.media?.[mediaPath];
 
         return (
             <div id="page_view_space" className="flex-box space-evenly center row wrap-reverse">

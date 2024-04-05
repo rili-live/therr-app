@@ -95,13 +95,12 @@ const renderMomentView = (req, res, config, {
 
     let metaImgUrl;
 
-    const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-    const mediaPath = (moment.media && moment.media[0]?.path);
-    const mediaType = (moment.media && moment.media[0]?.type);
+    const mediaPath = (moment.medias?.[0]?.path);
+    const mediaType = (moment.medias?.[0]?.type);
     const momentMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(moment.media[0])
-        : content?.media[mediaId];
+        ? getUserContentUri(moment.medias[0])
+        : content?.media?.[mediaPath];
 
     // TODO: Use an image optimized for meta image
     if (momentMediaUri) {
@@ -155,13 +154,12 @@ const renderSpaceView = (req, res, config, {
 
     let metaImgUrl;
 
-    const mediaId = (space?.media && space?.media[0]?.id) || (space?.mediaIds?.length && space?.mediaIds?.split(',')[0]);
     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-    const mediaPath = (space?.media && space?.media[0]?.path);
-    const mediaType = (space?.media && space?.media[0]?.type);
+    const mediaPath = (space.medias?.[0]?.path);
+    const mediaType = (space.medias?.[0]?.type);
     const spaceMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(space?.media[0])
-        : content?.media[mediaId];
+        ? getUserContentUri(space?.medias[0])
+        : content?.media?.[mediaPath];
 
     // TODO: Use an image optimized for meta image (ImageKit)
     if (spaceMediaUri) {
