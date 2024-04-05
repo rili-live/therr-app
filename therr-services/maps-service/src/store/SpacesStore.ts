@@ -1,6 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import * as countryGeo from 'country-reverse-geocoding';
-import { Location } from 'therr-js-utilities/constants';
+import { Content, Location } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 import { storage } from '../api/aws';
@@ -48,6 +48,8 @@ export interface ICreateSpaceParams extends ICreateAreaParams {
     priceRange?: number;
 }
 
+// TODO: This needs more security logic to ensure the requesting user has permissions to view
+// non-public images
 const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?: any[], ratings?: any[]) => {
     const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
     const matchingUsers: any = {};
@@ -61,32 +63,38 @@ const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?
         modifiedSpace.rating = ratings?.[index] || {};
 
         // MEDIA
-        if (media && space.mediaIds) {
-            const ids = modifiedSpace.mediaIds.split(',');
-            modifiedSpace.media = media.filter((m) => {
-                if (ids.includes(m.id)) {
+        if (space.medias?.length) {
+            modifiedSpace.media = space.medias.filter((m) => {
+                if (m.type === Content.mediaTypes.USER_IMAGE_PRIVATE) {
                     const bucket = getBucket(m.type);
                     if (bucket) {
+                        let promise;
                         // TODO: Consider alternatives to cache these urls (per user) and their expire time
-                        const promise = storage
-                            .bucket(bucket)
-                            .file(m.path)
-                            .getSignedUrl({
-                                version: 'v4',
-                                action: 'read',
-                                expires: imageExpireTime,
-                                // TODO: Test is cache-control headers work here
-                                extensionHeaders: {
-                                    'Cache-Control': 'public, max-age=43200', // 1 day
-                                },
-                            })
-                            .then((urls) => ({
-                                [m.id]: urls[0],
-                            }))
-                            .catch((err) => {
-                                console.log(err);
-                                return {};
+                        if (bucket === getBucket(Content.mediaTypes.USER_IMAGE_PRIVATE)) {
+                            promise = Promise.resolve({
+                                [m.id]: `${process.env.IMAGE_KIT_URL_PRIVATE}${m.path}`,
                             });
+                        } else {
+                            promise = storage
+                                .bucket(bucket)
+                                .file(m.path)
+                                .getSignedUrl({
+                                    version: 'v4',
+                                    action: 'read',
+                                    expires: imageExpireTime,
+                                    // TODO: Test is cache-control headers work here
+                                    extensionHeaders: {
+                                        'Cache-Control': 'public, max-age=43200', // 1 day
+                                    },
+                                })
+                                .then((urls) => ({
+                                    [m.id]: urls[0],
+                                }))
+                                .catch((err) => {
+                                    console.log(err);
+                                    return {};
+                                });
+                        }
                         signingPromises.push(promise);
                     } else {
                         console.log('SpacesStore.ts: bucket is undefined');
