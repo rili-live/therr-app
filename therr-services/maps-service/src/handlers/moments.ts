@@ -796,6 +796,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
         // longitude,
         // latitude,
         pageNumber,
+        withUser, // TODO: Implement fetch user media
     } = req.query;
     const {
         distanceOverride,
