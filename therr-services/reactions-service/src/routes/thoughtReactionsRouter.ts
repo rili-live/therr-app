@@ -4,6 +4,7 @@ import {
     createOrUpdateMultiThoughtReactions,
     getThoughtReactions,
     getReactionsByThoughtId,
+    countThoughtReactions,
     findThoughtReactions,
 } from '../handlers/thoughtReactions';
 
@@ -19,6 +20,7 @@ router.get('/', getThoughtReactions);
 
 // GET
 router.get('/:thoughtId', getReactionsByThoughtId);
+router.get('/:thoughtId/count', countThoughtReactions);
 
 // POST
 router.post('/find/dynamic', findThoughtReactions);

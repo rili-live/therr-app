@@ -178,6 +178,21 @@ const findSpaceReactions: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
 };
 
+const countSpaceReactions: RequestHandler = async (req: any, res: any) => {
+    // const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        spaceId,
+    } = req.params;
+
+    return Store.spaceReactions.getCounts([spaceId], {})
+        .then(([space]) => res.status(200).send({
+            spaceId: space?.spaceId,
+            count: space?.count || 0,
+        }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
+};
+
 export {
     getSpaceReactions,
     getSpaceRatings,
@@ -185,4 +200,5 @@ export {
     createOrUpdateSpaceReaction,
     createOrUpdateMultiSpaceReactions,
     findSpaceReactions,
+    countSpaceReactions,
 };

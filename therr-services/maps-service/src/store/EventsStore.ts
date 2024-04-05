@@ -60,6 +60,10 @@ const getEventsToMediaAndUsers = (events: any[], media?: any[], users?: any[], r
                                 version: 'v4',
                                 action: 'read',
                                 expires: imageExpireTime,
+                                // TODO: Test is cache-control headers work here
+                                extensionHeaders: {
+                                    'Cache-Control': 'public, max-age=43200', // 1 day
+                                },
                             })
                             .then((urls) => ({
                                 [m.id]: urls[0],
@@ -262,8 +266,8 @@ export default class EventsStore {
                         mediaIds.push(...event.mediaIds.split(','));
                     }
                 });
-                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                eventDetailsPromises.push(overrides.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                // NOTE: The media db was replaced by moment.medias JSONB
+                eventDetailsPromises.push(Promise.resolve(null));
 
                 const [media] = await Promise.all(eventDetailsPromises);
 
@@ -332,8 +336,8 @@ export default class EventsStore {
                         eventResultIds.push(event.id);
                     }
                 });
-                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                eventDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                // NOTE: The media db was replaced by moment.medias JSONB
+                eventDetailsPromises.push(Promise.resolve(null));
                 eventDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
                 eventDetailsPromises.push(options.withRatings ? getRatings('space', eventResultIds) : Promise.resolve(null));
 
@@ -386,8 +390,8 @@ export default class EventsStore {
                         userIds.push(event.fromUserId);
                     }
                 });
-                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                eventDetailsPromises.push(overrides.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                // NOTE: The media db was replaced by moment.medias JSONB
+                eventDetailsPromises.push(Promise.resolve(null));
                 eventDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
 
                 const [media, users] = await Promise.all(eventDetailsPromises);
@@ -482,7 +486,7 @@ export default class EventsStore {
             };
 
             if (params.medias) {
-                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+                sanitizedParams.medias = JSON.stringify(params.medias);
             }
 
             const queryString = knexBuilder.insert(sanitizedParams)

@@ -12,7 +12,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { storage } from '../api/aws';
 import areaMetricsService from '../api/areaMetricsService';
 import * as globalConfig from '../../../../global-config';
-import getReactions from '../utilities/getReactions';
+import getReactions, { countReactions } from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -287,18 +287,31 @@ const getSpaceDetails = (req, res) => {
                 message: space.message?.replace(/"/g, '\\"'),
             };
 
-            const events = shouldFetchEvents
-                ? await Store.events.findSpaceEvents([space.id])
-                : [];
-            serializedSpace.events = events;
+            const promises = [
+                userHasAccessPromise(),
+                countReactions('space', spaceId, {
+                    'x-userid': userId || undefined,
+                }),
+            ];
 
-            return userHasAccessPromise().then((isActivated) => res.status(200).send({
-                events,
-                space: serializedSpace,
-                media,
-                users,
-                isActivated,
-            }));
+            if (shouldFetchEvents) {
+                promises.push(Store.events.findSpaceEvents([space.id]));
+            } else {
+                promises.push(Promise.resolve([]));
+            }
+
+            return Promise.all(promises).then(([isActivated, eventCount, events]) => {
+                serializedSpace.likeCount = parseInt(eventCount?.count || 0, 10);
+                serializedSpace.events = events;
+
+                return res.status(200).send({
+                    events,
+                    space: serializedSpace,
+                    media,
+                    users,
+                    isActivated,
+                });
+            });
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 

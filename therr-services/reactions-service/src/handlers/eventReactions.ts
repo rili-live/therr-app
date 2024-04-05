@@ -221,6 +221,21 @@ const findEventReactions: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENT_REACTIONS_ROUTES:ERROR' }));
 };
 
+const countEventReactions: RequestHandler = async (req: any, res: any) => {
+    // const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        eventId,
+    } = req.params;
+
+    return Store.eventReactions.getCounts([eventId], {})
+        .then(([event]) => res.status(200).send({
+            eventId: event?.eventId,
+            count: event?.count || 0,
+        }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENT_REACTIONS_ROUTES:ERROR' }));
+};
+
 export {
     getEventReactions,
     getEventRatings,
@@ -229,4 +244,5 @@ export {
     createOrUpdateMultiEventReactions,
     createOrUpdateMultiUserReactions,
     findEventReactions,
+    countEventReactions,
 };

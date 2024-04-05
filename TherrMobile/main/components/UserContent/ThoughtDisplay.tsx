@@ -342,7 +342,7 @@ const ThoughtContent = ({
                                 }
                                 onPress={() => onLikePress(thought)}
                                 type="clear"
-                                title={(isExpanded && likeCount && likeCount > 0) ? likeCount.toString() : ''}
+                                title={(likeCount && likeCount > 0) ? likeCount.toString() : ''}
                                 titleStyle={[
                                     themeViewContent.styles.thoughtReactionButtonTitle,
                                     { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },

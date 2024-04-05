@@ -36,13 +36,16 @@ const createMediaUrls = (req, res) => {
                             action: 'read',
                             expires: imageExpireTime,
                             // TODO: Test is cache-control headers work here
-                            // extensionHeaders: {
-                            //     'Cache-Control': 'public, max-age=43200', // 1 day
-                            // },
+                            extensionHeaders: {
+                                'Cache-Control': 'public, max-age=43200', // 1 day
+                            },
                         })
-                        .then((urls) => ({
-                            [m.id]: urls[0],
-                        }))
+                        .then((urls) => {
+                            console.log(urls[0]);
+                            return ({
+                                [m.id]: urls[0],
+                            });
+                        })
                         .catch((err) => {
                             console.log(err);
                             return {};

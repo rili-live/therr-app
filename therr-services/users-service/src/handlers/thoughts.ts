@@ -7,7 +7,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { RequestHandler } from 'express';
 import userMetricsService from '../api/userMetricsService';
 import * as globalConfig from '../../../../global-config';
-import { findReactions, hasUserReacted } from '../api/reactions';
+import { countReactions, findReactions, hasUserReacted } from '../api/reactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -231,38 +231,35 @@ const getThoughtDetails = (req, res) => {
             const thought = thoughts[0];
             const isOwnThought = userId === thought.fromUserId;
             let userHasAccessPromise = Promise.resolve(true);
+            let countReactionsPromise = Promise.resolve({
+                count: '0',
+            });
             let listReactionsPromise: Promise<any> = Promise.resolve();
 
-            if (!isOwnThought) {
-                listReactionsPromise = findReactions(thoughtId, {
-                    'x-userid': userId,
+            userMetricsService.uploadMetric({
+                name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${thought.category || 'uncategorized'}` as MetricNames,
+                value: '1',
+                valueType: MetricValueTypes.NUMBER,
+                userId,
+            }, {
+                thoughtId: thought.id,
+                isMatureContent: thought.isMatureContent,
+                isPublic: thought.isPublic,
+            }, {
+                contentUserId: thought.fromUserId,
+            }).catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['failed to upload user metric'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                        'error.response': err?.response?.data,
+                        'user.id': userId,
+                        'thought.id': thought.id,
+                    },
                 });
-
-                userMetricsService.uploadMetric({
-                    name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${thought.category || 'uncategorized'}` as MetricNames,
-                    value: '1',
-                    valueType: MetricValueTypes.NUMBER,
-                    userId,
-                }, {
-                    thoughtId: thought.id,
-                    isMatureContent: thought.isMatureContent,
-                    isPublic: thought.isPublic,
-                }, {
-                    contentUserId: thought.fromUserId,
-                }).catch((err) => {
-                    logSpan({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['failed to upload user metric'],
-                        traceArgs: {
-                            'error.message': err?.message,
-                            'error.response': err?.response?.data,
-                            'user.id': userId,
-                            'thought.id': thought.id,
-                        },
-                    });
-                });
-            }
+            });
 
             // Verify that user has activated thought and has access to view it
             // TODO: Verify thought exists
@@ -272,7 +269,17 @@ const getThoughtDetails = (req, res) => {
                 });
             }
 
-            return Promise.all([userHasAccessPromise, listReactionsPromise]).then(([isActivated, reactionResponse]) => {
+            if (isOwnThought) {
+                listReactionsPromise = findReactions(thoughtId, {
+                    'x-userid': userId,
+                });
+            }
+
+            countReactionsPromise = countReactions(thoughtId, {
+                'x-userid': userId,
+            });
+
+            return Promise.all([userHasAccessPromise, listReactionsPromise, countReactionsPromise]).then(([isActivated, reactionResponse, thoughtCounts]) => {
                 if (!isActivated) {
                     return handleHttpError({
                         res,
@@ -320,6 +327,8 @@ const getThoughtDetails = (req, res) => {
                         ...reactionCounts,
                     };
                 }
+
+                thoughtResult.likeCount = parseInt(thoughtCounts?.count || '0', 10);
 
                 return res.status(200).send({ thought: thoughtResult, users });
             });

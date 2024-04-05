@@ -30,6 +30,7 @@ import userMetricsService from '../api/userMetricsService';
 import areaMetricsService from '../api/areaMetricsService';
 import getUserGroup from '../utilities/getUserGroup';
 import { DEFAULT_RADIUS_MEDIUM } from '../store/SpacesStore';
+import { countReactions } from '../utilities/getReactions';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 
@@ -633,22 +634,30 @@ const getEventDetails = (req, res) => {
                     });
                 }
 
+                const promises = [
+                    countReactions('event', eventId, {
+                        'x-userid': userId || undefined,
+                    }),
+                ];
+
                 if (event.spaceId) {
-                    return Store.spaces.getByIdSimple(event.spaceId).then(([space]) => {
-                        if (space) {
-                            // Response including space details for navigation
-                            event.space = space;
-                            return res.status(200).send({
-                                event,
-                                media,
-                                users,
-                                space,
-                            });
-                        }
-                    });
+                    promises.push(Store.spaces.getByIdSimple(event.spaceId).then(([space]) => space));
                 }
 
-                return res.status(200).send({ event, media, users });
+                return Promise.all(promises).then(([eventCount, space]) => {
+                    if (space) {
+                        // Response including space details for navigation
+                        event.space = space;
+                    }
+
+                    event.likeCount = parseInt(eventCount?.count || 0, 10);
+                    return res.status(200).send({
+                        event,
+                        media,
+                        users,
+                        space,
+                    });
+                });
             });
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:EVENTS_ROUTES:ERROR' }));
 };
