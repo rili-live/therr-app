@@ -169,7 +169,7 @@ spec:
         args:
           # If connecting from a VPC-native GKE cluster, you can use the
           # following flag to have the proxy connect over private IP
-          # - "--private-ip"
+          - "--private-ip"
 
           # Enable structured logging with LogEntry format:
           - "--structured-logs"
