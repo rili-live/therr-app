@@ -14,6 +14,7 @@ export default (reqQuery: IReqQuery) => {
         longitude,
         latitude,
         withMedia,
+        withUser,
     } = reqQuery;
 
     const sanitizedQuery: any = {
@@ -28,6 +29,7 @@ export default (reqQuery: IReqQuery) => {
         longitude,
         latitude,
         withMedia,
+        withUser,
     };
 
     Object.keys(sanitizedQuery).forEach((key) => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import {
     Keyboard,
+    Platform,
     SafeAreaView,
     View,
 } from 'react-native';
@@ -345,14 +346,14 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                 })
                 .finally(() => {
                     this.onInputChange('message', '');
-                    if (this.replyInput) {
-                        this.replyInput.clear();
+                    if (this.replyInput && Platform.OS === 'android') {
+                        this.replyInput?.clear();
                     }
                     this.setState({
                         isSubmitting: false,
                     });
                     Keyboard.dismiss();
-                    this.scrollViewRef.scrollToOffset({ animated: true, offset: 0 });
+                    this.scrollViewRef?.scrollToOffset?.({ animated: true, offset: 0 });
                 });
         }
     };
@@ -485,7 +486,9 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                             <View style={this.themeThought.styles.sendInputsContainer}>
                                 <RoundTextInput
                                     ref={input => { this.replyInput = input; }}
+                                    clearButtonMode="always"
                                     autoFocus
+                                    autoCorrect={false}
                                     placeholder={this.translate(
                                         'forms.editThought.labels.messageReply'
                                     )}
