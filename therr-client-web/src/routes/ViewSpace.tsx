@@ -100,6 +100,10 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         const { spaceId } = this.state;
         const space = map?.spaces[spaceId];
 
+        if (!space) {
+            return null;
+        }
+
         // TODO: Everything should use post.medias after migrations
         const mediaId = ((space.medias || space.media)?.[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
