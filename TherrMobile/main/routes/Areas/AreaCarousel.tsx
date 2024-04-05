@@ -69,7 +69,7 @@ const renderItem = ({ item: post }, {
 
     // TODO: Everything should use post.medias after migrations
     if ((post.media || post.mediaIds) && (!media?.[(post.medias || post.media)?.[0]?.id || mediaIdsSplit?.[0]])
-        && (!mediaPath || mediaType !== Content.mediaTypes.USER_IMAGE_PUBLIC)) {
+        && (!mediaPath || !mediaType)) {
         // TODO: Only fetch when we need signed urls
         fetchMedia(post.media?.[0]?.id || mediaIdsSplit?.[0]);
     }

@@ -5,6 +5,7 @@ import {
     getSpaceReactions,
     getSpaceRatings,
     getReactionsBySpaceId,
+    countSpaceReactions,
     findSpaceReactions,
 } from '../handlers/spaceReactions';
 
@@ -22,6 +23,7 @@ router.get('/:spaceId/ratings', getSpaceRatings);
 
 // GET
 router.get('/:spaceId', getReactionsBySpaceId);
+router.get('/:spaceId/count', countSpaceReactions);
 
 // POST
 router.post('/find/dynamic', findSpaceReactions);

@@ -18,6 +18,13 @@ const findReactions = (thoughtId: string, headers) => axios({
     },
 });
 
+const countReactions = (thoughtId: string, headers) => axios({
+    method: 'get',
+    url: `${baseReactionsServiceRoute}/thought-reactions/${thoughtId}/count`,
+    headers,
+})
+    .then(({ data: countResult }) => countResult);
+
 const hasUserReacted = (thoughtId: string, headers) => getReactions(thoughtId, headers)
     .then(({ data: thoughtReaction }) => !!(thoughtReaction && thoughtReaction.userHasActivated))
     .catch((err) => {
@@ -56,6 +63,7 @@ const createReactions = (thoughtIds: string[], headers) => axios({
 export {
     createReactions,
     findReactions,
+    countReactions,
     getReactions,
     hasUserReacted,
 };

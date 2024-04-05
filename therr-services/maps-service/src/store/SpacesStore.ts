@@ -75,6 +75,10 @@ const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?
                                 version: 'v4',
                                 action: 'read',
                                 expires: imageExpireTime,
+                                // TODO: Test is cache-control headers work here
+                                extensionHeaders: {
+                                    'Cache-Control': 'public, max-age=43200', // 1 day
+                                },
                             })
                             .then((urls) => ({
                                 [m.id]: urls[0],
@@ -396,8 +400,8 @@ export default class SpacesStore {
                         spaceResultIds.push(space.id);
                     }
                 });
-                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                spaceDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                // NOTE: The media db was replaced by moment.medias JSONB
+                spaceDetailsPromises.push(Promise.resolve(null));
                 spaceDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
                 spaceDetailsPromises.push(options.withRatings ? getRatings('space', spaceResultIds) : Promise.resolve(null));
 
@@ -493,7 +497,7 @@ export default class SpacesStore {
             };
 
             if (params.medias) {
-                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+                sanitizedParams.medias = JSON.stringify(params.medias);
             }
 
             if (params.openingHours) {

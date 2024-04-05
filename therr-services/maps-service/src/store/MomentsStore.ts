@@ -55,6 +55,10 @@ const getMomentsToMediaAndUsers = (moments: any[], media?: any[], users?: any[])
                                 version: 'v4',
                                 action: 'read',
                                 expires: imageExpireTime,
+                                // TODO: Test is cache-control headers work here
+                                extensionHeaders: {
+                                    'Cache-Control': 'public, max-age=43200', // 1 day
+                                },
                             })
                             .then((urls) => ({
                                 [m.id]: urls[0],
@@ -255,8 +259,9 @@ export default class MomentsStore {
                         mediaIds.push(...moment.mediaIds.split(','));
                     }
                 });
-                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                momentDetailsPromises.push(overrides.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+
+                // NOTE: The media db was replaced by moment.medias JSONB
+                momentDetailsPromises.push(Promise.resolve(null));
 
                 const [media] = await Promise.all(momentDetailsPromises);
 
@@ -305,8 +310,8 @@ export default class MomentsStore {
                         userIds.push(moment.fromUserId);
                     }
                 });
-                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                momentDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                // NOTE: The media db was replaced by moment.medias JSONB
+                momentDetailsPromises.push(Promise.resolve(null));
                 momentDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
 
                 const [media, users] = await Promise.all(momentDetailsPromises);
@@ -374,8 +379,8 @@ export default class MomentsStore {
                         userIds.push(moment.fromUserId);
                     }
                 });
-                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                momentDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                // NOTE: The media db was replaced by moment.medias JSONB
+                momentDetailsPromises.push(Promise.resolve(null));
                 momentDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
 
                 const [media, users] = await Promise.all(momentDetailsPromises);
@@ -453,7 +458,7 @@ export default class MomentsStore {
             };
 
             if (params.medias) {
-                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+                sanitizedParams.medias = JSON.stringify(params.medias);
             }
 
             const queryString = knexBuilder.insert(sanitizedParams)

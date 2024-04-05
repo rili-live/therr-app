@@ -1,6 +1,7 @@
 {
   "validation": "The required parameters were not provided.",
   "momentReactions": {
+    "nonFound": "Moment not found",
     "momentNotActivated": "This user is not permitted to access content without first activating the moment"
   },
   "thoughtReactions": {

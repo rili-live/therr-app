@@ -6,6 +6,7 @@ import {
     getEventReactions,
     getEventRatings,
     getReactionsByEventId,
+    countEventReactions,
     findEventReactions,
 } from '../handlers/eventReactions';
 
@@ -25,6 +26,7 @@ router.get('/:eventId/ratings', getEventRatings);
 
 // GET
 router.get('/:eventId', getReactionsByEventId);
+router.get('/:eventId/count', countEventReactions);
 
 // POST
 router.post('/find/dynamic', findEventReactions);

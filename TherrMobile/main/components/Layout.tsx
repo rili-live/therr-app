@@ -68,6 +68,7 @@ interface ILayoutDispatchProps {
     searchNotifications: Function;
     searchUsers: Function;
     updateActiveMomentsStream: Function;
+    updateActiveThoughtsStream: Function;
     updateActiveEventsStream: Function;
     updateGpsStatus: Function;
     updateLocationPermissions: Function;
@@ -110,6 +111,7 @@ const mapDispatchToProps = (dispatch: any) =>
             searchActiveSpacesByIds: ContentActions.searchActiveSpacesByIds,
             searchCategories: ForumActions.searchCategories,
             updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
+            updateActiveThoughtsStream: ContentActions.updateActiveThoughtsStream,
             updateActiveEventsStream: ContentActions.updateActiveEventsStream,
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
@@ -351,6 +353,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             searchUsers,
             user,
             updateActiveMomentsStream,
+            updateActiveThoughtsStream,
             updateActiveEventsStream,
         } = this.props;
         if (user.isAuthenticated) {
@@ -376,6 +379,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     shouldHideMatureContent: user.details.shouldHideMatureContent,
                 });
 
+                const activeThoughtsPromise = updateActiveThoughtsStream({
+                    withUser: true,
+                    withReplies: true,
+                    offset: 0,
+                    // ...content.activeAreasFilters,
+                    blockedUsers: user.details.blockedUsers,
+                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                });
+
                 const activeEventsPromise = updateActiveEventsStream({
                     withMedia: true,
                     withUser: true,
@@ -385,7 +397,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     shouldHideMatureContent: user.details.shouldHideMatureContent,
                 });
 
-                Promise.all([activeMomentsPromise, activeEventsPromise]).catch((err) => {
+                Promise.all([activeMomentsPromise, activeThoughtsPromise, activeEventsPromise]).catch((err) => {
                     console.log(err);
                 });
             }
