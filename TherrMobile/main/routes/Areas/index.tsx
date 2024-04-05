@@ -419,6 +419,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             })
             : Promise.resolve({});
 
+        // TODO: Change this to Promise.any()
         return Promise.all([activeMomentsPromise, activeEventsPromise, activeThoughtsPromise]).finally(() => {
             this.loadTimeoutId = setTimeout(() => {
                 this.setState({ isLoading: false });

@@ -16,6 +16,13 @@ export default (areaType: 'moment' | 'space' | 'event', areaId: string, headers)
         throw err;
     });
 
+export const countReactions = (areaType: 'moment' | 'space' | 'event', areaId: string, headers) => axios({
+    method: 'get',
+    url: `${baseReactionsServiceRoute}/${areaType}-reactions/${areaId}/count`,
+    headers,
+})
+    .then(({ data: countResult }) => countResult);
+
 export const getRating = (areaType: 'space' | 'event', areaId: string, headers?) => axios({
     method: 'get',
     url: `${baseReactionsServiceRoute}/${areaType}-reactions/${areaId}/ratings`,

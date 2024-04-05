@@ -202,10 +202,26 @@ const findMomentReactions: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };
 
+const countMomentReactions: RequestHandler = async (req: any, res: any) => {
+    // const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        momentId,
+    } = req.params;
+
+    return Store.momentReactions.getCounts([momentId], {})
+        .then(([moment]) => res.status(200).send({
+            momentId: moment?.momentId,
+            count: moment?.count || 0,
+        }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+};
+
 export {
     getMomentReactions,
     getReactionsByMomentId,
     createOrUpdateMomentReaction,
     createOrUpdateMultiMomentReactions,
     findMomentReactions,
+    countMomentReactions,
 };

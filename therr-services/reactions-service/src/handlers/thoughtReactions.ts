@@ -185,10 +185,26 @@ const findThoughtReactions: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
 };
 
+const countThoughtReactions: RequestHandler = async (req: any, res: any) => {
+    // const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        thoughtId,
+    } = req.params;
+
+    return Store.thoughtReactions.getCounts([thoughtId], {})
+        .then(([thought]) => res.status(200).send({
+            thoughtId: thought?.thoughtId,
+            count: thought?.count || 0,
+        }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
+};
+
 export {
     getThoughtReactions,
     getReactionsByThoughtId,
     createOrUpdateThoughtReaction,
     createOrUpdateMultiThoughtReactions,
     findThoughtReactions,
+    countThoughtReactions,
 };

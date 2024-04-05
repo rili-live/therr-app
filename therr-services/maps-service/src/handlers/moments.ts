@@ -16,7 +16,7 @@ import { getReadableDistance } from 'therr-js-utilities/location';
 import { distanceTo } from 'geolocation-utils';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
-import getReactions from '../utilities/getReactions';
+import getReactions, { countReactions } from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -729,22 +729,30 @@ const getMomentDetails = (req, res) => {
                     });
                 }
 
+                const promises = [
+                    countReactions('moment', momentId, {
+                        'x-userid': userId || undefined,
+                    }),
+                ];
+
                 if (moment.spaceId) {
-                    return Store.spaces.getByIdSimple(moment.spaceId).then(([space]) => {
-                        if (space) {
-                            // Response including space details for navigation
-                            moment.space = space;
-                            return res.status(200).send({
-                                moment,
-                                media,
-                                users,
-                                space,
-                            });
-                        }
-                    });
+                    promises.push(Store.spaces.getByIdSimple(moment.spaceId).then(([space]) => space));
                 }
 
-                return res.status(200).send({ moment, media, users });
+                return Promise.all(promises).then(([momentCount, space]) => {
+                    if (space) {
+                        // Response including space details for navigation
+                        moment.space = space;
+                    }
+
+                    moment.likeCount = parseInt(momentCount?.count || 0, 10);
+                    return res.status(200).send({
+                        moment,
+                        media,
+                        users,
+                        space,
+                    });
+                });
             });
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
