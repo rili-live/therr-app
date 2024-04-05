@@ -286,6 +286,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
         return Promise.all([
             searchMoments({
                 query: 'connections',
+                withMedia: true,
                 itemsPerPage: conditions.itemsPerPage,
                 pageNumber: 1,
                 order: 'desc',
@@ -294,6 +295,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             }, overrides),
             searchEvents({
                 query: 'connections',
+                withMedia: true,
                 itemsPerPage: conditions.itemsPerPage,
                 pageNumber: 1,
                 order: 'desc',
@@ -329,6 +331,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             });
         }
 
+        // TODO: We might need to search with user location overrides on map too
         return this.searchMapAreas({
             latitude: location?.user?.latitude,
             longitude: location?.user?.longitude,

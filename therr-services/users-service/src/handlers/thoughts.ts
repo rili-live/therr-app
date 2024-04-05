@@ -7,7 +7,11 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { RequestHandler } from 'express';
 import userMetricsService from '../api/userMetricsService';
 import * as globalConfig from '../../../../global-config';
-import { countReactions, findReactions, hasUserReacted } from '../api/reactions';
+import {
+    countReactions,
+    createReactions,
+    hasUserReacted,
+} from '../api/reactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -234,7 +238,6 @@ const getThoughtDetails = (req, res) => {
             let countReactionsPromise = Promise.resolve({
                 count: '0',
             });
-            let listReactionsPromise: Promise<any> = Promise.resolve();
 
             userMetricsService.uploadMetric({
                 name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${thought.category || 'uncategorized'}` as MetricNames,
@@ -262,24 +265,13 @@ const getThoughtDetails = (req, res) => {
             });
 
             // Verify that user has activated thought and has access to view it
-            // TODO: Verify thought exists
-            if (!thought.isPublic && thought?.fromUserId !== userId) {
+            if (!thought.isPublic && !isOwnThought) {
                 userHasAccessPromise = hasUserReacted(thoughtId, {
                     'x-userid': userId,
                 });
             }
 
-            if (isOwnThought) {
-                listReactionsPromise = findReactions(thoughtId, {
-                    'x-userid': userId,
-                });
-            }
-
-            countReactionsPromise = countReactions(thoughtId, {
-                'x-userid': userId,
-            });
-
-            return Promise.all([userHasAccessPromise, listReactionsPromise, countReactionsPromise]).then(([isActivated, reactionResponse, thoughtCounts]) => {
+            return userHasAccessPromise.then((isActivated) => {
                 if (!isActivated) {
                     return handleHttpError({
                         res,
@@ -289,48 +281,27 @@ const getThoughtDetails = (req, res) => {
                     });
                 }
 
-                let thoughtResult = {
-                    ...thought,
-                };
+                let createReactionsPromise = Promise.resolve({});
+                countReactionsPromise = countReactions(thoughtId, {
+                    'x-userid': userId,
+                });
 
-                // Users are only allowed to see their own reactions
-                if (isOwnThought) {
-                    const reactions = reactionResponse?.data?.reactions;
-                    const reactionCounts = (reactions || []).reduce((acc, reaction) => {
-                        if (reaction.userHasLiked) {
-                            acc.likeCount += 1;
-                        }
-                        if (reaction.userHasSuperLiked) {
-                            acc.superLikeCount += 1;
-                        }
-                        if (reaction.userHasDisliked) {
-                            acc.dislikeCount += 1;
-                        }
-                        if (reaction.userHasSuperDisliked) {
-                            acc.superDislikeCount += 1;
-                        }
-                        if (reaction.userBookmarkCategory) {
-                            acc.bookmarkCount += 1;
-                        }
-
-                        return acc;
-                    }, {
-                        likeCount: 0,
-                        superLikeCount: 0,
-                        dislikeCount: 0,
-                        superDislikeCount: 0,
-                        bookmarkCount: 0,
+                // Activate child thoughts otherwise
+                if (thought.replies?.length) {
+                    createReactionsPromise = createReactions(thought.replies.map((reply) => reply.id), {
+                        'x-userid': userId,
                     });
-
-                    thoughtResult = {
-                        ...thoughtResult,
-                        ...reactionCounts,
-                    };
                 }
 
-                thoughtResult.likeCount = parseInt(thoughtCounts?.count || '0', 10);
+                return Promise.all([countReactionsPromise, createReactionsPromise]).then(([thoughtCounts]) => {
+                    const thoughtResult = {
+                        ...thought,
+                    };
 
-                return res.status(200).send({ thought: thoughtResult, users });
+                    thoughtResult.likeCount = parseInt(thoughtCounts?.count || '0', 10);
+
+                    return res.status(200).send({ thought: thoughtResult, users });
+                });
             });
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHTS_ROUTES:ERROR' }));
 };
