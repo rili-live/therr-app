@@ -40,12 +40,9 @@ const createMediaUrls = (req, res) => {
                                 'Cache-Control': 'public, max-age=43200', // 1 day
                             },
                         })
-                        .then((urls) => {
-                            console.log(urls[0]);
-                            return ({
-                                [m.id]: urls[0],
-                            });
-                        })
+                        .then((urls) => ({
+                            [m.id]: urls[0],
+                        }))
                         .catch((err) => {
                             console.log(err);
                             return {};
