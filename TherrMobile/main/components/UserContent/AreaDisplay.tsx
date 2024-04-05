@@ -251,11 +251,11 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     </Text>
                 </View>
                 {
-                    moment.media?.length > 0 &&
+                    moment.medias?.length > 0 &&
                     <Image
                         onPress={onViewMoment}
                         source={{
-                            uri: getUserContentUri(moment.media[0], 100, 100),
+                            uri: getUserContentUri(moment.medias[0], 100, 100),
                         }}
                         style={{
                             width: 100,

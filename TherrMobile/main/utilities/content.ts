@@ -17,7 +17,7 @@ const getUserContentUri = (media, height = screenWidth, width = screenWidth, aut
     const minImageHeight = Math.ceil((height * 1.25) / 100) * 100;
     const minImageWidth = Math.ceil((width * 1.25) / 100) * 100;
 
-    let url = `${BASE_ENDPOINT}${media.path}`;
+    let url = `${BASE_ENDPOINT}${media?.path}`;
     url = `${url}?tr=h-${minImageHeight},w-${minImageWidth}`;
     if (!autocrop) {
         // Preserve original image dimensions

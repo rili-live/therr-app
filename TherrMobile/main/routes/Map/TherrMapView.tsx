@@ -483,7 +483,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     };
 
     togglePreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }, pressedAreaId?: any) => {
-        const { content, location } = this.props;
+        const { location } = this.props;
         const { areasInPreview, isPreviewBottomSheetVisible } = this.state;
         // Reset to zero to review marker highlight
         this.removeAnimation();
@@ -530,7 +530,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             const areasArray: any[] = [];
             let pressedAreas: any[] = [];
             let featuredAreas: any[] = [];
-            let missingMediaIds: any[] = [];
 
             sortedAreasWithDistance.some((area: any, index: number) => {
                 // Prevent loading spaces from too far away to be relevant
@@ -539,12 +538,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     return true;
                 }
 
-                if (area.mediaIds?.length && !area?.media?.length) {
-                    const areaMediaIds = area.mediaIds.split(",");
-                    if (!content?.media[areaMediaIds[0]]) {
-                        missingMediaIds.push(...area.mediaIds.split(","));
-                    }
-                }
                 area.distance = getReadableDistance(area.distanceFromUser);
 
                 if (pressedAreaId && area.id === pressedAreaId) {
@@ -564,11 +557,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             });
 
             modifiedAreasInPreview = pressedAreas.concat(featuredAreas).concat(areasArray);
-            if (missingMediaIds.length) {
-                this.fetchMissingMedia(missingMediaIds).catch((err) => {
-                    console.log(err);
-                });
-            }
             if (modifiedAreasInPreview?.length > 0) {
                 this.props.onPreviewBottomSheetOpen();
             }
@@ -689,11 +677,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     onClusterPress = (/* cluster, markers */) => {
         // if (Platform.OS === 'android') {
         // }
-    };
-
-    fetchMissingMedia = (mediaIds: string[]) => {
-        const { fetchMedia } = this.props;
-        return fetchMedia(mediaIds);
     };
 
     getMomentCircleFillColor = (moment) => {
@@ -1130,15 +1113,12 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         >
                             {
                                 areasInPreview.map((area, idx) => {
-                                    const mediaIdsSplit = (area.mediaIds || '').split(',');
-                                    const mediaId = content.media
-                                        && (area.media && area.media[0]?.id || mediaIdsSplit && mediaIdsSplit[0]);
                                     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-                                    const mediaPath = (area.media && area.media[0]?.path);
-                                    const mediaType = (area.media && area.media[0]?.type);
+                                    const mediaPath = (area.medias?.[0]?.path);
+                                    const mediaType = (area.medias?.[0]?.type);
                                     const areaMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
                                         ? getUserContentUri(area.media[0], CARD_HEIGHT,  CARD_WIDTH)
-                                        : content?.media[mediaId];
+                                        : content?.media[mediaPath];
                                     return (
                                         <AreaDisplayCard
                                             area={area}

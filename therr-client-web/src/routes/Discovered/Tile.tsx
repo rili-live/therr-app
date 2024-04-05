@@ -34,7 +34,7 @@ const Tile: React.FC<MomentProps> = ({ area, updateAreaReaction, userDetails }: 
                 {area.media.length > 0
                 && <img
                     className="tile-image"
-                    src={content.media[area.media[0].id]}
+                    src={content.media?.[area.medias?.[0]?.path]}
                     alt={area.fromUserName}
                 />}
                 <div className='tile-lower-content'>
