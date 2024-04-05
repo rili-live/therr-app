@@ -155,7 +155,7 @@ const renderSpaceView = (req, res, config, {
 
     let metaImgUrl;
 
-    const mediaId = (space?.media && space?.media[0]?.id) || (space.mediaIds?.length && space?.mediaIds?.split(',')[0]);
+    const mediaId = (space?.media && space?.media[0]?.id) || (space?.mediaIds?.length && space?.mediaIds?.split(',')[0]);
     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
     const mediaPath = (space?.media && space?.media[0]?.path);
     const mediaType = (space?.media && space?.media[0]?.type);
