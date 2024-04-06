@@ -927,6 +927,7 @@ const deleteUser = (req, res) => {
         .then(() => {
             // TODO: Delete messages in messages service
             // TODO: Delete notifications in notifications service
+            // TODO: Delete forums in messages service
             requestToDeleteUserData(req.headers);
 
             // TODO: Delete user session from redis in websocket-service

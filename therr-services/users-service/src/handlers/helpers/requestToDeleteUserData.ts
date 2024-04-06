@@ -2,6 +2,9 @@ import axios from 'axios';
 import globalConfig from '../../../../../global-config';
 
 const requestToDeleteUserData = (headers) => {
+    // TODO: Delete messages in messages service
+    // TODO: Delete notifications in notifications service
+    // TODO: Delete forums in messages service
     const mapServicePromise = axios({
         method: 'delete',
         url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/delete-user-data`,

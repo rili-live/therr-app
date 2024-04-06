@@ -99,13 +99,15 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         const { content, map } = this.props;
         const { momentId } = this.state;
         const moment = map?.moments[momentId];
-        const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
+        if (!moment) {
+            return null;
+        }
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = (moment.media && moment.media[0]?.path);
-        const mediaType = (moment.media && moment.media[0]?.type);
+        const mediaPath = (moment.medias?.path);
+        const mediaType = (moment.medias?.type);
         const momentMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri(moment.media[0], 480, 480, true)
-            : content?.media[mediaId];
+            ? getUserContentUri(moment.medias?.[0], 480, 480, true)
+            : content?.media?.[mediaPath];
 
         return (
             <div id="page_view_moment" className="flex-box space-evenly center row wrap-reverse">

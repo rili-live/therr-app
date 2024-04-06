@@ -137,8 +137,8 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         const { moment } = route.params;
 
         const shouldFetchUser = !moment?.fromUserMedia || !moment.fromUserName;
-        const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
-        const momentMedia = content?.media[mediaId];
+        const mediaPath = moment.medias?.[0]?.path;
+        const momentMedia = content?.media[mediaPath];
 
         // Move moment details out of route params and into redux
         getMomentDetails(moment.id, {

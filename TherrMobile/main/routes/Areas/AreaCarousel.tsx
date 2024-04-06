@@ -25,7 +25,7 @@ interface IAreaCarouselProps {
     emptyIconName?: string;
     inspectContent: any;
     containerRef: any;
-    fetchMedia: any;
+    fetchMedia?: any;
     goToViewMap: any;
     goToViewUser: any;
     handleRefresh: any;
@@ -53,7 +53,6 @@ const renderItem = ({ item: post }, {
     displaySize,
     inspectContent,
     toggleContentOptions,
-    fetchMedia,
     goToViewMap,
     goToViewUser,
     translate,
@@ -63,25 +62,13 @@ const renderItem = ({ item: post }, {
     updateReaction,
     user,
 }) => {
-    const mediaIdsSplit = (post.mediaIds || '').split(',');
-    const mediaPath = post.medias?.[0]?.path || post.media?.[0]?.path;
-    const mediaType = post.medias?.[0]?.type || post.media?.[0]?.type;
-
-    // TODO: Everything should use post.medias after migrations
-    if ((post.media || post.mediaIds) && (!media?.[(post.medias || post.media)?.[0]?.id || mediaIdsSplit?.[0]])
-        && (!mediaPath || !mediaType)) {
-        // TODO: Only fetch when we need signed urls
-        fetchMedia(post.media?.[0]?.id || mediaIdsSplit?.[0]);
-    }
+    const mediaPath = post.medias?.[0]?.path;
+    const mediaType = post.medias?.[0]?.type;
 
     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
     let postMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri((post.medias?.[0] || post.media[0]), screenWidth, screenWidth)
-        : media?.[(post.medias || post.media)?.[0]?.id];
-    if (!postMedia) {
-        const mediaId = media && mediaIdsSplit?.[0];
-        postMedia = media[mediaId];
-    }
+        ? getUserContentUri((post.medias?.[0]), screenWidth, screenWidth)
+        : media?.[mediaPath];
     const isMe = user.details.id === post.fromUserId;
     let userDetails: any = {
         userName: post.fromUserName || (user.details.id === post.fromUserId ? user.details.userName : translate('alertTitles.nameUnknown')),
@@ -186,7 +173,6 @@ const AreaCarousel = ({
     emptyIconName,
     inspectContent,
     containerRef,
-    fetchMedia,
     goToViewMap,
     goToViewUser,
     handleRefresh,
@@ -273,7 +259,6 @@ const AreaCarousel = ({
                         media: content?.media,
                         displaySize: displaySize || 'large', // default to large
                         inspectContent,
-                        fetchMedia,
                         goToViewMap,
                         goToViewUser,
                         toggleContentOptions,

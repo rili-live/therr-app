@@ -491,15 +491,15 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                         renderItem={({ item: event }) =>
                         {
                             const media = {};
-                            const mediaPath = (event.media && event.media[0]?.path);
-                            const mediaType = (event.media && event.media[0]?.type);
+                            const mediaPath = event.medias?.[0]?.path;
+                            const mediaType = event.medias?.[0]?.type;
                             const eventMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
                                 ? getUserContentUri(
-                                    event.media[0],
+                                    event.medias[0],
                                     (viewportWidth - (this.theme.styles.bodyFlex.padding * 2)) * 3 / 4,
                                     (viewportWidth - (this.theme.styles.bodyFlex.padding * 2))
                                 )
-                                : media && media[event.media && event.media[0]?.id];
+                                : media && media[mediaPath];
                             const isMe = user.details.id === event.fromUserId;
                             let userDetails: any = {
                                 userName: event.fromUserName || (user.details.id === event.fromUserId
