@@ -585,7 +585,7 @@ export default class EventsStore {
             };
 
             if (params.medias) {
-                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+                sanitizedParams.medias = JSON.stringify(params.medias);
             }
 
             const queryString = knexBuilder.update(sanitizedParams)
