@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Dimensions, SafeAreaView, View, Text } from 'react-native';
+import { Dimensions, SafeAreaView, View, Text, Platform } from 'react-native';
 import { Button } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
@@ -158,6 +158,9 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
     render() {
         const { activeSlide } = this.state;
         const sliderWidth = viewportWidth - (2 * this.theme.styles.bodyFlex.padding);
+        const iPadDynamicStyles: any = (Platform.OS === 'ios' && Platform.isPad)
+            ? { paddingHorizontal: '10%' }
+            : {};
 
         return (
             <>
@@ -195,35 +198,37 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                             inactiveDotOpacity={0.4}
                             inactiveDotScale={0.8}
                         />
-                        <View style={this.themeAuthForm.styles.submitButtonContainer}>
-                            <Button
-                                buttonStyle={this.themeForms.styles.buttonPrimary}
-                                titleStyle={this.themeForms.styles.buttonTitle}
-                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                disabledStyle={this.themeForms.styles.buttonDisabled}
-                                title={this.translate(
-                                    'pages.landing.buttons.getStarted'
-                                )}
-                                onPress={() => this.navTo('Register')}
+                        <View style={iPadDynamicStyles}>
+                            <View style={this.themeAuthForm.styles.submitButtonContainer}>
+                                <Button
+                                    buttonStyle={this.themeForms.styles.buttonPrimary}
+                                    titleStyle={this.themeForms.styles.buttonTitle}
+                                    disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                    disabledStyle={this.themeForms.styles.buttonDisabled}
+                                    title={this.translate(
+                                        'pages.landing.buttons.getStarted'
+                                    )}
+                                    onPress={() => this.navTo('Register')}
+                                />
+                            </View>
+                            <OrDivider
+                                translate={this.translate}
+                                themeForms={this.themeForms}
+                                containerStyle={{
+                                    marginBottom: 20,
+                                }}
                             />
-                        </View>
-                        <OrDivider
-                            translate={this.translate}
-                            themeForms={this.themeForms}
-                            containerStyle={{
-                                marginBottom: 20,
-                            }}
-                        />
-                        <View style={[this.themeAuthForm.styles.submitButtonContainer, { paddingBottom: '15%' }]}>
-                            <Button
-                                type="clear"
-                                buttonStyle={this.themeForms.styles.buttonRoundAlt}
-                                titleStyle={this.themeForms.styles.buttonTitleAlt}
-                                title={this.translate(
-                                    'pages.landing.buttons.signIn'
-                                )}
-                                onPress={() => this.navTo('Login')}
-                            />
+                            <View style={[this.themeAuthForm.styles.submitButtonContainer, { paddingBottom: '15%' }]}>
+                                <Button
+                                    type="clear"
+                                    buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                                    titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                    title={this.translate(
+                                        'pages.landing.buttons.signIn'
+                                    )}
+                                    onPress={() => this.navTo('Login')}
+                                />
+                            </View>
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>

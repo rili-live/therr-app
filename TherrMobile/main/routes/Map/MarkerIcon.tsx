@@ -157,7 +157,7 @@ const MarkerIcon = function MarkerIcon({
 
     // No category
     if (areaType === 'moments') {
-        if (!area.mediaIds) {
+        if (!area.medias?.length) {
             return (
                 <MarkerIconThinking {...getMarkerConfigs(theme).thought} />
             );

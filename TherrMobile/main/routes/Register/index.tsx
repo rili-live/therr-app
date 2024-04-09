@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Text, View, SafeAreaView } from 'react-native';
+import { Text, View, SafeAreaView, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
@@ -101,31 +101,36 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         const { isEULAVisible } = this.state;
         const pageTitle = this.translate('pages.register.pageTitle');
         const pageSubtitle = this.translate('pages.register.pageSubtitle');
+        const iPadDynamicStyles: any = (Platform.OS === 'ios' && Platform.isPad)
+            ? { paddingHorizontal: '10%' }
+            : {};
 
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScroll} enableOnAndroid>
-                        <View style={this.theme.styles.sectionContainerWide}>
-                            <Text style={this.themeFTUI.styles.titleWithNoSpacing}>
-                                {pageTitle}
-                            </Text>
-                            <Text style={this.themeFTUI.styles.subtitle}>
-                                {pageSubtitle}
-                            </Text>
+                        <View style={iPadDynamicStyles}>
+                            <View style={this.theme.styles.sectionContainerWide}>
+                                <Text style={this.themeFTUI.styles.titleWithNoSpacing}>
+                                    {pageTitle}
+                                </Text>
+                                <Text style={this.themeFTUI.styles.subtitle}>
+                                    {pageSubtitle}
+                                </Text>
+                            </View>
+                            <RegisterForm
+                                login={this.props.login}
+                                register={this.props.register}
+                                onSuccess={this.onSuccess}
+                                theme={this.theme}
+                                themeAlerts={this.themeAlerts}
+                                themeAuthForm={this.themeAuthForm}
+                                themeForms={this.themeForms}
+                                toggleEULA={this.toggleEULA}
+                                userSettings={this.props.user?.settings || {}}
+                            />
                         </View>
-                        <RegisterForm
-                            login={this.props.login}
-                            register={this.props.register}
-                            onSuccess={this.onSuccess}
-                            theme={this.theme}
-                            themeAlerts={this.themeAlerts}
-                            themeAuthForm={this.themeAuthForm}
-                            themeForms={this.themeForms}
-                            toggleEULA={this.toggleEULA}
-                            userSettings={this.props.user?.settings || {}}
-                        />
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
                 <ConfirmModal

@@ -7,7 +7,7 @@ import { bindActionCreators } from 'redux';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { PushNotificationsService } from 'therr-react/services';
-// import { Location } from 'therr-js-utilities/constants';
+import { Content } from 'therr-js-utilities/constants';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Geolocation from 'react-native-geolocation-service';
 import { getReadableDistance } from 'therr-js-utilities/location';
@@ -287,6 +287,7 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             searchMoments({
                 query: 'connections',
                 withMedia: true,
+                withUser: true,
                 itemsPerPage: conditions.itemsPerPage,
                 pageNumber: 1,
                 order: 'desc',
@@ -296,6 +297,7 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             searchEvents({
                 query: 'connections',
                 withMedia: true,
+                withUser: true,
                 itemsPerPage: conditions.itemsPerPage,
                 pageNumber: 1,
                 order: 'desc',
@@ -304,6 +306,7 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             }, overrides),
             searchMoments({
                 query: 'me',
+                withUser: true,
                 itemsPerPage: conditions.meItemsPerPage,
                 pageNumber: 1,
                 order: 'desc',
@@ -312,6 +315,7 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             }, overrides),
             searchEvents({
                 query: 'me',
+                withUser: true,
                 itemsPerPage: conditions.meItemsPerPage,
                 pageNumber: 1,
                 order: 'desc',
@@ -445,6 +449,19 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
 
     positionErrorCallback = (error) => {
         console.log('geolocation error', error.code);
+    };
+
+    fetchPrivateMedia = (medias: {
+        path: string;
+        type: string;
+    }[]) => {
+        const { fetchMedia } = this.props;
+        if (medias.length) {
+            return fetchMedia(undefined, medias).catch((err) => {
+                console.log(err);
+            });
+        }
+        return Promise.resolve();
     };
 
     handleEnableLocationPress = () => {
@@ -645,7 +662,19 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             shouldIncludeMoments: true,
             shouldIncludeSpaces: false, // spaces are best viewed in the animated preview
         }, 'distance');
+        const missingMedias: {
+            path: string;
+            type: string;
+        }[] = [];
         const formattedActiveData = activatedData?.map(d => {
+            if (d.medias?.length) {
+                d.medias
+                    .forEach((media) => {
+                        if (media.type === Content.mediaTypes.USER_IMAGE_PRIVATE && !content?.media[media.path]) {
+                            missingMedias.push(media);
+                        }
+                    });
+            }
             const formatted = {
                 ...d,
             };
@@ -655,6 +684,9 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
 
             return formatted;
         });
+        if (missingMedias.length) {
+            this.fetchPrivateMedia(missingMedias);
+        }
         const shouldRenderAreaFeed = shouldRenderNearbyAreaFeed(location);
 
         return (

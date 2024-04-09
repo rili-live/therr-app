@@ -213,9 +213,28 @@ export default class MomentsStore {
             .offset(offset)
             .toString();
 
-        return this.db.read.query(queryString).then((response) => {
-            const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
-            return configuredResponse;
+        return this.db.read.query(queryString).then(async (response) => {
+            const moments = formatSQLJoinAsJSON(response.rows, []);
+
+            if (overrides.withUser) {
+                const userIds: string[] = [];
+                const momentDetailsPromises: Promise<any>[] = [];
+
+                moments.forEach((moment) => {
+                    if (overrides.withUser) {
+                        userIds.push(moment.fromUserId);
+                    }
+                });
+                momentDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+
+                const [users] = await Promise.all(momentDetailsPromises);
+
+                const momentsMediaUsers = getMomentsToMediaAndUsers(moments, [], users);
+
+                return Promise.all(momentsMediaUsers.signingPromises).then(() => momentsMediaUsers.mappedMoments);
+            }
+
+            return moments;
         });
     }
 
@@ -258,26 +277,31 @@ export default class MomentsStore {
         return this.db.read.query(queryString).then(async (response) => {
             const moments = formatSQLJoinAsJSON(response.rows, []);
 
-            if (overrides.withMedia) {
+            if (overrides.withMedia || overrides.withUsers) {
                 const mediaIds: string[] = [];
+                const userIds: string[] = [];
                 const momentDetailsPromises: Promise<any>[] = [];
 
                 moments.forEach((moment) => {
                     if (overrides.withMedia && moment.mediaIds) {
                         mediaIds.push(...moment.mediaIds.split(','));
                     }
+                    if (overrides.withUser) {
+                        userIds.push(moment.fromUserId);
+                    }
                 });
-
                 // NOTE: The media db was replaced by moment.medias JSONB
                 momentDetailsPromises.push(Promise.resolve(null));
+                momentDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
 
-                const [media] = await Promise.all(momentDetailsPromises);
+                const [media, users] = await Promise.all(momentDetailsPromises);
 
-                const momentsMedia = getMomentsToMediaAndUsers(moments, media);
+                const momentsMediaUsers = getMomentsToMediaAndUsers(moments, media, users);
 
-                return Promise.all(momentsMedia.signingPromises).then((signedUrlResponses) => ({
-                    moments: momentsMedia.mappedMoments,
+                return Promise.all(momentsMediaUsers.signingPromises).then((signedUrlResponses) => ({
+                    moments: momentsMediaUsers.mappedMoments,
                     media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
+                    users: momentsMediaUsers.matchingUsers,
                 }));
             }
 
@@ -436,7 +460,7 @@ export default class MomentsStore {
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
 
         return mediaPromise.then((mediaIds: string | undefined) => {
-            const sanitizedParams: any = {
+            const sanitizedParams: Partial<ICreateMomentParams> = {
                 areaType: params.areaType || 'moments',
                 category: params.category || 'uncategorized',
                 createdAt: params.createdAt || undefined, // TODO: make more secure (only for social sync)
@@ -456,7 +480,6 @@ export default class MomentsStore {
                 maxProximity: params.maxProximity,
                 // nearbySpacesSnapshot is used for drafted moments so we can get nearby spaces without requiring location
                 // to edit a drafted moment
-                nearbySpacesSnapshot: params.nearbySpacesSnapshot ? JSON.stringify(params.nearbySpacesSnapshot) : JSON.stringify([]),
                 latitude: params.latitude,
                 longitude: params.longitude,
                 radius: params.radius,
@@ -465,8 +488,10 @@ export default class MomentsStore {
                 geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
             };
 
+            (sanitizedParams as any).nearbySpacesSnapshot = params.nearbySpacesSnapshot ? JSON.stringify(params.nearbySpacesSnapshot) : JSON.stringify([]);
+
             if (params.medias) {
-                sanitizedParams.medias = JSON.stringify(params.medias);
+                (sanitizedParams as any).medias = JSON.stringify(params.medias);
             }
 
             const queryString = knexBuilder.insert(sanitizedParams)
@@ -504,7 +529,7 @@ export default class MomentsStore {
         const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
 
         return mediaPromise.then((mediaIds: string | undefined) => {
-            const sanitizedParams: any = {
+            const sanitizedParams: Partial<ICreateMomentParams> = {
                 areaType: params.areaType || 'moments',
                 category: params.category || 'uncategorized',
                 expiresAt: params.expiresAt,
@@ -521,19 +546,21 @@ export default class MomentsStore {
                 hashTags: params.hashTags || '',
                 maxViews: params.maxViews || 0,
                 maxProximity: params.maxProximity,
-                nearbySpacesSnapshot: params.nearbySpacesSnapshot ? JSON.stringify(params.nearbySpacesSnapshot) : undefined,
                 // latitude: params.latitude,
                 // longitude: params.longitude,
                 radius: params.radius,
                 region: region.code,
                 // polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
                 // geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
-                updatedAt: new Date(),
             };
 
+            (sanitizedParams as any).nearbySpacesSnapshot = params.nearbySpacesSnapshot ? JSON.stringify(params.nearbySpacesSnapshot) : undefined;
+
             if (params.medias) {
-                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+                (sanitizedParams as any).medias = JSON.stringify(sanitizedParams.medias);
             }
+
+            (sanitizedParams as any).updatedAt = new Date();
 
             const queryString = knexBuilder.update(sanitizedParams)
                 .into(MOMENTS_TABLE_NAME)

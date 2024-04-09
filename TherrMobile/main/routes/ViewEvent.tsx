@@ -476,8 +476,8 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         const eventUserMedia = isMyContent ? user.details.media : (eventInView.fromUserMedia || {});
         const eventUserIsSuperUser = isMyContent ? user.details.isSuperUser : (eventInView.fromUserIsSuperUser || {});
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = eventInView.medias[0]?.path;
-        const mediaType = eventInView.medias[0]?.type;
+        const mediaPath = eventInView.medias?.[0]?.path;
+        const mediaType = eventInView.medias?.[0]?.type;
         const eventMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
             ? getUserContentUri(eventInView.medias?.[0], screenWidth, screenWidth)
             : content?.media[mediaPath];

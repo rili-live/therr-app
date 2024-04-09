@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { SafeAreaView, View, Text } from 'react-native';
+import { SafeAreaView, View, Text, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Image from '../../components/BaseImage';
 import 'react-native-gesture-handler';
@@ -87,6 +87,9 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         const { userMessage } = route?.params || '';
         const pageTitle = this.translate('pages.login.pageTitle');
         const pageSubtitle = this.translate('pages.login.pageSubtitle');
+        const iPadDynamicStyles: any = (Platform.OS === 'ios' && Platform.isPad)
+            ? { paddingHorizontal: '10%' }
+            : {};
 
         return (
             <>
@@ -97,31 +100,33 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                         style={this.theme.styles.bodyFlex}
                         contentContainerStyle={this.theme.styles.bodyScroll}
                     >
-                        {
-                            this.cachedUserDetails?.media ?
-                                <View style={[mixins.flexCenter, mixins.marginMediumBot, mixins.marginMediumTop]}>
-                                    <Image source={{ uri: getUserImageUri({ details: this.cachedUserDetails }, 200) }}
-                                        loaderSize="large"
-                                        theme={this.theme}
-                                    />
-                                </View> :
-                                <View style={this.theme.styles.sectionContainerWide}>
-                                    <Text style={this.themeFTUI.styles.titleWithNoSpacing}>
-                                        {pageTitle}
-                                    </Text>
-                                    <Text style={this.themeFTUI.styles.subtitle}>
-                                        {pageSubtitle}
-                                    </Text>
-                                </View>
-                        }
-                        <LoginForm
-                            login={this.props.login}
-                            navigation={this.props.navigation}
-                            themeAlerts={this.themeAlerts}
-                            themeAuthForm={this.themeAuthForm}
-                            themeForms={this.themeForms}
-                            userMessage={userMessage}
-                            userSettings={user?.settings || {}} />
+                        <View style={iPadDynamicStyles}>
+                            {
+                                this.cachedUserDetails?.media ?
+                                    <View style={[mixins.flexCenter, mixins.marginMediumBot, mixins.marginMediumTop]}>
+                                        <Image source={{ uri: getUserImageUri({ details: this.cachedUserDetails }, 200) }}
+                                            loaderSize="large"
+                                            theme={this.theme}
+                                        />
+                                    </View> :
+                                    <View style={this.theme.styles.sectionContainerWide}>
+                                        <Text style={this.themeFTUI.styles.titleWithNoSpacing}>
+                                            {pageTitle}
+                                        </Text>
+                                        <Text style={this.themeFTUI.styles.subtitle}>
+                                            {pageSubtitle}
+                                        </Text>
+                                    </View>
+                            }
+                            <LoginForm
+                                login={this.props.login}
+                                navigation={this.props.navigation}
+                                themeAlerts={this.themeAlerts}
+                                themeAuthForm={this.themeAuthForm}
+                                themeForms={this.themeForms}
+                                userMessage={userMessage}
+                                userSettings={user?.settings || {}} />
+                        </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
             </>

@@ -125,11 +125,12 @@ export interface ISignedUrlArgs {
 }
 
 class MapsService {
-    fetchMedia = (mediaIds) => axios({
+    fetchMedia = (mediaIds, medias?: { path: string; type: string; }[]) => axios({
         method: 'post',
         url: '/maps-service/media/signed-urls',
         data: {
             mediaIds,
+            medias,
         },
     });
 
