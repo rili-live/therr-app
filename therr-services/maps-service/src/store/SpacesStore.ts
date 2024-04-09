@@ -26,7 +26,9 @@ export interface ICreateSpaceParams extends ICreateAreaParams {
     requestedByUserId?: string;
     organizationId?: string;
     isClaimPending?: boolean;
+    incentiveCurrencyId?: string;
     thirdPartyRatings?: any;
+    happyHours?: any;
     openingHours?: any;
     featuredIncentiveKey?: string;
     featuredIncentiveValue?: number;
@@ -459,7 +461,7 @@ export default class SpacesStore {
 
         return mediaPromise.then((mediaIds: string | undefined) => {
             const radius = params.radius || DEFAULT_RADIUS_MEDIUM;
-            const sanitizedParams: any = {
+            const sanitizedParams: Partial<ICreateSpaceParams> = {
                 addressReadable: params.addressReadable || '',
                 areaType: params.areaType || 'spaces',
                 category: params.category || 'uncategorized',
@@ -505,7 +507,11 @@ export default class SpacesStore {
             };
 
             if (params.medias) {
-                sanitizedParams.medias = JSON.stringify(params.medias);
+                (sanitizedParams as any).medias = JSON.stringify(params.medias);
+            }
+
+            if (params.happyHours) {
+                sanitizedParams.happyHours = JSON.stringify(params.happyHours);
             }
 
             if (params.openingHours) {
@@ -546,7 +552,7 @@ export default class SpacesStore {
         return mediaPromise.then((mediaIds: string | undefined) => {
             const isTextMature = isTextUnsafe([params.notificationMsg, params.message, params.hashTags || '']);
 
-            const sanitizedParams: any = {
+            const sanitizedParams: Partial<ICreateSpaceParams> = {
                 requestedByUserId: params.requestedByUserId,
                 addressReadable: params.addressReadable,
                 notificationMsg: params.notificationMsg,
@@ -569,7 +575,6 @@ export default class SpacesStore {
                 businessTransactionId: params.businessTransactionId,
                 businessTransactionName: params.businessTransactionName,
                 isPointOfInterest: params.isPointOfInterest,
-                updatedAt: new Date(),
                 addressStreetAddress: params.addressStreetAddress,
                 addressRegion: params.addressRegion,
                 addressLocality: params.addressLocality,
@@ -578,7 +583,7 @@ export default class SpacesStore {
             };
 
             if (params.medias) {
-                sanitizedParams.medias = JSON.stringify(sanitizedParams.medias);
+                (sanitizedParams as any).medias = JSON.stringify(params.medias);
             }
 
             if (params.thirdPartyRatings) {
@@ -588,6 +593,8 @@ export default class SpacesStore {
             if (params.openingHours) {
                 sanitizedParams.openingHours = JSON.stringify(params.openingHours);
             }
+
+            (sanitizedParams as any).updatedAt = new Date();
 
             const queryString = knexBuilder.update(sanitizedParams)
                 .into(SPACES_TABLE_NAME)

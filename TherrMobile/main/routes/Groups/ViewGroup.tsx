@@ -18,7 +18,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { ContentActions, MessageActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { IForumsState, IMesssageState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { IContentState, IForumsState, IMessageState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { ForumsService, UsersService } from 'therr-react/services';
 import { Content, GroupMemberRoles } from 'therr-js-utilities/constants';
 // import ViewGroupButtonMenu from '../../components/ButtonMenu/ViewGroupButtonMenu';
@@ -69,7 +69,8 @@ interface IViewGroupDispatchProps {
 }
 
 interface IStoreProps extends IViewGroupDispatchProps {
-    messages: IMesssageState;
+    content: IContentState;
+    messages: IMessageState;
     forums: IForumsState;
     user: IUserState;
     userConnections: IUserConnectionsState;
@@ -441,7 +442,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
 
     renderSceneMap = ({ route }) => {
         const { groupEvents } = this.state;
-        const { createOrUpdateEventReaction, messages, user } = this.props;
+        const { content, createOrUpdateEventReaction, messages, user } = this.props;
         const { id: forumId } = this.props.route.params;
         const mgs = messages.forumMsgs[forumId] || [];
 
@@ -490,7 +491,6 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: event }) =>
                         {
-                            const media = {};
                             const mediaPath = event.medias?.[0]?.path;
                             const mediaType = event.medias?.[0]?.type;
                             const eventMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
@@ -499,7 +499,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                     (viewportWidth - (this.theme.styles.bodyFlex.padding * 2)) * 3 / 4,
                                     (viewportWidth - (this.theme.styles.bodyFlex.padding * 2))
                                 )
-                                : media && media[mediaPath];
+                                : content.media?.[mediaPath];
                             const isMe = user.details.id === event.fromUserId;
                             let userDetails: any = {
                                 userName: event.fromUserName || (user.details.id === event.fromUserId

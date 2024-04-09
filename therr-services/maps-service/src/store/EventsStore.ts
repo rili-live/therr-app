@@ -220,9 +220,28 @@ export default class EventsStore {
             .offset(offset)
             .toString();
 
-        return this.db.read.query(queryString).then((response) => {
-            const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
-            return configuredResponse;
+        return this.db.read.query(queryString).then(async (response) => {
+            const events = formatSQLJoinAsJSON(response.rows, []);
+
+            if (overrides.withUser) {
+                const userIds: string[] = [];
+                const eventDetailsPromises: Promise<any>[] = [];
+
+                events.forEach((event) => {
+                    if (overrides.withUser) {
+                        userIds.push(event.fromUserId);
+                    }
+                });
+                eventDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+
+                const [users] = await Promise.all(eventDetailsPromises);
+
+                const eventsMediaUsers = getEventsToMediaAndUsers(events, [], users);
+
+                return Promise.all(eventsMediaUsers.signingPromises).then(() => eventsMediaUsers.mappedEvents);
+            }
+
+            return events;
         });
     }
 
@@ -266,6 +285,7 @@ export default class EventsStore {
             const events = formatSQLJoinAsJSON(response.rows, []);
 
             if (overrides.withMedia) {
+                const userIds: string[] = [];
                 const mediaIds: string[] = [];
                 const eventDetailsPromises: Promise<any>[] = [];
 
@@ -273,17 +293,22 @@ export default class EventsStore {
                     if (overrides.withMedia && event.mediaIds) {
                         mediaIds.push(...event.mediaIds.split(','));
                     }
+                    if (overrides.withUser) {
+                        userIds.push(event.fromUserId);
+                    }
                 });
                 // NOTE: The media db was replaced by moment.medias JSONB
                 eventDetailsPromises.push(Promise.resolve(null));
+                eventDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
 
-                const [media] = await Promise.all(eventDetailsPromises);
+                const [media, users] = await Promise.all(eventDetailsPromises);
 
-                const eventsMedia = getEventsToMediaAndUsers(events, media);
+                const eventsMediaUsers = getEventsToMediaAndUsers(events, media, users);
 
-                return Promise.all(eventsMedia.signingPromises).then((signedUrlResponses) => ({
-                    events: eventsMedia.mappedEvents,
+                return Promise.all(eventsMediaUsers.signingPromises).then((signedUrlResponses) => ({
+                    events: eventsMediaUsers.mappedEvents,
                     media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
+                    users: eventsMediaUsers.matchingUsers,
                 }));
             }
 

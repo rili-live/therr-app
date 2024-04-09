@@ -101,6 +101,14 @@
 	<string>Microphone usage is needed for recording audio in various locations and sharing with social connections.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This permission allows the user to access and share photos from their library to the social space of the app.</string>
+	<key>NSPrivacyAccessedAPICategoryFileTimestamp</key>
+	<string>DDA9.1: This permission allows the app to access timestamp for displaying a datetime picker.</string>
+	<key>NSPrivacyAccessedAPICategorySystemBootTime</key>
+	<string>DDA9.1: This permission allows the app to access timestamp for scheduling push notifications.</string>
+	<key>NSPrivacyAccessedAPICategoryUserDefaults</key>
+	<string>DDA9.1: This permission allows the app to access timestamp for scheduling push notifications.</string>
+	<key>NSPrivacyAccessedAPICategoryDiskSpace</key>
+	<string>DDA9.1: This permission allows the app to access disk space to prevent memory overuse.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Octicons.ttf</string>

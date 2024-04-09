@@ -30,7 +30,9 @@ export interface ICreateAreaParams {
     latitude: number;
     longitude: number;
     radius?: number;
+    region?: string;
     polygonCoords?: string;
+    geom?: any;
 }
 
 export interface IDeleteAreasParams {
