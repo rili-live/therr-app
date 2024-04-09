@@ -315,7 +315,7 @@ export default class MomentsStore {
     findSpaceMoments(spaceIds: string[], options = {
         withMedia: false,
         withUser: false,
-    }, limit = 100, offset = 0, returning = '*') {
+    }, limit = 10, offset = 0, returning = '*') {
         const now = new Date();
         const query = knexBuilder
             .from(MOMENTS_TABLE_NAME)
@@ -326,7 +326,7 @@ export default class MomentsStore {
             .where({
                 isPublic: true, // TODO: Show activated posts from friends/connections
             })
-            .where('createdAt', '>', new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000));
+            .where('createdAt', '>', new Date(now.getTime() - 5 * 365 * 24 * 60 * 60 * 1000));
 
         return this.db.read.query(query.toString()).then(async ({ rows: moments }) => {
             if (options.withMedia || options.withUser) {
