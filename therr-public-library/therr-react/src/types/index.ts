@@ -71,6 +71,7 @@ interface ISearchQuery {
     returning?: string;
     shouldCheckReverse?: string;
     withMedia?: boolean;
+    withUser?: boolean;
     longitude?: number;
     latitude?: number;
 }

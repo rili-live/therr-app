@@ -989,11 +989,19 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             isVisibilityBottomSheetVisible,
         } = this.state;
         const continueButtonConfig = this.getContinueButtonConfig();
+        const iPadDynamicStyles: any = (Platform.OS === 'ios' && Platform.isPad)
+            ? {
+                marginHorizontal: '30%',
+                width: '70%',
+                minWidth: '70%', // helps ensure view within bottomSheet is full width
+                alignSelf: 'center',
+            }
+            : {};
 
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                <SafeAreaView style={[this.theme.styles.safeAreaView, iPadDynamicStyles]}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"

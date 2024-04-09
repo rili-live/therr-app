@@ -63,8 +63,10 @@ class HeaderMenuLeft extends React.Component<
                 icon={
                     <TherrIcon
                         name="therr-logo"
-                        size={28}
-                        style={logoStyle}
+                        size={26}
+                        style={[
+                            logoStyle,
+                        ]}
                         onPress={this.handlePress}
                     />
                 }

@@ -796,7 +796,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
         // longitude,
         // latitude,
         pageNumber,
-        withUser, // TODO: Implement fetch user media
+        withUser,
     } = req.query;
     const {
         distanceOverride,
@@ -839,7 +839,13 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
         fromUserIds = connectionsResponse.data.results
             .map((connection: any) => connection.users.filter((user: any) => user.id != userId)[0].id); // eslint-disable-line eqeqeq
     }
-    const searchPromise = Store.moments.searchMoments(searchArgs[0], searchArgs[1], fromUserIds, { distanceOverride }, query !== 'me');
+    const searchPromise = Store.moments.searchMoments(
+        searchArgs[0],
+        searchArgs[1],
+        fromUserIds,
+        { distanceOverride, withUser },
+        query !== 'me',
+    );
     // const countPromise = Store.moments.countRecords({
     //     filterBy,
     //     query,
@@ -887,6 +893,7 @@ const searchMyMoments: RequestHandler = async (req: any, res: any) => {
         itemsPerPage,
         pageNumber,
         withMedia,
+        withUser,
     } = req.query;
     const {
         distanceOverride,
@@ -911,6 +918,7 @@ const searchMyMoments: RequestHandler = async (req: any, res: any) => {
         {
             distanceOverride,
             withMedia,
+            withUser,
         },
     );
     const countPromise = Promise.resolve();

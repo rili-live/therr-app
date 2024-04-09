@@ -53,7 +53,7 @@ const signAndUploadImage = (createArgs: any, files: any[], directory = 'content/
         modifiedCreateArgs.media[0].type = createArgs.isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
         modifiedCreateArgs.media[0].path = response?.data?.path;
         // TODO: Replace media with medias after migrations
-        modifiedCreateArgs.medias = createArgs.media;
+        modifiedCreateArgs.medias = modifiedCreateArgs.media;
 
         return fileToBuffer(firstFile).then((buffer: string) => fetch(
             signedUrl,

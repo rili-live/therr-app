@@ -25,6 +25,7 @@ import ManageSpacesMenu from '../components/ManageSpacesMenu';
 import { ISpace } from '../types';
 import { signAndUploadImage } from '../utilities/media';
 import { getWebsiteName } from '../utilities/getHostContext';
+import getUserContentUri from '../utilities/getUserContentUri';
 
 const getInputDefaults = (space: any) => ({
     address: space?.addressReadable ? [
@@ -373,7 +374,10 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
         } = this.state;
         const { content, map, user } = this.props;
         const mediaPath = fetchedSpace?.medias?.[0]?.path;
-        const spaceMediaUrl = content?.media[mediaPath];
+        const mediaType = fetchedSpace?.medias?.[0]?.type;
+        const spaceMediaUrl = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+            ? getUserContentUri(fetchedSpace.medias?.[0])
+            : content?.media[mediaPath];
 
         return (
             <div id="page_settings" className="flex-box column">

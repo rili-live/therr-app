@@ -689,7 +689,7 @@ class ViewUser extends React.Component<
                             {
                                 userInView.externalIntegrations?.length ?
                                     userInView.externalIntegrations.map((integration) => {
-                                        const mediaUrl = content.media[integration.moment?.media && integration.moment?.media[0]?.id];
+                                        const mediaUrl = content.media?.[integration.moment?.medias?.[0]?.path];
                                         return (
                                             <Image
                                                 key={integration.id}

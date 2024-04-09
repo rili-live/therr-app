@@ -370,13 +370,12 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         const momentUserIsSuperUser = isMyContent ? user.details.isSuperUser : (momentInView.fromUserIsSuperUser || {});
 
         // TODO: Everything should use post.medias after migrations
-        const mediaId = ((momentInView.medias || momentInView.media)?.[0]?.id) || (momentInView.mediaIds?.length && momentInView.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = ((momentInView.medias || momentInView.media)?.[0]?.path);
-        const mediaType = ((momentInView.medias || momentInView.media)?.[0]?.type);
+        const mediaPath = (momentInView.medias?.[0]?.path);
+        const mediaType = (momentInView.medias?.[0]?.type);
         const momentMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri((momentInView.medias || momentInView.media)?.[0], screenWidth, screenWidth)
-            : content?.media[mediaId];
+            ? getUserContentUri(momentInView.medias?.[0], screenWidth, screenWidth)
+            : content?.media[mediaPath];
 
         return (
             <>

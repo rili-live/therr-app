@@ -483,7 +483,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     };
 
     togglePreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }, pressedAreaId?: any) => {
-        const { location } = this.props;
         const { areasInPreview, isPreviewBottomSheetVisible } = this.state;
         // Reset to zero to review marker highlight
         this.removeAnimation();
@@ -499,7 +498,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         let modifiedAreasInPreview = [...areasInPreview];
         if (!isPreviewBottomSheetVisible) {
             // TODO: Fetch media
-            const { filteredEvents, filteredSpaces } = this.props;
+            const { content, filteredEvents, filteredSpaces, location } = this.props;
 
             // Label with user's location if available, but sort by distance from pressedCoord
             const sortedAreasWithDistance = Object.values(filteredSpaces).concat(Object.values(filteredEvents))
@@ -530,12 +529,25 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             const areasArray: any[] = [];
             let pressedAreas: any[] = [];
             let featuredAreas: any[] = [];
+            const missingMedias: {
+                path: string;
+                type: string;
+            }[] = [];
 
             sortedAreasWithDistance.some((area: any, index: number) => {
                 // Prevent loading spaces from too far away to be relevant
                 // Stop after 100 miles
                 if (index >= 20 && area.distanceFromUser && area.distanceFromUser > 100) {
                     return true;
+                }
+
+                if (area.medias?.length) {
+                    area.medias
+                        .forEach((media) => {
+                            if (media.type === Content.mediaTypes.USER_IMAGE_PRIVATE && !content?.media[media.path]) {
+                                missingMedias.push(media);
+                            }
+                        });
                 }
 
                 area.distance = getReadableDistance(area.distanceFromUser);
@@ -557,6 +569,9 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             });
 
             modifiedAreasInPreview = pressedAreas.concat(featuredAreas).concat(areasArray);
+            if (missingMedias.length) {
+                this.fetchPrivateMedia(missingMedias);
+            }
             if (modifiedAreasInPreview?.length > 0) {
                 this.props.onPreviewBottomSheetOpen();
             }
@@ -677,6 +692,19 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     onClusterPress = (/* cluster, markers */) => {
         // if (Platform.OS === 'android') {
         // }
+    };
+
+    fetchPrivateMedia = (medias: {
+        path: string;
+        type: string;
+    }[]) => {
+        const { fetchMedia } = this.props;
+        if (medias.length) {
+            return fetchMedia(undefined, medias).catch((err) => {
+                console.log(err);
+            });
+        }
+        return Promise.resolve();
     };
 
     getMomentCircleFillColor = (moment) => {
@@ -1114,10 +1142,10 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             {
                                 areasInPreview.map((area, idx) => {
                                     // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-                                    const mediaPath = (area.medias?.[0]?.path);
-                                    const mediaType = (area.medias?.[0]?.type);
+                                    const mediaPath = area.medias?.[0]?.path;
+                                    const mediaType = area.medias?.[0]?.type;
                                     const areaMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-                                        ? getUserContentUri(area.media[0], CARD_HEIGHT,  CARD_WIDTH)
+                                        ? getUserContentUri(area.medias[0], CARD_HEIGHT,  CARD_WIDTH)
                                         : content?.media[mediaPath];
                                     return (
                                         <AreaDisplayCard

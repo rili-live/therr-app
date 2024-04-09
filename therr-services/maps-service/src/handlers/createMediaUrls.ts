@@ -8,24 +8,32 @@ import { storage } from '../api/aws';
 // TODO: This needs more security logic to ensure the requesting user has permissions to view
 // non-public images
 const createMediaUrls = (req, res) => {
+    // TODO: Check that the user has access to this media
     const userId = req.headers['x-userid'];
-    const { mediaIds, ttl } = req.body;
+    const { mediaIds, ttl, medias } = req.body;
     const imageExpireTime = ttl || (Date.now() + 60 * 60 * 1000); // 60 minutes
     const sanitizedIds = (mediaIds || []).filter((id) => id.length > 0);
 
-    return Store.media.get(sanitizedIds).then((media) => {
+    // TODO: This provides temporary backwards compatibility
+    // We can remove mediaIds after full refactor of frontend
+    const fetchPrivateMediaPromise = medias?.length
+        ? Promise.resolve(medias)
+        : Store.media.get(sanitizedIds);
+
+    return fetchPrivateMediaPromise.then((media) => {
         const urlPromises: Promise<any>[] = [];
         media.forEach((m) => {
             const bucket = getBucket(m.type);
             if (bucket) {
                 let promise;
-                if (bucket === getBucket(Content.mediaTypes.USER_IMAGE_PRIVATE)) {
+                if (bucket === getBucket(Content.mediaTypes.USER_IMAGE_PUBLIC)) {
                     promise = Promise.resolve({
-                        [m.id]: `${process.env.IMAGE_KIT_URL_PRIVATE}${m.path}`,
+                        [m.path]: `${process.env.IMAGE_KIT_URL}${m.path}`,
                     });
-                } else if (bucket === getBucket(Content.mediaTypes.USER_IMAGE_PUBLIC)) {
+                } else if (bucket === getBucket(Content.mediaTypes.USER_IMAGE_PRIVATE)) {
+                    // NOTE: Private media should require authorization
                     promise = Promise.resolve({
-                        [m.id]: `${process.env.IMAGE_KIT_URL}${m.path}`,
+                        [m.path]: `${process.env.IMAGE_KIT_URL_PRIVATE}${m.path}`,
                     });
                 } else {
                     promise = storage
@@ -41,7 +49,7 @@ const createMediaUrls = (req, res) => {
                             },
                         })
                         .then((urls) => ({
-                            [m.id]: urls[0],
+                            [m.path]: urls[0],
                         }))
                         .catch((err) => {
                             console.log(err);

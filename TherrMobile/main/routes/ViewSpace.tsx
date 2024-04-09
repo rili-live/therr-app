@@ -677,13 +677,12 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         const spaceUserIsSuperUser = isMyContent ? user.details.isSuperUser : (spaceInView.fromUserIsSuperUser || {});
 
         // TODO: Everything should use post.medias after migrations
-        const mediaId = ((spaceInView.medias || spaceInView.media)?.[0]?.id) || (spaceInView.mediaIds?.length && spaceInView.mediaIds?.split(',')[0]);
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = ((spaceInView.medias || spaceInView.media)?.[0]?.path);
-        const mediaType = ((spaceInView.medias || spaceInView.media)?.[0]?.type);
+        const mediaPath = (spaceInView.medias?.[0]?.path);
+        const mediaType = (spaceInView.medias?.[0]?.type);
         const spaceMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri((spaceInView.medias || spaceInView.media)?.[0], screenWidth, screenWidth)
-            : content?.media[mediaId];
+            ? getUserContentUri(spaceInView.medias?.[0], screenWidth, screenWidth)
+            : content?.media[mediaPath];
         let areaUserName = spaceUserName || this.translate('alertTitles.nameUnknown');
         if (areaUserName === 'therr_it_is') {
             // This allows us to hide the user name/image when space is create by (essentially) our admin account
