@@ -10,8 +10,10 @@ export interface ISendUserDeletedEmailConfig {
 }
 
 export interface ITemplateParams {
-    userId: string;
-    userName: string;
+    userDetails: {
+        userId: string;
+        userName: string;
+    }
 }
 
 export default (emailParams: ISendUserDeletedEmailConfig, templateParams: ITemplateParams) => {
@@ -20,8 +22,8 @@ export default (emailParams: ISendUserDeletedEmailConfig, templateParams: ITempl
     const otherEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',');
     const htmlConfig = {
         header: `${contextConfig.brandName}: Account Deleted`,
-        dearUser: `User, ${templateParams.userName}, with id ${templateParams.userId} has deleted their account.`,
-        body1: 'This use deleted their account. Ensure that any user content was also deleted.',
+        dearUser: `User, ${templateParams.userDetails.userName}, with id ${templateParams.userDetails.id} has deleted their account.`,
+        body1: `This use deleted their account. Ensure that any user content was also deleted. Details: ${JSON.stringify(templateParams.userDetails)}`,
     };
 
     return sendEmail({

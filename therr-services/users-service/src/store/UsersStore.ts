@@ -404,6 +404,10 @@ export default class UsersStore {
             modifiedParams.settingsIsAccountSoftDeleted = params.settingsIsAccountSoftDeleted;
         }
 
+        if (params.settingsIsProfilePublic != null) {
+            modifiedParams.settingsIsProfilePublic = params.settingsIsProfilePublic;
+        }
+
         if (params.settingsThemeName != null) {
             modifiedParams.settingsThemeName = params.settingsThemeName;
         }
@@ -548,6 +552,7 @@ export default class UsersStore {
 
         const queryString = knexBuilder.delete()
             .from(USERS_TABLE_NAME)
+            .returning(['id', 'email', 'userName', 'loginCount', 'isBusinessAccount'])
             .where(normalizedConditions)
             .toString();
 
