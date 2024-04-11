@@ -65,7 +65,7 @@ export default class ThoughtsStore {
     getRecentThoughts(limit = 1, returning = ['id']) {
         const queryString = knexBuilder.select(returning)
             .from(THOUGHTS_TABLE_NAME)
-            .where('createdAt', '>', new Date(Date.now() - 1000 * 60 * 60 * 24 * 3)) // 3 days
+            .where('createdAt', '>', new Date(Date.now() - 1000 * 60 * 60 * 24 * 5)) // 5 days
             .andWhere({
                 isPublic: true,
                 isMatureContent: false,
