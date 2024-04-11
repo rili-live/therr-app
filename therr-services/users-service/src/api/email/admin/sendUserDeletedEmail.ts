@@ -11,7 +11,7 @@ export interface ISendUserDeletedEmailConfig {
 
 export interface ITemplateParams {
     userDetails: {
-        userId: string;
+        id: string;
         userName: string;
     }
 }
