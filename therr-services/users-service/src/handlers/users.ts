@@ -549,6 +549,7 @@ const updateUser = (req, res) => {
                 settingsEmailReminders: req.body.settingsEmailReminders,
                 settingsEmailBackground: req.body.settingsEmailBackground,
                 settingsThemeName: req.body.settingsThemeName,
+                settingsIsProfilePublic: req.body.settingsIsProfilePublic,
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
@@ -924,10 +925,10 @@ const deleteUser = (req, res) => {
     }
 
     return Store.users.deleteUsers({ id: req.params.id })
-        .then(() => {
+        .then(([deletedUser]) => {
+            // TODO: Delete notifications in users service
             // TODO: Delete messages in messages service
-            // TODO: Delete notifications in notifications service
-            // TODO: Delete forums in messages service
+            // TODO: Delete forums, forumMessages in messages service
             requestToDeleteUserData(req.headers);
 
             // TODO: Delete user session from redis in websocket-service
@@ -937,8 +938,11 @@ const deleteUser = (req, res) => {
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                 agencyDomainName: whiteLabelOrigin,
             }, {
-                userId,
-                userName,
+                userDetails: {
+                    id: userId,
+                    userName,
+                    ...deletedUser,
+                },
             });
 
             return res.status(200).send({
