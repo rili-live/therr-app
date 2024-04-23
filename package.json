@@ -176,7 +176,7 @@
     "@themesberg/react-bootstrap": "^1.4.1",
     "apple-signin-auth": "^1.7.4",
     "assert": "^2.0.0",
-    "awesome-phonenumber": "^2.73.0",
+    "awesome-phonenumber": "^5.10.0",
     "aws-sdk": "^2.1203.0",
     "axios": "^1.0.0",
     "babel-plugin-add-react-displayname": "^0.0.5",
