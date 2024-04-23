@@ -849,9 +849,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         } else {
             // TODO: Alert that GPS is required to create a moment
-            const alertMsg = action === 'claim'
-                ? this.translate('pages.map.areaAlerts.enableSpaceLocation')
-                : this.translate('pages.map.areaAlerts.enableMomentLocation');
+            let alertMsg = this.translate('pages.map.areaAlerts.enableMomentLocation');
+            if (action === 'claim') {
+                alertMsg = this.translate('pages.map.areaAlerts.enableSpaceLocation');
+            }
+            if (action === 'event') {
+                alertMsg = this.translate('pages.map.areaAlerts.enableEventLocation');
+            }
             this.showAreaAlert(alertMsg);
         }
     };
