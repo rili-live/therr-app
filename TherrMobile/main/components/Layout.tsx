@@ -31,6 +31,7 @@ import { bindActionCreators } from 'redux';
 import HeaderMenuRight from './HeaderMenuRight';
 import LocationActions from '../redux/actions/LocationActions';
 import UsersActions from '../redux/actions/UsersActions';
+import UIActions from '../redux/actions/UIActions';
 import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
 import translator from '../services/translator';
@@ -73,6 +74,9 @@ interface ILayoutDispatchProps {
     updateGpsStatus: Function;
     updateLocationPermissions: Function;
     updateUser: Function;
+    // Prefetch
+    beginPrefetchRequest: Function;
+    completePrefetchRequest: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
@@ -116,6 +120,9 @@ const mapDispatchToProps = (dispatch: any) =>
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
             updateUser: UsersActions.update,
+            // Prefetch
+            beginPrefetchRequest: UIActions.beginPrefetchRequest,
+            completePrefetchRequest: UIActions.completePrefetchRequest,
         },
         dispatch
     );
@@ -355,9 +362,76 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateActiveMomentsStream,
             updateActiveThoughtsStream,
             updateActiveEventsStream,
+            beginPrefetchRequest,
+            completePrefetchRequest,
         } = this.props;
         if (user.isAuthenticated) {
+            // Pre-load activated content
+            if (!content?.content?.activeMoments?.length) {
+                beginPrefetchRequest({
+                    isLoadingActiveMoments: true,
+                });
+                updateActiveMomentsStream({
+                    withMedia: true,
+                    withUser: true,
+                    offset: 0,
+                    ...content.activeAreasFilters,
+                    blockedUsers: user.details.blockedUsers,
+                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                }).catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingActiveMoments: false,
+                    });
+                });
+            }
+            if (!content?.content?.activeThoughts?.length) {
+                beginPrefetchRequest({
+                    isLoadingActiveThoughts: true,
+                });
+                updateActiveThoughtsStream({
+                    withUser: true,
+                    withReplies: true,
+                    offset: 0,
+                    // ...content.activeAreasFilters,
+                    blockedUsers: user.details.blockedUsers,
+                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                }).catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingActiveThoughts: false,
+                    });
+                });
+            }
+            if (!content?.content?.activeEvents?.length) {
+                beginPrefetchRequest({
+                    isLoadingActiveEvents: true,
+                });
+                updateActiveEventsStream({
+                    withMedia: true,
+                    withUser: true,
+                    offset: 0,
+                    ...content.activeAreasFilters,
+                    blockedUsers: user.details.blockedUsers,
+                    shouldHideMatureContent: user.details.shouldHideMatureContent,
+                }).catch((err) => {
+                    console.log(err);
+                }).finally(() => {
+                    completePrefetchRequest({
+                        isLoadingActiveEvents: false,
+                    });
+                });
+            }
+
             // Pre-load notifications
+            beginPrefetchRequest({
+                isLoadingAchievements: true,
+                isLoadingUsers: true,
+                isLoadingGroups: true,
+                isLoadingNotifications: true,
+            });
             searchNotifications({
                 filterBy: 'userId',
                 query: user.details.id,
@@ -366,45 +440,19 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 order: 'desc',
             }).catch((err) => {
                 console.log(err);
+            }).finally(() => {
+                completePrefetchRequest({
+                    isLoadingNotifications: false,
+                });
             });
-
-            // Pre-load activated content
-            if (!content?.content?.activeMoments?.length || !content?.content?.activeThoughts?.length) {
-                const activeMomentsPromise = updateActiveMomentsStream({
-                    withMedia: true,
-                    withUser: true,
-                    offset: 0,
-                    ...content.activeAreasFilters,
-                    blockedUsers: user.details.blockedUsers,
-                    shouldHideMatureContent: user.details.shouldHideMatureContent,
-                });
-
-                const activeThoughtsPromise = updateActiveThoughtsStream({
-                    withUser: true,
-                    withReplies: true,
-                    offset: 0,
-                    // ...content.activeAreasFilters,
-                    blockedUsers: user.details.blockedUsers,
-                    shouldHideMatureContent: user.details.shouldHideMatureContent,
-                });
-
-                const activeEventsPromise = updateActiveEventsStream({
-                    withMedia: true,
-                    withUser: true,
-                    offset: 0,
-                    ...content.activeAreasFilters,
-                    blockedUsers: user.details.blockedUsers,
-                    shouldHideMatureContent: user.details.shouldHideMatureContent,
-                });
-
-                Promise.all([activeMomentsPromise, activeThoughtsPromise, activeEventsPromise]).catch((err) => {
-                    console.log(err);
-                });
-            }
 
             // Pre-load achievements
             getMyAchievements().catch((err) => {
                 console.log(err);
+            }).finally(() => {
+                completePrefetchRequest({
+                    isLoadingAchievements: false,
+                });
             });
 
             searchUsers(
@@ -416,10 +464,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 },
             ).catch((err) => {
                 console.log(err);
+            }).finally(() => {
+                completePrefetchRequest({
+                    isLoadingUsers: false,
+                });
             });
 
             getUserGroups().catch((err) => {
                 console.log(err);
+            }).finally(() => {
+                completePrefetchRequest({
+                    isLoadingGroups: false,
+                });
             });
         }
     };

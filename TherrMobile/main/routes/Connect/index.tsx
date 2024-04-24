@@ -177,10 +177,12 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             this.handleRefreshUserConnections();
         }
 
+        // TODO: Connect redux UI prefetch
         if (!user.myUserGroups?.length) {
             getUserGroups();
         }
 
+        // TODO: Connect redux UI prefetch
         if ((Object.keys(user.users || {})?.length || 0) < DEFAULT_PAGE_SIZE) {
             this.handleRefreshUsersSearch();
         }
