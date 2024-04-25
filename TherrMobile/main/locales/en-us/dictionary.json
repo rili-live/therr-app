@@ -1192,6 +1192,7 @@
       "headerTitle": "Settings",
       "pageHeaderDisplaySettings": "Display",
       "pageHeaderRewardsSettings": "Therr Rewards",
+      "pageHeaderPrivacySettings": "Privacy Settings",
       "pageHeaderUser": "User Profile",
       "pageHeaderPassword": "Update Password",
       "pageHeaderAdvancedSettings": "Advanced Settings",
@@ -1199,7 +1200,8 @@
       "pageHeaderNotificationSettings": "Emails & Alert Settings",
       "labels": {
         "nightMode": "Night Mode?",
-        "enableRewards": "Opt-In?"
+        "enableRewards": "Opt-In?",
+        "isPublic": "Public Profile?"
       },
       "alertTitles": {
         "accountUpdated": "Account Updated",

@@ -14,6 +14,7 @@ import {
     IUserConnectionsState,
 } from 'therr-react/types';
 import { TabBar, TabView } from 'react-native-tab-view';
+import { IUIState } from '../../types/redux/ui';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
@@ -89,6 +90,7 @@ interface IStoreProps extends IAreasDispatchProps {
     map: IMapState;
     user: IUserState;
     userConnections: IUserConnectionsState;
+    ui: IUIState;
 }
 
 // Regular component props
@@ -99,7 +101,10 @@ export interface IAreasProps extends IStoreProps {
 interface IAreasState {
     activeTabIndex: number;
     areCreateActionsVisible: boolean;
-    isLoading: boolean;
+    isLoadingMoments: boolean;
+    isLoadingSpaces: boolean;
+    isLoadingThoughts: boolean;
+    isLoadingEvents: boolean;
     isLocationUseDisclosureModalVisible: boolean;
     locationDisclosureAreaType: IAreaType;
     areAreaOptionsVisible: boolean;
@@ -115,6 +120,7 @@ const mapStateToProps = (state: any) => ({
     map: state.map,
     user: state.user,
     userConnections: state.userConnections,
+    ui: state.ui,
 });
 
 const mapDispatchToProps = (dispatch: any) =>
@@ -152,7 +158,9 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
     private carouselThoughtsRef;
     private translate: Function;
     private loaderId: ILottieId;
-    private loadTimeoutId: any;
+    private loadMomentsTimeoutId: any;
+    private loadThoughtsTimeoutId: any;
+    private loadEventsTimeoutId: any;
     private theme = buildStyles();
     private themeAreas = buildAreaStyles();
     private themeButtons = buildButtonsStyles();
@@ -170,7 +178,10 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         this.state = {
             areCreateActionsVisible: false,
             activeTabIndex: 0,
-            isLoading: true,
+            isLoadingMoments: false,
+            isLoadingSpaces: false,
+            isLoadingThoughts: false,
+            isLoadingEvents: false,
             isLocationUseDisclosureModalVisible: false,
             locationDisclosureAreaType: 'moments',
             areAreaOptionsVisible: false,
@@ -213,15 +224,13 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         }, 'createdAt');
         if (!activeData?.length || activeData.length < 21) {
             this.handleRefresh();
-        } else {
-            this.setState({
-                isLoading: false,
-            });
         }
     }
 
     componentWillUnmount() {
-        clearTimeout(this.loadTimeoutId);
+        clearTimeout(this.loadMomentsTimeoutId);
+        clearTimeout(this.loadThoughtsTimeoutId);
+        clearTimeout(this.loadEventsTimeoutId);
     }
 
     getEmptyListMessage = (activeTab) => {
@@ -376,55 +385,86 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
     };
 
     handleRefresh = () => {
-        const { activeTabIndex } = this.state;
+        const {
+            activeTabIndex,
+            isLoadingMoments,
+            isLoadingThoughts,
+            isLoadingEvents,
+        } = this.state;
         const {
             content,
             updateActiveEventsStream,
             updateActiveMomentsStream,
             updateActiveThoughtsStream,
             user,
+            ui,
         } = this.props;
-        this.setState({ isLoading: true });
-
-        const activeMomentsPromise = tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES
-            ? updateActiveMomentsStream({
+        if (tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES && !ui.isLoadingActiveMoments && !isLoadingMoments) {
+            this.setState({
+                isLoadingMoments: true,
+            });
+            updateActiveMomentsStream({
                 withMedia: true,
                 withUser: true,
                 offset: 0,
                 ...content.activeAreasFilters,
                 blockedUsers: user.details.blockedUsers,
                 shouldHideMatureContent: user.details.shouldHideMatureContent,
-            })
-            : Promise.resolve({});
+            }).catch((err) => {
+                console.log(err);
+            }).finally(() => {
+                this.loadMomentsTimeoutId = setTimeout(() => {
+                    this.setState({
+                        isLoadingMoments: false,
+                    });
+                }, 200);
+            });
+        }
 
-        const activeEventsPromise = tabMap[activeTabIndex] === CAROUSEL_TABS.EVENTS
-            ? updateActiveEventsStream({
-                withMedia: true,
-                withUser: true,
-                offset: 0,
-                ...content.activeAreasFilters,
-                blockedUsers: user.details.blockedUsers,
-                shouldHideMatureContent: user.details.shouldHideMatureContent,
-            })
-            : Promise.resolve({});
-
-        const activeThoughtsPromise = (tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES || tabMap[activeTabIndex] === CAROUSEL_TABS.THOUGHTS)
-            ? updateActiveThoughtsStream({
+        if ((tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES || tabMap[activeTabIndex] === CAROUSEL_TABS.THOUGHTS)
+            && !ui.isLoadingActiveThoughts && !isLoadingThoughts) {
+            this.setState({
+                isLoadingThoughts: true,
+            });
+            updateActiveThoughtsStream({
                 withUser: true,
                 withReplies: true,
                 offset: 0,
                 // ...content.activeAreasFilters,
                 blockedUsers: user.details.blockedUsers,
                 shouldHideMatureContent: user.details.shouldHideMatureContent,
-            })
-            : Promise.resolve({});
+            }).catch((err) => {
+                console.log(err);
+            }).finally(() => {
+                this.loadThoughtsTimeoutId = setTimeout(() => {
+                    this.setState({
+                        isLoadingThoughts: false,
+                    });
+                }, 200);
+            });
+        }
 
-        // TODO: Change this to Promise.any()
-        return Promise.all([activeMomentsPromise, activeEventsPromise, activeThoughtsPromise]).finally(() => {
-            this.loadTimeoutId = setTimeout(() => {
-                this.setState({ isLoading: false });
-            }, 400);
-        });
+        if (tabMap[activeTabIndex] === CAROUSEL_TABS.EVENTS && !ui.isLoadingActiveEvents && !isLoadingEvents) {
+            this.setState({
+                isLoadingEvents: true,
+            });
+            updateActiveEventsStream({
+                withMedia: true,
+                withUser: true,
+                offset: 0,
+                ...content.activeAreasFilters,
+                blockedUsers: user.details.blockedUsers,
+                shouldHideMatureContent: user.details.shouldHideMatureContent,
+            }).catch((err) => {
+                console.log(err);
+            }).finally(() => {
+                this.loadEventsTimeoutId = setTimeout(() => {
+                    this.setState({
+                        isLoadingEvents: false,
+                    });
+                }, 200);
+            });
+        }
     };
 
     toggleLocationUseDisclosure = () => {
@@ -561,7 +601,11 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
     };
 
     renderSceneMap = ({ route }) => {
-        const { isLoading } = this.state;
+        const {
+            isLoadingMoments,
+            isLoadingThoughts,
+            isLoadingEvents,
+        } = this.state;
         const {
             content,
             map,
@@ -578,7 +622,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         switch (route.key) {
             case CAROUSEL_TABS.DISCOVERIES:
                 const categoriesFilter = (map.filtersCategory?.length && map.filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
-                const socialData = isLoading ? [] : getActiveCarouselData({
+                const socialData = (isLoadingMoments && isLoadingThoughts) ? [] : getActiveCarouselData({
                     activeTab: route.key,
                     content,
                     isForBookmarks: false,
@@ -593,7 +637,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         activeData={socialData}
                         content={content}
                         inspectContent={this.goToContent}
-                        isLoading={isLoading}
+                        isLoading={isLoadingMoments && isLoadingThoughts}
                         fetchMedia={fetchMedia}
                         goToViewMap={this.goToViewMap}
                         goToViewUser={this.goToViewUser}
@@ -620,7 +664,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                 );
             case CAROUSEL_TABS.THOUGHTS:
                 const thoughtCategoriesFilter = (map.filtersCategory?.length && map.filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
-                const thoughtSocialData = isLoading ? [] : getActiveCarouselData({
+                const thoughtSocialData = isLoadingThoughts ? [] : getActiveCarouselData({
                     activeTab: route.key,
                     content,
                     isForBookmarks: false,
@@ -632,7 +676,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         activeData={thoughtSocialData}
                         content={content}
                         inspectContent={this.goToContent}
-                        isLoading={isLoading}
+                        isLoading={isLoadingThoughts}
                         fetchMedia={fetchMedia}
                         goToViewMap={this.goToViewMap}
                         goToViewUser={this.goToViewUser}
@@ -658,7 +702,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     />
                 );
             case CAROUSEL_TABS.EVENTS:
-                const eventsData = isLoading ? [] : getActiveCarouselData({
+                const eventsData = isLoadingEvents ? [] : getActiveCarouselData({
                     activeTab: route.key,
                     content,
                     isForBookmarks: false,
@@ -673,7 +717,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         activeData={eventsData}
                         content={content}
                         inspectContent={this.goToContent}
-                        isLoading={isLoading}
+                        isLoading={isLoadingEvents}
                         fetchMedia={fetchMedia}
                         goToViewMap={this.goToViewMap}
                         goToViewUser={this.goToViewUser}
@@ -698,37 +742,37 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         // viewportWidth={viewportWidth}
                     />)
                 );
-            case CAROUSEL_TABS.NEWS:
-                const newsData = [];
-                return (
-                    <AreaCarousel
-                        activeData={newsData}
-                        content={content}
-                        inspectContent={this.goToContent}
-                        isLoading={isLoading}
-                        fetchMedia={fetchMedia}
-                        goToViewMap={this.goToViewMap}
-                        goToViewUser={this.goToViewUser}
-                        toggleAreaOptions={this.toggleAreaOptions}
-                        toggleThoughtOptions={this.toggleThoughtOptions}
-                        translate={this.translate}
-                        containerRef={(component) => { this.carouselNewsRef = component; }}
-                        handleRefresh={this.handleRefresh}
-                        onEndReached={this.tryLoadMore}
-                        updateEventReaction={createOrUpdateEventReaction}
-                        updateMomentReaction={createOrUpdateMomentReaction}
-                        updateSpaceReaction={createOrUpdateSpaceReaction}
-                        updateThoughtReaction={createOrUpdateThoughtReaction}
-                        emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.NEWS)}
-                        renderHeader={() => null}
-                        renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
-                        renderFooter={this.renderFooter}
-                        user={user}
-                        rootStyles={this.theme.styles}
-                        // viewportHeight={viewportHeight}
-                        // viewportWidth={viewportWidth}
-                    />
-                );
+            // case CAROUSEL_TABS.NEWS:
+            //     const newsData = [];
+            //     return (
+            //         <AreaCarousel
+            //             activeData={newsData}
+            //             content={content}
+            //             inspectContent={this.goToContent}
+            //             isLoading={isLoading}
+            //             fetchMedia={fetchMedia}
+            //             goToViewMap={this.goToViewMap}
+            //             goToViewUser={this.goToViewUser}
+            //             toggleAreaOptions={this.toggleAreaOptions}
+            //             toggleThoughtOptions={this.toggleThoughtOptions}
+            //             translate={this.translate}
+            //             containerRef={(component) => { this.carouselNewsRef = component; }}
+            //             handleRefresh={this.handleRefresh}
+            //             onEndReached={this.tryLoadMore}
+            //             updateEventReaction={createOrUpdateEventReaction}
+            //             updateMomentReaction={createOrUpdateMomentReaction}
+            //             updateSpaceReaction={createOrUpdateSpaceReaction}
+            //             updateThoughtReaction={createOrUpdateThoughtReaction}
+            //             emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.NEWS)}
+            //             renderHeader={() => null}
+            //             renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+            //             renderFooter={this.renderFooter}
+            //             user={user}
+            //             rootStyles={this.theme.styles}
+            //             // viewportHeight={viewportHeight}
+            //             // viewportWidth={viewportWidth}
+            //         />
+            //     );
         }
     };
 

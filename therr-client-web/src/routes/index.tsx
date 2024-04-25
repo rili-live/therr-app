@@ -24,6 +24,7 @@ import UnderConstruction from './UnderConstruction';
 import ViewMoment from './ViewMoment';
 import ViewUser from './ViewUser';
 import EmailPreferences from './EmailPreferences';
+import AppFeedback from './AppFeedback';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -102,6 +103,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/emails/unsubscribe',
         element: <EmailPreferences />,
+    },
+    {
+        path: '/app-feedback',
+        element: <AppFeedback />,
     },
     {
         path: '/login',

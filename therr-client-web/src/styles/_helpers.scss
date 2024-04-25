@@ -17,6 +17,15 @@
     padding-right: 1rem;
     padding-left: 1rem;
 }
+.no-padding {
+    padding-right: 0;
+    padding-left: 0;
+
+    label {
+        padding-right: 0;
+        padding-left: 0;
+    }
+}
 .password-requirements {
     border: 2px solid #fcfeff;
     border-radius: 1rem;

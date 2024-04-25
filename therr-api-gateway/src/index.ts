@@ -59,6 +59,7 @@ app.use(authenticate.unless({
         { url: '/v1/users-service/subscribers/signup', methods: ['POST'] }, // email marketing subscribe
         { url: '/v1/users-service/subscribers/preferences', methods: ['GET'] }, // Update E-mail subscription settings
         { url: '/v1/users-service/subscribers/unsubscribe', methods: ['POST'] }, // Update E-mail subscription settings
+        { url: '/v1/users-service/subscribers/send-feedback', methods: ['POST'] }, // send feedback
         { url: '/v1/users-service/auth', methods: ['POST'] }, // login
         { url: '/v1/users-service/payments/webhook', methods: ['POST'] }, // webhook
         { url: '/v1/users-service/users', methods: ['POST'] }, // register
