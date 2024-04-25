@@ -65,6 +65,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/app-feedback',
+        head: {
+            title: 'App Feedback',
+            description: 'Your voice matters!',
+        },
+        view: 'index',
+    },
+    {
         route: '/locations/:pageNumber',
         head: {
             title: 'Business Locations',
