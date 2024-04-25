@@ -114,6 +114,25 @@
     }
   },
   "pages": {
+    "appFeedback": {
+      "pageTitle": "Your Voice Matters",
+      "buttons": {
+        "send": "Send Feedback"
+      },
+      "successMessage": "Your feedback was submitted. Thank you!",
+      "failedToUpdateMessage": "Failed to send feedback. Please try again later.",
+      "labels": {
+        "email": "E-mail",
+        "isSocialHealth": "Is social health important to you?",
+        "isLoyaltyRewards": "Are loyalty rewards important to you?",
+        "feedback": "What do you think Therr app is missing?",
+        "missing": "Your response..."
+      },
+      "returnToLogin": "Return to login page",
+      "sectionHeaders": {
+        "response": "A brief app feedback survey"
+      }
+    },
     "discovered": {
       "pageTitle": "Discovered"
     },

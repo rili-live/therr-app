@@ -47,6 +47,7 @@ interface ISettingsState {
     isCropping: boolean;
     isNightMode: boolean;
     isOptedInToAds: boolean;
+    isProfilePublic: boolean;
     isSubmitting: boolean;
     passwordErrorMessage: string;
 }
@@ -84,6 +85,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             isCropping: false,
             isNightMode: props.user.settings.mobileThemeName === 'retro',
             isOptedInToAds: props.user.settings.settingsPushBackground && props.user.settings.settingsPushMarketing,
+            isProfilePublic: props.user.settings.settingsIsProfilePublic,
             isSubmitting: false,
             passwordErrorMessage: '',
         };
@@ -147,7 +149,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             settingsBio,
             shouldHideMatureContent,
         } = this.state.inputs;
-        const { isNightMode, isOptedInToAds } = this.state;
+        const { isNightMode, isOptedInToAds, isProfilePublic } = this.state;
         const { user } = this.props;
 
         if (password && !PasswordRegex.test(password)) {
@@ -172,6 +174,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             settingsThemeName: isNightMode ? 'retro' : 'light',
             settingsPushMarketing: isOptedInToAds,
             settingsPushBackground: isOptedInToAds,
+            settingsIsProfilePublic: isProfilePublic,
             shouldHideMatureContent,
         };
 
@@ -274,6 +277,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         });
     };
 
+    onProfileVisibilitySettingsChange = (isProfilePublic: boolean) => {
+        this.setState({
+            isProfilePublic,
+        });
+    };
+
     onDoneCropping = (croppedImageDetails) => {
         if (!croppedImageDetails.didCancel && !croppedImageDetails.errorCode) {
             const { user } = this.props;
@@ -330,11 +339,19 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
     render() {
         const { navigation, user } = this.props;
-        const { croppedImageDetails, inputs, isNightMode, isOptedInToAds, passwordErrorMessage } = this.state;
+        const {
+            croppedImageDetails,
+            inputs,
+            isNightMode,
+            isOptedInToAds,
+            isProfilePublic,
+            passwordErrorMessage,
+        } = this.state;
         const pageHeaderUser = this.translate('pages.settings.pageHeaderUser');
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
         const pageHeaderDisplaySettings = this.translate('pages.settings.pageHeaderDisplaySettings');
         const pageHeaderRewardsSettings = this.translate('pages.settings.pageHeaderRewardsSettings');
+        const pageHeaderPrivacySettings = this.translate('pages.settings.pageHeaderPrivacySettings');
         const pageHeaderContentSettings = this.translate('pages.settings.pageHeaderContentSettings');
         const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
         const pageHeaderNotificationSettings = this.translate('pages.settings.pageHeaderNotificationSettings');
@@ -353,7 +370,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                         <View style={this.theme.styles.body}>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
-                                    {pageHeaderDisplaySettings}
+                                    {pageHeaderPrivacySettings}
                                 </Text>
                             </View>
                             <View style={this.themeSettingsForm.styles.settingsContainer}>
@@ -361,7 +378,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     <Text
                                         style={this.themeForms.styles.switchLabel}
                                     >
-                                        {this.translate('pages.settings.labels.nightMode')}
+                                        {this.translate('pages.settings.labels.isPublic')}
                                     </Text>
                                     <View
                                         style={this.themeForms.styles.switchSubContainer}
@@ -369,15 +386,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <Switch
                                             style={this.themeForms.styles.switchButton}
                                             trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
-                                            thumbColor={isNightMode ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
+                                            thumbColor={isProfilePublic ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
                                             ios_backgroundColor={this.theme.colors.primary4}
-                                            onValueChange={this.onThemeChange}
-                                            value={isNightMode}
+                                            onValueChange={this.onProfileVisibilitySettingsChange}
+                                            value={isProfilePublic}
                                         />
                                         <FontAwesomeIcon
-                                            name={isNightMode ? 'moon' : 'sun'}
+                                            name={isProfilePublic ? 'eye' : 'eye-slash'}
                                             size={22}
-                                            color={isNightMode ? this.theme.colorVariations.primary3Fade : this.theme.colors.primary3}
+                                            color={isProfilePublic ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
                                         />
                                     </View>
                                 </View>
@@ -409,6 +426,37 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                             name="trophy"
                                             size={22}
                                             color={isOptedInToAds ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
+                                    {pageHeaderDisplaySettings}
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.settingsContainer}>
+                                <View style={this.themeForms.styles.switchContainer}>
+                                    <Text
+                                        style={this.themeForms.styles.switchLabel}
+                                    >
+                                        {this.translate('pages.settings.labels.nightMode')}
+                                    </Text>
+                                    <View
+                                        style={this.themeForms.styles.switchSubContainer}
+                                    >
+                                        <Switch
+                                            style={this.themeForms.styles.switchButton}
+                                            trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
+                                            thumbColor={isNightMode ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
+                                            ios_backgroundColor={this.theme.colors.primary4}
+                                            onValueChange={this.onThemeChange}
+                                            value={isNightMode}
+                                        />
+                                        <FontAwesomeIcon
+                                            name={isNightMode ? 'moon' : 'sun'}
+                                            size={22}
+                                            color={isNightMode ? this.theme.colorVariations.primary3Fade : this.theme.colors.primary3}
                                         />
                                     </View>
                                 </View>

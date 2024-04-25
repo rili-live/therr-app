@@ -365,6 +365,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             || location.pathname.includes('/users')
             || location.pathname === '/register'
             || location.pathname === '/verify-account'
+            || location.pathname === '/app-feedback'
             || location.pathname === '/emails/unsubscribe'
             || location.pathname === '/reset-password';
         // Cloak the view so it doesn't flash before client mounts

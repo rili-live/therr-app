@@ -315,7 +315,7 @@ usersServiceRouter.get('/social-sync/oauth2-tiktok', handleServiceRequest({
 }));
 
 // Subscribers
-usersServiceRouter.post('/subscribers/send-feedback', feedbackAttemptLimiter, sendFeedbackValidation, handleServiceRequest({
+usersServiceRouter.post('/subscribers/send-feedback', authenticateOptional, feedbackAttemptLimiter, sendFeedbackValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

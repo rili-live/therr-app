@@ -217,6 +217,7 @@ class Notifications extends React.Component<
         const { searchNotifications, user } = this.props;
         this.setState({ isRefreshing: true });
 
+        // TODO: Connect UI redux prefetch from Layout
         searchNotifications({
             filterBy: 'userId',
             query: user.details.id,
