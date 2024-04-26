@@ -30,6 +30,7 @@
 		71ED0B4C267D2AE0002AA90C /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 71ED0B4B267D2AE0002AA90C /* libz.tbd */; };
 		71EFC8F225C64E2200F57AB8 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 712C1DF325C649470078CB60 /* assets */; };
 		71EFC8F725C64E2400F57AB8 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 712C1DF325C649470078CB60 /* assets */; };
+		71F658432BDBF98C002EE8AF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 71F658422BDBF98C002EE8AF /* PrivacyInfo.xcprivacy */; };
 		71F9E0B6277251A8006CDC68 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 71F9E0B5277251A8006CDC68 /* BootSplash.storyboard */; };
 		828BAD9501C34D7D9A9D1CEA /* Lexend-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 999CE776FF7F40688242002F /* Lexend-Thin.ttf */; };
 		8940DE96474BDD89358A944A /* libPods-Therr-TherrTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AF609D4578E265330DA2521 /* libPods-Therr-TherrTests.a */; };
@@ -107,6 +108,7 @@
 		71ED0B47267D2ACA002AA90C /* SafariServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SafariServices.framework; path = System/Library/Frameworks/SafariServices.framework; sourceTree = SDKROOT; };
 		71ED0B49267D2AD6002AA90C /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		71ED0B4B267D2AE0002AA90C /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		71F658422BDBF98C002EE8AF /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		71F9E0B5277251A8006CDC68 /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = Therr/BootSplash.storyboard; sourceTree = "<group>"; };
 		75F5FC0188604134B89F0E09 /* FontAwesome.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
 		7AF08F3CE9D94071A397F991 /* Lexend-ExtraLight.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-ExtraLight.ttf"; path = "../main/assets/fonts/Lexend-ExtraLight.ttf"; sourceTree = "<group>"; };
@@ -240,6 +242,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				71F658422BDBF98C002EE8AF /* PrivacyInfo.xcprivacy */,
 				71111816286DDDDE00F6A53B /* assets */,
 				71C492CF26A463B5004D33C1 /* File.swift */,
 				715B895E2618EA6300408914 /* GoogleService-Info.plist */,
@@ -454,6 +457,7 @@
 				29C23745E645469780578CA0 /* Lexend-Black.ttf in Resources */,
 				5B5FFDE17DD5483D8342BAA9 /* Lexend-Bold.ttf in Resources */,
 				B31CBB9A40424042B80A9EEF /* Lexend-ExtraBold.ttf in Resources */,
+				71F658432BDBF98C002EE8AF /* PrivacyInfo.xcprivacy in Resources */,
 				BF1AAC2817CD4831A7C9B88A /* Lexend-ExtraLight.ttf in Resources */,
 				ABCD912DF5C342BBABAE6A85 /* Lexend-Light.ttf in Resources */,
 				6EC44828FA4A4198BACAF4C5 /* Lexend-Medium.ttf in Resources */,

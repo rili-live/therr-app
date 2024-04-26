@@ -83,7 +83,7 @@ const MarkerIcon = function MarkerIcon({
     }
 
     // TODO: Add all categories
-    if (area.category === 'art' || area.category === 'artwork/idea') {
+    if (area.category === 'art' || area.category?.includes('artwork')) {
         return (
             <MarkerIconArt {...getMarkerConfigs(theme).art} />
         );

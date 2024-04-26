@@ -109,8 +109,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         const { inputs } = this.state;
 
         UsersService.sendFeedback(inputs.feedbackMessage)
-            .then((response) => {
-                console.log(response);
+            .then(() => {
                 this.setState({
                     inputs: {
                         feedbackMessage: '',
