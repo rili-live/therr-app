@@ -1,6 +1,7 @@
 exports.up = (knex) => knex.schema.withSchema('main').createTable('interests', (table) => {
     table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
     table.string('tag').unique().notNullable();
+    table.string('category').unique().notNullable();
     table.string('displayName').notNullable();
     table.string('emoji').notNullable();
     table.string('iconGroup').notNullable();
@@ -13,6 +14,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('interests', (
 
     // Indexes
     table.index('tag');
+    table.index('category');
 });
 
 exports.down = (knex) => knex.schema.dropTable('main.interests');

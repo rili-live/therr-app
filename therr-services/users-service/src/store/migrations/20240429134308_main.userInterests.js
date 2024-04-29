@@ -10,8 +10,8 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('userInterests
         .inTable('main.userInterests')
         .onUpdate('CASCADE')
         .onDelete('CASCADE');
-    table.integer('score').notNullable(); // 1 - 5
-    table.integer('engagementCount').notNullable().defaultTo(0); // 1 - 5
+    table.integer('score').notNullable().defaultTo(5); // 1 - 5 where 1 is the highest
+    table.integer('engagementCount').notNullable().defaultTo(0);
 
     // Audit
     table.timestamp('createdAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
