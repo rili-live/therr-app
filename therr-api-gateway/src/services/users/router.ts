@@ -101,6 +101,12 @@ usersServiceRouter.get('/rewards/exchange-rate', validate, async (req, res, next
     method: 'get',
 }, (response) => CacheStore.usersService.setExchangeRate(response.exchangeRate)));
 
+// Interests
+usersServiceRouter.get('/interests', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 // Payments
 usersServiceRouter.post('/payments/checkout/sessions/:id', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,

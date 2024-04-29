@@ -7,13 +7,11 @@ import {
 
 const router = express.Router();
 
-// CREATE
+// PRIVATE
 router.post('/', updateAndCreateUserAchievements);
 
-// READ
+// PUBLIC
 router.get('/', getUserAchievements);
-
-// UPDATE
 router.post('/:id/claim', claimAchievement);
 
 export default router;

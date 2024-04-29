@@ -5,7 +5,7 @@ import {
 
 const router = express.Router();
 
-// READ
+// PUBLIC
 router.get('/', getInterests);
 
 export default router;

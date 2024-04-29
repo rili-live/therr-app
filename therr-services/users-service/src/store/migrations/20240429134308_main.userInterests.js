@@ -12,7 +12,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('userInterests
         .onDelete('CASCADE');
     table.integer('score').notNullable().defaultTo(5); // 1 - 5 where 1 is the highest
     table.integer('engagementCount').notNullable().defaultTo(0);
-    table.integer('isEnabled').notNullable().defaultTo(false);
+    table.bool('isEnabled').notNullable().defaultTo(false);
 
     // Audit
     table.timestamp('createdAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());

@@ -6,11 +6,11 @@ import {
 
 const router = express.Router();
 
-// READ
+// PUBLIC
 router.get('/me', getUserInterests);
-router.get('/:userId', getUserInterests);
-
-// WRITE
 router.post('/me', createUpdateUserInterests);
+
+// PRIVATE
+router.get('/:userId', getUserInterests);
 
 export default router;

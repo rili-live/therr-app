@@ -21,21 +21,14 @@ export default class InterestsStore {
         this.db = dbConnection;
     }
 
-    get(conditions: any, groupBy?: string) {
-        let queryString = knexBuilder
+    get(conditions: any, returning: string[] | string = '*') {
+        const queryString = knexBuilder
+            .select(returning)
             .from(INTERESTS_TABLE_NAME)
             .where(conditions);
 
-        if (groupBy) {
-            queryString = queryString.groupBy(groupBy);
-        }
-
         return this.db.read.query(queryString.toString())
             .then((response) => response.rows);
-    }
-
-    getByCategoryGroups() {
-        return this.get({}, 'category');
     }
 
     getById(id: string) {

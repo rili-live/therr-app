@@ -11,15 +11,15 @@ import {
 
 const router = express.Router();
 
-// READ
+// PUBLIC
 router.get('/', getUserGroups);
 router.get('/:id', getGroupMembers);
-
-// WRITE
 router.post('/', createUserGroup);
-router.post('/privileged', internalCreateUserGroup);
 router.put('/:id', updateUserGroup);
 router.delete('/:id', deleteUserGroup);
 router.post('/notify-members', notifyGroupMembers);
+
+// PRIVATE
+router.post('/privileged', internalCreateUserGroup);
 
 export default router;

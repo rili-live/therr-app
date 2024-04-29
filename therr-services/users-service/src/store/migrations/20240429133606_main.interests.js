@@ -1,7 +1,7 @@
 exports.up = (knex) => knex.schema.withSchema('main').createTable('interests', (table) => {
     table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
     table.string('tag').unique().notNullable();
-    table.string('category').unique().notNullable();
+    table.string('category').notNullable();
     table.string('displayName').notNullable();
     table.string('emoji').notNullable();
     table.string('iconGroup').notNullable();
