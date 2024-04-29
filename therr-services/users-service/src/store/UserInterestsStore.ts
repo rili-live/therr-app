@@ -7,6 +7,7 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export interface ICreateUserInterestParams {
     userId: string;
     interestId: string;
+    isEnabled?: boolean;
     score?: number;
     engagementCount?: number;
 }
@@ -43,13 +44,15 @@ export default class UserInterestsStore {
         return this.get({ id });
     }
 
-    create(params: ICreateUserInterestParams) {
-        const modifiedParams: any = {
-            ...params,
-            score: Math.min(params.score || 5, 5), // Ensure no greater than 5
-        };
+    create(params: ICreateUserInterestParams[]) {
+        const modifiedParams = params.map((param) => ({
+            ...param,
+            score: Math.min(param.score || 5, 5), // Ensure no greater than 5
+        }));
         const queryString = knexBuilder.insert(modifiedParams)
             .into(USER_INTERESTS_TABLE_NAME)
+            .onConflict(['userId', 'intererstId'])
+            .merge()
             .returning('*')
             .toString();
 

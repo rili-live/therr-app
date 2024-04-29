@@ -10,7 +10,7 @@ const getUserOrganizations = (req, res) => Store.userOrganizations.get({
     .then((results) => res.status(200).send({
         userOrganizations: results,
     }))
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ACHIEVEMENTS_ROUTES:ERROR' }));
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ORGANIZATIONS_ROUTES:ERROR' }));
 
 export {
     getUserOrganizations,
