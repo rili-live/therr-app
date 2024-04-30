@@ -3,12 +3,12 @@ import { GestureResponderEvent, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import RNFB from 'react-native-blob-util';
 import { FilePaths } from 'therr-js-utilities/constants';
-import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
-import Alert from '../Alert';
-import UserImage from '../UserContent/UserImage';
-import { signImageUrl } from '../../utilities/content';
+import { ITherrThemeColors, ITherrThemeColorVariations } from '../../../styles/themes';
+import Alert from '../../Alert';
+import UserImage from '../../UserContent/UserImage';
+import { signImageUrl } from '../../../utilities/content';
 
-interface ICreateProfileStageCProps {
+interface ICreateProfilePictureProps {
     user: any;
     errorMsg: string;
     isDisabled: boolean;
@@ -36,10 +36,10 @@ interface ICreateProfileStageCProps {
     userImageUri: string;
 }
 
-interface ICreateProfileStageCState {
+interface ICreateProfilePictureState {
 }
 
-class CreateProfileStageC extends React.Component<ICreateProfileStageCProps, ICreateProfileStageCState> {
+class CreateProfilePicture extends React.Component<ICreateProfilePictureProps, ICreateProfilePictureState> {
     constructor(props) {
         super(props);
 
@@ -133,4 +133,4 @@ class CreateProfileStageC extends React.Component<ICreateProfileStageCProps, ICr
     }
 }
 
-export default CreateProfileStageC;
+export default CreateProfilePicture;

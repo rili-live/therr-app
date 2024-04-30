@@ -5,13 +5,13 @@ import { ApiService } from 'therr-react/services';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import Toast from 'react-native-toast-message';
 import analytics from '@react-native-firebase/analytics';
-import Alert from '../Alert';
-import SquareInput from '../Input/Square';
-import PhoneNumberInput from '../Input/PhoneNumberInput';
-import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
-import TherrIcon from '../../components/TherrIcon';
+import Alert from '../../Alert';
+import SquareInput from '../../Input/Square';
+import PhoneNumberInput from '../../Input/PhoneNumberInput';
+import { ITherrThemeColors, ITherrThemeColorVariations } from '../../../styles/themes';
+import TherrIcon from '../../TherrIcon';
 
-interface ICreateProfileStageBProps {
+interface ICreateProfilePhoneVerifyProps {
     user: any;
     errorMsg: string;
     isFormDisabled: boolean | undefined;
@@ -35,14 +35,14 @@ interface ICreateProfileStageBProps {
     };
 }
 
-interface ICreateProfileStageBState {
+interface ICreateProfilePhoneVerifyState {
     isVerifying: boolean;
     isSubmitting: boolean;
     phoneNumber: string;
     verificationCode: string;
 }
 
-class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICreateProfileStageBState> {
+class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerifyProps, ICreateProfilePhoneVerifyState> {
     constructor(props) {
         super(props);
 
@@ -278,4 +278,4 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
     }
 }
 
-export default CreateProfileStageB;
+export default CreateProfilePhoneVerify;

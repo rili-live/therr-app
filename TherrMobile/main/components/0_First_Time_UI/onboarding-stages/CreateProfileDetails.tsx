@@ -3,12 +3,12 @@ import { Platform, View } from 'react-native';
 import { Button, Text }  from 'react-native-elements';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
-import Alert from '../Alert';
-import SquareInput from '../Input/Square';
-import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
+import Alert from '../../Alert';
+import SquareInput from '../../Input/Square';
+import { ITherrThemeColors, ITherrThemeColorVariations } from '../../../styles/themes';
 // import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../../constants';
 
-interface ICreateProfileStageAProps {
+interface ICreateProfileDetailsProps {
     errorMsg: string;
     inputs: any;
     isFormDisabled: boolean | undefined;
@@ -32,7 +32,7 @@ interface ICreateProfileStageAProps {
     };
 }
 
-const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = ({
+const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> = ({
     errorMsg,
     inputs,
     isFormDisabled,
@@ -157,4 +157,4 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
     );
 };
 
-export default CreateProfileStageA;
+export default CreateProfileDetails;
