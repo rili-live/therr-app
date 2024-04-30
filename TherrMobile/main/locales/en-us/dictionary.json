@@ -1111,6 +1111,7 @@
     "map": {
       "headerTitle": " ",
       "areaAlerts": {
+        "enableEventLocation": "Enable location to create an event",
         "enableSpaceLocation": "Enable location to claim a space",
         "enableMomentLocation": "Enable location to create a moment",
         "tooManyCheckIns": "Too Many Check-Ins: Try again later",

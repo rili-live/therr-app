@@ -9,15 +9,13 @@ import {
 
 const router = express.Router();
 
-// CREATE
-router.post('/', createThought);
-
-// SEARCH
-router.post('/:thoughtId/details', getThoughtDetails);
-router.post('/search', searchThoughts);
+// PRIVATE
 router.post('/find', findThoughts);
 
-// DELETE
+// PUBLIC
+router.post('/', createThought);
+router.post('/search', searchThoughts);
+router.post('/:thoughtId/details', getThoughtDetails);
 router.delete('/', deleteThoughts);
 
 export default router;

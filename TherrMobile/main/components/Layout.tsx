@@ -92,6 +92,7 @@ export interface ILayoutProps extends IStoreProps {}
 
 interface ILayoutState {
     targetRouteView: string;
+    targetRouteParams: any;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -145,6 +146,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         this.state = {
             targetRouteView: '',
+            targetRouteParams: {},
         };
 
         this.reloadTheme();
@@ -180,7 +182,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     }
 
     componentDidUpdate(prevProps: ILayoutProps) {
-        const { targetRouteView } = this.state;
+        const { targetRouteView, targetRouteParams } = this.state;
         const {
             forums,
             addNotification,
@@ -216,7 +218,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         index: 0,
                         routes: [
                             { name: 'Areas' },
-                            { name: targetRouteView },
+                            { name: targetRouteView, params: targetRouteParams },
                         ],
                     });
                 }
@@ -529,6 +531,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (isNotAuthorized) {
             this.setState({
                 targetRouteView,
+                targetRouteParams,
             });
             RootNavigation.navigate('Login');
         } else {
@@ -641,8 +644,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const viewUserRegex = RegExp('users/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/view', 'i');
         const viewUserFromDesktopRegex = RegExp('users/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
 
-        // Route for 3rd party OAuth (Facebook, Instagram, etc.)
-        if (url?.includes('https://therr.com/?access_token=')) {
+        if (url?.includes('therr.com/?access_token=')) {
+            // Route for 3rd party OAuth (Facebook, Instagram, etc.)
+            // TODO: This is needs updated and tested
             const urlWithNoHash = url.split('#_');
             const cleanUrl = urlWithNoHash[0] || url;
             const queryStringSplit = cleanUrl.split('?');
@@ -673,7 +677,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }
             }
-        } else if (url?.includes('https://therr.com/emails/unsubscribe')) {
+        } else if (url?.includes('therr.com/emails/unsubscribe')) {
             const isOnboardingComplete = UsersService.isAuthorized(
                 {
                     type: AccessCheckType.ALL,
@@ -685,32 +689,103 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // TODO: Add afterLogin param to send user to settings after auth
             if (isOnboardingComplete) {
                 RootNavigation.navigate('ManageNotifications');
+            } else {
+                this.setState({
+                    targetRouteView: 'ManageNotifications',
+                });
+            }
+        } else if (url?.includes('therr.com/app-feedback')) {
+            const isOnboardingComplete = UsersService.isAuthorized(
+                {
+                    type: AccessCheckType.ALL,
+                    levels: [AccessLevels.EMAIL_VERIFIED],
+                    isPublic: true,
+                },
+                user
+            );
+            if (isOnboardingComplete) {
+                RootNavigation.navigate('Home');
+            } else {
+                this.setState({
+                    targetRouteView: 'Home',
+                });
             }
         } else if (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex)) {
+            const isOnboardingComplete = UsersService.isAuthorized(
+                {
+                    type: AccessCheckType.ALL,
+                    levels: [AccessLevels.EMAIL_VERIFIED],
+                    isPublic: true,
+                },
+                user
+            );
             const momentId = (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex))[1];
+            let targetRouteParams: any = {};
             if (momentId) {
-                RootNavigation.navigate('ViewMoment', {
+                targetRouteParams = {
                     moment: {
                         id: momentId,
                     },
+                };
+            }
+            if (isOnboardingComplete) {
+                RootNavigation.navigate('ViewMoment', targetRouteParams);
+            } else {
+                this.setState({
+                    targetRouteView: 'ViewMoment',
+                    targetRouteParams,
                 });
             }
         } else if (url?.match(viewSpaceRegex) || url?.match(viewSpaceFromDesktopRegex)) {
+            const isOnboardingComplete = UsersService.isAuthorized(
+                {
+                    type: AccessCheckType.ALL,
+                    levels: [AccessLevels.EMAIL_VERIFIED],
+                    isPublic: true,
+                },
+                user
+            );
             const spaceId = (url?.match(viewSpaceRegex) || url?.match(viewSpaceFromDesktopRegex))[1];
+            let targetRouteParams: any = {};
             if (spaceId) {
-                RootNavigation.navigate('ViewSpace', {
+                targetRouteParams = {
                     space: {
                         id: spaceId,
                     },
+                };
+            }
+            if (isOnboardingComplete) {
+                RootNavigation.navigate('ViewSpace', targetRouteParams);
+            } else {
+                this.setState({
+                    targetRouteView: 'ViewSpace',
+                    targetRouteParams,
                 });
             }
         } else if (url?.match(viewUserRegex) || url?.match(viewUserFromDesktopRegex)) {
+            const isOnboardingComplete = UsersService.isAuthorized(
+                {
+                    type: AccessCheckType.ALL,
+                    levels: [AccessLevels.EMAIL_VERIFIED],
+                    isPublic: true,
+                },
+                user
+            );
             const userId = (url?.match(viewUserRegex) || url?.match(viewUserFromDesktopRegex))[1];
+            let targetRouteParams: any = {};
             if (userId) {
-                RootNavigation.navigate('ViewUser', {
+                targetRouteParams = {
                     userInView: {
                         id: userId,
                     },
+                };
+            }
+            if (isOnboardingComplete) {
+                RootNavigation.navigate('ViewUser', targetRouteParams);
+            } else {
+                this.setState({
+                    targetRouteView: 'ViewUser',
+                    targetRouteParams,
                 });
             }
         } else if (Platform.OS !== 'ios') {

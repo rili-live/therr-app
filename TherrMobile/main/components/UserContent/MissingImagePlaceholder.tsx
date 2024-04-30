@@ -43,7 +43,7 @@ const MissingImagePlaceholder = ({
         if (area?.category?.includes('deals') || area?.category?.includes('discount') || area?.category?.includes('coupon')) {
             missingImage = missingImageDeals;
         }
-        if (area?.category?.includes('storefront')) {
+        if (area?.category?.includes('storefront') || area?.category?.includes('artwork')) {
             missingImage = missingImageStorefront;
         }
         if (area?.category?.includes('idea')) {

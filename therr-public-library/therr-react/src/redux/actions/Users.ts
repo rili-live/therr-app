@@ -614,6 +614,25 @@ class UsersActions {
             return response.data;
         });
 
+    // User Interests
+    getUserInterests = () => (dispatch: any) => UsersService.getUserInterests().then((response: any) => {
+        dispatch({
+            type: UserActionTypes.GET_USER_INTERESTS,
+            data: response.data,
+        });
+
+        return response.data;
+    });
+
+    updateUserInterests = (data: any) => (dispatch: any) => UsersService.updateUserInterests(data).then((response: any) => {
+        dispatch({
+            type: UserActionTypes.USER_INTERESTS_UPDATED,
+            data: response.data,
+        });
+
+        return response.data;
+    });
+
     // Thoughts
     createThought = (data: any) => (dispatch: any) => UsersService.createThought(data).then((response: any) => {
         dispatch({
