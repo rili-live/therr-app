@@ -4,13 +4,13 @@ import handleHttpError from '../utilities/handleHttpError';
 // import translate from '../utilities/translator';
 
 // READ
-const getInterests = (req, res) => Store.interests.get({}, ['id', 'tag', 'emoji', 'displayName', 'category'])
+const getInterests = (req, res) => Store.interests.get({}, ['id', 'tag', 'emoji', 'displayNameKey', 'categoryKey'])
     .then((results) => {
         const interestsByCategory = results?.reduce((acc, cur) => {
-            if (!acc[cur.category]) {
-                acc[cur.category] = [cur];
+            if (!acc[cur.categoryKey]) {
+                acc[cur.categoryKey] = [cur];
             } else {
-                acc[cur.category].push(cur);
+                acc[cur.categoryKey].push(cur);
             }
 
             return acc;

@@ -51,7 +51,7 @@ export default class UserInterestsStore {
         }));
         const queryString = knexBuilder.insert(modifiedParams)
             .into(USER_INTERESTS_TABLE_NAME)
-            .onConflict(['userId', 'intererstId'])
+            .onConflict(['userId', 'interestId'])
             .merge()
             .returning('*')
             .toString();

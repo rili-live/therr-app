@@ -6,8 +6,8 @@ import { INTERESTS_TABLE_NAME } from './tableNames';
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export interface ICreateInterestParams {
     tag: string;
-    category: string;
-    displayName: string;
+    categoryKey: string;
+    displayNameKey: string;
     emoji: string;
     iconGroup: string;
     iconId: string;

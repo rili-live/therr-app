@@ -7,7 +7,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('userInterests
         .onDelete('CASCADE');
     table.uuid('interestId')
         .references('id')
-        .inTable('main.userInterests')
+        .inTable('main.interests')
         .onUpdate('CASCADE')
         .onDelete('CASCADE');
     table.integer('score').notNullable().defaultTo(5); // 1 - 5 where 1 is the highest
