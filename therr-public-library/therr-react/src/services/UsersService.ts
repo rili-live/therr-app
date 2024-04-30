@@ -303,6 +303,23 @@ class UsersService {
         data,
     });
 
+    // User Interests
+    getInterests = () => axios({
+        method: 'get',
+        url: '/users-service/interests',
+    });
+
+    getUserInterests = () => axios({
+        method: 'get',
+        url: '/users-service/users/interests/me',
+    });
+
+    updateUserInterests = (data: any) => axios({
+        method: 'post',
+        url: '/users-service/users/interests/me',
+        data,
+    });
+
     // Thoughts
     createThought = (data: ICreateThoughtBody) => axios({
         method: 'post',
