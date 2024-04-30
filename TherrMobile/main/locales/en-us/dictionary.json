@@ -762,8 +762,8 @@
       "photography": "Photography",
       "crafts": "Crafts",
       "drawing": "Drawing",
-      "digitalArt": "Digital Art",
-      "textileArt": "Textile Art",
+      "digitalArt": "Digital Arts",
+      "textileArt": "Textile Arts",
       "dance": "Dance",
       "instruments": "Instruments",
       "singing": "Singing",
@@ -776,14 +776,23 @@
       "careerDevelopment": "Career Development",
       "financialMarkets": "Financial Markets",
       "jobSearch": "Job Search",
-      "teaching": "Teachine",
+      "teaching": "Teaching",
       "collegeLife": "College Life",
       "schoolClubs": "School Clubs",
       "languageSkills": "Language Skills",
       "businessTravel": "Business Travel"
     },
     "foodDrink": {
-
+      "bbqGrilling": "BBQ & Grilling",
+      "cocktails": "Cocktails",
+      "coffee": "Coffee & Tea",
+      "desserts": "Desserts",
+      "dining": "Dining",
+      "foodTrucks": "Food Trucks",
+      "happyHour": "Happy Hour",
+      "juiceSmoothies": "Juice & Smoothies",
+      "ramen": "Ramen",
+      "veganFood": "Vegan Food"
     },
     "fashion": {
       "styleTrends": "Style & Trends",
@@ -791,14 +800,17 @@
       "makeup": "Makeup",
       "hairCare": "Hair Care",
       "skinCare": "Skin Care",
-      "footwear": "FootWear",
+      "footwear": "Foot Wear",
       "nailCare": "Nail Care",
       "bodyArtCostume": "Costumes & Body Art",
       "activeWear": "Active Wear",
       "swimWear": "Swim Wear"
     },
     "games": {
-
+      "videoGamesConsole": "Video Games (console)",
+      "videoGamesComputer": "Video Games (pc)",
+      "tableTopGames": "Table Top Games",
+      "boardGames": "Board Games & Game Night"
     },
     "homeGarden": {
 
@@ -807,19 +819,24 @@
 
     },
     "sports": {
+      "basketball": "Basketball",
       "baseball": "Baseball",
+      "billiards": "Billiards",
+      "cycling": "Cycling",
       "football": "Football",
+      "golf": "Golf",
+      "gymWorkouts": "Gym Workouts",
       "gymnastics": "Gymnastics",
       "hockey": "Hockey",
-      "soccer": "Soccer"
+      "running": "Running",
+      "soccer": "Soccer",
+      "tennis": "Tennis",
+      "volleyball": "Volleyball"
     },
     "scienceTech": {
 
     },
-    "transportation": {
-
-    },
-    "travel": {
+    "travelTransport": {
 
     },
     "tv": {
@@ -836,8 +853,7 @@
     "nature": "Nature & Outdoors",
     "sports": "Sports",
     "scienceTech": "Science & Tech",
-    "transportation": "",
-    "travel": "Travel",
+    "travelTransport": "Travel & Transportation",
     "tv": "TV & Movies"
   },
   "menus": {
