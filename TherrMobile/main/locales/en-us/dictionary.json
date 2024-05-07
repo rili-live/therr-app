@@ -1189,8 +1189,15 @@
       }
     },
     "landing": {
+      "background": {
+        "shareYourInterests": "Share Your Interests",
+        "inviteFriends": "Invite Your Friends",
+        "getMatched": "Discover Curated Activities & Social Events"
+      },
       "headerTitle": "Welcome",
       "buttons": {
+        "continue": "Continue",
+        "next": "Next",
         "getStarted": "Get Started",
         "signIn": "Sign In"
       },

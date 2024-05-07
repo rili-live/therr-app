@@ -83,6 +83,7 @@ const routes: RouteConfig<
         component: Landing,
         options: () => ({
             title: 'Landing',
+            headerShown: false,
             access: {
                 type: AccessCheckType.NONE,
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
