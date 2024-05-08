@@ -27,6 +27,7 @@ import Register from './Register';
 import Settings from './Settings';
 import ManageAccount from './Settings/ManageAccount';
 import ManageNotifications from './Settings/ManageNotifications';
+import ManagePreferences from './Settings/ManagePreferences';
 import SocialSync from './ViewUser/SocialSync';
 import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
@@ -83,6 +84,7 @@ const routes: RouteConfig<
         component: Landing,
         options: () => ({
             title: 'Landing',
+            headerShown: false,
             access: {
                 type: AccessCheckType.NONE,
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
@@ -338,6 +340,17 @@ const routes: RouteConfig<
         component: ManageNotifications,
         options: () => ({
             title: 'ManageNotifications',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'ManagePreferences',
+        component: ManagePreferences,
+        options: () => ({
+            title: 'ManagePreferences',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
