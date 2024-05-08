@@ -26,6 +26,7 @@ import UserImage from '../../components/UserContent/UserImage';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
 import { getUserImageUri, signImageUrl } from '../../utilities/content';
 import RoundTextInput from '../../components/Input/TextInput/Round';
+import spacingStyles from '../../styles/layouts/spacing';
 
 
 interface ISettingsDispatchProps {
@@ -111,6 +112,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { navigation } = this.props;
 
         navigation.push('ManageNotifications');
+    };
+
+    gotToManagePreferences = () => {
+        const { navigation } = this.props;
+
+        navigation.push('ManagePreferences');
     };
 
     isFormDisabled() {
@@ -475,6 +482,35 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
+                                    {pageHeaderContentSettings}
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.settingsContainer}>
+                                <Text style={[
+                                    this.theme.styles.sectionDescription,
+                                    spacingStyles.marginBotXl,
+                                ]}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={this.gotToManagePreferences}>{this.translate('forms.settings.buttons.managePreferences')}</Text>
+                                </Text>
+                                <ReactPicker
+                                    selectedValue={inputs.shouldHideMatureContent}
+                                    style={this.themeForms.styles.picker}
+                                    itemStyle={this.themeForms.styles.pickerItem}
+                                    onValueChange={(itemValue) =>
+                                        this.onInputChange('shouldHideMatureContent', itemValue)
+                                    }>
+                                    <ReactPicker.Item label={this.translate(
+                                        'forms.settings.labels.hideReportedContent'
+                                    )} value={true} />
+                                    <ReactPicker.Item label={this.translate(
+                                        'forms.settings.labels.showReportedContent'
+                                    )} value={false} />
+                                </ReactPicker>
+                            </View>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderUser}
                                 </Text>
                             </View>
@@ -593,27 +629,6 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     maxLength={255}
                                 />
                                 <Text style={textStyles.textRight}>{`${inputs.settingsBio?.length}/255`}</Text>
-                            </View>
-                            <View style={this.theme.styles.sectionContainer}>
-                                <Text style={this.theme.styles.sectionTitle}>
-                                    {pageHeaderContentSettings}
-                                </Text>
-                            </View>
-                            <View style={this.themeSettingsForm.styles.settingsContainer}>
-                                <ReactPicker
-                                    selectedValue={inputs.shouldHideMatureContent}
-                                    style={this.themeForms.styles.picker}
-                                    itemStyle={this.themeForms.styles.pickerItem}
-                                    onValueChange={(itemValue) =>
-                                        this.onInputChange('shouldHideMatureContent', itemValue)
-                                    }>
-                                    <ReactPicker.Item label={this.translate(
-                                        'forms.settings.labels.hideReportedContent'
-                                    )} value={true} />
-                                    <ReactPicker.Item label={this.translate(
-                                        'forms.settings.labels.showReportedContent'
-                                    )} value={false} />
-                                </ReactPicker>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>

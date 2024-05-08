@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, View } from 'react-native';
 import { Button, Text } from 'react-native-elements';
 import { ITherrThemeColors } from '../../../styles/themes';
+import spacingStyles from '../../../styles/layouts/spacing';
 
 interface ICreateProfileInterestsProps {
     availableInterests: any;
@@ -20,6 +21,7 @@ interface ICreateProfileInterestsProps {
     themeSettingsForm: {
         styles: any;
     };
+    submitButtonText: string;
 }
 
 interface ICreateProfileInterestsState {
@@ -31,6 +33,17 @@ interface ICreateProfileInterestsState {
 }
 
 class CreateProfileInterests extends React.Component<ICreateProfileInterestsProps, ICreateProfileInterestsState> {
+    static getDerivedStateFromProps(nextProps: ICreateProfileInterestsProps, nextState: ICreateProfileInterestsState) {
+        if (Object.keys(nextProps.availableInterests || {}).length > 0
+            && Object.keys(nextState.availableInterests || {}).length < 1) {
+            return {
+                availableInterests: nextProps.availableInterests,
+            };
+        }
+
+        return null;
+    }
+
     constructor(props) {
         super(props);
 
@@ -94,12 +107,13 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
             theme,
             themeForms,
             themeSettingsForm,
+            submitButtonText,
         } = this.props;
         const { availableInterests } = this.state;
 
         return (
             <View style={themeSettingsForm.styles.userContainer}>
-                <View style={{ marginBottom: 50 }}>
+                <View style={spacingStyles.marginBotLg}>
                     {
                         Object.keys(availableInterests).map((categoryTranslationKey) => {
                             const interests = availableInterests[categoryTranslationKey];
@@ -136,9 +150,7 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                 <View style={themeSettingsForm.styles.submitButtonContainer}>
                     <Button
                         buttonStyle={themeForms.styles.button}
-                        title={translate(
-                            'forms.createProfile.buttons.submit'
-                        )}
+                        title={submitButtonText}
                         onPress={this.onSubmitInterests}
                         raised={true}
                         disabled={isDisabled}

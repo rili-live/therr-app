@@ -461,6 +461,9 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     theme={this.theme}
                                     themeForms={this.themeForms}
                                     themeSettingsForm={this.themeSettingsForm}
+                                    submitButtonText={this.translate(
+                                        'forms.createProfile.buttons.submit'
+                                    )}
                                 />
                             }
                             {

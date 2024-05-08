@@ -675,6 +675,7 @@
       "buttons": {
         "submit": "Save",
         "manageAccount": "Manage Account",
+        "managePreferences": "Manage Interests & Content Algorithms",
         "manageNotifications": "Manage Email Settings",
         "deleteAccount": "Delete Account?",
         "settingsEmailBusMarketing": "Business Insights marketing e-mails",
@@ -1051,7 +1052,7 @@
       "headerTitle": "Invite"
     },
     "manageNotifications": {
-      "headerTitle": "Email & Alert Settings etc etc",
+      "headerTitle": "Email & Alert Settings",
       "pageHeaderEmailSettings": "Email Preferences",
       "alertTitles": {
         "notificationSettingsUpdated": "Account Updated",
@@ -1060,6 +1061,19 @@
       "alertMessages": {
         "notificationSettingsUpdated": "Your notification & alert settings have been updated.",
         "notificationSettingsUpdatedError": "Oops! Something went wrong."
+      }
+    },
+    "managePreferences": {
+      "headerTitle": "Preferences & Algorithm Settings",
+      "pageHeaderEmailSettings": "Content Preferences & Algorithm Settings",
+      "pageSubHeaderInterests": "Your Interests",
+      "alertTitles": {
+        "preferenceSettingsUpdated": "Account Updated",
+        "accountError": "Unknown Error"
+      },
+      "alertMessages": {
+        "preferenceSettingsUpdated": "Your account & content preferences have been updated.",
+        "preferenceSettingsUpdatedError": "Oops! Something went wrong."
       }
     },
     "requestSpace": {
