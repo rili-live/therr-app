@@ -35,15 +35,10 @@ export interface IManageNotificationsProps extends IStoreProps {
 }
 
 interface IManageNotificationsState {
-    croppedImageDetails: any;
     errorMsg: string;
     successMsg: string;
     inputs: any;
-    isCropping: boolean;
-    isDeleteAccountModalVisible: boolean;
-    isNightMode: boolean;
     isSubmitting: boolean;
-    passwordErrorMessage: string;
 }
 
 const NotificationSettingSwitch = ({
@@ -125,7 +120,6 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
         super(props);
 
         this.state = {
-            croppedImageDetails: {},
             errorMsg: '',
             successMsg: '',
             inputs: {
@@ -138,11 +132,7 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
                 settingsEmailReminders: props.user.settings.settingsEmailReminders,
                 settingsEmailBackground: props.user.settings.settingsEmailBackground,
             },
-            isCropping: false,
-            isNightMode: props.user.settings.mobileThemeName === 'retro',
-            isDeleteAccountModalVisible: false,
             isSubmitting: false,
-            passwordErrorMessage: '',
         };
 
         this.reloadTheme();
@@ -242,12 +232,6 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
         .finally(() => {
             this.scrollViewRef?.scrollToPosition(0, 0);
         });
-
-    onThemeChange = (isNightMode: boolean) => {
-        this.setState({
-            isNightMode,
-        });
-    };
 
     onSwitchChange = (name: string) => {
         this.setState({

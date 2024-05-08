@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Content } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
+import { UsersService } from 'therr-react/services';
 import LottieView from 'lottie-react-native';
 import analytics from '@react-native-firebase/analytics';
 import UsersActions from '../redux/actions/UsersActions';
@@ -15,9 +16,10 @@ import { buildStyles as buildFTUIStyles } from '../styles/first-time-ui';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';
 import { buildStyles as buildSettingsFormStyles } from '../styles/forms/settingsForm';
-import CreateProfileStageA from '../components/0_First_Time_UI/CreateProfileStageA';
-import CreateProfileStageB from '../components/0_First_Time_UI/CreateProfileStageB';
-import CreateProfileStageC from '../components/0_First_Time_UI/CreateProfileStageC';
+import CreateProfileDetails from '../components/0_First_Time_UI/onboarding-stages/CreateProfileDetails';
+import CreateProfilePhoneVerify from '../components/0_First_Time_UI/onboarding-stages/CreateProfilePhoneVerify';
+import CreateProfilePicture from '../components/0_First_Time_UI/onboarding-stages/CreateProfilePicture';
+import CreateProfileInterests from '../components/0_First_Time_UI/onboarding-stages/CreateProfileInterests';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
 import { getImagePreviewPath } from '../utilities/areaUtils';
@@ -27,6 +29,7 @@ const verifyPhoneLoader = require('../assets/verify-phone-shield.json');
 
 interface ICreateProfileDispatchProps {
     updateUser: Function;
+    updateUserInterests: Function;
 }
 
 interface IStoreProps extends ICreateProfileDispatchProps {
@@ -38,7 +41,7 @@ export interface ICreateProfileProps extends IStoreProps {
     navigation: any;
 }
 
-type StageType = 'A' | 'B' | 'C';
+type StageType = 'details' | 'picture' | 'phone' | 'interests';
 
 interface ICreateProfileState {
     croppedImageDetails: any;
@@ -47,6 +50,8 @@ interface ICreateProfileState {
     isPhoneNumberValid: boolean;
     isSubmitting: boolean;
     stage: StageType;
+    hasSelectedInterests: boolean;
+    interests: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -55,6 +60,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     updateUser: UsersActions.update,
+    updateUserInterests: UsersActions.updateUserInterests,
 }, dispatch);
 
 export class CreateProfile extends React.Component<ICreateProfileProps, ICreateProfileState> {
@@ -73,6 +79,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         this.state = {
             croppedImageDetails: {},
             errorMsg: '',
+            hasSelectedInterests: false,
             inputs: {
                 email: props.user.details.email,
                 firstName: Platform.OS === 'ios' ? (props.user.details.firstName || DEFAULT_FIRSTNAME) : props.user.details.firstName,
@@ -80,9 +87,10 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                 userName: props.user.details.userName,
                 phoneNumber: props.user.details.phoneNumber,
             },
+            interests: {},
             isPhoneNumberValid: false,
             isSubmitting: false,
-            stage: props.route?.params?.stage || 'A',
+            stage: props.route?.params?.stage || 'details',
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -102,9 +110,17 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         analytics().logEvent('profile_create_start', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
+
+        UsersService.getInterests().then((response) => {
+            this.setState({
+                interests: response.data,
+            });
+        }).catch((err) => {
+            console.log(err);
+        });
     }
 
-    isFormADisabled() {
+    isFormUserDetailsDisabled() {
         const { inputs, isSubmitting } = this.state;
 
         return (
@@ -116,7 +132,16 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         );
     }
 
-    isFormBDisabled() {
+    isFormInterestsDisabled() {
+        const { hasSelectedInterests, isSubmitting } = this.state;
+
+        return (
+            !hasSelectedInterests ||
+            isSubmitting
+        );
+    }
+
+    isFormPhoneDisabled() {
         const { inputs, isPhoneNumberValid, isSubmitting } = this.state;
 
         return (
@@ -148,8 +173,44 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
 
     onContinue = () => {
         this.setState({
-            stage: 'B',
+            stage: 'phone',
         });
+    };
+
+    onSubmitInterests = (stage: StageType, interests: any) => {
+        this.setState({
+            isSubmitting: true,
+        });
+        this.props.updateUserInterests({
+            interests,
+        })
+            .then(() => {
+                this.setState({
+                    stage: 'picture',
+                });
+            }).catch((error: any) => {
+                if (
+                    error.statusCode === 400 ||
+                    error.statusCode === 401 ||
+                    error.statusCode === 404
+                ) {
+                    this.setState({
+                        errorMsg: `${error.message}${
+                            error.parameters
+                                ? '(' + error.parameters.toString() + ')'
+                                : ''
+                        }`,
+                    });
+                } else if (error.statusCode >= 500) {
+                    this.setState({
+                        errorMsg: this.translate('forms.settings.backendErrorMessage'),
+                    });
+                }
+            }).finally(() => {
+                this.setState({
+                    isSubmitting: false,
+                });
+            });
     };
 
     onSubmit = (stage: StageType, shouldSkipAdvance: boolean = false) => {
@@ -173,14 +234,14 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             isCreatorAccount: accountType === 'creator',
         };
 
-        if (stage === 'B' && !isPhoneNumberValid) {
+        if (stage === 'phone' && !isPhoneNumberValid) {
             this.setState({
                 errorMsg: this.translate('forms.createConnection.errorMessages.invalidPhoneNumber'),
             });
             return;
         }
 
-        const isDisabled = (stage === 'A' && this.isFormADisabled()) || (stage === 'B' && this.isFormBDisabled());
+        const isDisabled = (stage === 'details' && this.isFormUserDetailsDisabled()) || (stage === 'phone' && this.isFormPhoneDisabled());
 
         if (!isDisabled) {
             this.setState({
@@ -195,13 +256,17 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                         }).catch((err) => console.log(err));
                     }
                     if (!shouldSkipAdvance) {
-                        if (stage === 'A') {
+                        if (stage === 'details') {
                             this.setState({
-                                stage: 'C',
+                                stage: 'interests',
                             });
-                        } else if (stage === 'C') {
+                        } else if (stage === 'interests') {
                             this.setState({
-                                stage: 'B',
+                                stage: 'picture',
+                            });
+                        } else if (stage === 'picture') {
+                            this.setState({
+                                stage: 'phone',
                             });
                         }
                     }
@@ -232,6 +297,12 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                     });
                 });
         }
+    };
+
+    onInterestsChange = () => {
+        this.setState({
+            hasSelectedInterests: true,
+        });
     };
 
     onInputChange = (name: string, value: string) => {
@@ -279,13 +350,15 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
 
     render() {
         const { user } = this.props;
-        const { croppedImageDetails, errorMsg, inputs, isSubmitting, stage } = this.state;
-        const pageHeaderA = this.translate('pages.createProfile.pageHeaderA');
-        const pageSubHeaderA = this.translate('pages.createProfile.pageSubHeaderA');
-        const pageHeaderB = this.translate('pages.createProfile.pageHeaderB');
-        const pageSubHeaderB = this.translate('pages.createProfile.pageSubHeaderB');
-        const pageHeaderC = this.translate('pages.createProfile.pageHeaderC');
-        const pageSubHeaderC = this.translate('pages.createProfile.pageSubHeaderC');
+        const { interests, croppedImageDetails, errorMsg, inputs, isSubmitting, stage } = this.state;
+        const pageHeaderDetails = this.translate('pages.createProfile.pageHeaderDetails');
+        const pageSubHeaderDetails = this.translate('pages.createProfile.pageSubHeaderDetails');
+        const pageHeaderPhone = this.translate('pages.createProfile.pageHeaderPhone');
+        const pageSubHeaderPhone = this.translate('pages.createProfile.pageSubHeaderPhone');
+        const pageHeaderPicture = this.translate('pages.createProfile.pageHeaderPicture');
+        const pageSubHeaderPicture = this.translate('pages.createProfile.pageSubHeaderPicture');
+        const pageHeaderInterests = this.translate('pages.createProfile.pageHeaderInterests');
+        const pageSubHeaderInterests = this.translate('pages.createProfile.pageSubHeaderInterests');
         const currentUserImageUri = getUserImageUri(user, 200);
         const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 
@@ -303,43 +376,54 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                         <View style={this.theme.styles.body}>
                             <View style={this.theme.styles.sectionContainer}>
                                 {
-                                    stage === 'A' &&
+                                    stage === 'details' &&
                                     <>
                                         <Text style={this.themeFTUI.styles.title}>
-                                            {pageHeaderA}
+                                            {pageHeaderDetails}
                                         </Text>
                                         <Text style={this.themeFTUI.styles.subtitleCenter}>
-                                            {pageSubHeaderA}
+                                            {pageSubHeaderDetails}
                                         </Text>
                                     </>
                                 }
                                 {
-                                    stage === 'B' &&
+                                    stage === 'interests' &&
                                     <>
                                         <Text style={this.themeFTUI.styles.title}>
-                                            {pageHeaderB}
+                                            {pageHeaderInterests}
                                         </Text>
                                         <Text style={this.themeFTUI.styles.subtitleCenter}>
-                                            {pageSubHeaderB}
+                                            {pageSubHeaderInterests}
                                         </Text>
                                     </>
                                 }
                                 {
-                                    stage === 'C' &&
+                                    stage === 'picture' &&
                                     <>
                                         <Text style={this.themeFTUI.styles.title}>
-                                            {pageHeaderC}
+                                            {pageHeaderPicture}
                                         </Text>
                                         <Text style={this.themeFTUI.styles.subtitleCenter}>
-                                            {pageSubHeaderC}
+                                            {pageSubHeaderPicture}
+                                        </Text>
+                                    </>
+                                }
+                                {
+                                    stage === 'phone' &&
+                                    <>
+                                        <Text style={this.themeFTUI.styles.title}>
+                                            {pageHeaderPhone}
+                                        </Text>
+                                        <Text style={this.themeFTUI.styles.subtitleCenter}>
+                                            {pageSubHeaderPhone}
                                         </Text>
                                     </>
                                 }
                             </View>
                             {
-                                (stage === 'A' || stage === 'B') &&
+                                (stage === 'details' || stage === 'phone') &&
                                 <View style={[this.theme.styles.sectionContainer, { height: 50, marginBottom: 20 }]}>
-                                    { stage === 'B' &&
+                                    { stage === 'phone' &&
                                         <LottieView
                                             source={verifyPhoneLoader}
                                             style={this.themeFTUI.styles.formBGraphic}
@@ -351,11 +435,11 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                 </View>
                             }
                             {
-                                stage === 'A' &&
-                                <CreateProfileStageA
+                                stage === 'details' &&
+                                <CreateProfileDetails
                                     errorMsg={errorMsg}
                                     inputs={inputs}
-                                    isFormDisabled={this.isFormADisabled()}
+                                    isFormDisabled={this.isFormUserDetailsDisabled()}
                                     onInputChange={this.onInputChange}
                                     onPickerChange={this.onPickerChange}
                                     onSubmit={(shouldSkipAdvance) => this.onSubmit(stage, shouldSkipAdvance)}
@@ -367,23 +451,24 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                 />
                             }
                             {
-                                stage === 'B' &&
-                                <CreateProfileStageB
-                                    user={user}
-                                    errorMsg={errorMsg}
-                                    isFormDisabled={this.isFormBDisabled()}
-                                    onInputChange={this.onPhoneInputChange}
-                                    onSubmit={() => this.onSubmit(stage)}
+                                stage === 'interests' &&
+                                <CreateProfileInterests
+                                    availableInterests={interests}
+                                    isDisabled={this.isFormInterestsDisabled()}
+                                    onChange={this.onInterestsChange}
+                                    onSubmit={(interests) => this.onSubmitInterests(stage, interests)}
                                     translate={this.translate}
                                     theme={this.theme}
-                                    themeAlerts={this.themeAlerts}
                                     themeForms={this.themeForms}
                                     themeSettingsForm={this.themeSettingsForm}
+                                    submitButtonText={this.translate(
+                                        'forms.createProfile.buttons.submit'
+                                    )}
                                 />
                             }
                             {
-                                stage === 'C' &&
-                                <CreateProfileStageC
+                                stage === 'picture' &&
+                                <CreateProfilePicture
                                     user={user}
                                     errorMsg={errorMsg}
                                     isDisabled={isSubmitting}
@@ -397,6 +482,21 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     themeForms={this.themeForms}
                                     themeSettingsForm={this.themeSettingsForm}
                                     userImageUri={userImageUri}
+                                />
+                            }
+                            {
+                                stage === 'phone' &&
+                                <CreateProfilePhoneVerify
+                                    user={user}
+                                    errorMsg={errorMsg}
+                                    isFormDisabled={this.isFormPhoneDisabled()}
+                                    onInputChange={this.onPhoneInputChange}
+                                    onSubmit={() => this.onSubmit(stage)}
+                                    translate={this.translate}
+                                    theme={this.theme}
+                                    themeAlerts={this.themeAlerts}
+                                    themeForms={this.themeForms}
+                                    themeSettingsForm={this.themeSettingsForm}
                                 />
                             }
                         </View>

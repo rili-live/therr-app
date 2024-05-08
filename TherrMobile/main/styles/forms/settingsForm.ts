@@ -10,6 +10,8 @@ const container: any = {
     minWidth: '98%',
     padding: 24,
     paddingTop: 4,
+    marginBottom: 4,
+    paddingBottom: 4,
 };
 
 const buildStyles = (themeName?: IMobileThemeName) => {
@@ -18,23 +20,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
     const styles = StyleSheet.create({
         userContainer: {
             ...container,
-            marginBottom: 4,
-            paddingBottom: 4,
         },
         settingsContainer: {
             ...container,
-            marginBottom: 4,
-            paddingBottom: 4,
         },
         passwordContainer: {
             ...container,
-            marginBottom: 4,
-            paddingBottom: 4,
         },
         advancedContainer: {
             ...container,
-            marginBottom: 4,
-            paddingBottom: 4,
         },
         button: {
             backgroundColor: therrTheme.colors.primary3,

@@ -675,6 +675,7 @@
       "buttons": {
         "submit": "Save",
         "manageAccount": "Manage Account",
+        "managePreferences": "Manage Interests & Content Algorithms",
         "manageNotifications": "Manage Email Settings",
         "deleteAccount": "Delete Account?",
         "settingsEmailBusMarketing": "Business Insights marketing e-mails",
@@ -754,6 +755,107 @@
         "youtubeChannelId": "channel ID"
       }
     }
+  },
+  "interests": {
+    "arts": {
+      "painting": "Painting",
+      "visualArts": "Visual Arts",
+      "photography": "Photography",
+      "crafts": "Crafts",
+      "drawing": "Drawing",
+      "digitalArt": "Digital Arts",
+      "textileArt": "Textile Arts",
+      "dance": "Dance",
+      "instruments": "Instruments",
+      "singing": "Singing",
+      "comedy": "Comedy"
+    },
+    "business": {
+      "localBusiness": "Local Business",
+      "restaurant": "Restaurants",
+      "entrepreneurship": "Entrepreneurship",
+      "careerDevelopment": "Career Development",
+      "financialMarkets": "Financial Markets",
+      "jobSearch": "Job Search",
+      "teaching": "Teaching",
+      "collegeLife": "College Life",
+      "schoolClubs": "School Clubs",
+      "languageSkills": "Language Skills",
+      "businessTravel": "Business Travel"
+    },
+    "foodDrink": {
+      "bbqGrilling": "BBQ & Grilling",
+      "cocktails": "Cocktails",
+      "coffee": "Coffee & Tea",
+      "desserts": "Desserts",
+      "dining": "Dining",
+      "foodTrucks": "Food Trucks",
+      "happyHour": "Happy Hour",
+      "juiceSmoothies": "Juice & Smoothies",
+      "ramen": "Ramen",
+      "veganFood": "Vegan Food"
+    },
+    "fashion": {
+      "styleTrends": "Style & Trends",
+      "clothingAccessories": "Clothing & Accessories",
+      "makeup": "Makeup",
+      "hairCare": "Hair Care",
+      "skinCare": "Skin Care",
+      "footwear": "Foot Wear",
+      "nailCare": "Nail Care",
+      "bodyArtCostume": "Costumes & Body Art",
+      "activeWear": "Active Wear",
+      "swimWear": "Swim Wear"
+    },
+    "games": {
+      "videoGamesConsole": "Video Games (console)",
+      "videoGamesComputer": "Video Games (pc)",
+      "tableTopGames": "Table Top Games",
+      "boardGames": "Board Games & Game Night"
+    },
+    "homeGarden": {
+
+    },
+    "nature": {
+
+    },
+    "sports": {
+      "basketball": "Basketball",
+      "baseball": "Baseball",
+      "billiards": "Billiards",
+      "cycling": "Cycling",
+      "football": "Football",
+      "golf": "Golf",
+      "gymWorkouts": "Gym Workouts",
+      "gymnastics": "Gymnastics",
+      "hockey": "Hockey",
+      "running": "Running",
+      "soccer": "Soccer",
+      "tennis": "Tennis",
+      "volleyball": "Volleyball"
+    },
+    "scienceTech": {
+
+    },
+    "travelTransport": {
+
+    },
+    "tv": {
+
+    }
+  },
+  "interestsCategories": {
+    "arts": "Arts & Creativity",
+    "business": "Business & Academics",
+    "foodDrink": "Food & Drink",
+    "fashion": "Fashion & Style",
+    "games": "Games",
+    "homeGarden": "Home & Garden",
+    "nature": "Nature & Outdoors",
+    "sports": "Sports",
+    "scienceTech": "Science & Tech",
+    "travelTransport": "Travel & Transportation",
+    "tv": "TV & Movies"
   },
   "menus": {
     "crop": {
@@ -915,12 +1017,14 @@
     },
     "createProfile": {
       "headerTitle": "Therr",
-      "pageHeaderA": "Create your profile",
-      "pageSubHeaderA": "You can change your username at any time",
-      "pageHeaderB": "Keep it secure",
-      "pageSubHeaderB": "2-Factor-Auth also prevents fake accounts",
-      "pageHeaderC": "Profile Picture",
-      "pageSubHeaderC": "Skipping this step defaults to a random robo-image"
+      "pageHeaderDetails": "Create your profile",
+      "pageSubHeaderDetails": "You can change your username at any time",
+      "pageHeaderPhone": "Keep it secure",
+      "pageSubHeaderPhone": "2-Factor-Auth also prevents fake accounts",
+      "pageHeaderPicture": "Profile Picture",
+      "pageSubHeaderPicture": "Skipping this step defaults to a random robo-image.",
+      "pageHeaderInterests": "Choose your interests",
+      "pageSubHeaderInterests": "Your shared interests determine content discovery and friendships"
     },
     "cropImage": {
       "headerTitle": "Crop Image"
@@ -948,7 +1052,7 @@
       "headerTitle": "Invite"
     },
     "manageNotifications": {
-      "headerTitle": "Email & Alert Settings etc etc",
+      "headerTitle": "Email & Alert Settings",
       "pageHeaderEmailSettings": "Email Preferences",
       "alertTitles": {
         "notificationSettingsUpdated": "Account Updated",
@@ -957,6 +1061,19 @@
       "alertMessages": {
         "notificationSettingsUpdated": "Your notification & alert settings have been updated.",
         "notificationSettingsUpdatedError": "Oops! Something went wrong."
+      }
+    },
+    "managePreferences": {
+      "headerTitle": "Preferences & Algorithm Settings",
+      "pageHeaderEmailSettings": "Content Preferences & Algorithm Settings",
+      "pageSubHeaderInterests": "Your Interests",
+      "alertTitles": {
+        "preferenceSettingsUpdated": "Account Updated",
+        "accountError": "Unknown Error"
+      },
+      "alertMessages": {
+        "preferenceSettingsUpdated": "Your account & content preferences have been updated.",
+        "preferenceSettingsUpdatedError": "Oops! Something went wrong."
       }
     },
     "requestSpace": {
@@ -1086,8 +1203,15 @@
       }
     },
     "landing": {
+      "background": {
+        "shareYourInterests": "Share Your Interests",
+        "inviteFriends": "Invite Your Friends",
+        "getMatched": "Discover Curated Activities & Social Events"
+      },
       "headerTitle": "Welcome",
       "buttons": {
+        "continue": "Continue",
+        "next": "Next",
         "getStarted": "Get Started",
         "signIn": "Sign In"
       },
