@@ -3,6 +3,7 @@ import axios from 'axios';
 import qs from 'qs';
 import {
     DeviceEventEmitter,
+    Image,
     Linking,
     PermissionsAndroid,
     Platform,
@@ -49,6 +50,11 @@ import { AndroidChannelIds, PEOPLE_CAROUSEL_TABS, PressActionIds, getAndroidChan
 import { socketIO } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
+import background1 from '../assets/dinner-burgers.webp';
+import background2 from '../assets/dinner-overhead.webp';
+import background3 from '../assets/dinner-overhead-2.webp';
+
+const preLoadImageList = [background1, background2, background3];
 
 const Stack = createStackNavigator();
 
@@ -859,7 +865,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 ref={navigationRef}
                 onReady={() => {
                     this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
-                    SplashScreen.hide({ fade: true });
+                    Promise.allSettled(preLoadImageList.map((image) => {
+                        const img = Image.resolveAssetSource(image).uri;
+                        return Image.prefetch(img);
+                    })).finally(() => SplashScreen.hide({ fade: true }));
                 }}
                 onStateChange={async () => {
                     const previousRouteName = this.routeNameRef.current;

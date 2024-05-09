@@ -354,6 +354,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             route,
             user,
         } = this.props;
+        UsersService.getUserInterests().then((response) => {
+            if (!response?.data?.length) {
+                navigation.navigate('ManagePreferences');
+            }
+        });
         UsersService.getExchangeRate().then((response) => {
             this.setState({
                 exchangeRate: response.data?.exchangeRate,

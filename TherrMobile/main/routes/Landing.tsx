@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { connect } from 'react-redux';
-import { SafeAreaView, View, Text, ImageBackground } from 'react-native';
+import { Animated, SafeAreaView, View, Text, ImageProps } from 'react-native';
 import { Button } from 'react-native-elements';
 import analytics from '@react-native-firebase/analytics';
 import 'react-native-gesture-handler';
@@ -25,8 +25,40 @@ import background1 from '../assets/dinner-burgers.webp';
 import background2 from '../assets/dinner-overhead.webp';
 import background3 from '../assets/dinner-overhead-2.webp';
 
-
 // const { width: viewportWidth } = Dimensions.get('window');
+
+interface FadeInBackgroundImageProps extends ImageProps {
+    opacity: number;
+}
+
+const FadeInBackgroundImage: React.FC<FadeInBackgroundImageProps> = props => {
+    const fadeAnim = useRef(new Animated.Value(props.opacity)).current; // Initial value for opacity: 0
+
+    return (
+        <Animated.Image
+            resizeMode="cover"
+            style={[
+                props.style,
+                {
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    flex: 1,
+                    width: '100%',
+                    height: 'auto',
+                    justifyContent: 'center',
+                },
+                {
+                    opacity: fadeAnim, // Bind opacity to animated value
+                },
+            ]}
+            progressiveRenderingEnabled={true}
+            { ...props }
+        />
+    );
+};
 
 
 // const graphicStyles: any = {
@@ -54,7 +86,6 @@ export interface ILandingProps extends IStoreProps {
 interface ILandingState {
     activeSlide: number;
     backgroundIndex: number;
-    backgroundImage: any;
     backgroundText: string;
     backgroundButtonText: string;
 }
@@ -89,7 +120,6 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         this.state = {
             activeSlide: 0,
             backgroundIndex: 0,
-            backgroundImage: background1,
             backgroundText: this.translate(
                 'pages.landing.background.shareYourInterests'
             ),
@@ -146,7 +176,6 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
             analytics().logEvent('landing_progress_started').catch((err) => console.log(err));
             this.setState({
                 backgroundIndex: 1,
-                backgroundImage: background2,
                 backgroundText: this.translate('pages.landing.background.inviteFriends'),
                 backgroundButtonText: this.translate(
                     'pages.landing.buttons.next'
@@ -157,7 +186,6 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         if (backgroundIndex === 1) {
             this.setState({
                 backgroundIndex: 2,
-                backgroundImage: background3,
                 backgroundText: this.translate('pages.landing.background.getMatched'),
                 backgroundButtonText: this.translate(
                     'pages.landing.buttons.getStarted'
@@ -272,7 +300,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
     // };
 
     render() {
-        const { backgroundIndex, backgroundImage, backgroundText, backgroundButtonText } = this.state;
+        const { backgroundIndex, backgroundText, backgroundButtonText } = this.state;
         let onButtonPress = () => this.navTo('Register');
         if (backgroundIndex < 2) {
             onButtonPress = () => this.nextBackground();
@@ -280,21 +308,26 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
 
         return (
             <>
-                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
+                <BaseStatusBar therrThemeName={'dark'}/>
                 <SafeAreaView style={[
                     this.theme.styles.safeAreaView,
                     {
                         flex: 1,
+                        position: 'relative',
                     },
                 ]}>
-                    <ImageBackground
-                        source={backgroundImage}
-                        resizeMode="cover" style={{
-                            flex: 1,
-                            justifyContent: 'center',
-                        }}
-                    >
-                    </ImageBackground>
+                    <FadeInBackgroundImage
+                        source={background1}
+                        opacity={backgroundIndex === 0 ? 1 : 0}
+                    />
+                    <FadeInBackgroundImage
+                        source={background2}
+                        opacity={backgroundIndex === 1 ? 1 : 0}
+                    />
+                    <FadeInBackgroundImage
+                        source={background3}
+                        opacity={backgroundIndex === 2 ? 1 : 0}
+                    />
                     <View
                         style={this.themeFTUI.styles.landingBackgroundOverlay}
                     >
