@@ -115,7 +115,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
                     {
                         moment
                             && <div className="flex fill max-wide-40">
-                                <h1 className="text-title-medium no-bot-margin fill">
+                                <h1 className="text-title-medium fill">
                                     {moment?.notificationMsg}
                                 </h1>
                                 <p className="info-text fill">{moment?.message}</p>
