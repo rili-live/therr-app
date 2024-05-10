@@ -383,12 +383,7 @@ usersServiceRouter.get('/metrics/:contentUserId', validate, handleServiceRequest
 }));
 
 // User Metrics
-usersServiceRouter.post('/emails/bounced', express.json({
-    type: [
-        'application/json',
-        'text/plain', // AWS sends this content-type for its messages/notifications
-    ],
-}), validate, handleServiceRequest({
+usersServiceRouter.post('/emails/bounced', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
