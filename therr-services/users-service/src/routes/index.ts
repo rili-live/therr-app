@@ -1,6 +1,6 @@
 import * as express from 'express';
 import authRouter from './authRouter';
-// import emailsRouter from './emailsRouter';
+import emailsRouter from './emailsRouter';
 import campaignsRouter from './campaignsRouter';
 import interestsRouter from './interestsRouter';
 import paymentsRouter from './paymentsRouter';
@@ -20,7 +20,7 @@ import userOrganizationsRouter from './userOrganizationsRouter';
 const router = express.Router();
 
 router.use('/auth', authRouter);
-// router.use('/emails', emailsRouter);
+router.use('/emails', emailsRouter);
 router.use('/campaigns', campaignsRouter);
 router.use('/interests', interestsRouter);
 router.use('/payments', paymentsRouter);

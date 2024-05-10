@@ -382,4 +382,10 @@ usersServiceRouter.get('/metrics/:contentUserId', validate, handleServiceRequest
     method: 'get',
 }));
 
+// User Metrics
+usersServiceRouter.post('/emails/bounced', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
 export default usersServiceRouter;
