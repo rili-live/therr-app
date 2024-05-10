@@ -46,7 +46,12 @@ app.use(reqLogDecorator);
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
 // Use defaults except for specific route in regex
-app.use(/^(?!\/v1\/users-service\/users\/connections\/find-people$)/, express.json());
+app.use(/^(?!\/v1\/users-service\/users\/connections\/find-people$)/, express.json({
+    type: [
+        'application/json',
+        'text/plain', // AWS sends this content-type for its messages/notifications
+    ],
+}));
 
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
