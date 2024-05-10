@@ -383,7 +383,7 @@ usersServiceRouter.get('/metrics/:contentUserId', validate, handleServiceRequest
 }));
 
 // User Metrics
-usersServiceRouter.post('/emails/bounced', validate, handleServiceRequest({
+usersServiceRouter.post('/emails/bounced', express.text(), validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
