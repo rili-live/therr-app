@@ -9,25 +9,27 @@ import Store from '../store';
 const router = express.Router();
 
 // For dev testing only
-router.get('/', (req, res) => {
-    sendVerificationEmail({
-        subject: '[Account Verification] Therr User Account',
-        toAddresses: ['ughxyihcuvcyc@gmail.com'],
-        agencyDomainName: 'therr.com',
-    }, {
-        name: 'Zack',
-        verificationCodeToken: 'foo',
-    })
-        .then(() => res.status(200).send({ message: 'New verification E-mail sent' }));
-});
+// router.get('/', (req, res) => {
+//     sendVerificationEmail({
+//         subject: '[Account Verification] Therr User Account',
+//         toAddresses: ['ughxyihcuvcyc@gmail.com'],
+//         agencyDomainName: 'therr.com',
+//     }, {
+//         name: 'Zack',
+//         verificationCodeToken: 'foo',
+//     })
+//         .then(() => res.status(200).send({ message: 'New verification E-mail sent' }));
+// });
 
 router.post('/bounced', (req, res) => {
-    console.log(req.body);
+    const {
+        Message,
+    } = req.body;
 
     const {
         notificationType,
         bounce,
-    } = req.body;
+    } = JSON.parse(Message?.replace('\\"', '') || '{}');
 
     let promise: Promise<any[]> = Promise.resolve([]);
 
