@@ -382,7 +382,8 @@ usersServiceRouter.get('/metrics/:contentUserId', validate, handleServiceRequest
     method: 'get',
 }));
 
-// User Metrics
+// Emails
+// TODO: Validate with SNS https://gist.github.com/NEbere/97d53274aa186bd2e69ba774f0afad39
 usersServiceRouter.post('/emails/bounced', validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
