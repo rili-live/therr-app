@@ -745,7 +745,7 @@ const getMomentDetails = (req, res) => {
                         moment.space = space;
                     }
 
-                    if (userId !== moment.frmoUserId) {
+                    if (userId !== moment.fromUserId) {
                         axios({
                             method: 'post',
                             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/increment`,
