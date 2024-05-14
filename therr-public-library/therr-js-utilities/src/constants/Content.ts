@@ -51,12 +51,11 @@ const interestsMap = {
     'forms.editEvent.categories.storefront': 'interests.business.localBusiness',
     'forms.editEvent.categories.travel': 'interests.business.businessTravel',
     'forms.editEvent.categories.fitness': 'interests.sports.gymWorkouts',
-    'forms.editEvent.categories.food': 'interestsCategories.foodDrink',
-    'forms.editEvent.categories.menu': 'interestsCategories.foodDrink',
-    'forms.editEvent.categories.nightLife': 'interestsCategories.foodDrink',
-    'forms.editEvent.categories.drinks': 'interestsCategories.foodDrink',
-    'forms.editEvent.categories.nature': 'interestsCategories.sports',
-    'forms.editEvent.categories.seasonal': 'interestsCategories.sports',
+    'forms.editEvent.categories.food': 'interests.foodDrink.dining',
+    'forms.editEvent.categories.menu': 'interests.foodDrink.dining',
+    'forms.editEvent.categories.nightLife': 'interests.foodDrink.cocktails',
+    'forms.editEvent.categories.drinks': 'interests.foodDrink.cocktails',
+    'forms.editEvent.categories.nature': 'interests.sports.running',
 };
 
 export default {
