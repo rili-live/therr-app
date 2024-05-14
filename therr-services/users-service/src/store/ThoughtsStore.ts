@@ -1,5 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+import { Content } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import UsersStore from './UsersStore';
@@ -26,6 +27,7 @@ export interface ICreateThoughtParams {
     mentionsIds?: string;
     hashTags?: string;
     maxViews?: number;
+    interestsKeys?: string[];
 }
 
 interface IDeleteThoughtsParams {
@@ -364,7 +366,7 @@ export default class ThoughtsStore {
         // TODO: Support creating multiple
         const isTextMature = isTextUnsafe([params.message, params.hashTags || '']);
 
-        const sanitizedParams = {
+        const sanitizedParams: Partial<ICreateThoughtParams> = {
             category: params.category || 'uncategorized',
             expiresAt: params.expiresAt,
             fromUserId: params.fromUserId,
@@ -378,6 +380,14 @@ export default class ThoughtsStore {
             hashTags: params.hashTags || '',
             maxViews: params.maxViews || 0,
         };
+
+        if (params.interestsKeys) {
+            sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
+        } else if (Content.interestsMap[`forms.editThought.categories.${params.category}`]) {
+            // Set a default interests where ever valid
+            const interests = [Content.interestsMap[`forms.editThought.categories.${params.category}`]];
+            sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
+        }
 
         const queryString = knexBuilder.insert(sanitizedParams)
             .into(THOUGHTS_TABLE_NAME)

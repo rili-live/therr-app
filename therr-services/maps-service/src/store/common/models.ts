@@ -33,6 +33,7 @@ export interface ICreateAreaParams {
     region?: string;
     polygonCoords?: string;
     geom?: any;
+    interestsKeys?: string[];
 }
 
 export interface IDeleteAreasParams {

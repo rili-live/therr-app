@@ -494,6 +494,14 @@ export default class MomentsStore {
                 (sanitizedParams as any).medias = JSON.stringify(params.medias);
             }
 
+            if (params.interestsKeys) {
+                sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
+            } else if (Content.interestsMap[`forms.editMoment.categories.${params.category}`]) {
+                // Set a default interests where ever valid
+                const interests = [Content.interestsMap[`forms.editMoment.categories.${params.category}`]];
+                sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
+            }
+
             const queryString = knexBuilder.insert(sanitizedParams)
                 .into(MOMENTS_TABLE_NAME)
                 .returning('*')
@@ -558,6 +566,10 @@ export default class MomentsStore {
 
             if (params.medias) {
                 (sanitizedParams as any).medias = JSON.stringify(sanitizedParams.medias);
+            }
+
+            if (params.interestsKeys) {
+                sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
             }
 
             (sanitizedParams as any).updatedAt = new Date();
