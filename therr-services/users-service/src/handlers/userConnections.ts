@@ -692,6 +692,27 @@ const updateUserConnection = (req, res) => {
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
 };
+const incrementUserConnection = (req, res) => {
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
+    const requestingUserId = userId;
+
+    const {
+        incrBy,
+        acceptingUserId,
+    } = req.body;
+
+    const ceilIncrBy = Math.min(5, (incrBy || 1));
+
+    return Store.userConnections
+        .incrementUserConnection(acceptingUserId, requestingUserId, ceilIncrBy)
+        .then((results) => res.status(200).send(results[0]))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+};
 
 export {
     createUserConnection,
@@ -700,4 +721,5 @@ export {
     getUserConnection,
     searchUserConnections,
     updateUserConnection,
+    incrementUserConnection,
 };
