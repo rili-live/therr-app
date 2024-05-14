@@ -3,10 +3,13 @@ import { Pressable, View } from 'react-native';
 import { Button, Text } from 'react-native-elements';
 import { ITherrThemeColors } from '../../../styles/themes';
 import spacingStyles from '../../../styles/layouts/spacing';
+import searchLoading from '../../../assets/search-loading.json';
+import LottieView from 'lottie-react-native';
 
 interface ICreateProfileInterestsProps {
     availableInterests: any;
     isDisabled: boolean;
+    isLoading: boolean;
     onChange: (() => void);
     onSubmit: ((interests: any) => void);
     translate: Function;
@@ -103,6 +106,7 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
     render() {
         const {
             isDisabled,
+            isLoading,
             translate,
             theme,
             themeForms,
@@ -113,6 +117,18 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
 
         return (
             <View style={themeSettingsForm.styles.userContainer}>
+                {
+                    isLoading &&
+                    <LottieView
+                        source={searchLoading}
+                        // resizeMode="cover"
+                        resizeMode="contain"
+                        speed={1}
+                        autoPlay
+                        loop
+                        style={[{width: '100%', height: 65, marginVertical: 30 }]}
+                    />
+                }
                 <View style={spacingStyles.marginBotLg}>
                     {
                         Object.keys(availableInterests).map((categoryTranslationKey) => {

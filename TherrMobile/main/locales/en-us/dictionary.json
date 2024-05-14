@@ -767,6 +767,7 @@
       "textileArt": "Textile Arts",
       "dance": "Dance",
       "instruments": "Instruments",
+      "liveMusic": "Live Music",
       "singing": "Singing",
       "comedy": "Comedy"
     },
@@ -823,6 +824,8 @@
       "basketball": "Basketball",
       "baseball": "Baseball",
       "billiards": "Billiards",
+      "bowling": "Bowling",
+      "Climbing": "Rock Climbing",
       "cycling": "Cycling",
       "football": "Football",
       "golf": "Golf",
@@ -835,10 +838,14 @@
       "volleyball": "Volleyball"
     },
     "scienceTech": {
-
+      "science": "Science",
+      "software": "Software Engineering",
+      "hardware": "Hardware Engineering"
     },
     "travelTransport": {
-
+      "travel": "Traveling",
+      "cars": "Cars",
+      "bikes": "Motor Bikes & Motorcycles"
     },
     "tv": {
 
@@ -1487,8 +1494,8 @@
       "header4": "Tour: Find Friends",
       "createAMoment": "Press the GPS button on the map to start creating content. We require location for all posts to prevent fake users and focus on local-first interactions.",
       "claimYourSpaces": "Businesses and promoters can claim spaces on the map and offer rewards. Visit a space to earn rewards, then exchange coins/points for cash!",
-      "exploreTheWorld": "Start discovering content by enabling location and walking around. Use the search bar and filters, then travel to those locations. The 'Discovered' page shows all activated content.",
-      "findFriends": "Connect with friends, businesses, and your local network. Organize your connections by type and location. Earn bonus rewards for inviting friends!"
+      "exploreTheWorld": "Start discovering content by enabling location and walking around. Content nearby gets prioritized and activated. The 'Discovered' page shows all activated content.",
+      "findFriends": "We'll send you invites to curated social activities each week! Having a select friend list helps us match you with people you already know and people you might like to know."
     }
   },
   "permissions": {

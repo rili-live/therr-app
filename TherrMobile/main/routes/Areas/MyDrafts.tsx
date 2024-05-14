@@ -31,6 +31,7 @@ function getRandomLoaderId(): ILottieId {
 interface IMyDraftsDispatchProps {
     deleteDraft: Function;
     searchMyDrafts: Function;
+    createOrUpdateEventReaction: Function;
     createOrUpdateMomentReaction: Function;
     createOrUpdateSpaceReaction: Function;
 }
@@ -64,6 +65,7 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             deleteDraft: ContentActions.deleteDraft,
             searchMyDrafts: ContentActions.searchMyDrafts,
+            createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
         },
@@ -234,7 +236,14 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
 
     render() {
         const { activeTab, areAreaOptionsVisible, isLoading, selectedArea } = this.state;
-        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, content, navigation, user } = this.props;
+        const {
+            createOrUpdateEventReaction,
+            createOrUpdateMomentReaction,
+            createOrUpdateSpaceReaction,
+            content,
+            navigation,
+            user,
+        } = this.props;
 
         // TODO: Fetch missing media
         const fetchMedia = () => {};
@@ -246,7 +255,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
             shouldIncludeMoments: true,
             shouldIncludeSpaces: true,
             // shouldIncludeThoughts: true,
-        }, 'createdAt');
+        }, 'updatedAt');
 
         return (
             <>
@@ -265,6 +274,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
                         toggleAreaOptions={this.toggleAreaOptions}
                         isLoading={isLoading}
                         onEndReached={this.tryLoadMore}
+                        updateEventReaction={createOrUpdateEventReaction}
                         updateMomentReaction={createOrUpdateMomentReaction}
                         updateSpaceReaction={createOrUpdateSpaceReaction}
                         emptyListMessage={this.getEmptyListMessage()}
