@@ -17,6 +17,7 @@ export interface ICreateUserConnectionParams {
 export interface IUpdateUserConnectionConditions {
     requestingUserId: string;
     acceptingUserId: string;
+    requestStatus?: UserConnectionTypes;
 }
 
 export interface IUpdateUserConnectionParams {
@@ -257,6 +258,23 @@ export default class UserConnectionsStore {
         })
             .into(USER_CONNECTIONS_TABLE_NAME)
             .where(conditions)
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    incrementUserConnection(userId1, userId2, incrBy = 1) {
+        const queryString = knexBuilder.increment('interactionCount', incrBy)
+            .into(USER_CONNECTIONS_TABLE_NAME)
+            .where({
+                acceptingUserId: userId1,
+                requestingUserId: userId2,
+            })
+            .orWhere({
+                acceptingUserId: userId2,
+                requestingUserId: userId1,
+            })
             .returning('*')
             .toString();
 

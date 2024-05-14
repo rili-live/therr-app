@@ -745,6 +745,25 @@ const getMomentDetails = (req, res) => {
                         moment.space = space;
                     }
 
+                    if (userId !== moment.fromUserId) {
+                        axios({
+                            method: 'post',
+                            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/increment`,
+                            headers: {
+                                authorization: req.headers.authorization,
+                                'x-localecode': req.headers['x-localecode'] || 'en-us',
+                                'x-userid': userId,
+                                'x-therr-origin-host': whiteLabelOrigin,
+                            },
+                            data: {
+                                acceptingUserId: moment.fromUserId,
+                                incrBy: 2,
+                            },
+                        }).catch((err) => {
+                            console.log(err);
+                        });
+                    }
+
                     moment.likeCount = parseInt(momentCount?.count || 0, 10);
                     return res.status(200).send({
                         moment,
