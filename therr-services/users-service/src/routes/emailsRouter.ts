@@ -39,6 +39,7 @@ router.post('/bounced', (req, res) => {
             promise = Store.users.getUserByEmail(userEmail).then(([user]) => {
                 if (user) {
                     return Store.users.updateUser({
+                        settingsEmailLikes: false,
                         settingsEmailInvites: false,
                         settingsEmailMentions: false,
                         settingsEmailMessages: false,
