@@ -522,6 +522,14 @@ export default class EventsStore {
                 sanitizedParams.medias = JSON.stringify(params.medias);
             }
 
+            if (params.interestsKeys) {
+                sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
+            } else if (Content.interestsMap[`forms.editEvent.categories.${params.category}`]) {
+                // Set a default interests where ever valid
+                const interests = [Content.interestsMap[`forms.editEvent.categories.${params.category}`]];
+                sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
+            }
+
             const queryString = knexBuilder.insert(sanitizedParams)
                 .into(EVENTS_TABLE_NAME)
                 .returning('*')
@@ -586,6 +594,10 @@ export default class EventsStore {
 
             if (params.medias) {
                 sanitizedParams.medias = JSON.stringify(params.medias);
+            }
+
+            if (params.interestsKeys) {
+                sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
             }
 
             const queryString = knexBuilder.update(sanitizedParams)

@@ -522,6 +522,14 @@ export default class SpacesStore {
                 sanitizedParams.thirdPartyRatings = params.thirdPartyRatings ? JSON.stringify(params.thirdPartyRatings) : JSON.stringify({});
             }
 
+            if (params.interestsKeys) {
+                sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
+            } else if (Content.interestsMap[`forms.editMoment.categories.${params.category}`]) {
+                // Set a default interests where ever valid
+                const interests = [Content.interestsMap[`forms.editMoment.categories.${params.category}`]];
+                sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
+            }
+
             const queryString = knexBuilder.insert(sanitizedParams)
                 .into(SPACES_TABLE_NAME)
                 .returning('*')
@@ -592,6 +600,10 @@ export default class SpacesStore {
 
             if (params.openingHours) {
                 sanitizedParams.openingHours = JSON.stringify(params.openingHours);
+            }
+
+            if (params.interestsKeys) {
+                sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
             }
 
             (sanitizedParams as any).updatedAt = new Date();
