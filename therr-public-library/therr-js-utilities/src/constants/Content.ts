@@ -35,7 +35,7 @@ const interestsMap = {
     'forms.editMoment.categories.restaurant/food': 'interests.foodDrink.dining',
     'forms.editMoment.categories.marketplace/festival': 'interests.arts.visualArts',
     'forms.editMoment.categories.artwork/expression': 'interests.arts.visualArts',
-    'forms.editMoment.categories.music/concerts': 'interests.arts.instruments',
+    'forms.editMoment.categories.music/concerts': 'interests.arts.liveMusic',
     'forms.editMoment.categories.bar/drinks': 'interests.foodDrink.cocktails',
     'forms.editMoment.categories.nature/parks': 'interests.sports.running',
     'forms.editMoment.categories.hotels/lodging': 'interests.business.businessTravel',

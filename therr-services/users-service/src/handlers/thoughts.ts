@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
 import {
     ErrorCodes, MetricNames, MetricValueTypes, Notifications,
+    UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { RequestHandler } from 'express';
@@ -299,6 +300,11 @@ const getThoughtDetails = (req, res) => {
                     };
 
                     thoughtResult.likeCount = parseInt(thoughtCounts?.count || '0', 10);
+
+                    if (userId !== thought.fromUserId) {
+                        Store.userConnections.incrementUserConnection(userId, thought.fromUserId, 1)
+                            .catch((err) => console.log(err));
+                    }
 
                     return res.status(200).send({ thought: thoughtResult, users });
                 });

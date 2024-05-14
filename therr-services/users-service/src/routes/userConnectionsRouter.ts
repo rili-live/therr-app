@@ -6,6 +6,7 @@ import {
     getUserConnection,
     searchUserConnections,
     updateUserConnection,
+    incrementUserConnection,
 } from '../handlers/userConnections';
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 // PUBLIC
 router.post('/', createUserConnection);
 router.post('/multi-invite', createOrInviteUserConnections);
+router.post('/increment', incrementUserConnection);
 router.get('/:requestingUserId', getUserConnection);
 router.get('/', searchUserConnections);
 router.put('/', updateUserConnection);
