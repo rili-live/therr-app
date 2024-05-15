@@ -39,6 +39,7 @@ interface IManagePreferencesState {
     errorMsg: string;
     successMsg: string;
     interests: any;
+    isLoading: boolean;
     isSubmitting: boolean;
 }
 
@@ -69,6 +70,7 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
             errorMsg: '',
             successMsg: '',
             interests: {},
+            isLoading: true,
             isSubmitting: false,
         };
 
@@ -80,6 +82,10 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
     componentDidMount = () => {
         this.props.navigation.setOptions({
             title: this.translate('pages.managePreferences.headerTitle'),
+        });
+
+        this.setState({
+            isLoading: true,
         });
 
         Promise.all([
@@ -104,36 +110,10 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
             });
         }).catch((err) => {
             console.log(err);
-        });
-    };
-
-    onDeleteAccountConfirm = () => {
-        const { logout, user } = this.props;
-
-        analytics().logEvent('account_delete_start', {
-            userId: user.details.id,
-        }).catch((err) => console.log(err));
-
-        // TODO: Add are you sure modal and test
-        UsersService.delete(user.details.id).then(() => {
-            analytics().logEvent('account_delete_success', {
-                userId: user.details.id,
-            }).catch((err) => console.log(err));
-
-            Toast.show({
-                type: 'successBig',
-                text1: this.translate('pages.advancedSettings.alertTitles.accountDeleted'),
-                text2: this.translate('pages.advancedSettings.alertMessages.accountDeleted'),
-                visibilityTime: 2000,
-                onHide: () => {
-                    logout();
-                },
+        }).finally(() => {
+            this.setState({
+                isLoading: false,
             });
-        }).catch((error) => {
-            analytics().logEvent('account_delete_failed', {
-                userId: user.details.id,
-                error: error?.message,
-            }).catch((err) => console.log(err));
         });
     };
 
@@ -160,11 +140,17 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
             interests,
         })
             .then(() => {
+                analytics().logEvent('account_update_interests', {
+                    userId: this.props.user.details.id,
+                }).catch((err) => console.log(err));
                 Toast.show({
                     type: 'successBig',
                     text1: this.translate('pages.managePreferences.alertTitles.preferenceSettingsUpdated'),
                     text2: this.translate('pages.managePreferences.alertMessages.preferenceSettingsUpdated'),
                     visibilityTime: 3000,
+                    onHide: () => {
+                        this.props.navigation.navigate('Settings');
+                    },
                 });
             }).catch(() => {
                 Toast.show({
@@ -186,7 +172,7 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
 
     render() {
         const { navigation, user } = this.props;
-        const  { interests, isSubmitting } = this.state;
+        const  { interests, isLoading, isSubmitting } = this.state;
         const pageHeaderAdvancedSettings = this.translate('pages.managePreferences.pageHeaderEmailSettings');
         const pageHeaderYourInterests = this.translate('pages.managePreferences.pageSubHeaderInterests');
 
@@ -216,6 +202,7 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
                             <CreateProfileInterests
                                 availableInterests={interests}
                                 isDisabled={isSubmitting}
+                                isLoading={isLoading}
                                 onChange={() => {}}
                                 onSubmit={this.onSubmitInterests}
                                 translate={this.translate}

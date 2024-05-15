@@ -47,6 +47,7 @@ interface ICreateProfileState {
     croppedImageDetails: any;
     errorMsg: string;
     inputs: any;
+    isLoadingInterests: boolean;
     isPhoneNumberValid: boolean;
     isSubmitting: boolean;
     stage: StageType;
@@ -88,6 +89,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                 phoneNumber: props.user.details.phoneNumber,
             },
             interests: {},
+            isLoadingInterests: true,
             isPhoneNumberValid: false,
             isSubmitting: false,
             stage: props.route?.params?.stage || 'details',
@@ -111,12 +113,20 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             userId: user.details.id,
         }).catch((err) => console.log(err));
 
+        this.setState({
+            isLoadingInterests: true,
+        });
+
         UsersService.getInterests().then((response) => {
             this.setState({
                 interests: response.data,
             });
         }).catch((err) => {
             console.log(err);
+        }).finally(() => {
+            this.setState({
+                isLoadingInterests: false,
+            });
         });
     }
 
@@ -350,7 +360,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
 
     render() {
         const { user } = this.props;
-        const { interests, croppedImageDetails, errorMsg, inputs, isSubmitting, stage } = this.state;
+        const { isLoadingInterests, interests, croppedImageDetails, errorMsg, inputs, isSubmitting, stage } = this.state;
         const pageHeaderDetails = this.translate('pages.createProfile.pageHeaderDetails');
         const pageSubHeaderDetails = this.translate('pages.createProfile.pageSubHeaderDetails');
         const pageHeaderPhone = this.translate('pages.createProfile.pageHeaderPhone');
@@ -454,6 +464,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                 stage === 'interests' &&
                                 <CreateProfileInterests
                                     availableInterests={interests}
+                                    isLoading={isLoadingInterests}
                                     isDisabled={this.isFormInterestsDisabled()}
                                     onChange={this.onInterestsChange}
                                     onSubmit={(interests) => this.onSubmitInterests(stage, interests)}

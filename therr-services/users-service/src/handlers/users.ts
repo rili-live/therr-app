@@ -238,6 +238,11 @@ const getUser = (req, res) => {
     const authHeader = req.headers.authorization; // undefined if user is not logged in
     const userId = req.headers['x-userid'];
 
+    if (!!authHeader && !!userId && userId !== req.params.id) {
+        Store.userConnections.incrementUserConnection(userId, req.params.id, 1)
+            .catch((err) => console.log(err));
+    }
+
     return getUserHelper({
         isAuthorized: !!authHeader,
         requestingUserId: userId,

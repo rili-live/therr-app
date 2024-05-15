@@ -8,7 +8,9 @@ import { IUserState } from 'therr-react/types';
 import claimASpace from '../../assets/claim-a-space.json';
 import shareAMoment from '../../assets/share-a-moment.json';
 import discover from '../../assets/discover.json';
+import matchUp from '../../assets/match-up.json';
 import ModalButton from './ModalButton';
+import spacingStyles from '../../styles/layouts/spacing';
 
 interface ITouringModal {
     isVisible: boolean;
@@ -51,7 +53,7 @@ const TouringModal = ({
         onFindFriends();
     };
 
-    if (tab === 3) {
+    if (tab === 4) {
         // Prevents user from rapid clicking and missing the find friends button
         if (isDoneDisabled) {
             setTimeout(() => {
@@ -74,19 +76,25 @@ const TouringModal = ({
                 onPress={onClose}
                 style={themeTour.styles.overlay}>
                 {
-                    (tab !== 1 && tab !== 2 && tab !== 3) &&
+                    (tab !== 1 && tab !== 2 && tab !== 3 && tab !== 4) &&
                     <Pressable style={themeTour.styles.container}>
-                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header3')}</Text>
-                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.exploreTheWorld')}</Text>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header5')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.matchUp')}</Text>
+                        {/* <Ionicons
+                            name="bonfire"
+                            size={75}
+                            style={themeButtons.styles.btnIcon}
+                        /> */}
                         <AnimatedLottieView
-                            source={claimASpace}
+                            source={matchUp}
                             // resizeMode="cover"
                             resizeMode="contain"
-                            speed={1}
-                            autoPlay={false}
+                            speed={0.5}
+                            autoPlay={true}
                             loop
                             style={themeTour.styles.graphic}
                         />
+                        <Text style={[themeTour.styles.text, spacingStyles.marginBotMd]}>{translate('modals.touringModal.matchUp2')}</Text>
                         <View style={themeTour.styles.actionsContainer}>
                             <ModalButton
                                 iconName="arrow-forward"
@@ -99,12 +107,12 @@ const TouringModal = ({
                     </Pressable>
                 }
                 {
-                    (tab === 1) &&
+                    (tab == 1) &&
                     <Pressable style={themeTour.styles.container}>
-                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header2')}</Text>
-                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.createAMoment')}</Text>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header3')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.exploreTheWorld')}</Text>
                         <AnimatedLottieView
-                            source={shareAMoment}
+                            source={claimASpace}
                             // resizeMode="cover"
                             resizeMode="contain"
                             speed={1}
@@ -112,6 +120,7 @@ const TouringModal = ({
                             loop
                             style={themeTour.styles.graphic}
                         />
+                        <Text style={[themeTour.styles.text, spacingStyles.marginBotMd]}>{translate('modals.touringModal.exploreTheWorld2')}</Text>
                         <View style={themeTour.styles.actionsContainer}>
                             <ModalButton
                                 iconName="arrow-back"
@@ -133,10 +142,10 @@ const TouringModal = ({
                 {
                     (tab === 2) &&
                     <Pressable style={themeTour.styles.container}>
-                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header1')}</Text>
-                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.claimYourSpaces')}</Text>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header2')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.createAMoment')}</Text>
                         <AnimatedLottieView
-                            source={discover}
+                            source={shareAMoment}
                             // resizeMode="cover"
                             resizeMode="contain"
                             speed={1}
@@ -144,6 +153,7 @@ const TouringModal = ({
                             loop
                             style={themeTour.styles.graphic}
                         />
+                        <Text style={[themeTour.styles.text, spacingStyles.marginBotMd]}>{translate('modals.touringModal.createAMoment2')}</Text>
                         <View style={themeTour.styles.actionsContainer}>
                             <ModalButton
                                 iconName="arrow-back"
@@ -164,6 +174,39 @@ const TouringModal = ({
                 }
                 {
                     (tab === 3) &&
+                    <Pressable style={themeTour.styles.container}>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header1')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.claimYourSpaces')}</Text>
+                        <AnimatedLottieView
+                            source={discover}
+                            // resizeMode="cover"
+                            resizeMode="contain"
+                            speed={1}
+                            autoPlay={false}
+                            loop
+                            style={themeTour.styles.graphic}
+                        />
+                        <Text style={[themeTour.styles.text, spacingStyles.marginBotMd]}>{translate('modals.touringModal.claimYourSpaces2')}</Text>
+                        <View style={themeTour.styles.actionsContainer}>
+                            <ModalButton
+                                iconName="arrow-back"
+                                title={translate('modals.touringModal.back')}
+                                onPress={() => setTab(2)}
+                                iconRight={false}
+                                themeButtons={themeButtons}
+                            />
+                            <ModalButton
+                                iconName="arrow-forward"
+                                title={translate('modals.touringModal.next')}
+                                onPress={() => setTab(4)}
+                                iconRight
+                                themeButtons={themeButtons}
+                            />
+                        </View>
+                    </Pressable>
+                }
+                {
+                    (tab === 4) &&
                     <Pressable style={themeTour.styles.container}>
                         <Text style={themeTour.styles.header}>{translate('modals.touringModal.header4')}</Text>
                         <Text style={themeTour.styles.text}>{translate('modals.touringModal.findFriends')}</Text>
@@ -186,11 +229,12 @@ const TouringModal = ({
                                 iconRight
                             />
                         </View>
+                        <Text style={[themeTour.styles.text, spacingStyles.marginBotMd]}>{translate('modals.touringModal.findFriends2')}</Text>
                         <View style={themeTour.styles.actionsContainer}>
                             <ModalButton
                                 iconName="arrow-back"
                                 title={translate('modals.touringModal.back')}
-                                onPress={() => setTab(2)}
+                                onPress={() => setTab(3)}
                                 iconRight={false}
                                 themeButtons={themeButtons}
                             />

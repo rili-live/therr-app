@@ -42,6 +42,7 @@ import {
     PressActionIds,
     MIN_TIME_BTW_CHECK_INS_MS,
     HAPTIC_FEEDBACK_TYPE,
+    PEOPLE_CAROUSEL_TABS,
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
@@ -863,6 +864,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             }
             this.showAreaAlert(alertMsg);
         }
+    };
+
+    handleMatchUpPress = () => {
+        // TODO: Navigate to Match Up page where user can prompt for curated activities
+        this.props.navigation.navigate('Connect', {
+            activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+        });
     };
 
     handleGpsRecenterPress = () => {
@@ -1833,6 +1841,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 goToNotifications={this.goToNotifications}
                                 hasNotifications={hasNotifications}
                                 handleCreate={this.handleCreate}
+                                handleMatchUp={this.handleMatchUpPress}
                                 handleGpsRecenter={this.handleGpsRecenterPress}
                                 handleOpenMapFilters={this.handleOpenMapFiltersPress}
                                 toggleCreateActions={this.toggleCreateActions}
