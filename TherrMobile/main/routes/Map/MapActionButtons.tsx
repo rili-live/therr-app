@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { Badge, Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { IUserState } from 'therr-react/types';
 import AnimatedLottieView from 'lottie-react-native';
 import { ITherrThemeColors } from '../../styles/themes';
@@ -23,6 +24,7 @@ interface MapActionButtonsProps {
     };
     handleCreate: (action: ICreateAction, isBusinessAccount?: boolean, isCreatorAccount?: boolean) => any;
     handleGpsRecenter: () => any;
+    handleMatchUp: () => any;
     handleOpenMapFilters: () => any;
     hasNotifications: boolean;
     toggleCreateActions: Function;
@@ -67,6 +69,7 @@ export default ({
     filters,
     handleCreate,
     handleGpsRecenter,
+    handleMatchUp,
     handleOpenMapFilters,
     toggleCreateActions,
     toggleFollow,
@@ -213,6 +216,21 @@ export default ({
                     onPress={handleOpenMapFilters}
                 />
             </View>
+            <View style={themeButtons.styles.matchUp}>
+                <Button
+                    containerStyle={themeButtons.styles.btnContainer}
+                    buttonStyle={themeButtons.styles.btnXLarge}
+                    icon={
+                        <Ionicons
+                            name="bonfire"
+                            size={34}
+                            style={themeButtons.styles.btnIcon}
+                        />
+                    }
+                    raised={true}
+                    onPress={handleMatchUp}
+                />
+            </View>
             {
                 filterCount > 0 &&
                 <View style={themeButtons.styles.mapFiltersCount}>
@@ -233,7 +251,7 @@ export default ({
             }
             <Button
                 containerStyle={themeButtons.styles.addAMoment}
-                buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLarge : themeButtons.styles.btnLargeWithText}
+                buttonStyle={themeButtons.styles.btnLarge}
                 icon={
                     <TherrIcon
                         name={shouldShowCreateActions ? 'minus' : 'plus'}
@@ -242,11 +260,70 @@ export default ({
                     />
                 }
                 iconRight
-                title={shouldShowCreateActions ? null : translate('menus.mapActions.create')}
-                titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                // title={shouldShowCreateActions ? null : translate('menus.mapActions.create')}
+                // titleStyle={themeButtons.styles.btnLargeTitleLeft}
                 raised={true}
                 onPress={() => toggleCreateActions()}
             />
+            {
+                (hasNearbySpaces && hasValidCheckinSpaces)
+                    ? <>
+                        <View style={themeButtons.styles.addACheckInBadgeFeatured}>
+                            <Badge
+                                value={`$${checkinValue}`}
+                                badgeStyle={themeButtons.styles.checkInRewardsBadge}
+                                containerStyle={themeButtons.styles.checkInRewardsBadgeContainer}
+                                onPress={onShowCheckInModal}
+                            />
+                        </View>
+                        <View style={themeButtons.styles.addACheckInFeatured}>
+                            <Button
+                                containerStyle={themeButtons.styles.btnContainer}
+                                buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
+                                icon={
+                                    <TherrIcon
+                                        // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
+                                        name="map-marker-clock"
+                                        size={22}
+                                        style={themeButtons.styles.btnIcon}
+                                    />
+                                }
+                                iconRight
+                                raised
+                                onPress={onShowCheckInModal}
+                            />
+                        </View>
+                    </>
+                    : <>
+                        {
+                            validRewardMoments?.length > 0 && !shouldShowCreateActions &&
+                            <View style={themeButtons.styles.uploadMomentBadgeFeatured}>
+                                <Badge
+                                    value={`$${momentRewardValue}`}
+                                    badgeStyle={themeButtons.styles.momentRewardsBadge}
+                                    containerStyle={themeButtons.styles.momentRewardsBadgeContainer}
+                                    onPress={onShowCheckInModal}
+                                />
+                            </View>
+                        }
+                        <View style={themeButtons.styles.uploadMomentFeatured}>
+                            <Button
+                                containerStyle={themeButtons.styles.btnContainer}
+                                buttonStyle={themeButtons.styles.btnLarge}
+                                icon={
+                                    <TherrIcon
+                                        name="map-marker-plus"
+                                        size={22}
+                                        style={themeButtons.styles.btnIcon}
+                                    />
+                                }
+                                iconRight
+                                raised
+                                onPress={() => handleCreate('moment')}
+                            />
+                        </View>
+                    </>
+            }
             {
                 hasNearbySpaces &&
                 <>
@@ -304,54 +381,62 @@ export default ({
                     onPress={() => handleCreate('event')}
                 />
             </View>
-            <View style={themeButtons.styles.claimASpace}>
-                <Button
-                    containerStyle={themeButtons.styles.btnContainer}
-                    buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
-                    icon={
-                        <TherrIcon
-                            // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
-                            name="road-map"
-                            size={22}
-                            style={themeButtons.styles.btnIcon}
-                        />
-                    }
-                    iconRight
-                    raised
-                    title={shouldShowCreateActions && translate(isBusinessAccount ? 'menus.mapActions.claimASpace' : 'menus.mapActions.requestASpace')}
-                    titleStyle={themeButtons.styles.btnLargeTitleLeft}
-                    onPress={onShowModal}
-                />
-            </View>
             {
-                validRewardMoments?.length > 0 && !shouldShowCreateActions &&
-                <View style={themeButtons.styles.uploadMomentBadge}>
-                    <Badge
-                        value={`$${momentRewardValue}`}
-                        badgeStyle={themeButtons.styles.momentRewardsBadge}
-                        containerStyle={themeButtons.styles.momentRewardsBadgeContainer}
-                        onPress={onShowCheckInModal}
+                shouldShowCreateActions &&
+                <View style={themeButtons.styles.claimASpace}>
+                    <Button
+                        containerStyle={themeButtons.styles.btnContainer}
+                        buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
+                        icon={
+                            <TherrIcon
+                                // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
+                                name="road-map"
+                                size={22}
+                                style={themeButtons.styles.btnIcon}
+                            />
+                        }
+                        iconRight
+                        raised
+                        title={shouldShowCreateActions && translate(isBusinessAccount ? 'menus.mapActions.claimASpace' : 'menus.mapActions.requestASpace')}
+                        titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                        onPress={onShowModal}
                     />
                 </View>
             }
-            <View style={themeButtons.styles.uploadMoment}>
-                <Button
-                    containerStyle={themeButtons.styles.btnContainer}
-                    buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
-                    icon={
-                        <TherrIcon
-                            name="map-marker-plus"
-                            size={22}
-                            style={themeButtons.styles.btnIcon}
-                        />
+            {
+                shouldShowCreateActions &&
+                <>
+                    {
+                        validRewardMoments?.length > 0 && !shouldShowCreateActions &&
+                        <View style={themeButtons.styles.uploadMomentBadge}>
+                            <Badge
+                                value={`$${momentRewardValue}`}
+                                badgeStyle={themeButtons.styles.momentRewardsBadge}
+                                containerStyle={themeButtons.styles.momentRewardsBadgeContainer}
+                                onPress={onShowCheckInModal}
+                            />
+                        </View>
                     }
-                    iconRight
-                    raised
-                    title={shouldShowCreateActions && translate('menus.mapActions.uploadAMoment')}
-                    titleStyle={themeButtons.styles.btnLargeTitleLeft}
-                    onPress={() => handleCreate('moment')}
-                />
-            </View>
+                    <View style={themeButtons.styles.uploadMoment}>
+                        <Button
+                            containerStyle={themeButtons.styles.btnContainer}
+                            buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
+                            icon={
+                                <TherrIcon
+                                    name="map-marker-plus"
+                                    size={22}
+                                    style={themeButtons.styles.btnIcon}
+                                />
+                            }
+                            iconRight
+                            raised
+                            title={shouldShowCreateActions && translate('menus.mapActions.uploadAMoment')}
+                            titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                            onPress={() => handleCreate('moment')}
+                        />
+                    </View>
+                </>
+            }
             <ConfirmModal
                 headerText={isBusinessAccount ? translate('modals.confirmModal.header.claimSpace') : translate('modals.confirmModal.header.requestSpace')}
                 isVisible={isModalVisible}

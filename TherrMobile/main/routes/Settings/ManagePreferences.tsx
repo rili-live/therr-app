@@ -140,6 +140,9 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
             interests,
         })
             .then(() => {
+                analytics().logEvent('account_update_interests', {
+                    userId: this.props.user.details.id,
+                }).catch((err) => console.log(err));
                 Toast.show({
                     type: 'successBig',
                     text1: this.translate('pages.managePreferences.alertTitles.preferenceSettingsUpdated'),

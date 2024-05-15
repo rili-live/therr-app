@@ -17,10 +17,13 @@ const btnStyles: any = {
 };
 
 const btnLargeWidth = 42;
+const btnXLargeWidth = 52;
 
 const btnContainerStyles: any = {
     borderRadius: 100,
 };
+
+const floatingButtonContainerZIndex = 10;
 
 const btnContainerTopHeight = 50;
 
@@ -58,6 +61,11 @@ const getLeftSmallButton2ViewStyles = (theme: ITherrTheme): any => ({
     bottom: 60 + buttonMenuHeight - collapseOffset,
 });
 
+const getCenterActionButtonViewStyles = (theme: ITherrTheme): any => ({
+    ...getFloatingBtnContainer(theme),
+    bottom: 45 + buttonMenuHeight - collapseOffset,
+});
+
 const getLeftMiniButton1ViewStyles = (theme: ITherrTheme): any => ({
     ...getFloatingBtnContainer(theme),
     left: 18,
@@ -77,7 +85,7 @@ const getFloatingBtnContainer = (theme: ITherrTheme): any => ({
     alignItems: 'center',
     justifyContent: 'center',
     display: 'flex',
-    zIndex: 10,
+    zIndex: floatingButtonContainerZIndex,
 });
 
 const buttonGroupStyles: any = {
@@ -225,13 +233,24 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         addACheckIn: {
             ...getFloatingBtnContainer(therrTheme),
-            right: 24,
+            right: 20,
             bottom: 240 + buttonMenuHeight - collapseOffset,
         },
         addACheckInBadge: {
             ...getFloatingBtnContainer(therrTheme),
-            right: 24 + (btnLargeWidth - 10),
+            right: 20 + (btnLargeWidth - 10),
             bottom: 240 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
+            zIndex: 20,
+        },
+        addACheckInFeatured: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 80,
+            bottom: 60 + buttonMenuHeight - collapseOffset,
+        },
+        addACheckInBadgeFeatured: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 80 + (btnLargeWidth - 10),
+            bottom: 60 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
             zIndex: 20,
         },
         checkInRewardsBadgeContainer: {
@@ -243,23 +262,34 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         claimASpace: {
             ...getFloatingBtnContainer(therrTheme),
-            right: 24,
+            right: 20,
             bottom: 180 + buttonMenuHeight - collapseOffset,
         },
         createEvent: {
             ...getFloatingBtnContainer(therrTheme),
-            right: 24,
-            bottom: 240 + buttonMenuHeight - collapseOffset,
+            right: 20,
+            bottom: 120 + buttonMenuHeight - collapseOffset,
         },
         uploadMoment: {
             ...getFloatingBtnContainer(therrTheme),
-            right: 24,
-            bottom: 120 + buttonMenuHeight - collapseOffset,
+            right: 20,
+            bottom: 240 + buttonMenuHeight - collapseOffset,
         },
         uploadMomentBadge: {
             ...getFloatingBtnContainer(therrTheme),
-            right: 24 + (btnLargeWidth - 10),
-            bottom: 120 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
+            right: 20 + (btnLargeWidth - 10),
+            bottom: 240 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
+            zIndex: 20,
+        },
+        uploadMomentFeatured: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 80,
+            bottom: 60 + buttonMenuHeight - collapseOffset,
+        },
+        uploadMomentBadgeFeatured: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 80 + (btnLargeWidth - 10),
+            bottom: 60 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
             zIndex: 20,
         },
         momentRewardsBadgeContainer: {
@@ -335,6 +365,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         mapFilters: {
             ...getLeftSmallButton2ViewStyles(therrTheme),
+        },
+        matchUp: {
+            ...getCenterActionButtonViewStyles(therrTheme),
+            left: 0,
+            right: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: floatingButtonContainerZIndex - 1,
         },
         mapFiltersCount: {
             ...getLeftSmallButton2ViewStyles(therrTheme),
@@ -488,6 +526,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             backgroundColor: therrTheme.colors.secondary,
             height: btnLargeWidth,
             width: btnLargeWidth,
+        },
+        btnXLarge: {
+            ...btnStyles,
+            backgroundColor: therrTheme.colors.secondary,
+            height: btnXLargeWidth,
+            width: btnXLargeWidth,
         },
         btnLargeWithText: {
             ...btnStyles,
