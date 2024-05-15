@@ -234,12 +234,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         addACheckIn: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,
-            bottom: 240 + buttonMenuHeight - collapseOffset,
+            bottom: 300 + buttonMenuHeight - collapseOffset,
         },
         addACheckInBadge: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20 + (btnLargeWidth - 10),
-            bottom: 240 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
+            bottom: 300 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
             zIndex: 20,
         },
         addACheckInFeatured: {
