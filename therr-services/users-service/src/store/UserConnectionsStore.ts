@@ -2,7 +2,7 @@ import KnexBuilder, { Knex } from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
-import { USERS_TABLE_NAME, USER_CONNECTIONS_TABLE_NAME } from './tableNames';
+import { USERS_TABLE_NAME, USER_CONNECTIONS_TABLE_NAME, USER_INTERESTS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -141,10 +141,10 @@ export default class UserConnectionsStore {
 
     // TODO: RSERV:25 - Make this dynamic to accept multiple queries
     // eslint-disable-next-line default-param-last
-    searchUserConnections(conditions: any = {}, returning, shouldCheckReverse?: string) {
+    searchUserConnections(conditions: any = {}, returning?: any, shouldCheckReverse?: string) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
-        let queryString: any = knexBuilder
+        let queryString = knexBuilder
             .select((returning && returning.length) ? returning : [
                 `${USER_CONNECTIONS_TABLE_NAME}.id`,
                 `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`,
@@ -174,6 +174,14 @@ export default class UserConnectionsStore {
                 requestStatus: UserConnectionTypes.COMPLETE,
             });
 
+        if (conditions.userId) {
+            queryString = queryString.where({
+                [`${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`]: conditions.userId,
+            }).orWhere({
+                [`${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`]: conditions.userId,
+            });
+        }
+
         // TODO: Compare query performance and consider using `findUserConnections` method instead
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
@@ -196,10 +204,9 @@ export default class UserConnectionsStore {
 
         queryString = queryString
             .limit(limit)
-            .offset(offset)
-            .toString();
+            .offset(offset);
 
-        return this.db.read.query(queryString)
+        return this.db.read.query(queryString.toString())
             .then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'users', propId: 'id' }]));
     }
 

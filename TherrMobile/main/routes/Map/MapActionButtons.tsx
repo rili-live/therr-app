@@ -155,11 +155,7 @@ export default ({
         : 0;
     const hasNearbySpaces = !isBusinessAccount && isGpsEnabled && nearbySpaces?.length > 0;
     const hasValidCheckinSpaces = validCheckInSpaces?.length > 0 && !shouldShowCreateActions;
-    const createEventDynamicStyle = hasNearbySpaces
-        ? {
-            bottom: themeButtons.styles.createEvent.bottom + 60,
-        }
-        : {};
+    const shouldFeatureCheckIn = (hasNearbySpaces && hasValidCheckinSpaces);
 
     return (
         <>
@@ -266,7 +262,7 @@ export default ({
                 onPress={() => toggleCreateActions()}
             />
             {
-                (hasNearbySpaces && hasValidCheckinSpaces)
+                shouldFeatureCheckIn
                     ? <>
                         <View style={themeButtons.styles.addACheckInBadgeFeatured}>
                             <Badge
@@ -279,7 +275,7 @@ export default ({
                         <View style={themeButtons.styles.addACheckInFeatured}>
                             <Button
                                 containerStyle={themeButtons.styles.btnContainer}
-                                buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
+                                buttonStyle={themeButtons.styles.btnLarge}
                                 icon={
                                     <TherrIcon
                                         // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
@@ -325,7 +321,7 @@ export default ({
                     </>
             }
             {
-                hasNearbySpaces &&
+                shouldShowCreateActions && hasNearbySpaces && !shouldFeatureCheckIn &&
                 <>
                     {
                         hasValidCheckinSpaces &&
@@ -361,7 +357,6 @@ export default ({
             }
             <View style={[
                 themeButtons.styles.createEvent,
-                createEventDynamicStyle,
             ]}>
                 <Button
                     containerStyle={themeButtons.styles.btnContainer}
