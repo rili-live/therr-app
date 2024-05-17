@@ -561,6 +561,7 @@ const getTopRankedConnections = (req, res) => {
     const {
         groupSize,
         distanceMeters,
+        pageSize,
     } = req.query;
 
     return Store.users.getUserById(userId, ['lastKnownLatitude', 'lastKnownLongitude'])
@@ -570,7 +571,7 @@ const getTopRankedConnections = (req, res) => {
             query: distanceMeters || '96560.6', // ~60 miles converted to meters
             order: 'desc',
             pagination: {
-                itemsPerPage: 20,
+                itemsPerPage: pageSize || 20,
                 pageNumber: 1,
             },
             userId,
