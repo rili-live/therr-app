@@ -1,6 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
-import { UserConnectionTypes } from 'therr-js-utilities/constants';
+import { Location, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 import { USERS_TABLE_NAME, USER_CONNECTIONS_TABLE_NAME, USER_INTERESTS_TABLE_NAME } from './tableNames';
 
@@ -142,8 +142,30 @@ export default class UserConnectionsStore {
     // TODO: RSERV:25 - Make this dynamic to accept multiple queries
     // eslint-disable-next-line default-param-last
     searchUserConnections(conditions: any = {}, returning?: any, shouldCheckReverse?: string) {
+        let proximityMax = Location.AREA_PROXIMITY_EXPANDED_METERS;
+        if ((conditions?.filterBy === 'lastKnownLocation') && conditions.query) {
+            proximityMax = conditions.query;
+        }
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
+        const columns: any[] = [
+            `${USERS_TABLE_NAME}.id as users[].id`,
+            `${USERS_TABLE_NAME}.userName as users[].userName`,
+            `${USERS_TABLE_NAME}.firstName as users[].firstName`,
+            `${USERS_TABLE_NAME}.lastName as users[].lastName`,
+            `${USERS_TABLE_NAME}.media as users[].media`,
+            `${USERS_TABLE_NAME}.settingsIsProfilePublic as users[].settingsIsProfilePublic`,
+        ];
+        if (!conditions.userId) {
+            // Hide location when requestor is not connected with user
+            const lastKnownLatitude = knexBuilder.raw('(case when "settingsIsProfilePublic" then "lastKnownLatitude" end) as "users[].lastKnownLatitude"');
+            const lastKnownLongitude = knexBuilder.raw('(case when "settingsIsProfilePublic" then "lastKnownLongitude" end) as "users[].lastKnownLongitude"');
+            columns.push(lastKnownLatitude, lastKnownLongitude);
+        } else {
+            const lastKnownLatitude = `${USERS_TABLE_NAME}.lastKnownLatitude as users[].lastKnownLatitude`;
+            const lastKnownLongitude = `${USERS_TABLE_NAME}.lastKnownLongitude as users[].lastKnownLongitude`;
+            columns.push(lastKnownLatitude, lastKnownLongitude);
+        }
         let queryString = knexBuilder
             .select((returning && returning.length) ? returning : [
                 `${USER_CONNECTIONS_TABLE_NAME}.id`,
@@ -162,13 +184,7 @@ export default class UserConnectionsStore {
                     this.orOn(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`);
                 });
             })
-            .columns([
-                `${USERS_TABLE_NAME}.id as users[].id`,
-                `${USERS_TABLE_NAME}.userName as users[].userName`,
-                `${USERS_TABLE_NAME}.firstName as users[].firstName`,
-                `${USERS_TABLE_NAME}.lastName as users[].lastName`,
-                `${USERS_TABLE_NAME}.media as users[].media`,
-            ])
+            .columns(columns)
             .where({
                 isConnectionBroken: false,
                 requestStatus: UserConnectionTypes.COMPLETE,
@@ -183,7 +199,11 @@ export default class UserConnectionsStore {
         }
 
         // TODO: Compare query performance and consider using `findUserConnections` method instead
-        if (conditions.filterBy && conditions.query) {
+        if (conditions.filterBy === 'lastKnownLocation' && conditions.latitude && conditions.longitude) {
+            queryString = queryString.where(
+                knexBuilder.raw(`ST_DWithin("lastKnownLocation", ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`), // eslint-disable-line quotes, max-len
+            );
+        } else if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
             queryString = queryString.andWhere((builder) => {

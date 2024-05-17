@@ -558,16 +558,26 @@ const getTopRankedConnections = (req, res) => {
         userId,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
+    const {
+        groupSize,
+        distanceMeters,
+        pageSize,
+    } = req.query;
 
-    return Store.userConnections.searchUserConnections({
-        orderBy: 'interactionCount',
-        order: 'desc',
-        pagination: {
-            itemsPerPage: 20,
-            pageNumber: 1,
-        },
-        userId,
-    })
+    return Store.users.getUserById(userId, ['lastKnownLatitude', 'lastKnownLongitude'])
+        .then(([user]) => Store.userConnections.searchUserConnections({
+            orderBy: 'interactionCount',
+            filterBy: 'lastKnownLocation',
+            query: distanceMeters || '96560.6', // ~60 miles converted to meters
+            order: 'desc',
+            pagination: {
+                itemsPerPage: pageSize || 20,
+                pageNumber: 1,
+            },
+            userId,
+            latitude: user.lastKnownLatitude,
+            longitude: user.lastKnownLongitude,
+        }))
         .then((results) => {
             const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], []);
 
