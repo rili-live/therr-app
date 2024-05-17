@@ -1,7 +1,7 @@
 import KnexBuilder, { Knex } from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
-import { USER_INTERESTS_TABLE_NAME } from './tableNames';
+import { INTERESTS_TABLE_NAME, USER_INTERESTS_TABLE_NAME } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export interface ICreateUserInterestParams {
@@ -42,6 +42,26 @@ export default class UserInterestsStore {
 
     getById(id: string) {
         return this.get({ id });
+    }
+
+    getByUserIds(userIds: string[], conditions: any, orderBy?: string, returning?: string[]) {
+        let queryString = knexBuilder
+            .select(`${USER_INTERESTS_TABLE_NAME}.*`)
+            .from(USER_INTERESTS_TABLE_NAME)
+            .innerJoin(INTERESTS_TABLE_NAME, `${INTERESTS_TABLE_NAME}.id`, `${USER_INTERESTS_TABLE_NAME}.interestId`)
+            .columns([
+                `${INTERESTS_TABLE_NAME}.emoji`,
+                `${INTERESTS_TABLE_NAME}.displayNameKey`,
+            ])
+            .where(conditions)
+            .whereIn('userId', userIds);
+
+        if (orderBy) {
+            queryString = queryString.orderBy(orderBy);
+        }
+
+        return this.db.read.query(queryString.toString())
+            .then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'interests', propId: 'id' }]));
     }
 
     create(params: ICreateUserInterestParams[]) {

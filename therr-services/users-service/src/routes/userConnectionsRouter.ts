@@ -3,6 +3,7 @@ import {
     createUserConnection,
     createOrInviteUserConnections,
     findPeopleYouMayKnow,
+    getTopRankedConnections,
     getUserConnection,
     searchUserConnections,
     updateUserConnection,
@@ -15,6 +16,7 @@ const router = express.Router();
 router.post('/', createUserConnection);
 router.post('/multi-invite', createOrInviteUserConnections);
 router.post('/increment', incrementUserConnection);
+router.get('/ranked', getTopRankedConnections);
 router.get('/:requestingUserId', getUserConnection);
 router.get('/', searchUserConnections);
 router.put('/', updateUserConnection);
