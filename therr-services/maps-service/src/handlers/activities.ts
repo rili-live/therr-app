@@ -12,7 +12,7 @@ const createActivity = async (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
 
-    axios({
+    return axios({
         method: 'get',
         url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/ranked`,
         headers: {
@@ -22,11 +22,9 @@ const createActivity = async (req, res) => {
             'x-therr-origin-host': whiteLabelOrigin,
 
         },
-    }).then((response) => {
-        res.status(201).send({
-            members: response.data,
-        });
-    }).catch((err) => handleHttpError({ err, res, message: 'SQL:ACTITIES_ROUTES:ERROR' }));
+    }).then((response) => res.status(201).send({
+        members: response.data,
+    })).catch((err) => handleHttpError({ err, res, message: 'SQL:ACTITIES_ROUTES:ERROR' }));
 };
 
 export {

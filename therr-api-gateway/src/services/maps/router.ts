@@ -6,6 +6,7 @@ import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
 import {
     createCheckInLimiter,
+    createActivityLimiter,
     createEventLimiter,
     createMomentLimiter,
     createSpaceLimiter,
@@ -31,11 +32,18 @@ import CacheStore from '../../store';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import authorize, { AccessCheckType } from '../../middleware/authorize';
 import { createEventValidations, getEventDetailsValidation } from './validation/events';
+import { createActivityValidations } from './validation/activities';
 
 const mapsServiceRouter = express.Router();
 
 // Media
 mapsServiceRouter.post('/media/signed-urls', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+// Activities
+mapsServiceRouter.post('/activities', createActivityLimiter, createActivityValidations, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));
