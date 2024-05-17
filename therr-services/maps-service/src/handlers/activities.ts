@@ -11,16 +11,22 @@ const createActivity = async (req, res) => {
         userId,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
+    const {
+        distanceMeters,
+        groupSize,
+    } = req.body;
+    const groupSizeOrDefault = groupSize || 3;
+    const distanceOrDefault = distanceMeters || '96560.6'; // ~60 miles converted to meters
 
     return axios({
         method: 'get',
-        url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/ranked`,
+        // eslint-disable-next-line max-len
+        url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/ranked?groupSize=${groupSizeOrDefault}&distanceMeters=${distanceOrDefault}`,
         headers: {
             authorization,
             'x-localecode': locale,
             'x-userid': userId,
             'x-therr-origin-host': whiteLabelOrigin,
-
         },
     }).then((response) => res.status(201).send({
         members: response.data,
