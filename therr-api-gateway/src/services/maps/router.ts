@@ -43,6 +43,10 @@ mapsServiceRouter.post('/media/signed-urls', validate, handleServiceRequest({
 }));
 
 // Activities
+mapsServiceRouter.get('/activities/connections', createActivityLimiter, createActivityValidations, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}));
 mapsServiceRouter.post('/activities', createActivityLimiter, createActivityValidations, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
