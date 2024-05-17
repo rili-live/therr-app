@@ -1,4 +1,5 @@
 import * as express from 'express';
+import activitiesRouter from './activitiesRouter';
 import eventsRouter from './eventsRouter';
 import momentsRouter from './momentsRouter';
 import spacesRouter from './spacesRouter';
@@ -12,6 +13,7 @@ router.delete('/delete-user-data', deleteUserData);
 
 router.post('/media/signed-urls', createMediaUrls);
 
+router.use('/activities', activitiesRouter);
 router.use('/events', eventsRouter);
 router.use('/moments', momentsRouter);
 router.use('/spaces', spacesRouter);

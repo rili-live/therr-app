@@ -551,6 +551,73 @@ const getUserConnection = (req, res) => Store.userConnections.getUserConnections
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
 
+const getTopRankedConnections = (req, res) => {
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
+
+    return Store.userConnections.searchUserConnections({
+        orderBy: 'interactionCount',
+        order: 'desc',
+        pagination: {
+            itemsPerPage: 20,
+            pageNumber: 1,
+        },
+        userId,
+    })
+        .then((results) => {
+            const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], []);
+
+            return Store.userInterests.getByUserIds(userIds, {
+                isEnabled: true,
+            }, undefined, ['userId', 'interestId', 'score', 'engagementCount', 'isEnabled', 'updatedAt'])
+                .then((userInterests) => {
+                    const interestsIdMap = {};
+                    userInterests.forEach((uInterest) => {
+                        if (uInterest.isEnabled) {
+                            if (!interestsIdMap[uInterest.interestId]?.users) {
+                                interestsIdMap[uInterest.interestId] = {
+                                    displayNameKey: uInterest.displayNameKey,
+                                    emoji: uInterest.emoji,
+                                    users: [{
+                                        userId: uInterest.userId,
+                                        score: uInterest.score,
+                                        engagementCount: uInterest.engagementCount,
+                                        updatedAt: uInterest.updatedAt,
+                                    }],
+                                };
+                            } else {
+                                interestsIdMap[uInterest.interestId].users.push({
+                                    userId: uInterest.userId,
+                                    score: uInterest.score,
+                                    engagementCount: uInterest.engagementCount,
+                                    updatedAt: uInterest.updatedAt,
+                                });
+                            }
+                        }
+                    });
+                    const sharedInterests = {};
+                    Object.entries(interestsIdMap).forEach(([key, value]) => {
+                        if (interestsIdMap[key]?.users?.length > 1) {
+                            sharedInterests[key] = value;
+                        }
+                    });
+                    return res.status(200).send({
+                        results,
+                        sharedInterests,
+                        pagination: {
+                            itemsPerPage: Number(20),
+                            pageNumber: Number(1),
+                        },
+                    });
+                });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+};
+
 const searchUserConnections: RequestHandler = (req: any, res: any) => {
     const {
         filterBy,
@@ -718,6 +785,7 @@ export {
     createUserConnection,
     createOrInviteUserConnections,
     findPeopleYouMayKnow,
+    getTopRankedConnections,
     getUserConnection,
     searchUserConnections,
     updateUserConnection,
