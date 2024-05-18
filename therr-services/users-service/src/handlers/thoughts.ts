@@ -304,6 +304,10 @@ const getThoughtDetails = (req, res) => {
                     if (userId !== thought.fromUserId) {
                         Store.userConnections.incrementUserConnection(userId, thought.fromUserId, 1)
                             .catch((err) => console.log(err));
+                        if (thought.interestsKeys?.length) {
+                            Store.userInterests.incrementUserInterests(userId, thought.interestsKeys, 1)
+                                .catch((err) => console.log(err));
+                        }
                     }
 
                     return res.status(200).send({ thought: thoughtResult, users });

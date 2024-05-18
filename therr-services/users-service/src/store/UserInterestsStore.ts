@@ -89,6 +89,21 @@ export default class UserInterestsStore {
         return this.db.write.query(queryString).then((updateResponse) => updateResponse.rows);
     }
 
+    incrementUserInterests(userId, interestDisplayNameKeys: string[], incrBy = 1) {
+        const queryString = knexBuilder
+            .into(USER_INTERESTS_TABLE_NAME)
+            .increment('engagementCount', incrBy)
+            .where({
+                userId,
+            })
+            .whereIn('interestId', (builder) => {
+                builder.select('id').from(INTERESTS_TABLE_NAME).whereIn('displayNameKey', interestDisplayNameKeys);
+            })
+            .returning('*');
+
+        return this.db.write.query(queryString.toString()).then((response) => response.rows);
+    }
+
     delete(id: string, userId: string) {
         const queryString = knexBuilder.where({ id, userId })
             .delete()
