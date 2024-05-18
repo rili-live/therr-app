@@ -304,24 +304,6 @@ const getSpaceDetails = (req, res) => {
 
             return Promise.all(promises).then(([isActivated, eventCount, events]) => {
                 if (userId !== space.fromUserId) {
-                    if (space.interestsKeys?.length) {
-                        axios({
-                            method: 'post',
-                            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/interests/increment`,
-                            headers: {
-                                authorization: req.headers.authorization,
-                                'x-localecode': req.headers['x-localecode'] || 'en-us',
-                                'x-userid': userId,
-                                'x-therr-origin-host': whiteLabelOrigin,
-                            },
-                            data: {
-                                interestDisplayNameKeys: space.interestsKeys,
-                                incrBy: 2,
-                            },
-                        }).catch((err) => {
-                            console.log(err);
-                        });
-                    }
                     if (userId !== space.fromUserId) {
                         incrementInterestEngagement(space.interestsKeys, 2, {
                             authorization,
