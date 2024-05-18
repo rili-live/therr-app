@@ -31,6 +31,7 @@ import updateAchievements from './helpers/updateAchievements';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import userMetricsService from '../api/userMetricsService';
 import areaMetricsService from '../api/areaMetricsService';
+import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
 
 const MAX_INTERGRATIONS_PER_USER = 50;
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
@@ -634,11 +635,13 @@ const updateMoment = (req, res) => {
 
 // READ
 const getMomentDetails = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userAccessLevels = req.headers['x-user-access-levels'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
-    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        authorization,
+        locale,
+        userId,
+        userAccessLevels,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const { momentId } = req.params;
 
@@ -677,7 +680,7 @@ const getMomentDetails = (req, res) => {
                     }
 
                     // Private moments require a reactions/activation
-                    if (userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+                    if (userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
                         return getReactions('moment', momentId, {
                             'x-userid': userId || undefined,
                         });
@@ -762,6 +765,15 @@ const getMomentDetails = (req, res) => {
                         }).catch((err) => {
                             console.log(err);
                         });
+
+                        if (userId !== moment.fromUserId) {
+                            incrementInterestEngagement(moment.interestsKeys, 2, {
+                                authorization,
+                                locale,
+                                userId,
+                                whiteLabelOrigin,
+                            });
+                        }
                     }
 
                     moment.likeCount = parseInt(momentCount?.count || 0, 10);

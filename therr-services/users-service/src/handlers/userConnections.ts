@@ -769,6 +769,7 @@ const updateUserConnection = (req, res) => {
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
 };
+
 const incrementUserConnection = (req, res) => {
     const {
         authorization,

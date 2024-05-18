@@ -1,6 +1,6 @@
 import axios from 'axios';
 import path from 'path';
-import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
+import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
 import {
     AccessLevels,
     ErrorCodes,
@@ -21,6 +21,7 @@ import { isTextUnsafe } from '../utilities/contentSafety';
 import userMetricsService from '../api/userMetricsService';
 import getUserOrganizations from '../utilities/getUserOrganizations';
 import { SUPER_ADMIN_ID } from '../constants';
+import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
 
 const MAX_DISTANCE_TO_ADDRESS_METERS = 2000;
 
@@ -178,12 +179,13 @@ const createSpace = async (req, res) => {
 
 // READ
 const getSpaceDetails = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userAccessLevels = req.headers['x-user-access-levels'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
-
-    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        authorization,
+        locale,
+        userId,
+        userAccessLevels,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const { spaceId } = req.params;
 
@@ -274,7 +276,7 @@ const getSpaceDetails = (req, res) => {
             }
             let userHasAccessPromise = () => Promise.resolve(true);
             // Verify that user has activated space and has access to view it
-            if (userId && space?.fromUserId !== userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+            if (userId && space?.fromUserId !== userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
                 // TODO: Check if user is part of organization and has access to view
                 userHasAccessPromise = () => getReactions('space', spaceId, {
                     'x-userid': userId,
@@ -301,6 +303,34 @@ const getSpaceDetails = (req, res) => {
             }
 
             return Promise.all(promises).then(([isActivated, eventCount, events]) => {
+                if (userId !== space.fromUserId) {
+                    if (space.interestsKeys?.length) {
+                        axios({
+                            method: 'post',
+                            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/interests/increment`,
+                            headers: {
+                                authorization: req.headers.authorization,
+                                'x-localecode': req.headers['x-localecode'] || 'en-us',
+                                'x-userid': userId,
+                                'x-therr-origin-host': whiteLabelOrigin,
+                            },
+                            data: {
+                                interestDisplayNameKeys: space.interestsKeys,
+                                incrBy: 2,
+                            },
+                        }).catch((err) => {
+                            console.log(err);
+                        });
+                    }
+                    if (userId !== space.fromUserId) {
+                        incrementInterestEngagement(space.interestsKeys, 2, {
+                            authorization,
+                            locale,
+                            userId,
+                            whiteLabelOrigin,
+                        });
+                    }
+                }
                 serializedSpace.likeCount = parseInt(eventCount?.count || 0, 10);
                 serializedSpace.events = events;
 

@@ -64,7 +64,30 @@ const getUserInterests = (req, res) => {
         }));
 };
 
+const incrementUserInterests = (req, res) => {
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
+    const requestingUserId = userId;
+
+    const {
+        incrBy,
+        interestDisplayNameKeys,
+    } = req.body;
+
+    const ceilIncrBy = Math.min(5, (incrBy || 1));
+
+    return Store.userInterests
+        .incrementUserInterests(userId, interestDisplayNameKeys, ceilIncrBy)
+        .then((results) => res.status(200).send(results[0]))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_INTERESTS_ROUTES:ERROR' }));
+};
+
 export {
     createUpdateUserInterests,
     getUserInterests,
+    incrementUserInterests,
 };
