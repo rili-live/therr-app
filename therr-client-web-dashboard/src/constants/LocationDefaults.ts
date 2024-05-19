@@ -52,6 +52,10 @@ const DEFAULT_QUERY_LOCALES = {
         latitude: 30.0328937,
         longitude: -90.0473688,
     },
+    wrexham: {
+        latitude: 53.051084,
+        longitude: -3.0088104,
+    },
 };
 
 export {
