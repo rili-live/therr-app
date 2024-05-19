@@ -31,6 +31,7 @@ import areaMetricsService from '../api/areaMetricsService';
 import getUserGroup from '../utilities/getUserGroup';
 import { DEFAULT_RADIUS_MEDIUM } from '../store/SpacesStore';
 import { countReactions } from '../utilities/getReactions';
+import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 
@@ -535,11 +536,13 @@ const updateEvent = (req, res) => {
 
 // READ
 const getEventDetails = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userAccessLevels = req.headers['x-user-access-levels'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
-    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        authorization,
+        locale,
+        userId,
+        userAccessLevels,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const { eventId } = req.params;
 
@@ -581,7 +584,7 @@ const getEventDetails = (req, res) => {
                     }
 
                     // Private events require a reactions/activation
-                    if (userId && !accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+                    if (userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
                         // Check if user is a member of the group hosting this event
                         return getUserGroup(event.groupId, {
                             'x-userid': userId || undefined,
@@ -645,6 +648,14 @@ const getEventDetails = (req, res) => {
                 }
 
                 return Promise.all(promises).then(([eventCount, space]) => {
+                    if (userId !== event.fromUserId) {
+                        incrementInterestEngagement(event.interestsKeys, 2, {
+                            authorization,
+                            locale,
+                            userId,
+                            whiteLabelOrigin,
+                        });
+                    }
                     if (space) {
                         // Response including space details for navigation
                         event.space = space;

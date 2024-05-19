@@ -1,15 +1,19 @@
 import { RequestHandler } from 'express';
-// import axios from 'axios';
+import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
-// import * as globalConfig from '../../../../global-config';
+import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
 
 // CREATE/UPDATE
 const createOrUpdateEventReaction = (req, res) => {
     // TODO: This endpoint should be secure/non-public so user's cannot activate events on demand
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     return Store.eventReactions.get({
         userId,
@@ -24,7 +28,18 @@ const createOrUpdateEventReaction = (req, res) => {
                 userLocale: locale,
                 userViewCount: existing[0].userViewCount + (req.body.userViewCount || 0),
             })
-                .then(([eventReaction]) => res.status(200).send(eventReaction));
+                .then(([eventReaction]) => {
+                    const event = existing[0];
+                    if (userId !== event.fromUserId && eventReaction.attendingCount > 0) {
+                        incrementInterestEngagement(event.interestsKeys, 3, {
+                            authorization,
+                            locale,
+                            userId,
+                            whiteLabelOrigin,
+                        });
+                    }
+                    return res.status(200).send(eventReaction);
+                });
         }
 
         return Store.eventReactions.create({

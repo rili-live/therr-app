@@ -10,6 +10,7 @@ import { aggregateMetrics, getPercentageChange, getMetricsByName } from '../api/
 import areaMetricsService from '../api/areaMetricsService';
 import getUserOrganizations from '../utilities/getUserOrganizations';
 import * as globalConfig from '../../../../global-config';
+import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
 
 // CREATE
 const createSpaceMetric = async (req, res) => {
@@ -138,13 +139,25 @@ const createSpaceMetric = async (req, res) => {
                 latitude: param.userLatitude,
                 longitude: param.userLongitude,
             },
-        }))).then((metrics) => res.status(201).send({
-            metrics,
-            therrCoinRewarded: response?.data?.skippedTransfer
-                ? 0
-                : CurrentCheckInValuations[checkInCount],
-            isMySpace: userId === space.fromUserId,
-        }));
+        }))).then((metrics) => {
+            if (reqPath.includes('/check-in')) {
+                if (userId !== space.fromUserId) {
+                    incrementInterestEngagement(space.interestsKeys, 3, {
+                        authorization,
+                        locale,
+                        userId,
+                        whiteLabelOrigin,
+                    });
+                }
+            }
+            return res.status(201).send({
+                metrics,
+                therrCoinRewarded: response?.data?.skippedTransfer
+                    ? 0
+                    : CurrentCheckInValuations[checkInCount],
+                isMySpace: userId === space.fromUserId,
+            });
+        });
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
