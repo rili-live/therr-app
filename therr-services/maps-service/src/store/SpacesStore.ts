@@ -370,6 +370,25 @@ export default class SpacesStore {
         });
     }
 
+    searchRelatedSpaces(relatedCoordinats: [string, string][], relatedInterestsKeys: string[] = []) {
+        const coordsAsString = relatedCoordinats.map((coord) => `${coord[1]} ${coord[0]}`);
+        const centroidGeom = knexBuilder.raw(`(SELECT ST_SetSRID(ST_Centroid('MULTIPOINT (${coordsAsString.join(', ')})'), 4326))`);
+        const interestsKeysStr = relatedInterestsKeys.map((key) => `'${key}'`).join(',');
+        const query = knexBuilder
+            .select(
+                '*',
+                knexBuilder.raw(`geom <-> ${centroidGeom} AS dist`),
+            )
+            .from(SPACES_TABLE_NAME)
+            // TODO: Test this with various interests lists
+            .whereRaw(`"interestsKeys" \\?| array[${interestsKeysStr}]`)
+            // .andWhere(firstWhere);
+            .orderBy('dist')
+            .limit(5);
+
+        return this.db.read.query(query.toString()).then((response) => response.rows);
+    }
+
     findSpaces(spaceIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         let restrictedLimit = filters?.limit || 1000;
