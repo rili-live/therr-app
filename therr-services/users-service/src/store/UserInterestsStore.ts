@@ -93,6 +93,9 @@ export default class UserInterestsStore {
         const queryString = knexBuilder
             .into(USER_INTERESTS_TABLE_NAME)
             .increment('engagementCount', incrBy)
+            .update({
+                updatedAt: new Date(),
+            })
             .where({
                 userId,
             })

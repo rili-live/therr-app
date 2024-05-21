@@ -2,6 +2,7 @@ import axios from 'axios';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import * as globalConfig from '../../../../global-config';
+import Store from '../store';
 
 // READ
 const getNearbyConnections = async (req, res) => {
@@ -44,6 +45,7 @@ const createActivity = async (req, res) => {
     } = req.body;
     const groupSizeOrDefault = groupSize || 3;
     const distanceOrDefault = distanceMeters || '96560.6'; // ~60 miles converted to meters
+    const MAX_INTERESTS_COUNT = 10; // Helps focus on top interests only
 
     return axios({
         method: 'get',
@@ -55,9 +57,50 @@ const createActivity = async (req, res) => {
             'x-userid': userId,
             'x-therr-origin-host': whiteLabelOrigin,
         },
-    }).then((response) => res.status(201).send({
-        members: response.data,
-    })).catch((err) => handleHttpError({ err, res, message: 'SQL:ACTITIES_ROUTES:ERROR' }));
+    }).then((response) => {
+        // Filter for the top connections to satisfy group size
+        // TODO: Continue pagination if group size is not satisfied
+        const topConnections = response.data?.results?.map((result) => ({
+            interactionCount: result.interactionCount,
+            requestStatus: result.requestStatus,
+            isConnectionBroken: result.isConnectionBroken,
+            updatedAt: result.updatedAt,
+            user: result?.users?.find((u) => u.id !== userId) || {},
+        })).slice(0, groupSizeOrDefault);
+        const topConnectionIds = topConnections.map((con) => con.user.id);
+
+        // Filter interests to apply only to the context of the relevant, top connections
+        const topSharedInterests = {};
+        Object.keys(response.data?.sharedInterests || {}).some((id, index) => {
+            const interest = response.data?.sharedInterests[id];
+            interest?.users?.forEach((u) => {
+                if (topConnectionIds?.includes(u.id)) {
+                    topSharedInterests[id] = {
+                        displayNameKey: interest.displayNameKey,
+                        emoji: interest.emoji,
+                        ranking: (topSharedInterests[id]?.ranking || 0) + u.ranking,
+                    };
+                }
+            });
+
+            return (index + 1) >= MAX_INTERESTS_COUNT;
+        });
+
+        // Sort interests by ranking (highest to lowest)
+        const sortedInterestsNameKeys = Object.keys(topSharedInterests).map((id) => ({
+            id,
+            ...topSharedInterests[id],
+        })).sort((a, b) => b.ranking - a.ranking).map((i) => i.displayNameKey);
+        const userCoordinates = topConnections.map((con) => ([con.user.lastKnownLatitude, con.user.lastKnownLongitude]));
+
+        // Use sorted interests and top users to find spaces nearby that would be most interesting for a meetup/hangout/event
+        return Store.spaces.searchRelatedSpaces(userCoordinates, sortedInterestsNameKeys)
+            .then((spaceResults) => res.status(201).send({
+                topConnections,
+                topSharedInterests,
+                topSpaces: spaceResults,
+            }));
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:ACTITIES_ROUTES:ERROR' }));
 };
 
 export {

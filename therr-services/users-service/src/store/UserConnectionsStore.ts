@@ -292,7 +292,11 @@ export default class UserConnectionsStore {
     }
 
     incrementUserConnection(userId1, userId2, incrBy = 1) {
-        const queryString = knexBuilder.increment('interactionCount', incrBy)
+        const queryString = knexBuilder
+            .increment('interactionCount', incrBy)
+            .update({
+                updatedAt: new Date(),
+            })
             .into(USER_CONNECTIONS_TABLE_NAME)
             .where({
                 acceptingUserId: userId1,
