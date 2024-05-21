@@ -20,6 +20,11 @@ import { createOrUpdateAchievement } from './helpers/achievements';
 import { parseConfigValue } from './config';
 import { IFindUsersByContactInfo } from '../store/UsersStore';
 
+/**
+ * Used for sorting interests by a singular value. Set defaults to ensure no zero values.
+ */
+const getInterestRanking = (engagementCount: number, score: number) => Math.ceil((engagementCount || 1) / (score || 5));
+
 const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
     if (receivingPhoneNumber.startsWith('+44')) {
         return process.env.TWILIO_SENDER_PHONE_NUMBER_GB;
@@ -588,24 +593,21 @@ const getTopRankedConnections = (req, res) => {
                     const interestsIdMap = {};
                     userInterests.forEach((uInterest) => {
                         if (uInterest.isEnabled) {
-                            if (!interestsIdMap[uInterest.interestId]?.users) {
+                            const user = {
+                                id: uInterest.userId,
+                                score: uInterest.score,
+                                engagementCount: uInterest.engagementCount,
+                                ranking: getInterestRanking(uInterest.engagementCount, uInterest.score),
+                                updatedAt: uInterest.updatedAt,
+                            };
+                            if (!interestsIdMap[uInterest.interestId]) {
                                 interestsIdMap[uInterest.interestId] = {
                                     displayNameKey: uInterest.displayNameKey,
                                     emoji: uInterest.emoji,
-                                    users: [{
-                                        userId: uInterest.userId,
-                                        score: uInterest.score,
-                                        engagementCount: uInterest.engagementCount,
-                                        updatedAt: uInterest.updatedAt,
-                                    }],
+                                    users: [user],
                                 };
                             } else {
-                                interestsIdMap[uInterest.interestId].users.push({
-                                    userId: uInterest.userId,
-                                    score: uInterest.score,
-                                    engagementCount: uInterest.engagementCount,
-                                    updatedAt: uInterest.updatedAt,
-                                });
+                                interestsIdMap[uInterest.interestId].users.push(user);
                             }
                         }
                     });
