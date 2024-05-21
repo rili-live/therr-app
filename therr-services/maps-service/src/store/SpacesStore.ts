@@ -370,20 +370,31 @@ export default class SpacesStore {
         });
     }
 
-    searchRelatedSpaces(relatedCoordinats: [string, string][], relatedInterestsKeys: string[] = []) {
+    searchRelatedSpaces(relatedCoordinats: [string, string][], relatedInterestsKeys: string[] = [], returning: string[] = ['*']) {
         const coordsAsString = relatedCoordinats.map((coord) => `${coord[1]} ${coord[0]}`);
         const centroidGeom = knexBuilder.raw(`(SELECT ST_SetSRID(ST_Centroid('MULTIPOINT (${coordsAsString.join(', ')})'), 4326))`);
         const interestsKeysStr = relatedInterestsKeys.map((key) => `'${key}'`).join(',');
-        const query = knexBuilder
+
+        const returningMod = returning?.length ? returning : ['*'];
+        const firstWhere: any = {
+            isClaimPending: false, // hide pending claim requests
+            isMatureContent: false, // content that has been blocked
+        };
+
+        let query = knexBuilder
             .select(
-                '*',
+                ...returningMod,
                 knexBuilder.raw(`geom <-> ${centroidGeom} AS dist`),
             )
             .from(SPACES_TABLE_NAME)
+            .where(firstWhere);
+
+        if (relatedInterestsKeys?.length) {
             // TODO: Test this with various interests lists
-            .whereRaw(`"interestsKeys" \\?| array[${interestsKeysStr}]`)
-            // .andWhere(firstWhere);
-            .orderBy('dist')
+            query = query.whereRaw(`"interestsKeys" \\?| array[${interestsKeysStr}]`);
+        }
+
+        query = query.orderBy('dist')
             .limit(5);
 
         return this.db.read.query(query.toString()).then((response) => response.rows);

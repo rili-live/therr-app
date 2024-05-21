@@ -91,15 +91,24 @@ const createActivity = async (req, res) => {
             id,
             ...topSharedInterests[id],
         })).sort((a, b) => b.ranking - a.ranking).map((i) => i.displayNameKey);
-        const userCoordinates = topConnections.map((con) => ([con.user.lastKnownLatitude, con.user.lastKnownLongitude]));
+        const userCoordinates = topConnections
+            .map((con) => ([con.user.lastKnownLatitude, con.user.lastKnownLongitude]))
+            .filter((coords) => coords[0] && coords[1]); // only use for users where coords are set/defined
 
         // Use sorted interests and top users to find spaces nearby that would be most interesting for a meetup/hangout/event
         return Store.spaces.searchRelatedSpaces(userCoordinates, sortedInterestsNameKeys)
-            .then((spaceResults) => res.status(201).send({
-                topConnections,
-                topSharedInterests,
-                topSpaces: spaceResults,
-            }));
+            .then((spaceResults) => {
+                const sanitizedSpaceResults = spaceResults.map((r) => {
+                    // eslint-disable-next-line no-param-reassign
+                    delete r.geom;
+                    return r;
+                });
+                return res.status(201).send({
+                    topConnections,
+                    topSharedInterests,
+                    topSpaces: sanitizedSpaceResults,
+                });
+            });
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:ACTITIES_ROUTES:ERROR' }));
 };
 
