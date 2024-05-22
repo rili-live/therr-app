@@ -397,6 +397,8 @@ export default class SpacesStore {
         query = query.orderBy('dist')
             .limit(5);
 
+        console.log(query.toString());
+
         return this.db.read.query(query.toString()).then((response) => response.rows);
     }
 

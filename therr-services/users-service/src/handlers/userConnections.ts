@@ -584,7 +584,7 @@ const getTopRankedConnections = (req, res) => {
             longitude: user.lastKnownLongitude,
         }))
         .then((results) => {
-            if (!results.length) {
+            if (!results?.length) {
                 return handleHttpError({
                     res,
                     message: `No user connections found within ${distanceMeters} meters.`,
