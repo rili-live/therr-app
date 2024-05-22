@@ -301,7 +301,7 @@ const getThoughtDetails = (req, res) => {
 
                     thoughtResult.likeCount = parseInt(thoughtCounts?.count || '0', 10);
 
-                    if (userId !== thought.fromUserId) {
+                    if (userId && userId !== thought.fromUserId) {
                         Store.userConnections.incrementUserConnection(userId, thought.fromUserId, 1)
                             .catch((err) => console.log(err));
                         if (thought.interestsKeys?.length) {

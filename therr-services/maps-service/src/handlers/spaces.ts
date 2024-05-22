@@ -303,7 +303,7 @@ const getSpaceDetails = (req, res) => {
             }
 
             return Promise.all(promises).then(([isActivated, eventCount, events]) => {
-                if (userId !== space.fromUserId) {
+                if (userId && userId !== space.fromUserId) {
                     if (userId !== space.fromUserId) {
                         incrementInterestEngagement(space.interestsKeys, 2, {
                             authorization,

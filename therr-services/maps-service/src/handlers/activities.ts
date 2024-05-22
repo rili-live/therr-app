@@ -60,6 +60,20 @@ const createActivity = async (req, res) => {
     }).then((response) => {
         // Filter for the top connections to satisfy group size
         // TODO: Continue pagination if group size is not satisfied
+        let ownUserDetails;
+        response.data?.results?.some((result) => {
+            const found = result?.users?.find((u) => u.id === userId);
+            ownUserDetails = found;
+            return found;
+        });
+        if (!ownUserDetails) {
+            // This should never happen
+            return handleHttpError({
+                res,
+                message: 'No requesting user details',
+                statusCode: 400,
+            });
+        }
         const topConnections = response.data?.results?.map((result) => ({
             interactionCount: result.interactionCount,
             requestStatus: result.requestStatus,
@@ -91,9 +105,27 @@ const createActivity = async (req, res) => {
             id,
             ...topSharedInterests[id],
         })).sort((a, b) => b.ranking - a.ranking).map((i) => i.displayNameKey);
-        const userCoordinates = topConnections
+        // TODO: Include requesting user coordinates in the search
+        const topConnectionsAndYou: any = [
+            ...topConnections,
+            {
+                user: {
+                    lastKnownLatitude: ownUserDetails.lastKnownLatitude,
+                    lastKnownLongitude: ownUserDetails.lastKnownLongitude,
+                },
+            },
+        ];
+        const userCoordinates = topConnectionsAndYou
             .map((con) => ([con.user.lastKnownLatitude, con.user.lastKnownLongitude]))
             .filter((coords) => coords[0] && coords[1]); // only use for users where coords are set/defined
+
+        if (!userCoordinates?.length) {
+            return handleHttpError({
+                res,
+                message: 'No users with valid coordinates',
+                statusCode: 400,
+            });
+        }
 
         // Use sorted interests and top users to find spaces nearby that would be most interesting for a meetup/hangout/event
         return Store.spaces.searchRelatedSpaces(userCoordinates, sortedInterestsNameKeys)
