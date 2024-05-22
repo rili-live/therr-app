@@ -221,8 +221,6 @@ export default class UserConnectionsStore {
             queryString = queryString.orderBy(conditions.orderBy, conditions.order);
         }
 
-        console.log(queryString.toString());
-
         queryString = queryString
             .limit(limit)
             .offset(offset);

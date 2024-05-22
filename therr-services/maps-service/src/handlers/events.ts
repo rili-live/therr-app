@@ -648,7 +648,7 @@ const getEventDetails = (req, res) => {
                 }
 
                 return Promise.all(promises).then(([eventCount, space]) => {
-                    if (userId !== event.fromUserId) {
+                    if (userId && userId !== event.fromUserId) {
                         incrementInterestEngagement(event.interestsKeys, 2, {
                             authorization,
                             locale,

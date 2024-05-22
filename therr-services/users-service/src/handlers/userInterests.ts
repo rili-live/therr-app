@@ -71,7 +71,12 @@ const incrementUserInterests = (req, res) => {
         userId,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
-    const requestingUserId = userId;
+
+    if (!userId) {
+        return res.status(200).send({
+            message: 'Missing user ID',
+        });
+    }
 
     const {
         incrBy,

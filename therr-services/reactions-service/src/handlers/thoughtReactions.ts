@@ -21,6 +21,8 @@ const createOrUpdateThoughtReaction = (req, res) => {
         userId,
         thoughtId: req.params.thoughtId,
     }).then((reactionsResponse) => {
+        // TODO: Use INSERT...ON CONFLICT...MERGE
+        // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
         if (reactionsResponse?.length) {
             updateAchievements({
                 authorization: req.headers.authorization,
@@ -71,6 +73,8 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
     const params = { ...req.body };
     delete params.thoughtIds;
 
+    // TODO: Use INSERT...ON CONFLICT...MERGE
+    // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
     return Store.thoughtReactions.get({
         userId,
     }, thoughtIds).then(async (existing) => {
