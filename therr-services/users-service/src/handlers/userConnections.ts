@@ -573,7 +573,7 @@ const getTopRankedConnections = (req, res) => {
         .then(([user]) => Store.userConnections.searchUserConnections({
             orderBy: 'interactionCount',
             filterBy: 'lastKnownLocation',
-            query: distanceMeters || '96560.6', // ~60 miles converted to meters
+            query: distanceMeters || 96560.6, // ~60 miles converted to meters
             order: 'desc',
             pagination: {
                 itemsPerPage: pageSize || 20,
@@ -584,6 +584,13 @@ const getTopRankedConnections = (req, res) => {
             longitude: user.lastKnownLongitude,
         }))
         .then((results) => {
+            if (!results.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user connections found within ${distanceMeters} meters.`,
+                    statusCode: 404,
+                });
+            }
             const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], []);
 
             return Store.userInterests.getByUserIds(userIds, {
