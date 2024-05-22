@@ -200,7 +200,7 @@ export default class UserConnectionsStore {
         // TODO: Compare query performance and consider using `findUserConnections` method instead
         if (conditions.filterBy === 'lastKnownLocation' && conditions.latitude && conditions.longitude) {
             queryString = queryString.where(
-                knexBuilder.raw(`ST_DWithin("lastKnownLocation", ST_SetSRID(ST_MakePoint(${conditions.longitude}, ${conditions.latitude}), 4326)::geography, ${proximityMax})`), // eslint-disable-line quotes, max-len
+                knexBuilder.raw(`ST_DWithin("lastKnownLocation", ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`), // eslint-disable-line quotes, max-len
             );
         } else if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
@@ -220,6 +220,8 @@ export default class UserConnectionsStore {
         if (conditions.orderBy) {
             queryString = queryString.orderBy(conditions.orderBy, conditions.order);
         }
+
+        console.log(queryString.toString());
 
         queryString = queryString
             .limit(limit)
