@@ -179,10 +179,17 @@ export default class UserConnectionsStore {
             ])
             .from(USER_CONNECTIONS_TABLE_NAME)
             .innerJoin(USERS_TABLE_NAME, function () {
-                this.on(function () {
-                    this.on(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`);
-                    this.orOn(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`);
-                });
+                if (conditions?.userId) {
+                    this.on(function () {
+                        this.on(knexBuilder.raw(`("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != '${conditions.userId}')`));
+                        this.orOn(knexBuilder.raw(`("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != '${conditions.userId}')`));
+                    });
+                } else {
+                    this.on(function () {
+                        this.on(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`);
+                        this.orOn(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`);
+                    });
+                }
             })
             .columns(columns)
             .where({
