@@ -384,7 +384,10 @@ export default class SpacesStore {
         let query = knexBuilder
             .select(
                 ...returningMod,
-                knexBuilder.raw(`geom <-> ${centroidGeom} AS dist`),
+                knexBuilder.raw(`"geomCenter" <-> ${centroidGeom} AS dist`),
+                knexBuilder.raw(`"geomCenter"::geography <-> ${centroidGeom}::geography AS "distInMeters"`),
+                knexBuilder.raw(`ST_Y(${centroidGeom}) AS "centroidLatitude"`),
+                knexBuilder.raw(`ST_X(${centroidGeom}) AS "centroidLongitude"`),
             )
             .from(SPACES_TABLE_NAME)
             .where(firstWhere);
