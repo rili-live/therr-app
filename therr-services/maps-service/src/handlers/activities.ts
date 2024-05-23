@@ -44,7 +44,7 @@ const createActivity = async (req, res) => {
         groupSize,
     } = req.body;
     const groupSizeOrDefault = groupSize || 3;
-    const distanceOrDefault = distanceMeters || '96560.6'; // ~60 miles converted to meters
+    const distanceOrDefault = distanceMeters || 96560.6; // ~60 miles converted to meters
     const MAX_INTERESTS_COUNT = 10; // Helps focus on top interests only
 
     return axios({
@@ -139,6 +139,7 @@ const createActivity = async (req, res) => {
                     topConnections,
                     topSharedInterests,
                     topSpaces: sanitizedSpaceResults,
+                    debug: response.data,
                 });
             });
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:ACTITIES_ROUTES:ERROR' }));
