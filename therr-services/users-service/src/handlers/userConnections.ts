@@ -568,21 +568,25 @@ const getTopRankedConnections = (req, res) => {
         distanceMeters,
         pageSize,
     } = req.query;
+    let requestingUserDetails = {};
 
     return Store.users.getUserById(userId, ['lastKnownLatitude', 'lastKnownLongitude'])
-        .then(([user]) => Store.userConnections.searchUserConnections({
-            orderBy: 'interactionCount',
-            filterBy: 'lastKnownLocation',
-            query: distanceMeters || 96560.6, // ~60 miles converted to meters
-            order: 'desc',
-            pagination: {
-                itemsPerPage: pageSize || 20,
-                pageNumber: 1,
-            },
-            userId,
-            latitude: user.lastKnownLatitude,
-            longitude: user.lastKnownLongitude,
-        }))
+        .then(([user]) => {
+            requestingUserDetails = user;
+            return Store.userConnections.searchUserConnections({
+                orderBy: 'interactionCount',
+                filterBy: 'lastKnownLocation',
+                query: distanceMeters || 96560.6, // ~60 miles converted to meters
+                order: 'desc',
+                pagination: {
+                    itemsPerPage: pageSize || 20,
+                    pageNumber: 1,
+                },
+                userId,
+                latitude: user.lastKnownLatitude,
+                longitude: user.lastKnownLongitude,
+            });
+        })
         .then((results) => {
             if (!results?.length) {
                 return handleHttpError({
@@ -627,6 +631,7 @@ const getTopRankedConnections = (req, res) => {
                     return res.status(200).send({
                         results,
                         sharedInterests,
+                        requestingUserDetails,
                         pagination: {
                             itemsPerPage: Number(20),
                             pageNumber: Number(1),

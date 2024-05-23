@@ -47,7 +47,7 @@ const createActivity = async (req, res) => {
     const distanceOrDefault = distanceMeters || 96560.6; // ~60 miles converted to meters
     const MAX_INTERESTS_COUNT = 10; // Helps focus on top interests only
 
-    return axios({
+    const getRankedConnectionsPromise = axios({
         method: 'get',
         // eslint-disable-next-line max-len
         url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/ranked?groupSize=${groupSizeOrDefault}&distanceMeters=${distanceOrDefault}`,
@@ -57,15 +57,17 @@ const createActivity = async (req, res) => {
             'x-userid': userId,
             'x-therr-origin-host': whiteLabelOrigin,
         },
-    }).then((response) => {
+    });
+    // TODO: Fetch potential connections (for results with no existing connections nearby)
+    const getSuggestedConnectionsPromise = Promise.resolve({});
+
+    return Promise.all([
+        getRankedConnectionsPromise,
+        getSuggestedConnectionsPromise,
+    ]).then(([rankedResponse, suggestedResponse]) => {
         // Filter for the top connections to satisfy group size
         // TODO: Continue pagination if group size is not satisfied
-        let ownUserDetails;
-        response.data?.results?.some((result) => {
-            const found = result?.users?.find((u) => u.id === userId);
-            ownUserDetails = found;
-            return found;
-        });
+        const ownUserDetails = rankedResponse?.data?.requestingUserDetails;
         if (!ownUserDetails) {
             // This should never happen
             return handleHttpError({
@@ -74,7 +76,8 @@ const createActivity = async (req, res) => {
                 statusCode: 400,
             });
         }
-        const topConnections = response.data?.results?.map((result) => ({
+        const connectionRecommendations = [];
+        const topConnections = rankedResponse.data?.results?.map((result) => ({
             interactionCount: result.interactionCount,
             requestStatus: result.requestStatus,
             isConnectionBroken: result.isConnectionBroken,
@@ -85,8 +88,8 @@ const createActivity = async (req, res) => {
 
         // Filter interests to apply only to the context of the relevant, top connections
         const topSharedInterests = {};
-        Object.keys(response.data?.sharedInterests || {}).some((id, index) => {
-            const interest = response.data?.sharedInterests[id];
+        Object.keys(rankedResponse.data?.sharedInterests || {}).some((id, index) => {
+            const interest = rankedResponse.data?.sharedInterests[id];
             interest?.users?.forEach((u) => {
                 if (topConnectionIds?.includes(u.id)) {
                     topSharedInterests[id] = {
@@ -136,10 +139,10 @@ const createActivity = async (req, res) => {
                     return r;
                 });
                 return res.status(201).send({
+                    connectionRecommendations,
                     topConnections,
                     topSharedInterests,
                     topSpaces: sanitizedSpaceResults,
-                    debug: response.data,
                 });
             });
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:ACTITIES_ROUTES:ERROR' }));
