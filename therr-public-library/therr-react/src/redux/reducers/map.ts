@@ -4,6 +4,8 @@ import { IMapState, MapActionTypes } from '../../types/redux/maps';
 import { ContentActionTypes } from '../../types/redux/content';
 
 const initialState: IMapState = Immutable.from({
+    activityGeneration: Immutable.from({}),
+    activities: Immutable.from({}),
     events: Immutable.from({}),
     moments: Immutable.from({}),
     spaces: Immutable.from({}),
@@ -48,6 +50,8 @@ const map = (state: IMapState = initialState, action: any) => {
     const modifiedSpaces = { ...slicedSpaces };
 
     switch (action.type) {
+        case MapActionTypes.GENERATE_ACTIVITY:
+            return state.setIn(['activityGeneration'], action.data);
         case MapActionTypes.GET_EVENTS:
         case MapActionTypes.GET_MY_EVENTS:
             // Convert array to object for faster lookup and de-duping

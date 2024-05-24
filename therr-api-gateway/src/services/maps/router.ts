@@ -47,7 +47,7 @@ mapsServiceRouter.get('/activities/connections', createActivityLimiter, createAc
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'get',
 }));
-mapsServiceRouter.post('/activities', createActivityLimiter, createActivityValidations, validate, handleServiceRequest({
+mapsServiceRouter.post('/activities/generate', createActivityLimiter, createActivityValidations, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));
