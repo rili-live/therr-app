@@ -370,8 +370,9 @@ export default class SpacesStore {
         });
     }
 
-    searchRelatedSpaces(relatedCoordinats: [string, string][], relatedInterestsKeys: string[] = [], returning: string[] = ['*']) {
-        const coordsAsString = relatedCoordinats.map((coord) => `${coord[1]} ${coord[0]}`);
+    searchRelatedSpaces(relatedCoordinates: [string, string][], relatedInterestsKeys: string[] = [], overrides: any = {}, returning: string[] = ['*']) {
+        const proximityMax = overrides?.distanceOverride || Location.AREA_PROXIMITY_METERS;
+        const coordsAsString = relatedCoordinates.map((coord) => `${coord[1]} ${coord[0]}`);
         const centroidGeom = knexBuilder.raw(`(SELECT ST_SetSRID(ST_Centroid('MULTIPOINT (${coordsAsString.join(', ')})'), 4326))`);
         const interestsKeysStr = relatedInterestsKeys.map((key) => `'${key}'`).join(',');
 
@@ -391,6 +392,14 @@ export default class SpacesStore {
             )
             .from(SPACES_TABLE_NAME)
             .where(firstWhere);
+
+        if (overrides.requestorLatitude && overrides.requestorLongitude) {
+            query = query
+                .andWhere(
+                    // eslint-disable-next-line max-len
+                    knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${overrides.requestorLongitude}, ${overrides.requestorLatitude})::geography, ${proximityMax})`),
+                );
+        }
 
         if (relatedInterestsKeys?.length) {
             // TODO: Test this with various interests lists
