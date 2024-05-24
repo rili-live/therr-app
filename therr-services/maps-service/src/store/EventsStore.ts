@@ -513,7 +513,7 @@ export default class EventsStore {
                 latitude: params.latitude,
                 longitude: params.longitude,
                 radius: params.radius,
-                region: region.code,
+                region: region?.code,
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
                 geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
             };
@@ -586,7 +586,7 @@ export default class EventsStore {
                 // latitude: params.latitude,
                 // longitude: params.longitude,
                 radius: params.radius,
-                region: region.code,
+                region: region?.code,
                 // polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
                 // geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
                 updatedAt: new Date(),

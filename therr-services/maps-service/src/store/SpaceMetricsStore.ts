@@ -62,7 +62,7 @@ export default class SpaceMetricsStore {
         const modifiedParams = params.map((p) => {
             const insert: ICreateSpaceMetricsParams = {
                 ...p,
-                region: region.code,
+                region: region?.code,
             };
 
             if (insert.dimensions && typeof insert.dimensions !== 'string') {
