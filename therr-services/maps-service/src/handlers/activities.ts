@@ -32,7 +32,7 @@ const getNearbyConnections = async (req, res) => {
 };
 
 // WRITE
-const createActivity = async (req, res) => {
+const generateActity = async (req, res) => {
     const {
         authorization,
         locale,
@@ -149,6 +149,6 @@ const createActivity = async (req, res) => {
 };
 
 export {
-    createActivity,
+    generateActity,
     getNearbyConnections,
 };

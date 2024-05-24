@@ -19,7 +19,9 @@
             "alreadyExists": "This user connection already exists",
             "noUserFound": "No user found with the provided criteria",
             "noRequestSelf": "Cannot make a user connection with self",
-            "mismatchTokenUserId": "Invalid requesting user ID"
+            "mismatchTokenUserId": "Invalid requesting user ID",
+            "locationRequired": "User location is required for this endpoint",
+            "noNearbyUserConnectionsFound": "No nearby user connections found"
         },
         "privacy": {
             "restrictedMedia": "Restricted Media"
