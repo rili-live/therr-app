@@ -482,7 +482,7 @@ export default class SpacesStore {
                 latitude: params.latitude,
                 longitude: params.longitude,
                 radius,
-                region: region.code,
+                region: region?.code,
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
                 featuredIncentiveKey: params.featuredIncentiveKey,
                 featuredIncentiveValue: params.featuredIncentiveValue,
