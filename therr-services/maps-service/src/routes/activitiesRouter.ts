@@ -1,7 +1,7 @@
 import * as express from 'express';
 import {
     getNearbyConnections,
-    generateActity,
+    generateActivity,
 } from '../handlers/activities';
 
 const router = express.Router();
@@ -10,6 +10,6 @@ const router = express.Router();
 router.get('/connections', getNearbyConnections);
 
 // WRITE
-router.post('/generate', generateActity);
+router.post('/generate', generateActivity);
 
 export default router;

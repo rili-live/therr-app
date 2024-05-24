@@ -212,12 +212,14 @@ export default class UserConnectionsStore {
         } else if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
-            queryString = queryString.andWhere((builder) => {
-                builder.where('requestingUserId', operator, query);
-                if (shouldCheckReverse === 'true') {
-                    builder.orWhere('acceptingUserId', operator, query);
-                }
-            });
+            let rawQuery = `("userConnections"."requestingUserId" ${operator} '${query}'`;
+            if (shouldCheckReverse === 'true') {
+                rawQuery = `${rawQuery} OR "userConnections"."acceptingUserId" ${operator} '${query}')`;
+            }
+            queryString = queryString.andWhere(knexBuilder.raw(
+                // eslint-disable-next-line max-len
+                rawQuery,
+            ));
         }
 
         // if (groupBy) {
