@@ -42,15 +42,22 @@ const generateActity = async (req, res) => {
     const {
         distanceMeters,
         groupSize,
+        latitude,
+        longitude,
     } = req.body;
     const groupSizeOrDefault = groupSize || 3;
     const distanceOrDefault = distanceMeters || 96560.6; // ~60 miles converted to meters
     const MAX_INTERESTS_COUNT = 10; // Helps focus on top interests only
+    // eslint-disable-next-line max-len
+    let url = `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/ranked?groupSize=${groupSizeOrDefault}&distanceMeters=${distanceOrDefault}`;
+
+    if (latitude && longitude) {
+        url = `${url}&latitude=${latitude}&longitude=${longitude}`;
+    }
 
     const getRankedConnectionsPromise = axios({
         method: 'get',
-        // eslint-disable-next-line max-len
-        url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/ranked?groupSize=${groupSizeOrDefault}&distanceMeters=${distanceOrDefault}`,
+        url,
         headers: {
             authorization,
             'x-localecode': locale,

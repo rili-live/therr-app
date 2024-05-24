@@ -120,6 +120,8 @@ export interface IPlaceDetailsArgs {
 export interface IActivityArgs {
     distanceMeters?: number;
     groupSize?: number;
+    latitude?: number;
+    longitude?: number;
 }
 
 export interface ISignedUrlArgs {
@@ -461,6 +463,8 @@ class MapsService {
     generateActivity = ({
         distanceMeters,
         groupSize,
+        latitude,
+        longitude,
     }: IActivityArgs = {}) => {
         const groupSizeOrDefault = groupSize || 3;
         const distanceOrDefault = distanceMeters || 96560.6; // ~60 miles converted to meters
@@ -472,6 +476,8 @@ class MapsService {
             data: {
                 distanceMeters: distanceOrDefault,
                 groupSize: groupSizeOrDefault,
+                latitude,
+                longitude,
             },
         });
     };
