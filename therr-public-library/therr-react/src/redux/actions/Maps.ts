@@ -34,8 +34,8 @@ const Maps = {
     }),
 
     // Activities
-    createActivity: (args: IActivityArgs) => (dispatch: any) => MapsService
-        .createActivity(args).then((response) => {
+    generateActivity: (args: IActivityArgs) => (dispatch: any) => MapsService
+        .generateActivity(args).then((response) => {
             dispatch({
                 type: MapActionTypes.GENERATE_ACTIVITY,
                 data: response.data,

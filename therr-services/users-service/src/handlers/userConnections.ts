@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import {
-    CurrentSocialValuations, Notifications, PushNotifications, UserConnectionTypes,
+    CurrentSocialValuations, ErrorCodes, Notifications, PushNotifications, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
@@ -573,6 +573,15 @@ const getTopRankedConnections = (req, res) => {
     return Store.users.getUserById(userId, ['lastKnownLatitude', 'lastKnownLongitude'])
         .then(([user]) => {
             requestingUserDetails = user;
+            if (!user.lastKnownLatitude || !user.lastKnownLongitude) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.userConnections.locationRequired'),
+                    statusCode: 400,
+                    errorCode: ErrorCodes.LOCATION_REQUIRED,
+                });
+            }
+
             return Store.userConnections.searchUserConnections({
                 orderBy: 'interactionCount',
                 filterBy: 'lastKnownLocation',
@@ -585,59 +594,59 @@ const getTopRankedConnections = (req, res) => {
                 userId,
                 latitude: user.lastKnownLatitude,
                 longitude: user.lastKnownLongitude,
-            });
-        })
-        .then((results) => {
-            if (!results?.length) {
-                return handleHttpError({
-                    res,
-                    message: `No user connections found within ${distanceMeters} meters.`,
-                    statusCode: 404,
-                });
-            }
-            const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], []);
+            }).then((results) => {
+                if (!results?.length) {
+                    return handleHttpError({
+                        res,
+                        message: translate(locale, 'errorMessages.userConnections.noNearbyUserConnectionsFound'),
+                        statusCode: 400,
+                        errorCode: ErrorCodes.BAD_REQUEST,
+                    });
+                }
+                const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], []);
 
-            return Store.userInterests.getByUserIds(userIds, {
-                isEnabled: true,
-            }, undefined, ['userId', 'interestId', 'score', 'engagementCount', 'isEnabled', 'updatedAt'])
-                .then((userInterests) => {
-                    const interestsIdMap = {};
-                    userInterests.forEach((uInterest) => {
-                        if (uInterest.isEnabled) {
-                            const user = {
-                                id: uInterest.userId,
-                                score: uInterest.score,
-                                engagementCount: uInterest.engagementCount,
-                                ranking: getInterestRanking(uInterest.engagementCount, uInterest.score),
-                                updatedAt: uInterest.updatedAt,
-                            };
-                            if (!interestsIdMap[uInterest.interestId]) {
-                                interestsIdMap[uInterest.interestId] = {
-                                    displayNameKey: uInterest.displayNameKey,
-                                    emoji: uInterest.emoji,
-                                    users: [user],
+                return Store.userInterests.getByUserIds(userIds, {
+                    isEnabled: true,
+                }, undefined, ['userId', 'interestId', 'score', 'engagementCount', 'isEnabled', 'updatedAt'])
+                    .then((userInterests) => {
+                        const interestsIdMap = {};
+                        userInterests.forEach((uInterest) => {
+                            if (uInterest.isEnabled) {
+                                const thisUser = {
+                                    id: uInterest.userId,
+                                    score: uInterest.score,
+                                    engagementCount: uInterest.engagementCount,
+                                    ranking: getInterestRanking(uInterest.engagementCount, uInterest.score),
+                                    updatedAt: uInterest.updatedAt,
                                 };
-                            } else {
-                                interestsIdMap[uInterest.interestId].users.push(user);
+                                if (!interestsIdMap[uInterest.interestId]) {
+                                    interestsIdMap[uInterest.interestId] = {
+                                        displayNameKey: uInterest.displayNameKey,
+                                        emoji: uInterest.emoji,
+                                        users: [thisUser],
+                                    };
+                                } else {
+                                    interestsIdMap[uInterest.interestId].users.push(thisUser);
+                                }
                             }
-                        }
+                        });
+                        const sharedInterests = {};
+                        Object.entries(interestsIdMap).forEach(([key, value]) => {
+                            if (interestsIdMap[key]?.users?.length > 1) {
+                                sharedInterests[key] = value;
+                            }
+                        });
+                        return res.status(200).send({
+                            results,
+                            sharedInterests,
+                            requestingUserDetails,
+                            pagination: {
+                                itemsPerPage: Number(20),
+                                pageNumber: Number(1),
+                            },
+                        });
                     });
-                    const sharedInterests = {};
-                    Object.entries(interestsIdMap).forEach(([key, value]) => {
-                        if (interestsIdMap[key]?.users?.length > 1) {
-                            sharedInterests[key] = value;
-                        }
-                    });
-                    return res.status(200).send({
-                        results,
-                        sharedInterests,
-                        requestingUserDetails,
-                        pagination: {
-                            itemsPerPage: Number(20),
-                            pageNumber: Number(1),
-                        },
-                    });
-                });
+            });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
 };

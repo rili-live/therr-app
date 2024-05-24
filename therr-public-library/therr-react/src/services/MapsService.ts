@@ -458,10 +458,10 @@ class MapsService {
     };
 
     // Activities
-    createActivity = ({
+    generateActivity = ({
         distanceMeters,
         groupSize,
-    }: IActivityArgs) => {
+    }: IActivityArgs = {}) => {
         const groupSizeOrDefault = groupSize || 3;
         const distanceOrDefault = distanceMeters || 96560.6; // ~60 miles converted to meters
 
