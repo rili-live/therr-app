@@ -566,14 +566,20 @@ const getTopRankedConnections = (req, res) => {
     const {
         groupSize,
         distanceMeters,
+        latitude,
+        longitude,
         pageSize,
     } = req.query;
-    let requestingUserDetails = {};
+    let requestingUserDetails: any = {};
 
     return Store.users.getUserById(userId, ['lastKnownLatitude', 'lastKnownLongitude'])
         .then(([user]) => {
-            requestingUserDetails = user;
-            if (!user.lastKnownLatitude || !user.lastKnownLongitude) {
+            requestingUserDetails = {
+                ...user,
+                lastKnownLatitude: latitude || user.lastKnownLatitude,
+                lastKnownLongitude: longitude || user.lastKnownLongitude,
+            };
+            if (!requestingUserDetails.lastKnownLatitude || !requestingUserDetails.lastKnownLongitude) {
                 return handleHttpError({
                     res,
                     message: translate(locale, 'errorMessages.userConnections.locationRequired'),
@@ -592,8 +598,8 @@ const getTopRankedConnections = (req, res) => {
                     pageNumber: 1,
                 },
                 userId,
-                latitude: user.lastKnownLatitude,
-                longitude: user.lastKnownLongitude,
+                latitude: requestingUserDetails.lastKnownLatitude,
+                longitude: requestingUserDetails.lastKnownLongitude,
             }).then((results) => {
                 if (!results?.length) {
                     return handleHttpError({
