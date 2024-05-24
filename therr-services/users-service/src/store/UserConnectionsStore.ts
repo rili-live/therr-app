@@ -179,10 +179,17 @@ export default class UserConnectionsStore {
             ])
             .from(USER_CONNECTIONS_TABLE_NAME)
             .innerJoin(USERS_TABLE_NAME, function () {
-                this.on(function () {
-                    this.on(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`);
-                    this.orOn(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`);
-                });
+                if (conditions?.userId) {
+                    this.on(function () {
+                        this.on(knexBuilder.raw(`("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != '${conditions.userId}')`));
+                        this.orOn(knexBuilder.raw(`("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != '${conditions.userId}')`));
+                    });
+                } else {
+                    this.on(function () {
+                        this.on(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`);
+                        this.orOn(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`);
+                    });
+                }
             })
             .columns(columns)
             .where({
@@ -191,11 +198,10 @@ export default class UserConnectionsStore {
             });
 
         if (conditions.userId) {
-            queryString = queryString.where({
-                [`${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`]: conditions.userId,
-            }).orWhere({
-                [`${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`]: conditions.userId,
-            });
+            queryString = queryString.andWhere(knexBuilder.raw(
+                // eslint-disable-next-line max-len
+                `("userConnections"."requestingUserId" = '${conditions.userId}' OR "userConnections"."acceptingUserId" = '${conditions.userId}')`,
+            ));
         }
 
         // TODO: Compare query performance and consider using `findUserConnections` method instead
@@ -292,7 +298,11 @@ export default class UserConnectionsStore {
     }
 
     incrementUserConnection(userId1, userId2, incrBy = 1) {
-        const queryString = knexBuilder.increment('interactionCount', incrBy)
+        const queryString = knexBuilder
+            .increment('interactionCount', incrBy)
+            .update({
+                updatedAt: new Date(),
+            })
             .into(USER_CONNECTIONS_TABLE_NAME)
             .where({
                 acceptingUserId: userId1,

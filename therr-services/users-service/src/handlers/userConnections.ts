@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import {
-    CurrentSocialValuations, Notifications, PushNotifications, UserConnectionTypes,
+    CurrentSocialValuations, ErrorCodes, Notifications, PushNotifications, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import logSpan from 'therr-js-utilities/log-or-update-span';
@@ -19,6 +19,11 @@ import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
 import { parseConfigValue } from './config';
 import { IFindUsersByContactInfo } from '../store/UsersStore';
+
+/**
+ * Used for sorting interests by a singular value. Set defaults to ensure no zero values.
+ */
+const getInterestRanking = (engagementCount: number, score: number) => Math.ceil((engagementCount || 1) / (score || 5));
 
 const getTherrFromPhoneNumber = (receivingPhoneNumber: string) => {
     if (receivingPhoneNumber.startsWith('+44')) {
@@ -561,69 +566,93 @@ const getTopRankedConnections = (req, res) => {
     const {
         groupSize,
         distanceMeters,
+        latitude,
+        longitude,
         pageSize,
     } = req.query;
+    let requestingUserDetails: any = {};
 
     return Store.users.getUserById(userId, ['lastKnownLatitude', 'lastKnownLongitude'])
-        .then(([user]) => Store.userConnections.searchUserConnections({
-            orderBy: 'interactionCount',
-            filterBy: 'lastKnownLocation',
-            query: distanceMeters || '96560.6', // ~60 miles converted to meters
-            order: 'desc',
-            pagination: {
-                itemsPerPage: pageSize || 20,
-                pageNumber: 1,
-            },
-            userId,
-            latitude: user.lastKnownLatitude,
-            longitude: user.lastKnownLongitude,
-        }))
-        .then((results) => {
-            const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], []);
+        .then(([user]) => {
+            requestingUserDetails = {
+                ...user,
+                lastKnownLatitude: latitude || user.lastKnownLatitude,
+                lastKnownLongitude: longitude || user.lastKnownLongitude,
+            };
+            if (!requestingUserDetails.lastKnownLatitude || !requestingUserDetails.lastKnownLongitude) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.userConnections.locationRequired'),
+                    statusCode: 400,
+                    errorCode: ErrorCodes.LOCATION_REQUIRED,
+                });
+            }
 
-            return Store.userInterests.getByUserIds(userIds, {
-                isEnabled: true,
-            }, undefined, ['userId', 'interestId', 'score', 'engagementCount', 'isEnabled', 'updatedAt'])
-                .then((userInterests) => {
-                    const interestsIdMap = {};
-                    userInterests.forEach((uInterest) => {
-                        if (uInterest.isEnabled) {
-                            if (!interestsIdMap[uInterest.interestId]?.users) {
-                                interestsIdMap[uInterest.interestId] = {
-                                    displayNameKey: uInterest.displayNameKey,
-                                    emoji: uInterest.emoji,
-                                    users: [{
-                                        userId: uInterest.userId,
-                                        score: uInterest.score,
-                                        engagementCount: uInterest.engagementCount,
-                                        updatedAt: uInterest.updatedAt,
-                                    }],
-                                };
-                            } else {
-                                interestsIdMap[uInterest.interestId].users.push({
-                                    userId: uInterest.userId,
+            return Store.userConnections.searchUserConnections({
+                orderBy: 'interactionCount',
+                filterBy: 'lastKnownLocation',
+                query: distanceMeters || 96560.6, // ~60 miles converted to meters
+                order: 'desc',
+                pagination: {
+                    itemsPerPage: pageSize || 20,
+                    pageNumber: 1,
+                },
+                userId,
+                latitude: requestingUserDetails.lastKnownLatitude,
+                longitude: requestingUserDetails.lastKnownLongitude,
+            }).then((results) => {
+                if (!results?.length) {
+                    return handleHttpError({
+                        res,
+                        message: translate(locale, 'errorMessages.userConnections.noNearbyUserConnectionsFound'),
+                        statusCode: 400,
+                        errorCode: ErrorCodes.BAD_REQUEST,
+                    });
+                }
+                const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], []);
+
+                return Store.userInterests.getByUserIds(userIds, {
+                    isEnabled: true,
+                }, undefined, ['userId', 'interestId', 'score', 'engagementCount', 'isEnabled', 'updatedAt'])
+                    .then((userInterests) => {
+                        const interestsIdMap = {};
+                        userInterests.forEach((uInterest) => {
+                            if (uInterest.isEnabled) {
+                                const thisUser = {
+                                    id: uInterest.userId,
                                     score: uInterest.score,
                                     engagementCount: uInterest.engagementCount,
+                                    ranking: getInterestRanking(uInterest.engagementCount, uInterest.score),
                                     updatedAt: uInterest.updatedAt,
-                                });
+                                };
+                                if (!interestsIdMap[uInterest.interestId]) {
+                                    interestsIdMap[uInterest.interestId] = {
+                                        displayNameKey: uInterest.displayNameKey,
+                                        emoji: uInterest.emoji,
+                                        users: [thisUser],
+                                    };
+                                } else {
+                                    interestsIdMap[uInterest.interestId].users.push(thisUser);
+                                }
                             }
-                        }
+                        });
+                        const sharedInterests = {};
+                        Object.entries(interestsIdMap).forEach(([key, value]) => {
+                            if (interestsIdMap[key]?.users?.length > 1) {
+                                sharedInterests[key] = value;
+                            }
+                        });
+                        return res.status(200).send({
+                            results,
+                            sharedInterests,
+                            requestingUserDetails,
+                            pagination: {
+                                itemsPerPage: Number(20),
+                                pageNumber: Number(1),
+                            },
+                        });
                     });
-                    const sharedInterests = {};
-                    Object.entries(interestsIdMap).forEach(([key, value]) => {
-                        if (interestsIdMap[key]?.users?.length > 1) {
-                            sharedInterests[key] = value;
-                        }
-                    });
-                    return res.status(200).send({
-                        results,
-                        sharedInterests,
-                        pagination: {
-                            itemsPerPage: Number(20),
-                            pageNumber: Number(1),
-                        },
-                    });
-                });
+            });
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
 };
@@ -778,6 +807,12 @@ const incrementUserConnection = (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
     const requestingUserId = userId;
+
+    if (!userId) {
+        return res.status(200).send({
+            message: 'Missing user ID',
+        });
+    }
 
     const {
         incrBy,

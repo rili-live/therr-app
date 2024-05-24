@@ -17,6 +17,8 @@ const createOrUpdateSpaceReaction = (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
 
+    // TODO: Use INSERT...ON CONFLICT...MERGE
+    // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
     return Store.spaceReactions.get({
         userId,
         spaceId: req.params.spaceId,
@@ -63,6 +65,8 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
     const params = { ...req.body };
     delete params.spaceIds;
 
+    // TODO: Use INSERT...ON CONFLICT...MERGE
+    // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
     return Store.spaceReactions.get({
         userId,
     }, spaceIds).then((existing) => {

@@ -7,6 +7,7 @@ const ErrorCodes = {
     USER_EXISTS: 'UserAlreadyExists',
     INVALID_REGION: 'InvalidRegion',
     INSUFFICIENT_THERR_COIN_FUNDS: 'InsufficientTherrCoinFunds',
+    LOCATION_REQUIRED: 'LocationRequired',
     METRIC_ACCESS_RESTRICTED: 'MetricAccessRestricted',
     MOMENT_ACCESS_RESTRICTED: 'MomentAccessRestricted',
     EVENT_ACCESS_RESTRICTED: 'EventAccessRestricted',

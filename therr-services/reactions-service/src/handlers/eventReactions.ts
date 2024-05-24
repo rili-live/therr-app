@@ -15,6 +15,8 @@ const createOrUpdateEventReaction = (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
 
+    // TODO: Use INSERT...ON CONFLICT...MERGE
+    // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
     return Store.eventReactions.get({
         userId,
         eventId: req.params.eventId,
@@ -61,6 +63,8 @@ const createOrUpdateMultiEventReactions = (req, res) => {
     const params = { ...req.body };
     delete params.eventIds;
 
+    // TODO: Use INSERT...ON CONFLICT...MERGE
+    // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
     return Store.eventReactions.get({
         userId,
     }, eventIds).then((existing) => {

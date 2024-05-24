@@ -1,6 +1,7 @@
 import { MapActionTypes } from '../../types/redux/maps';
 import { UserActionTypes } from '../../types/redux/user';
 import MapsService, {
+    IActivityArgs,
     ICreateSpaceCheckInMetricsArgs,
     IGetSpaceEngagementArgs,
     IGetSpaceMetricsArgs,
@@ -31,6 +32,16 @@ const Maps = {
 
         return response?.data;
     }),
+
+    // Activities
+    generateActivity: (args: IActivityArgs) => (dispatch: any) => MapsService
+        .generateActivity(args).then((response) => {
+            dispatch({
+                type: MapActionTypes.GENERATE_ACTIVITY,
+                data: response.data,
+            });
+            return response.data;
+        }),
 
     // Events
     createEvent: (data: any) => (dispatch: any) => MapsService.createEvent(data).then((response: any) => {

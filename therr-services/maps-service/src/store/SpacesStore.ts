@@ -370,6 +370,39 @@ export default class SpacesStore {
         });
     }
 
+    searchRelatedSpaces(relatedCoordinats: [string, string][], relatedInterestsKeys: string[] = [], returning: string[] = ['*']) {
+        const coordsAsString = relatedCoordinats.map((coord) => `${coord[1]} ${coord[0]}`);
+        const centroidGeom = knexBuilder.raw(`(SELECT ST_SetSRID(ST_Centroid('MULTIPOINT (${coordsAsString.join(', ')})'), 4326))`);
+        const interestsKeysStr = relatedInterestsKeys.map((key) => `'${key}'`).join(',');
+
+        const returningMod = returning?.length ? returning : ['*'];
+        const firstWhere: any = {
+            isClaimPending: false, // hide pending claim requests
+            isMatureContent: false, // content that has been blocked
+        };
+
+        let query = knexBuilder
+            .select(
+                ...returningMod,
+                knexBuilder.raw(`"geomCenter" <-> ${centroidGeom} AS dist`),
+                knexBuilder.raw(`"geomCenter"::geography <-> ${centroidGeom}::geography AS "distInMeters"`),
+                knexBuilder.raw(`ST_Y(${centroidGeom}) AS "centroidLatitude"`),
+                knexBuilder.raw(`ST_X(${centroidGeom}) AS "centroidLongitude"`),
+            )
+            .from(SPACES_TABLE_NAME)
+            .where(firstWhere);
+
+        if (relatedInterestsKeys?.length) {
+            // TODO: Test this with various interests lists
+            query = query.whereRaw(`"interestsKeys" \\?| array[${interestsKeysStr}]`);
+        }
+
+        query = query.orderBy('dist')
+            .limit(5);
+
+        return this.db.read.query(query.toString()).then((response) => response.rows);
+    }
+
     findSpaces(spaceIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         let restrictedLimit = filters?.limit || 1000;

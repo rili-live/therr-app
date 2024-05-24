@@ -18,6 +18,8 @@ const createOrUpdateMomentReaction = (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
 
+    // TODO: Use INSERT...ON CONFLICT...MERGE
+    // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
     return Store.momentReactions.get({
         userId,
         momentId: req.params.momentId,
@@ -88,6 +90,8 @@ const createOrUpdateMultiMomentReactions = (req, res) => {
     const params = { ...req.body };
     delete params.momentIds;
 
+    // TODO: Use INSERT...ON CONFLICT...MERGE
+    // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
     return Store.momentReactions.get({
         userId,
     }, momentIds).then((existing) => {
