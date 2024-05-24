@@ -117,6 +117,11 @@ export interface IPlaceDetailsArgs {
     shouldIncludeRating?: boolean;
 }
 
+export interface IActivityArgs {
+    distanceMeters?: number;
+    groupSize?: number;
+}
+
 export interface ISignedUrlArgs {
     action: string;
     filename: string;
@@ -449,6 +454,25 @@ class MapsService {
             headers: {},
         }).finally(() => {
             googleDynamicSessionToken = uuid.v4(); // This must be updated after each call to get place details
+        });
+    };
+
+    // Activities
+    createActivity = ({
+        distanceMeters,
+        groupSize,
+    }: IActivityArgs) => {
+        const groupSizeOrDefault = groupSize || 3;
+        const distanceOrDefault = distanceMeters || 96560.6; // ~60 miles converted to meters
+
+        return axios({
+            method: 'post',
+            url: '/maps-service/activities/generate',
+            headers: {},
+            data: {
+                distanceMeters: distanceOrDefault,
+                groupSize: groupSizeOrDefault,
+            },
         });
     };
 }
