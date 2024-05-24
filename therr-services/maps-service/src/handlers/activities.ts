@@ -115,7 +115,6 @@ const generateActity = async (req, res) => {
             id,
             ...topSharedInterests[id],
         })).sort((a, b) => b.ranking - a.ranking).map((i) => i.displayNameKey);
-        // TODO: Include requesting user coordinates in the search
         const topConnectionsAndYou: any = [
             ...topConnections,
             {
@@ -138,7 +137,11 @@ const generateActity = async (req, res) => {
         }
 
         // Use sorted interests and top users to find spaces nearby that would be most interesting for a meetup/hangout/event
-        return Store.spaces.searchRelatedSpaces(userCoordinates, sortedInterestsNameKeys)
+        return Store.spaces.searchRelatedSpaces(userCoordinates, sortedInterestsNameKeys, {
+            distanceOverride: distanceOrDefault,
+            requestorLatitude: ownUserDetails.lastKnownLatitude,
+            requestorLongitude: ownUserDetails.lastKnownLongitude,
+        })
             .then((spaceResults) => {
                 const sanitizedSpaceResults = spaceResults.map((r) => {
                     // eslint-disable-next-line no-param-reassign
