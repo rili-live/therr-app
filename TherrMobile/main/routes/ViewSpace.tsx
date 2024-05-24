@@ -341,7 +341,9 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         const { previousView } = route.params;
         if (previousView === 'Areas') {
             navigation.goBack();
-        } else if (previousView === 'Notifications') {
+        } else if (previousView === 'ActivityGenerator') {
+            navigation.navigate('ActivityGenerator');
+        }  else if (previousView === 'Notifications') {
             navigation.navigate('Notifications');
         } else {
             navigation.navigate('Map', {

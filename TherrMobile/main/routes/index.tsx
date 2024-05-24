@@ -4,6 +4,7 @@ import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { IAccess, AccessCheckType } from 'therr-react/types';
+import ActivityGenerator from './Activities';
 import AdvancedSearch from './AdvancedSearch';
 import MapFilteredSearch from './AdvancedSearch/MapFilteredSearch';
 import BookMarked from './Areas/BookMarked';
@@ -131,6 +132,17 @@ const routes: RouteConfig<
         component: Achievements,
         options: () => ({
             title: 'Achievements',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'ActivityGenerator',
+        component: ActivityGenerator,
+        options: () => ({
+            title: 'ActivityGenerator',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
