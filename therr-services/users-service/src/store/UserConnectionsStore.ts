@@ -184,6 +184,14 @@ export default class UserConnectionsStore {
                         this.on(knexBuilder.raw(`("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != '${conditions.userId}')`));
                         this.orOn(knexBuilder.raw(`("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != '${conditions.userId}')`));
                     });
+                } else if (conditions.filterBy === 'acceptingUserId' && conditions.query && (!conditions.filterOperator || conditions.filterOperator === '=')) {
+                    // NOTE: This is a backwards compatibility implementation due to gross usage of this method
+                    this.on(function () {
+                        this.on(knexBuilder.raw(`("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != '${conditions.query}')`));
+                        if (shouldCheckReverse) {
+                            this.orOn(knexBuilder.raw(`("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != '${conditions.query}')`));
+                        }
+                    });
                 } else {
                     this.on(function () {
                         this.on(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`);
