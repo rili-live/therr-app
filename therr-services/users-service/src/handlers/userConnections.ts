@@ -613,7 +613,7 @@ const getTopRankedConnections = (req, res) => {
 
                 return Store.userInterests.getByUserIds(userIds, {
                     isEnabled: true,
-                }, undefined, ['userId', 'interestId', 'score', 'engagementCount', 'isEnabled', 'updatedAt'])
+                }, 'engagementCount', ['userId', 'interestId', 'score', 'engagementCount', 'isEnabled', 'updatedAt'])
                     .then((userInterests) => {
                         const interestsIdMap = {};
                         userInterests.forEach((uInterest) => {

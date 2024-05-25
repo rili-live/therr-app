@@ -42,12 +42,13 @@ const generateActivity = async (req, res) => {
     const {
         distanceMeters,
         groupSize,
+        interestsCount,
         latitude,
         longitude,
     } = req.body;
     const groupSizeOrDefault = groupSize || 3;
     const distanceOrDefault = distanceMeters || 96560.6; // ~60 miles converted to meters
-    const MAX_INTERESTS_COUNT = 10; // Helps focus on top interests only
+    const MAX_INTERESTS_COUNT = interestsCount || 10; // Helps focus on top interests only
     // eslint-disable-next-line max-len
     let url = `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/ranked?groupSize=${groupSizeOrDefault}&distanceMeters=${distanceOrDefault}`;
 
@@ -94,27 +95,32 @@ const generateActivity = async (req, res) => {
         const topConnectionIds = topConnections.map((con) => con.user.id);
 
         // Filter interests to apply only to the context of the relevant, top connections
-        const topSharedInterests = {};
-        Object.keys(rankedResponse.data?.sharedInterests || {}).some((id, index) => {
+        const sharedInterestsById = {};
+        Object.keys(rankedResponse.data?.sharedInterests || {}).forEach((id, index) => {
             const interest = rankedResponse.data?.sharedInterests[id];
             interest?.users?.forEach((u) => {
                 if (topConnectionIds?.includes(u.id)) {
-                    topSharedInterests[id] = {
+                    sharedInterestsById[id] = {
                         displayNameKey: interest.displayNameKey,
                         emoji: interest.emoji,
-                        ranking: (topSharedInterests[id]?.ranking || 0) + u.ranking,
+                        ranking: (sharedInterestsById[id]?.ranking || 0) + u.ranking,
                     };
                 }
             });
-
-            return (index + 1) >= MAX_INTERESTS_COUNT;
         });
 
         // Sort interests by ranking (highest to lowest)
-        const sortedInterestsNameKeys = Object.keys(topSharedInterests).map((id) => ({
+        const sortedInterestsNameKeys: string[] = [];
+        const topSharedInterests = {};
+        Object.keys(sharedInterestsById).map((id) => ({
             id,
-            ...topSharedInterests[id],
-        })).sort((a, b) => b.ranking - a.ranking).map((i) => i.displayNameKey);
+            ...sharedInterestsById[id],
+        })).sort((a, b) => b.ranking - a.ranking).some((interest, index) => {
+            topSharedInterests[interest.id] = interest;
+            sortedInterestsNameKeys.push(interest.displayNameKey);
+
+            return (index + 1) >= MAX_INTERESTS_COUNT;
+        });
         const topConnectionsAndYou: any = [
             ...topConnections,
             {
