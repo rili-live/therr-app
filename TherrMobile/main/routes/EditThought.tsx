@@ -57,6 +57,7 @@ export const thoughtCategories = [
     'geocache',
     'seasonal',
     'warning',
+    // 'sports',
 ];
 
 

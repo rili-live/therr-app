@@ -598,7 +598,8 @@
         "warning": "Warning / Alert",
         "seasonal": "Seasonal / Holidays",
         "drinks": "Happy Hour / Drinks",
-        "nightLife": "Night Life / Social"
+        "nightLife": "Night Life / Social",
+        "sports": "Sports"
       },
       "labels": {
         "addImageNote": "Select an existing image or capture a new one to represent your thought.",
