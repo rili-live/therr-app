@@ -184,6 +184,23 @@ export default class UserConnectionsStore {
                         this.on(knexBuilder.raw(`("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != '${conditions.userId}')`));
                         this.orOn(knexBuilder.raw(`("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != '${conditions.userId}')`));
                     });
+                } else if (conditions.filterBy === 'acceptingUserId' && conditions.query && (!conditions.filterOperator || conditions.filterOperator === '=')) {
+                    // NOTE: This is a backwards compatibility implementation due to gross usage of this method
+                    this.on(function () {
+                        this.on(knexBuilder.raw(`("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != '${conditions.query}')`));
+                        if (shouldCheckReverse) {
+                            this.orOn(knexBuilder.raw(`("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != '${conditions.query}')`));
+                        }
+                    });
+                // eslint-disable-next-line max-len
+                } else if (conditions.filterBy === 'requestingUserId' && conditions.query && (!conditions.filterOperator || conditions.filterOperator === '=')) {
+                    // NOTE: This is a backwards compatibility implementation due to gross usage of this method
+                    this.on(function () {
+                        this.on(knexBuilder.raw(`("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != '${conditions.query}')`));
+                        if (shouldCheckReverse) {
+                            this.orOn(knexBuilder.raw(`("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != '${conditions.query}')`));
+                        }
+                    });
                 } else {
                     this.on(function () {
                         this.on(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`);
@@ -233,7 +250,6 @@ export default class UserConnectionsStore {
         queryString = queryString
             .limit(limit)
             .offset(offset);
-
         return this.db.read.query(queryString.toString())
             .then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'users', propId: 'id' }]));
     }
