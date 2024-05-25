@@ -95,7 +95,7 @@ const generateActivity = async (req, res) => {
 
         // Filter interests to apply only to the context of the relevant, top connections
         const topSharedInterests = {};
-        Object.keys(rankedResponse.data?.sharedInterests || {}).some((id, index) => {
+        Object.keys(rankedResponse.data?.sharedInterests || {}).forEach((id, index) => {
             const interest = rankedResponse.data?.sharedInterests[id];
             interest?.users?.forEach((u) => {
                 if (topConnectionIds?.includes(u.id)) {
@@ -106,15 +106,18 @@ const generateActivity = async (req, res) => {
                     };
                 }
             });
-
-            return (index + 1) >= MAX_INTERESTS_COUNT;
         });
 
         // Sort interests by ranking (highest to lowest)
-        const sortedInterestsNameKeys = Object.keys(topSharedInterests).map((id) => ({
+        const sortedInterestsNameKeys: string[] = [];
+        Object.keys(topSharedInterests).map((id) => ({
             id,
             ...topSharedInterests[id],
-        })).sort((a, b) => b.ranking - a.ranking).map((i) => i.displayNameKey);
+        })).sort((a, b) => b.ranking - a.ranking).some((interest, index) => {
+            sortedInterestsNameKeys.push(interest.displayNameKey);
+
+            return (index + 1) >= MAX_INTERESTS_COUNT;
+        });
         const topConnectionsAndYou: any = [
             ...topConnections,
             {

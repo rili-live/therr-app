@@ -57,7 +57,7 @@ export default class UserInterestsStore {
             .whereIn('userId', userIds);
 
         if (orderBy) {
-            queryString = queryString.orderBy(orderBy);
+            queryString = queryString.orderBy(orderBy, 'desc');
         }
 
         return this.db.read.query(queryString.toString())
