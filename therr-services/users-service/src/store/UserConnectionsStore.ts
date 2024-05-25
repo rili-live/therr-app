@@ -250,6 +250,7 @@ export default class UserConnectionsStore {
         queryString = queryString
             .limit(limit)
             .offset(offset);
+
         return this.db.read.query(queryString.toString())
             .then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'users', propId: 'id' }]));
     }
