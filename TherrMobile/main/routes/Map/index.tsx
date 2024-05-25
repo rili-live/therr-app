@@ -356,6 +356,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         } = this.props;
         UsersService.getUserInterests().then((response) => {
             if (!response?.data?.length) {
+                updateTour(user.details.id, {
+                    isTouring: false,
+                });
                 navigation.navigate('ManagePreferences');
             }
         });
@@ -365,7 +368,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             });
         }).catch((err) => console.log(`Failed to get exchange rate: ${err.message}`));
 
-        if (user.details?.loginCount < 3 && !user.settings?.hasCompletedFTUI) {
+        if (user.details?.loginCount < 2 && !user.settings?.hasCompletedFTUI) {
             updateTour(user.details.id, {
                 isTouring: true,
             });

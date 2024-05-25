@@ -29,11 +29,7 @@ export default (socket, userDetails, actionType, shouldReturnActiveConnections =
     }, socket, decodedAuthenticationToken).then(({
         data: searchResults,
     }) => {
-        const users = searchResults && searchResults.results
-            .map((connection) => {
-                const contextUserId = connection.users[0].id === userDetails.id ? connection.users[1].id : connection.users[0].id;
-                return connection.users.find((user) => user.id === contextUserId);
-            });
+        const users = searchResults.results.map((connection) => connection.users.find((user) => user.id !== userDetails.id)) || [];
 
         return redisSessions.getUsersByIds(users).then((cachedActiveUsers) => {
             const activeUsers: any[] = [];
