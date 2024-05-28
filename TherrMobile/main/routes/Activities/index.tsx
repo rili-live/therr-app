@@ -3,22 +3,25 @@ import { SafeAreaView, View, Text, Pressable } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { MapActions } from 'therr-react/redux/actions';
-import { IMapState, IUserState } from 'therr-react/types';
+import { MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 // import Toast from 'react-native-toast-message';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/settingsForm';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import spacingStyles from '../../styles/layouts/spacing';
 import { ILocationState } from '../../types/redux/location';
+import ConnectionItem from '../Connect/components/ConnectionItem';
 
 
 interface IActivityGeneratorDispatchProps {
+    createUserConnection: Function;
     generateActivity: Function;
     updateUser: Function;
 }
@@ -27,6 +30,7 @@ interface IStoreProps extends IActivityGeneratorDispatchProps {
     location: ILocationState;
     map: IMapState;
     user: IUserState;
+    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
@@ -42,9 +46,11 @@ const mapStateToProps = (state) => ({
     location: state.location,
     map: state.map,
     user: state.user,
+    userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    createUserConnection: UserConnectionsActions.create,
     generateActivity: MapActions.generateActivity,
     updateUser: UsersActions.update,
 }, dispatch);
@@ -53,6 +59,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
     private scrollViewRef;
     private translate: Function;
     private theme = buildStyles();
+    private themeButtons = buildButtonStyles();
     private themeMenu = buildMenuStyles();
     private themeForms = buildFormStyles();
     private themeSettingsForm = buildSettingsFormStyles();
@@ -94,6 +101,17 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
         });
     };
 
+    getConnectionSubtitle = (connectionDetails) => {
+        if (!connectionDetails?.firstName && !connectionDetails?.lastName) {
+            return this.translate('pages.userProfile.anonymous');
+        }
+        return `${connectionDetails.firstName || ''} ${
+            connectionDetails.lastName || ''
+        }`;
+    };
+
+    onConnectionPress = (userDetails: any) => this.goToUserDetails(userDetails.id);
+
     goToUserDetails = (userId: string) => {
         const { navigation } = this.props;
         navigation.navigate('ViewUser', {
@@ -132,6 +150,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
         const themeName = this.props.user.settings?.mobileThemeName;
 
         this.theme = buildStyles(themeName);
+        this.themeButtons = buildButtonStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
         this.themeForms = buildFormStyles(themeName);
         this.themeSettingsForm = buildSettingsFormStyles(themeName);
@@ -141,14 +160,34 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
         console.log('refresh');
     };
 
+    onSendConnectRequest = (acceptingUser: any) => {
+        const { createUserConnection, user } = this.props;
+        // TODO: Send connection request
+        createUserConnection({
+            requestingUserId: user.details.id,
+            requestingUserFirstName: user.details.firstName,
+            requestingUserLastName: user.details.lastName,
+            requestingUserEmail: user.details.email,
+            acceptingUserId: acceptingUser?.id,
+            acceptingUserPhoneNumber: acceptingUser?.phoneNumber,
+            acceptingUserEmail: acceptingUser?.email,
+        }, {
+            userName: user?.details?.userName,
+        });
+    };
+
     onSubmit = () => {
         console.log('submit');
     };
 
     render() {
-        const { navigation, user, map } = this.props;
+        const { map, navigation, user, userConnections } = this.props;
         const pageHeaderUser = this.translate('pages.activityGenerator.headers.socialRecommendations');
         // const currentUserImageUri = getUserImageUri(user, 200);
+        const topConnections = map?.activityGeneration?.topConnections?.map((connection) => ({
+            ...connection,
+            isActive: userConnections?.activeConnections?.find((activeC) => activeC.id === connection.user.id),
+        }));
 
         return (
             <>
@@ -166,31 +205,34 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
                                     {pageHeaderUser}
                                 </Text>
                             </View>
-                            <View style={this.themeSettingsForm.styles.settingsContainer}>
+                            <View style={[this.themeSettingsForm.styles.settingsContainer, spacingStyles.padBotLg]}>
                                 <Text style={this.theme.styles.sectionTitleSmall}>
                                     {this.translate('pages.activityGenerator.headers.topConnections')}
                                 </Text>
-                                <View style={[{ display: 'flex' }, spacingStyles.padHorizSm]}>
+                                <View style={[{ display: 'flex' }]}>
                                     {
-                                        map?.activityGeneration?.topConnections?.map((connection) => (
-                                            <View key={connection?.user?.id} style={spacingStyles.fullWidth}>
-                                                <Pressable onPress={() => this.goToUserDetails(connection.user.id)}>
-                                                    <Text style={spacingStyles.marginBotMd}>
-                                                        {`${connection?.user?.firstName} ${connection?.user?.lastName} - ${connection?.user?.userName}`}
-                                                    </Text>
-                                                </Pressable>
-                                            </View>
+                                        topConnections?.map((connection) => (
+                                            <ConnectionItem
+                                                key={connection.id}
+                                                connectionDetails={connection?.user}
+                                                getConnectionSubtitle={this.getConnectionSubtitle}
+                                                goToViewUser={this.goToUserDetails}
+                                                isActive={connection.isActive}
+                                                onConnectionPress={this.onConnectionPress}
+                                                theme={this.theme}
+                                                translate={this.translate}
+                                            />
                                         ))
                                     }
                                     {
-                                        !map?.activityGeneration?.topConnections?.length &&
+                                        !topConnections?.length &&
                                         <Text style={this.theme.styles.sectionDescriptionCentered}>
                                             {this.translate('pages.activityGenerator.messages.noNearbyConnections')}
                                         </Text>
                                     }
                                 </View>
                             </View>
-                            <View style={this.themeSettingsForm.styles.settingsContainer}>
+                            <View style={[this.themeSettingsForm.styles.settingsContainer, spacingStyles.padBotLg]}>
                                 <Text style={this.theme.styles.sectionTitleSmall}>
                                     {this.translate('pages.activityGenerator.headers.topSharedInterests')}
                                 </Text>
@@ -218,7 +260,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
                                     }
                                 </View>
                             </View>
-                            <View style={this.themeSettingsForm.styles.settingsContainer}>
+                            <View style={[this.themeSettingsForm.styles.settingsContainer, spacingStyles.padBotLg]}>
                                 <Text style={this.theme.styles.sectionTitleSmall}>
                                     {this.translate('pages.activityGenerator.headers.topSpaces')}
                                 </Text>
