@@ -16,6 +16,10 @@ const DEFAULT_QUERY_LOCALES = {
         latitude: 41.2982621,
         longitude: -73.007034,
     },
+    dallas: {
+        latitude: 32.8205561,
+        longitude: -96.8967007,
+    },
     detroit: {
         latitude: 42.3526815,
         longitude: -83.1816047,
