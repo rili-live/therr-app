@@ -339,6 +339,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginRight: 10,
             marginLeft: 10,
         },
+        buttonIconDisabled: {
+            color: therrTheme.colors.textDarkGray,
+            marginRight: 10,
+            marginLeft: 10,
+        },
         buttonIconAlt: {
             color: therrTheme.colors.primary3,
             marginRight: 10,
