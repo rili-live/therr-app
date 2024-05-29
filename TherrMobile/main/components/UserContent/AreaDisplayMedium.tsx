@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
     ActivityIndicator,
     Dimensions,
@@ -40,19 +40,15 @@ interface IUserDetails {
     },
 }
 
-interface IAreaDisplayMediumProps {
+interface IAreaDisplayContentProps {
     translate: Function;
-    toggleAreaOptions: Function;
     hashtags: any[];
     isDarkMode: boolean;
     area: any;
     areaMedia: string;
-    goToViewUser: Function;
-    goToViewMap: (lat: string, long: string) => any;
     inspectContent: () => any;
-    updateAreaReaction: Function;
-    user: IUserState;
-    areaUserDetails: IUserDetails;
+    onBookmarkPress?: () => any;
+    onDoubleTap?: () => any;
     theme: {
         styles: any;
         colors: ITherrThemeColors;
@@ -65,6 +61,15 @@ interface IAreaDisplayMediumProps {
         styles: any;
         colors: ITherrThemeColors;
     };
+}
+
+interface IAreaDisplayMediumProps extends IAreaDisplayContentProps {
+    areaUserDetails: IUserDetails;
+    goToViewMap: (lat: string, long: string) => any;
+    goToViewUser: Function;
+    toggleAreaOptions: Function;
+    updateAreaReaction: Function;
+    user: IUserState;
 }
 
 interface IAreaDisplayMediumState {
@@ -105,13 +110,6 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         }
     };
 
-    onUserMediaLayout = (event) => {
-        const { width } = event.nativeEvent.layout;
-        this.setState({
-            mediaWidth: width,
-        });
-    };
-
     render() {
         const {
             toggleAreaOptions,
@@ -126,11 +124,8 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
             themeForms,
             themeViewArea,
         } = this.props;
-        const { mediaWidth } = this.state;
         const dateTime = formatDate(area.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
-
-        const isBookmarked = area.reaction?.userBookmarkCategory;
         const toggleOptions = () => toggleAreaOptions(area);
 
         return (
@@ -181,91 +176,19 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
-                <View style={{ display: 'flex', flexDirection: 'row' }}>
-                    <PresssableWithDoubleTap
-                        onPress={inspectContent}
-                        onDoubleTap={() => this.onLikePress(area)}
-                        style={{ paddingLeft: 14, paddingTop: 8 }}
-                    >
-                        {/* <UserMedia
-                            viewportWidth={mediaWidth}
-                            media={areaMedia}
-                            isVisible={!!areaMedia}
-                            isSingleView={false}
-                            onLayout={this.onUserMediaLayout}
-                        /> */}
-                        {
-                            areaMedia ?
-                                <Image
-                                    source={{
-                                        uri: areaMedia,
-                                    }}
-                                    style={{
-                                        width: mediaWidth,
-                                        height: mediaWidth,
-                                        borderRadius: 7,
-                                    }}
-                                    resizeMode='contain'
-                                    PlaceholderContent={<ActivityIndicator />}
-                                /> :
-                                <MissingImagePlaceholder
-                                    area={area}
-                                    themeViewArea={themeViewArea}
-                                    dimensions={{
-                                        width: mediaWidth,
-                                        height: mediaWidth,
-                                    }}
-                                />
-                        }
-                    </PresssableWithDoubleTap>
-                    <View style={spacingStyles.flexOne}>
-                        <View style={themeViewArea.styles.areaContentTitleContainer}>
-                            <Text
-                                style={themeViewArea.styles.areaContentTitleMedium
-                                }
-                                numberOfLines={2}
-                            >
-                                {sanitizeNotificationMsg(area.notificationMsg)}
-                            </Text>
-                            {
-                                !area.isDraft &&
-                                <>
-                                    <Button
-                                        containerStyle={themeViewArea.styles.areaReactionButtonContainer}
-                                        buttonStyle={themeViewArea.styles.areaReactionButton}
-                                        icon={
-                                            <Icon
-                                                name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
-                                                size={24}
-                                                color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
-                                            />
-                                        }
-                                        onPress={() => this.onBookmarkPress(area)}
-                                        type="clear"
-                                        TouchableComponent={TouchableWithoutFeedbackComponent}
-                                    />
-                                </>
-                            }
-                        </View>
-                        <Text style={themeViewArea.styles.areaMessage} numberOfLines={3}>
-                            <Autolink
-                                text={area.message}
-                                linkStyle={theme.styles.link}
-                                phone="sms"
-                            />
-                        </Text>
-                        <View>
-                            <HashtagsContainer
-                                hasIcon={false}
-                                hashtags={hashtags}
-                                onHashtagPress={() => {}}
-                                visibleCount={3}
-                                right
-                                styles={themeForms.styles}
-                            />
-                        </View>
-                    </View>
-                </View>
+                <AreaDisplayContent
+                    hashtags={hashtags}
+                    isDarkMode={isDarkMode}
+                    area={area}
+                    areaMedia={areaMedia}
+                    inspectContent={inspectContent}
+                    onDoubleTap={() => this.onLikePress(area)}
+                    onBookmarkPress={() => this.onBookmarkPress(area)}
+                    theme={theme}
+                    themeForms={themeForms}
+                    themeViewArea={themeViewArea}
+                    translate={this.props.translate}
+                />
                 {
                     area.distance != null &&
                     <Text  style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
@@ -274,3 +197,112 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         );
     }
 }
+
+export const AreaDisplayContent = ({
+    hashtags,
+    isDarkMode,
+    area,
+    areaMedia,
+    inspectContent,
+    onBookmarkPress,
+    onDoubleTap,
+    theme,
+    themeForms,
+    themeViewArea,
+}: IAreaDisplayContentProps) => {
+    // const [mediaWidth, setMediaWidth] = useState<number>(viewportWidth / 4);
+    const [mediaWidth] = useState<number>(viewportWidth / 4);
+    const isBookmarked = area.reaction?.userBookmarkCategory;
+    // const onUserMediaLayout = (event) => {
+    //     const { width } = event.nativeEvent.layout;
+    //     setMediaWidth(width);
+    // };
+
+    return (
+        <View style={{ display: 'flex', flexDirection: 'row' }}>
+            <PresssableWithDoubleTap
+                onPress={inspectContent}
+                onDoubleTap={onDoubleTap || (() => {})}
+                style={{ paddingLeft: 14, paddingTop: 8 }}
+            >
+                {/* <UserMedia
+                    viewportWidth={mediaWidth}
+                    media={areaMedia}
+                    isVisible={!!areaMedia}
+                    isSingleView={false}
+                    onLayout={onUserMediaLayout}
+                /> */}
+                {
+                    areaMedia ?
+                        <Image
+                            source={{
+                                uri: areaMedia,
+                            }}
+                            style={{
+                                width: mediaWidth,
+                                height: mediaWidth,
+                                borderRadius: 7,
+                            }}
+                            resizeMode='contain'
+                            PlaceholderContent={<ActivityIndicator />}
+                        /> :
+                        <MissingImagePlaceholder
+                            area={area}
+                            themeViewArea={themeViewArea}
+                            dimensions={{
+                                width: mediaWidth,
+                                height: mediaWidth,
+                            }}
+                        />
+                }
+            </PresssableWithDoubleTap>
+            <View style={spacingStyles.flexOne}>
+                <View style={themeViewArea.styles.areaContentTitleContainer}>
+                    <Text
+                        style={themeViewArea.styles.areaContentTitleMedium
+                        }
+                        numberOfLines={2}
+                    >
+                        {sanitizeNotificationMsg(area.notificationMsg)}
+                    </Text>
+                    {
+                        !area.isDraft && onBookmarkPress &&
+                        <>
+                            <Button
+                                containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                                buttonStyle={themeViewArea.styles.areaReactionButton}
+                                icon={
+                                    <Icon
+                                        name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
+                                        size={24}
+                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                    />
+                                }
+                                onPress={onBookmarkPress}
+                                type="clear"
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
+                        </>
+                    }
+                </View>
+                <Text style={themeViewArea.styles.areaMessage} numberOfLines={3}>
+                    <Autolink
+                        text={area.message}
+                        linkStyle={theme.styles.link}
+                        phone="sms"
+                    />
+                </Text>
+                <View>
+                    <HashtagsContainer
+                        hasIcon={false}
+                        hashtags={hashtags}
+                        onHashtagPress={() => {}}
+                        visibleCount={3}
+                        right
+                        styles={themeForms.styles}
+                    />
+                </View>
+            </View>
+        </View>
+    );
+};

@@ -598,7 +598,8 @@
         "warning": "Warning / Alert",
         "seasonal": "Seasonal / Holidays",
         "drinks": "Happy Hour / Drinks",
-        "nightLife": "Night Life / Social"
+        "nightLife": "Night Life / Social",
+        "sports": "Sports"
       },
       "labels": {
         "addImageNote": "Select an existing image or capture a new one to represent your thought.",
@@ -952,7 +953,8 @@
         "topSpaces": "Recommended Spaces for Local Hangouts"
       },
       "buttons": {
-        "generate": "Generate"
+        "generate": "Generate",
+        "scheduleAndInvite": "Schedule & Invite (coming soon!)"
       },
       "messages": {
         "noNearbyConnections": "No connections found nearby. Invite some local friends to get started.",
