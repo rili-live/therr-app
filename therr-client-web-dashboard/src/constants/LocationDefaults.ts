@@ -24,6 +24,10 @@ const DEFAULT_QUERY_LOCALES = {
         latitude: 42.3526815,
         longitude: -83.1816047,
     },
+    dc: {
+        latitude: 38.8937254,
+        longitude: -77.0971474,
+    },
     newyork: {
         latitude: 40.6973709,
         longitude: -74.144485,
