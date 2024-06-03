@@ -4,7 +4,7 @@ import { hostRegex } from '../utilities/patterns';
 
 export default (req, res, next) => {
     const activeSpan = opentelemetry.trace.getActiveSpan();
-    activeSpan?.setAttribute('request.headers.id', req.headers?.['x-userid']);
+    activeSpan?.setAttribute('request.headers.userid', req.headers?.['x-userid']);
     activeSpan?.setAttribute('request.headers.authorization', req.headers?.authorization ? 'XX_REDACTED_XX' : '');
     activeSpan?.setAttribute('request.app', req.app);
     activeSpan?.setAttribute('request.ip', req.ip);
