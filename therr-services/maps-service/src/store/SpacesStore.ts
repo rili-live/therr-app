@@ -314,8 +314,40 @@ export default class SpacesStore {
         }
         let returningMod = ((returning && returning.length) ? returning : '*');
         returningMod = overrides?.shouldLimitDetail
-            ? ['id', 'addressReadable', 'category', 'websiteUrl', 'notificationMsg']
+            ? ['id', 'addressReadable', 'category', 'websiteUrl', 'notificationMsg', 'createdAt', 'updatedAt']
             : returningMod;
+        if (!overrides?.isRequestAuthorized) {
+            // Public listing/summary view
+            returningMod = [
+                'id',
+                'areaType',
+                'locale',
+                'addressReadable',
+                'category',
+                'websiteUrl',
+                'notificationMsg',
+                'medias',
+                'mediaIds',
+                'hashTags',
+                'latitude',
+                'longitude',
+                'radius',
+                'isMatureContent',
+                'isModeratorApproved',
+                'createdAt',
+                'updatedAt',
+                'featuredIncentiveKey',
+                'featuredIncentiveValue',
+                'featuredIncentiveRewardKey',
+                'featuredIncentiveRewardValue',
+                'featuredIncentiveCurrencyId',
+                'phoneNumber',
+                'isPointOfInterest',
+                'priceRange',
+                'openingHours',
+                'interestsKeys',
+            ];
+        }
         const firstWhere: any = {
             isMatureContent: false, // content that has been blocked
         };
