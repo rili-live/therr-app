@@ -40,6 +40,7 @@ import mapCustomStyle from '../../styles/map/googleCustom';
 import MarkerIcon from './MarkerIcon';
 import { getUserContentUri, isMyContent } from '../../utilities/content';
 import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
+import { isUserAuthenticated } from '../../utilities/authUtils';
 
 const { width: viewPortWidth, height: viewPortHeight } = Dimensions.get('window');
 
@@ -422,6 +423,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 }, moment.radius);
             });
 
+            // TODO: Allow viewing public moments?
             if (pressedMoments.length) {
                 const selectedMoment = pressedMoments[0];
 
@@ -440,7 +442,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     && !(this.isAreaActivated('moments', selectedMoment) && !selectedMoment.doesRequireProximityToView)) {
                     // Deny activation
                     this.props.showAreaAlert();
-                } else {
+                } else if (isUserAuthenticated(user)) {
                     // Activate moment
                     createOrUpdateMomentReaction(selectedMoment.id, {
                         userViewCount: 1,
@@ -574,6 +576,9 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             }
             if (modifiedAreasInPreview?.length > 0) {
                 this.props.onPreviewBottomSheetOpen();
+            } else {
+                this.props.onPreviewBottomSheetClose();
+                this.removeAnimation();
             }
         } else {
             this.props.onPreviewBottomSheetClose();
@@ -804,28 +809,30 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     goToArea = (area: any) => {
         const { navigation, user } = this.props;
 
-        // TODO: Should handle space or moment
         // TODO: Activate spaces on click
-        this.getAreaDetails(area)
-            .then((details) => {
-                if (area?.areaType === 'events') {
-                    navigation.navigate('ViewEvent', {
-                        isMyContent: isMyContent(area, user),
-                        event: area,
-                        eventDetails: details,
-                    });
-                } else if (area?.areaType === 'spaces') {
-                    navigation.navigate('ViewSpace', {
-                        isMyContent: isMyContent(area, user),
-                        space: area,
-                        spaceDetails: details,
-                    });
-                }
-            })
-            .catch(() => {
-                // TODO: Add error handling
-                console.log('Failed to get space details!');
-            });
+        // TODO: Allow viewing public content
+        if (isUserAuthenticated(user)) {
+            this.getAreaDetails(area)
+                .then((details) => {
+                    if (area?.areaType === 'events') {
+                        navigation.navigate('ViewEvent', {
+                            isMyContent: isMyContent(area, user),
+                            event: area,
+                            eventDetails: details,
+                        });
+                    } else if (area?.areaType === 'spaces') {
+                        navigation.navigate('ViewSpace', {
+                            isMyContent: isMyContent(area, user),
+                            space: area,
+                            spaceDetails: details,
+                        });
+                    }
+                })
+                .catch(() => {
+                    // TODO: Add error handling
+                    console.log('Failed to get space details!');
+                });
+        }
     };
 
     updateOuterMapRef = (ref: Ref<MapView>) => {

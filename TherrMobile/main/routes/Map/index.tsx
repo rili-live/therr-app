@@ -171,7 +171,7 @@ interface IMapState {
         longitudeDelta?: number,
     };
     shouldFollowUserLocation: boolean;
-    isConfirmModalVisible: boolean;
+    isConfirmEULAModalVisible: boolean;
     isAreaAlertVisible: boolean;
     isScrollEnabled: boolean;
     isLocationReady: boolean;
@@ -289,7 +289,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             exchangeRate: 0.25,
             region: {},
             shouldFollowUserLocation: false,
-            isConfirmModalVisible: false,
+            isConfirmEULAModalVisible: false,
             isScrollEnabled: true,
             isAreaAlertVisible: false,
             isLocationUseDisclosureModalVisible: false,
@@ -354,22 +354,24 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             route,
             user,
         } = this.props;
-        UsersService.getUserInterests().then((response) => {
-            if (!response?.data?.length) {
-                updateTour(user.details.id, {
-                    isTouring: false,
-                });
-                navigation.navigate('ManagePreferences');
-            }
-        });
+        if (this.isUserAuthenticated()) {
+            UsersService.getUserInterests().then((response) => {
+                if (!response?.data?.length) {
+                    updateTour(user?.details.id, {
+                        isTouring: false,
+                    });
+                    navigation.navigate('ManagePreferences');
+                }
+            });
+        }
         UsersService.getExchangeRate().then((response) => {
             this.setState({
                 exchangeRate: response.data?.exchangeRate,
             });
         }).catch((err) => console.log(`Failed to get exchange rate: ${err.message}`));
 
-        if (user.details?.loginCount < 2 && !user.settings?.hasCompletedFTUI) {
-            updateTour(user.details.id, {
+        if (user?.details?.loginCount < 2 && !user.settings?.hasCompletedFTUI) {
+            updateTour(user?.details.id, {
                 isTouring: true,
             });
             updateFirstTimeUI(true);
@@ -502,6 +504,29 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         if (shouldForceUpdate) {
             this.forceUpdate();
         }
+    };
+
+    isUserAuthenticated = () => {
+        const { user } = this.props;
+
+        return UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            },
+            user
+        );
+    };
+
+    isUserAuthorized = () => {
+        const { user } = this.props;
+        return UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            user
+        );
     };
 
     animateToWithHelp = (doAnimate) => {
@@ -651,7 +676,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 if (shouldToggle && !areButtonsVisible && !areLayersVisible) {
                     // UX: Helps users more easily understand that they can hide the bottom sheet and show buttons
                     bottomSheetRef?.current?.close();
-                } else {
+                } else if (this.isUserAuthorized()) {
                     bottomSheetRef?.current?.snapToIndex(index);
                 }
             }
@@ -679,6 +704,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
 
         if (location?.settings?.isGpsEnabled) {
+            if (!this.isUserAuthenticated()) {
+                navigation.navigate('Register');
+                return;
+            }
             // TODO: Store permissions in redux
             const storePermissions = () => {};
 
@@ -871,7 +900,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     handleMatchUpPress = () => {
-        this.props.navigation.navigate('ActivityGenerator');
+        if (this.isUserAuthenticated()) {
+            this.props.navigation.navigate('ActivityGenerator');
+        } else {
+            this.props.navigation.navigate('Register');
+        }
     };
 
     handleGpsRecenterPress = () => {
@@ -1053,13 +1086,15 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
          * Send location to backend for processing
          * This helps ensure first time users post their location and get some initial content
          */
-        PushNotificationsService.postLocationChange({
-            longitude: loc.longitude,
-            latitude: loc.latitude,
-            lastLocationSendForProcessing,
-            radiusOfAwareness: map.radiusOfAwareness,
-            radiusOfInfluence: map.radiusOfInfluence,
-        });
+        if (this.isUserAuthenticated()) {
+            PushNotificationsService.postLocationChange({
+                longitude: loc.longitude,
+                latitude: loc.latitude,
+                lastLocationSendForProcessing,
+                radiusOfAwareness: map.radiusOfAwareness,
+                radiusOfInfluence: map.radiusOfInfluence,
+            }).catch((err) => console.error(err));
+        }
         this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, duration || ANIMATE_TO_REGION_DURATION));
         this.setState({
             areLayersVisible: false,
@@ -1136,7 +1171,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             searchSpaces,
         } = this.props;
 
-        return Promise.all([
+        const promises = [
             searchMoments({
                 query: 'connections',
                 itemsPerPage: conditions.itemsPerPage,
@@ -1161,49 +1196,58 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 filterBy: 'fromUserIds',
                 ...longLat,
             }, distanceOverride),
-            searchMoments({
-                query: 'me',
-                itemsPerPage: conditions.meItemsPerPage,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                ...longLat,
-            }, distanceOverride),
-            searchSpaces({
-                query: 'me',
-                itemsPerPage: conditions.meItemsPerPage,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                ...longLat,
-            }, distanceOverride),
-            searchEvents({
-                query: 'me',
-                itemsPerPage: conditions.meItemsPerPage,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                ...longLat,
-            }, distanceOverride),
-        ]).then(([moments, spaces, events]) => {
+        ];
+
+        if (this.isUserAuthenticated()) {
+            promises.push(
+                searchMoments({
+                    query: 'me',
+                    itemsPerPage: conditions.meItemsPerPage,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    ...longLat,
+                }, distanceOverride),
+                searchSpaces({
+                    query: 'me',
+                    itemsPerPage: conditions.meItemsPerPage,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    ...longLat,
+                }, distanceOverride),
+                searchEvents({
+                    query: 'me',
+                    itemsPerPage: conditions.meItemsPerPage,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    ...longLat,
+                }, distanceOverride)
+            );
+        }
+
+        return Promise.all(promises).then(([publicMoments, publicSpaces, publicEvents]) => {
             // TODO: Find event reactions
-            if (events?.results?.length) {
-                findEventReactions({
-                    eventIds: events?.results?.map(event => event.id),
-                    userHasActivated: true,
-                });
-            }
-            if (moments?.results?.length) {
-                findMomentReactions({
-                    momentIds: moments?.results?.map(moment => moment.id),
-                    userHasActivated: true,
-                });
-            }
-            if (spaces?.results?.length) {
-                findSpaceReactions({
-                    spaceIds: spaces?.results?.map(space => space.id),
-                    userHasActivated: true,
-                });
+            if (this.isUserAuthenticated()) {
+                if (publicEvents?.results?.length) {
+                    findEventReactions({
+                        eventIds: publicEvents?.results?.map(event => event.id),
+                        userHasActivated: true,
+                    });
+                }
+                if (publicMoments?.results?.length) {
+                    findMomentReactions({
+                        momentIds: publicMoments?.results?.map(moment => moment.id),
+                        userHasActivated: true,
+                    });
+                }
+                if (publicSpaces?.results?.length) {
+                    findSpaceReactions({
+                        spaceIds: publicSpaces?.results?.map(space => space.id),
+                        userHasActivated: true,
+                    });
+                }
             }
             this.setState({
                 lastMomentsRefresh: Date.now(),
@@ -1406,20 +1450,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     handleStopTouring = () => {
         const { user, updateTour } = this.props;
-        updateTour(user.details.id, {
+        updateTour(user?.details.id, {
             isTouring: false,
         });
-    };
-
-    isAuthorized = () => {
-        const { user } = this.props;
-        return UsersService.isAuthorized(
-            {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            user
-        );
     };
 
     isAreaActivated = (type: IAreaType, area) => {
@@ -1442,18 +1475,18 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     onConfirmModalCancel = () => {
         this.setState({
-            isConfirmModalVisible: false,
+            isConfirmEULAModalVisible: false,
         });
     };
 
     onConfirmModalAccept = () => {
         const { user, updateUser } = this.props;
         this.setState({
-            isConfirmModalVisible: false,
+            isConfirmEULAModalVisible: false,
         });
 
         // Update user property to show confirmed
-        updateUser(user.details.id, { hasAgreedToTerms: true }).then(() => {
+        updateUser(user?.details.id, { hasAgreedToTerms: true }).then(() => {
             this.handleCreate('upload');
         });
     };
@@ -1491,9 +1524,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         const { user } = this.props;
         const { shouldShowCreateActions } = this.state;
 
-        if (Platform.OS === 'ios' && !user.details.hasAgreedToTerms) {
+        if (Platform.OS === 'ios' && this.isUserAuthenticated() && !user?.details.hasAgreedToTerms) {
             this.setState({
-                isConfirmModalVisible: true,
+                isConfirmEULAModalVisible: true,
             });
             return;
         }
@@ -1712,7 +1745,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             circleCenter,
             exchangeRate,
             shouldShowCreateActions,
-            isConfirmModalVisible,
+            isConfirmEULAModalVisible,
             isLocationReady,
             isLocationUseDisclosureModalVisible,
             isMinLoadTimeComplete,
@@ -1848,7 +1881,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 toggleCreateActions={this.toggleCreateActions}
                                 toggleFollow={this.toggleMapFollow}
                                 shouldShowCreateActions={shouldShowCreateActions}
-                                isAuthorized={this.isAuthorized}
+                                isAuthorized={this.isUserAuthorized}
                                 isFollowEnabled={shouldFollowUserLocation}
                                 isGpsEnabled={location?.settings?.isGpsEnabled}
                                 nearbySpaces={nearbySpaces}
@@ -1864,7 +1897,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 }
                 <ConfirmModal
                     headerText={this.translate('modals.confirmModal.header.eula')}
-                    isVisible={isConfirmModalVisible}
+                    isVisible={isConfirmEULAModalVisible}
                     onCancel={this.onConfirmModalCancel}
                     onConfirm={this.onConfirmModalAccept}
                     text={eula}

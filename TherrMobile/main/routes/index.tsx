@@ -122,8 +122,9 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Map',
             access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
+                type: AccessCheckType.NONE,
+                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                isPublic: true,
             },
         }),
     },
@@ -274,8 +275,9 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Map Search Filters',
             access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
+                type: AccessCheckType.NONE,
+                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                isPublic: true,
             },
         }),
     },

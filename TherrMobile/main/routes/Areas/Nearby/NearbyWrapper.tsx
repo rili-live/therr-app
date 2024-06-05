@@ -34,6 +34,7 @@ import { ILocationState } from '../../../types/redux/location';
 import LocationUseDisclosureModal from '../../../components/Modals/LocationUseDisclosureModal';
 import getDirections from '../../../utilities/getDirections';
 import GpsEnableButtonDialog from './GPSEnableDialog';
+import { isUserAuthenticated } from '../../../utilities/authUtils';
 
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
@@ -283,7 +284,7 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             searchMoments,
         } = this.props;
 
-        return Promise.all([
+        const promises = [
             searchMoments({
                 query: 'connections',
                 withMedia: true,
@@ -304,25 +305,32 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
                 filterBy: 'fromUserIds',
                 ...longLat,
             }, overrides),
-            searchMoments({
-                query: 'me',
-                withUser: true,
-                itemsPerPage: conditions.meItemsPerPage,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                ...longLat,
-            }, overrides),
-            searchEvents({
-                query: 'me',
-                withUser: true,
-                itemsPerPage: conditions.meItemsPerPage,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                ...longLat,
-            }, overrides),
-        ]).catch((err) => console.log(err));
+        ];
+
+        if (isUserAuthenticated(this.props.user)) {
+            promises.push(
+                searchMoments({
+                    query: 'me',
+                    withUser: true,
+                    itemsPerPage: conditions.meItemsPerPage,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    ...longLat,
+                }, overrides),
+                searchEvents({
+                    query: 'me',
+                    withUser: true,
+                    itemsPerPage: conditions.meItemsPerPage,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    ...longLat,
+                }, overrides)
+            );
+        }
+
+        return Promise.all(promises).catch((err) => console.log(err));
     };
 
     handleRefresh = (shouldShowLoader = false) => {
