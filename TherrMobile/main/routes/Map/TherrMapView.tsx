@@ -703,8 +703,8 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         path: string;
         type: string;
     }[]) => {
-        const { fetchMedia } = this.props;
-        if (medias.length) {
+        const { fetchMedia, user } = this.props;
+        if (medias.length && isUserAuthenticated(user)) {
             return fetchMedia(undefined, medias).catch((err) => {
                 console.log(err);
             });

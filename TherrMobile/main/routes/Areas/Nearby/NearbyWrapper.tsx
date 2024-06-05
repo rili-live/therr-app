@@ -284,30 +284,35 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             searchMoments,
         } = this.props;
 
-        const promises = [
-            searchMoments({
-                query: 'connections',
-                withMedia: true,
-                withUser: true,
-                itemsPerPage: conditions.itemsPerPage,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                ...longLat,
-            }, overrides),
-            searchEvents({
-                query: 'connections',
-                withMedia: true,
-                withUser: true,
-                itemsPerPage: conditions.itemsPerPage,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                ...longLat,
-            }, overrides),
-        ];
+        const promises: Promise<any>[] = [];
+        const userIsAuthed = isUserAuthenticated(this.props.user);
 
-        if (isUserAuthenticated(this.props.user)) {
+        if (longLat?.longitude && longLat?.latitude) {
+            promises.push(
+                searchMoments({
+                    query: 'connections',
+                    withMedia: userIsAuthed,
+                    withUser: userIsAuthed,
+                    itemsPerPage: conditions.itemsPerPage,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    ...longLat,
+                }, overrides),
+                searchEvents({
+                    query: 'connections',
+                    withMedia: userIsAuthed,
+                    withUser: userIsAuthed,
+                    itemsPerPage: conditions.itemsPerPage,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    ...longLat,
+                }, overrides),
+            );
+        }
+
+        if (userIsAuthed) {
             promises.push(
                 searchMoments({
                     query: 'me',
@@ -433,7 +438,7 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
     };
 
     positionSuccessCallback = (position) => {
-        const { shouldDisableLocationSendEvent, map, updateUserCoordinates, location } = this.props;
+        const { shouldDisableLocationSendEvent, map, updateUserCoordinates, location, user } = this.props;
         const { isFirstLoad } = this.state;
         // TODO: Throttle to prevent too many requests
         // Only update when Map is not already handling this in the background
@@ -444,13 +449,15 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             };
             if (coords.latitude !== location?.user?.latitude || coords.longitude !== location?.user?.longitude) {
                 updateUserCoordinates(coords);
-                PushNotificationsService.postLocationChange({
-                    longitude: position.coords.longitude,
-                    latitude: position.coords.latitude,
-                    // lastLocationSendForProcessing,
-                    radiusOfAwareness: map.radiusOfAwareness,
-                    radiusOfInfluence: map.radiusOfInfluence,
-                });
+                if (isUserAuthenticated(user)) {
+                    PushNotificationsService.postLocationChange({
+                        longitude: position.coords.longitude,
+                        latitude: position.coords.latitude,
+                        // lastLocationSendForProcessing,
+                        radiusOfAwareness: map.radiusOfAwareness,
+                        radiusOfInfluence: map.radiusOfInfluence,
+                    });
+                }
             }
         }
     };
@@ -463,8 +470,8 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
         path: string;
         type: string;
     }[]) => {
-        const { fetchMedia } = this.props;
-        if (medias.length) {
+        const { fetchMedia, user } = this.props;
+        if (medias.length && isUserAuthenticated(user)) {
             return fetchMedia(undefined, medias).catch((err) => {
                 console.log(err);
             });
