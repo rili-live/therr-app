@@ -62,6 +62,7 @@ app.use(authenticate.unless({
         { url: '/', methods: ['GET'] }, // healthcheck
         // { url: '/favicon.ico', methods: ['GET'] }, // favicon
         { url: '/v1/users-service/interests', methods: ['GET'] },
+        { url: '/v1/users-service/rewards/exchange-rate', methods: ['GET'] },
         { url: '/v1/users-service/emails/bounced', methods: ['POST'] }, // bounced email handler
         { url: '/v1/users-service/subscribers/signup', methods: ['POST'] }, // email marketing subscribe
         { url: '/v1/users-service/subscribers/preferences', methods: ['GET'] }, // Update E-mail subscription settings
@@ -83,6 +84,9 @@ app.use(authenticate.unless({
         { url: /\/v1\/maps-service\/moments\/.*\/details/, methods: ['POST'] },
         { url: '/v1/maps-service/spaces/list', methods: ['POST'] },
         { url: /\/v1\/maps-service\/spaces\/.*\/details/, methods: ['POST'] },
+        { url: /\/v1\/maps-service\/events\/search/, methods: ['POST'] }, // Optional for public map view
+        { url: /\/v1\/maps-service\/moments\/search/, methods: ['POST'] }, // Optional for public map view
+        { url: /\/v1\/maps-service\/spaces\/search/, methods: ['POST'] }, // Optional for public map view
     ],
 }));
 

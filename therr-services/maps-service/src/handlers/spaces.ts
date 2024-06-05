@@ -328,12 +328,14 @@ const getSpaceDetails = (req, res) => {
 };
 
 const searchSpaces: RequestHandler = async (req: any, res: any) => {
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
-    const userAccessLevels = req.headers['x-user-access-levels'];
-    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
-    const shouldLimitDetail = !authorization || req.path === '/list';
+    const {
+        authorization,
+        userId,
+        userAccessLevels,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
+    const shouldLimitDetail = req.path === '/list';
+    const isRequestAuthorized = !!authorization;
     const {
         // filterBy,
         query,
@@ -349,7 +351,7 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
     const integerColumns = ['maxViews', 'longitude', 'latitude'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
 
-    if (searchArgs[0].filterBy === 'isClaimPending' && searchArgs[0].query === 'true' && !accessLevels.includes(AccessLevels.SUPER_ADMIN)) {
+    if (searchArgs[0].filterBy === 'isClaimPending' && searchArgs[0].query === 'true' && !userAccessLevels.includes(AccessLevels.SUPER_ADMIN)) {
         return {
             data: {
                 results: [],
@@ -370,28 +372,37 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
             order: 'desc',
         });
         queryString = `${queryString}&shouldCheckReverse=true`;
-        const connectionsResponse: any = await axios({
-            method: 'get',
-            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
-            headers: {
-                authorization: req.headers.authorization,
-                'x-localecode': req.headers['x-localecode'] || 'en-us',
-                'x-userid': userId,
-                'x-therr-origin-host': whiteLabelOrigin,
-            },
-        }).catch((err) => {
-            console.log(err);
-            return {
-                data: {
-                    results: [],
+        const connectionsResponse: any = !userId
+            ? {}
+            : await axios({
+                method: 'get',
+                url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
+                headers: {
+                    authorization: req.headers.authorization,
+                    'x-localecode': req.headers['x-localecode'] || 'en-us',
+                    'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
                 },
-            };
-        });
-        fromUserIds = connectionsResponse.data.results
+            }).catch((err) => {
+                console.log(err);
+                return {
+                    data: {
+                        results: [],
+                    },
+                };
+            });
+        const connections = connectionsResponse?.data?.results || [];
+        fromUserIds = connections
             .map((connection: any) => connection.users.filter((user: any) => user.id !== userId)?.[0]?.id || undefined)
             .filter((id) => !!id); // eslint-disable-line eqeqeq
     }
-    const searchPromise = Store.spaces.searchSpaces(searchArgs[0], searchArgs[1], fromUserIds, { distanceOverride, shouldLimitDetail }, query !== 'me');
+    const searchPromise = Store.spaces.searchSpaces(
+        searchArgs[0],
+        searchArgs[1],
+        fromUserIds,
+        { distanceOverride, shouldLimitDetail, isRequestAuthorized },
+        query !== 'me',
+    );
     // const countPromise = Store.spaces.countRecords({
     //     filterBy,
     //     query,
