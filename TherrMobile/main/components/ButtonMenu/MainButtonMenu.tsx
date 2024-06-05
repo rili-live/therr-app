@@ -8,6 +8,7 @@ import TherrIcon from '../../components/TherrIcon';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
 import { HAPTIC_FEEDBACK_TYPE, PEOPLE_CAROUSEL_TABS } from '../../constants';
+import { isUserAuthenticated } from '../../utilities/authUtils';
 // import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
 const hapticFeedbackOptions = {
@@ -24,9 +25,13 @@ class MainButtonMenuAlt extends ButtonMenu {
 
     navTo = (routeName, params = {}) => {
         ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
-        const { navigation } = this.props;
+        const { navigation, user } = this.props;
 
-        navigation.navigate(routeName, params);
+        if (!isUserAuthenticated(user)) {
+            navigation.navigate('Login');
+        } else {
+            navigation.navigate(routeName, params);
+        }
     };
 
     getActionButtonIcon = (currentScreen) => {
@@ -67,7 +72,9 @@ class MainButtonMenuAlt extends ButtonMenu {
 
         ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
-        if (currentScreen === 'ViewUser') {
+        if (!isUserAuthenticated(user)) {
+            navigation.navigate('Login');
+        } else if (currentScreen === 'ViewUser') {
             navigation.setParams({
                 userInView: {
                     id: user.details.id,
@@ -94,9 +101,11 @@ class MainButtonMenuAlt extends ButtonMenu {
     };
 
     handleNearbyPress = () => {
-        const { onNearbyPress } = this.props;
+        const { onNearbyPress, user } = this.props;
 
-        if (onNearbyPress) {
+        if (!isUserAuthenticated(user)) {
+            this.navTo('Login');
+        } else if (onNearbyPress) {
             onNearbyPress();
         } else {
             this.onNavPressDynamic('Nearby');
@@ -251,11 +260,18 @@ class MainButtonMenuAlt extends ButtonMenu {
                         containerStyle={themeMenu.styles.buttonContainerUserProfile}
                         titleStyle={themeMenu.styles.buttonsTitle}
                         icon={
-                            <Image
-                                source={{ uri: getUserImageUri(user, 50) }}
-                                style={imageStyle}
-                                PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
-                            />}
+                            isUserAuthenticated(user) ?
+                                <Image
+                                    source={{ uri: getUserImageUri(user, 50) }}
+                                    style={imageStyle}
+                                    PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
+                                /> :
+                                <TherrIcon
+                                    name="user-star"
+                                    size={22}
+                                    style={themeMenu.styles.buttonIcon}
+                                />
+                        }
                         onPress={this.goToMyProfile}
                         title={translate('menus.main.buttons.profile')}
                         type="clear"

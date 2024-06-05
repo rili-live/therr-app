@@ -53,6 +53,10 @@ import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
 import background1 from '../assets/dinner-burgers.webp';
 import background2 from '../assets/dinner-overhead.webp';
 import background3 from '../assets/dinner-overhead-2.webp';
+// import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
+import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
+
+// NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
 
 const preLoadImageList = [background1, background2, background3];
 
@@ -838,13 +842,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     };
 
     isUserEmailVerified = () => {
-        return UsersService.isAuthorized(
-            {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            this.props.user
-        );
+        return isUserEmailVerified(this.props.user);
+    };
+
+    isUserAuthenticated = () => {
+        return isUserAuthenticated(this.props.user);
     };
 
     logout = async (userDetails) => {
