@@ -93,7 +93,7 @@ mapsServiceRouter.post('/events/:eventId/details', authenticateOptional, getEven
     }
 }));
 
-mapsServiceRouter.post('/events/search', searchAreasValidation, validate, handleServiceRequest({
+mapsServiceRouter.post('/events/search', authenticateOptional, searchAreasValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));
@@ -180,7 +180,7 @@ mapsServiceRouter.post('/moments/:momentId/details', authenticateOptional, getMo
     }
 }));
 
-mapsServiceRouter.post('/moments/search', searchAreasValidation, validate, handleServiceRequest({
+mapsServiceRouter.post('/moments/search', authenticateOptional, searchAreasValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));
@@ -254,7 +254,7 @@ mapsServiceRouter.post('/spaces/list', searchAreasValidation, validate, handleSe
     method: 'post',
 }));
 
-mapsServiceRouter.post('/spaces/search', searchAreasValidation, validate, handleServiceRequest({
+mapsServiceRouter.post('/spaces/search', authenticateOptional, searchAreasValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));

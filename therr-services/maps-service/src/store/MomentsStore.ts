@@ -174,8 +174,31 @@ export default class MomentsStore {
         if ((conditions.filterBy && conditions.filterBy === 'distance') && conditions.query) {
             proximityMax = conditions.query;
         }
+        let returningMod = (returning && returning.length) ? returning : '*';
+        if (!overrides?.isRequestAuthorized) {
+            // Public listing/summary view
+            returningMod = [
+                'id',
+                'areaType',
+                'locale',
+                'category',
+                'notificationMsg',
+                'medias',
+                'mediaIds',
+                'hashTags',
+                'latitude',
+                'longitude',
+                'radius',
+                'isMatureContent',
+                'isModeratorApproved',
+                'createdAt',
+                'updatedAt',
+                'interestsKeys',
+                'spaceId',
+            ];
+        }
         let queryString: any = knexBuilder
-            .select((returning && returning.length) ? returning : '*')
+            .select(returningMod)
             .from(MOMENTS_TABLE_NAME)
             // TODO: Determine a better way to select moments that are most relevant to the user
             // .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow

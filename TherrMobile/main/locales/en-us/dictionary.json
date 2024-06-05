@@ -272,7 +272,7 @@
         "invalidPhoneNumber": "Phone number is invalid."
       },
       "modal": {
-        "nameConfirm": "Connections requests display your full name in notifications. Would you like to update your name from the default/anonymous values?",
+        "nameConfirm": "Connection requests display your full name in notifications. Would you like to update your name from the default/anonymous values?",
         "noThanks": "No Thanks"
       },
       "successMessages": {
@@ -1521,10 +1521,10 @@
       "claimYourSpaces2": "Support local business and share the love.",
       "exploreTheWorld": "Start discovering content by enabling location and walking around. Content nearby gets prioritized and activated. The 'Discovered' page shows all activated content.",
       "exploreTheWorld2": "Let travel be your algorithm. You decide.",
-      "findFriends": "We'll send you invites to curated social activities each week! Having a selective friend list helps us match you with people you already know and people you might like to know.",
-      "findFriends2": "Organize connections by 'close friends', 'family', 'acquaintances', etc.",
+      "findFriends": "We'll send you invites to curated social activities each week! Wherever you go, get matched with the best hangout spots nearby and the friends with the most common interests.",
+      "findFriends2": "Find your vibe! Organize connections by 'close friends', 'family', 'acquaintances', etc.",
       "matchUp": "Therr app matches you with current friends and potential new friends. We recommend curated social activities based on your interests and nearby restaurants/businesses.",
-      "matchUp2": "“Can't start a fire without a spark” - The Boss"
+      "matchUp2": "“Can't start a fire without a spark”"
     }
   },
   "permissions": {

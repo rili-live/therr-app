@@ -817,8 +817,12 @@ const getIntegratedMoments: RequestHandler = async (req: any, res: any) => {
 };
 
 const searchMoments: RequestHandler = async (req: any, res: any) => {
-    const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        authorization,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
+    const isRequestAuthorized = !!authorization;
 
     const {
         // filterBy,
@@ -837,6 +841,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
 
     const integerColumns = ['maxViews', 'longitude', 'latitude'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
+
     let fromUserIds;
     if (query === 'me') {
         fromUserIds = [userId];
@@ -850,24 +855,23 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
             order: 'desc',
         });
         queryString = `${queryString}&shouldCheckReverse=true`;
-        const connectionsResponse: any = await axios({
-            method: 'get',
-            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
-            headers: {
-                authorization: req.headers.authorization,
-                'x-localecode': req.headers['x-localecode'] || 'en-us',
-                'x-userid': userId,
-                'x-therr-origin-host': whiteLabelOrigin,
-            },
-        }).catch((err) => {
-            console.log(err);
-            return {
-                data: {
-                    results: [],
+        const connectionsResponse: any = !userId
+            ? {}
+            : await axios({
+                method: 'get',
+                url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
+                headers: {
+                    authorization: req.headers.authorization,
+                    'x-localecode': req.headers['x-localecode'] || 'en-us',
+                    'x-userid': userId,
+                    'x-therr-origin-host': whiteLabelOrigin,
                 },
-            };
-        });
-        fromUserIds = connectionsResponse.data.results
+            }).catch((err) => {
+                console.log(err);
+                return {};
+            });
+        const connections = connectionsResponse?.data?.results || [];
+        fromUserIds = connections
             .map((connection: any) => connection.users.filter((user: any) => user.id !== userId)?.[0]?.id || undefined)
             .filter((id) => !!id); // eslint-disable-line eqeqeq
     }
@@ -875,7 +879,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
         searchArgs[0],
         searchArgs[1],
         fromUserIds,
-        { distanceOverride, withUser },
+        { distanceOverride, withUser, isRequestAuthorized },
         query !== 'me',
     );
     // const countPromise = Store.moments.countRecords({
