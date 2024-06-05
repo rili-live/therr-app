@@ -705,7 +705,20 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         if (location?.settings?.isGpsEnabled) {
             if (!this.isUserAuthenticated()) {
-                navigation.navigate('Register');
+                navigation.reset({
+                    index: 1,
+                    routes: [
+                        {
+                            name: 'Map',
+                            params: {
+                                ...circleCenter,
+                            },
+                        },
+                        {
+                            name: 'Register',
+                        },
+                    ],
+                });
                 return;
             }
             // TODO: Store permissions in redux
@@ -903,7 +916,20 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         if (this.isUserAuthenticated()) {
             this.props.navigation.navigate('ActivityGenerator');
         } else {
-            this.props.navigation.navigate('Register');
+            this.props.navigation.reset({
+                index: 1,
+                routes: [
+                    {
+                        name: 'Map',
+                        params: {
+                            ...this.state.circleCenter,
+                        },
+                    },
+                    {
+                        name: 'Register',
+                    },
+                ],
+            });
         }
     };
 

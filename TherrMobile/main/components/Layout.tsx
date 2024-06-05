@@ -880,6 +880,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         await analytics().logScreenView({
                             screen_name: currentRouteName,
                             screen_class: currentRouteName,
+                            is_authenticated: this.isUserAuthenticated() ? 'yes' : 'no',
                         });
                     }
                     this.routeNameRef.current = currentRouteName;

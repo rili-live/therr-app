@@ -28,7 +28,17 @@ class MainButtonMenuAlt extends ButtonMenu {
         const { navigation, user } = this.props;
 
         if (!isUserAuthenticated(user)) {
-            navigation.navigate('Login');
+            navigation.reset({
+                index: 1,
+                routes: [
+                    {
+                        name: 'Map',
+                    },
+                    {
+                        name: 'Login',
+                    },
+                ],
+            });
         } else {
             navigation.navigate(routeName, params);
         }
@@ -73,7 +83,17 @@ class MainButtonMenuAlt extends ButtonMenu {
         ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
         if (!isUserAuthenticated(user)) {
-            navigation.navigate('Login');
+            navigation.reset({
+                index: 1,
+                routes: [
+                    {
+                        name: 'Map',
+                    },
+                    {
+                        name: 'Login',
+                    },
+                ],
+            });
         } else if (currentScreen === 'ViewUser') {
             navigation.setParams({
                 userInView: {
@@ -101,10 +121,20 @@ class MainButtonMenuAlt extends ButtonMenu {
     };
 
     handleNearbyPress = () => {
-        const { onNearbyPress, user } = this.props;
+        const { navigation, onNearbyPress, user } = this.props;
 
         if (!isUserAuthenticated(user)) {
-            this.navTo('Login');
+            navigation.reset({
+                index: 1,
+                routes: [
+                    {
+                        name: 'Map',
+                    },
+                    {
+                        name: 'Login',
+                    },
+                ],
+            });
         } else if (onNearbyPress) {
             onNearbyPress();
         } else {
