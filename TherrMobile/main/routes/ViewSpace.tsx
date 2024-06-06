@@ -47,6 +47,7 @@ import { MAX_DISTANCE_TO_NEARBY_SPACE } from '../constants';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { isLocationPermissionGranted } from '../utilities/requestOSPermissions';
 import getNearbySpaces from '../utilities/getNearbySpaces';
+import { isUserAuthenticated } from '../utilities/authUtils';
 // import AccentInput from '../components/Input/Accent';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -337,9 +338,13 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             });
             return;
         }
-        const { navigation, route } = this.props;
+        const { navigation, route, user } = this.props;
         const { previousView } = route.params;
-        if (previousView === 'Areas') {
+        if (!isUserAuthenticated(user)) {
+            navigation.navigate('Map', {
+                shouldShowPreview: true,
+            });
+        } else if (previousView === 'Areas') {
             navigation.goBack();
         } else if (previousView === 'ActivityGenerator') {
             navigation.navigate('ActivityGenerator');
@@ -364,7 +369,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     goToViewEvent = (event) => {
         const { navigation, user } = this.props;
 
-        if (event.id) {
+        if (event.id && isUserAuthenticated(user)) {
             navigation.navigate('ViewEvent', {
                 isMyContent: event?.fromUserId === user.details.id,
                 previousView: 'Areas',
@@ -379,7 +384,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     goToViewMoment = (moment) => {
         const { navigation, user } = this.props;
 
-        if (moment.id) {
+        if (moment.id && isUserAuthenticated(user)) {
             navigation.navigate('ViewMoment', {
                 isMyContent: moment?.fromUserId === user.details.id,
                 previousView: 'Areas',
@@ -392,44 +397,55 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     };
 
     goToViewUser = (userId) => {
-        const { navigation } = this.props;
+        const { navigation, user } = this.props;
 
-        navigation.navigate('ViewUser', {
-            userInView: {
-                id: userId,
-            },
-        });
+        if (!isUserAuthenticated(user)) {
+            navigation.navigate('ViewUser', {
+                userInView: {
+                    id: userId,
+                },
+            });
+        }
     };
 
     goToViewIncentives = () => {
-        const { navigation } = this.props;
+        const { navigation, user } = this.props;
 
-        this.setState({
-            isViewingIncentives: true,
-        });
+        if (isUserAuthenticated(user)) {
+            this.setState({
+                isViewingIncentives: true,
+            });
 
-        // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
-        // before preventDefault is called in the beforeRemove listener
-        navigation.setOptions({
-            // animation: 'none', // navigation v6
-            animationEnabled: false,
-            gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
-        });
+            // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
+            // before preventDefault is called in the beforeRemove listener
+            navigation.setOptions({
+                // animation: 'none', // navigation v6
+                animationEnabled: false,
+                gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
+            });
+        } else {
+            navigation.push('Login');
+        }
     };
 
     onUpdateSpaceReaction = (spaceId, data) => {
         const { createOrUpdateSpaceReaction, navigation, route, user } = this.props;
         const { space } = route.params;
-        navigation.setParams({
-            space: {
-                ...space,
-                reaction: {
-                    ...space.reaction,
-                    ...data,
+        if (isUserAuthenticated(user)) {
+            navigation.setParams({
+                space: {
+                    ...space,
+                    reaction: {
+                        ...space.reaction,
+                        ...data,
+                    },
                 },
-            },
-        });
-        return createOrUpdateSpaceReaction(spaceId, data, space.fromUserId, user.details.userName);
+            });
+            return createOrUpdateSpaceReaction(spaceId, data, space.fromUserId, user.details.userName);
+        } else {
+            navigation.push('Login');
+            return Promise.resolve();
+        }
     };
 
     toggleAreaOptions = (displayArea?: any) => {

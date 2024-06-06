@@ -40,6 +40,10 @@ const DEFAULT_QUERY_LOCALES = {
         latitude: 37.7576743,
         longitude: -122.5155383,
     },
+    seattle: {
+        latitude: 47.6086854,
+        longitude: -122.422369,
+    },
     houston: {
         latitude: 29.8170757,
         longitude: -95.5660968,
@@ -59,6 +63,10 @@ const DEFAULT_QUERY_LOCALES = {
     neworleans: {
         latitude: 30.0328937,
         longitude: -90.0473688,
+    },
+    portland: {
+        latitude: 45.5426842,
+        longitude: -122.7369723,
     },
     wrexham: {
         latitude: 53.051084,

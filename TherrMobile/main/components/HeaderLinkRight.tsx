@@ -91,7 +91,7 @@ class HeaderMenuRight extends React.Component<
         } = this.props;
 
         const currentScreen = this.getCurrentScreen();
-        const navScreenName = currentScreen === 'Login' ? 'Register' : 'Login';
+        let navScreenName = currentScreen === 'Login' ? 'Register' : 'Login';
         const buttonTitle = currentScreen === 'Login'
             ? this.translate('components.headerLinkRight.signUp')
             : this.translate('components.headerLinkRight.signIn');
@@ -101,7 +101,7 @@ class HeaderMenuRight extends React.Component<
                 title={buttonTitle}
                 onPress={() => this.navTo(navScreenName)}
                 type="clear"
-                titleStyle={themeForms.styles.buttonLinkHeader}
+                titleStyle={[themeForms.styles.buttonLinkHeader]}
                 buttonStyle={themeForms.styles.buttonLinkHeaderContainer}
             />
         );
