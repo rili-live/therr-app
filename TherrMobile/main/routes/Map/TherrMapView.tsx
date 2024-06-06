@@ -620,6 +620,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             updateUserCoordinates,
             updateCircleCenter,
             location,
+            user,
         } = this.props;
         const coords = {
             latitude: event.nativeEvent.coordinate.latitude,
@@ -676,13 +677,15 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
         if (coords.latitude !== location?.user?.latitude || coords.longitude !== location?.user?.longitude) {
             // Send location to backend for processing
-            PushNotificationsService.postLocationChange({
-                longitude: coords.longitude,
-                latitude: coords.latitude,
-                lastLocationSendForProcessing,
-                radiusOfAwareness: map.radiusOfAwareness,
-                radiusOfInfluence: map.radiusOfInfluence,
-            });
+            if (isUserAuthenticated(user)) {
+                PushNotificationsService.postLocationChange({
+                    longitude: coords.longitude,
+                    latitude: coords.latitude,
+                    lastLocationSendForProcessing,
+                    radiusOfAwareness: map.radiusOfAwareness,
+                    radiusOfInfluence: map.radiusOfInfluence,
+                });
+            }
         }
 
         this.setState({
