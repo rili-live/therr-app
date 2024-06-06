@@ -39,7 +39,7 @@ class HeaderMenuLeft extends React.Component<
         } else if (isAuthenticated) {
             navigation.navigate('CreateProfile');
         } else {
-            navigation.navigate('Login');
+            navigation.navigate('Map');
         }
     };
 

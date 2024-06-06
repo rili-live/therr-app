@@ -40,6 +40,7 @@ import mapCustomStyle from '../../styles/map/googleCustom';
 import MarkerIcon from './MarkerIcon';
 import { getUserContentUri, isMyContent } from '../../utilities/content';
 import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
+import { isUserAuthenticated } from '../../utilities/authUtils';
 
 const { width: viewPortWidth, height: viewPortHeight } = Dimensions.get('window');
 
@@ -422,6 +423,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 }, moment.radius);
             });
 
+            // TODO: Allow viewing public moments?
             if (pressedMoments.length) {
                 const selectedMoment = pressedMoments[0];
 
@@ -440,7 +442,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     && !(this.isAreaActivated('moments', selectedMoment) && !selectedMoment.doesRequireProximityToView)) {
                     // Deny activation
                     this.props.showAreaAlert();
-                } else {
+                } else if (isUserAuthenticated(user)) {
                     // Activate moment
                     createOrUpdateMomentReaction(selectedMoment.id, {
                         userViewCount: 1,
@@ -574,6 +576,9 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             }
             if (modifiedAreasInPreview?.length > 0) {
                 this.props.onPreviewBottomSheetOpen();
+            } else {
+                this.props.onPreviewBottomSheetClose();
+                this.removeAnimation();
             }
         } else {
             this.props.onPreviewBottomSheetClose();
@@ -615,6 +620,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             updateUserCoordinates,
             updateCircleCenter,
             location,
+            user,
         } = this.props;
         const coords = {
             latitude: event.nativeEvent.coordinate.latitude,
@@ -671,13 +677,15 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
         if (coords.latitude !== location?.user?.latitude || coords.longitude !== location?.user?.longitude) {
             // Send location to backend for processing
-            PushNotificationsService.postLocationChange({
-                longitude: coords.longitude,
-                latitude: coords.latitude,
-                lastLocationSendForProcessing,
-                radiusOfAwareness: map.radiusOfAwareness,
-                radiusOfInfluence: map.radiusOfInfluence,
-            });
+            if (isUserAuthenticated(user)) {
+                PushNotificationsService.postLocationChange({
+                    longitude: coords.longitude,
+                    latitude: coords.latitude,
+                    lastLocationSendForProcessing,
+                    radiusOfAwareness: map.radiusOfAwareness,
+                    radiusOfInfluence: map.radiusOfInfluence,
+                });
+            }
         }
 
         this.setState({
@@ -698,8 +706,8 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         path: string;
         type: string;
     }[]) => {
-        const { fetchMedia } = this.props;
-        if (medias.length) {
+        const { fetchMedia, user } = this.props;
+        if (medias.length && isUserAuthenticated(user)) {
             return fetchMedia(undefined, medias).catch((err) => {
                 console.log(err);
             });
@@ -804,7 +812,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     goToArea = (area: any) => {
         const { navigation, user } = this.props;
 
-        // TODO: Should handle space or moment
         // TODO: Activate spaces on click
         this.getAreaDetails(area)
             .then((details) => {

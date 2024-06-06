@@ -275,6 +275,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         buttonLinkHeaderContainer: {
             paddingBottom: 3,
+            minWidth: 70,
         },
         buttonRound: {
             backgroundColor: therrTheme.colors.primary4,
