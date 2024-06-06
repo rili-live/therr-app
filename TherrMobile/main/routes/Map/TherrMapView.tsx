@@ -810,29 +810,26 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         const { navigation, user } = this.props;
 
         // TODO: Activate spaces on click
-        // TODO: Allow viewing public content
-        if (isUserAuthenticated(user)) {
-            this.getAreaDetails(area)
-                .then((details) => {
-                    if (area?.areaType === 'events') {
-                        navigation.navigate('ViewEvent', {
-                            isMyContent: isMyContent(area, user),
-                            event: area,
-                            eventDetails: details,
-                        });
-                    } else if (area?.areaType === 'spaces') {
-                        navigation.navigate('ViewSpace', {
-                            isMyContent: isMyContent(area, user),
-                            space: area,
-                            spaceDetails: details,
-                        });
-                    }
-                })
-                .catch(() => {
-                    // TODO: Add error handling
-                    console.log('Failed to get space details!');
-                });
-        }
+        this.getAreaDetails(area)
+            .then((details) => {
+                if (area?.areaType === 'events') {
+                    navigation.navigate('ViewEvent', {
+                        isMyContent: isMyContent(area, user),
+                        event: area,
+                        eventDetails: details,
+                    });
+                } else if (area?.areaType === 'spaces') {
+                    navigation.navigate('ViewSpace', {
+                        isMyContent: isMyContent(area, user),
+                        space: area,
+                        spaceDetails: details,
+                    });
+                }
+            })
+            .catch(() => {
+                // TODO: Add error handling
+                console.log('Failed to get space details!');
+            });
     };
 
     updateOuterMapRef = (ref: Ref<MapView>) => {
