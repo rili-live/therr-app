@@ -43,7 +43,7 @@ const SpaceRating = ({
     ]}>
         {
             [1,2,3,4,5].map((num) => (
-                <Pressable onPress={handlePress(num)}>
+                <Pressable key={num} onPress={handlePress(num)}>
                     <MaterialIcon
                         name={rating && num <= rating ? 'star' : 'star-border'}
                         size={star}
