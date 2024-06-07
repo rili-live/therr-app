@@ -109,6 +109,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <AppFeedback />,
     },
     {
+        path: '/achievements',
+        element: <Home />,
+    },
+    {
         path: '/login',
         element: <Login />,
     },

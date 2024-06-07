@@ -704,6 +704,22 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     targetRouteView: 'ManageNotifications',
                 });
             }
+        } else if (url?.includes('therr.com/achievements')) {
+            const isOnboardingComplete = UsersService.isAuthorized(
+                {
+                    type: AccessCheckType.ALL,
+                    levels: [AccessLevels.EMAIL_VERIFIED],
+                    isPublic: true,
+                },
+                user
+            );
+            if (isOnboardingComplete) {
+                RootNavigation.navigate('Achievements');
+            } else {
+                this.setState({
+                    targetRouteView: 'Achievements',
+                });
+            }
         } else if (url?.includes('therr.com/app-feedback')) {
             const isOnboardingComplete = UsersService.isAuthorized(
                 {

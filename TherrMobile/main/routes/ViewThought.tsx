@@ -512,30 +512,33 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                                 />
                             </View>
                             {
-                                replies?.map((reply) => (
-                                    <ThoughtDisplay
-                                        translate={this.translate}
-                                        toggleThoughtOptions={() => this.toggleThoughtOptions(reply)}
-                                        hashtags={this.hashtags}
-                                        isDarkMode={user.settings?.mobileThemeName === 'retro'}
-                                        isExpanded={false}
-                                        inspectThought={this.goToContent} // Links to child/nested thought
-                                        key={reply.id}
-                                        thought={reply}
-                                        goToViewUser={this.goToViewUser}
-                                        updateThoughtReaction={(thoughtId, data) => this.onUpdateThoughtReaction(thoughtId, data)}
-                                        // TODO: User Username from response
-                                        user={user}
-                                        contentUserDetails={{
-                                            userName: this.getReplyUserName(reply),
-                                            media: this.getReplyUserMedia(reply),
-                                            isSuperUser: reply.fromUserIsSuperUser,
-                                        }}
-                                        theme={this.theme}
-                                        themeForms={this.themeForms}
-                                        themeViewContent={this.themeThought}
-                                    />
-                                ))
+                                replies?.map((reply) => {
+                                    const hashtags = reply.hashTags ? reply.hashTags.split(',') : [];
+                                    return (
+                                        <ThoughtDisplay
+                                            translate={this.translate}
+                                            toggleThoughtOptions={() => this.toggleThoughtOptions(reply)}
+                                            hashtags={hashtags}
+                                            isDarkMode={user.settings?.mobileThemeName === 'retro'}
+                                            isExpanded={false}
+                                            inspectThought={this.goToContent} // Links to child/nested thought
+                                            key={reply.id}
+                                            thought={reply}
+                                            goToViewUser={this.goToViewUser}
+                                            updateThoughtReaction={(thoughtId, data) => this.onUpdateThoughtReaction(thoughtId, data)}
+                                            // TODO: User Username from response
+                                            user={user}
+                                            contentUserDetails={{
+                                                userName: this.getReplyUserName(reply),
+                                                media: this.getReplyUserMedia(reply),
+                                                isSuperUser: reply.fromUserIsSuperUser,
+                                            }}
+                                            theme={this.theme}
+                                            themeForms={this.themeForms}
+                                            themeViewContent={this.themeThought}
+                                        />
+                                    );
+                                })
                             }
                         </View>
                         {/* {
