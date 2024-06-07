@@ -211,8 +211,9 @@ const routes: RouteConfig<
         options: () => ({
             title: 'Home',
             access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
+                type: AccessCheckType.NONE,
+                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                isPublic: true,
             },
         }),
     },
