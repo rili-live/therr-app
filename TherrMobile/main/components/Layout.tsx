@@ -653,6 +653,21 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const viewSpaceFromDesktopRegex = RegExp('spaces/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewUserRegex = RegExp('users/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/view', 'i');
         const viewUserFromDesktopRegex = RegExp('users/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
+        const isUserLoggedIn = isUserAuthenticated(user);
+        const isUserMissingProps = UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            },
+            user
+        );
+        const isUserEmailVerified = UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            },
+            user
+        );
 
         if (url?.includes('therr.com/?access_token=')) {
             // Route for 3rd party OAuth (Facebook, Instagram, etc.)
@@ -672,32 +687,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } else if (url?.includes('verify-account')) {
             if (urlSplit[1] && urlSplit[1].includes('token=')) {
                 const verificationToken = urlSplit[1]?.split('token=')[1];
-                // TODO: Test this (seems like the boolean is backwards)
-                const isNotAuthorized = UsersService.isAuthorized(
-                    {
-                        type: AccessCheckType.NONE,
-                        levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                        isPublic: true,
-                    },
-                    user
-                );
-                if (isNotAuthorized) {
+                if (!isUserLoggedIn && !isUserEmailVerified) {
                     RootNavigation.navigate('EmailVerification', {
                         verificationToken,
                     });
                 }
             }
         } else if (url?.includes('therr.com/emails/unsubscribe')) {
-            const isOnboardingComplete = UsersService.isAuthorized(
-                {
-                    type: AccessCheckType.ALL,
-                    levels: [AccessLevels.EMAIL_VERIFIED],
-                    isPublic: true,
-                },
-                user
-            );
-            // TODO: Add afterLogin param to send user to settings after auth
-            if (isOnboardingComplete) {
+            if (isUserLoggedIn && !isUserMissingProps) {
                 RootNavigation.navigate('ManageNotifications');
             } else {
                 this.setState({
@@ -705,15 +702,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 });
             }
         } else if (url?.includes('therr.com/achievements')) {
-            const isOnboardingComplete = UsersService.isAuthorized(
-                {
-                    type: AccessCheckType.ALL,
-                    levels: [AccessLevels.EMAIL_VERIFIED],
-                    isPublic: true,
-                },
-                user
-            );
-            if (isOnboardingComplete) {
+            if (isUserLoggedIn && !isUserMissingProps) {
                 RootNavigation.navigate('Achievements');
             } else {
                 this.setState({
@@ -721,15 +710,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 });
             }
         } else if (url?.includes('therr.com/app-feedback')) {
-            const isOnboardingComplete = UsersService.isAuthorized(
-                {
-                    type: AccessCheckType.ALL,
-                    levels: [AccessLevels.EMAIL_VERIFIED],
-                    isPublic: true,
-                },
-                user
-            );
-            if (isOnboardingComplete) {
+            if (isUserLoggedIn && !isUserMissingProps) {
                 RootNavigation.navigate('Home');
             } else {
                 this.setState({
@@ -737,14 +718,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 });
             }
         } else if (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex)) {
-            const isOnboardingComplete = UsersService.isAuthorized(
-                {
-                    type: AccessCheckType.ALL,
-                    levels: [AccessLevels.EMAIL_VERIFIED],
-                    isPublic: true,
-                },
-                user
-            );
             const momentId = (url?.match(viewMomentRegex) || url?.match(viewMomentFromDesktopRegex))[1];
             let targetRouteParams: any = {};
             if (momentId) {
@@ -754,7 +727,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     },
                 };
             }
-            if (isOnboardingComplete) {
+            if (isUserLoggedIn && !isUserMissingProps) {
                 RootNavigation.navigate('ViewMoment', targetRouteParams);
             } else {
                 this.setState({
@@ -763,14 +736,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 });
             }
         } else if (url?.match(viewSpaceRegex) || url?.match(viewSpaceFromDesktopRegex)) {
-            const isOnboardingComplete = UsersService.isAuthorized(
-                {
-                    type: AccessCheckType.ALL,
-                    levels: [AccessLevels.EMAIL_VERIFIED],
-                    isPublic: true,
-                },
-                user
-            );
             const spaceId = (url?.match(viewSpaceRegex) || url?.match(viewSpaceFromDesktopRegex))[1];
             let targetRouteParams: any = {};
             if (spaceId) {
@@ -780,7 +745,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     },
                 };
             }
-            if (isOnboardingComplete) {
+            if (isUserLoggedIn && !isUserMissingProps) {
                 RootNavigation.navigate('ViewSpace', targetRouteParams);
             } else {
                 this.setState({
@@ -789,14 +754,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 });
             }
         } else if (url?.match(viewUserRegex) || url?.match(viewUserFromDesktopRegex)) {
-            const isOnboardingComplete = UsersService.isAuthorized(
-                {
-                    type: AccessCheckType.ALL,
-                    levels: [AccessLevels.EMAIL_VERIFIED],
-                    isPublic: true,
-                },
-                user
-            );
             const userId = (url?.match(viewUserRegex) || url?.match(viewUserFromDesktopRegex))[1];
             let targetRouteParams: any = {};
             if (userId) {
@@ -806,7 +763,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     },
                 };
             }
-            if (isOnboardingComplete) {
+            if (isUserLoggedIn && !isUserMissingProps) {
                 RootNavigation.navigate('ViewUser', targetRouteParams);
             } else {
                 this.setState({
@@ -870,6 +827,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
         socketIO.disconnect();
+
+        this.setState({
+            targetRouteView: '',
+            targetRouteParams: {},
+        });
 
         return logout(userDetails);
     };

@@ -285,7 +285,10 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
 
         const hashTags = message.match(/#[a-z0-9_]+/g) || [];
         const parentId = thought.id;
-        const hashTagsString = hashTags.join(',');
+        const hashTagsString = [
+            ...new Set(hashTags
+                .map((t) => t.replace(/#/g, ''))),
+        ].join(',');
         const isDraft = false;
         const isPublic = false;
 

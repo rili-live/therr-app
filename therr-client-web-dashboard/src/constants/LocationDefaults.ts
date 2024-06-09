@@ -56,6 +56,10 @@ const DEFAULT_QUERY_LOCALES = {
         latitude: 39.779668,
         longitude: -86.2975541,
     },
+    miami: {
+        latitude: 25.7824017,
+        longitude: -80.2707437,
+    },
     nashville: {
         latitude: 36.1865276,
         longitude: -86.9500501,
