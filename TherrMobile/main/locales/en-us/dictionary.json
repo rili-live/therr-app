@@ -952,16 +952,19 @@
         "socialRecommendations": "Local Social Recommendations",
         "topConnections": "Top Connections Nearby",
         "topSharedInterests": "Top Shared Interests",
-        "topSpaces": "Recommended Spaces for Local Hangouts"
+        "topSpaces": "Recommended Spaces for Local Hangouts",
+        "yourTopInterests": "Your Top Interests"
       },
       "buttons": {
         "generate": "Generate",
-        "scheduleAndInvite": "Schedule & Invite (coming soon!)"
+        "scheduleAndInvite": "Schedule & Invite (coming soon!)",
+        "showLess": "Show Less",
+        "showMore": "Show More"
       },
       "messages": {
-        "noNearbyConnections": "No connections found nearby. Invite some local friends to get started.",
+        "noNearbyConnections": "No connections found nearby. Invite some local friends to get started or try again in a new location.",
         "noSharedInterests": "No shared interests with people nearby. Go to profile settings to select your interests.",
-        "noRecommendedSpaces": "No spaces nearby that match your shared interests. Try requesting new spaces from the map view."
+        "noRecommendedSpaces": "No spaces nearby that match your interests. Try requesting new spaces from the map view."
       }
     },
     "achievements": {
@@ -1303,7 +1306,7 @@
         "selectAll": "Select All",
         "unSelectAll": "Unselect All",
         "uncategorized": "Uncategorized",
-        "me": "Only My Posts",
+        "me": "My Posts",
         "notMe": "Not My Posts"
       }
     },

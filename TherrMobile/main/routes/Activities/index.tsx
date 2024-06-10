@@ -10,6 +10,7 @@ import {
     Content,
 } from 'therr-js-utilities/constants';
 // import Toast from 'react-native-toast-message';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
@@ -31,6 +32,7 @@ import LoadingPlaceholder from './LoadingPlaceholder';
 import LoadingPlaceholderInterests from './LoadingPlaceholderInterests';
 
 const { width: screenWidth } = Dimensions.get('window');
+const DEFAULT_SPACES_LIST_SIZE = 3;
 
 interface IActivityGeneratorDispatchProps {
     createOrUpdateSpaceReaction: Function;
@@ -54,6 +56,7 @@ export interface IActivityGeneratorProps extends IStoreProps {
 
 interface IActivityGeneratorState {
     isLoading: boolean;
+    shouldShowMoreSpaces: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -86,6 +89,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
 
         this.state = {
             isLoading: false,
+            shouldShowMoreSpaces: false,
         };
 
         this.reloadTheme();
@@ -172,6 +176,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
 
         this.setState({
             isLoading: true,
+            shouldShowMoreSpaces: false,
         });
 
         generateActivity({
@@ -204,19 +209,29 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
         });
     };
 
+    onToggleShowMore = () => {
+        this.setState({
+            shouldShowMoreSpaces: !this.state.shouldShowMoreSpaces,
+        });
+    };
+
     onSubmit = () => {
         console.log('submit');
     };
 
     render() {
         const { content, map, navigation, user, userConnections } = this.props;
-        const { isLoading } = this.state;
+        const { isLoading, shouldShowMoreSpaces } = this.state;
         const pageHeaderUser = this.translate('pages.activityGenerator.headers.socialRecommendations');
         // const currentUserImageUri = getUserImageUri(user, 200);
         const topConnections = map?.activityGeneration?.topConnections?.map((connection) => ({
             ...connection,
             isActive: userConnections?.activeConnections?.find((activeC) => activeC.id === connection.user.id),
         }));
+        const topSpaces = map?.activityGeneration?.topSpaces;
+        const topSpacesInView = shouldShowMoreSpaces
+            ? map?.activityGeneration?.topSpaces
+            : map?.activityGeneration?.topSpaces?.slice(0, DEFAULT_SPACES_LIST_SIZE);
 
         return (
             <>
@@ -273,7 +288,11 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
                             </View>
                             <View style={[this.themeSettingsForm.styles.settingsContainer, spacingStyles.padBotLg]}>
                                 <Text style={this.theme.styles.sectionTitleSmall}>
-                                    {this.translate('pages.activityGenerator.headers.topSharedInterests')}
+                                    {
+                                        !topConnections?.length ?
+                                            this.translate('pages.activityGenerator.headers.yourTopInterests') :
+                                            this.translate('pages.activityGenerator.headers.topSharedInterests')
+                                    }
                                 </Text>
                                 { isLoading
                                     ? <View style={spacingStyles.flex}>
@@ -315,7 +334,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
                                         </View>
                                         : <View style={[{ display: 'flex' }, spacingStyles.padHorizSm]}>
                                             {
-                                                map?.activityGeneration?.topSpaces?.map((space) => {
+                                                topSpacesInView?.map((space) => {
                                                     const mediaPath = space.medias?.[0]?.path;
                                                     const mediaType = space.medias?.[0]?.type;
 
@@ -348,10 +367,36 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
                                                 })
                                             }
                                             {
-                                                !map?.activityGeneration?.topSpaces?.length &&
+                                                !topSpacesInView?.length &&
                                                 <Text style={this.theme.styles.sectionDescriptionCentered}>
                                                     {this.translate('pages.activityGenerator.messages.noRecommendedSpaces')}
                                                 </Text>
+                                            }
+                                            {
+                                                topSpacesInView?.length > 0 && topSpaces?.length > DEFAULT_SPACES_LIST_SIZE &&
+                                                <View style={this.theme.styles.sectionDescriptionCentered}>
+                                                    <Button
+                                                        type="clear"
+                                                        titleStyle={this.themeForms.styles.buttonLink}
+                                                        title={this.translate(
+                                                            !shouldShowMoreSpaces ?
+                                                                'pages.activityGenerator.buttons.showMore' :
+                                                                'pages.activityGenerator.buttons.showLess'
+                                                        )}
+                                                        onPress={this.onToggleShowMore}
+                                                        icon={
+                                                            <FontAwesome5Icon
+                                                                name={!shouldShowMoreSpaces ?
+                                                                    'chevron-down' :
+                                                                    'chevron-up'
+                                                                }
+                                                                size={14}
+                                                                style={this.themeForms.styles.buttonIconAlt}
+                                                            />
+                                                        }
+                                                        iconRight
+                                                    />
+                                                </View>
                                             }
                                         </View>
                                 }
