@@ -99,7 +99,7 @@ const generateActivity = async (req, res) => {
         Object.keys(rankedResponse.data?.sharedInterests || {}).forEach((id, index) => {
             const interest = rankedResponse.data?.sharedInterests[id];
             interest?.users?.forEach((u) => {
-                if (topConnectionIds?.includes(u.id)) {
+                if (!topConnectionIds?.length || topConnectionIds?.includes(u.id)) {
                     sharedInterestsById[id] = {
                         displayNameKey: interest.displayNameKey,
                         emoji: interest.emoji,

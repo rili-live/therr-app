@@ -163,6 +163,28 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
             modifiedGroup[0].title = this.translate('pages.mapFilteredSearch.labels.selectAll');
         }
 
+        // Make sure one of public or private is always checked
+        if (!modifiedGroup[index].isChecked) {
+            if (modifiedGroup[index].title === this.translate('pages.mapFilteredSearch.labels.public')) {
+                const privateBoxIndex = modifiedGroup.findIndex((box) => box.title === this.translate('pages.mapFilteredSearch.labels.private'));
+                modifiedGroup[privateBoxIndex].isChecked = true;
+            } else if (modifiedGroup[index].title === this.translate('pages.mapFilteredSearch.labels.private')) {
+                const publicBoxIndex = modifiedGroup.findIndex((box) => box.title === this.translate('pages.mapFilteredSearch.labels.public'));
+                modifiedGroup[publicBoxIndex].isChecked = true;
+            }
+        }
+
+        // Make sure one of me or NOT me is always checked
+        if (!modifiedGroup[index].isChecked) {
+            if (modifiedGroup[index].title === this.translate('pages.mapFilteredSearch.labels.me')) {
+                const notMeBoxIndex = modifiedGroup.findIndex((box) => box.title === this.translate('pages.mapFilteredSearch.labels.notMe'));
+                modifiedGroup[notMeBoxIndex].isChecked = true;
+            } else if (modifiedGroup[index].title === this.translate('pages.mapFilteredSearch.labels.notMe')) {
+                const meBoxIndex = modifiedGroup.findIndex((box) => box.title === this.translate('pages.mapFilteredSearch.labels.me'));
+                modifiedGroup[meBoxIndex].isChecked = true;
+            }
+        }
+
         this.setState({
             [filterGroup]: modifiedGroup,
         } as any);
