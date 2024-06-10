@@ -572,7 +572,7 @@ const getTopRankedConnections = (req, res) => {
     } = req.query;
     let requestingUserDetails: any = {};
 
-    return Store.users.getUserById(userId, ['lastKnownLatitude', 'lastKnownLongitude'])
+    return Store.users.getUserById(userId, ['id', 'lastKnownLatitude', 'lastKnownLongitude'])
         .then(([user]) => {
             requestingUserDetails = {
                 ...user,
@@ -601,15 +601,7 @@ const getTopRankedConnections = (req, res) => {
                 latitude: requestingUserDetails.lastKnownLatitude,
                 longitude: requestingUserDetails.lastKnownLongitude,
             }).then((results) => {
-                if (!results?.length) {
-                    return handleHttpError({
-                        res,
-                        message: translate(locale, 'errorMessages.userConnections.noNearbyUserConnectionsFound'),
-                        statusCode: 400,
-                        errorCode: ErrorCodes.BAD_REQUEST,
-                    });
-                }
-                const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], []);
+                const userIds = results?.reduce((acc, cur) => [...new Set([...acc, cur.requestingUserId, cur.acceptingUserId])], [requestingUserDetails.id]);
 
                 return Store.userInterests.getByUserIds(userIds, {
                     isEnabled: true,
@@ -636,16 +628,21 @@ const getTopRankedConnections = (req, res) => {
                                 }
                             }
                         });
-                        const sharedInterests = {};
+                        let sharedInterests = {};
                         Object.entries(interestsIdMap).forEach(([key, value]) => {
                             if (interestsIdMap[key]?.users?.length > 1) {
                                 sharedInterests[key] = value;
                             }
                         });
+                        // Use own user interests when no other users nearby
+                        if (!results?.length) {
+                            sharedInterests = interestsIdMap;
+                        }
                         return res.status(200).send({
                             results,
                             sharedInterests,
                             requestingUserDetails,
+                            hasNearbyConnections: !!results?.length,
                             pagination: {
                                 itemsPerPage: Number(20),
                                 pageNumber: Number(1),
