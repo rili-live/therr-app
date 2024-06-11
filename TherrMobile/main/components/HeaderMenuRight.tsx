@@ -318,18 +318,20 @@ class HeaderMenuRight extends React.PureComponent<
                                 </View>
                             </AttachStep>
                             :
-                            <Button
-                                icon={
-                                    <FontAwesomeIcon
-                                        style={themeMenu.styles.logoutIcon}
-                                        name="sign-out-alt"
-                                        size={18}
-                                    />
-                                }
-                                onPress={() => this.handleLogout()}
-                                type="clear"
-                                containerStyle={themeMenu.styles.userProfileButtonContainer}
-                            />
+                            <AttachStep index={4}>
+                                <Button
+                                    icon={
+                                        <FontAwesomeIcon
+                                            style={themeMenu.styles.logoutIcon}
+                                            name="sign-out-alt"
+                                            size={18}
+                                        />
+                                    }
+                                    onPress={() => this.handleLogout()}
+                                    type="clear"
+                                    containerStyle={themeMenu.styles.userProfileButtonContainer}
+                                />
+                            </AttachStep>
                     }
                     <Overlay
                         animationType="slideInRight"

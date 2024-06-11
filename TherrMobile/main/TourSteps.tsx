@@ -278,7 +278,7 @@ const getTourSteps: (args: IGetTourStepsArgs) => TourStep[] = ({ locale }) => {
         },
         {
             floatingProps: {
-                middleware: [autoPlacement(), shift(), offset({
+                middleware: [flip(), shift(), offset({
                     mainAxis: 10,
                     // alignmentAxis: -20,
                     crossAxis: (MINIMUM_HORIZONTAL_PADDING / 2),
@@ -289,7 +289,7 @@ const getTourSteps: (args: IGetTourStepsArgs) => TourStep[] = ({ locale }) => {
         },
         {
             floatingProps: {
-                middleware: [autoPlacement(), shift(), offset({
+                middleware: [flip(), shift(), offset({
                     mainAxis: 10,
                     // alignmentAxis: -20,
                     crossAxis: (MINIMUM_HORIZONTAL_PADDING / 2),
@@ -300,7 +300,7 @@ const getTourSteps: (args: IGetTourStepsArgs) => TourStep[] = ({ locale }) => {
         },
         {
             floatingProps: {
-                middleware: [autoPlacement(), shift(), offset({
+                middleware: [flip(), shift(), offset({
                     mainAxis: 10,
                     crossAxis: -(MINIMUM_HORIZONTAL_PADDING / 2),
                 })],
@@ -310,7 +310,7 @@ const getTourSteps: (args: IGetTourStepsArgs) => TourStep[] = ({ locale }) => {
         },
         {
             floatingProps: {
-                middleware: [autoPlacement(), shift(), offset({
+                middleware: [flip(), shift(), offset({
                     mainAxis: 10,
                     crossAxis: -(MINIMUM_HORIZONTAL_PADDING / 2),
                 })],
@@ -320,7 +320,7 @@ const getTourSteps: (args: IGetTourStepsArgs) => TourStep[] = ({ locale }) => {
         },
         {
             floatingProps: {
-                middleware: [autoPlacement(), shift(), offset({
+                middleware: [flip(), shift(), offset({
                     mainAxis: 10,
                     crossAxis: -(MINIMUM_HORIZONTAL_PADDING / 2),
                 })],
@@ -330,7 +330,7 @@ const getTourSteps: (args: IGetTourStepsArgs) => TourStep[] = ({ locale }) => {
         },
         {
             floatingProps: {
-                middleware: [autoPlacement(), shift(), offset({
+                middleware: [flip(), shift(), offset({
                     mainAxis: 10,
                 })],
                 placement: 'top',
