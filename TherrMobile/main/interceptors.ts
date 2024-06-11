@@ -88,6 +88,13 @@ const initInterceptors = (
                     // store.dispatch(UsersActions.setRedirect(window.location.pathname));
                     // TODO: This is so BAD. Find a better way, but for now it prevents an infinite loop and ensures that the user idToken is reset
                     if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
+                        const storedUser = store.getState().user;
+                        if (storedUser?.details?.id) {
+                            // Close the modal to prevent stuck state
+                            store.dispatch(UsersActions.updateTour(storedUser?.details?.id), {
+                                isTouring: false,
+                            });
+                        }
                         store.dispatch(UsersActions.logout());
                         logoutAttemptCount += 1;
                     }
@@ -108,6 +115,13 @@ const initInterceptors = (
                     // store.dispatch(UsersActions.setRedirect(window.location.pathname));
                     // TODO: This is so BAD. Find a better way, but for now it prevents an infinite loop and ensures that the user idToken is reset
                     if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
+                        const storedUser = store.getState().user;
+                        if (storedUser?.details?.id) {
+                            // Close the modal to prevent stuck state
+                            store.dispatch(UsersActions.updateTour(storedUser?.details?.id), {
+                                isTouring: false,
+                            });
+                        }
                         store.dispatch(UsersActions.logout());
                         logoutAttemptCount += 1;
                     }
