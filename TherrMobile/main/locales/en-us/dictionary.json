@@ -1530,6 +1530,31 @@
       "findFriends2": "Find your vibe! Organize connections by 'close friends', 'family', 'acquaintances', etc.",
       "matchUp": "Therr app matches you with current friends and potential new friends. We recommend curated social activities based on your interests and nearby restaurants/businesses.",
       "matchUp2": "“Can't start a fire without a spark”"
+    },
+    "touringNavigationModal": {
+      "done": "Done",
+      "exit": "Exit",
+      "next": "Next",
+      "previous": "Previous",
+      "headers": {
+        "create": "Tour: Create",
+        "connect": "Tour: Connect",
+        "discovered": "Tour: Discovered",
+        "gps": "Tour: Location",
+        "map": "Tour: Map",
+        "matchUp": "Tour: Match Up",
+        "menu": "Tour: Menu"
+      },
+      "tips": {
+        "create1": "Click to toggle 'create actions'. These content types require geo-location to encourage local-first engagement.",
+        "create2": "A 'space' is a business such as a restaurant, and a 'moment' is for user generated content.",
+        "connect": "Invite friends, create or join groups, and view your connections list.",
+        "discovered": "Activated content shows in the discovered list along with global 'thoughts' and local events. Go here to post a thought or schedule events.",
+        "gps": "Press to enable location. This allows you to start activating local content. Discover local food, fun, and upcoming events.",
+        "map": "Tap anywhere on the map for a list of nearby spaces. Some spaces offer rewards for check-ins, posting a moment, leaving a review, etc.",
+        "matchUp": "Press the 'match up' button to generate social outings. We match you with nearby friends and suggest local spaces.",
+        "menu": "Open the menu to track your achievements and exchange points for cash rewards. Find other quicklinks like messages, drafts, and account settings."
+      }
     }
   },
   "permissions": {

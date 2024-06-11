@@ -255,6 +255,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private themeDisclosure = buildDisclosureStyles();
     private themeTour = buildTourStyles();
     private themeSearch = buildSearchStyles({ viewPortHeight });
+    private timeoutIdTourFailsafe;
     private timeoutIdPreviewRegion;
     private timeoutIdLocationReady;
     private timeoutIdRefreshMoments;
@@ -374,6 +375,12 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             updateTour(user?.details.id, {
                 isTouring: true,
             });
+            this.timeoutIdTourFailsafe = setTimeout(() => {
+                // Failsafe to prevent stuck modal
+                updateTour(user?.details.id, {
+                    isTouring: false,
+                }, 30 * 1000);
+            });
             updateFirstTimeUI(true);
         }
 
@@ -454,10 +461,21 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     componentDidUpdate(prevProps: IMapProps) {
-        const { user } = this.props;
+        const { navigation, route, setSearchDropdownVisibility, user } = this.props;
 
         if (prevProps.user?.settings?.mobileThemeName !== user?.settings?.mobileThemeName) {
             this.reloadTheme();
+        }
+
+        if (!prevProps?.route?.params?.isNavigationTouring && route?.params?.isNavigationTouring) {
+            this.expandBottomSheet(-1);
+            this.setState({
+                areButtonsVisible: true,
+            });
+            setSearchDropdownVisibility(false);
+            navigation.setParams({
+                isNavigationTouring: false,
+            });
         }
     }
 
@@ -479,6 +497,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     }
 
     clearTimeouts = () => {
+        clearTimeout(this.timeoutIdTourFailsafe);
         clearTimeout(this.timeoutIdPreviewRegion);
         clearTimeout(this.timeoutIdLocationReady);
         clearTimeout(this.timeoutIdSearchButton);

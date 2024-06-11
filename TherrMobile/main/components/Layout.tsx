@@ -98,7 +98,9 @@ interface IStoreProps extends ILayoutDispatchProps {
 }
 
 // Regular component props
-export interface ILayoutProps extends IStoreProps {}
+export interface ILayoutProps extends IStoreProps {
+    startNavigationTour: () => void;
+}
 
 interface ILayoutState {
     targetRouteView: string;
@@ -944,6 +946,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     logout={this.logout}
                                     updateGpsStatus={updateGpsStatus}
                                     user={user}
+                                    startNavigationTour={this.props.startNavigationTour}
                                     theme={this.theme}
                                     themeButtons={this.themeButtons}
                                     themeModal={this.themeModal}

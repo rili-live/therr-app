@@ -11,6 +11,9 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import therrIconConfig from '../assets/therr-font-config.json';
 // import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { INotificationsState } from 'therr-react/types';
+import {
+    AttachStep,
+} from 'react-native-spotlight-tour';
 import translator from '../services/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
@@ -48,6 +51,7 @@ export interface IHeaderMenuRightProps extends IStoreProps {
     styleName: 'light' | 'dark' | 'accent';
     updateGpsStatus: Function;
     user: any;
+    startNavigationTour: () => void;
     theme: {
         colors: ITherrThemeColors;
         styles: any;
@@ -191,6 +195,28 @@ class HeaderMenuRight extends React.PureComponent<
         }
     };
 
+    startNavigationTour = () => {
+        const { navigation, user, updateTour } = this.props;
+        this.toggleOverlay();
+
+        updateTour(user.details.id, {
+            isTouring: false,
+        });
+
+        if (this.getCurrentScreen() !== 'Map') {
+            navigation.navigate('Map', {
+                shouldShowPreview: false,
+            });
+        } else {
+            navigation.setParams({
+                shouldShowPreview: false,
+                isNavigationTouring: true,
+            });
+        }
+
+        this.props.startNavigationTour();
+    };
+
     getCurrentScreen = () => {
         const navState = this.props.navigation.getState();
         if (navState.routes[navState.routes.length - 1]) {
@@ -260,35 +286,37 @@ class HeaderMenuRight extends React.PureComponent<
                 <>
                     {
                         isEmailVerifed ?
-                            <View>
-                                {/* <Button
-                                    icon={
-                                        <Image
-                                            source={{ uri: getUserImageUri(user, 50) }}
-                                            style={imageStyle}
-                                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
-                                        />}
-                                    onPress={() => this.toggleOverlay()}
-                                    type="clear"
-                                    containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
-                                /> */}
-                                <Button
-                                    icon={
-                                        <TherrIcon
-                                            name="menu"
-                                            size={30}
-                                            color={theme.colors.primary3}
-                                        />}
-                                    onPress={() => this.toggleOverlay()}
-                                    type="clear"
-                                    containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
-                                />
-                                {
-                                    hasNotifications && <Pressable onPress={() => this.toggleOverlay()} style={themeMenu.styles.notificationCircle2}>
-                                        <Text style={themeMenu.styles.notificationsCountText}>{unreadCount.toString()}</Text>
-                                    </Pressable>
-                                }
-                            </View>
+                            <AttachStep index={4}>
+                                <View>
+                                    {/* <Button
+                                        icon={
+                                            <Image
+                                                source={{ uri: getUserImageUri(user, 50) }}
+                                                style={imageStyle}
+                                                PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                                            />}
+                                        onPress={() => this.toggleOverlay()}
+                                        type="clear"
+                                        containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                                    /> */}
+                                    <Button
+                                        icon={
+                                            <TherrIcon
+                                                name="menu"
+                                                size={30}
+                                                color={theme.colors.primary3}
+                                            />}
+                                        onPress={() => this.toggleOverlay()}
+                                        type="clear"
+                                        containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                                    />
+                                    {
+                                        hasNotifications && <Pressable onPress={() => this.toggleOverlay()} style={themeMenu.styles.notificationCircle2}>
+                                            <Text style={themeMenu.styles.notificationsCountText}>{unreadCount.toString()}</Text>
+                                        </Pressable>
+                                    }
+                                </View>
+                            </AttachStep>
                             :
                             <Button
                                 icon={
@@ -748,7 +776,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                         size={18}
                                                     />
                                                 }
-                                                onPress={this.startTour}
+                                                onPress={this.startNavigationTour}
                                             />
                                             <Button
                                                 titleStyle={themeMenu.styles.buttonsTitle}
