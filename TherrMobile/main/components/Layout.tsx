@@ -846,7 +846,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             notifications,
             startNavigationTour,
             updateGpsStatus,
-            updateTour,
             user,
         } = this.props;
 
@@ -865,7 +864,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     const previousRouteName = this.routeNameRef.current;
                     const currentRouteName = navigationRef?.getCurrentRoute()?.name;
                     if (currentRouteName === 'Map' && (!user?.settings?.navigationTourCount || user?.settings?.navigationTourCount < 1)) {
-                        updateTour({
+                        this.props.updateTour({
                             isTouring: false,
                             isNavigationTouring: true,
                         }, user.details.id);

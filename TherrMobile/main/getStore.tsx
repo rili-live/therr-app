@@ -33,6 +33,7 @@ const getStore = async () => {
     const storedUserSettings = JSON.parse(therrUserSettings || '{}');
     storedUserSettings.locale = storedUserSettings.locale || 'en-us';
     storedUserSettings.mobileThemeName = storedUserSettings.mobileThemeName || 'light';
+    storedUserSettings.navigationTourCount = storedUserSettings.navigationTourCount || 0;
     const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
     const reloadedState: any = {
         user: {

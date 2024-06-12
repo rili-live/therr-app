@@ -513,13 +513,13 @@ class UsersActions {
 
     updateTour = (data: IUpdateTourArgs, userId?: string) => (dispatch: any) => (this.NativeStorage || sessionStorage)
         .getItem('therrUserSettings').then(async (settings) => {
-            const userSettings = JSON.parse(settings || {});
+            const userSettings = JSON.parse(settings || '{}');
             const sanitizedData: any = {
-                isTouring: data.isNavigationTouring === false && data.isTouring === true,
-                isNavigationTouring: data.isNavigationTouring === true,
+                isTouring: data?.isNavigationTouring === false && data?.isTouring === true,
+                isNavigationTouring: data?.isNavigationTouring === true,
             };
             if (sanitizedData.isNavigationTouring === true) {
-                sanitizedData.navigationTourCount = (userSettings.navigationTourCount || 0) + 1;
+                sanitizedData.navigationTourCount = (userSettings?.navigationTourCount || 0) + 1;
             }
             const newData = {
                 ...userSettings,
