@@ -91,9 +91,9 @@ const initInterceptors = (
                         const storedUser = store.getState().user;
                         if (storedUser?.details?.id) {
                             // Close the modal to prevent stuck state
-                            store.dispatch(UsersActions.updateTour(storedUser?.details?.id), {
+                            store.dispatch(UsersActions.updateTour({
                                 isTouring: false,
-                            });
+                            }, storedUser?.details?.id));
                         }
                         store.dispatch(UsersActions.logout());
                         logoutAttemptCount += 1;
@@ -118,9 +118,9 @@ const initInterceptors = (
                         const storedUser = store.getState().user;
                         if (storedUser?.details?.id) {
                             // Close the modal to prevent stuck state
-                            store.dispatch(UsersActions.updateTour(storedUser?.details?.id), {
+                            store.dispatch(UsersActions.updateTour({
                                 isTouring: false,
-                            });
+                            }, storedUser?.details?.id));
                         }
                         store.dispatch(UsersActions.logout());
                         logoutAttemptCount += 1;

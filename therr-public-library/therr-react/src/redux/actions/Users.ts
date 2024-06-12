@@ -12,7 +12,8 @@ interface ILoginSSOTokens {
 }
 
 interface IUpdateTourArgs {
-    isTouring: boolean;
+    isTouring?: boolean;
+    isNavigationTouring?: boolean;
 }
 class UsersActions {
     constructor(socketIO, NativeStorage?, GoogleSignin?) {
@@ -508,16 +509,24 @@ class UsersActions {
     updateTour = (id: string, data: IUpdateTourArgs) => (dispatch: any) => (this.NativeStorage || sessionStorage)
         .getItem('therrUserSettings').then(async (settings) => {
             const userSettings = JSON.parse(settings || {});
-            // TODO: Get user settings from db
-            const userSettingsData: IUser = Immutable.from({
+            const sanitizedData: any = {
+                isTouring: data.isNavigationTouring === false && data.isTouring === true,
+                isNavigationTouring: data.isNavigationTouring === true,
+            };
+            if (sanitizedData.isNavigationTouring === true) {
+                sanitizedData.navigationTourCount = (sanitizedData.navigationTourCount || 0) + 1;
+            }
+            const newData = {
                 ...userSettings,
-                isTouring: data.isTouring,
-            });
+                ...sanitizedData,
+            };
+            const userSettingsData: IUserSettings = Immutable.from(newData);
+
             (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
 
             dispatch({
                 type: UserActionTypes.UPDATE_USER_TOUR,
-                data,
+                data: sanitizedData,
             });
         });
 

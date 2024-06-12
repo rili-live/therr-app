@@ -358,9 +358,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         if (this.isUserAuthenticated()) {
             UsersService.getUserInterests().then((response) => {
                 if (!response?.data?.length) {
-                    updateTour(user?.details.id, {
+                    updateTour({
                         isTouring: false,
-                    });
+                    }, user?.details.id);
                     navigation.navigate('ManagePreferences');
                 }
             });
@@ -372,15 +372,15 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }).catch((err) => console.log(`Failed to get exchange rate: ${err.message}`));
 
         if (user?.details?.loginCount < 2 && !user.settings?.hasCompletedFTUI) {
-            updateTour(user?.details.id, {
+            updateTour({
                 isTouring: true,
-            });
+            }, user?.details.id);
             // Commented out because this closes the modal before new users finish onboarding
             // this.timeoutIdTourFailsafe = setTimeout(() => {
             //     // Failsafe to prevent stuck modal
-            //     updateTour(user?.details.id, {
+            //     updateTour({
             //         isTouring: false,
-            //     });
+            //     }, user?.details.id);
             // }, 30 * 1000);
             updateFirstTimeUI(true);
         }
@@ -1496,9 +1496,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     handleStopTouring = () => {
         const { user, updateTour } = this.props;
-        updateTour(user?.details.id, {
+        updateTour({
             isTouring: false,
-        });
+        }, user?.details.id);
     };
 
     isAreaActivated = (type: IAreaType, area) => {

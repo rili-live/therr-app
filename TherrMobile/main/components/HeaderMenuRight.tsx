@@ -184,9 +184,9 @@ class HeaderMenuRight extends React.PureComponent<
         const { navigation, user, updateTour } = this.props;
         this.toggleOverlay();
 
-        updateTour(user.details.id, {
+        updateTour({
             isTouring: true,
-        });
+        }, user.details.id);
 
         if (this.getCurrentScreen() !== 'Map') {
             navigation.navigate('Map', {
@@ -199,9 +199,9 @@ class HeaderMenuRight extends React.PureComponent<
         const { navigation, user, updateTour } = this.props;
         this.toggleOverlay();
 
-        updateTour(user.details.id, {
+        updateTour({
             isTouring: false,
-        });
+        }, user.details.id);
 
         if (this.getCurrentScreen() !== 'Map') {
             navigation.navigate('Map', {
