@@ -375,12 +375,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             updateTour(user?.details.id, {
                 isTouring: true,
             });
-            this.timeoutIdTourFailsafe = setTimeout(() => {
-                // Failsafe to prevent stuck modal
-                updateTour(user?.details.id, {
-                    isTouring: false,
-                }, 30 * 1000);
-            });
+            // Commented out because this closes the modal before new users finish onboarding
+            // this.timeoutIdTourFailsafe = setTimeout(() => {
+            //     // Failsafe to prevent stuck modal
+            //     updateTour(user?.details.id, {
+            //         isTouring: false,
+            //     });
+            // }, 30 * 1000);
             updateFirstTimeUI(true);
         }
 

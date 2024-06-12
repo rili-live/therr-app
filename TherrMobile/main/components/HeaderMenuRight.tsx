@@ -286,19 +286,19 @@ class HeaderMenuRight extends React.PureComponent<
                 <>
                     {
                         isEmailVerifed ?
-                            <AttachStep index={4}>
-                                <View>
-                                    {/* <Button
-                                        icon={
-                                            <Image
-                                                source={{ uri: getUserImageUri(user, 50) }}
-                                                style={imageStyle}
-                                                PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
-                                            />}
-                                        onPress={() => this.toggleOverlay()}
-                                        type="clear"
-                                        containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
-                                    /> */}
+                            <View>
+                                {/* <Button
+                                    icon={
+                                        <Image
+                                            source={{ uri: getUserImageUri(user, 50) }}
+                                            style={imageStyle}
+                                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                                        />}
+                                    onPress={() => this.toggleOverlay()}
+                                    type="clear"
+                                    containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                                /> */}
+                                <AttachStep index={4}>
                                     <Button
                                         icon={
                                             <TherrIcon
@@ -310,13 +310,13 @@ class HeaderMenuRight extends React.PureComponent<
                                         type="clear"
                                         containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
                                     />
-                                    {
-                                        hasNotifications && <Pressable onPress={() => this.toggleOverlay()} style={themeMenu.styles.notificationCircle2}>
-                                            <Text style={themeMenu.styles.notificationsCountText}>{unreadCount.toString()}</Text>
-                                        </Pressable>
-                                    }
-                                </View>
-                            </AttachStep>
+                                </AttachStep>
+                                {
+                                    hasNotifications && <Pressable onPress={() => this.toggleOverlay()} style={themeMenu.styles.notificationCircle2}>
+                                        <Text style={themeMenu.styles.notificationsCountText}>{unreadCount.toString()}</Text>
+                                    </Pressable>
+                                }
+                            </View>
                             :
                             <AttachStep index={4}>
                                 <Button
