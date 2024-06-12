@@ -201,16 +201,12 @@ class HeaderMenuRight extends React.PureComponent<
 
         updateTour({
             isTouring: false,
+            isNavigationTouring: true,
         }, user.details.id);
 
         if (this.getCurrentScreen() !== 'Map') {
             navigation.navigate('Map', {
                 shouldShowPreview: false,
-            });
-        } else {
-            navigation.setParams({
-                shouldShowPreview: false,
-                isNavigationTouring: true,
             });
         }
 

@@ -93,6 +93,7 @@ const initInterceptors = (
                             // Close the modal to prevent stuck state
                             store.dispatch(UsersActions.updateTour({
                                 isTouring: false,
+                                isNavigationTouring: false,
                             }, storedUser?.details?.id));
                         }
                         store.dispatch(UsersActions.logout());
@@ -120,6 +121,7 @@ const initInterceptors = (
                             // Close the modal to prevent stuck state
                             store.dispatch(UsersActions.updateTour({
                                 isTouring: false,
+                                isNavigationTouring: false,
                             }, storedUser?.details?.id));
                         }
                         store.dispatch(UsersActions.logout());

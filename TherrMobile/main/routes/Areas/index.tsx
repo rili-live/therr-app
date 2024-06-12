@@ -14,6 +14,7 @@ import {
     IUserConnectionsState,
 } from 'therr-react/types';
 import { TabBar, TabView } from 'react-native-tab-view';
+import { UsersService } from 'therr-react/services';
 import { IUIState } from '../../types/redux/ui';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas';
@@ -42,6 +43,8 @@ import TherrIcon from '../../components/TherrIcon';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 import { isLocationPermissionGranted } from '../../utilities/requestOSPermissions';
 import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
+import { isUserAuthenticated } from '../../utilities/authUtils';
+import UsersActions from '../../redux/actions/UsersActions';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -80,6 +83,7 @@ interface IAreasDispatchProps {
     updateLocationDisclosure: Function;
     updateLocationPermissions: Function;
     updateGpsStatus: Function;
+    updateTour: Function;
 
     logout: Function;
 }
@@ -145,6 +149,8 @@ const mapDispatchToProps = (dispatch: any) =>
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationDisclosure: LocationActions.updateLocationDisclosure,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
+
+            updateTour: UsersActions.updateTour,
         },
         dispatch
     );
@@ -207,11 +213,23 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
     }
 
     componentDidMount() {
-        const { content, navigation } = this.props;
+        const { content, navigation, updateTour, user } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.myDrafts.headerTitle'),
         });
+
+        if (isUserAuthenticated(user)) {
+            UsersService.getUserInterests().then((response) => {
+                if (!response?.data?.length) {
+                    updateTour({
+                        isTouring: false,
+                        isNavigationTouring: false,
+                    }, user?.details.id);
+                    navigation.navigate('ManagePreferences');
+                }
+            });
+        }
 
         const activeData = getActiveCarouselData({
             activeTab: defaultActiveTab,

@@ -83,6 +83,7 @@ interface ILayoutDispatchProps {
     updateActiveEventsStream: Function;
     updateGpsStatus: Function;
     updateLocationPermissions: Function;
+    updateTour: Function;
     updateUser: Function;
     // Prefetch
     beginPrefetchRequest: Function;
@@ -132,6 +133,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateActiveEventsStream: ContentActions.updateActiveEventsStream,
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
+            updateTour: UsersActions.updateTour,
             updateUser: UsersActions.update,
             // Prefetch
             beginPrefetchRequest: UIActions.beginPrefetchRequest,
@@ -839,7 +841,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     };
 
     render() {
-        const { location, notifications, updateGpsStatus, user } = this.props;
+        const {
+            location,
+            notifications,
+            startNavigationTour,
+            updateGpsStatus,
+            updateTour,
+            user,
+        } = this.props;
 
         return (
             <NavigationContainer
@@ -855,6 +864,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 onStateChange={async () => {
                     const previousRouteName = this.routeNameRef.current;
                     const currentRouteName = navigationRef?.getCurrentRoute()?.name;
+                    if (currentRouteName === 'Map' && (!user?.settings?.navigationTourCount || user?.settings?.navigationTourCount < 1)) {
+                        updateTour({
+                            isTouring: false,
+                            isNavigationTouring: true,
+                        }, user.details.id);
+
+                        startNavigationTour();
+                    }
 
                     if (previousRouteName !== currentRouteName) {
                         await analytics().logScreenView({

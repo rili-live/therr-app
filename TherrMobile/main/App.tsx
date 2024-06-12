@@ -16,6 +16,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import spacingStyles from './styles/layouts/spacing';
 import { HEADER_HEIGHT_MARGIN } from './styles';
 import getTourSteps from './TourSteps';
+import UsersActions from './redux/actions/UsersActions';
 
 // Disable in development
 analytics().setAnalyticsCollectionEnabled(!__DEV__);
@@ -199,6 +200,12 @@ class App extends React.Component<any, any> {
                         // This configurations will apply to all steps
                         floatingProps={{
                             placement: 'bottom',
+                        }}
+                        onStop={() => {
+                            return this.store.dispatch(UsersActions.updateTour({
+                                isTouring: false,
+                                isNavigationTouring: false,
+                            }));
                         }}
                     >
                         {

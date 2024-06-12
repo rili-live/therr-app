@@ -22,6 +22,49 @@ const hapticFeedbackOptions = {
     ignoreAndroidSystemSettings: false,
 };
 
+const ViewProfileButton = ({
+    activeRoute,
+    goToMyProfile,
+    imageStyle,
+    themeMenu,
+    translate,
+    user,
+}) => (
+    <View style={[
+        (activeRoute === 'ViewUser'
+            ? themeMenu.styles.buttonContainerActive
+            : themeMenu.styles.buttonContainer),
+        {
+            width: buttonWidth,
+        },
+    ]}>
+        <Button
+            buttonStyle={themeMenu.styles.buttons}
+            containerStyle={themeMenu.styles.buttonContainerUserProfile}
+            titleStyle={themeMenu.styles.buttonsTitle}
+            icon={
+                isUserAuthenticated(user) ?
+                    <Image
+                        source={{ uri: getUserImageUri(user, 50) }}
+                        style={imageStyle}
+                        PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
+                    /> :
+                    <TherrIcon
+                        name="user-star"
+                        size={22}
+                        style={themeMenu.styles.buttonIcon}
+                    />
+            }
+            onPress={goToMyProfile}
+            title={translate('menus.main.buttons.profile')}
+            type="clear"
+        />
+        {/* {
+            hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
+        } */}
+    </View>
+);
+
 class MainButtonMenuAlt extends ButtonMenu {
     constructor(props) {
         super(props);
@@ -304,39 +347,35 @@ class MainButtonMenuAlt extends ButtonMenu {
                         }}
                     />
                 </AttachStep>
-                <View style={[
-                    (activeRoute === 'ViewUser'
-                        ? themeMenu.styles.buttonContainerActive
-                        : themeMenu.styles.buttonContainer),
-                    {
-                        width: buttonWidth,
-                    },
-                ]}>
-                    <Button
-                        buttonStyle={themeMenu.styles.buttons}
-                        containerStyle={themeMenu.styles.buttonContainerUserProfile}
-                        titleStyle={themeMenu.styles.buttonsTitle}
-                        icon={
-                            isUserAuthenticated(user) ?
-                                <Image
-                                    source={{ uri: getUserImageUri(user, 50) }}
-                                    style={imageStyle}
-                                    PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
-                                /> :
-                                <TherrIcon
-                                    name="user-star"
-                                    size={22}
-                                    style={themeMenu.styles.buttonIcon}
-                                />
-                        }
-                        onPress={this.goToMyProfile}
-                        title={translate('menus.main.buttons.profile')}
-                        type="clear"
-                    />
-                    {/* {
-                        hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
-                    } */}
-                </View>
+                {/* {
+                    isUserAuthenticated(user) ?
+                        <ViewProfileButton
+                            activeRoute={activeRoute}
+                            goToMyProfile={this.goToMyProfile}
+                            imageStyle={imageStyle}
+                            themeMenu={themeMenu}
+                            translate={translate}
+                            user={user}
+                        /> :
+                        <AttachStep index={4}>
+                            <ViewProfileButton
+                                activeRoute={activeRoute}
+                                goToMyProfile={this.goToMyProfile}
+                                imageStyle={imageStyle}
+                                themeMenu={themeMenu}
+                                translate={translate}
+                                user={user}
+                            />
+                        </AttachStep>
+                } */}
+                <ViewProfileButton
+                    activeRoute={activeRoute}
+                    goToMyProfile={this.goToMyProfile}
+                    imageStyle={imageStyle}
+                    themeMenu={themeMenu}
+                    translate={translate}
+                    user={user}
+                />
             </ButtonMenu>
         );
     }
