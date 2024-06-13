@@ -70,6 +70,7 @@ class UsersActions {
             integrations,
             loginCount,
             userOrganizations,
+            navigationTourCount,
         } = userResponseData;
         const mutableUserData: any = {
             accessLevels,
@@ -122,6 +123,7 @@ class UsersActions {
             settingsPushMentions,
             settingsPushMessages,
             settingsPushReminders,
+            navigationTourCount,
         });
 
         return {
@@ -219,11 +221,30 @@ class UsersActions {
 
     login = (data: any, idTokens?: ILoginSSOTokens) => async (dispatch: any) => {
         await UsersService.authenticate(data).then(async (response) => {
+            const storedUserDetails = JSON.parse(
+                await (this.NativeStorage || sessionStorage).getItem('therrUser')
+                || await (this.NativeStorage || localStorage).getItem('therrUser')
+                || null,
+            );
+            const storedUserSettings = JSON.parse(
+                await (this.NativeStorage || sessionStorage).getItem('therrUserSettings')
+                || await (this.NativeStorage || localStorage).getItem('therrUserSettings')
+                || null,
+            );
             const {
+                id,
                 idToken,
             } = response.data;
+            const responseData = {
+                ...response.data,
+            };
 
-            const { userData, userSettingsData } = this.extractUserData(response.data);
+            // Same user logging in again; maintain client stored settings that are not stored in the database
+            if (storedUserDetails?.id === id) {
+                responseData.navigationTourCount = storedUserSettings?.navigationTourCount || 0;
+            }
+
+            const { userData, userSettingsData } = this.extractUserData(responseData);
             this.socketIO.io.opts.query = {
                 token: idToken,
             };
@@ -280,7 +301,16 @@ class UsersActions {
         await UsersService.getMe().then(async (response) => {
             const localUserDetails = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || null);
             const sessionUserDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
-            const { userData, userSettingsData } = this.extractUserData(response.data);
+            const localUserSettings = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUserSettings') || null);
+            const responseData = {
+                ...response.data,
+            };
+
+            // Same user as stored settings; maintain client stored settings that are not stored in the database
+            if (localUserSettings?.id === response?.data?.id) {
+                responseData.navigationTourCount = localUserSettings?.navigationTourCount || 0;
+            }
+            const { userData, userSettingsData } = this.extractUserData(responseData);
             const combinedUserDetails = {
                 ...localUserDetails,
                 ...sessionUserDetails,
@@ -306,10 +336,16 @@ class UsersActions {
     logout = (userDetails?: any) => async (dispatch: any) => {
         // NOTE: Native Storage methods return a promise, but in this case we don't need to await
         userDetails = userDetails // eslint-disable-line no-param-reassign
-            || JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null)
-            || JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || null);
-        const userSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || null)
-            || JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUserSettings') || null);
+            || JSON.parse(
+                await (this.NativeStorage || sessionStorage).getItem('therrUser')
+                || await (this.NativeStorage || localStorage).getItem('therrUser')
+                || null,
+            );
+        const userSettings = JSON.parse(
+            await (this.NativeStorage || sessionStorage).getItem('therrUserSettings')
+            || await (this.NativeStorage || localStorage).getItem('therrUserSettings')
+            || null,
+        );
         if (!this.NativeStorage) {
             localStorage.removeItem('therrSession');
             localStorage.removeItem('therrUser');
@@ -417,7 +453,7 @@ class UsersActions {
             ...sessionUserDetails,
             ...response.data,
         });
-        // TODO: Get user settings from db
+        // TODO: Utilize extractUserData()
         const userSettingsData: IUser = Immutable.from({
             ...localUserSettings,
             ...sessionUserSettings,
@@ -474,32 +510,7 @@ class UsersActions {
                     media,
                 },
                 settings: {
-                    mobileThemeName: settingsThemeName || 'retro',
-                    settingsBio,
-                    settingsTherrCoinTotal,
-                    settingsAreaCoinTotal,
-                    settingsBirthdate,
-                    settingsGender,
-                    settingsIsAccountSoftDeleted,
-                    settingsLocale,
-                    settingsWebsite,
-                    settingsIsProfilePublic,
-                    settingsPushTopics,
-                    settingsEmailMarketing,
-                    settingsEmailBusMarketing,
-                    settingsEmailBackground,
-                    settingsEmailInvites,
-                    settingsEmailLikes,
-                    settingsEmailMentions,
-                    settingsEmailMessages,
-                    settingsEmailReminders,
-                    settingsPushMarketing,
-                    settingsPushBackground,
-                    settingsPushInvites,
-                    settingsPushLikes,
-                    settingsPushMentions,
-                    settingsPushMessages,
-                    settingsPushReminders,
+                    ...userSettingsData,
                 },
             },
         });

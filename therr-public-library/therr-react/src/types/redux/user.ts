@@ -19,6 +19,7 @@ export interface IUser extends Immutable.ImmutableObject<any>{
 export interface IUserSettings extends Immutable.ImmutableObject<any>{
   locale: string;
   mobileThemeName: string;
+  navigationTourCount?: number;
 }
 
 export interface ISocketDetails extends Immutable.ImmutableObject<any> {
