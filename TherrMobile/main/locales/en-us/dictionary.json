@@ -759,6 +759,7 @@
   },
   "interests": {
     "arts": {
+      "anime": "Animation/Anime",
       "painting": "Painting",
       "visualArts": "Visual Arts",
       "photography": "Photography",
@@ -1514,11 +1515,11 @@
       "back": "Back",
       "next": "Next",
       "done": "Done",
-      "header1": "Earn Rewards",
-      "header2": "Create a Moment",
-      "header3": "Explore the World",
-      "header4": "Find Friends",
-      "header5": "Match Up",
+      "header1": "Welcome: Earn Rewards",
+      "header2": "Welcome: Create a Moment",
+      "header3": "Welcome: Explore the World",
+      "header4": "Welcome: Find Friends",
+      "header5": "Welcome: Match Up",
       "createAMoment": "Press the GPS button on the map to start creating content. We require location for all posts to prevent fake users and focus on local-first interactions.",
       "createAMoment2": "Too in the moment? Drop a pin and edit your post later.",
       "claimYourSpaces": "Businesses and promoters can claim spaces on the map and offer rewards. Visit a space to earn rewards, then exchange coins/points for cash!",
@@ -1529,6 +1530,31 @@
       "findFriends2": "Find your vibe! Organize connections by 'close friends', 'family', 'acquaintances', etc.",
       "matchUp": "Therr app matches you with current friends and potential new friends. We recommend curated social activities based on your interests and nearby restaurants/businesses.",
       "matchUp2": "“Can't start a fire without a spark”"
+    },
+    "touringNavigationModal": {
+      "done": "Done",
+      "exit": "Exit",
+      "next": "Next",
+      "previous": "Previous",
+      "headers": {
+        "create": "Tour: Create 🎨",
+        "connect": "Tour: Connect 🌐",
+        "discovered": "Tour: Discovered 🏞️",
+        "gps": "Tour: Location 📍",
+        "map": "Tour: Map 🌎",
+        "matchUp": "Tour: Match Up 🔥",
+        "menu": "Tour: Menu 💬"
+      },
+      "tips": {
+        "create1": "Click to toggle 'create actions'. These content types require geo-location to encourage local-first engagement.",
+        "create2": "A 'space' is a business such as a restaurant, and a 'moment' is for user generated content.",
+        "connect": "Invite friends, create or join groups, and view your connections list.",
+        "discovered": "Activated 'moments' show up in the discovered list along with global 'thoughts' and local events. Go here to post a thought or schedule events.",
+        "gps": "Press to enable location. This allows you to start activating local content. Discover local food, fun, and upcoming events.",
+        "map": "Tap anywhere on the map for a list of nearby spaces. Some spaces offer rewards for check-ins, posting a moment, leaving a review, etc.",
+        "matchUp": "Press the 'match up' button to generate social outings. We match you with nearby friends and suggest local spaces.",
+        "menu": "Open the menu to track your achievements and exchange points for cash rewards. Find other quicklinks like messages, drafts, and account settings."
+      }
     }
   },
   "permissions": {

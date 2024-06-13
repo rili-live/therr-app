@@ -255,6 +255,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private themeDisclosure = buildDisclosureStyles();
     private themeTour = buildTourStyles();
     private themeSearch = buildSearchStyles({ viewPortHeight });
+    private timeoutIdTourFailsafe;
     private timeoutIdPreviewRegion;
     private timeoutIdLocationReady;
     private timeoutIdRefreshMoments;
@@ -350,20 +351,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             navigation,
             setSearchDropdownVisibility,
             updateFirstTimeUI,
-            updateTour,
             route,
             user,
         } = this.props;
-        if (this.isUserAuthenticated()) {
-            UsersService.getUserInterests().then((response) => {
-                if (!response?.data?.length) {
-                    updateTour(user?.details.id, {
-                        isTouring: false,
-                    });
-                    navigation.navigate('ManagePreferences');
-                }
-            });
-        }
+
         UsersService.getExchangeRate().then((response) => {
             this.setState({
                 exchangeRate: response.data?.exchangeRate,
@@ -371,9 +362,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }).catch((err) => console.log(`Failed to get exchange rate: ${err.message}`));
 
         if (user?.details?.loginCount < 2 && !user.settings?.hasCompletedFTUI) {
-            updateTour(user?.details.id, {
-                isTouring: true,
-            });
             updateFirstTimeUI(true);
         }
 
@@ -454,10 +442,18 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     componentDidUpdate(prevProps: IMapProps) {
-        const { user } = this.props;
+        const { setSearchDropdownVisibility, user } = this.props;
 
         if (prevProps.user?.settings?.mobileThemeName !== user?.settings?.mobileThemeName) {
             this.reloadTheme();
+        }
+
+        if (!prevProps.user?.settings?.isNavigationTouring && user?.settings?.isNavigationTouring) {
+            this.expandBottomSheet(-1);
+            this.setState({
+                areButtonsVisible: true,
+            });
+            setSearchDropdownVisibility(false);
         }
     }
 
@@ -479,6 +475,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     }
 
     clearTimeouts = () => {
+        clearTimeout(this.timeoutIdTourFailsafe);
         clearTimeout(this.timeoutIdPreviewRegion);
         clearTimeout(this.timeoutIdLocationReady);
         clearTimeout(this.timeoutIdSearchButton);
@@ -1476,9 +1473,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
     handleStopTouring = () => {
         const { user, updateTour } = this.props;
-        updateTour(user?.details.id, {
+        updateTour({
             isTouring: false,
-        });
+        }, user?.details.id);
     };
 
     isAreaActivated = (type: IAreaType, area) => {

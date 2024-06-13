@@ -11,6 +11,9 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import therrIconConfig from '../assets/therr-font-config.json';
 // import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { INotificationsState } from 'therr-react/types';
+import {
+    AttachStep,
+} from 'react-native-spotlight-tour';
 import translator from '../services/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
@@ -48,6 +51,7 @@ export interface IHeaderMenuRightProps extends IStoreProps {
     styleName: 'light' | 'dark' | 'accent';
     updateGpsStatus: Function;
     user: any;
+    startNavigationTour: () => void;
     theme: {
         colors: ITherrThemeColors;
         styles: any;
@@ -180,15 +184,33 @@ class HeaderMenuRight extends React.PureComponent<
         const { navigation, user, updateTour } = this.props;
         this.toggleOverlay();
 
-        updateTour(user.details.id, {
+        updateTour({
             isTouring: true,
-        });
+        }, user.details.id);
 
         if (this.getCurrentScreen() !== 'Map') {
             navigation.navigate('Map', {
                 shouldShowPreview: false,
             });
         }
+    };
+
+    startNavigationTour = () => {
+        const { navigation, user, updateTour } = this.props;
+        this.toggleOverlay();
+
+        updateTour({
+            isTouring: false,
+            isNavigationTouring: true,
+        }, user.details.id);
+
+        if (this.getCurrentScreen() !== 'Map') {
+            navigation.navigate('Map', {
+                shouldShowPreview: false,
+            });
+        }
+
+        this.props.startNavigationTour();
     };
 
     getCurrentScreen = () => {
@@ -272,17 +294,19 @@ class HeaderMenuRight extends React.PureComponent<
                                     type="clear"
                                     containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
                                 /> */}
-                                <Button
-                                    icon={
-                                        <TherrIcon
-                                            name="menu"
-                                            size={30}
-                                            color={theme.colors.primary3}
-                                        />}
-                                    onPress={() => this.toggleOverlay()}
-                                    type="clear"
-                                    containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
-                                />
+                                <AttachStep index={4}>
+                                    <Button
+                                        icon={
+                                            <TherrIcon
+                                                name="menu"
+                                                size={30}
+                                                color={theme.colors.primary3}
+                                            />}
+                                        onPress={() => this.toggleOverlay()}
+                                        type="clear"
+                                        containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                                    />
+                                </AttachStep>
                                 {
                                     hasNotifications && <Pressable onPress={() => this.toggleOverlay()} style={themeMenu.styles.notificationCircle2}>
                                         <Text style={themeMenu.styles.notificationsCountText}>{unreadCount.toString()}</Text>
@@ -290,18 +314,20 @@ class HeaderMenuRight extends React.PureComponent<
                                 }
                             </View>
                             :
-                            <Button
-                                icon={
-                                    <FontAwesomeIcon
-                                        style={themeMenu.styles.logoutIcon}
-                                        name="sign-out-alt"
-                                        size={18}
-                                    />
-                                }
-                                onPress={() => this.handleLogout()}
-                                type="clear"
-                                containerStyle={themeMenu.styles.userProfileButtonContainer}
-                            />
+                            <AttachStep index={4}>
+                                <Button
+                                    icon={
+                                        <FontAwesomeIcon
+                                            style={themeMenu.styles.logoutIcon}
+                                            name="sign-out-alt"
+                                            size={18}
+                                        />
+                                    }
+                                    onPress={() => this.handleLogout()}
+                                    type="clear"
+                                    containerStyle={themeMenu.styles.userProfileButtonContainer}
+                                />
+                            </AttachStep>
                     }
                     <Overlay
                         animationType="slideInRight"
@@ -748,7 +774,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                         size={18}
                                                     />
                                                 }
-                                                onPress={this.startTour}
+                                                onPress={this.startNavigationTour}
                                             />
                                             <Button
                                                 titleStyle={themeMenu.styles.buttonsTitle}

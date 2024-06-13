@@ -1,10 +1,27 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button, Text } from 'react-native-elements';
 import 'react-native-gesture-handler';
+import {
+    AttachStep,
+} from 'react-native-spotlight-tour';
 import translator from '../services/translator';
 import { ITherrThemeColors } from '../styles/themes';
+
+const Title = ({
+    buttonTitle,
+    themeForms,
+}) => (
+    <AttachStep index={4}>
+        <Text style={[
+            themeForms.styles.buttonLinkHeader,
+            {
+                textAlign: 'center',
+            },
+        ]}>{buttonTitle}</Text>
+    </AttachStep>
+);
 
 interface IHeaderMenuRightDispatchProps {
 }
@@ -98,7 +115,7 @@ class HeaderMenuRight extends React.Component<
 
         return (
             <Button
-                title={buttonTitle}
+                title={<Title buttonTitle={buttonTitle} themeForms={themeForms} />}
                 onPress={() => this.navTo(navScreenName)}
                 type="clear"
                 titleStyle={[themeForms.styles.buttonLinkHeader]}

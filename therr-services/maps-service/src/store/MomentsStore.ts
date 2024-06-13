@@ -588,7 +588,7 @@ export default class MomentsStore {
             (sanitizedParams as any).nearbySpacesSnapshot = params.nearbySpacesSnapshot ? JSON.stringify(params.nearbySpacesSnapshot) : undefined;
 
             if (params.medias) {
-                (sanitizedParams as any).medias = JSON.stringify(sanitizedParams.medias);
+                (sanitizedParams as any).medias = JSON.stringify(params.medias);
             }
 
             if (params.interestsKeys) {

@@ -1,9 +1,12 @@
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Dimensions, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Button, Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import {
+    AttachStep,
+} from 'react-native-spotlight-tour';
 import TherrIcon from '../../components/TherrIcon';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
@@ -11,10 +14,56 @@ import { HAPTIC_FEEDBACK_TYPE, PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { isUserAuthenticated } from '../../utilities/authUtils';
 // import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
+const { width: screenWidth } = Dimensions.get('window');
+const buttonWidth = screenWidth / 5;
+
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
     ignoreAndroidSystemSettings: false,
 };
+
+const ViewProfileButton = ({
+    activeRoute,
+    goToMyProfile,
+    imageStyle,
+    themeMenu,
+    translate,
+    user,
+}) => (
+    <View style={[
+        (activeRoute === 'ViewUser'
+            ? themeMenu.styles.buttonContainerActive
+            : themeMenu.styles.buttonContainer),
+        {
+            width: buttonWidth,
+        },
+    ]}>
+        <Button
+            buttonStyle={themeMenu.styles.buttons}
+            containerStyle={themeMenu.styles.buttonContainerUserProfile}
+            titleStyle={themeMenu.styles.buttonsTitle}
+            icon={
+                isUserAuthenticated(user) ?
+                    <Image
+                        source={{ uri: getUserImageUri(user, 50) }}
+                        style={imageStyle}
+                        PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
+                    /> :
+                    <TherrIcon
+                        name="user-star"
+                        size={22}
+                        style={themeMenu.styles.buttonIcon}
+                    />
+            }
+            onPress={goToMyProfile}
+            title={translate('menus.main.buttons.profile')}
+            type="clear"
+        />
+        {/* {
+            hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
+        } */}
+    </View>
+);
 
 class MainButtonMenuAlt extends ButtonMenu {
     constructor(props) {
@@ -155,36 +204,41 @@ class MainButtonMenuAlt extends ButtonMenu {
 
         return (
             <ButtonMenu {...this.props}>
-                <Button
-                    title={!isCompact ? translate('menus.main.buttons.list') : null}
-                    buttonStyle={
-                        activeRoute === 'Areas'
-                            ? themeMenu.styles.buttonsActive
-                            : themeMenu.styles.buttons
-                    }
-                    containerStyle={
-                        activeRoute === 'Areas'
-                            ? themeMenu.styles.buttonContainerActive
-                            : themeMenu.styles.buttonContainer
-                    }
-                    titleStyle={
-                        activeRoute === 'Areas'
-                            ? themeMenu.styles.buttonsTitleActive
-                            : themeMenu.styles.buttonsTitle
-                    }
-                    icon={
-                        <TherrIcon
-                            name="ul-list"
-                            size={22}
-                            style={
-                                activeRoute === 'Areas'
-                                    ? themeMenu.styles.buttonIconActive
-                                    : themeMenu.styles.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.onNavPressDynamic('Areas')}
-                />
+                <AttachStep index={2}>
+                    <Button
+                        title={!isCompact ? translate('menus.main.buttons.list') : null}
+                        buttonStyle={
+                            activeRoute === 'Areas'
+                                ? themeMenu.styles.buttonsActive
+                                : themeMenu.styles.buttons
+                        }
+                        containerStyle={[
+                            (activeRoute === 'Areas'
+                                ? themeMenu.styles.buttonContainerActive
+                                : themeMenu.styles.buttonContainer),
+                            {
+                                width: buttonWidth,
+                            },
+                        ]}
+                        titleStyle={
+                            activeRoute === 'Areas'
+                                ? themeMenu.styles.buttonsTitleActive
+                                : themeMenu.styles.buttonsTitle
+                        }
+                        icon={
+                            <TherrIcon
+                                name="ul-list"
+                                size={22}
+                                style={
+                                    activeRoute === 'Areas'
+                                        ? themeMenu.styles.buttonIconActive
+                                        : themeMenu.styles.buttonIcon
+                                }
+                            />
+                        }
+                        onPress={() => this.onNavPressDynamic('Areas')}
+                    />
+                </AttachStep>
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.nearby') : null}
                     buttonStyle={
@@ -192,11 +246,14 @@ class MainButtonMenuAlt extends ButtonMenu {
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
-                    containerStyle={
-                        activeRoute === 'Nearby'
+                    containerStyle={[
+                        ( activeRoute === 'Nearby'
                             ? themeMenu.styles.buttonContainerActive
-                            : themeMenu.styles.buttonContainer
-                    }
+                            : themeMenu.styles.buttonContainer),
+                        {
+                            width: buttonWidth,
+                        },
+                    ]}
                     titleStyle={
                         activeRoute === 'Nearby'
                             ? themeMenu.styles.buttonsTitleActive
@@ -215,101 +272,110 @@ class MainButtonMenuAlt extends ButtonMenu {
                     }
                     onPress={() => this.handleNearbyPress()}
                 />
-                <Button
-                    title={!isCompact ? translate('menus.main.buttons.map') : null}
-                    buttonStyle={
-                        activeRoute === 'Map'
-                            ? themeMenu.styles.buttonsActive
-                            : themeMenu.styles.buttons
-                    }
-                    containerStyle={
-                        activeRoute === 'Map'
-                            ? themeMenu.styles.buttonContainerActive
-                            : themeMenu.styles.buttonContainer
-                    }
-                    titleStyle={
-                        activeRoute === 'Map'
-                            ? themeMenu.styles.buttonsTitleActive
-                            : themeMenu.styles.buttonsTitle
-                    }
-                    icon={
-                        <TherrIcon
-                            name="map"
-                            size={22}
-                            style={
-                                activeRoute === 'Map'
-                                    ? themeMenu.styles.buttonIconActive
-                                    : themeMenu.styles.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.onNavPressDynamic('Map')}
-                />
-                <Button
-                    title={!isCompact ? translate('menus.main.buttons.connect') : null}
-                    buttonStyle={
-                        isConnectViewActive
-                            ? themeMenu.styles.buttonsActive
-                            : themeMenu.styles.buttons
-                    }
-                    containerStyle={
-                        isConnectViewActive
-                            ? themeMenu.styles.buttonContainerActive
-                            : themeMenu.styles.buttonContainer
-                    }
-                    titleStyle={
-                        isConnectViewActive
-                            ? themeMenu.styles.buttonsTitleActive
-                            : themeMenu.styles.buttonsTitle
-                    }
-                    icon={
-                        <TherrIcon
-                            name="key-user"
-                            size={22}
-                            style={
-                                isConnectViewActive
-                                    ? themeMenu.styles.buttonIconActive
-                                    : themeMenu.styles.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => {
-                        this.navTo('Connect', {
-                            activeTab: PEOPLE_CAROUSEL_TABS.PEOPLE,
-                        });
-                        this.onNavPressDynamic('Connect');
-                    }}
-                />
-                <View style={
-                    activeRoute === 'ViewUser'
-                        ? themeMenu.styles.buttonContainerActive
-                        : themeMenu.styles.buttonContainer
-                }>
+                <AttachStep index={6}>
                     <Button
-                        buttonStyle={themeMenu.styles.buttons}
-                        containerStyle={themeMenu.styles.buttonContainerUserProfile}
-                        titleStyle={themeMenu.styles.buttonsTitle}
-                        icon={
-                            isUserAuthenticated(user) ?
-                                <Image
-                                    source={{ uri: getUserImageUri(user, 50) }}
-                                    style={imageStyle}
-                                    PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
-                                /> :
-                                <TherrIcon
-                                    name="user-star"
-                                    size={22}
-                                    style={themeMenu.styles.buttonIcon}
-                                />
+                        title={!isCompact ? translate('menus.main.buttons.map') : null}
+                        buttonStyle={
+                            activeRoute === 'Map'
+                                ? themeMenu.styles.buttonsActive
+                                : themeMenu.styles.buttons
                         }
-                        onPress={this.goToMyProfile}
-                        title={translate('menus.main.buttons.profile')}
-                        type="clear"
+                        containerStyle={[
+                            (activeRoute === 'Map'
+                                ? themeMenu.styles.buttonContainerActive
+                                : themeMenu.styles.buttonContainer),
+                            {
+                                width: buttonWidth,
+                            },
+                        ]}
+                        titleStyle={
+                            activeRoute === 'Map'
+                                ? themeMenu.styles.buttonsTitleActive
+                                : themeMenu.styles.buttonsTitle
+                        }
+                        icon={
+                            <TherrIcon
+                                name="map"
+                                size={22}
+                                style={
+                                    activeRoute === 'Map'
+                                        ? themeMenu.styles.buttonIconActive
+                                        : themeMenu.styles.buttonIcon
+                                }
+                            />
+                        }
+                        onPress={() => this.onNavPressDynamic('Map')}
                     />
-                    {/* {
-                        hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
-                    } */}
-                </View>
+                </AttachStep>
+                <AttachStep index={5}>
+                    <Button
+                        title={!isCompact ? translate('menus.main.buttons.connect') : null}
+                        buttonStyle={
+                            isConnectViewActive
+                                ? themeMenu.styles.buttonsActive
+                                : themeMenu.styles.buttons
+                        }
+                        containerStyle={[
+                            (isConnectViewActive
+                                ? themeMenu.styles.buttonContainerActive
+                                : themeMenu.styles.buttonContainer),
+                            {
+                                width: buttonWidth,
+                            },
+                        ]}
+                        titleStyle={
+                            isConnectViewActive
+                                ? themeMenu.styles.buttonsTitleActive
+                                : themeMenu.styles.buttonsTitle
+                        }
+                        icon={
+                            <TherrIcon
+                                name="key-user"
+                                size={22}
+                                style={
+                                    isConnectViewActive
+                                        ? themeMenu.styles.buttonIconActive
+                                        : themeMenu.styles.buttonIcon
+                                }
+                            />
+                        }
+                        onPress={() => {
+                            this.navTo('Connect', {
+                                activeTab: PEOPLE_CAROUSEL_TABS.PEOPLE,
+                            });
+                            this.onNavPressDynamic('Connect');
+                        }}
+                    />
+                </AttachStep>
+                {/* {
+                    isUserAuthenticated(user) ?
+                        <ViewProfileButton
+                            activeRoute={activeRoute}
+                            goToMyProfile={this.goToMyProfile}
+                            imageStyle={imageStyle}
+                            themeMenu={themeMenu}
+                            translate={translate}
+                            user={user}
+                        /> :
+                        <AttachStep index={4}>
+                            <ViewProfileButton
+                                activeRoute={activeRoute}
+                                goToMyProfile={this.goToMyProfile}
+                                imageStyle={imageStyle}
+                                themeMenu={themeMenu}
+                                translate={translate}
+                                user={user}
+                            />
+                        </AttachStep>
+                } */}
+                <ViewProfileButton
+                    activeRoute={activeRoute}
+                    goToMyProfile={this.goToMyProfile}
+                    imageStyle={imageStyle}
+                    themeMenu={themeMenu}
+                    translate={translate}
+                    user={user}
+                />
             </ButtonMenu>
         );
     }
