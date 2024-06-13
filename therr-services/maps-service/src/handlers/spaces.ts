@@ -304,14 +304,12 @@ const getSpaceDetails = (req, res) => {
 
             return Promise.all(promises).then(([isActivated, eventCount, events]) => {
                 if (userId && userId !== space.fromUserId) {
-                    if (userId !== space.fromUserId) {
-                        incrementInterestEngagement(space.interestsKeys, 2, {
-                            authorization,
-                            locale,
-                            userId,
-                            whiteLabelOrigin,
-                        });
-                    }
+                    incrementInterestEngagement(space.interestsKeys, 2, {
+                        authorization,
+                        locale,
+                        userId,
+                        whiteLabelOrigin,
+                    });
                 }
                 serializedSpace.likeCount = parseInt(eventCount?.count || 0, 10);
                 serializedSpace.events = events;
