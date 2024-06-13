@@ -573,6 +573,7 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
         //
         category,
         media,
+        medias,
         hashTags,
         isPublic,
         maxViews,
@@ -627,6 +628,7 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                 message,
                 notificationMsg,
                 media,
+                medias,
                 hashTags,
                 isClaimPending: true,
                 maxViews,
