@@ -5,6 +5,9 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { IUserState } from 'therr-react/types';
 import AnimatedLottieView from 'lottie-react-native';
+import {
+    AttachStep,
+} from 'react-native-spotlight-tour';
 import { ITherrThemeColors } from '../../styles/themes';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import TherrIcon from '../../components/TherrIcon';
@@ -177,25 +180,27 @@ export default ({
                 </View>
             }
             <View style={themeButtons.styles.locationEnable}>
-                <Button
-                    containerStyle={themeButtons.styles.btnContainer}
-                    buttonStyle={themeButtons.styles.btnLarge}
-                    icon={
-                        isGpsEnabled ?
-                            <TherrIcon
-                                name={'map-follow-filled'}
-                                size={28}
-                                style={themeButtons.styles.btnIcon}
-                            /> :
-                            <MaterialIcon
-                                name={ isGpsEnabled ? 'gps-fixed' : 'gps-off' }
-                                size={28}
-                                style={themeButtons.styles.btnIcon}
-                            />
-                    }
-                    raised={true}
-                    onPress={handleGpsRecenter}
-                />
+                <AttachStep index={1}>
+                    <Button
+                        containerStyle={themeButtons.styles.btnContainer}
+                        buttonStyle={themeButtons.styles.btnLarge}
+                        icon={
+                            isGpsEnabled ?
+                                <TherrIcon
+                                    name={'map-follow-filled'}
+                                    size={28}
+                                    style={themeButtons.styles.btnIcon}
+                                /> :
+                                <MaterialIcon
+                                    name={ isGpsEnabled ? 'gps-fixed' : 'gps-off' }
+                                    size={28}
+                                    style={themeButtons.styles.btnIcon}
+                                />
+                        }
+                        raised={true}
+                        onPress={handleGpsRecenter}
+                    />
+                </AttachStep>
             </View>
             <View style={themeButtons.styles.mapFilters}>
                 <Button
@@ -217,11 +222,18 @@ export default ({
                     containerStyle={themeButtons.styles.btnContainer}
                     buttonStyle={themeButtons.styles.btnXLarge}
                     icon={
-                        <Ionicons
-                            name="bonfire"
-                            size={34}
-                            style={themeButtons.styles.btnIcon}
-                        />
+                        <AttachStep index={0}>
+                            <Ionicons
+                                name="bonfire"
+                                size={34}
+                                style={[
+                                    themeButtons.styles.btnIcon,
+                                    {
+                                        marginTop: 5,
+                                    },
+                                ]}
+                            />
+                        </AttachStep>
                     }
                     raised={true}
                     onPress={handleMatchUp}
@@ -245,22 +257,26 @@ export default ({
                     />
                 </View>
             }
-            <Button
-                containerStyle={themeButtons.styles.addAMoment}
-                buttonStyle={themeButtons.styles.btnLarge}
-                icon={
-                    <TherrIcon
-                        name={shouldShowCreateActions ? 'minus' : 'plus'}
-                        size={22}
-                        style={themeButtons.styles.btnIcon}
+            <View style={themeButtons.styles.addAMoment}>
+                <AttachStep index={3}>
+                    <Button
+                        containerStyle={themeButtons.styles.btnContainer}
+                        buttonStyle={themeButtons.styles.btnLarge}
+                        icon={
+                            <TherrIcon
+                                name={shouldShowCreateActions ? 'minus' : 'plus'}
+                                size={22}
+                                style={themeButtons.styles.btnIcon}
+                            />
+                        }
+                        iconRight
+                        // title={shouldShowCreateActions ? null : translate('menus.mapActions.create')}
+                        // titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                        raised={true}
+                        onPress={() => toggleCreateActions()}
                     />
-                }
-                iconRight
-                // title={shouldShowCreateActions ? null : translate('menus.mapActions.create')}
-                // titleStyle={themeButtons.styles.btnLargeTitleLeft}
-                raised={true}
-                onPress={() => toggleCreateActions()}
-            />
+                </AttachStep>
+            </View>
             {
                 shouldFeatureCheckIn
                     ? <>

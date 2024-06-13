@@ -12,7 +12,8 @@ interface ILoginSSOTokens {
 }
 
 interface IUpdateTourArgs {
-    isTouring: boolean;
+    isTouring?: boolean;
+    isNavigationTouring?: boolean;
 }
 class UsersActions {
     constructor(socketIO, NativeStorage?, GoogleSignin?) {
@@ -307,6 +308,8 @@ class UsersActions {
         userDetails = userDetails // eslint-disable-line no-param-reassign
             || JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null)
             || JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || null);
+        const userSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || null)
+            || JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUserSettings') || null);
         if (!this.NativeStorage) {
             localStorage.removeItem('therrSession');
             localStorage.removeItem('therrUser');
@@ -315,7 +318,10 @@ class UsersActions {
         } else {
             await this.NativeStorage.multiRemove(['therrSession', 'therrUser', 'therrUserSettings']);
             await (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify({
-                id: userDetails?.id,
+                id: userSettings?.id,
+            }));
+            await (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify({
+                navigationTourCount: userSettings?.navigationTourCount || 0,
             }));
         }
 
@@ -505,19 +511,27 @@ class UsersActions {
         };
     });
 
-    updateTour = (id: string, data: IUpdateTourArgs) => (dispatch: any) => (this.NativeStorage || sessionStorage)
+    updateTour = (data: IUpdateTourArgs, userId?: string) => (dispatch: any) => (this.NativeStorage || sessionStorage)
         .getItem('therrUserSettings').then(async (settings) => {
-            const userSettings = JSON.parse(settings || {});
-            // TODO: Get user settings from db
-            const userSettingsData: IUser = Immutable.from({
+            const userSettings = JSON.parse(settings || '{}');
+            const sanitizedData: any = {
+                isTouring: data?.isNavigationTouring === false && data?.isTouring === true,
+                isNavigationTouring: data?.isNavigationTouring === true,
+            };
+            if (sanitizedData.isNavigationTouring === true) {
+                sanitizedData.navigationTourCount = (userSettings?.navigationTourCount || 0) + 1;
+            }
+            const newData = {
                 ...userSettings,
-                isTouring: data.isTouring,
-            });
+                ...sanitizedData,
+            };
+            const userSettingsData: IUserSettings = Immutable.from(newData);
+
             (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
 
             dispatch({
                 type: UserActionTypes.UPDATE_USER_TOUR,
-                data,
+                data: sanitizedData,
             });
         });
 
