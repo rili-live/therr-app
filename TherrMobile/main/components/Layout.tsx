@@ -863,7 +863,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 onStateChange={async () => {
                     const previousRouteName = this.routeNameRef.current;
                     const currentRouteName = navigationRef?.getCurrentRoute()?.name;
-                    if (currentRouteName === 'Map' && (!user?.settings?.navigationTourCount || user?.settings?.navigationTourCount < 1)) {
+                    if (currentRouteName === 'Map'
+                        && !user?.settings?.isNavigationTouring
+                        && (!user?.settings?.navigationTourCount || user?.settings?.navigationTourCount < 1)) {
                         this.props.updateTour({
                             isTouring: false,
                             isNavigationTouring: true,

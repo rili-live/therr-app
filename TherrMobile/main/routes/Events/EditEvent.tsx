@@ -18,22 +18,21 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import LottieView from 'lottie-react-native';
 import analytics from '@react-native-firebase/analytics';
-import DatePicker from 'react-native-date-picker';
-import DropDown from '../components/Input/DropDown';
+import DropDown from '../../components/Input/DropDown';
 // import Alert from '../components/Alert';
-import translator from '../services/translator';
-import { buildStyles, addMargins } from '../styles';
-import { buildStyles as buildAlertStyles } from '../styles/alerts';
-import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
-import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
-import { buildStyles as buildButtonStyles } from '../styles/buttons';
-import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
-import { buildStyles as buildModalStyles } from '../styles/modal';
-import { buildStyles as buildAreaStyles } from '../styles/user-content/areas/editing';
-import { buildStyles as buildSearchStyles } from '../styles/modal/typeAhead';
-import userContentStyles from '../styles/user-content';
-import spacingStyles from '../styles/layouts/spacing';
+import translator from '../../services/translator';
+import { buildStyles, addMargins } from '../../styles';
+import { buildStyles as buildAlertStyles } from '../../styles/alerts';
+import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
+import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildButtonStyles } from '../../styles/buttons';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
+import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
+import { buildStyles as buildModalStyles } from '../../styles/modal';
+import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/editing';
+import { buildStyles as buildSearchStyles } from '../../styles/modal/typeAhead';
+import userContentStyles from '../../styles/user-content';
+import spacingStyles from '../../styles/layouts/spacing';
 import {
     youtubeLinkRegex,
     DEFAULT_RADIUS,
@@ -46,26 +45,27 @@ import {
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
     PEOPLE_CAROUSEL_TABS,
-} from '../constants';
-import Alert from '../components/Alert';
-import RoundInput from '../components/Input/Round';
-import RoundTextInput from '../components/Input/TextInput/Round';
-import HashtagsContainer from '../components/UserContent/HashtagsContainer';
-import BaseStatusBar from '../components/BaseStatusBar';
-import formatHashtags from '../utilities/formatHashtags';
-import { getImagePreviewPath } from '../utilities/areaUtils';
-import { signImageUrl } from '../utilities/content';
-import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
-import { sendForegroundNotification, sendTriggerNotification } from '../utilities/pushNotifications';
-import BottomSheet from '../components/BottomSheet/BottomSheet';
-import TherrIcon from '../components/TherrIcon';
-import ConfirmModal from '../components/Modals/ConfirmModal';
-import SpaceRating from '../components/Input/SpaceRating';
-import SearchTypeAheadResults from '../components/SearchTypeAheadResults';
-import UsersActions from '../redux/actions/UsersActions';
-import searchLoading from '../assets/search-loading.json';
-import formatDate from '../utilities/formatDate';
-import { addAddressParams } from './EditSpace';
+} from '../../constants';
+import Alert from '../../components/Alert';
+import RoundInput from '../../components/Input/Round';
+import RoundTextInput from '../../components/Input/TextInput/Round';
+import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
+import BaseStatusBar from '../../components/BaseStatusBar';
+import formatHashtags from '../../utilities/formatHashtags';
+import { getImagePreviewPath } from '../../utilities/areaUtils';
+import { signImageUrl } from '../../utilities/content';
+import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
+import { sendForegroundNotification, sendTriggerNotification } from '../../utilities/pushNotifications';
+import BottomSheet from '../../components/BottomSheet/BottomSheet';
+import TherrIcon from '../../components/TherrIcon';
+import ConfirmModal from '../../components/Modals/ConfirmModal';
+import SpaceRating from '../../components/Input/SpaceRating';
+import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
+import UsersActions from '../../redux/actions/UsersActions';
+import searchLoading from '../../assets/search-loading.json';
+import { addAddressParams } from '../EditSpace';
+import InputEventName from '../Events/InputEventName';
+import EventStartEndFormGroup from './EventStartEndFormGroup';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 
@@ -132,10 +132,6 @@ interface IEditEventState {
     isImageBottomSheetVisible: boolean;
     isInsufficientFundsModalVisible: boolean;
     isLoading: boolean;
-    isStartDatePickerOpen: boolean;
-    isEndDatePickerOpen: boolean;
-    isStartTimePickerOpen: boolean;
-    isEndTimePickerOpen: boolean;
     isVisibilityBottomSheetVisible: boolean;
     inputs: any;
     isEditingNearbySpaces: boolean;
@@ -210,10 +206,6 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             isImageBottomSheetVisible: false,
             isInsufficientFundsModalVisible: false,
             isLoading: true,
-            isStartDatePickerOpen: false,
-            isEndDatePickerOpen: false,
-            isStartTimePickerOpen: false,
-            isEndTimePickerOpen: false,
             isVisibilityBottomSheetVisible: false,
             isSubmitting: false,
             nearbySpaces: nearbySpaces || [],
@@ -854,31 +846,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         });
     };
 
-    openDatePicker = (variation: 'start' | 'end') => {
-        const pickerStateKey = variation === 'start'
-            ? 'isStartDatePickerOpen'
-            : 'isEndDatePickerOpen';
-        const updatedState: any = {
-            [pickerStateKey]: true,
-        };
-        this.setState({
-            ...updatedState,
-        });
-    };
-
-    openTimePicker = (variation: 'start' | 'end') => {
-        const pickerStateKey = variation === 'start'
-            ? 'isStartTimePickerOpen'
-            : 'isEndTimePickerOpen';
-        const updatedState: any = {
-            [pickerStateKey]: true,
-        };
-        this.setState({
-            ...updatedState,
-        });
-    };
-
-    onConfirmStartDatePicker = (variation: 'start' | 'end', date) => {
+    onConfirmDatePicker = (variation: 'start' | 'end', date) => {
         const pickerStateKey = variation === 'start'
             ? 'scheduleStartAt'
             : 'scheduleStopAt';
@@ -894,19 +862,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             errorMsg: '',
             isSubmitting: false,
         });
-
-        this.onCancelDatePicker();
     };
-
-    onCancelDatePicker = () => {
-        this.setState({
-            isStartDatePickerOpen: false,
-            isEndDatePickerOpen: false,
-            isStartTimePickerOpen: false,
-            isEndTimePickerOpen: false,
-        });
-    };
-
 
     onSetVisibility = (isPublic: boolean) => {
         this.setState({
@@ -1018,10 +974,6 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             previewLinkId,
             previewStyleState,
             isAddressDropdownVisible,
-            isStartDatePickerOpen,
-            isEndDatePickerOpen,
-            isStartTimePickerOpen,
-            isEndTimePickerOpen,
             imagePreviewPath,
             userGroups,
         } = this.state;
@@ -1103,189 +1055,22 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                 disableScroll
                             />
                         }
-                        <RoundInput
-                            maxLength={100}
-                            placeholder={this.translate(
-                                'forms.editEvent.labels.notificationMsg'
-                            )}
-                            value={inputs.notificationMsg}
+                        <InputEventName
+                            translate={this.translate}
                             onChangeText={(text) =>
                                 this.onInputChange('notificationMsg', text)
                             }
                             themeForms={this.themeForms}
+                            value={inputs.notificationMsg}
                         />
-                        <View style={[
-                            spacingStyles.flexRow,
-                            spacingStyles.justifyBetween,
-                            spacingStyles.alignCenter,
-                        ]}>
-                            <Text style={[
-                                this.themeForms.styles.label,
-                                spacingStyles.marginBotLg,
-                                spacingStyles.padRtSm,
-                                spacingStyles.minWidthMd,
-                            ]}>
-                                {this.translate('forms.editEvent.buttons.startsAt')}
-                            </Text>
-                            <Button
-                                containerStyle={[spacingStyles.marginBotLg, spacingStyles.flexOne, spacingStyles.padRtSm]}
-                                buttonStyle={this.themeForms.styles.buttonRoundAlt}
-                                // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                titleStyle={this.themeForms.styles.buttonTitleAlt}
-                                title={inputs.scheduleStartAt
-                                    ? formatDate(inputs.scheduleStartAt, 'short').date
-                                    : this.translate('forms.editEvent.buttons.startsAt')}
-                                type="outline"
-                                onPress={() => this.openDatePicker('start')}
-                                raised={false}
-                                icon={
-                                    <OctIcon
-                                        name={'calendar'}
-                                        size={22}
-                                        style={this.themeForms.styles.buttonIconAlt}
-                                    />
-                                }
-                            />
-                            <Button
-                                containerStyle={[spacingStyles.marginBotLg, spacingStyles.flexOne, spacingStyles.padLtSm]}
-                                buttonStyle={this.themeForms.styles.buttonRoundAlt}
-                                // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                titleStyle={this.themeForms.styles.buttonTitleAlt}
-                                title={inputs.scheduleStartAt
-                                    ? formatDate(inputs.scheduleStartAt, 'short').time
-                                    : this.translate('forms.editEvent.buttons.startsAt')}
-                                type="outline"
-                                onPress={() => this.openTimePicker('start')}
-                                raised={false}
-                                icon={
-                                    <OctIcon
-                                        name={'clock'}
-                                        size={22}
-                                        style={this.themeForms.styles.buttonIconAlt}
-                                    />
-                                }
-                            />
-                            <DatePicker
-                                modal
-                                mode='date'
-                                open={isStartDatePickerOpen}
-                                date={inputs.scheduleStartAt}
-                                onConfirm={(date) => this.onConfirmStartDatePicker('start', date)}
-                                onCancel={this.onCancelDatePicker}
-                                theme={
-                                    user.settings?.mobileThemeName === 'dark'
-                                    || user.settings?.mobileThemeName === 'retro'
-                                        ? 'dark'
-                                        : 'light'
-                                }
-
-                            />
-                            <DatePicker
-                                modal
-                                mode='time'
-                                open={isStartTimePickerOpen}
-                                date={inputs.scheduleStartAt}
-                                onConfirm={(date) => this.onConfirmStartDatePicker('start', date)}
-                                onCancel={this.onCancelDatePicker}
-                                theme={
-                                    user.settings?.mobileThemeName === 'dark'
-                                    || user.settings?.mobileThemeName === 'retro'
-                                        ? 'dark'
-                                        : 'light'
-                                }
-                            />
-                        </View>
-                        <View style={[
-                            spacingStyles.padBotMd,
-                            spacingStyles.flexRow,
-                            spacingStyles.justifyBetween,
-                            spacingStyles.alignCenter,
-                        ]}>
-                            <Text style={[
-                                this.themeForms.styles.label,
-                                spacingStyles.marginBotLg,
-                                spacingStyles.padRtSm,
-                                spacingStyles.minWidthMd,
-                            ]}>
-                                {this.translate('forms.editEvent.buttons.endsAt')}
-                            </Text>
-                            <Button
-                                containerStyle={[spacingStyles.marginBotLg, spacingStyles.flexOne, spacingStyles.padRtSm]}
-                                buttonStyle={this.themeForms.styles.buttonRoundAlt}
-                                // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                titleStyle={this.themeForms.styles.buttonTitleAlt}
-                                title={inputs.scheduleStopAt
-                                    ? formatDate(inputs.scheduleStopAt, 'short').date
-                                    : this.translate('forms.editEvent.buttons.endsAt')}
-                                type="outline"
-                                onPress={() => this.openDatePicker('end')}
-                                raised={false}
-                                icon={
-                                    <OctIcon
-                                        name={'calendar'}
-                                        size={22}
-                                        style={this.themeForms.styles.buttonIconAlt}
-                                    />
-                                }
-                            />
-                            <Button
-                                containerStyle={[spacingStyles.marginBotLg, spacingStyles.flexOne, spacingStyles.padLtSm]}
-                                buttonStyle={this.themeForms.styles.buttonRoundAlt}
-                                // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                titleStyle={this.themeForms.styles.buttonTitleAlt}
-                                title={inputs.scheduleStopAt
-                                    ? formatDate(inputs.scheduleStopAt, 'short').time
-                                    : this.translate('forms.editEvent.buttons.endsAt')}
-                                type="outline"
-                                onPress={() => this.openTimePicker('end')}
-                                raised={false}
-                                icon={
-                                    <OctIcon
-                                        name={'clock'}
-                                        size={22}
-                                        style={this.themeForms.styles.buttonIconAlt}
-                                    />
-                                }
-                            />
-                            <DatePicker
-                                modal
-                                mode='date'
-                                open={isEndDatePickerOpen}
-                                date={inputs.scheduleStopAt}
-                                onConfirm={(date) => this.onConfirmStartDatePicker('end', date)}
-                                onCancel={this.onCancelDatePicker}
-                                theme={
-                                    user.settings?.mobileThemeName === 'dark'
-                                    || user.settings?.mobileThemeName === 'retro'
-                                        ? 'dark'
-                                        : 'light'
-                                }
-
-                            />
-                            <DatePicker
-                                modal
-                                mode='time'
-                                open={isEndTimePickerOpen}
-                                date={inputs.scheduleStopAt}
-                                onConfirm={(date) => this.onConfirmStartDatePicker('end', date)}
-                                onCancel={this.onCancelDatePicker}
-                                theme={
-                                    user.settings?.mobileThemeName === 'dark'
-                                    || user.settings?.mobileThemeName === 'retro'
-                                        ? 'dark'
-                                        : 'light'
-                                }
-
-                            />
-                        </View>
+                        <EventStartEndFormGroup
+                            themeForms={this.themeForms}
+                            isNightMode={user.settings?.mobileThemeName === 'dark' || user.settings?.mobileThemeName === 'retro'}
+                            onConfirm={this.onConfirmDatePicker}
+                            translate={this.translate}
+                            startsAtValue={inputs.scheduleStartAt}
+                            stopsAtValue={inputs.scheduleStopAt}
+                        />
                         <RoundTextInput
                             placeholder={this.translate(
                                 'forms.editEvent.labels.message'

@@ -24,6 +24,7 @@ import RoundInput from '../../components/Input/Round';
 import RoundTextInput from '../../components/Input/TextInput/Round';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 import Toast from 'react-native-toast-message';
+import InputGroupName from './InputGroupName';
 
 interface IEditChatDispatchProps {
     logout: Function;
@@ -314,17 +315,14 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         <View style={[this.themeAccentLayout.styles.container, {
                             position: 'relative',
                         }]}>
-                            <RoundInput
+                            <InputGroupName
                                 autoFocus
-                                maxLength={100}
-                                placeholder={this.translate(
-                                    'forms.editGroup.placeholders.title'
-                                )}
-                                value={inputs.title}
                                 onChangeText={(text) =>
                                     this.onInputChange('title', text)
                                 }
                                 themeForms={this.themeForms}
+                                translate={this.translate}
+                                value={inputs.title}
                             />
                             <RoundInput
                                 placeholder={this.translate(

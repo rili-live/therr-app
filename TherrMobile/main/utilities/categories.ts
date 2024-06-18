@@ -1,4 +1,4 @@
-import { eventCategories } from '../routes/EditEvent';
+import { eventCategories } from '../routes/Events/EditEvent';
 import { momentCategories } from '../routes/EditMoment';
 import { spaceCategories } from '../routes/EditSpace';
 import { thoughtCategories } from '../routes/EditThought';
