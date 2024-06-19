@@ -135,6 +135,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         areaContainer: {
 
         },
+        areaContainerButton: {
+        },
+        areaContainerButtonSelected: {
+            borderWidth: 2,
+            borderColor: therrTheme.colors.primary3,
+            paddingBottom: 8,
+        },
         safeAreaView: {
             marginTop: Platform.OS === 'ios' ? 0 : 0,
             flex: 1,

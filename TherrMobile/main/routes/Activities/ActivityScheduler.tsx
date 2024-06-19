@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text, Pressable, Dimensions } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Badge, Button } from 'react-native-elements';
 import { ContentActions, MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import {
@@ -65,6 +65,8 @@ interface IActivitySchedulerState {
     isSubmitting: boolean;
     isVisibilityBottomSheetVisible: boolean;
     shouldShowMoreSpaces: boolean;
+    selectedSpaceId?: string;
+    spaceListSize: number;
 }
 
 const mapStateToProps = (state) => ({
@@ -112,6 +114,7 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
             isSubmitting: false,
             isVisibilityBottomSheetVisible: false,
             shouldShowMoreSpaces: false,
+            spaceListSize: DEFAULT_SPACES_LIST_SIZE,
         };
 
         this.reloadTheme();
@@ -155,6 +158,14 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
         });
     };
 
+    onSelectSpace = (space: any) => {
+        this.setState({
+            selectedSpaceId: space.id,
+            spaceListSize: 1,
+            shouldShowMoreSpaces: false,
+        });
+    };
+
     goToSpaceDetails = (space: any) => {
         const { navigation, user } = this.props;
         navigation.navigate('ViewSpace', {
@@ -176,8 +187,14 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
     };
 
     isFormDisabled() {
-        const { isLoading, isSubmitting } = this.state;
-        return isLoading || isSubmitting;
+        const { inputs, isLoading, isSubmitting } = this.state;
+        return (
+            !inputs.title ||
+            // !inputs.description ||
+            !inputs.notificationMsg ||
+            isLoading ||
+            isSubmitting
+        );
     }
 
     reloadTheme = () => {
@@ -272,21 +289,54 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
     };
 
     onSubmit = () => {
-        console.log('submit');
+        const {
+            isPublic,
+            message,
+            notificationMsg,
+            radius,
+            scheduleStartAt,
+            scheduleStopAt,
+            title,
+        } = this.state.inputs;
+
+        console.log('submit', {
+            group: {
+                title,
+                subtitle: message || '...',
+                isPublic,
+            },
+            event: {
+                isPublic,
+                notificationMsg, // Name
+                message: message || '...',
+                radius,
+                spaceId: this.state.selectedSpaceId,
+                scheduleStartAt,
+                scheduleStopAt,
+            },
+        });
     };
 
     render() {
         const { content, map, navigation, user, userConnections } = this.props;
-        const { inputs, isLoading, isVisibilityBottomSheetVisible, shouldShowMoreSpaces } = this.state;
+        const { inputs, isLoading, isVisibilityBottomSheetVisible, shouldShowMoreSpaces, spaceListSize, selectedSpaceId } = this.state;
         // const currentUserImageUri = getUserImageUri(user, 200);
         const topConnections = map?.activityGeneration?.topConnections?.map((connection) => ({
             ...connection,
             isActive: userConnections?.activeConnections?.find((activeC) => activeC.id === connection.user.id),
         }));
-        const topSpaces = map?.activityGeneration?.topSpaces;
+        const topSpacesSorted = [...map?.activityGeneration?.topSpaces].sort((a, b) => {
+            if (a.id === selectedSpaceId) {
+                return -1;
+            } else if (b.id === selectedSpaceId) {
+                return 1;
+            }
+
+            return 0;
+        });
         const topSpacesInView = shouldShowMoreSpaces
-            ? map?.activityGeneration?.topSpaces
-            : map?.activityGeneration?.topSpaces?.slice(0, DEFAULT_SPACES_LIST_SIZE);
+            ? topSpacesSorted
+            : topSpacesSorted?.slice(0, spaceListSize);
 
         return (
             <>
@@ -393,8 +443,17 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                                                     return (
                                                         <Pressable
                                                             key={space?.id}
-                                                            style={this.theme.styles.areaContainer}
-                                                            onPress={() => this.goToSpaceDetails(space)}
+                                                            style={[
+                                                                (space?.id === selectedSpaceId)
+                                                                    ? this.theme.styles.areaContainerButtonSelected
+                                                                    : this.theme.styles.areaContainerButton,
+                                                                        {
+                                                                            display: 'flex',
+                                                                            flexDirection: 'row',
+                                                                            alignItems: 'center'
+                                                                        }
+                                                            ]}
+                                                            onPress={() => this.onSelectSpace(space)}
                                                         >
                                                             <AreaDisplayContent
                                                                 key={space?.id}
@@ -402,13 +461,37 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                                                                 isDarkMode={false}
                                                                 area={space}
                                                                 areaMedia={postMedia}
-                                                                inspectContent={() => this.goToSpaceDetails(space)}
+                                                                inspectContent={() => this.onSelectSpace(space)}
                                                                 // onBookmarkPress={() => this.onBookmarkPress(space)}
                                                                 theme={this.theme}
                                                                 themeForms={this.themeForms}
                                                                 themeViewArea={this.themeViewArea}
                                                                 translate={this.translate}
                                                             />
+                                                            <View style={{
+                                                                width: 30,
+                                                            }}>
+                                                                <OctIcon
+                                                                    name={(space?.id === selectedSpaceId) ?
+                                                                        'check' :
+                                                                        'circle'
+                                                                    }
+                                                                    size={18}
+                                                                    color={(space?.id === selectedSpaceId) ?
+                                                                        this.theme.colors.primary3 :
+                                                                        this.theme.colors.accentDivider
+                                                                    }
+                                                                />
+                                                                {/* {
+                                                                    (space?.id === selectedSpaceId) ?
+                                                                        <Badge
+                                                                            badgeStyle={{ backgroundColor: this.theme.colors.primary3 }}
+                                                                        /> :
+                                                                        <Badge
+                                                                            badgeStyle={{ backgroundColor: this.theme.colors.accentDivider }}
+                                                                        />
+                                                                } */}
+                                                            </View>
                                                         </Pressable>
                                                     );
                                                 })
@@ -420,7 +503,7 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                                                 </Text>
                                             }
                                             {
-                                                topSpacesInView?.length > 0 && topSpaces?.length > DEFAULT_SPACES_LIST_SIZE &&
+                                                topSpacesInView?.length > 0 && topSpacesSorted?.length > spaceListSize &&
                                                 <View style={this.theme.styles.sectionDescriptionCentered}>
                                                     <Button
                                                         type="clear"
@@ -525,15 +608,13 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                             <TherrIcon
                                 name="calendar"
                                 size={24}
-                                style={this.themeForms.styles.buttonIconDisabled}
-                                // style={this.isFormDisabled()
-                                //     ? this.themeForms.styles.buttonIconDisabled
-                                //     : this.themeForms.styles.buttonIcon}
+                                style={this.isFormDisabled()
+                                    ? this.themeForms.styles.buttonIconDisabled
+                                    : this.themeForms.styles.buttonIcon}
                             />
                         }
                         onPress={this.onSubmit}
-                        disabled={true}
-                        // disabled={this.isFormDisabled()}
+                        disabled={this.isFormDisabled()}
                         raised={true}
                     />
                 </View>
