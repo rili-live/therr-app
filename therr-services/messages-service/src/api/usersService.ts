@@ -13,6 +13,18 @@ const createUserForum = (headers: any, groupId: string) => axios({
     },
 });
 
+const createUserForums = (headers: any, groupId: string, memberIds: string[]) => axios({
+    method: 'post',
+    url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/privileged`,
+    headers,
+    data: {
+        groupId,
+        role: GroupMemberRoles.ADMIN,
+        status: GroupRequestStatuses.APPROVED,
+        memberIds,
+    },
+});
+
 const findUsers = (headers: any, userIds: string[]) => axios({
     method: 'post',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/find`,
@@ -24,5 +36,6 @@ const findUsers = (headers: any, userIds: string[]) => axios({
 
 export {
     createUserForum,
+    createUserForums,
     findUsers,
 };

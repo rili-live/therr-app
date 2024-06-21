@@ -5,6 +5,7 @@ import { validate } from '../../validation';
 import { createDirectMessageValidation } from './validation/directMessages';
 import { createForumMessageValidation } from './validation/forumMessages';
 import {
+    createActivityValidation,
     createForumValidation,
     searchForumsValidation,
     updateForumValidation,
@@ -42,6 +43,11 @@ messagesServiceRouter.get('/forums/:forumId', validate, handleServiceRequest({
 }));
 
 messagesServiceRouter.post('/forums', createForumValidation, validate, checkResources('createGroup'), handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
+    method: 'post',
+}));
+
+messagesServiceRouter.post('/forums/activities', createActivityValidation, validate, checkResources('createActivity'), handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'post',
 }));

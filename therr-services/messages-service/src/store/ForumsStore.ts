@@ -226,4 +226,16 @@ export default class ForumsStore {
 
         return this.db.write.query(forumQueryString).then((response) => response.rows);
     }
+
+    deleteForum(id: string) {
+        const forumQueryString = knexBuilder.delete()
+            .into(FORUMS_TABLE_NAME)
+            .where({
+                id,
+            })
+            .returning(['id'])
+            .toString();
+
+        return this.db.write.query(forumQueryString).then((response) => response.rows);
+    }
 }

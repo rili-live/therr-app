@@ -229,6 +229,9 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                     }
                 })
                 .finally(() => {
+                    this.setState({
+                        isSubmitting: false,
+                    });
                     Keyboard.dismiss();
                     this.scrollViewRef.scrollToEnd({ animated: true });
                 });

@@ -5,6 +5,7 @@
     "edit": "Edit"
   },
   "alertTitles": {
+    "activityCreated": "Activity Successfully Created",
     "codeSent": "New Code Sent",
     "coinsReceived": "You Received Coins",
     "invalidCode": "Invalid Code",
@@ -22,7 +23,7 @@
     "spaceCreatedSuccess": "You Claimed a Space",
     "spaceRequestSuccess": "Request Sent",
     "ssoLoginError": "Error With Single Sign-On",
-    "startDateAfterEndDate" : "Invalid State/End Dates",
+    "startDateAfterEndDate" : "Invalid Start/End Dates",
     "walkCloser": "Too Far Away",
     "nameUnknown": "Anonymous User",
     "newAreasActivated": "New Areas Activated",
@@ -30,6 +31,7 @@
     "requestClaimSent": "Request Sent"
   },
   "alertMessages": {
+    "activityCreated": "A new group and event was created. Invites sent to each group member.",
     "codeSent": "Check your phone for a new verification code.",
     "coinsReceived": "🎁 You earned {total} TherrCoin(s) 🎁",
     "invalidCode": "Code is invalid or expired. Try again or resend.",

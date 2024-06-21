@@ -114,6 +114,13 @@ const getSectionDescriptionStyles = (theme: ITherrTheme): any => ({
     color: theme.colors.textGray,
 });
 
+const getAreaContainerButtonStyles = (): any => ({
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+});
+
+
 const buildNavTheme = (theme: ITherrTheme): Theme => {
     return ({
         dark: true,
@@ -136,8 +143,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
 
         },
         areaContainerButton: {
+            ...getAreaContainerButtonStyles(),
         },
         areaContainerButtonSelected: {
+            ...getAreaContainerButtonStyles(),
             borderWidth: 2,
             borderColor: therrTheme.colors.primary3,
             paddingBottom: 8,

@@ -89,25 +89,42 @@ const getGroupMembers = (req, res) => Store.userGroups.get({
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_GROUPS_ROUTES:ERROR' }));
 
 // WRITE
-const internalCreateUserGroup = (req, res) => {
+const internalCreateUserGroups = (req, res) => {
     const {
         userId,
     } = parseHeaders(req.headers);
     const {
         groupId,
         role,
+        memberIds,
+        memberRole,
     } = req.body;
 
     // TODO: Check if group requires approval
     const status = GroupRequestStatuses.APPROVED;
 
-    return Store.userGroups.create({
+    const newUserGroups = [{
         groupId,
         userId,
         status,
         shouldMuteNotifs: false,
         role,
-    })
+    }];
+
+    if (memberIds) {
+        memberIds.forEach((memberId) => {
+            // Default invited members to pending and member role unless otherwise specified
+            newUserGroups.push({
+                groupId,
+                userId: memberId,
+                status: GroupRequestStatuses.PENDING,
+                shouldMuteNotifs: false,
+                role: memberRole || GroupMemberRoles.MEMBER,
+            });
+        });
+    }
+
+    return Store.userGroups.create(newUserGroups)
         .then(([userGroup]) => res.status(201).send(userGroup))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_GROUPS_ROUTES:ERROR' }));
 };
@@ -152,12 +169,12 @@ const createUserGroup = (req, res) => {
             }
             const fromUserNames = [(users.find((u) => u.id !== group.authorId) || users[0])?.userName];
 
-            return Store.userGroups.create({
+            return Store.userGroups.create([{
                 groupId,
                 userId,
                 status,
                 shouldMuteNotifs: false,
-            })
+            }])
                 .then(([userGroup]) => {
                     // Fetch group author and notify
                     notifyUserOfUpdate({
@@ -327,7 +344,7 @@ const notifyGroupMembers = (req, res) => {
 export {
     getUserGroups,
     getGroupMembers,
-    internalCreateUserGroup,
+    internalCreateUserGroups,
     createUserGroup,
     updateUserGroup,
     deleteUserGroup,

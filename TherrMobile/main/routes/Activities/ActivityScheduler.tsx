@@ -3,9 +3,11 @@ import { SafeAreaView, View, Text, Pressable, Dimensions } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Badge, Button } from 'react-native-elements';
+import { Button } from 'react-native-elements';
+import Toast from 'react-native-toast-message';
 import { ContentActions, MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { ForumsService } from 'therr-react/services';
+import { IContentState, IForumsState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import {
     Content,
 } from 'therr-js-utilities/constants';
@@ -33,7 +35,7 @@ import LoadingPlaceholder from './LoadingPlaceholder';
 import InputEventName from '../Events/InputEventName';
 import InputGroupName from '../Groups/InputGroupName';
 import EventStartEndFormGroup from '../Events/EventStartEndFormGroup';
-import { DEFAULT_RADIUS } from '../../constants';
+import { DEFAULT_RADIUS, PEOPLE_CAROUSEL_TABS } from '../../constants';
 import BottomSheet from '../../components/BottomSheet/BottomSheet';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -57,20 +59,24 @@ interface IStoreProps extends IActivitySchedulerDispatchProps {
 // Regular component props
 export interface IActivitySchedulerProps extends IStoreProps {
     navigation: any;
+    route: any;
+    forums: IForumsState;
 }
 
 interface IActivitySchedulerState {
+    categories: any[];
     inputs: any;
     isLoading: boolean;
     isSubmitting: boolean;
     isVisibilityBottomSheetVisible: boolean;
     shouldShowMoreSpaces: boolean;
-    selectedSpaceId?: string;
+    selectedSpace?: any;
     spaceListSize: number;
 }
 
 const mapStateToProps = (state) => ({
     content: state.content,
+    forums: state.forums,
     location: state.location,
     map: state.map,
     user: state.user,
@@ -95,10 +101,24 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
     private themeForms = buildFormStyles();
     private themeSettingsForm = buildSettingsFormStyles();
 
+    static getDerivedStateFromProps(nextProps: IActivitySchedulerProps, nextState: IActivitySchedulerState) {
+        if (!nextState.categories || !nextState.categories.length) {
+            return {
+                categories: nextProps.forums.forumCategories,
+            };
+        }
+
+        return null;
+    }
+
     constructor(props) {
         super(props);
 
+        const { route } = props;
+        const { categories } = route.params || {};
+
         this.state = {
+            categories: (categories || []).map(c => ({ ...c, isActive: false })),
             inputs: {
                 isDraft: false,
                 isPublic: false,
@@ -160,7 +180,7 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
 
     onSelectSpace = (space: any) => {
         this.setState({
-            selectedSpaceId: space.id,
+            selectedSpace: space,
             spaceListSize: 1,
             shouldShowMoreSpaces: false,
         });
@@ -187,11 +207,12 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
     };
 
     isFormDisabled() {
-        const { inputs, isLoading, isSubmitting } = this.state;
+        const { inputs, isLoading, isSubmitting, selectedSpace } = this.state;
         return (
             !inputs.title ||
             // !inputs.description ||
             !inputs.notificationMsg ||
+            !selectedSpace?.id ||
             isLoading ||
             isSubmitting
         );
@@ -289,46 +310,126 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
     };
 
     onSubmit = () => {
+        const { map, user } = this.props;
         const {
             isPublic,
-            message,
+            // message,
             notificationMsg,
             radius,
             scheduleStartAt,
             scheduleStopAt,
             title,
+
+            administratorIds,
+            subtitle,
+            categories,
+            hashtags,
+            integrationIds,
+            invitees,
+            iconGroup,
+            iconId,
+            iconColor,
+            maxCommentsPerMin,
+            doesExpire,
         } = this.state.inputs;
 
-        console.log('submit', {
+        if (scheduleStopAt - scheduleStartAt <= 0) {
+            Toast.show({
+                type: 'error',
+                text1: this.translate('alertTitles.startDateAfterEndDate'),
+                text2: this.translate('alertMessages.startDateAfterEndDate'),
+                visibilityTime: 3500,
+            });
+
+            return;
+        }
+
+        const requestBody = {
             group: {
+                administratorIds: [user.details.id, ...(administratorIds || [])].join(','),
                 title,
-                subtitle: message || '...',
+                subtitle: subtitle || title,
+                description: 'Hangout w/ local friends',
+                categoryTags: categories?.filter(c => c.isActive).map(c => c.tag) || ['general'],
+                hashTags: hashtags?.join(','),
+                integrationIds: integrationIds ? integrationIds.join(',') : '',
+                invitees: invitees ? invitees.join('') : '',
+                iconGroup: iconGroup || 'font-awesome-5',
+                iconId: iconId || 'star',
+                iconColor: iconColor || 'black',
+                maxCommentsPerMin,
+                memberIds: map?.activityGeneration?.topConnections?.map((connection) => connection?.user?.id),
+                doesExpire,
                 isPublic,
             },
             event: {
                 isPublic,
                 notificationMsg, // Name
-                message: message || '...',
+                message: `Hangout @ ${this.state.selectedSpace?.notificationMsg}`,
                 radius,
-                spaceId: this.state.selectedSpaceId,
+                spaceId: this.state.selectedSpace?.id,
                 scheduleStartAt,
                 scheduleStopAt,
+                latitude: this.state.selectedSpace?.latitude,
+                longitude:  this.state.selectedSpace?.longitude,
+                userLatitude: this.state.selectedSpace?.latitude,
+                userLongitude:  this.state.selectedSpace?.longitude,
             },
+        };
+
+        this.setState({
+            isSubmitting: true,
         });
+
+        ForumsService.createActivity(requestBody)
+            .then((response) => {
+                console.log(response.data);
+                Toast.show({
+                    type: 'successBig',
+                    text1: this.translate('alertTitles.activityCreated'),
+                    text2: this.translate('alertMessages.activityCreated'),
+                    visibilityTime: 3500,
+                    onHide: () => {
+                        this.setState({
+                            isSubmitting: false,
+                        });
+                        this.props.navigation.navigate('Connect', {
+                            activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                        });
+                    },
+                });
+            })
+            .catch(() => {
+                this.setState({
+                    isSubmitting: false,
+                });
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    text2: this.translate('alertMessages.backendErrorMessage'),
+                    visibilityTime: 3500,
+                });
+            });
     };
 
     render() {
         const { content, map, navigation, user, userConnections } = this.props;
-        const { inputs, isLoading, isVisibilityBottomSheetVisible, shouldShowMoreSpaces, spaceListSize, selectedSpaceId } = this.state;
+        const { inputs, isLoading, isVisibilityBottomSheetVisible, shouldShowMoreSpaces, spaceListSize, selectedSpace } = this.state;
         // const currentUserImageUri = getUserImageUri(user, 200);
-        const topConnections = map?.activityGeneration?.topConnections?.map((connection) => ({
+        const topConnections = [...map?.activityGeneration?.topConnections]?.map((connection) => ({
             ...connection,
             isActive: userConnections?.activeConnections?.find((activeC) => activeC.id === connection.user.id),
         }));
+        topConnections.unshift({
+            user: {
+                ...user.details,
+            },
+            isActive: true,
+        });
         const topSpacesSorted = [...map?.activityGeneration?.topSpaces].sort((a, b) => {
-            if (a.id === selectedSpaceId) {
+            if (a.id === selectedSpace?.id) {
                 return -1;
-            } else if (b.id === selectedSpaceId) {
+            } else if (b.id === selectedSpace?.id) {
                 return 1;
             }
 
@@ -444,14 +545,9 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                                                         <Pressable
                                                             key={space?.id}
                                                             style={[
-                                                                (space?.id === selectedSpaceId)
+                                                                (space?.id === selectedSpace?.id)
                                                                     ? this.theme.styles.areaContainerButtonSelected
                                                                     : this.theme.styles.areaContainerButton,
-                                                                        {
-                                                                            display: 'flex',
-                                                                            flexDirection: 'row',
-                                                                            alignItems: 'center'
-                                                                        }
                                                             ]}
                                                             onPress={() => this.onSelectSpace(space)}
                                                         >
@@ -472,18 +568,18 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                                                                 width: 30,
                                                             }}>
                                                                 <OctIcon
-                                                                    name={(space?.id === selectedSpaceId) ?
+                                                                    name={(space?.id === selectedSpace?.id) ?
                                                                         'check' :
                                                                         'circle'
                                                                     }
                                                                     size={18}
-                                                                    color={(space?.id === selectedSpaceId) ?
+                                                                    color={(space?.id === selectedSpace?.id) ?
                                                                         this.theme.colors.primary3 :
                                                                         this.theme.colors.accentDivider
                                                                     }
                                                                 />
                                                                 {/* {
-                                                                    (space?.id === selectedSpaceId) ?
+                                                                    (space?.id === selectedSpace?.id) ?
                                                                         <Badge
                                                                             badgeStyle={{ backgroundColor: this.theme.colors.primary3 }}
                                                                         /> :

@@ -1,5 +1,6 @@
 import * as express from 'express';
 import {
+    createActivity,
     createForum,
     searchCategories,
     getForum,
@@ -12,6 +13,7 @@ const router = express.Router();
 
 // CREATE
 router.post('/', createForum);
+router.post('/activities', createActivity);
 
 // READ
 router.post('/find', findForums); // internal route

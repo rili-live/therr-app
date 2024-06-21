@@ -429,9 +429,9 @@ export default class EventsStore {
             .limit(limit)
             .offset(offset)
             .whereIn('groupId', groupIds)
-            .where({
-                isPublic: true,
-            })
+            // .where({
+            //     isPublic: true,
+            // })
             .where('scheduleStartAt', '>', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
 
         return this.db.read.query(query.toString()).then(async (response) => {

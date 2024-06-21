@@ -20,6 +20,12 @@ export const createForumValidation = [
     body('isPublic').optional().isBoolean(),
 ];
 
+// Improve validation
+export const createActivityValidation = [
+    body('group').exists(),
+    body('event').exists(),
+];
+
 export const searchForumsValidation = [
     body('usersInvitedForumIds').optional().isArray(),
     body('categoryTags').optional().isArray(),

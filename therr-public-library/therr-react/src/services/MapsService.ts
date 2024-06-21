@@ -55,7 +55,7 @@ interface ICreateAreaBody {
     polygonCoords?: string;
 }
 
-interface ICreateEventBody extends ICreateAreaBody {
+export interface ICreateEventBody extends ICreateAreaBody {
     groupId?: string;
     spaceId?: string;
     isDraft?: boolean;
