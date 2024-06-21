@@ -55,13 +55,13 @@ export default class UserGroupsStore {
         return this.db.read.query(queryString).then((response) => response.rows[0]);
     }
 
-    create(params: ICreateUserGroupParams) {
-        const modifiedParams: any = {
+    create(paramsList: ICreateUserGroupParams[]) {
+        const modifiedParamList = paramsList.map((params) => ({
             ...params,
             role: params.role || GroupMemberRoles.MEMBER,
             status: params.status || GroupRequestStatuses.PENDING,
-        };
-        const queryString = knexBuilder.insert(modifiedParams)
+        }));
+        const queryString = knexBuilder.insert(modifiedParamList)
             .into(USER_GROUPS_TABLE_NAME)
             .returning('*')
             .toString();

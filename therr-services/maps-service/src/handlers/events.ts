@@ -283,12 +283,13 @@ const createEvent = async (req, res) => {
                     'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
+                    attendingCount: 1,
                     userHasActivated: true,
                 },
             }).then(({ data: reaction }) => {
                 // Create reaction for first n group members
                 const MEMBERS_LIMIT = 200;
-                axios({ // Create companion reaction for user's own event
+                axios({ // Create companion reaction for all users in the event group
                     method: 'get',
                     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/${groupId}?limit=${MEMBERS_LIMIT}&returning=simple`,
                     headers: {
@@ -297,7 +298,7 @@ const createEvent = async (req, res) => {
                         'x-userid': userId,
                         'x-therr-origin-host': whiteLabelOrigin,
                     },
-                }).then((response) => axios({ // Create companion reaction for user's own event
+                }).then((response) => axios({
                     method: 'post',
                     url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/event-reactions/create-update/multiple-users`,
                     headers: {
@@ -311,6 +312,8 @@ const createEvent = async (req, res) => {
                         userIds: response.data?.userGroups?.map((g) => g.userId),
                     },
                 }).then((reactionsResponse) => {
+                    // TODO: Notify response.data?.userGroups of the newly created event
+
                     logSpan({
                         level: 'info',
                         messageOrigin: 'API_SERVER',
@@ -839,6 +842,8 @@ const searchMyEvents: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENTS_ROUTES:ERROR' }));
 };
 
+// TODO: Make sure this endpoint is only available internally to ensure the requesting user
+// is in the group and has permission to view the event
 const searchGroupEvents: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     const {

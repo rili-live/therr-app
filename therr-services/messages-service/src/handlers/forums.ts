@@ -5,11 +5,93 @@ import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js
 import * as globalConfig from '../../../../global-config';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
-import { createUserForum, findUsers } from '../api/usersService';
+import { createUserForum, createUserForums, findUsers } from '../api/usersService';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import translate from '../utilities/translator';
 
 // CREATE
+const createActivity = (req, res) => {
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
+
+    let forumId;
+
+    const {
+        group,
+        event,
+    } = req.body;
+
+    const isTextMature = isTextUnsafe([group.title, group.subtitle, group.description]);
+
+    if (isTextMature) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errors.matureText'),
+            statusCode: 400,
+        });
+    }
+
+    return Store.forums.createForum({
+        authorId: userId,
+        authorLocale: locale,
+        administratorIds: group.administratorIds,
+        title: group.title,
+        subtitle: group.subtitle,
+        description: group.description,
+        categoryTags: group.categoryTags,
+        hashTags: group.hashTags || '',
+        integrationIds: group.integrationIds,
+        invitees: group.invitees,
+        iconGroup: group.iconGroup,
+        iconId: group.iconId,
+        iconColor: group.iconColor,
+        maxCommentsPerMin: group.maxCommentsPerMin || 50,
+        doesExpire: group.doesExpire || true,
+        isPublic: group.isPublic || true,
+    })
+        .then(([dbForum]) => {
+            forumId = dbForum.id;
+
+            return createUserForums({
+                'x-userid': userId,
+                'x-localecode': locale,
+            }, dbForum.id, group.memberIds).then((userGroupsResponse) => [dbForum, userGroupsResponse?.data?.userGroups]);
+        })
+        .then(([dbForum, userGroups]) => axios({
+            method: 'post',
+            url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/events`,
+            headers: {
+                authorization,
+                'x-localecode': locale,
+                'x-userid': userId,
+                'x-therr-origin-host': whiteLabelOrigin,
+            },
+            data: {
+                groupId: dbForum.id,
+                ...event,
+            },
+        }).then((eventResponse) => res.status(201).send({
+            group: dbForum,
+            event: eventResponse?.data,
+            userGroups,
+        })))
+        .catch((err) => {
+            if (forumId) {
+                // Delete the forum if we fail to created the associated event
+                Store.forums.deleteForum(forumId).catch((error) => {
+                    console.log('Failed to delete forum after error');
+                    console.log(error);
+                });
+            }
+
+            return handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' });
+        });
+};
+
 const createForum = (req, res) => {
     const {
         authorization,
@@ -258,6 +340,7 @@ const updateForum = (req, res) => {
 };
 
 export {
+    createActivity,
     createForum,
     searchCategories,
     getForum,

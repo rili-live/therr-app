@@ -4,7 +4,8 @@ import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { IAccess, AccessCheckType } from 'therr-react/types';
-import ActivityGenerator from './Activities';
+import ActivityGenerator from './Activities/ActivityGenerator';
+import ActivityScheduler from './Activities/ActivityScheduler';
 import AdvancedSearch from './AdvancedSearch';
 import MapFilteredSearch from './AdvancedSearch/MapFilteredSearch';
 import BookMarked from './Areas/BookMarked';
@@ -33,7 +34,7 @@ import SocialSync from './ViewUser/SocialSync';
 import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
 import EditMoment from './EditMoment';
-import EditEvent from './EditEvent';
+import EditEvent from './Events/EditEvent';
 import ViewSpace from './ViewSpace';
 import EditSpace from './EditSpace';
 import EditThought from './EditThought';
@@ -144,6 +145,17 @@ const routes: RouteConfig<
         component: ActivityGenerator,
         options: () => ({
             title: 'ActivityGenerator',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'ActivityScheduler',
+        component: ActivityScheduler,
+        options: () => ({
+            title: 'ActivityScheduler',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

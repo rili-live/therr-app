@@ -910,6 +910,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     handleMatchUpPress = () => {
+        ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
+
         if (this.isUserAuthenticated()) {
             this.props.navigation.navigate('ActivityGenerator');
         } else {

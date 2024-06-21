@@ -219,7 +219,7 @@ export const AreaDisplayContent = ({
     // };
 
     return (
-        <View style={{ display: 'flex', flexDirection: 'row' }}>
+        <View style={{ display: 'flex', flexDirection: 'row', flex: 1 }}>
             <PresssableWithDoubleTap
                 onPress={inspectContent}
                 onDoubleTap={onDoubleTap || (() => {})}

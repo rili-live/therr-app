@@ -84,7 +84,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                         name: 'Map',
                     },
                     {
-                        name: 'Login',
+                        name: 'Register',
                     },
                 ],
             });

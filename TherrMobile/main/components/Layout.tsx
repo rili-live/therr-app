@@ -53,10 +53,10 @@ import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
 import background1 from '../assets/dinner-burgers.webp';
 import background2 from '../assets/dinner-overhead.webp';
 import background3 from '../assets/dinner-overhead-2.webp';
-// import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
+import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 
-// NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
+NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
 
 const preLoadImageList = [background1, background2, background3];
 
@@ -863,7 +863,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 onStateChange={async () => {
                     const previousRouteName = this.routeNameRef.current;
                     const currentRouteName = navigationRef?.getCurrentRoute()?.name;
-                    if (currentRouteName === 'Map' && (!user?.settings?.navigationTourCount || user?.settings?.navigationTourCount < 1)) {
+                    if (currentRouteName === 'Map'
+                        && !user?.settings?.isNavigationTouring
+                        && (!user?.settings?.navigationTourCount || user?.settings?.navigationTourCount < 1)) {
                         this.props.updateTour({
                             isTouring: false,
                             isNavigationTouring: true,

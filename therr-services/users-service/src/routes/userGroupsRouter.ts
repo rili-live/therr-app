@@ -3,7 +3,7 @@ import {
     getUserGroups,
     getGroupMembers,
     createUserGroup,
-    internalCreateUserGroup,
+    internalCreateUserGroups,
     updateUserGroup,
     deleteUserGroup,
     notifyGroupMembers,
@@ -20,6 +20,6 @@ router.delete('/:id', deleteUserGroup);
 router.post('/notify-members', notifyGroupMembers);
 
 // PRIVATE
-router.post('/privileged', internalCreateUserGroup);
+router.post('/privileged', internalCreateUserGroups);
 
 export default router;
