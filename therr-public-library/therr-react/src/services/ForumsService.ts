@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { getSearchQueryString } from 'therr-js-utilities/http';
 import { ISearchQuery } from '../types';
+import { ICreateEventBody } from './MapsService';
 
 export interface ICreateForumBody {
     administratorIds: number;
@@ -20,6 +21,11 @@ export interface ICreateForumBody {
     isPublic?: boolean;
 }
 
+export interface ICreateActivityBody {
+    group: ICreateForumBody;
+    event: ICreateEventBody;
+}
+
 export interface ISearchForumsArgs {
     categoryTags?: number[];
     forumIds?: number[];
@@ -35,6 +41,12 @@ class ForumsService {
     createForum = (data: ICreateForumBody) => axios({
         method: 'post',
         url: '/messages-service/forums',
+        data,
+    });
+
+    createActivity = (data: ICreateActivityBody) => axios({
+        method: 'post',
+        url: '/messages-service/forums/activities',
         data,
     });
 

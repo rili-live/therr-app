@@ -216,7 +216,9 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
     };
 
     onSubmit = () => {
-        console.log('submit');
+        const { navigation } = this.props;
+
+        navigation.navigate('ActivityScheduler', {});
     };
 
     render() {
@@ -266,7 +268,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
                                             {
                                                 topConnections?.map((connection) => (
                                                     <ConnectionItem
-                                                        key={connection.id}
+                                                        key={connection?.user?.id}
                                                         connectionDetails={connection?.user}
                                                         getConnectionSubtitle={this.getConnectionSubtitle}
                                                         goToViewUser={this.goToUserDetails}
@@ -414,15 +416,13 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
                             <TherrIcon
                                 name="calendar"
                                 size={24}
-                                style={this.themeForms.styles.buttonIconDisabled}
-                                // style={this.isFormDisabled()
-                                //     ? this.themeForms.styles.buttonIconDisabled
-                                //     : this.themeForms.styles.buttonIcon}
+                                style={this.isFormDisabled()
+                                    ? this.themeForms.styles.buttonIconDisabled
+                                    : this.themeForms.styles.buttonIcon}
                             />
                         }
                         onPress={this.onSubmit}
-                        disabled={true}
-                        // disabled={this.isFormDisabled()}
+                        disabled={this.isFormDisabled()}
                         raised={true}
                     />
                 </View>

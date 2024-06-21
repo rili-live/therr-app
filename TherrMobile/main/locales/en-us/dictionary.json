@@ -5,6 +5,7 @@
     "edit": "Edit"
   },
   "alertTitles": {
+    "activityCreated": "Activity Successfully Created",
     "codeSent": "New Code Sent",
     "coinsReceived": "You Received Coins",
     "invalidCode": "Invalid Code",
@@ -22,7 +23,7 @@
     "spaceCreatedSuccess": "You Claimed a Space",
     "spaceRequestSuccess": "Request Sent",
     "ssoLoginError": "Error With Single Sign-On",
-    "startDateAfterEndDate" : "Invalid State/End Dates",
+    "startDateAfterEndDate" : "Invalid Start/End Dates",
     "walkCloser": "Too Far Away",
     "nameUnknown": "Anonymous User",
     "newAreasActivated": "New Areas Activated",
@@ -30,6 +31,7 @@
     "requestClaimSent": "Request Sent"
   },
   "alertMessages": {
+    "activityCreated": "A new group and event was created. Invites sent to each group member.",
     "codeSent": "Check your phone for a new verification code.",
     "coinsReceived": "🎁 You earned {total} TherrCoin(s) 🎁",
     "invalidCode": "Code is invalid or expired. Try again or resend.",
@@ -957,9 +959,32 @@
       },
       "buttons": {
         "generate": "Generate",
-        "scheduleAndInvite": "Schedule & Invite (coming soon!)",
+        "scheduleAndInvite": "Schedule & Invite",
         "showLess": "Show Less",
         "showMore": "Show More"
+      },
+      "messages": {
+        "noNearbyConnections": "No connections found nearby. Invite some local friends to get started or try again in a new location.",
+        "noSharedInterests": "No shared interests with people nearby. Go to profile settings to select your interests.",
+        "noRecommendedSpaces": "No spaces nearby that match your interests. Try requesting new spaces from the map view."
+      }
+    },
+    "activityScheduler": {
+      "headerTitle": "Activity Scheduler",
+      "pageHeader": "Activity Scheduler",
+      "headers": {
+        "schedulerExplained": "Customize your social event, create a group, and invite members.",
+        "groupMembers": "Group Members",
+        "chooseALocation": "Choose a Location",
+        "yourTopInterests": "Your Top Interests"
+      },
+      "buttons": {
+        "createAndSend": "Create & Send",
+        "showLess": "Show Less",
+        "showMore": "Show More"
+      },
+      "placeholders": {
+        "groupName": "Group Name"
       },
       "messages": {
         "noNearbyConnections": "No connections found nearby. Invite some local friends to get started or try again in a new location.",

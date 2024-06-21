@@ -168,7 +168,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         const { space } = route.params;
 
         const shouldFetchUser = !space?.fromUserMedia || !space.fromUserName;
-        const mediaPath = space.medias?.[0]?.path;
+        const mediaPath = space?.medias?.[0]?.path;
         const spaceMedia = content?.media[mediaPath];
 
         // Move space details out of route params and into redux

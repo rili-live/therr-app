@@ -21,8 +21,11 @@ export default (
     const day = date.getDate();
 
     let hours = date.getHours();
-    hours = hours >= 12 ? hours - 11 : hours;
     const amPm = hours >= 12 ? 'PM' : 'AM';
+    if (hours === 0) {
+        hours = 12;
+    }
+    hours = hours > 12 ? hours - 12 : hours;
     const minute = date.getMinutes().toString();
 
     if (variation === 'short') {
