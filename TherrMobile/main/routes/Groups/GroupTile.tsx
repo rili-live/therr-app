@@ -4,6 +4,7 @@ import { Avatar, Badge, Button, ListItem } from 'react-native-elements';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { GroupRequestStatuses } from 'therr-js-utilities/constants';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import { getUserImageUri } from '../../utilities/content';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -55,6 +56,7 @@ export default ({
         handleJoinGroup(group);
     };
     const unreadMsgCount = 0;
+    const isUserInGroup = membershipStatus === GroupRequestStatuses.APPROVED;
 
     return (
         <ListItem
@@ -85,7 +87,7 @@ export default ({
                 </View>
             </View>
             {
-                membershipStatus && unreadMsgCount > 0 &&
+                isUserInGroup && unreadMsgCount > 0 &&
                     <Badge
                         badgeStyle={{ backgroundColor: theme.colors.brandingRed }}
                         value={unreadMsgCount}
@@ -93,13 +95,17 @@ export default ({
             }
             <View>
                 {
-                    !membershipStatus &&
+                    !isUserInGroup && membershipStatus !== GroupRequestStatuses.REMOVED &&
                         <Button
                             onPress={onPressJoinGroup}
                             containerStyle={themeButtons.styles.buttonPillContainerSquare}
                             buttonStyle={themeButtons.styles.buttonPill}
                             titleStyle={themeButtons.styles.buttonPillTitle}
-                            title={translate('menus.connections.buttons.join')}
+                            title={
+                                translate(membershipStatus === GroupRequestStatuses.PENDING
+                                    ? 'menus.connections.buttons.accept'
+                                    : 'menus.connections.buttons.join')
+                            }
                         />
                 }
             </View>

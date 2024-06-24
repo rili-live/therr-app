@@ -33,6 +33,8 @@ const getPushNotificationType = (notificationType: Notifications.Types): PushNot
         pushNotificationType = PushNotifications.Types.newThoughtReplyReceived;
     } else if (notificationType === Notifications.Types.NEW_GROUP_MEMBERS) {
         pushNotificationType = PushNotifications.Types.newGroupMembers;
+    } else if (notificationType === Notifications.Types.NEW_GROUP_INVITE) {
+        pushNotificationType = PushNotifications.Types.newGroupInvite;
     }
 
     return pushNotificationType;

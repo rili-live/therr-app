@@ -4,6 +4,7 @@ export enum Types {
     connectionRequestAccepted = 'connection-request-accepted',
     newConnectionRequest = 'new-connection-request',
     newDirectMessage = 'new-direct-message',
+    newGroupInvite = 'new-group-invite',
     newGroupMessage = 'new-group-message',
     newGroupMembers = 'new-group-members',
     newLikeReceived = 'new-like-received',

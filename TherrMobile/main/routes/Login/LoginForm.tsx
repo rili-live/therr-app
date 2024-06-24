@@ -7,6 +7,7 @@ import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentica
 import Toast from 'react-native-toast-message';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
+import spacingStyles from '../../styles/layouts/spacing';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
 import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
@@ -323,7 +324,17 @@ export class LoginFormComponent extends React.Component<
                     type={'error'}
                     themeAlerts={themeAlerts}
                 />
-                <View style={themeForms.styles.moreLinksContainer}>
+                <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginBotMd]}>
+                    <Button
+                        type="clear"
+                        titleStyle={themeForms.styles.buttonLink}
+                        title={this.translate(
+                            'forms.loginForm.buttons.signUp'
+                        )}
+                        onPress={() => navigation.navigate('Register')}
+                    />
+                </View>
+                <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginBotMd]}>
                     <Button
                         type="clear"
                         titleStyle={themeForms.styles.buttonLink}

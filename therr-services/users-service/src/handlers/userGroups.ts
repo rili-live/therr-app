@@ -70,6 +70,7 @@ const getGroupMembers = (req, res) => Store.userGroups.get({
 }, {
     limit: req.query.limit,
     returning: req.query.returning,
+    shouldIncludePending: true,
 })
     .then((results) => Store.users.findUsers({
         ids: results.map((r) => r.userId),
@@ -91,10 +92,13 @@ const getGroupMembers = (req, res) => Store.userGroups.get({
 // WRITE
 const internalCreateUserGroups = (req, res) => {
     const {
+        authorization,
+        locale,
         userId,
+        whiteLabelOrigin,
     } = parseHeaders(req.headers);
     const {
-        groupId,
+        group,
         role,
         memberIds,
         memberRole,
@@ -104,7 +108,7 @@ const internalCreateUserGroups = (req, res) => {
     const status = GroupRequestStatuses.APPROVED;
 
     const newUserGroups = [{
-        groupId,
+        groupId: group.id,
         userId,
         status,
         shouldMuteNotifs: false,
@@ -115,7 +119,7 @@ const internalCreateUserGroups = (req, res) => {
         memberIds.forEach((memberId) => {
             // Default invited members to pending and member role unless otherwise specified
             newUserGroups.push({
-                groupId,
+                groupId: group.id,
                 userId: memberId,
                 status: GroupRequestStatuses.PENDING,
                 shouldMuteNotifs: false,
@@ -125,7 +129,53 @@ const internalCreateUserGroups = (req, res) => {
     }
 
     return Store.userGroups.create(newUserGroups)
-        .then(([userGroup]) => res.status(201).send(userGroup))
+        .then((userGroups) => {
+            const userGroup = userGroups.filter((g) => g.userId === userId);
+            const invitedMembers = userGroups.filter((g) => g.userId !== userId);
+            if (invitedMembers?.length) {
+                Store.users.getUserById(userId, ['id', 'userName']).then(([inviter]) => {
+                    const promises = invitedMembers.map((member) => notifyUserOfUpdate({
+                        authorization,
+                        locale,
+                        whiteLabelOrigin,
+                    }, {
+                        userId: member.userId,
+                        type: Notifications.Types.NEW_GROUP_INVITE,
+                        associationId: group.id,
+                        isUnread: true,
+                        messageLocaleKey: Notifications.MessageKeys.NEW_GROUP_INVITE,
+                        messageParams: {
+                            groupName: group.title,
+                            inviterId: userId,
+                            inviterUserName: inviter?.userName,
+                        },
+                    }, {
+                        toUserId: member.userId,
+                        fromUser: {
+                            id: userId,
+                            name: inviter?.userName,
+                        },
+                        retentionEmailType: PushNotifications.Types.newGroupInvite,
+                        groupName: group.title,
+                    }, {
+                        shouldCreateDBNotification: true,
+                        shouldSendPushNotification: true,
+                        shouldSendEmail: true,
+                    }));
+
+                    return Promise.all(promises);
+                }).catch((err) => logSpan({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Failed to send NEW_GROUP_INVITE notifications'],
+                    traceArgs: {
+                        'error.message': err?.message,
+                    },
+                }));
+            }
+
+            return res.status(201).send(userGroup);
+        })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_GROUPS_ROUTES:ERROR' }));
 };
 

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { connect } from 'react-redux';
-import { Animated, SafeAreaView, View, Text, ImageProps } from 'react-native';
+import { Animated, SafeAreaView, View, Text, ImageProps, Pressable } from 'react-native';
 import { Button } from 'react-native-elements';
 import analytics from '@react-native-firebase/analytics';
 import 'react-native-gesture-handler';
@@ -24,6 +24,7 @@ import ftuiMomentLight from '../assets/ftui-moment-light.json';
 import background1 from '../assets/dinner-burgers.webp';
 import background2 from '../assets/dinner-overhead.webp';
 import background3 from '../assets/dinner-overhead-2.webp';
+import { useSwipe } from '../hooks/useSwipe';
 
 // const { width: viewportWidth } = Dimensions.get('window');
 
@@ -57,6 +58,74 @@ const FadeInBackgroundImage: React.FC<FadeInBackgroundImageProps> = props => {
             progressiveRenderingEnabled={true}
             { ...props }
         />
+    );
+};
+
+const BackgroundOverlay = ({
+    themeFTUI,
+}) => (
+    <View
+        style={themeFTUI.styles.landingBackgroundOverlay}
+    >
+    </View>
+);
+
+const ContentOverlay = ({
+    backgroundText,
+    backgroundButtonText,
+    onButtonPress,
+    onButtonBackPress,
+    themeAuthForm,
+    themeForms,
+    themeFTUI,
+}) => {
+    const onSwipeLeft = () => {
+        onButtonPress();
+    };
+
+    const onSwipeRight = () => {
+        onButtonBackPress();
+    };
+
+    const { onTouchStart, onTouchEnd } = useSwipe(onSwipeLeft, onSwipeRight, 6);
+
+    return (
+        <Pressable
+            style={themeFTUI.styles.landingContentOverlay}
+            onStartShouldSetResponder={() => true}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+        >
+            <Text
+                style={[
+                    themeFTUI.styles.landingContentTitle,
+                    spacingStyles.padHorizLg,
+                    {
+                        position: 'absolute',
+                        top: 150,
+                    },
+                ]}>
+                {backgroundText}
+            </Text>
+            <View style={[
+                themeAuthForm.styles.submitButtonContainer,
+                {
+                    position: 'absolute',
+                    bottom: 50,
+                },
+            ]}>
+                <Button
+                    type="clear"
+                    buttonStyle={[
+                        themeForms.styles.buttonRoundAlt,
+                        spacingStyles.padHorizLg,
+                    ]}
+                    titleStyle={themeForms.styles.buttonTitleAlt}
+                    title={backgroundButtonText}
+                    onPress={onButtonPress}
+                />
+            </View>
+        </Pressable>
     );
 };
 
@@ -170,6 +239,32 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         navigation.navigate(routeName);
     };
 
+    prevBackground = () => {
+        const { backgroundIndex } = this.state;
+        if (backgroundIndex === 1) {
+            analytics().logEvent('landing_progress_started').catch((err) => console.log(err));
+            this.setState({
+                backgroundIndex: 0,
+                backgroundText: this.translate(
+                    'pages.landing.background.shareYourInterests'
+                ),
+                backgroundButtonText: this.translate(
+                    'pages.landing.buttons.continue'
+                ),
+            });
+        }
+
+        if (backgroundIndex === 2) {
+            this.setState({
+                backgroundIndex: 1,
+                backgroundText: this.translate('pages.landing.background.inviteFriends'),
+                backgroundButtonText: this.translate(
+                    'pages.landing.buttons.next'
+                ),
+            });
+        }
+    };
+
     nextBackground = () => {
         const { backgroundIndex } = this.state;
         if (backgroundIndex === 0) {
@@ -196,9 +291,24 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
 
     render() {
         const { backgroundIndex, backgroundText, backgroundButtonText } = this.state;
-        let onButtonPress = () => this.navTo('Map');
+        let onButtonPress = (e) => {
+            e?.preventDefault();
+            this.navTo('Map');
+        };
+        let onButtonBackPress = (e) => {
+            e?.preventDefault();
+        };
         if (backgroundIndex < 2) {
-            onButtonPress = () => this.nextBackground();
+            onButtonPress = (e) => {
+                e?.preventDefault();
+                this.nextBackground();
+            };
+        }
+        if (backgroundIndex > 0) {
+            onButtonBackPress = (e) => {
+                e?.preventDefault();
+                this.prevBackground();
+            };
         }
 
         return (
@@ -223,43 +333,18 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                         source={background3}
                         opacity={backgroundIndex === 2 ? 1 : 0}
                     />
-                    <View
-                        style={this.themeFTUI.styles.landingBackgroundOverlay}
-                    >
-                    </View>
-                    <View
-                        style={this.themeFTUI.styles.landingContentOverlay}
-                    >
-                        <Text
-                            style={[
-                                this.themeFTUI.styles.landingContentTitle,
-                                spacingStyles.padHorizLg,
-                                {
-                                    position: 'absolute',
-                                    top: 150,
-                                },
-                            ]}>
-                            {backgroundText}
-                        </Text>
-                        <View style={[
-                            this.themeAuthForm.styles.submitButtonContainer,
-                            {
-                                position: 'absolute',
-                                bottom: 50,
-                            },
-                        ]}>
-                            <Button
-                                type="clear"
-                                buttonStyle={[
-                                    this.themeForms.styles.buttonRoundAlt,
-                                    spacingStyles.padHorizLg,
-                                ]}
-                                titleStyle={this.themeForms.styles.buttonTitleAlt}
-                                title={backgroundButtonText}
-                                onPress={onButtonPress}
-                            />
-                        </View>
-                    </View>
+                    <BackgroundOverlay
+                        themeFTUI={this.themeFTUI}
+                    />
+                    <ContentOverlay
+                        backgroundText={backgroundText}
+                        backgroundButtonText={backgroundButtonText}
+                        onButtonPress={onButtonPress}
+                        onButtonBackPress={onButtonBackPress}
+                        themeAuthForm={this.themeAuthForm}
+                        themeForms={this.themeForms}
+                        themeFTUI={this.themeFTUI}
+                    />
                 </SafeAreaView>
             </>
         );

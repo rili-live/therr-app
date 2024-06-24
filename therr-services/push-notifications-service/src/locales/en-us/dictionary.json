@@ -48,6 +48,10 @@
       "title": "New Group Members",
       "body": "New member(s) {members} joined your group, {groupName}"
     },
+    "newGroupInvite": {
+      "title": "New Group Invite",
+      "body": "{fromUserName} invited you to join the group, {groupName}"
+    },
     "newLikeReceived": {
       "title": "New Reaction",
       "body": "{userName} liked your post"

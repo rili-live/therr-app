@@ -39,6 +39,7 @@
         "newThoughtReplyReceived": "Your thought has new replies",
         "newDmReceived": "New direct message from {userName} while you were away",
         "newGroupMembers": "New member(s) {members} joined your group, {groupName}",
+        "newGroupInvite": "{inviterUserName} invited you to join the group, {groupName}",
         "newAreasActivated": "You recently activated {totalAreasActivated} new areas(s)",
         "discoveredUniqueMoment": "Check the map to activate a moment with special attributes",
         "discoveredUniqueSpace": "Check the map to activate a space with special attributes"

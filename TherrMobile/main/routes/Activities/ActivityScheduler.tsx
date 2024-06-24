@@ -37,9 +37,11 @@ import InputGroupName from '../Groups/InputGroupName';
 import EventStartEndFormGroup from '../Events/EventStartEndFormGroup';
 import { DEFAULT_RADIUS, PEOPLE_CAROUSEL_TABS } from '../../constants';
 import BottomSheet from '../../components/BottomSheet/BottomSheet';
+import LottieView from 'lottie-react-native';
 
 const { width: screenWidth } = Dimensions.get('window');
 const DEFAULT_SPACES_LIST_SIZE = 3;
+const matchUpLoader = require('../../assets/match-up.json');
 
 interface IActivitySchedulerDispatchProps {
     createOrUpdateSpaceReaction: Function;
@@ -383,19 +385,42 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
 
         ForumsService.createActivity(requestBody)
             .then((response) => {
-                console.log(response.data);
                 Toast.show({
                     type: 'successBig',
                     text1: this.translate('alertTitles.activityCreated'),
                     text2: this.translate('alertMessages.activityCreated'),
-                    visibilityTime: 3500,
+                    visibilityTime: 3000,
+                    onPress: () => {
+                        Toast.hide();
+                    },
                     onHide: () => {
                         this.setState({
                             isSubmitting: false,
                         });
-                        this.props.navigation.navigate('Connect', {
-                            activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
-                        });
+                        if (response.data?.group?.id) {
+                            this.props.navigation.navigate('ViewGroup', {
+                                id: response.data?.group?.id,
+                                title: response.data?.group?.title,
+                            });
+                        } else {
+                            this.props.navigation.navigate('Connect', {
+                                activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                            });
+                        }
+                    },
+                    position: 'bottom',
+                    props: {
+                        extraStyle: { minHeight: 90, marginBottom: 10 },
+                        renderTrailingIcon: () => (
+                            <LottieView
+                                source={matchUpLoader}
+                                resizeMode="contain"
+                                speed={0.5}
+                                autoPlay
+                                loop
+                                style={{ width: 75, height: '100%', marginRight: 10 }}
+                            />
+                        ),
                     },
                 });
             })
