@@ -30,13 +30,20 @@ export default class UserGroupsStore {
         if (conditions.groupId) {
             whereConditions.groupId = conditions.groupId;
         }
-        if (conditions.status) {
-            whereConditions.status = conditions.status;
-        }
+
         let queryString = knexBuilder
             .select(overrides?.returning === 'simple' ? ['userId'] : '*')
             .from(USER_GROUPS_TABLE_NAME)
             .where(whereConditions);
+
+        if (conditions.status) {
+            whereConditions.status = conditions.status;
+            const statuses = [conditions.status];
+            if (overrides?.shouldIncludePending) {
+                statuses.push(GroupRequestStatuses.PENDING);
+            }
+            queryString = queryString.whereIn('status', statuses);
+        }
 
         if (overrides?.limit) {
             queryString = queryString.limit(overrides?.limit);
@@ -63,6 +70,8 @@ export default class UserGroupsStore {
         }));
         const queryString = knexBuilder.insert(modifiedParamList)
             .into(USER_GROUPS_TABLE_NAME)
+            .onConflict(['userId', 'groupId'])
+            .merge()
             .returning('*')
             .toString();
 

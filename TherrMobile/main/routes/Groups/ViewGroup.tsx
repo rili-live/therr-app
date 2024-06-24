@@ -20,7 +20,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { ContentActions, MessageActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { IContentState, IForumsState, IMessageState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { ForumsService, UsersService } from 'therr-react/services';
-import { Content, GroupMemberRoles } from 'therr-js-utilities/constants';
+import { Content, GroupMemberRoles, GroupRequestStatuses } from 'therr-js-utilities/constants';
 // import ViewGroupButtonMenu from '../../components/ButtonMenu/ViewGroupButtonMenu';
 import translator from '../../services/translator';
 // import RoundInput from '../../components/Input/Round';
@@ -184,21 +184,21 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         } = this.props;
         const { title, id: forumId } = route.params;
 
-        navigation.setOptions({
-            title,
-        });
-
-        joinForum({
-            roomId: forumId,
-            roomName: title,
-            userId: user.details.id,
-            userName: user.details.userName,
-            userImgSrc: getUserImageUri(user.details, 100),
-        });
-
         ForumsService.getForum(forumId).then((response) => {
             this.setState({
                 groupEvents: response.data?.events || [],
+            });
+
+            navigation.setOptions({
+                title: title || response?.data?.title,
+            });
+
+            joinForum({
+                roomId: forumId,
+                roomName: title || response?.data?.title,
+                userId: user.details.id,
+                userName: user.details.userName,
+                userImgSrc: getUserImageUri(user.details, 100),
             });
         }).catch((err) => {
             console.log(err);
@@ -265,6 +265,9 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
     };
 
     getMembershipText = (userDetails: any) => {
+        if (userDetails?.isMembershipPending) {
+            return this.translate('pages.viewGroup.membershipStatuses.pending');
+        }
         if (userDetails?.membershipRole === GroupMemberRoles.CREATOR) {
             return this.translate('pages.viewGroup.membershipRoles.creator');
         }
@@ -367,6 +370,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                 user: {
                     ...member.user,
                     membershipRole: member?.role,
+                    isMembershipPending: member?.status === GroupRequestStatuses.PENDING,
                     isConnected: true, // TODO: fetch connections status
                 },
             };

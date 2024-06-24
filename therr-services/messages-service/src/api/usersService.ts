@@ -13,12 +13,20 @@ const createUserForum = (headers: any, groupId: string) => axios({
     },
 });
 
-const createUserForums = (headers: any, groupId: string, memberIds: string[]) => axios({
+const createUserForums = (headers: any, group: any, memberIds: string[]) => axios({
     method: 'post',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/privileged`,
     headers,
     data: {
-        groupId,
+        group: {
+            id: group.id,
+            authorId: group.authorId,
+            title: group.title,
+            isPublic: group.isPublic,
+            subtitle: group.subtitle,
+            description: group.description,
+            hashTags: group.hashTags,
+        },
         role: GroupMemberRoles.ADMIN,
         status: GroupRequestStatuses.APPROVED,
         memberIds,

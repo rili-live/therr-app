@@ -204,6 +204,18 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             });
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_GROUP_MEMBERS';
             return baseMessage;
+        case PushNotifications.Types.newGroupInvite:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.newGroupInvite.title'),
+                notificationBody: translate(config.userLocale, 'notifications.newGroupInvite.body', {
+                    groupName: config.groupName,
+                    fromUserName: config.fromUserName,
+                }),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_GROUP_INVITE';
+            return baseMessage;
         case PushNotifications.Types.newLikeReceived:
             baseMessage = createBaseMessage({
                 data: modifiedData,
@@ -326,7 +338,15 @@ const predictAndSendNotification = (
                 return admin.messaging().send(message);
             }
 
+            if (type === PushNotifications.Types.newGroupInvite) {
+                return admin.messaging().send(message);
+            }
+
             if (type === PushNotifications.Types.newLikeReceived) {
+                return admin.messaging().send(message);
+            }
+
+            if (type === PushNotifications.Types.newSuperLikeReceived) {
                 return admin.messaging().send(message);
             }
 

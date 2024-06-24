@@ -79,9 +79,12 @@ import getNearbySpaces from '../../utilities/getNearbySpaces';
 import { sendForegroundNotification } from '../../utilities/pushNotifications';
 import QuickFiltersList from '../../components/QuickFiltersList';
 import { getInitialAuthorFilters, getInitialCategoryFilters, getInitialVisibilityFilters } from '../../utilities/getInitialFilters';
+import LottieView from 'lottie-react-native';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
+const matchUpLoader = require('../../assets/match-up.json');
+const createAMomentLoader = require('../../assets/ftui-moment.json');
 const AREAS_SEARCH_COUNT = Platform.OS === 'android' ? 250 : 400;
 const AREAS_SEARCH_COUNT_ZOOMED = Platform.OS === 'android' ? 100 : 200;
 const MAX_RENDERED_CIRCLES = (2 * AREAS_SEARCH_COUNT_ZOOMED) - 1;
@@ -702,19 +705,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         if (location?.settings?.isGpsEnabled) {
             if (!this.isUserAuthenticated()) {
-                navigation.reset({
-                    index: 1,
-                    routes: [
-                        {
-                            name: 'Map',
-                            params: {
-                                ...circleCenter,
-                            },
-                        },
-                        {
-                            name: 'Register',
-                        },
-                    ],
+                this.showPublicUserToast({
+                    lottieLoader: createAMomentLoader,
+                    title: this.translate('alertTitles.loginRequired'),
+                    message: this.translate('alertMessages.createRequiresLogin'),
                 });
                 return;
             }
@@ -915,19 +909,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         if (this.isUserAuthenticated()) {
             this.props.navigation.navigate('ActivityGenerator');
         } else {
-            this.props.navigation.reset({
-                index: 1,
-                routes: [
-                    {
-                        name: 'Map',
-                        params: {
-                            ...this.state.circleCenter,
-                        },
-                    },
-                    {
-                        name: 'Register',
-                    },
-                ],
+            this.showPublicUserToast({
+                lottieLoader: matchUpLoader,
+                title: this.translate('alertTitles.loginRequired'),
+                message: this.translate('alertMessages.matchupRequiresLogin'),
             });
         }
     };
@@ -1541,6 +1526,50 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 isAreaAlertVisible: false,
             });
         }, timeout);
+    };
+
+    showPublicUserToast = ({
+        lottieLoader,
+        message,
+        title,
+    }) => {
+        Toast.show({
+            type: 'notifyPublic',
+            text1: title,
+            text2: message,
+            visibilityTime: 4000,
+            onPress: () => {
+                Toast.hide();
+                this.props.navigation.reset({
+                    index: 1,
+                    routes: [
+                        {
+                            name: 'Map',
+                            params: {
+                                ...this.state.circleCenter,
+                            },
+                        },
+                        {
+                            name: 'Login',
+                        },
+                    ],
+                });
+            },
+            position: 'bottom',
+            props: {
+                extraStyle: { minHeight: 90, marginBottom: 10 },
+                renderTrailingIcon: () => (
+                    <LottieView
+                        source={lottieLoader}
+                        resizeMode="contain"
+                        speed={0.5}
+                        autoPlay
+                        loop
+                        style={{ width: 75, height: '100%', marginRight: 10 }}
+                    />
+                ),
+            },
+        });
     };
 
     hideCreateActions = () => this.toggleCreateActions(true);

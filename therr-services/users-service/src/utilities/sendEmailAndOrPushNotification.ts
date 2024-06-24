@@ -3,6 +3,7 @@ import { PushNotifications } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import sendPendingInviteEmail from '../api/email/for-social/retention/sendPendingInviteEmail';
 import sendNewGroupMembersEmail from '../api/email/for-social/sendNewGroupMembersEmail';
+import sendNewGroupInviteEmail from '../api/email/for-social/sendNewGroupInviteEmail';
 import * as globalConfig from '../../../../global-config';
 import { IFindUserArgs } from '../store/UsersStore';
 
@@ -97,6 +98,21 @@ export default (
                 }, {
                     groupName,
                     membersList: fromUserNames,
+                });
+            } else if (retentionEmailType === PushNotifications.Types.newGroupInvite
+                    && groupName) {
+                sendEmail = () => sendNewGroupInviteEmail({
+                    subject: `${fromUserName} invited you to join the Group, ${groupName}`,
+                    toAddresses: [destinationUser.email],
+                    agencyDomainName: whiteLabelOrigin,
+                    recipientIdentifiers: {
+                        id: toUserId,
+                        accountEmail: destinationUser.email,
+                        settingsEmailInvites: destinationUser.settingsEmailInvites,
+                    },
+                }, {
+                    groupName,
+                    fromUserName,
                 });
             }
         }
