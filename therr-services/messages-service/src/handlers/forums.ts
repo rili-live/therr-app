@@ -51,7 +51,7 @@ const createActivity = (req, res) => {
         iconColor: group.iconColor,
         maxCommentsPerMin: group.maxCommentsPerMin || 50,
         doesExpire: group.doesExpire || true,
-        isPublic: group.isPublic || true,
+        isPublic: group.isPublic,
     })
         .then(([dbForum]) => {
             forumId = dbForum.id;
