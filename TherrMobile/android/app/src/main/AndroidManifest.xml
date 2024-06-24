@@ -92,6 +92,10 @@
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
+            <action android:name="app.therrmobile.NEW_GROUP_INVITE" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
             <action android:name="app.therrmobile.NEW_GROUP_MEMBERS" />
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>

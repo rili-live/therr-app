@@ -5,7 +5,7 @@
     "edit": "Edit"
   },
   "alertTitles": {
-    "activityCreated": "Activity Successfully Created",
+    "activityCreated": "Activity Created",
     "codeSent": "New Code Sent",
     "coinsReceived": "You Received Coins",
     "invalidCode": "Invalid Code",
@@ -941,6 +941,7 @@
         "searchContacts": "Search Contacts",
         "createConnection": "Add Connection",
         "connect": "Connect",
+        "accept": "Accept",
         "join": "Join"
       }
     },
@@ -1147,6 +1148,9 @@
       "noChatsFound": "No messages found",
       "noEventsFound": "No current or upcoming events found. This group has not posted any events. Ask a moderator to nominate you as an event host.",
       "noMembersFound": "No group members found",
+      "membershipStatuses": {
+        "pending": "(Invite Pending)"
+      },
       "membershipRoles": {
         "default": "Member",
         "creator": "Group Creator",

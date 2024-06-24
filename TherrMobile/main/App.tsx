@@ -59,7 +59,7 @@ const toastConfig = {
     successBig: (props) => (
         <BaseToast
             {...props}
-            style={{ borderLeftColor: '#00A624' }}
+            style={[{ borderLeftColor: '#00A624' }, props?.props?.extraStyle]}
             text1Style={{
                 fontSize: 17,
                 fontWeight: '600',
@@ -70,6 +70,8 @@ const toastConfig = {
                 fontFamily: 'Lexend-Regular',
             }}
             text2NumberOfLines={3}
+            renderLeadingIcon={props?.props?.renderLeadingIcon}
+            renderTrailingIcon={props?.props?.renderTrailingIcon}
         />
     ),
     warn: (props) => (
@@ -119,6 +121,22 @@ const toastConfig = {
             text2NumberOfLines={3}
             renderLeadingIcon={props?.props?.renderLeadingIcon}
             renderTrailingIcon={props?.props?.renderTrailingIcon}
+        />
+    ),
+    error: (props) => (
+        <ErrorToast
+            {...props}
+            style={{ borderLeftColor: '#D70000' }}
+            text1Style={{
+                fontSize: 17,
+                fontWeight: '600',
+                fontFamily: 'Lexend-Regular',
+            }}
+            text2Style={{
+                fontSize: 14,
+                fontFamily: 'Lexend-Regular',
+            }}
+            text2NumberOfLines={2}
         />
     ),
     errorBig: (props) => (

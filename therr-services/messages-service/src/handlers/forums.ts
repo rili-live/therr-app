@@ -59,7 +59,7 @@ const createActivity = (req, res) => {
             return createUserForums({
                 'x-userid': userId,
                 'x-localecode': locale,
-            }, dbForum.id, group.memberIds).then((userGroupsResponse) => [dbForum, userGroupsResponse?.data?.userGroups]);
+            }, dbForum, group.memberIds).then((userGroupsResponse) => [dbForum, userGroupsResponse?.data?.userGroups]);
         })
         .then(([dbForum, userGroups]) => axios({
             method: 'post',
@@ -150,6 +150,13 @@ const getForum = (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
     const { forumId } = req.params;
+    if (!forumId || forumId === 'undefined' || forumId === 'null') {
+        return handleHttpError({
+            res,
+            message: 'Forum not found',
+            statusCode: 404,
+        });
+    }
     const queryString = getSearchQueryString({
         itemsPerPage: 20,
         pageNumber: 1,
