@@ -12,10 +12,14 @@ import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
 import { HAPTIC_FEEDBACK_TYPE, PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { isUserAuthenticated } from '../../utilities/authUtils';
+import Toast from 'react-native-toast-message';
+import LottieView from 'lottie-react-native';
 // import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
 const { width: screenWidth } = Dimensions.get('window');
 const buttonWidth = screenWidth / 5;
+const discoverContentLoader = require('../../assets/ftui-discover.json');
+const matchUpLoader = require('../../assets/match-up.json');
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
@@ -74,20 +78,34 @@ class MainButtonMenuAlt extends ButtonMenu {
 
     navTo = (routeName, params = {}) => {
         ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
-        const { navigation, user } = this.props;
+        const { navigation, translate, user } = this.props;
 
         if (!isUserAuthenticated(user)) {
-            navigation.reset({
-                index: 1,
-                routes: [
-                    {
-                        name: 'Map',
-                    },
-                    {
-                        name: 'Register',
-                    },
-                ],
-            });
+            if (routeName === 'Areas') {
+                this.showPublicUserToast({
+                    lottieLoader: discoverContentLoader,
+                    title: translate('alertTitles.loginRequired'),
+                    message: translate('alertMessages.discoverRequiresLogin'),
+                });
+            } else if (routeName === 'Connect') {
+                this.showPublicUserToast({
+                    lottieLoader: matchUpLoader,
+                    title: translate('alertTitles.loginRequired'),
+                    message: translate('alertMessages.matchupRequiresLogin'),
+                });
+            } else {
+                navigation.reset({
+                    index: 1,
+                    routes: [
+                        {
+                            name: 'Map',
+                        },
+                        {
+                            name: 'Register',
+                        },
+                    ],
+                });
+            }
         } else {
             navigation.navigate(routeName, params);
         }
@@ -170,25 +188,62 @@ class MainButtonMenuAlt extends ButtonMenu {
     };
 
     handleNearbyPress = () => {
-        const { navigation, onNearbyPress, user } = this.props;
+        const { onNearbyPress, translate, user } = this.props;
 
         if (!isUserAuthenticated(user)) {
-            navigation.reset({
-                index: 1,
-                routes: [
-                    {
-                        name: 'Map',
-                    },
-                    {
-                        name: 'Login',
-                    },
-                ],
+            this.showPublicUserToast({
+                lottieLoader: discoverContentLoader,
+                title: translate('alertTitles.loginRequired'),
+                message: translate('alertMessages.nearbyRequiresLogin'),
             });
         } else if (onNearbyPress) {
             onNearbyPress();
         } else {
             this.onNavPressDynamic('Nearby');
         }
+    };
+
+    showPublicUserToast = ({
+        lottieLoader,
+        message,
+        title,
+    }) => {
+        const { navigation } = this.props;
+
+        Toast.show({
+            type: 'notifyPublic',
+            text1: title,
+            text2: message,
+            visibilityTime: 4000,
+            onPress: () => {
+                Toast.hide();
+                navigation.reset({
+                    index: 1,
+                    routes: [
+                        {
+                            name: 'Map',
+                        },
+                        {
+                            name: 'Login',
+                        },
+                    ],
+                });
+            },
+            position: 'bottom',
+            props: {
+                extraStyle: { minHeight: 90, marginBottom: 10 },
+                renderTrailingIcon: () => (
+                    <LottieView
+                        source={lottieLoader}
+                        resizeMode="contain"
+                        speed={0.5}
+                        autoPlay
+                        loop
+                        style={{ width: 75, height: '100%', marginRight: 10 }}
+                    />
+                ),
+            },
+        });
     };
 
     render() {

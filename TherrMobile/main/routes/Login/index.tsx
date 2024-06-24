@@ -88,8 +88,8 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         const pageTitle = this.translate('pages.login.pageTitle');
         const pageSubtitle = this.translate('pages.login.pageSubtitle');
         const iPadDynamicStyles: any = (Platform.OS === 'ios' && Platform.isPad)
-            ? { paddingHorizontal: '10%' }
-            : {};
+            ? { paddingHorizontal: '10%', paddingBottom: 20 }
+            : { paddingBottom: 20 };
 
         return (
             <>
