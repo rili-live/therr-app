@@ -2,6 +2,12 @@ import axios from 'axios';
 import { GroupMemberRoles, GroupRequestStatuses } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
 
+const getUserForums = (headers: any) => axios({
+    method: 'get',
+    url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups`,
+    headers,
+});
+
 const createUserForum = (headers: any, groupId: string) => axios({
     method: 'post',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/privileged`,
@@ -43,6 +49,7 @@ const findUsers = (headers: any, userIds: string[]) => axios({
 });
 
 export {
+    getUserForums,
     createUserForum,
     createUserForums,
     findUsers,
