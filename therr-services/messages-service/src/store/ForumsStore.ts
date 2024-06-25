@@ -132,7 +132,8 @@ export default class ForumsStore {
                 `${CATEGORIES_TABLE_NAME}.iconId as categories[].iconId`,
                 `${CATEGORIES_TABLE_NAME}.iconColor as categories[].iconColor`,
             ])
-            .orderBy(`${FORUMS_TABLE_NAME}.updatedAt`, conditions.order);
+            .orderBy(`${FORUMS_TABLE_NAME}.updatedAt`, conditions.order)
+            .where('isPublic', !options.usersInvitedForumIds);
 
         if (options.usersInvitedForumIds) {
             queryString = queryString.whereIn('id', options.usersInvitedForumIds);
@@ -157,8 +158,7 @@ export default class ForumsStore {
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
-            const isPublic = !options.usersInvitedForumIds;
-            queryString = queryString.where('isPublic', isPublic).andWhere(conditions.filterBy, operator, query);
+            queryString = queryString.andWhere(conditions.filterBy, operator, query);
         }
 
         queryString = queryString
