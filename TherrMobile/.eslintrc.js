@@ -4,9 +4,9 @@ module.exports = {
     env: {
         jest: true,
     },
-    extends: '@react-native',
+    extends: ['@react-native'],
     parser: '@typescript-eslint/parser',
-    plugins: ['@typescript-eslint'],
+    plugins: ['@typescript-eslint', 'jest'],
     rules: {
         'react/jsx-indent': [2, 4],
         'react/jsx-indent-props': [2, 4],

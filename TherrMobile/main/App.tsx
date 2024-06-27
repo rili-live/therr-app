@@ -238,14 +238,14 @@ class App extends React.Component<any, any> {
                             placement: 'bottom',
                         }}
                         onStop={() => {
-                            return this.store.dispatch(UsersActions.updateTour({
+                            return this.store?.dispatch(UsersActions.updateTour({
                                 isTouring: false,
                                 isNavigationTouring: false,
                             }));
                         }}
                     >
                         {
-                            ({ start }) => <Layout startNavigationTour={start} />
+                            ({ start, stop }) => <Layout startNavigationTour={start} stopNavigationTour={stop} />
                         }
                     </SpotlightTourProvider>
                 </GestureHandlerRootView>

@@ -2,10 +2,18 @@ import axios from 'axios';
 import { RequestHandler } from 'express';
 import moment from 'moment';
 import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
+import {
+    GroupRequestStatuses,
+} from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
-import { createUserForum, createUserForums, findUsers } from '../api/usersService';
+import {
+    createUserForum,
+    createUserForums,
+    findUsers,
+    getUserForums,
+} from '../api/usersService';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import translate from '../utilities/translator';
 
@@ -51,7 +59,7 @@ const createActivity = (req, res) => {
         iconColor: group.iconColor,
         maxCommentsPerMin: group.maxCommentsPerMin || 50,
         doesExpire: group.doesExpire || true,
-        isPublic: group.isPublic || true,
+        isPublic: group.isPublic,
     })
         .then(([dbForum]) => {
             forumId = dbForum.id;
@@ -243,44 +251,63 @@ const searchForums: RequestHandler = (req: any, res: any) => {
     // });
     const countPromise = Promise.resolve();
 
-    return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
-        const userIdSet = new Set<any>();
-        results.forEach((result) => userIdSet.add(result.authorId));
-        const userIds = [...userIdSet];
+    return getUserForums({
+        'x-userid': userId,
+        'x-localecode': locale,
+    }).then((userGroupsResponse) => {
+        const validGroupIds = userGroupsResponse?.data?.userGroups
+            ?.filter((userGroup) => userGroup?.status === GroupRequestStatuses.APPROVED || userGroup?.status === GroupRequestStatuses.PENDING)
+            .map((userGroup) => userGroup.groupId);
 
-        findUsers({
-            authorization,
-            'x-userid': userId,
-            'x-localecode': locale,
-        }, userIds).then((usersResponse) => {
-            const users: any[] = usersResponse.data;
-            const usersById = users.reduce((acc, cur) => ({
-                ...acc,
-                [cur.id]: cur,
-            }), {});
+        // Private groups that the user has an open or accepted invite to
+        // TODO: It's probably better for the frontend to request this from a separate endpoint
+        const userMemberGroupsPromise = Store.forums.searchForums(searchArgs[0], searchArgs[1], {
+            usersInvitedForumIds: validGroupIds,
+            categoryTags: req.body.categoryTags,
+            forumIds: req.body.forumIds,
+        });
 
-            const response = {
-                results: results // TODO: RFRONT-25 - localize dates
-                    .map((result) => {
-                        const user = usersById[result.authorId];
+        return Promise.all([searchPromise, userMemberGroupsPromise, countPromise]).then(([results, userMemberResults, countResult]) => {
+            const userMemberGroups = userMemberResults?.filter((group) => !group.isPublic);
+            const userIdSet = new Set<any>();
+            const resultGroups = [...userMemberGroups, ...results];
+            resultGroups.forEach((result) => userIdSet.add(result.authorId));
+            const userIds = [...userIdSet];
 
-                        return {
-                            ...result,
-                            createdAt: moment(result.createdAt).format('M/D/YY, h:mma'),
-                            author: {
-                                ...user,
-                            },
-                        };
-                    }),
-                pagination: {
-                    // totalItems: Number(countResult[0].count),
-                    totalItems: 100, // arbitrary number because count is slow and not needed
-                    itemsPerPage: Number(itemsPerPage),
-                    pageNumber: Number(pageNumber),
-                },
-            };
+            return findUsers({
+                authorization,
+                'x-userid': userId,
+                'x-localecode': locale,
+            }, userIds).then((usersResponse) => {
+                const users: any[] = usersResponse.data;
+                const usersById = users.reduce((acc, cur) => ({
+                    ...acc,
+                    [cur.id]: cur,
+                }), {});
 
-            return res.status(200).send(response);
+                const response = {
+                    results: resultGroups // TODO: RFRONT-25 - localize dates
+                        .map((result) => {
+                            const user = usersById[result.authorId];
+
+                            return {
+                                ...result,
+                                createdAt: moment(result.createdAt).format('M/D/YY, h:mma'),
+                                author: {
+                                    ...user,
+                                },
+                            };
+                        }),
+                    pagination: {
+                        // totalItems: Number(countResult[0].count),
+                        totalItems: 100, // arbitrary number because count is slow and not needed
+                        itemsPerPage: Number(itemsPerPage),
+                        pageNumber: Number(pageNumber),
+                    },
+                };
+
+                return res.status(200).send(response);
+            });
         });
     })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
