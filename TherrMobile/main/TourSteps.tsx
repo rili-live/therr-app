@@ -256,21 +256,12 @@ const getTourSteps: (args: IGetTourStepsArgs) => TourStep[] = ({ locale }) => {
     return [
         // ...setup the steps
         {
-            before: () => {
-                return new Promise((resolve) => {
-                    // This is necessary to allow the map route render the map buttons
-                    // before starting the tour.
-                    setTimeout(() => {
-                        return resolve();
-                    }, 500);
-
-                    // TODO: Use reject() to cancel tour if user clicks before load
-                });
-            },
             floatingProps: {
                 middleware: [offset({
+                    alignmentAxis: 0,
+                    crossAxis: 0,
                     mainAxis: 10,
-                }), shift(), flip()],
+                })],
                 placement: 'top',
             },
             render: () => <StepMatchUp translate={translate} />,
@@ -329,7 +320,7 @@ const getTourSteps: (args: IGetTourStepsArgs) => TourStep[] = ({ locale }) => {
         },
         {
             floatingProps: {
-                middleware: [flip(), shift(), offset({
+                middleware: [offset({
                     mainAxis: 10,
                 })],
                 placement: 'top',
