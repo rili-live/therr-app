@@ -17,6 +17,15 @@ class MessagesService {
         });
     };
 
+    searchMyDMs = (query: ISearchQuery) => {
+        const queryString = getSearchQueryString(query);
+
+        return axios({
+            method: 'get',
+            url: `/messages-service/direct-messages/me${queryString}`,
+        });
+    };
+
     searchForumMessages = (forumId: string, query: ISearchQuery) => {
         const queryString = getSearchQueryString(query);
 

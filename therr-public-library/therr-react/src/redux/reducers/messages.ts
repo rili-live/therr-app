@@ -5,6 +5,7 @@ import { IForumMsgList, IMessagesState, MessageActionTypes } from '../../types/r
 const initialState: IMessagesState = Immutable.from({
     forums: Immutable.from([]),
     dms: {},
+    myDMs: {},
     forumMsgs: {},
 });
 
@@ -55,6 +56,12 @@ const messages = (state: IMessagesState = initialState, action: any) => {
                 prevDMsList[prevDMsList.length - 1].isFirstMessage = true;
             }
             return state.setIn(['dms', action.data.contextUserId], prevDMsList);
+        case MessageActionTypes.GET_MY_DIRECT_MESSAGES:
+            return state.setIn(['myDMs'], action.data.results)
+                .setIn(['myDMsPagination'], { ...action.data.pagination });
+        case MessageActionTypes.GET_MORE_OF_MY_DIRECT_MESSAGES:
+            return state.setIn(['myDMs'], [...state.myDMs, ...action.data.results])
+                .setIn(['myDMsPagination'], { ...action.data.pagination });
         case SocketServerActionTypes.SEND_DIRECT_MESSAGE:
             prevDMsList.unshift(action.data.message);
             return state.setIn(['dms', action.data.contextUserId], prevDMsList);

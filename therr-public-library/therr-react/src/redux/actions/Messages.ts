@@ -21,6 +21,14 @@ const Messages = {
             data,
         });
     }),
+    searchMyDMs: (query: any, userDetails) => (dispatch: any) => MessagesService.searchMyDMs(query).then((response: any) => {
+        dispatch({
+            type: query.pageNumber > 1 ? MessageActionTypes.GET_MORE_OF_MY_DIRECT_MESSAGES : MessageActionTypes.GET_MY_DIRECT_MESSAGES,
+            data: response?.data,
+        });
+
+        return response?.data;
+    }),
     searchForumMessages: (forumId: string, userId: string, query: any) => (dispatch: any) => MessagesService
         .searchForumMessages(forumId, query)
         .then((response: any) => {

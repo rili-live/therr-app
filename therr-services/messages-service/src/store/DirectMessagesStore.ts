@@ -72,6 +72,33 @@ export default class DirectMessagesStore {
         });
     }
 
+    searchLatestDMs(userId: string, conditions: any = {}) {
+        const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
+        const limit = conditions.pagination.itemsPerPage;
+        const queryString = knexBuilder.raw(`
+        SELECT
+            *
+        FROM
+            "main"."directMessages"
+        WHERE ((least("fromUserId", "toUserId"), greatest("fromUserId", "toUserId")), "updatedAt")
+        in(
+            SELECT
+                (least("fromUserId", "toUserId"), greatest("fromUserId", "toUserId")) AS users, max("updatedAt") AS "maxUpdated" FROM "main"."directMessages"
+            WHERE ("fromUserId" = '${userId}'
+                OR "toUserId" = '${userId}')
+        GROUP BY
+            users
+        ORDER BY
+            "maxUpdated" DESC
+        LIMIT ${limit}
+        OFFSET ${offset})
+        ORDER BY
+            "updatedAt" DESC;
+        `).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     createDirectMessage(params: ICreateDirectMessageParams) {
         const queryString = knexBuilder.insert(params)
             .into(DIRECT_MESSAGES_TABLE_NAME)
