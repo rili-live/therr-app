@@ -21,7 +21,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
             message: data.message,
             toUserId: data.to.id,
             fromUserId: data.userId,
-            isUnread: false, // TODO: RSERV-36 - derive from frontend message
+            isUnread: !data.to.socketId, // TODO: RSERV-36 - derive from frontend message
         },
     }, socket, decodedAuthenticationToken).then(({ data: message }) => {
         // TODO: RFRONT-25 - localize dates
