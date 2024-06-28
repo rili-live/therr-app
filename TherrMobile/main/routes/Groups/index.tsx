@@ -1,308 +1,550 @@
-// import React from 'react';
-// import { Text, FlatList, SafeAreaView, View } from 'react-native';
-// import { Button } from 'react-native-elements';
-// import 'react-native-gesture-handler';
-// import { connect } from 'react-redux';
-// import { bindActionCreators } from 'redux';
-// import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-// import { ForumActions } from 'therr-react/redux/actions';
-// import { UserConnectionsActions } from 'therr-react/redux/actions';
-// import { IForumsState, IUserState, IUserConnectionsState } from 'therr-react/types';
-// // import HostedChatButtonMenu from '../../components/ButtonMenu/HostedChatButtonMenu';
-// import translator from '../../services/translator';
-// import RoundInput from '../../components/Input/Round';
-// import { buildStyles } from '../../styles';
-// import { buildStyles as buildButtonStyles } from '../../styles/buttons';
-// import { buildStyles as buildFormsStyles } from '../../styles/forms';
-// import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
-// import { buildStyles as buildChatStyles } from '../../styles/user-content/groups';
-// import { buildStyles as buildTileStyles } from '../../styles/user-content/groups/chat-tiles';
-// import GroupCategories from './GroupCategories';
-// import BaseStatusBar from '../../components/BaseStatusBar';
-// import GroupTile from './GroupTile';
+import React from 'react';
+import { Dimensions, FlatList, SafeAreaView, Text, View } from 'react-native';
+import 'react-native-gesture-handler';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { ForumActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { IForumsState, IUserState } from 'therr-react/types';
+import { TabBar, TabView } from 'react-native-tab-view';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
+import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildTileStyles } from '../../styles/user-content/groups/chat-tiles';
+import { buildStyles as buildFormsStyles } from '../../styles/forms';
+import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
+import spacingStyles from '../../styles/layouts/spacing';
+import translator from '../../services/translator';
+import BaseStatusBar from '../../components/BaseStatusBar';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import CreateConnectionButton from '../../components/CreateConnectionButton';
+import { RefreshControl } from 'react-native-gesture-handler';
+import LazyPlaceholder from './components/LazyPlaceholder';
+import ConfirmModal from '../../components/Modals/ConfirmModal';
+import ListEmpty from '../../components/ListEmpty';
+import UsersActions from '../../redux/actions/UsersActions';
+import { GROUPS_CAROUSEL_TABS } from '../../constants';
+import GroupTile from '../Groups/GroupTile';
+import GroupCategories from '../Groups/GroupCategories';
 
-// const chatKeyExtractor = (item) => item.id.toString();
+const { width: viewportWidth } = Dimensions.get('window');
+export const DEFAULT_PAGE_SIZE = 50;
+const tabMap = {
+    0: GROUPS_CAROUSEL_TABS.GROUPS,
+};
 
-// interface IGroupsDispatchProps {
-//     searchCategories: Function;
-//     searchForums: Function;
-//     searchUserConnections: Function;
-// }
+const getActiveTabIndex = (mapOfTabs: { [key: number]: string }, activeTab?: string) => {
+    if (activeTab === mapOfTabs[0]) {
+        return 0;
+    }
+    if (activeTab === mapOfTabs[1]) {
+        return 1;
+    }
+    if (activeTab === mapOfTabs[2]) {
+        return 2;
+    }
 
-// interface IStoreProps extends IGroupsDispatchProps {
-//     forums: IForumsState;
-//     user: IUserState;
-//     userConnections: IUserConnectionsState;
-// }
+    return 0;
+};
 
-// // Regular component props
-// export interface IGroupsProps extends IStoreProps {
-//     navigation: any;
-// }
+interface IGroupsDispatchProps {
+    createUserConnection: Function;
+    createUserGroup: Function;
+    logout: Function;
+    getUserGroups: Function;
+    searchCategories: Function;
+    searchForums: Function;
+    searchUserConnections: Function;
+    searchUsers: Function;
+    searchUpdateUser: Function;
+}
 
-// interface IGroupsState {
-//     categories: any[];
-//     searchFilters: any;
-//     searchInput: string;
-//     toggleChevronName: 'chevron-down' | 'chevron-up',
-// }
+interface IStoreProps extends IGroupsDispatchProps {
+    forums: IForumsState;
+    user: IUserState;
+}
 
-// const mapStateToProps = (state) => ({
-//     forums: state.forums,
-//     user: state.user,
-//     userConnections: state.userConnections,
-// });
+// Regular component props
+export interface IGroupsProps extends IStoreProps {
+    navigation: any;
+    route: any;
+}
 
-// const mapDispatchToProps = (dispatch: any) =>
-//     bindActionCreators(
-//         {
-//             searchCategories: ForumActions.searchCategories,
-//             searchForums: ForumActions.searchForums,
-//             searchUserConnections: UserConnectionsActions.search,
-//         },
-//         dispatch
-//     );
+interface IGroupsState {
+    categories: any[];
+    isNameConfirmModalVisible: boolean;
+    isRefreshing: boolean;
+    activeTabIndex: number;
+    searchFilters: any;
+    tabRoutes: { key: string; title: string }[];
+    toggleChevronName: 'refresh',
+}
 
-// class Groups extends React.Component<IGroupsProps, IGroupsState> {
-//     private flatListRef: any;
-//     private translate: Function;
-//     private searchTimerId: any;
-//     private theme = buildStyles();
-//     private themeButtons = buildButtonStyles();
-//     private themeForms = buildFormsStyles();
-//     private themeCategory = buildCategoryStyles();
-//     private themeChat = buildChatStyles();
-//     private themeTile = buildTileStyles();
+const mapStateToProps = (state) => ({
+    forums: state.forums,
+    user: state.user,
+});
 
-//     static getDerivedStateFromProps(nextProps: IGroupsProps, nextState: IGroupsState) {
-//         if (!nextState.categories || !nextState.categories.length) {
-//             return {
-//                 categories: nextProps.forums.forumCategories,
-//             };
-//         }
+const mapDispatchToProps = (dispatch: any) =>
+    bindActionCreators(
+        {
+            createUserConnection: UserConnectionsActions.create,
+            createUserGroup: UsersActions.createUserGroup,
+            searchCategories: ForumActions.searchCategories,
+            getUserGroups: UsersActions.getUserGroups,
+            searchForums: ForumActions.searchForums,
+            searchUserConnections: UserConnectionsActions.search,
+            searchUsers: UsersActions.search,
+            searchUpdateUser: UsersActions.searchUpdateUser,
+        },
+        dispatch
+    );
 
-//         return null;
-//     }
+class Groups extends React.Component<IGroupsProps, IGroupsState> {
+    private translate: Function;
+    private theme = buildStyles();
+    private themeButtons = buildButtonsStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
+    private themeMenu = buildMenuStyles();
+    private themeTile = buildTileStyles();
+    private themeForms = buildFormsStyles();
+    private themeCategory = buildCategoryStyles();
+    private unsubscribeFocusListener;
+    private peopleListRef;
+    private groupsListRef;
 
-//     constructor(props) {
-//         super(props);
+    static getDerivedStateFromProps(nextProps: IGroupsProps, nextState: IGroupsState) {
+        if (!nextState.categories || !nextState.categories.length) {
+            return {
+                categories: nextProps.forums.forumCategories,
+            };
+        }
 
-//         this.state = {
-//             categories: props.categories || [],
-//             searchFilters: {
-//                 itemsPerPage: 100,
-//                 pageNumber: 1,
-//                 order: 'desc',
-//             },
-//             searchInput: '',
-//             toggleChevronName: 'chevron-down',
-//         };
+        return null;
+    }
 
-//         this.theme = buildStyles(props.user.settings?.mobileThemeName);
-//         this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
-//         this.themeCategory = buildCategoryStyles(props.user.settings?.mobileThemeName);
-//         this.themeChat = buildChatStyles(props.user.settings?.mobileThemeName);
-//         this.themeTile = buildTileStyles(props.user.settings?.mobileThemeName);
-//         this.translate = (key: string, params: any) =>
-//             translator('en-us', key, params);
-//     }
+    constructor(props) {
+        super(props);
 
-//     componentDidMount() {
-//         const { forums, navigation, searchCategories, searchForums } = this.props;
-//         const { searchFilters } = this.state;
+        this.translate = (key: string, params: any) =>
+            translator('en-us', key, params);
 
-//         navigation.setOptions({
-//             title: this.translate('pages.groups.headerTitle'),
-//         });
+        const { route } = props;
+        const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);
 
-//         if (forums && (!forums.searchResults || !forums.searchResults.length)) {
-//             searchForums(searchFilters, {});
-//         }
+        this.state = {
+            categories: props.categories || [],
+            activeTabIndex,
+            isNameConfirmModalVisible: false,
+            isRefreshing: false,
+            tabRoutes: [
+                { key: GROUPS_CAROUSEL_TABS.GROUPS, title: this.translate('menus.headerTabs.groupsPublic') },
+                // { key: GROUPS_CAROUSEL_TABS.INVITES, title: this.translate('menus.headerTabs.invite') },
+            ],
+            toggleChevronName: 'refresh',
+            searchFilters: {
+                itemsPerPage: DEFAULT_PAGE_SIZE,
+                pageNumber: 1,
+                order: 'desc',
+            },
+        };
 
-//         if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
-//             searchCategories({
-//                 itemsPerPage: 100,
-//                 pageNumber: 1,
-//                 order: 'desc',
-//             }, {});
-//         }
-//     }
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeTile = buildTileStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormsStyles(props.user.settings?.mobileThemeName);
+        this.themeCategory = buildCategoryStyles(props.user.settings?.mobileThemeName);
+    }
 
-//     componentWillUnmount = () => {
-//         clearTimeout(this.searchTimerId);
-//     };
+    componentDidMount() {
+        const {
+            getUserGroups, navigation, forums, searchCategories, user,
+        } = this.props;
 
-//     handleCategoryPress = (category) => {
-//         const { categories, searchInput } = this.state;
-//         const modifiedCategories: any = [ ...categories ];
+        navigation.setOptions({
+            title: this.translate('pages.groups.headerTitle'),
+        });
 
-//         modifiedCategories.some((c, i) => {
-//             if (c.tag === category.tag) {
-//                 modifiedCategories[i] = { ...c, isActive: !c.isActive };
-//                 return true;
-//             }
-//         });
+        // TODO: Connect redux UI prefetch
+        if (!user.myUserGroups?.length) {
+            getUserGroups();
+        }
 
-//         this.searchForumsWithFilters(searchInput, modifiedCategories);
+        if (forums && (!forums.searchResults || !forums.searchResults.length)) {
+            this.handleRefreshForumsSearch();
+        }
 
-//         this.setState({
-//             categories: modifiedCategories,
-//         });
-//     };
+        if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
+            searchCategories({
+                itemsPerPage: 100,
+                pageNumber: 1,
+                order: 'desc',
+            }, {});
+        }
 
-//     handleChatTilePress = (chat) => {
-//         const { navigation } = this.props;
+        this.unsubscribeFocusListener = navigation.addListener('focus', () => {
+            const { route } = this.props;
+            const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);
 
-//         navigation.navigate('ViewGroup', chat);
-//     };
+            this.setState({
+                activeTabIndex,
+            });
+        });
+    }
 
-//     handleCategoryTogglePress = () => {
-//         const  { toggleChevronName } = this.state;
-//         this.setState({
-//             toggleChevronName: toggleChevronName === 'chevron-down' ? 'chevron-up' : 'chevron-down',
-//         });
-//     };
+    componentWillUnmount() {
+        if (this.unsubscribeFocusListener) {
+            this.unsubscribeFocusListener();
+        }
+    }
 
-//     handleCreateGroup = () => {
-//         const { forums, navigation } = this.props;
-//         const categories = (forums && forums.forumCategories) || [];
+    getConnectionOrUserDetails = (userOrConnection) => {
+        const { user } = this.props;
 
-//         navigation.navigate('EditGroup', { categories });
-//     };
+        // Active connection format
+        if (!userOrConnection.users) {
+            return userOrConnection;
+        }
 
-//     onJoinGroup = (group) => {
-//         const { createUserGroup } = this.props;
+        // User <-> User connection format
+        return (
+            userOrConnection.users.find(
+                (u) => user.details && u.id !== user.details.id
+            ) || {}
+        );
+    };
 
-//         createUserGroup({
-//             groupId: group.id,
-//         }).catch((err) => {
-//             console.log(err);
-//         });
-//     };
+    getConnectionSubtitle = (connectionDetails) => {
+        if (!connectionDetails?.firstName && !connectionDetails?.lastName) {
+            return this.translate('pages.userProfile.anonymous');
+        }
+        return `${connectionDetails.firstName || ''} ${
+            connectionDetails.lastName || ''
+        }`;
+    };
 
-//     onSearchInputChange = (text) => {
-//         this.searchForumsWithFilters(text);
+    goToViewUser = (userId) => {
+        const { navigation } = this.props;
 
-//         this.setState({
-//             searchInput: text,
-//         });
-//     };
+        navigation.navigate('ViewUser', {
+            userInView: {
+                id: userId,
+            },
+        });
+    };
 
-//     searchForumsWithFilters = (text, modifiedCategories?) => {
-//         const { searchForums } = this.props;
-//         const { categories, searchFilters } = this.state;
+    onConnectionPress = (connectionDetails) => {
+        const { navigation } = this.props;
 
-//         clearTimeout(this.searchTimerId);
+        navigation.navigate('DirectMessage', {
+            connectionDetails,
+        });
+    };
 
-//         this.searchTimerId = setTimeout(() => {
-//             const selectedCategoryTags = (modifiedCategories || categories).filter(c => c.isActive).map(c => c.tag);
-//             const searchParams = {
-//                 ...searchFilters,
-//                 query: text,
-//                 filterBy: 'title',
-//                 filterOperator: 'ilike',
-//             };
-//             const searchArgs: any = {};
-//             if (selectedCategoryTags.length) {
-//                 searchArgs.categoryTags = selectedCategoryTags;
-//             }
-//             searchForums(searchParams, searchArgs);
-//         }, 250);
-//     };
+    onTabSelect = (index: number) => {
+        const { navigation } = this.props;
+        this.setState({
+            activeTabIndex: index,
+        });
 
-//     render() {
-//         const { forums } = this.props;
-//         const { categories, toggleChevronName } = this.state;
-//         const forumSearchResults = (forums && forums.searchResults) || [];
+        navigation.setParams({
+            activeTab: tabMap[index],
+        });
+    };
 
-//         return (
-//             <>
-//                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-//                 <SafeAreaView style={this.theme.styles.safeAreaView}>
-//                     <View style={this.themeChat.styles.searchContainer}>
-//                         <RoundInput
-//                             autoCapitalize="none"
-//                             containerStyle={this.themeChat.styles.searchInputContainer}
-//                             placeholder={this.translate(
-//                                 'forms.groups.searchPlaceholder'
-//                             )}
-//                             value={this.state.searchInput}
-//                             onChangeText={this.onSearchInputChange}
-//                             rightIcon={
-//                                 <FontAwesomeIcon
-//                                     name="search"
-//                                     color={this.theme.colors.primary3}
-//                                     style={this.themeChat.styles.searchIcon}
-//                                     size={22}
-//                                 />
-//                             }
-//                             errorStyle={this.themeChat.styles.searchInputError}
-//                             themeForms={this.themeForms}
-//                         />
-//                     </View>
-//                     <GroupCategories
-//                         style={{}}
-//                         backgroundColor={this.theme.colors.primary}
-//                         categories={categories}
-//                         onCategoryPress={this.handleCategoryPress}
-//                         translate={this.translate}
-//                         onCategoryTogglePress={this.handleCategoryTogglePress}
-//                         toggleChevronName={toggleChevronName}
-//                         theme={this.theme}
-//                         themeButtons={this.themeButtons}
-//                         themeCategory={this.themeCategory}
-//                     />
+    trySearchMoreUsers = () => {
 
-//                     {
-//                         !forumSearchResults.length ?
-//                             <Text style={this.themeChat.styles.noResultsText}>{this.translate('forms.groups.noResultsFound')}</Text> :
-//                             <FlatList
-//                                 horizontal={false}
-//                                 keyExtractor={chatKeyExtractor}
-//                                 data={forumSearchResults}
-//                                 renderItem={({
-//                                     item: group,
-//                                 }) =>
-//                                     <GroupTile
-//                                         group={group}
-//                                         onChatTilePress={this.handleChatTilePress}
-//                                         theme={this.theme}
-//                                         themeChatTile={this.themeTile}
-//                                         themeButtons={this.themeButtons}
-//                                         translate={this.translate}
-//                                         isActive={false}
-//                                         handleJoinGroup={this.onJoinGroup}
-//                                     />
-//                                 }
-//                                 style={this.theme.styles.scrollViewFull}
-//                                 contentContainerStyle={this.themeChat.styles.scrollContentContainer}
-//                                 ref={(component) => (this.flatListRef = component)}
-//                                 initialScrollIndex={0}
-//                                 onContentSizeChange={forumSearchResults.length ? () => this.flatListRef.scrollToIndex({
-//                                     index: 0,
-//                                     animated: true,
-//                                 }) : undefined}
-//                             />
-//                     }
-//                     <View style={this.themeChat.styles.createChatBtnContainer}>
-//                         <Button
-//                             buttonStyle={this.themeButtons.styles.btn}
-//                             icon={
-//                                 <FontAwesomeIcon
-//                                     name="marker"
-//                                     size={44}
-//                                     style={this.themeButtons.styles.btnIcon}
-//                                 />
-//                             }
-//                             raised={true}
-//                             onPress={this.handleCreateGroup}
-//                         />
-//                     </View>
-//                 </SafeAreaView>
-//                 {/* <HostedChatButtonMenu navigation={navigation} translate={this.translate} user={user} /> */}
-//             </>
-//         );
-//     }
-// }
+    };
 
-// export default connect(mapStateToProps, mapDispatchToProps)(Groups);
+    handleRefreshForumsSearch = () => {
+        const { searchFilters } = this.state;
+        this.setState({
+            isRefreshing: true,
+        });
+
+        this.props
+            .searchForums(searchFilters, {})
+            .catch(() => {})
+            .finally(() => {
+                this.setState({
+                    isRefreshing: false,
+                });
+            });
+    };
+
+    handleNameConfirm = () => {
+        const { navigation } = this.props;
+
+        this.toggleNameConfirmModal();
+        navigation.navigate('Settings');
+    };
+
+    onSendConnectRequest = (acceptingUser: any) => {
+        const { createUserConnection, user, searchUpdateUser } = this.props;
+        // TODO: Send connection request
+        createUserConnection({
+            requestingUserId: user.details.id,
+            requestingUserFirstName: user.details.firstName,
+            requestingUserLastName: user.details.lastName,
+            requestingUserEmail: user.details.email,
+            acceptingUserId: acceptingUser?.id,
+            acceptingUserPhoneNumber: acceptingUser?.phoneNumber,
+            acceptingUserEmail: acceptingUser?.email,
+        }, {
+            userName: user?.details?.userName,
+        }).then(() => {
+            searchUpdateUser(acceptingUser.id, {
+                isConnected: true,
+            });
+        });
+    };
+
+    toggleNameConfirmModal = () => {
+        this.setState({
+            isNameConfirmModalVisible: !this.state.isNameConfirmModalVisible,
+        });
+    };
+
+    onCreatePress = () => {
+        const { activeTabIndex } = this.state;
+        const { navigation } = this.props;
+
+        if (tabMap[activeTabIndex] === GROUPS_CAROUSEL_TABS.GROUPS) {
+            navigation.navigate('EditGroup');
+        } else {
+            navigation.navigate('Invite');
+        }
+    };
+
+    scrollTop = () => {
+        const { user } = this.props;
+
+        if (this.sortGroups()?.length) {
+            this.groupsListRef?.scrollToOffset({ animated: true, offset: 0 });
+        }
+        if (Object.keys(user.users || {}).length) {
+            this.peopleListRef?.scrollToOffset({ animated: true, offset: 0 });
+        }
+    };
+
+    sortGroups = (): any[] => {
+        const { forums } = this.props;
+        const groups = (forums && forums.searchResults) || [];
+        // TODO: Sort by more recently active
+        return groups;
+    };
+
+    handleChatTilePress = (chat) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('ViewGroup', {
+            ...chat,
+        });
+    };
+
+    searchForumsWithFilters = (text, modifiedCategories?) => {
+        const { searchForums } = this.props;
+        const { categories, searchFilters } = this.state;
+
+        const selectedCategoryTags = (modifiedCategories || categories).filter(c => c.isActive).map(c => c.tag);
+        const searchParams = {
+            ...searchFilters,
+            query: text,
+            filterBy: 'title',
+            filterOperator: 'ilike',
+        };
+        const searchArgs: any = {};
+        if (selectedCategoryTags.length) {
+            searchArgs.categoryTags = selectedCategoryTags;
+        }
+        searchForums(searchParams, searchArgs);
+    };
+
+    handleCategoryPress = (category) => {
+        const { categories } = this.state;
+        const modifiedCategories: any = [ ...categories ];
+
+        modifiedCategories.some((c, i) => {
+            if (c.tag === category.tag) {
+                modifiedCategories[i] = { ...c, isActive: !c.isActive };
+                return true;
+            }
+        });
+
+        this.searchForumsWithFilters('', modifiedCategories);
+
+        this.setState({
+            categories: modifiedCategories,
+        });
+    };
+
+    handleCategoryTogglePress = () => {
+        const { categories } = this.state;
+        const modifiedCategories: any = [ ...categories ];
+        modifiedCategories.forEach((c, i) => {
+            modifiedCategories[i] = { ...c, isActive: false };
+        });
+
+        this.searchForumsWithFilters('', modifiedCategories);
+
+        this.setState({
+            categories: modifiedCategories,
+        });
+    };
+
+    onJoinGroup = (group) => {
+        const { createUserGroup } = this.props;
+
+        createUserGroup({
+            groupId: group.id,
+        }).catch((err) => {
+            console.log(err);
+        });
+    };
+
+    renderTabBar = props => {
+        if (Object.keys(tabMap).length < 2) {
+            return <></>;
+        }
+        return (
+            <TabBar
+                {...props}
+                indicatorStyle={this.themeMenu.styles.tabFocusedIndicator}
+                style={this.themeMenu.styles.tabBar}
+                renderLabel={this.renderTabLabel}
+            />
+        );
+    };
+
+    renderTabLabel = ({ route, focused }) => {
+        return (
+            <Text style={focused ? this.themeMenu.styles.tabTextFocused : this.themeMenu.styles.tabText}>
+                {route.title}
+            </Text>
+        );
+    };
+
+    renderSceneMap = ({ route }) => {
+        const { categories, toggleChevronName, isRefreshing } = this.state;
+        const { user } = this.props;
+
+        switch (route.key) {
+            case GROUPS_CAROUSEL_TABS.GROUPS:
+                const groups = this.sortGroups();
+
+                return (
+                    <FlatList
+                        ref={(component) => this.groupsListRef = component}
+                        data={groups}
+                        keyExtractor={(item) => String(item.id)}
+                        ListHeaderComponent={<GroupCategories
+                            style={{}}
+                            backgroundColor={this.theme.colors.primary}
+                            categories={categories}
+                            onCategoryPress={this.handleCategoryPress}
+                            translate={this.translate}
+                            onCategoryTogglePress={this.handleCategoryTogglePress}
+                            toggleChevronName={toggleChevronName}
+                            theme={this.theme}
+                            themeButtons={this.themeButtons}
+                            themeCategory={this.themeCategory}
+                        />}
+                        renderItem={({ item: group }) => (
+                            <GroupTile
+                                group={group}
+                                onChatTilePress={this.handleChatTilePress}
+                                theme={this.theme}
+                                themeButtons={this.themeButtons}
+                                themeChatTile={this.themeTile}
+                                translate={this.translate}
+                                handleJoinGroup={this.onJoinGroup}
+                                user={user}
+                            />
+                        )}
+                        ListEmptyComponent={
+                            <View style={spacingStyles.marginHorizLg}>
+                                <ListEmpty iconName="group" theme={this.theme} text={this.translate(
+                                    'components.contactsSearch.noGroupsFound'
+                                )} />
+                            </View>
+                        }
+                        stickyHeaderIndices={[]}
+                        refreshControl={<RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={this.handleRefreshForumsSearch}
+                        />}
+                        onContentSizeChange={this.scrollTop}
+                    />
+                );
+        }
+    };
+
+    render() {
+        const { activeTabIndex, isNameConfirmModalVisible, tabRoutes } = this.state;
+        const { navigation, user } = this.props;
+        const createButtonTitle = tabMap[activeTabIndex] === GROUPS_CAROUSEL_TABS.GROUPS
+            ? this.translate('menus.connections.buttons.create')
+            : this.translate('menus.connections.buttons.invite');
+
+        return (
+            <>
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                    <TabView
+                        lazy
+                        lazyPreloadDistance={1}
+                        navigationState={{
+                            index: activeTabIndex,
+                            routes: tabRoutes,
+                        }}
+                        renderTabBar={this.renderTabBar}
+                        renderScene={this.renderSceneMap}
+                        renderLazyPlaceholder={() => (
+                            <View style={this.theme.styles.sectionContainer}>
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                            </View>
+                        )}
+                        onIndexChange={this.onTabSelect}
+                        initialLayout={{ width: viewportWidth }}
+                        // style={styles.container}
+                    />
+                </SafeAreaView>
+                <ConfirmModal
+                    isVisible={isNameConfirmModalVisible}
+                    onCancel={this.toggleNameConfirmModal}
+                    onConfirm={this.handleNameConfirm}
+                    text={this.translate('forms.createConnection.modal.nameConfirm')}
+                    textCancel={this.translate('forms.createConnection.modal.noThanks')}
+                    translate={this.translate}
+                    theme={this.theme}
+                    themeModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
+                />
+                <CreateConnectionButton
+                    onPress={this.onCreatePress}
+                    themeButtons={this.themeButtons}
+                    title={createButtonTitle}
+                />
+                <MainButtonMenu
+                    activeRoute="Groups"
+                    navigation={navigation}
+                    onActionButtonPress={this.scrollTop}
+                    translate={this.translate}
+                    user={user}
+                    themeMenu={this.themeMenu}
+                />
+            </>
+        );
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Groups);

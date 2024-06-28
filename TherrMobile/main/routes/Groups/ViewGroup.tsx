@@ -37,7 +37,7 @@ import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentE
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
-import { GROUP_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../../constants';
+import { GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS } from '../../constants';
 import RoundInput from '../../components/Input/Round';
 import TherrIcon from '../../components/TherrIcon';
 import ForumMessage from './ForumMessage';
@@ -55,6 +55,20 @@ const tabMap = {
     0: GROUP_CAROUSEL_TABS.CHAT,
     1: GROUP_CAROUSEL_TABS.EVENTS,
     2: GROUP_CAROUSEL_TABS.MEMBERS,
+};
+
+const getActiveTabIndex = (mapOfTabs: { [key: number]: string }, activeTab?: string) => {
+    if (activeTab === mapOfTabs[0]) {
+        return 0;
+    }
+    if (activeTab === mapOfTabs[1]) {
+        return 1;
+    }
+    if (activeTab === mapOfTabs[2]) {
+        return 2;
+    }
+
+    return 0;
 };
 
 interface IViewGroupDispatchProps {
@@ -139,16 +153,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         const { hashTags } = route.params;
         this.hashtags = hashTags ? hashTags.split(',') : [];
 
-        let activeTabIndex = 0;
-        if (route.params?.activeTab === tabMap[0]) {
-            activeTabIndex = 0;
-        }
-        if (route.params?.activeTab === tabMap[1]) {
-            activeTabIndex = 1;
-        }
-        if (route.params?.activeTab === tabMap[2]) {
-            activeTabIndex = 2;
-        }
+        const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);
 
         this.state = {
             activeTabIndex,
@@ -711,8 +716,8 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             <Button
                                 containerStyle={this.themeAccentForms.styles.backButtonContainerFixed}
                                 buttonStyle={this.themeAccentForms.styles.backButton}
-                                onPress={() => navigation.navigate('Connect', {
-                                    activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                                onPress={() => navigation.navigate('Groups', {
+                                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                                 })}
                                 icon={
                                     <FontAwesome5Icon

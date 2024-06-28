@@ -29,11 +29,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         header: {
             fontSize: 18,
             fontFamily: therrFontFamily,
+            fontWeight: '600',
             color: therrTheme.colors.brandingBlack,
             textAlign: 'center',
-            textDecorationStyle: 'solid',
-            textDecorationColor: therrTheme.colors.brandingBlack,
-            textDecorationLine: 'underline',
         },
         body: {},
         text: {

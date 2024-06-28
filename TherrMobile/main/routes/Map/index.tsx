@@ -3,7 +3,6 @@ import { Dimensions, PermissionsAndroid, Keyboard, Platform, SafeAreaView } from
 import { StackActions } from '@react-navigation/native';
 import MapView from 'react-native-map-clustering';
 import AnimatedOverlay from 'react-native-modal-overlay';
-import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Toast from 'react-native-toast-message';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
@@ -80,6 +79,8 @@ import { sendForegroundNotification } from '../../utilities/pushNotifications';
 import QuickFiltersList from '../../components/QuickFiltersList';
 import { getInitialAuthorFilters, getInitialCategoryFilters, getInitialVisibilityFilters } from '../../utilities/getInitialFilters';
 import LottieView from 'lottie-react-native';
+import MapTourRenderer from './MapTourRenderer';
+import { connect } from 'react-redux';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -504,6 +505,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         if (shouldForceUpdate) {
             this.forceUpdate();
         }
+    };
+
+    getCurrentScreen = () => {
+        const { navigation } = this.props;
+        const navState = navigation.getState();
+
+        return navState.routes[navState.routes.length - 1]?.name;
     };
 
     isUserAuthenticated = () => {
@@ -1802,6 +1810,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isConfirmEULAModalVisible,
             isLocationReady,
             isLocationUseDisclosureModalVisible,
+            isMapReady,
             isMinLoadTimeComplete,
             isAreaAlertVisible,
             isSearchThisLocationBtnVisible,
@@ -1811,7 +1820,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldFollowUserLocation,
             shouldRenderMapCircles,
         } = this.state;
-        const { captureClickTarget, location, map, navigation, notifications, route, user } = this.props;
+        const { captureClickTarget, location, map, navigation, notifications, route, updateTour, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
@@ -1996,6 +2005,16 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             translate={this.translate}
                         />
                     </BottomSheetPlus>
+                }
+                {
+                    isMapReady && isMinLoadTimeComplete && this.isUserAuthenticated() &&
+                    !user?.settings?.isNavigationTouring &&
+                    (!user?.settings?.navigationTourCount || user?.settings?.navigationTourCount < 1) &&
+                    <MapTourRenderer
+                        getCurrentScreen={this.getCurrentScreen}
+                        updateTour={updateTour}
+                        user={user}
+                    />
                 }
                 <MainButtonMenu
                     activeRoute="Map"

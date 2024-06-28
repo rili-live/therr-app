@@ -44,7 +44,7 @@ import {
     HAPTIC_FEEDBACK_TYPE,
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
-    PEOPLE_CAROUSEL_TABS,
+    GROUPS_CAROUSEL_TABS,
 } from '../../constants';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
@@ -683,8 +683,8 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
     };
 
     onGoToGroups = () => {
-        this.props.navigation.navigate('Connect', {
-            activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+        this.props.navigation.navigate('Groups', {
+            activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
         });
     };
 

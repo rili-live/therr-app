@@ -19,6 +19,7 @@ import Achievements from './Achievements';
 import AchievementClaim from './Achievements/AchievementClaim';
 import Areas from './Areas';
 import Connect from './Connect';
+import Groups from './Groups';
 import PhoneContacts from './Invite/PhoneContacts';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
@@ -421,17 +422,17 @@ const routes: RouteConfig<
             },
         }),
     },
-    // {
-    //     name: 'Groups',
-    //     component: Groups,
-    //     options: () => ({
-    //         title: 'Groups',
-    //         access: {
-    //             type: AccessCheckType.ALL,
-    //             levels: [AccessLevels.EMAIL_VERIFIED],
-    //         },
-    //     }),
-    // },
+    {
+        name: 'Groups',
+        component: Groups,
+        options: () => ({
+            title: 'Groups',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
     {
         name: 'ViewGroup',
         component: ViewGroup,
