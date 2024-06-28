@@ -10,7 +10,7 @@ import {
 import TherrIcon from '../../components/TherrIcon';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
-import { HAPTIC_FEEDBACK_TYPE, PEOPLE_CAROUSEL_TABS } from '../../constants';
+import { GROUPS_CAROUSEL_TABS, HAPTIC_FEEDBACK_TYPE, PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { isUserAuthenticated } from '../../utilities/authUtils';
 import Toast from 'react-native-toast-message';
 import LottieView from 'lottie-react-native';
@@ -176,30 +176,30 @@ class MainButtonMenuAlt extends ButtonMenu {
         }
     };
 
-    onNavPressDynamic = (viewDestinationName: string) => {
+    onNavPressDynamic = (viewDestinationName: string, viewDestinationParams = {}) => {
         const { onActionButtonPress } = this.props;
         const currentScreen = this.getCurrentScreen();
 
         if (currentScreen === viewDestinationName && onActionButtonPress)     {
             onActionButtonPress();
         } else {
-            this.navTo(viewDestinationName);
+            this.navTo(viewDestinationName, viewDestinationParams);
         }
     };
 
-    handleNearbyPress = () => {
-        const { onNearbyPress, translate, user } = this.props;
+    handleGroupsPress = () => {
+        const { translate, user } = this.props;
 
         if (!isUserAuthenticated(user)) {
             this.showPublicUserToast({
-                lottieLoader: discoverContentLoader,
+                lottieLoader: matchUpLoader,
                 title: translate('alertTitles.loginRequired'),
-                message: translate('alertMessages.nearbyRequiresLogin'),
+                message: translate('alertMessages.groupsRequireLogin'),
             });
-        } else if (onNearbyPress) {
-            onNearbyPress();
         } else {
-            this.onNavPressDynamic('Nearby');
+            this.onNavPressDynamic('Groups', {
+                activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+            });
         }
     };
 
@@ -282,8 +282,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                         }
                         icon={
                             <TherrIcon
-                                name="ul-list"
-                                size={22}
+                                name="nearby"
+                                size={24}
                                 style={
                                     activeRoute === 'Areas'
                                         ? themeMenu.styles.buttonIconActive
@@ -295,14 +295,14 @@ class MainButtonMenuAlt extends ButtonMenu {
                     />
                 </AttachStep>
                 <Button
-                    title={!isCompact ? translate('menus.main.buttons.nearby') : null}
+                    title={!isCompact ? translate('menus.main.buttons.groups') : null}
                     buttonStyle={
-                        activeRoute === 'Nearby'
+                        ['Groups', 'ActivityScheduler'].includes(activeRoute)
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
                     containerStyle={[
-                        ( activeRoute === 'Nearby'
+                        ( ['Groups', 'ActivityScheduler'].includes(activeRoute)
                             ? themeMenu.styles.buttonContainerActive
                             : themeMenu.styles.buttonContainer),
                         {
@@ -310,33 +310,33 @@ class MainButtonMenuAlt extends ButtonMenu {
                         },
                     ]}
                     titleStyle={
-                        activeRoute === 'Nearby'
+                        ['Groups', 'ActivityScheduler'].includes(activeRoute)
                             ? themeMenu.styles.buttonsTitleActive
                             : themeMenu.styles.buttonsTitle
                     }
                     icon={
                         <TherrIcon
-                            name="nearby"
+                            name="group"
                             size={24}
                             style={
-                                activeRoute === 'Nearby'
+                                ['Groups', 'ActivityScheduler'].includes(activeRoute)
                                     ? themeMenu.styles.buttonIconActive
                                     : themeMenu.styles.buttonIcon
                             }
                         />
                     }
-                    onPress={() => this.handleNearbyPress()}
+                    onPress={() => this.handleGroupsPress()}
                 />
                 <AttachStep index={6}>
                     <Button
                         title={!isCompact ? translate('menus.main.buttons.map') : null}
                         buttonStyle={
-                            activeRoute === 'Map'
+                            ['Map', 'ActivityGenerator'].includes(activeRoute)
                                 ? themeMenu.styles.buttonsActive
                                 : themeMenu.styles.buttons
                         }
                         containerStyle={[
-                            (activeRoute === 'Map'
+                            (['Map', 'ActivityGenerator'].includes(activeRoute)
                                 ? themeMenu.styles.buttonContainerActive
                                 : themeMenu.styles.buttonContainer),
                             {
@@ -344,7 +344,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                             },
                         ]}
                         titleStyle={
-                            activeRoute === 'Map'
+                            ['Map', 'ActivityGenerator'].includes(activeRoute)
                                 ? themeMenu.styles.buttonsTitleActive
                                 : themeMenu.styles.buttonsTitle
                         }
@@ -353,7 +353,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                                 name="map"
                                 size={22}
                                 style={
-                                    activeRoute === 'Map'
+                                    ['Map', 'ActivityGenerator'].includes(activeRoute)
                                         ? themeMenu.styles.buttonIconActive
                                         : themeMenu.styles.buttonIcon
                                 }

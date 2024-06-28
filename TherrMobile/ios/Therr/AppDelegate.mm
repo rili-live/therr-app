@@ -3,7 +3,7 @@
 #import <React/RCTBundleURLProvider.h>
 
 #import <GoogleMaps/GoogleMaps.h>
-#import <ReactNativeConfig.h>
+#import <RNCConfig.h>
 #import <Firebase.h>
 #import "RNBootSplash.h"
 #import <React/RCTLinkingManager.h>
@@ -38,7 +38,7 @@
       [FIRApp configure];
   }
   
-  NSString *googleMapsApiKey = [ReactNativeConfig envFor:@"GOOGLE_APIS_IOS_KEY"];
+  NSString *googleMapsApiKey = [RNCConfig envFor:@"GOOGLE_APIS_IOS_KEY"];
   +  [GMSServices provideAPIKey:googleMapsApiKey]; // add this line using the api key obtained from Google Console
 
   // [REQUIRED] Register BackgroundFetch
@@ -49,10 +49,10 @@
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
-  return [self getBundleURL];
+  return [self bundleURL];
 }
  
-- (NSURL *)getBundleURL
+- (NSURL *)bundleURL
 {
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];

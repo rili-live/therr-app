@@ -33,8 +33,22 @@ const { width: viewportWidth } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
 const tabMap = {
     0: PEOPLE_CAROUSEL_TABS.PEOPLE,
-    1: PEOPLE_CAROUSEL_TABS.GROUPS,
+    1: PEOPLE_CAROUSEL_TABS.MESSAGES,
     2: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
+};
+
+const getActiveTabIndex = (mapOfTabs: { [key: number]: string }, activeTab?: string) => {
+    if (activeTab === mapOfTabs[0]) {
+        return 0;
+    }
+    if (activeTab === mapOfTabs[1]) {
+        return 1;
+    }
+    if (activeTab === mapOfTabs[2]) {
+        return 2;
+    }
+
+    return 0;
 };
 
 interface IContactsDispatchProps {
@@ -124,16 +138,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             translator('en-us', key, params);
 
         const { route } = props;
-        let activeTabIndex = 0;
-        if (route.params?.activeTab === tabMap[0]) {
-            activeTabIndex = 0;
-        }
-        if (route.params?.activeTab === tabMap[1]) {
-            activeTabIndex = 1;
-        }
-        if (route.params?.activeTab === tabMap[2]) {
-            activeTabIndex = 2;
-        }
+        const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);
 
         this.state = {
             categories: props.categories || [],
@@ -143,7 +148,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             isRefreshingUserSearch: false,
             tabRoutes: [
                 { key: PEOPLE_CAROUSEL_TABS.PEOPLE, title: this.translate('menus.headerTabs.people') },
-                { key: PEOPLE_CAROUSEL_TABS.GROUPS, title: this.translate('menus.headerTabs.groups') },
+                { key: PEOPLE_CAROUSEL_TABS.MESSAGES, title: this.translate('menus.headerTabs.messages') },
                 { key: PEOPLE_CAROUSEL_TABS.CONNECTIONS, title: this.translate('menus.headerTabs.connections') },
                 // { key: PEOPLE_CAROUSEL_TABS.INVITES, title: this.translate('menus.headerTabs.invite') },
             ],
@@ -201,16 +206,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
             const { route } = this.props;
-            let activeTabIndex = 0;
-            if (route.params?.activeTab === tabMap[0]) {
-                activeTabIndex = 0;
-            }
-            if (route.params?.activeTab === tabMap[1]) {
-                activeTabIndex = 1;
-            }
-            if (route.params?.activeTab === tabMap[2]) {
-                activeTabIndex = 2;
-            }
+            const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);
 
             this.setState({
                 activeTabIndex,
@@ -285,7 +281,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     handleRefreshForumsSearch = () => {
         const { searchFilters } = this.state;
         this.setState({
-            isRefreshingUserSearch: true,
+            isRefreshing: true,
         });
 
         this.props
@@ -293,7 +289,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             .catch(() => {})
             .finally(() => {
                 this.setState({
-                    isRefreshingUserSearch: false,
+                    isRefreshing: false,
                 });
             });
     };
@@ -383,14 +379,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     onCreatePress = () => {
-        const { activeTabIndex } = this.state;
+        // const { activeTabIndex } = this.state;
         const { navigation } = this.props;
 
-        if (tabMap[activeTabIndex] === PEOPLE_CAROUSEL_TABS.GROUPS) {
-            navigation.navigate('EditGroup');
-        } else {
-            navigation.navigate('Invite');
-        }
+        navigation.navigate('Invite');
     };
 
     scrollTop = () => {
@@ -551,7 +543,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         ListFooterComponentStyle={{ marginBottom: 80 }}
                     />
                 );
-            case PEOPLE_CAROUSEL_TABS.GROUPS:
+            case PEOPLE_CAROUSEL_TABS.MESSAGES:
                 const groups = this.sortGroups();
 
                 return (
@@ -639,8 +631,8 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     render() {
         const { activeTabIndex, isNameConfirmModalVisible, tabRoutes } = this.state;
         const { navigation, user } = this.props;
-        const createButtonTitle = tabMap[activeTabIndex] === PEOPLE_CAROUSEL_TABS.GROUPS
-            ? this.translate('menus.connections.buttons.create')
+        const createButtonTitle = tabMap[activeTabIndex] === PEOPLE_CAROUSEL_TABS.MESSAGES
+            ? this.translate('menus.connections.buttons.invite')
             : this.translate('menus.connections.buttons.invite');
 
         return (

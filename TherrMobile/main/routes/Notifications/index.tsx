@@ -21,7 +21,7 @@ import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import Notification from './Notification';
 import ListEmpty from '../../components/ListEmpty';
-import { PEOPLE_CAROUSEL_TABS } from '../../constants';
+import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../../constants';
 
 interface INotificationsDispatchProps {
     logout: Function;
@@ -226,8 +226,8 @@ class Notifications extends React.Component<
             }
         } else if (notification.type === NotificationsEmuns.Types.NEW_GROUP_INVITE) {
             // TODO: Navigate to the specific group
-            navigation.navigate('Connect', {
-                activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+            navigation.navigate('Groups', {
+                activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
             });
         }
     };

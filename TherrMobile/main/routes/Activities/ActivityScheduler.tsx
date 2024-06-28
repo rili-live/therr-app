@@ -35,7 +35,7 @@ import LoadingPlaceholder from './LoadingPlaceholder';
 import InputEventName from '../Events/InputEventName';
 import InputGroupName from '../Groups/InputGroupName';
 import EventStartEndFormGroup from '../Events/EventStartEndFormGroup';
-import { DEFAULT_RADIUS, PEOPLE_CAROUSEL_TABS } from '../../constants';
+import { DEFAULT_RADIUS, GROUPS_CAROUSEL_TABS } from '../../constants';
 import BottomSheet from '../../components/BottomSheet/BottomSheet';
 import LottieView from 'lottie-react-native';
 
@@ -403,8 +403,8 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                                 title: response.data?.group?.title,
                             });
                         } else {
-                            this.props.navigation.navigate('Connect', {
-                                activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                            this.props.navigation.navigate('Groups', {
+                                activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                             });
                         }
                     },

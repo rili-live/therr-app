@@ -12,9 +12,12 @@ const GROUP_CAROUSEL_TABS = {
     EVENTS: 'events',
     MEMBERS: 'members',
 };
+const GROUPS_CAROUSEL_TABS = {
+    GROUPS: 'groups',
+};
 const PEOPLE_CAROUSEL_TABS = {
     PEOPLE: 'people',
-    GROUPS: 'groups',
+    MESSAGES: 'messages',
     CONNECTIONS: 'connections',
 };
 const PROFILE_CAROUSEL_TABS = {
@@ -109,6 +112,7 @@ export {
     // Carousel
     CAROUSEL_TABS,
     GROUP_CAROUSEL_TABS,
+    GROUPS_CAROUSEL_TABS,
     PEOPLE_CAROUSEL_TABS,
     PROFILE_CAROUSEL_TABS,
 

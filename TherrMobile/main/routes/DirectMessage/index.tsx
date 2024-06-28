@@ -16,6 +16,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import TherrIcon from '../../components/TherrIcon';
 import LoadingPlaceholder from './LoadingPlaceholder';
 import spacingStyles from '../../styles/layouts/spacing';
+import ListEmpty from '../../components/ListEmpty';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -230,6 +231,14 @@ class DirectMessage extends React.Component<
                                     // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
                                     onEndReached={this.tryLoadMore}
                                     onEndReachedThreshold={0.5}
+                                    ListEmptyComponent={<View>
+                                        <ListEmpty theme={this.theme} text={this.translate(
+                                            'pages.directMessage.noMessagesFound',
+                                            {
+                                                userName: connectionDetails.userName,
+                                            }
+                                        )} />
+                                    </View>}
                                 />
                         }
                         <View style={this.themeMessage.styles.sendInputsContainer}>

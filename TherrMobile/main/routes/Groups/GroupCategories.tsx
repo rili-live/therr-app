@@ -15,8 +15,11 @@ const TherrIcon = createIconSetFromIcoMoon(
 
 const keyExtractor = (item) => item.iconId;
 
-const renderCategoryIcon = (category, theme, themeCategory) => {
-    const style = category.isActive ? themeCategory.styles.categoryIconActive : themeCategory.styles.categoryIcon;
+const renderCategoryIcon = (category, theme, themeButtons) => {
+    const style = {
+        ...category.isActive ? themeButtons.styles.quickFiltersButtonIconActive : themeButtons.styles.quickFiltersButtonIcon,
+        color: category.isActive ? themeButtons.styles.quickFiltersButtonIconActive.color : category.iconColor,
+    };
     const props = {
         color: category.isActive ? category.iconColor : category.iconColor,
         name: category.iconId,
@@ -48,7 +51,11 @@ const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategor
         return (
             <Button
                 title={titleCapped}
-                icon={renderCategoryIcon(category, theme, themeCategory)}
+                icon={renderCategoryIcon(category, theme, themeButtons)}
+                iconContainerStyle={{
+                    marginRight: 0,
+                    paddingRight: 0,
+                }}
                 onPress={() => onCategoryPress(category)}
                 buttonStyle={buttonStyle}
                 containerStyle={[containerStyle, spacingStyles.marginVertSm, spacingStyles.marginHorizSm, {

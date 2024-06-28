@@ -26,6 +26,7 @@ export interface IMessagesState extends Immutable.ImmutableObject<any> {
     dms: {
         [key: string]: IDirectMsg;
     } | {};
+    myDMs: any;
     forumMsgs: {
         [key: string]: IForumMsg;
     } | {};
@@ -34,5 +35,7 @@ export interface IMessagesState extends Immutable.ImmutableObject<any> {
 export enum MessageActionTypes {
     GET_DIRECT_MESSAGES = 'GET_DIRECT_MESSAGES',
     GET_MORE_DIRECT_MESSAGES = 'GET_MORE_DIRECT_MESSAGES',
+    GET_MY_DIRECT_MESSAGES = 'GET_MY_DIRECT_MESSAGES',
+    GET_MORE_OF_MY_DIRECT_MESSAGES = 'GET_MORE_OF_MY_DIRECT_MESSAGES',
     GET_FORUM_MESSAGES = 'GET_FORUM_MESSAGES',
 }

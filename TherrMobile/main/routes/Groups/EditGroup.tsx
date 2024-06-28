@@ -22,7 +22,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import TherrIcon from '../../components/TherrIcon';
 import RoundInput from '../../components/Input/Round';
 import RoundTextInput from '../../components/Input/TextInput/Round';
-import { PEOPLE_CAROUSEL_TABS } from '../../constants';
+import { GROUPS_CAROUSEL_TABS } from '../../constants';
 import Toast from 'react-native-toast-message';
 import InputGroupName from './InputGroupName';
 
@@ -199,8 +199,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         text1: this.translate('forms.editGroup.backendSuccessMessage'),
                     });
                     setTimeout(() => {
-                        this.props.navigation.navigate('Connect', {
-                            activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                        this.props.navigation.navigate('Groups', {
+                            activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                         });
                     }, 200);
                 })
@@ -372,8 +372,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         <Button
                             containerStyle={this.themeAccentForms.styles.backButtonContainer}
                             buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.navigate('Connect', {
-                                activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                            onPress={() => navigation.navigate('Groups', {
+                                activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                             })}
                             icon={
                                 <TherrIcon

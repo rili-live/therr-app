@@ -25,6 +25,11 @@ messagesServiceRouter.get('/direct-messages', handleServiceRequest({
     method: 'get',
 }));
 
+messagesServiceRouter.get('/direct-messages/me', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
+    method: 'get',
+}));
+
 // Forum Messages
 messagesServiceRouter.post('/forums-messages', createForumMessageValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,

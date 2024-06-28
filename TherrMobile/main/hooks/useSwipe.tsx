@@ -7,14 +7,14 @@ export function useSwipe(onSwipeLeft?: any, onSwipeRight?: any, rangeOffset = 4)
 
     // set user touch start position
     function onTouchStart(e: any) {
-        firstTouch = e.nativeEvent.pageX;
+        firstTouch = e.nativeEvent.pageX || 0;
     }
 
     // when touch ends check for swipe directions
     function onTouchEnd(e: any){
 
         // get touch position and screen size
-        const positionX = e.nativeEvent.pageX;
+        const positionX = e.nativeEvent.pageX || 0;
         const range = windowWidth / rangeOffset;
 
         // check if position is growing positively and has reached specified range
