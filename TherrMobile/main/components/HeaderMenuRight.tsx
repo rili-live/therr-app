@@ -23,7 +23,7 @@ import { getUserImageUri } from '../utilities/content';
 import UsersActions from '../redux/actions/UsersActions';
 import InfoModal from './Modals/InfoModal';
 import TherrIcon from './TherrIcon';
-import { PEOPLE_CAROUSEL_TABS } from '../constants';
+import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../constants';
 
 const ANIMATION_DURATION = 180;
 
@@ -146,6 +146,8 @@ class HeaderMenuRight extends React.PureComponent<
             this.toggleOverlay();
 
             if (routeName === 'Connect' && currentScreen.startsWith('Connect')) {
+                navigation.replace(routeName, params);
+            } else if (routeName === 'Groups' && currentScreen.startsWith('Groups')) {
                 navigation.replace(routeName, params);
             } else {
                 navigation.navigate(routeName, params);
@@ -524,12 +526,12 @@ class HeaderMenuRight extends React.PureComponent<
                                             />
                                             <Button
                                                 buttonStyle={
-                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.CONNECTIONS}`
+                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.MESSAGES}`
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons
                                                 }
                                                 titleStyle={
-                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.CONNECTIONS}`
+                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.MESSAGES}`
                                                         ? themeMenu.styles.buttonsTitleActive
                                                         : themeMenu.styles.buttonsTitle
                                                 }
@@ -537,7 +539,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                 icon={
                                                     <TherrIcon
                                                         style={
-                                                            currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.CONNECTIONS}`
+                                                            currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.MESSAGES}`
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
@@ -547,17 +549,17 @@ class HeaderMenuRight extends React.PureComponent<
                                                 }
                                                 iconRight
                                                 onPress={() => this.navTo('Connect', {
-                                                    activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
+                                                    activeTab: PEOPLE_CAROUSEL_TABS.MESSAGES,
                                                 })}
                                             />
                                             <Button
                                                 buttonStyle={
-                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.GROUPS}`
+                                                    currentScreen === `Groups-${GROUPS_CAROUSEL_TABS.GROUPS}`
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons
                                                 }
                                                 titleStyle={
-                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.GROUPS}`
+                                                    currentScreen === `Groups-${GROUPS_CAROUSEL_TABS.GROUPS}`
                                                         ? themeMenu.styles.buttonsTitleActive
                                                         : themeMenu.styles.buttonsTitle
                                                 }
@@ -565,7 +567,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                 icon={
                                                     <TherrIcon
                                                         style={
-                                                            currentScreen === 'Connect'
+                                                            currentScreen === 'Groups'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
@@ -574,8 +576,8 @@ class HeaderMenuRight extends React.PureComponent<
                                                     />
                                                 }
                                                 iconRight
-                                                onPress={() => this.navTo('Connect', {
-                                                    activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                                                onPress={() => this.navTo('Groups', {
+                                                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                                                 })}
                                             />
                                             <Button

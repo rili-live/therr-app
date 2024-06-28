@@ -46,7 +46,7 @@ import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
-import { AndroidChannelIds, PEOPLE_CAROUSEL_TABS, PressActionIds, getAndroidChannel } from '../constants';
+import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS, PressActionIds, getAndroidChannel } from '../constants';
 import { socketIO } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
@@ -537,9 +537,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             } else if (data.action === 'app.therrmobile.NEW_GROUP_MESSAGE'
                 || data.action === 'app.therrmobile.NEW_GROUP_INVITE'
                 || data.action === 'app.therrmobile.NEW_GROUP_MEMBERS') {
-                targetRouteView = 'Connect';
+                targetRouteView = 'Groups';
                 targetRouteParams = {
-                    activeTab: PEOPLE_CAROUSEL_TABS.GROUPS,
+                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                 };
             }
         }

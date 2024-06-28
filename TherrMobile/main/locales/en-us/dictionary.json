@@ -41,6 +41,7 @@
     "cameraOrFilePermissionsDenied": "Camera or File permissions were denied. Please enable them in your device settings.",
     "createRequiresLogin": "Login to post a moment, share an event, or claim a business space",
     "discoverRequiresLogin": "View recently discovered content and thoughts from people worldwide",
+    "groupsRequireLogin": "Join groups for events, topic discussions, and more",
     "matchupRequiresLogin": "Login to match up with friends, group chat, and plan social events",
     "nearbyRequiresLogin": "Login to discover content posted near your current location",
     "phoneNumberAlreadyInUse": "Phone Number Already In Use For This Account Type",
@@ -887,9 +888,12 @@
     "headerTabs": {
       "discoveries": "Discovered Posts",
       "members": "Members",
+      "messages": "DMs",
       "moments": "Moments",
       "chat": "Chat",
       "connections": "Connections",
+      "groupsPublic": "Public Groups",
+      "groupsJoined": "Your Groups",
       "groups": "Groups",
       "people": "People",
       "search": "Search",
@@ -917,9 +921,10 @@
     "main": {
       "buttons": {
         "account": "Account",
-        "connect": "Connect",
+        "connect": "Connects",
         "bookmarked": "Saved",
         "goToTop": "Go To Top",
+        "groups": "Groups",
         "list": "Discovered",
         "map": "Map",
         "messages": "Messages",
@@ -1094,7 +1099,8 @@
       "headerTitle": "Crop Image"
     },
     "directMessage": {
-      "inputPlaceholder": "Enter a message..."
+      "inputPlaceholder": "Enter a message...",
+      "noMessagesFound": "This is the start of your conversations with {userName}"
     },
     "editChat": {
       "headerTitleCreate": "Create a Group",
@@ -1111,6 +1117,17 @@
     "editSpace": {
       "headerTitle": "Claim a Space",
       "previewHeader": "Preview:"
+    },
+    "groups": {
+      "headerTitle": "Groups",
+      "pageTitle": "Groups",
+      "categories": {
+        "title": "Categories"
+      },
+      "labels": {
+        "description": "Description:",
+        "subtitle": "Headline:"
+      }
     },
     "invite": {
       "headerTitle": "Invite"
@@ -1258,17 +1275,6 @@
       "headerTitle": "Home",
       "pageTitle": "Home"
     },
-    "groups": {
-      "headerTitle": "Groups",
-      "pageTitle": "Groups",
-      "categories": {
-        "title": "Categories"
-      },
-      "labels": {
-        "description": "Description:",
-        "subtitle": "Headline:"
-      }
-    },
     "landing": {
       "background": {
         "shareYourInterests": "Share Your Interests",
@@ -1352,7 +1358,7 @@
       "headerTitle": "Local Community & Rewards App",
       "locationDescription1": "See posts from nearby users in the local community where you currently are.",
       "locationDescription2": "Use the awareness and influence sliders to control content distance and your own visibility.",
-      "locationDescription3": "Please enable location services to activate this feature."
+      "locationDescription3": "Enable location services to activate this feature."
     },
     "notifications": {
       "headerTitle": "Notifications",
