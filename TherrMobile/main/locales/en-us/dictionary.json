@@ -61,6 +61,12 @@
     "draftReminder": "Did you remember to finish your drafted post?",
     "requestClaimSent": "Check your e-mail for confirmation and next steps"
   },
+  "dateTime": {
+    "lessThanHours": "< 1h",
+    "hoursSinceDate": "{count}h",
+    "daysSinceDate": "{count}d",
+    "yearsSinceDate": "{count}y"
+  },
   "quoteOfTheDay": "Quote of the Day",
   "dailyQuotes": [
     {
@@ -189,6 +195,12 @@
       "noActiveConnections": "There are currently no active connections in your network",
       "title": "Active Contacts"
     },
+    "myDMsSearch": {
+      "noDMsFound": "No DMs found. Create a connection to get started",
+      "noGroupsFound": "No groups found. Create new connections to discover more",
+      "noUsersFound": "No users found",
+      "title": "All Contacts"
+    },
     "contactsSearch": {
       "noContactsFound": "No contacts found. Create a connection to get started",
       "noGroupsFound": "No groups found. Create new connections to discover more",
@@ -272,7 +284,7 @@
       "buttons": {
         "submit": "Send",
         "invitePhoneContacts": "Invite Phone Contacts",
-        "shareALink": "Share a Link",
+        "shareALink": "Share my Link",
         "findFriends": "Find Friends"
       },
       "errorMessages": {
