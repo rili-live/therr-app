@@ -24,6 +24,7 @@ import UsersActions from '../redux/actions/UsersActions';
 import InfoModal from './Modals/InfoModal';
 import TherrIcon from './TherrIcon';
 import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../constants';
+import { FlatList } from 'react-native-gesture-handler';
 
 const ANIMATION_DURATION = 180;
 
@@ -412,358 +413,368 @@ class HeaderMenuRight extends React.PureComponent<
                                                 type="clear"
                                             />
                                         </View>
-                                        <View style={themeMenu.styles.body}>
-                                            {/* <Button
-                                                buttonStyle={
-                                                    currentScreen === 'Map'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === 'Map'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.map')}
-                                                icon={
-                                                    <FontAwesomeIcon
-                                                        style={
+                                        <FlatList
+                                            showsVerticalScrollIndicator
+                                            persistentScrollbar
+                                            data={[1]}
+                                            keyExtractor={(key) => key.toString()}
+                                            renderItem={() => {
+                                                return (<React.Fragment>
+                                                    {/* <Button
+                                                        buttonStyle={
                                                             currentScreen === 'Map'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
                                                         }
-                                                        name="globe-americas"
-                                                        size={18}
+                                                        titleStyle={
+                                                            currentScreen === 'Map'
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
+                                                        }
+                                                        title={this.translate('components.headerMenuRight.menuItems.map')}
+                                                        icon={
+                                                            <FontAwesomeIcon
+                                                                style={
+                                                                    currentScreen === 'Map'
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name="globe-americas"
+                                                                size={18}
+                                                            />
+                                                        }
+                                                        onPress={() => this.navTo('Map')}
                                                     />
-                                                }
-                                                onPress={() => this.navTo('Map')}
-                                            />
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === 'Areas'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === 'Areas'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.moments')}
-                                                icon={
-                                                    <MaterialIcon
-                                                        style={
+                                                    <Button
+                                                        buttonStyle={
                                                             currentScreen === 'Areas'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
                                                         }
-                                                        name="watch"
-                                                        size={18}
-                                                    />
-                                                }
-                                                onPress={() => this.navTo('Areas')}
-                                            /> */}
-                                            <View style={themeMenu.styles.notificationsItemContainer}>
-                                                <Button
-                                                    buttonStyle={
-                                                        currentScreen === 'Notifications'
-                                                            ? themeMenu.styles.buttonsActive
-                                                            : themeMenu.styles.buttons
-                                                    }
-                                                    containerStyle={spacingStyles.fullWidth}
-                                                    titleStyle={
-                                                        currentScreen === 'Notifications'
-                                                            ? themeMenu.styles.buttonsTitleActive
-                                                            : themeMenu.styles.buttonsTitle
-                                                    }
-                                                    title={this.translate('components.headerMenuRight.menuItems.notifications')}
-                                                    icon={
-                                                        <TherrIcon
-                                                            style={
+                                                        titleStyle={
+                                                            currentScreen === 'Areas'
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
+                                                        }
+                                                        title={this.translate('components.headerMenuRight.menuItems.moments')}
+                                                        icon={
+                                                            <MaterialIcon
+                                                                style={
+                                                                    currentScreen === 'Areas'
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name="watch"
+                                                                size={18}
+                                                            />
+                                                        }
+                                                        onPress={() => this.navTo('Areas')}
+                                                    /> */}
+                                                    <View style={themeMenu.styles.notificationsItemContainer}>
+                                                        <Button
+                                                            buttonStyle={
                                                                 currentScreen === 'Notifications'
-                                                                    ? themeMenu.styles.iconStyleActive
-                                                                    : themeMenu.styles.iconStyle
+                                                                    ? themeMenu.styles.buttonsActive
+                                                                    : themeMenu.styles.buttons
                                                             }
-                                                            name={hasNotifications ? 'bell' : 'bell'}
-                                                            size={24}
+                                                            containerStyle={spacingStyles.fullWidth}
+                                                            titleStyle={
+                                                                currentScreen === 'Notifications'
+                                                                    ? themeMenu.styles.buttonsTitleActive
+                                                                    : themeMenu.styles.buttonsTitle
+                                                            }
+                                                            title={this.translate('components.headerMenuRight.menuItems.notifications')}
+                                                            icon={
+                                                                <TherrIcon
+                                                                    style={
+                                                                        currentScreen === 'Notifications'
+                                                                            ? themeMenu.styles.iconStyleActive
+                                                                            : themeMenu.styles.iconStyle
+                                                                    }
+                                                                    name={hasNotifications ? 'bell' : 'bell'}
+                                                                    size={24}
+                                                                />
+                                                            }
+                                                            iconRight
+                                                            onPress={() => this.navTo('Notifications')}
                                                         />
-                                                    }
-                                                    iconRight
-                                                    onPress={() => this.navTo('Notifications')}
-                                                />
-                                                {
-                                                    hasNotifications && <View style={themeMenu.styles.notificationCircle2}>
-                                                        <Text style={{ color: 'white' }}>{unreadCount.toString()}</Text>
+                                                        {
+                                                            hasNotifications && <View style={themeMenu.styles.notificationCircle2}>
+                                                                <Text style={{ color: 'white' }}>{unreadCount.toString()}</Text>
+                                                            </View>
+                                                        }
                                                     </View>
-                                                }
-                                            </View>
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === 'Achievements'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                containerStyle={spacingStyles.fullWidth}
-                                                titleStyle={
-                                                    currentScreen === 'Achievements'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.achievements')}
-                                                icon={
-                                                    <TherrIcon
-                                                        style={
+                                                    <Button
+                                                        buttonStyle={
                                                             currentScreen === 'Achievements'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
                                                         }
-                                                        name={'achievement'}
-                                                        size={24}
+                                                        containerStyle={spacingStyles.fullWidth}
+                                                        titleStyle={
+                                                            currentScreen === 'Achievements'
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
+                                                        }
+                                                        title={this.translate('components.headerMenuRight.menuItems.achievements')}
+                                                        icon={
+                                                            <TherrIcon
+                                                                style={
+                                                                    currentScreen === 'Achievements'
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name={'achievement'}
+                                                                size={24}
+                                                            />
+                                                        }
+                                                        iconRight
+                                                        onPress={() => this.navTo('Achievements')}
                                                     />
-                                                }
-                                                iconRight
-                                                onPress={() => this.navTo('Achievements')}
-                                            />
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.MESSAGES}`
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.MESSAGES}`
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.chat')}
-                                                icon={
-                                                    <TherrIcon
-                                                        style={
+                                                    <Button
+                                                        buttonStyle={
                                                             currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.MESSAGES}`
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
                                                         }
-                                                        name="chat-smile"
-                                                        size={24}
-                                                    />
-                                                }
-                                                iconRight
-                                                onPress={() => this.navTo('Connect', {
-                                                    activeTab: PEOPLE_CAROUSEL_TABS.MESSAGES,
-                                                })}
-                                            />
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === `Groups-${GROUPS_CAROUSEL_TABS.GROUPS}`
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === `Groups-${GROUPS_CAROUSEL_TABS.GROUPS}`
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.groups')}
-                                                icon={
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'Groups'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                        titleStyle={
+                                                            currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.MESSAGES}`
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
                                                         }
-                                                        name="group"
-                                                        size={24}
+                                                        title={this.translate('components.headerMenuRight.menuItems.chat')}
+                                                        icon={
+                                                            <TherrIcon
+                                                                style={
+                                                                    currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.MESSAGES}`
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name="chat-smile"
+                                                                size={24}
+                                                            />
+                                                        }
+                                                        iconRight
+                                                        onPress={() => this.navTo('Connect', {
+                                                            activeTab: PEOPLE_CAROUSEL_TABS.MESSAGES,
+                                                        })}
                                                     />
-                                                }
-                                                iconRight
-                                                onPress={() => this.navTo('Groups', {
-                                                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
-                                                })}
-                                            />
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === 'Invite'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === 'Invite'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.addConnection')}
-                                                icon={
-                                                    <TherrIcon
-                                                        style={
+                                                    <Button
+                                                        buttonStyle={
+                                                            currentScreen === `Groups-${GROUPS_CAROUSEL_TABS.GROUPS}`
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
+                                                        }
+                                                        titleStyle={
+                                                            currentScreen === `Groups-${GROUPS_CAROUSEL_TABS.GROUPS}`
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
+                                                        }
+                                                        title={this.translate('components.headerMenuRight.menuItems.groups')}
+                                                        icon={
+                                                            <TherrIcon
+                                                                style={
+                                                                    currentScreen === 'Groups'
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name="group"
+                                                                size={24}
+                                                            />
+                                                        }
+                                                        iconRight
+                                                        onPress={() => this.navTo('Groups', {
+                                                            activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                                                        })}
+                                                    />
+                                                    <Button
+                                                        buttonStyle={
                                                             currentScreen === 'Invite'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
                                                         }
-                                                        name="key-plus"
-                                                        size={24}
+                                                        titleStyle={
+                                                            currentScreen === 'Invite'
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
+                                                        }
+                                                        title={this.translate('components.headerMenuRight.menuItems.addConnection')}
+                                                        icon={
+                                                            <TherrIcon
+                                                                style={
+                                                                    currentScreen === 'Invite'
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name="key-plus"
+                                                                size={24}
+                                                            />
+                                                        }
+                                                        iconRight
+                                                        onPress={() => this.navTo('Invite')}
                                                     />
-                                                }
-                                                iconRight
-                                                onPress={() => this.navTo('Invite')}
-                                            />
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === 'MyDrafts'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                containerStyle={spacingStyles.fullWidth}
-                                                titleStyle={
-                                                    currentScreen === 'MyDrafts'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.myDrafts')}
-                                                icon={
-                                                    <TherrIcon
-                                                        style={
+                                                    <Button
+                                                        buttonStyle={
                                                             currentScreen === 'MyDrafts'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
                                                         }
-                                                        name={'edit'}
-                                                        size={24}
-                                                    />
-                                                }
-                                                iconRight
-                                                onPress={() => this.navTo('MyDrafts')}
-                                            />
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === 'BookMarked'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                containerStyle={spacingStyles.fullWidth}
-                                                titleStyle={
-                                                    currentScreen === 'BookMarked'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.bookmarks')}
-                                                icon={
-                                                    <TherrIcon
-                                                        style={
-                                                            currentScreen === 'BookMarked'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                        containerStyle={spacingStyles.fullWidth}
+                                                        titleStyle={
+                                                            currentScreen === 'MyDrafts'
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
                                                         }
-                                                        name={'bookmark'}
-                                                        size={24}
+                                                        title={this.translate('components.headerMenuRight.menuItems.myDrafts')}
+                                                        icon={
+                                                            <TherrIcon
+                                                                style={
+                                                                    currentScreen === 'MyDrafts'
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name={'edit'}
+                                                                size={24}
+                                                            />
+                                                        }
+                                                        iconRight
+                                                        onPress={() => this.navTo('MyDrafts')}
                                                     />
-                                                }
-                                                iconRight
-                                                onPress={() => this.navTo('BookMarked')}
-                                            />
-                                            {/* <Button
-                                                buttonStyle={
-                                                    currentScreen === 'Groups'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === 'Groups'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.groups')}
-                                                icon={
-                                                    <Icon
-                                                        style={
+                                                    {/* <Button
+                                                        buttonStyle={
                                                             currentScreen === 'Groups'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
                                                         }
-                                                        name="chat"
-                                                        size={18}
-                                                    />
-                                                }
-                                                onPress={() => this.navTo('Groups')}
-                                            /> */}
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === 'Settings'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === 'Settings'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.account')}
-                                                icon={
-                                                    <TherrIcon
-                                                        style={
+                                                        titleStyle={
+                                                            currentScreen === 'Groups'
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
+                                                        }
+                                                        title={this.translate('components.headerMenuRight.menuItems.groups')}
+                                                        icon={
+                                                            <Icon
+                                                                style={
+                                                                    currentScreen === 'Groups'
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name="chat"
+                                                                size={18}
+                                                            />
+                                                        }
+                                                        onPress={() => this.navTo('Groups')}
+                                                    /> */}
+                                                    <Button
+                                                        buttonStyle={
                                                             currentScreen === 'Settings'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
                                                         }
-                                                        name="settings"
-                                                        size={24}
+                                                        titleStyle={
+                                                            currentScreen === 'Settings'
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
+                                                        }
+                                                        title={this.translate('components.headerMenuRight.menuItems.account')}
+                                                        icon={
+                                                            <TherrIcon
+                                                                style={
+                                                                    currentScreen === 'Settings'
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name="settings"
+                                                                size={24}
+                                                            />
+                                                        }
+                                                        iconRight
+                                                        onPress={() => this.navTo('Settings')}
                                                     />
-                                                }
-                                                iconRight
-                                                onPress={() => this.navTo('Settings')}
-                                            />
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === 'ExchangePointsDisclaimer'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === 'ExchangePointsDisclaimer'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.wallet')}
-                                                icon={
-                                                    <TherrIcon
-                                                        style={
+                                                    <Button
+                                                        buttonStyle={
                                                             currentScreen === 'ExchangePointsDisclaimer'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
                                                         }
-                                                        name="wallet"
-                                                        size={24}
+                                                        titleStyle={
+                                                            currentScreen === 'ExchangePointsDisclaimer'
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
+                                                        }
+                                                        title={this.translate('components.headerMenuRight.menuItems.wallet')}
+                                                        icon={
+                                                            <TherrIcon
+                                                                style={
+                                                                    currentScreen === 'ExchangePointsDisclaimer'
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name="wallet"
+                                                                size={24}
+                                                            />
+                                                        }
+                                                        iconRight
+                                                        onPress={() => this.navTo('ExchangePointsDisclaimer')}
                                                     />
-                                                }
-                                                iconRight
-                                                onPress={() => this.navTo('ExchangePointsDisclaimer')}
-                                            />
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === 'Home'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === 'Home'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.feedback')}
-                                                icon={
-                                                    <TherrIcon
-                                                        style={
+                                                    <Button
+                                                        buttonStyle={
+                                                            currentScreen === 'BookMarked'
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
+                                                        }
+                                                        containerStyle={spacingStyles.fullWidth}
+                                                        titleStyle={
+                                                            currentScreen === 'BookMarked'
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
+                                                        }
+                                                        title={this.translate('components.headerMenuRight.menuItems.bookmarks')}
+                                                        icon={
+                                                            <TherrIcon
+                                                                style={
+                                                                    currentScreen === 'BookMarked'
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name={'bookmark'}
+                                                                size={24}
+                                                            />
+                                                        }
+                                                        iconRight
+                                                        onPress={() => this.navTo('BookMarked')}
+                                                    />
+                                                    <Button
+                                                        buttonStyle={
                                                             currentScreen === 'Home'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
+                                                                ? themeMenu.styles.buttonsActive
+                                                                : themeMenu.styles.buttons
                                                         }
-                                                        name="question"
-                                                        size={24}
+                                                        titleStyle={
+                                                            currentScreen === 'Home'
+                                                                ? themeMenu.styles.buttonsTitleActive
+                                                                : themeMenu.styles.buttonsTitle
+                                                        }
+                                                        title={this.translate('components.headerMenuRight.menuItems.feedback')}
+                                                        icon={
+                                                            <TherrIcon
+                                                                style={
+                                                                    currentScreen === 'Home'
+                                                                        ? themeMenu.styles.iconStyleActive
+                                                                        : themeMenu.styles.iconStyle
+                                                                }
+                                                                name="question"
+                                                                size={24}
+                                                            />
+                                                        }
+                                                        iconRight
+                                                        onPress={() => this.navTo('Home')}
                                                     />
-                                                }
-                                                iconRight
-                                                onPress={() => this.navTo('Home')}
-                                            />
-                                        </View>
+                                                </React.Fragment>
+                                                );
+                                            }}
+                                            style={themeMenu.styles.body}
+                                        />
                                         <View style={themeMenu.styles.footer}>
                                             <Button
                                                 titleStyle={themeMenu.styles.buttonsTitle}
