@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ActivityIndicator, View, Text, Pressable } from 'react-native';
 import { Image } from 'react-native-elements';
+import Autolink from 'react-native-autolink';
 import { getUserImageUri } from '../utilities/content';
 
 export default ({
@@ -32,7 +33,11 @@ export default ({
         <>
             <View style={isLeft ? themeMessage.styles.messageContainerLeft : themeMessage.styles.messageContainerRight}>
                 <Text style={isLeft ? themeMessage.styles.messageTextLeft : themeMessage.styles.messageTextRight}>
-                    {message.text}
+                    <Autolink
+                        text={message.text}
+                        linkStyle={theme.styles.link}
+                        phone="sms"
+                    />
                 </Text>
                 <Text style={isLeft ? themeMessage.styles.messageDateLeft : themeMessage.styles.messageDateRight}>
                     {message.time}

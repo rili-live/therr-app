@@ -52,7 +52,7 @@ import { handleAreaReaction, handleThoughtReaction, navToViewContent } from '../
 import ListEmpty from '../../components/ListEmpty';
 import TherrIcon from '../../components/TherrIcon';
 import getDirections from '../../utilities/getDirections';
-import { PROFILE_CAROUSEL_TABS } from '../../constants';
+import { PEOPLE_CAROUSEL_TABS, PROFILE_CAROUSEL_TABS } from '../../constants';
 
 const { width: viewportWidth } = Dimensions.get('window');
 const imageWidth = viewportWidth / 3;
@@ -248,6 +248,17 @@ class ViewUser extends React.Component<
                 isLoading: false,
             });
         });
+    };
+
+    goToConnections = () => {
+        const { navigation, user } = this.props;
+        const isMe = user.userInView?.id === user.details.id;
+
+        if (isMe) {
+            navigation.navigate('Connect', {
+                activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
+            });
+        }
     };
 
     goToThought = (content) => {
@@ -740,6 +751,7 @@ class ViewUser extends React.Component<
                             <LottieLoader id="therr-black-rolling" theme={this.themeLoader} /> :
                             <View style={this.themeUser.styles.container}>
                                 <UserDisplayHeader
+                                    goToConnections={this.goToConnections}
                                     navigation={navigation}
                                     isDarkMode={user.settings?.mobileThemeName === 'retro'}
                                     onProfilePicturePress={this.onProfilePicturePress}
