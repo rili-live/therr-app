@@ -3,8 +3,8 @@ import { Dimensions, FlatList, SafeAreaView, Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { ForumActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { IForumsState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { ForumActions, MessageActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { IMessagesState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { TabBar, TabView } from 'react-native-tab-view';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
@@ -26,8 +26,7 @@ import ListEmpty from '../../components/ListEmpty';
 import UsersActions from '../../redux/actions/UsersActions';
 import UserSearchItem from './components/UserSearchItem';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
-import GroupTile from '../Groups/GroupTile';
-import GroupCategories from '../Groups/GroupCategories';
+import { hoursDaysOrYearsSince } from '../../utilities/formatDate';
 
 const { width: viewportWidth } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
@@ -58,13 +57,14 @@ interface IContactsDispatchProps {
     getUserGroups: Function;
     searchCategories: Function;
     searchForums: Function;
+    searchMyDMs: Function;
     searchUserConnections: Function;
     searchUsers: Function;
     searchUpdateUser: Function;
 }
 
 interface IStoreProps extends IContactsDispatchProps {
-    forums: IForumsState;
+    messages: IMessagesState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -76,18 +76,17 @@ export interface IContactsProps extends IStoreProps {
 }
 
 interface IContactsState {
-    categories: any[];
     isNameConfirmModalVisible: boolean;
-    isRefreshing: boolean;
+    isRefreshingConnections: boolean;
+    isRefreshingDMsSearch: boolean;
     isRefreshingUserSearch: boolean;
     activeTabIndex: number;
     searchFilters: any;
     tabRoutes: { key: string; title: string }[];
-    toggleChevronName: 'refresh',
 }
 
 const mapStateToProps = (state) => ({
-    forums: state.forums,
+    messages: state.messages,
     user: state.user,
     userConnections: state.userConnections,
 });
@@ -100,6 +99,7 @@ const mapDispatchToProps = (dispatch: any) =>
             searchCategories: ForumActions.searchCategories,
             getUserGroups: UsersActions.getUserGroups,
             searchForums: ForumActions.searchForums,
+            searchMyDMs: MessageActions.searchMyDMs,
             searchUserConnections: UserConnectionsActions.search,
             searchUsers: UsersActions.search,
             searchUpdateUser: UsersActions.searchUpdateUser,
@@ -119,17 +119,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     private unsubscribeFocusListener;
     private peopleListRef;
     private connectionsListRef;
-    private groupsListRef;
-
-    static getDerivedStateFromProps(nextProps: IContactsProps, nextState: IContactsState) {
-        if (!nextState.categories || !nextState.categories.length) {
-            return {
-                categories: nextProps.forums.forumCategories,
-            };
-        }
-
-        return null;
-    }
+    private messagesListRef;
 
     constructor(props) {
         super(props);
@@ -141,10 +131,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);
 
         this.state = {
-            categories: props.categories || [],
             activeTabIndex,
             isNameConfirmModalVisible: false,
-            isRefreshing: false,
+            isRefreshingConnections: false,
+            isRefreshingDMsSearch: false,
             isRefreshingUserSearch: false,
             tabRoutes: [
                 { key: PEOPLE_CAROUSEL_TABS.PEOPLE, title: this.translate('menus.headerTabs.people') },
@@ -152,7 +142,6 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 { key: PEOPLE_CAROUSEL_TABS.CONNECTIONS, title: this.translate('menus.headerTabs.connections') },
                 // { key: PEOPLE_CAROUSEL_TABS.INVITES, title: this.translate('menus.headerTabs.invite') },
             ],
-            toggleChevronName: 'refresh',
             searchFilters: {
                 itemsPerPage: DEFAULT_PAGE_SIZE,
                 pageNumber: 1,
@@ -171,7 +160,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
     componentDidMount() {
         const {
-            getUserGroups, navigation, forums, searchCategories, user, userConnections,
+            messages, navigation, user, userConnections,
         } = this.props;
 
         navigation.setOptions({
@@ -183,8 +172,8 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         }
 
         // TODO: Connect redux UI prefetch
-        if (!user.myUserGroups?.length) {
-            getUserGroups();
+        if (!messages.myDMs?.length) {
+            this.handleRefreshDMsSearch(1);
         }
 
         // TODO: Connect redux UI prefetch
@@ -192,17 +181,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             this.handleRefreshUsersSearch();
         }
 
-        if (forums && (!forums.searchResults || !forums.searchResults.length)) {
-            this.handleRefreshForumsSearch();
-        }
-
-        if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
-            searchCategories({
-                itemsPerPage: 100,
-                pageNumber: 1,
-                order: 'desc',
-            }, {});
-        }
+        // if (forums && (!forums.searchResults || !forums.searchResults.length)) {
+        //     this.handleRefreshForumsSearch();
+        // }
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
             const { route } = this.props;
@@ -245,6 +226,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         }`;
     };
 
+    getDMSummarySubtitle = (messageSummary) => {
+        return `${messageSummary.message?.substring(0, 100)}... ${hoursDaysOrYearsSince(new Date(messageSummary.createdAt), this.translate as any)}`;
+    };
+
     goToViewUser = (userId) => {
         const { navigation } = this.props;
 
@@ -278,18 +263,26 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
     };
 
-    handleRefreshForumsSearch = () => {
-        const { searchFilters } = this.state;
+
+    handleRefreshDMsSearch = (pageNumber = 1) => {
+        const { searchMyDMs, user } = this.props;
+
         this.setState({
-            isRefreshing: true,
+            isRefreshingDMsSearch: true,
         });
 
-        this.props
-            .searchForums(searchFilters, {})
-            .catch(() => {})
+        searchMyDMs(
+            {
+                itemsPerPage: DEFAULT_PAGE_SIZE,
+                pageNumber,
+            },
+            user.details,
+        ).catch((err) => {
+            console.log(err);
+        })
             .finally(() => {
                 this.setState({
-                    isRefreshing: false,
+                    isRefreshingDMsSearch: false,
                 });
             });
     };
@@ -320,7 +313,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         const { user } = this.props;
 
         this.setState({
-            isRefreshing: true,
+            isRefreshingConnections: true,
         });
 
         this.props
@@ -340,7 +333,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             .catch(() => {})
             .finally(() => {
                 this.setState({
-                    isRefreshing: false,
+                    isRefreshingConnections: false,
                 });
             });
     };
@@ -392,7 +385,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             this.connectionsListRef?.scrollToOffset({ animated: true, offset: 0 });
         }
         if (userConnections.groups?.length) {
-            this.groupsListRef?.scrollToOffset({ animated: true, offset: 0 });
+            this.messagesListRef?.scrollToOffset({ animated: true, offset: 0 });
         }
         if (Object.keys(user.users || {}).length) {
             this.peopleListRef?.scrollToOffset({ animated: true, offset: 0 });
@@ -408,11 +401,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         return activeConnections.concat(inactiveConnections);
     };
 
-    sortGroups = (): any[] => {
-        const { forums } = this.props;
-        const groups = (forums && forums.searchResults) || [];
-        // TODO: Sort by more recently active
-        return groups;
+    sortMessages = (): any[] => {
+        const { messages } = this.props;
+        // TODO: Determine if user is active an list unread message count
+        return messages?.myDMs;
     };
 
     handleChatTilePress = (chat) => {
@@ -420,66 +412,6 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
         navigation.navigate('ViewGroup', {
             ...chat,
-        });
-    };
-
-    searchForumsWithFilters = (text, modifiedCategories?) => {
-        const { searchForums } = this.props;
-        const { categories, searchFilters } = this.state;
-
-        const selectedCategoryTags = (modifiedCategories || categories).filter(c => c.isActive).map(c => c.tag);
-        const searchParams = {
-            ...searchFilters,
-            query: text,
-            filterBy: 'title',
-            filterOperator: 'ilike',
-        };
-        const searchArgs: any = {};
-        if (selectedCategoryTags.length) {
-            searchArgs.categoryTags = selectedCategoryTags;
-        }
-        searchForums(searchParams, searchArgs);
-    };
-
-    handleCategoryPress = (category) => {
-        const { categories } = this.state;
-        const modifiedCategories: any = [ ...categories ];
-
-        modifiedCategories.some((c, i) => {
-            if (c.tag === category.tag) {
-                modifiedCategories[i] = { ...c, isActive: !c.isActive };
-                return true;
-            }
-        });
-
-        this.searchForumsWithFilters('', modifiedCategories);
-
-        this.setState({
-            categories: modifiedCategories,
-        });
-    };
-
-    handleCategoryTogglePress = () => {
-        const { categories } = this.state;
-        const modifiedCategories: any = [ ...categories ];
-        modifiedCategories.forEach((c, i) => {
-            modifiedCategories[i] = { ...c, isActive: false };
-        });
-
-        this.searchForumsWithFilters('', modifiedCategories);
-
-        this.setState({
-            categories: modifiedCategories,
-        });
-    };
-
-    onJoinGroup = (group) => {
-        const { createUserGroup } = this.props;
-
-        createUserGroup({
-            groupId: group.id,
-        }).catch((err) => {
-            console.log(err);
         });
     };
 
@@ -503,7 +435,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     renderSceneMap = ({ route }) => {
-        const { categories, toggleChevronName, isRefreshing, isRefreshingUserSearch } = this.state;
+        const { isRefreshingConnections, isRefreshingUserSearch, isRefreshingDMsSearch } = this.state;
         const { user } = this.props;
 
         switch (route.key) {
@@ -544,48 +476,36 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     />
                 );
             case PEOPLE_CAROUSEL_TABS.MESSAGES:
-                const groups = this.sortGroups();
+                const messagedConnections = this.sortMessages();
 
                 return (
                     <FlatList
-                        ref={(component) => this.groupsListRef = component}
-                        data={groups}
+                        ref={(component) => this.messagesListRef = component}
+                        data={messagedConnections}
                         keyExtractor={(item) => String(item.id)}
-                        ListHeaderComponent={<GroupCategories
-                            style={{}}
-                            backgroundColor={this.theme.colors.primary}
-                            categories={categories}
-                            onCategoryPress={this.handleCategoryPress}
-                            translate={this.translate}
-                            onCategoryTogglePress={this.handleCategoryTogglePress}
-                            toggleChevronName={toggleChevronName}
-                            theme={this.theme}
-                            themeButtons={this.themeButtons}
-                            themeCategory={this.themeCategory}
-                        />}
-                        renderItem={({ item: group }) => (
-                            <GroupTile
-                                group={group}
-                                onChatTilePress={this.handleChatTilePress}
+                        renderItem={({ item: messageSummary }) => (
+                            <ConnectionItem
+                                key={messageSummary.id}
+                                connectionDetails={messageSummary.userDetails}
+                                getConnectionSubtitle={() => this.getDMSummarySubtitle(messageSummary)}
+                                goToViewUser={() => this.onConnectionPress(messageSummary.userDetails)}
+                                isActive={messageSummary.isActive}
+                                onConnectionPress={this.onConnectionPress}
                                 theme={this.theme}
-                                themeButtons={this.themeButtons}
-                                themeChatTile={this.themeTile}
                                 translate={this.translate}
-                                handleJoinGroup={this.onJoinGroup}
-                                user={user}
                             />
                         )}
                         ListEmptyComponent={
                             <View style={spacingStyles.marginHorizLg}>
-                                <ListEmpty iconName="group" theme={this.theme} text={this.translate(
-                                    'components.contactsSearch.noGroupsFound'
+                                <ListEmpty iconName="chat" theme={this.theme} text={this.translate(
+                                    'components.myDMsSearch.noDMsFound'
                                 )} />
                             </View>
                         }
                         stickyHeaderIndices={[]}
                         refreshControl={<RefreshControl
-                            refreshing={isRefreshing}
-                            onRefresh={this.handleRefreshForumsSearch}
+                            refreshing={isRefreshingDMsSearch}
+                            onRefresh={this.handleRefreshDMsSearch}
                         />}
                         onContentSizeChange={this.scrollTop}
                     />
@@ -605,7 +525,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 getConnectionSubtitle={this.getConnectionSubtitle}
                                 goToViewUser={this.goToViewUser}
                                 isActive={connection.isActive}
-                                onConnectionPress={this.onConnectionPress}
+                                onConnectionPress={(userDetails) => this.goToViewUser(userDetails.id)}
                                 theme={this.theme}
                                 translate={this.translate}
                             />
@@ -619,7 +539,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         }
                         stickyHeaderIndices={[]}
                         refreshControl={<RefreshControl
-                            refreshing={isRefreshing}
+                            refreshing={isRefreshingConnections}
                             onRefresh={this.handleRefreshUserConnections}
                         />}
                         onContentSizeChange={this.scrollTop}

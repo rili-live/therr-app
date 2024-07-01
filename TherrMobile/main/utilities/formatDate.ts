@@ -2,6 +2,38 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 type IVariation = 'default' | 'short';
 
+const millisecondsPerYear = 1000 * 60 * 60 * 24 * 365;
+const millisecondsPerDay = 1000 * 60 * 60 * 24;
+const millisecondsPerHour = 1000 * 60 * 60;
+
+export const hoursDaysOrYearsSince = (pastDate: Date, translate: (key: string, params?: any ) => string) => {
+    const today = new Date();
+
+    // Calculate the difference in milliseconds
+    const differenceInMilliseconds = today.getTime() - pastDate.getTime();
+
+    // Convert milliseconds to days
+    const daysSinceDate = Math.floor(differenceInMilliseconds / millisecondsPerDay);
+    if (daysSinceDate < 1) {
+        const hoursSinceDate = Math.floor(differenceInMilliseconds / millisecondsPerHour);
+        if (hoursSinceDate < 1) {
+            return  translate('dateTime.lessThanHours');
+        }
+        return  translate('dateTime.hoursSinceDate', {
+            count: hoursSinceDate,
+        });
+    } else if (daysSinceDate >= 365) {
+        const yearsSinceDate = Math.floor(differenceInMilliseconds / millisecondsPerYear);
+        return  translate('dateTime.yearsSinceDate', {
+            count: yearsSinceDate,
+        });
+    }
+
+    return translate('dateTime.daysSinceDate', {
+        count: daysSinceDate,
+    });
+};
+
 export default (
     unformattedDate,
     variation: IVariation = 'default',

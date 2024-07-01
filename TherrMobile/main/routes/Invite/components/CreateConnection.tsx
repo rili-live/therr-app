@@ -358,7 +358,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                     data={[{}]}
                     keyExtractor={(item: any) => String(item.id)}
                     renderItem={() => (
-                        <View style={this.theme.styles.body}>
+                        <View style={[this.theme.styles.body, spacingStyles.marginBotLg]}>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={[this.theme.styles.sectionTitle, { marginBottom: 15 }]}>
                                     {this.translate('pages.userProfile.h2.createConnection')}
@@ -479,7 +479,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                             </View>
                         </View>
                     )}
-                    stickyHeaderIndices={[0]}
+                    // stickyHeaderIndices={[0]}
                     // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
                 />
             </KeyboardAvoidingView>

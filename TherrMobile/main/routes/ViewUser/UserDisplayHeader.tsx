@@ -252,6 +252,7 @@ const FullName = ({
 };
 
 const UserDisplayHeader = ({
+    goToConnections,
     navigation,
     isDarkMode,
     onBlockUser,
@@ -322,7 +323,7 @@ const UserDisplayHeader = ({
                     </Text>
                     {
                         !!userInView?.connectionCount &&
-                        <View style={themeUser.styles.connectionCountContainer}>
+                        <Pressable style={themeUser.styles.connectionCountContainer} onPress={goToConnections}>
                             <LogoIcon
                                 name="therr-logo"
                                 size={20}
@@ -334,7 +335,7 @@ const UserDisplayHeader = ({
                             <Text style={themeUser.styles.connectionCountText} numberOfLines={1}>
                                 {translate('user.profile.labels.connections')}
                             </Text>
-                        </View>
+                        </Pressable>
                     }
                 </View>
             </View>

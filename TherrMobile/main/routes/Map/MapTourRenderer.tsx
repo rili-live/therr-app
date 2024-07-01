@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { useSpotlightTour } from 'react-native-spotlight-tour';
 
+const TOUR_DELAY_MS = 10 * 1000;
+
 const MapTourRenderer = ({
     getCurrentScreen,
     updateTour,
@@ -13,16 +15,23 @@ const MapTourRenderer = ({
         //This useEffect acts as componentDidMount
         //It will only run once when the component mounts, since
         // the dependency array is empty
-        if (currentRouteName === 'Map') {
-            updateTour({
-                isTouring: false,
-                isNavigationTouring: true,
-            }, user.details.id);
+        let timeoutId;
 
-            start();
+        if (currentRouteName === 'Map') {
+            timeoutId = setTimeout(() => {
+                updateTour({
+                    isTouring: false,
+                    isNavigationTouring: true,
+                }, user?.details?.id);
+
+                start();
+            }, TOUR_DELAY_MS);
         } else {
             stop();
         }
+
+        // Cleanup function
+        return () => clearTimeout(timeoutId);
     }, [
         currentRouteName,
         start,
