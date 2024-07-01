@@ -68,6 +68,7 @@ const searchForumMessages: RequestHandler = (req: any, res: any) => {
                         return {
                             ...result,
                             createdAt: moment(result.createdAt).format('M/D/YY, h:mma'),
+                            createdAtUnformatted: result.createdAt,
                             fromUserName: user?.userName,
                             fromUserFirstName: user?.firstName,
                             fromUserLastName: user?.lastName,
