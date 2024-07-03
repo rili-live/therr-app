@@ -5,9 +5,13 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import RNFB from 'react-native-blob-util';
+import Toast from 'react-native-toast-message';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import analytics from '@react-native-firebase/analytics';
 import { ForumActions } from 'therr-react/redux/actions';
-import { IForumsState, IUserState } from 'therr-react/types';
+import { Content, FilePaths } from 'therr-js-utilities/constants';
+import { IContentState, IForumsState, IUserState } from 'therr-react/types';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
@@ -23,16 +27,20 @@ import TherrIcon from '../../components/TherrIcon';
 import RoundInput from '../../components/Input/Round';
 import RoundTextInput from '../../components/Input/TextInput/Round';
 import { GROUPS_CAROUSEL_TABS } from '../../constants';
-import Toast from 'react-native-toast-message';
 import InputGroupName from './InputGroupName';
+import { getImagePreviewPath } from '../../utilities/areaUtils';
+import { signImageUrl } from '../../utilities/content';
 
 interface IEditChatDispatchProps {
     logout: Function;
-    createHostedChat: Function;
+    createForum: Function;
+    updateForum: Function;
     searchCategories: Function;
 }
 
 interface IStoreProps extends IEditChatDispatchProps {
+    content: IContentState;
+    forums: IForumsState;
     user: IUserState;
 }
 
@@ -40,20 +48,23 @@ interface IStoreProps extends IEditChatDispatchProps {
 export interface IEditChatProps extends IStoreProps {
     navigation: any;
     route: any;
-    forums: IForumsState;
 }
 
 interface IEditChatState {
+    groupId: string;
     categories: any[];
     errorMsg: string;
     successMsg: string;
     toggleChevronName: string;
     hashtags: string[];
+    imagePreviewPath: string;
     inputs: any;
     isSubmitting: boolean;
+    selectedImage?: any;
 }
 
 const mapStateToProps = (state) => ({
+    content: state.content,
     forums: state.forums,
     user: state.user,
 });
@@ -61,7 +72,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            createHostedChat: ForumActions.createForum,
+            createForum: ForumActions.createForum,
+            updateForum: ForumActions.updateForum,
             searchCategories: ForumActions.searchCategories,
         },
         dispatch
@@ -90,17 +102,33 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
     constructor(props) {
         super(props);
 
-        const { route } = props;
-        const { categories } = route.params || {};
+        const { content, route } = props;
+        const { categories, group, imageDetails } = route.params || {};
+        const initialMediaId = group?.mediaIds?.split(',')[0] || undefined;
 
         this.state = {
+            groupId: group?.id,
             categories: (categories || []).map(c => ({ ...c, isActive: false })),
             errorMsg: '',
             successMsg: '',
             toggleChevronName: 'chevron-down',
-            hashtags: [],
-            inputs: {},
+            hashtags: group?.hashTags ? group?.hashTags?.split(',') : [],
+            inputs: {
+                isPublic: group?.isPublic == null ? true : group?.isPublic,
+                title: group?.title || '',
+                subtitle: group?.subtitle || '',
+                description: group?.description || '',
+                iconGroup: group?.iconGroup || '',
+                iconId: group?.iconId || '',
+                iconColor: group?.iconColor || '',
+                // integrationIds: group?.integrationIds ? group?.integrationIds.join(',') : '',
+                // invitees: group?.invitees ? group?.invitees.join('') : '',
+            },
             isSubmitting: false,
+            selectedImage: imageDetails || {},
+            imagePreviewPath: imageDetails?.path
+                ? getImagePreviewPath(imageDetails?.path)
+                : (initialMediaId && content?.media[initialMediaId] || ''),
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -153,7 +181,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
 
     onSubmit = () => {
         const { user } = this.props;
-        const { categories, hashtags } = this.state;
+        const { groupId, categories, hashtags, selectedImage } = this.state;
         const {
             administratorIds,
             title,
@@ -174,6 +202,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             title,
             subtitle: subtitle || title,
             description,
+            // TODO: Implement end-to-end logic to support updating categoryTags
             categoryTags: categories.filter(c => c.isActive).map(c => c.tag) || ['general'],
             hashTags: hashtags.join(','),
             integrationIds: integrationIds ? integrationIds.join(',') : '',
@@ -190,52 +219,113 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             this.setState({
                 isSubmitting: true,
             });
-            // TODO: Move success/error alert to group chat page and remove settimeout
-            this.props
-                .createHostedChat(createArgs)
-                .then(() => {
-                    Toast.show({
-                        type: 'success',
-                        text1: this.translate('forms.editGroup.backendSuccessMessage'),
-                    });
-                    setTimeout(() => {
-                        this.props.navigation.navigate('Groups', {
-                            activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
-                        });
-                    }, 200);
-                })
-                .catch((error: any) => {
-                    if (
-                        error.statusCode === 400 ||
-                        error.statusCode === 401 ||
-                        error.statusCode === 404
-                    ) {
-                        const errorMessage = `${error.message}${
-                            error.parameters
-                                ? '(' + error.parameters.toString() + ')'
-                                : ''
-                        }`;
+
+            // Note do not save image on 'create draft' otherwise we end up with duplicate images when finalizing draft
+            // This is not the BEST user experience but prevents a lot of potential waste
+            ((selectedImage?.path) ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
+                const createOrUpdatePromise = groupId
+                    ? this.props.updateForum(groupId, modifiedCreateArgs)
+                    : this.props.createForum(modifiedCreateArgs);
+
+                // TODO: Move success/error alert to group chat page and remove settimeout
+                createOrUpdatePromise
+                    .then(() => {
                         Toast.show({
-                            type: 'errorBig',
-                            text1: this.translate('alertTitles.backendErrorMessage'),
-                            text2: errorMessage,
+                            type: 'successBig',
+                            text1: this.translate('forms.editGroup.backendSuccessHeader'),
+                            text2: this.translate('forms.editGroup.backendSuccessMessage'),
+                            visibilityTime: 2500,
                         });
-                    } else if (error.statusCode >= 500) {
-                        Toast.show({
-                            type: 'errorBig',
-                            text1: this.translate('alertTitles.backendErrorMessage'),
-                            text2: this.translate('forms.editGroup.backendErrorMessage'),
+                        analytics().logEvent(groupId ? 'group_update' : 'group_create', {
+                            userId: user.details.id,
+                            isPublic,
+                        }).catch((err) => console.log(err));
+                        setTimeout(() => {
+                            this.props.navigation.navigate('Groups', {
+                                activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                            });
+                        }, 200);
+                    })
+                    .catch((error: any) => {
+                        if (
+                            error.statusCode === 400 ||
+                            error.statusCode === 401 ||
+                            error.statusCode === 404
+                        ) {
+                            const errorMessage = `${error.message}${
+                                error.parameters
+                                    ? '(' + error.parameters.toString() + ')'
+                                    : ''
+                            }`;
+                            Toast.show({
+                                type: 'errorBig',
+                                text1: this.translate('alertTitles.backendErrorMessage'),
+                                text2: errorMessage,
+                            });
+                        } else if (error.statusCode >= 500) {
+                            Toast.show({
+                                type: 'errorBig',
+                                text1: this.translate('alertTitles.backendErrorMessage'),
+                                text2: this.translate('forms.editGroup.backendErrorMessage'),
+                            });
+                        }
+                    })
+                    .finally(() => {
+                        this.setState({
+                            isSubmitting: false,
                         });
-                    }
-                })
-                .finally(() => {
-                    this.setState({
-                        isSubmitting: false,
+                        Keyboard.dismiss();
+                        this.scrollViewRef.scrollToEnd({ animated: true });
                     });
-                    Keyboard.dismiss();
-                    this.scrollViewRef.scrollToEnd({ animated: true });
-                });
+            });
         }
+    };
+
+    signAndUploadImage = (createArgs) => {
+        const { selectedImage } = this.state;
+        const {
+            subtitle,
+            title,
+            isPublic,
+        } = this.state.inputs;
+        const {
+            route,
+        } = this.props;
+        const {
+        } = route.params;
+        const imageDetails = selectedImage;
+        const filePathSplit = imageDetails?.path?.split('.');
+        const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
+
+        // TODO: This is too slow
+        // Use public method for public spaces
+        return signImageUrl(isPublic, {
+            action: 'write',
+            filename: `${FilePaths.GROUPS}/${(title || subtitle.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
+        }).then((response) => {
+            const signedUrl = response?.data?.url && response?.data?.url[0];
+            createArgs.media = [{}];
+            createArgs.media[0].altText = title;
+            createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
+            createArgs.media[0].path = response?.data?.path;
+            // TODO: Replace media with medias after migrations
+            createArgs.medias = createArgs.media;
+
+            const localFileCroppedPath = `${imageDetails?.path}`;
+
+            // Upload to Google Cloud
+            // TODO: Abstract and add nudity filter sightengine.com
+            return RNFB.fetch(
+                'PUT',
+                signedUrl,
+                {
+                    'Content-Type': imageDetails.mime,
+                    'Content-Length': imageDetails.size.toString(),
+                    'Content-Disposition': 'inline',
+                },
+                RNFB.wrap(localFileCroppedPath),
+            ).then(() => createArgs);
+        });
     };
 
     onInputChange = (name: string, value: string) => {
@@ -289,6 +379,22 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         });
     };
 
+    handleHashTagsBlur = () => {
+        const { hashtags, inputs } = this.state;
+
+        if (inputs.hashTags?.trim().length) {
+            const { formattedValue, formattedHashtags } = formatHashtags(`${inputs.hashTags},`, [...hashtags]);
+
+            this.setState({
+                hashtags: formattedHashtags,
+                inputs: {
+                    ...inputs,
+                    hashTags: formattedValue,
+                },
+            });
+        }
+    };
+
     render() {
         const { navigation } = this.props;
         const { categories, hashtags, inputs, toggleChevronName } = this.state;
@@ -300,8 +406,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
-                        contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
+                        style={this.theme.styles.scrollView}
+                        // contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
                     >
                         <GroupCategories
                             style={this.themeAccentLayout.styles.categoriesContainer}
@@ -350,15 +456,17 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 themeForms={this.themeForms}
                             />
                             <RoundInput
+                                containerStyle={{ marginBottom: !hashtags?.length ? 10 : 0 }}
                                 autoCorrect={false}
                                 errorStyle={this.theme.styles.displayNone}
                                 placeholder={this.translate(
-                                    'forms.editGroup.placeholders.hashTags'
+                                    'forms.editMoment.labels.hashTags'
                                 )}
                                 value={inputs.hashTags}
                                 onChangeText={(text) =>
                                     this.onInputChange('hashTags', text)
                                 }
+                                onBlur={this.handleHashTagsBlur}
                                 themeForms={this.themeForms}
                             />
                             <HashtagsContainer
