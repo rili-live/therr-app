@@ -181,7 +181,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         };
 
         return (
-            <View style={[
+            <View key={event.id} style={[
                 { width: viewportWidth },
                 spacingStyles.marginBotMd,
                 spacingStyles.flex,

@@ -10,7 +10,7 @@ import Toast from 'react-native-toast-message';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import { IUserState, IMapState, IContentState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
-import { Content, ErrorCodes, GroupMemberRoles } from 'therr-js-utilities/constants';
+import { Content, ErrorCodes, FilePaths, GroupMemberRoles } from 'therr-js-utilities/constants';
 import { MapsService } from 'therr-react/services';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
@@ -324,7 +324,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         // Use public method for public spaces
         return signImageUrl(isPublic, {
             action: 'write',
-            filename: `content/events/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
+            filename: `${FilePaths.CONTENT}/events/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
         }).then((response) => {
             const signedUrl = response?.data?.url && response?.data?.url[0];
             createArgs.media = [{}];

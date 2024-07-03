@@ -230,7 +230,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         const { inputs, isSubmitting } = this.state;
 
         return (
-            !inputs.message ||
+            !inputs.notificationMsg ||
             isSubmitting
         );
     }
@@ -341,7 +341,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             category,
             fromUserId: user.details.id,
             isPublic,
-            message,
+            message: message || notificationMsg,
             notificationMsg,
             hashTags: hashtags.join(','),
             isDraft,
