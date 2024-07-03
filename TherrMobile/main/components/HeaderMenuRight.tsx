@@ -25,6 +25,7 @@ import InfoModal from './Modals/InfoModal';
 import TherrIcon from './TherrIcon';
 import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../constants';
 import { FlatList } from 'react-native-gesture-handler';
+import { Sheets } from 'react-native-actions-sheet';
 
 const ANIMATION_DURATION = 180;
 
@@ -52,6 +53,11 @@ export interface IHeaderMenuRightProps extends IStoreProps {
     styleName: 'light' | 'dark' | 'accent';
     updateGpsStatus: Function;
     user: any;
+    showActionSheet:(sheetId: 'group-sheet', options?: {
+        payload: Partial<Sheets[typeof sheetId]['payload']>;
+        // onClose?: (data: Sheets[typeof sheetId]['returnValue'] | undefined) => void;
+        context?: string;
+    }) => Promise<any>;
     startNavigationTour: () => void;
     theme: {
         colors: ITherrThemeColors;
@@ -60,7 +66,7 @@ export interface IHeaderMenuRightProps extends IStoreProps {
     themeButtons: {
         styles: any;
     };
-    themeModal: {
+    themeInfoModal: {
         styles: any;
     };
     themeMenu: {
@@ -91,6 +97,8 @@ class HeaderMenuRight extends React.PureComponent<
 
     private translate: Function;
 
+    private bottomSheetRef;
+
     constructor(props) {
         super(props);
 
@@ -115,6 +123,20 @@ class HeaderMenuRight extends React.PureComponent<
             }, () => {
                 resolve(null);
             });
+        });
+    };
+
+    expandBottomSheet = (index = 1) => {
+        const bottomSheetRef = this.bottomSheetRef;
+        this.setState({
+            // bottomSheetIsTransparent: false,
+            // bottomSheetContentType: content,
+        }, () => {
+            if (index < 0) {
+                bottomSheetRef?.current?.close();
+            } else {
+                bottomSheetRef?.current?.snapToIndex(index);
+            }
         });
     };
 
@@ -228,6 +250,12 @@ class HeaderMenuRight extends React.PureComponent<
         return '';
     };
 
+    getCurrentScreenParams = () => {
+        const navState = this.props.navigation.getState();
+
+        return navState.routes?.[navState.routes.length - 1]?.params || {};
+    };
+
     togglePointsInfoModal = () => {
         const { isPointsInfoModalVisible } = this.state;
 
@@ -256,17 +284,20 @@ class HeaderMenuRight extends React.PureComponent<
         const {
             isVisible,
             isEmailVerifed,
+            navigation,
             notifications,
+            showActionSheet,
             // styleName,
             theme,
             themeButtons,
-            themeModal,
+            themeInfoModal,
             themeMenu,
             user,
         } = this.props;
 
         const { isModalVisible, isPointsInfoModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
+        const currentScreenParams = this.getCurrentScreenParams();
         const unreadCount: number = notifications?.messages?.filter(m => m.isUnread)?.length || 0;
         const hasNotifications = unreadCount > 0;
         // let imageStyle = themeMenu.styles.toggleIcon;
@@ -281,57 +312,84 @@ class HeaderMenuRight extends React.PureComponent<
         //     imageStyle = themeMenu.styles.toggleIconDark;
         // }
         if (isVisible) {
+
+            if (!isEmailVerifed) {
+                return (
+                    <AttachStep index={4}>
+                        <Button
+                            icon={
+                                <FontAwesomeIcon
+                                    style={themeMenu.styles.logoutIcon}
+                                    name="sign-out-alt"
+                                    size={18}
+                                />
+                            }
+                            onPress={() => this.handleLogout()}
+                            type="clear"
+                            containerStyle={themeMenu.styles.userProfileButtonContainer}
+                        />
+                    </AttachStep>
+                );
+            }
+
+            if (currentScreen === 'ViewGroup' && currentScreenParams?.id) {
+                return (
+                    <>
+                        <View>
+                            <Button
+                                icon={
+                                    <TherrIcon
+                                        name="dots-horiz"
+                                        size={30}
+                                        color={theme.colors.primary3}
+                                    />}
+                                onPress={() => showActionSheet('group-sheet', {
+                                    payload: {
+                                        group: currentScreenParams,
+                                        navigation,
+                                    },
+                                })}
+                                type="clear"
+                                containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                            />
+                        </View>
+                    </>
+                );
+            }
+
             return (
                 <>
-                    {
-                        isEmailVerifed ?
-                            <View>
-                                {/* <Button
-                                    icon={
-                                        <Image
-                                            source={{ uri: getUserImageUri(user, 50) }}
-                                            style={imageStyle}
-                                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
-                                        />}
-                                    onPress={() => this.toggleOverlay()}
-                                    type="clear"
-                                    containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
-                                /> */}
-                                <AttachStep index={4}>
-                                    <Button
-                                        icon={
-                                            <TherrIcon
-                                                name="menu"
-                                                size={30}
-                                                color={theme.colors.primary3}
-                                            />}
-                                        onPress={() => this.toggleOverlay()}
-                                        type="clear"
-                                        containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
-                                    />
-                                </AttachStep>
-                                {
-                                    hasNotifications && <Pressable onPress={() => this.toggleOverlay()} style={themeMenu.styles.notificationCircle2}>
-                                        <Text style={themeMenu.styles.notificationsCountText}>{unreadCount.toString()}</Text>
-                                    </Pressable>
-                                }
-                            </View>
-                            :
-                            <AttachStep index={4}>
-                                <Button
-                                    icon={
-                                        <FontAwesomeIcon
-                                            style={themeMenu.styles.logoutIcon}
-                                            name="sign-out-alt"
-                                            size={18}
-                                        />
-                                    }
-                                    onPress={() => this.handleLogout()}
-                                    type="clear"
-                                    containerStyle={themeMenu.styles.userProfileButtonContainer}
-                                />
-                            </AttachStep>
-                    }
+                    <View>
+                        {/* <Button
+                            icon={
+                                <Image
+                                    source={{ uri: getUserImageUri(user, 50) }}
+                                    style={imageStyle}
+                                    PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                                />}
+                            onPress={() => this.toggleOverlay()}
+                            type="clear"
+                            containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                        /> */}
+                        <AttachStep index={4}>
+                            <Button
+                                icon={
+                                    <TherrIcon
+                                        name="menu"
+                                        size={30}
+                                        color={theme.colors.primary3}
+                                    />}
+                                onPress={() => this.toggleOverlay()}
+                                type="clear"
+                                containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                            />
+                        </AttachStep>
+                        {
+                            hasNotifications && <Pressable onPress={() => this.toggleOverlay()} style={themeMenu.styles.notificationCircle2}>
+                                <Text style={themeMenu.styles.notificationsCountText}>{unreadCount.toString()}</Text>
+                            </Pressable>
+                        }
+                    </View>
                     <Overlay
                         animationType="slideInRight"
                         animationDuration={ANIMATION_DURATION}
@@ -810,7 +868,7 @@ class HeaderMenuRight extends React.PureComponent<
                                         translate={this.translate}
                                         onRequestClose={this.togglePointsInfoModal}
                                         themeButtons={themeButtons}
-                                        themeModal={themeModal}
+                                        themeModal={themeInfoModal}
                                     />
                                 </>
                             )
@@ -824,4 +882,4 @@ class HeaderMenuRight extends React.PureComponent<
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(React.memo(HeaderMenuRight));
+export default connect(mapStateToProps, mapDispatchToProps)(HeaderMenuRight);

@@ -24,6 +24,9 @@ const styles = StyleSheet.create({
     flexShrinkOne: {
         flexShrink: 1,
     },
+    alignStart: {
+        alignItems: 'flex-start',
+    },
     alignCenter: {
         alignItems: 'center',
     },
@@ -213,6 +216,11 @@ const styles = StyleSheet.create({
     },
     marginVertXLg: {
         marginVertical: xlarge,
+    },
+
+    // TEXT
+    textCenter: {
+        textAlign: 'center',
     },
 });
 

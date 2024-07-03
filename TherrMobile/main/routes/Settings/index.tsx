@@ -316,10 +316,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
     signAndUploadImage = (croppedImageDetails) => {
         const filePathSplit = croppedImageDetails?.path?.split('.');
-        const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
+        const fileExtension = `${filePathSplit?.[filePathSplit.length - 1]}` || 'jpeg';
         return signImageUrl(true, {
             action: 'write',
-            filename: `${FilePaths.PROFILE_Picture}.${fileExtension}`,
+            filename: `${FilePaths.PROFILE_PICTURE}.${fileExtension}`,
         }).then((response) => {
             const signedUrl = response?.data?.url && response?.data?.url[0];
 

@@ -17,12 +17,24 @@ const messages = (state: IForumsState = initialState, action: any) => {
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
+    const modifiedSearchResults = [...state.searchResults];
+    const updatedGroupIdx = modifiedSearchResults.findIndex((group) => group.id === action.data?.id);
+
     switch (action.type) {
         case ForumActionTypes.CREATE_FORUM:
             return state.setIn(['searchResults'], [
                 (action.data?.forum || action.data), // TODO: Cleanup this backwards compatibility hack
                 ...state.searchResults,
             ]);
+        case ForumActionTypes.UPDATE_FORUM:
+            if (updatedGroupIdx > -1) {
+                modifiedSearchResults[updatedGroupIdx] = {
+                    ...modifiedSearchResults[updatedGroupIdx],
+                    ...action.data,
+                };
+            }
+
+            return state.setIn(['searchResults'], modifiedSearchResults);
         case ForumActionTypes.SEARCH_FORUMS:
             return state.setIn(['searchResults'], action.data.results)
                 .setIn(['pagination'], action.data.pagination);

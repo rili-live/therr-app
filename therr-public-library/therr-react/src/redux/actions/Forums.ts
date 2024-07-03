@@ -10,6 +10,19 @@ const Forums = {
 
         return response?.data;
     }),
+    updateForum: (id: string, data: ICreateForumBody) => (dispatch: any) => ForumsService.updateForum(id, data).then((response) => {
+        const resultData = {
+            ...data,
+            id: response?.data?.id,
+            ...response?.data,
+        }; // server doesn't return changes, so use request data
+        dispatch({
+            type: ForumActionTypes.UPDATE_FORUM,
+            data: resultData,
+        });
+
+        return resultData;
+    }),
     searchCategories: (query: any) => (dispatch: any) => ForumsService.searchCategories(query)
         .then((response: any) => {
             dispatch({

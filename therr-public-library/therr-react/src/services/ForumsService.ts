@@ -51,7 +51,7 @@ class ForumsService {
     });
 
     updateForum = (id: string, data: ICreateForumBody) => axios({
-        method: 'post',
+        method: 'put',
         url: `/messages-service/forums/${id}`,
         data,
     });

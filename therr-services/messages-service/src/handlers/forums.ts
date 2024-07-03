@@ -360,14 +360,16 @@ const updateForum = (req, res) => {
         title: req.body.title,
         subtitle: req.body.subtitle,
         description: req.body.description,
+        categoryTags: req.body.categoryTags,
+        hashTags: req.body.hashTags || undefined,
         integrationIds: req.body.integrationIds,
         invitees: req.body.invitees,
         iconGroup: req.body.iconGroup,
         iconId: req.body.iconId,
         iconColor: req.body.iconColor,
-        maxCommentsPerMin: req.body.maxCommentsPerMin || 50,
-        doesExpire: req.body.doesExpire || true,
-        isPublic: req.body.isPublic || true,
+        maxCommentsPerMin: req.body.maxCommentsPerMin,
+        doesExpire: req.body.doesExpire,
+        isPublic: req.body.isPublic,
     })
         .then(([forum]) => res.status(202).send(forum))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
