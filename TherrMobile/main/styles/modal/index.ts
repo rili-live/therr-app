@@ -23,6 +23,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             justifyContent: 'flex-end',
             backgroundColor: 'transparent',
         },
+        bottomSheetOverlayDim: {
+            ...containerStyles,
+            justifyContent: 'flex-end',
+            backgroundColor: 'rgba(0,0,0,.1)',
+        },
         container: {
             display: 'flex',
             flexDirection: 'column',

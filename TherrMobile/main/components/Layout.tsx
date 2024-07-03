@@ -20,7 +20,8 @@ import notifee, { Event, EventType } from '@notifee/react-native';
 import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
-import { AccessLevels } from 'therr-js-utilities/constants';
+import { AccessLevels, GroupMemberRoles } from 'therr-js-utilities/constants';
+import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
@@ -37,9 +38,11 @@ import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
+import { buildStyles as buildBottomSheetStyles } from '../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../styles/buttons';
 import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildModalStyles } from '../styles/modal/infoModal';
+import { buildStyles as buildModalStyles } from '../styles/modal';
+import { buildStyles as buildInfoModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
@@ -55,6 +58,7 @@ import background2 from '../assets/dinner-overhead.webp';
 import background3 from '../assets/dinner-overhead-2.webp';
 // import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 // NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
 
@@ -151,8 +155,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private urlEventListener;
     private routeNameRef: any = {};
     private theme = buildStyles();
+    private themeBottomSheet = buildBottomSheetStyles();
     private themeButtons = buildButtonStyles();
     private themeForms = buildFormStyles();
+    private themeInfoModal = buildInfoModalStyles();
     private themeModal = buildModalStyles();
     private themeMenu = buildMenuStyles();
 
@@ -165,7 +171,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         };
 
         this.reloadTheme();
-        this.translate = (key: string, params: any) =>
+        this.translate = (key: string, params?: any) =>
             translator(props?.user?.settings?.locale || 'en-us', key, params);
     }
 
@@ -359,9 +365,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     reloadTheme = (shouldForceUpdate: boolean = false) => {
         const themeName = this.props?.user?.settings?.mobileThemeName;
         this.theme = buildStyles(themeName);
+        this.themeBottomSheet = buildBottomSheetStyles(themeName);
         this.themeButtons = buildButtonStyles(themeName);
         this.themeForms = buildFormStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
+        this.themeInfoModal = buildInfoModalStyles(themeName);
         this.themeModal = buildModalStyles(themeName);
         if (shouldForceUpdate) {
             this.forceUpdate();
@@ -495,6 +503,42 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 });
             });
         }
+    };
+
+    actionSheetShow = (sheetId: 'group-sheet', options: {
+        payload: Partial<Sheets[typeof sheetId]['payload']>;
+        // onClose?: (data: Sheets[typeof sheetId]['returnValue'] | undefined) => void;
+        context?: string;
+    }) => {
+        if (sheetId === 'group-sheet') {
+            const { user } = this.props;
+            const hasGroupEditAccess = user?.myUserGroups[options.payload.group.id]?.role === GroupMemberRoles.ADMIN;
+            return SheetManager.show<typeof sheetId>(sheetId, {
+                payload: {
+                    navigation: options.payload.navigation,
+                    group: options.payload.group,
+                    themeForms: this.themeForms,
+                    translate: this.translate,
+                    hasGroupEditAccess,
+                    onPressEditGroup: this.onPressEditGroup,
+                    onPressShareGroup: this.onPressShareGroup,
+                },
+            });
+        }
+    };
+
+    onPressEditGroup = (navigation: any, group: any) => {
+        navigation.navigate('EditGroup', {
+            group,
+        });
+
+        SheetManager.hide('group-sheet');
+    };
+
+    onPressShareGroup = (group: any) => {
+        Clipboard.setString(`https://www.therr.com/groups/${group.id}`);
+
+        SheetManager.hide('group-sheet');
     };
 
     handleFirebasePushNotificationEvent = (data: false | { action: string }) => {
@@ -843,8 +887,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const {
             location,
             notifications,
-            startNavigationTour,
-            stopNavigationTour,
             updateGpsStatus,
             user,
         } = this.props;
@@ -865,7 +907,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     const currentRouteName = navigationRef?.getCurrentRoute()?.name;
                     if (currentRouteName !== 'Map') {
                         // Prevent stuck tour on wrong routes
-                        stopNavigationTour();
+                        this.props.stopNavigationTour();
                     }
 
                     if (previousRouteName !== currentRouteName) {
@@ -958,10 +1000,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     logout={this.logout}
                                     updateGpsStatus={updateGpsStatus}
                                     user={user}
+                                    showActionSheet={this.actionSheetShow}
                                     startNavigationTour={this.props.startNavigationTour}
                                     theme={this.theme}
                                     themeButtons={this.themeButtons}
-                                    themeModal={this.themeModal}
+                                    themeInfoModal={this.themeInfoModal}
                                     themeMenu={this.themeMenu}
                                 /> :
                                 <HeaderLinkRight

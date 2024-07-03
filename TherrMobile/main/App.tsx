@@ -4,6 +4,7 @@ import LogRocket from '@logrocket/react-native';
 import analytics from '@react-native-firebase/analytics';
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
 import { enableLatestRenderer } from 'react-native-maps';
+import { SheetProvider } from 'react-native-actions-sheet';
 import {
     SpotlightTourProvider,
 } from 'react-native-spotlight-tour';
@@ -15,8 +16,9 @@ import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import spacingStyles from './styles/layouts/spacing';
 import { HEADER_HEIGHT_MARGIN } from './styles';
-import getTourSteps from './TourSteps';
+import getTourSteps from './getTourSteps';
 import UsersActions from './redux/actions/UsersActions';
+import './components/ActionSheet';
 
 // Disable in development
 analytics().setAnalyticsCollectionEnabled(!__DEV__);
@@ -245,7 +247,11 @@ class App extends React.Component<any, any> {
                         }}
                     >
                         {
-                            ({ start, stop }) => <Layout startNavigationTour={start} stopNavigationTour={stop} />
+                            ({ start, stop }) => (
+                                <SheetProvider>
+                                    <Layout startNavigationTour={start} stopNavigationTour={stop} />
+                                </SheetProvider>
+                            )
                         }
                     </SpotlightTourProvider>
                 </GestureHandlerRootView>

@@ -1,5 +1,13 @@
-
 {
+  "actionSheets": {
+    "group": {
+      "header": "Group Actions: {groupName}",
+      "buttons": {
+        "edit": "Edit Group",
+        "share": "Share Link"
+      }
+    }
+  },
   "alertActions": {
     "exchange": "Exchange",
     "edit": "Edit"
@@ -381,6 +389,7 @@
         "maxComments": "Max comments (per minute)",
         "expiresAt": "Countdown"
       },
+      "backendSuccessHeader": "Success!",
       "backendSuccessMessage": "Your group was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
     },

@@ -10,7 +10,9 @@ import { Image } from 'react-native-elements';
 // import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import randomColor from 'randomcolor';
+import Autolink from 'react-native-autolink';
 import { getUserImageUri } from '../../utilities/content';
+import { hoursDaysOrYearsSince } from '../../utilities/formatDate';
 
 const userColors: any = {}; // local state
 
@@ -19,6 +21,7 @@ const ForumMessage = ({
     theme,
     themeChat,
     themeMessage,
+    translate,
     fromUserDetails,
     userDetails,
     goToUser,
@@ -26,6 +29,7 @@ const ForumMessage = ({
     const isMe = item.fromUserName?.toLowerCase().includes('you') || item.fromUserId === userDetails.id;
     const senderTitle = !item.isAnnouncement ? item.fromUserName : '';
     const timeSplit = item.time.split(', ');
+    const timeDisplay = item?.createdAtUnformatted ? hoursDaysOrYearsSince(new Date(item.createdAtUnformatted), translate as any) : timeSplit[1];
     const yourColor = theme.colors.accent3;
 
     if (!userColors[item.fromUserName]) {
@@ -67,9 +71,15 @@ const ForumMessage = ({
                     {
                         !!senderTitle && <Text style={themeChat.styles.senderTitleText} onPress={onUserPress}>{senderTitle}</Text>
                     }
-                    <Text style={themeChat.styles.messageTime}>{timeSplit[1]}</Text>
+                    <Text style={themeChat.styles.messageTime}>{timeDisplay}</Text>
                 </View>
-                <Text selectable style={themeChat.styles.messageText}>{item.text}</Text>
+                <Autolink
+                    style={themeChat.styles.messageText}
+                    text={item.text}
+                    linkStyle={theme.styles.link}
+                    phone="sms"
+                    selectable
+                />
             </View>
         </View>
     );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Pressable } from 'react-native';
+import { Modal, Platform, Pressable } from 'react-native';
 import { ITherrThemeColors } from '../../styles/themes';
 
 interface IBottomSheet {
@@ -10,6 +10,8 @@ interface IBottomSheet {
         colors: ITherrThemeColors;
         styles: any;
     };
+    presentationStyle?: 'pageSheet' | 'fullScreen' | 'formSheet' | 'overFullScreen';
+    shouldDimBackground?: boolean;
 }
 
 export default ({
@@ -17,6 +19,8 @@ export default ({
     isVisible,
     onRequestClose,
     themeModal,
+    presentationStyle,
+    shouldDimBackground,
 }: IBottomSheet) => {
     return (
         <Modal
@@ -24,10 +28,11 @@ export default ({
             visible={isVisible}
             onRequestClose={onRequestClose}
             transparent={true}
+            presentationStyle={presentationStyle || 'overFullScreen'}
         >
             <Pressable
                 onPress={onRequestClose}
-                style={themeModal.styles.bottomSheetOverlay}>
+                style={(shouldDimBackground && Platform.OS !== 'ios') ? themeModal.styles.bottomSheetOverlayDim : themeModal.styles.bottomSheetOverlay}>
                 <Pressable style={themeModal.styles.bottomSheetContainer}>
                     {children}
                 </Pressable>

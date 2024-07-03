@@ -104,6 +104,7 @@ interface IViewGroupState {
     isLoading: boolean;
     pageNumber: number;
     tabRoutes: { key: string; title: string }[];
+    title: string;
 }
 
 const mapStateToProps = (state) => ({
@@ -132,6 +133,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
     private chatListRef;
     private eventsListRef;
     private membersListRef;
+    private unsubscribeFocusListener;
     private translate: Function;
     private theme = buildStyles();
     private themeChat = buildChatStyles();
@@ -150,13 +152,14 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
             translator('en-us', key, params);
 
         const { route } = props;
-        const { hashTags } = route.params;
+        const { hashTags, title } = route.params;
         this.hashtags = hashTags ? hashTags.split(',') : [];
 
         const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);
 
         this.state = {
             activeTabIndex,
+            title: title || '',
             groupMembers: [],
             groupEvents: [],
             msgInputVal: '',
@@ -212,6 +215,12 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         // TODO: Add logic to update this when user navigates away then returns
         this.searchForumMsgsByPage(1);
         this.searchGroupMembers();
+    }
+
+    componentWillUnmount() {
+        if (this.unsubscribeFocusListener) {
+            this.unsubscribeFocusListener();
+        }
     }
 
     searchForumMsgsByPage = (pageNumber: number) => {
@@ -467,6 +476,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             theme={this.theme}
                             themeChat={this.themeChat}
                             themeMessage={this.themeMessage}
+                            translate={this.translate}
                             userDetails={user.details}
                             fromUserDetails={{
                                 id: item.fromUserId,

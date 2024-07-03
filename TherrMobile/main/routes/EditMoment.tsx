@@ -9,7 +9,7 @@ import Toast from 'react-native-toast-message';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState, IContentState } from 'therr-react/types';
 import { ReactionActions, MapActions } from 'therr-react/redux/actions';
-import { Content, ErrorCodes } from 'therr-js-utilities/constants';
+import { Content, ErrorCodes, FilePaths } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -255,7 +255,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         // Use public method for public spaces
         return signImageUrl(isPublic, {
             action: 'write',
-            filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
+            filename: `${FilePaths.CONTENT}/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
         }).then((response) => {
             const signedUrl = response?.data?.url && response?.data?.url[0];
             createArgs.media = [{}];
@@ -426,7 +426,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             });
                         }
 
-                        if (isDraft) {
+                        if (isDraft && Platform.OS !== 'android') {
                             const nowPlus = new Date();
                             nowPlus.setHours(nowPlus.getMinutes() + 1);
                             sendTriggerNotification(nowPlus, {
@@ -443,7 +443,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             }, getAndroidChannel(AndroidChannelIds.reminders, true));
                         }
 
-                        analytics().logEvent('moment_create', {
+                        analytics().logEvent(areaId ? 'moment_update' : 'moment_create', {
                             userId: user.details.id,
                             momentLongitude: longitude,
                             momentLatitude: latitude,
