@@ -3,6 +3,7 @@ import RoundInput from '../../components/Input/Round';
 
 
 const InputEventName = ({
+    autoFocus = false,
     onChangeText,
     themeForms,
     translate,
@@ -10,6 +11,7 @@ const InputEventName = ({
 }) => {
     return (
         <RoundInput
+            autoFocus={autoFocus}
             maxLength={100}
             placeholder={translate(
                 'forms.editEvent.labels.notificationMsg'

@@ -3,14 +3,14 @@ import { ActivityIndicator, Dimensions, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Button, Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
 import TherrIcon from '../../components/TherrIcon';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
-import { GROUPS_CAROUSEL_TABS, HAPTIC_FEEDBACK_TYPE, PEOPLE_CAROUSEL_TABS } from '../../constants';
+import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { isUserAuthenticated } from '../../utilities/authUtils';
 import Toast from 'react-native-toast-message';
 import LottieView from 'lottie-react-native';
@@ -21,10 +21,10 @@ const buttonWidth = screenWidth / 5;
 const discoverContentLoader = require('../../assets/ftui-discover.json');
 const matchUpLoader = require('../../assets/match-up.json');
 
-const hapticFeedbackOptions = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-};
+// const hapticFeedbackOptions = {
+//     enableVibrateFallback: false,
+//     ignoreAndroidSystemSettings: false,
+// };
 
 const ViewProfileButton = ({
     activeRoute,
@@ -77,7 +77,7 @@ class MainButtonMenuAlt extends ButtonMenu {
     }
 
     navTo = (routeName, params = {}) => {
-        ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
+        // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
         const { navigation, translate, user } = this.props;
 
         if (!isUserAuthenticated(user)) {
@@ -147,7 +147,7 @@ class MainButtonMenuAlt extends ButtonMenu {
         const { navigation, user } = this.props;
         const currentScreen = this.getCurrentScreen();
 
-        ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
+        // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
 
         if (!isUserAuthenticated(user)) {
             navigation.reset({

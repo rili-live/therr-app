@@ -114,7 +114,7 @@ const DEFAULT_MAP_SEARCH = {
 };
 
 const hapticFeedbackOptions = {
-    enableVibrateFallback: true,
+    enableVibrateFallback: false,
     ignoreAndroidSystemSettings: false,
 };
 

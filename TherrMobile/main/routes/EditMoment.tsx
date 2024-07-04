@@ -46,7 +46,7 @@ import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../components/BaseStatusBar';
 import formatHashtags from '../utilities/formatHashtags';
 import { getImagePreviewPath } from '../utilities/areaUtils';
-import { signImageUrl } from '../utilities/content';
+import { getUserContentUri, signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
 import { sendForegroundNotification, sendTriggerNotification } from '../utilities/pushNotifications';
 import BottomSheet from '../components/BottomSheet/BottomSheet';
@@ -75,7 +75,7 @@ export const momentCategories = [
 
 
 const hapticFeedbackOptions = {
-    enableVibrateFallback: true,
+    enableVibrateFallback: false,
     ignoreAndroidSystemSettings: false,
 };
 
@@ -146,6 +146,15 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         const { content, route } = props;
         const { area, nearbySpaces, imageDetails } = route.params;
         const initialMediaId = area?.mediaIds?.split(',')[0] || undefined;
+        const areaMedia = area?.medias?.[0];
+
+        let imagePreviewPath = imageDetails?.path
+            ? getImagePreviewPath(imageDetails?.path)
+            : (initialMediaId && content?.media[initialMediaId] || '');
+
+        if (!imagePreviewPath && areaMedia) {
+            imagePreviewPath = getUserContentUri(areaMedia);
+        }
 
         this.state = {
             areaId: area?.id,
@@ -167,12 +176,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             isInsufficientFundsModalVisible: false,
             isVisibilityBottomSheetVisible: false,
             isSubmitting: false,
-            nearbySpaces: nearbySpaces || [],
+            nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
             previewStyleState: {},
             selectedImage: imageDetails || {},
-            imagePreviewPath: imageDetails?.path
-                ? getImagePreviewPath(imageDetails?.path)
-                : (initialMediaId && content?.media[initialMediaId] || ''),
+            imagePreviewPath,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -230,7 +237,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         const { inputs, isSubmitting } = this.state;
 
         return (
-            !inputs.message ||
+            !inputs.notificationMsg ||
             isSubmitting
         );
     }
@@ -341,7 +348,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             category,
             fromUserId: user.details.id,
             isPublic,
-            message,
+            message: message || notificationMsg,
             notificationMsg,
             hashTags: hashtags.join(','),
             isDraft,
@@ -1050,7 +1057,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
                             disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
                             titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={[this.themeAccentForms.styles.submitButtonContainer, { marginRight: 20 }]}
+                            containerStyle={[this.themeAccentForms.styles.submitButtonContainer, spacingStyles.marginRtXLg]}
                             title={this.translate(
                                 'forms.editMoment.buttons.draft'
                             )}

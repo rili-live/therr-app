@@ -515,7 +515,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             const hasGroupEditAccess = user?.myUserGroups[options.payload.group.id]?.role === GroupMemberRoles.ADMIN;
             return SheetManager.show<typeof sheetId>(sheetId, {
                 payload: {
-                    navigation: options.payload.navigation,
                     group: options.payload.group,
                     themeForms: this.themeForms,
                     translate: this.translate,
@@ -527,10 +526,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    onPressEditGroup = (navigation: any, group: any) => {
-        navigation.navigate('EditGroup', {
-            group,
-        });
+    onPressEditGroup = (group: any) => {
+        const route = RootNavigation.getCurrentRoute();
+        if (route?.name === 'ViewGroup') {
+            RootNavigation.navigate('EditGroup', {
+                group,
+            });
+        }
 
         SheetManager.hide('group-sheet');
     };
@@ -833,6 +835,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         return navState.routes[navState.routes.length - 1]?.name;
     };
 
+    getCurrentScreenParams = (navigation) => {
+        const navState = navigation.getState();
+
+        return navState.routes?.[navState.routes.length - 1]?.params || {};
+    };
+
     getIosNotificationPermissions = () => {
         // TODO: Determine if 2nd then is even necessary
         return notifee.requestPermission()
@@ -924,6 +932,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     screenOptions={({ navigation }) => {
                         const themeName = this.props?.user?.settings?.mobileThemeName;
                         const currentScreen = this.getCurrentScreen(navigation);
+                        const currentScreenParams = this.getCurrentScreenParams(navigation);
                         const isConnect = currentScreen === 'Connect';
                         const isAreas = currentScreen === 'Areas';
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
@@ -991,6 +1000,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             />,
                             headerRight: () => this.shouldShowTopRightMenu() ?
                                 <HeaderMenuRight
+                                    currentScreen={currentScreen}
+                                    currentScreenParams={currentScreenParams}
                                     navigation={navigation}
                                     notifications={notifications}
                                     styleName={headerStyleName}

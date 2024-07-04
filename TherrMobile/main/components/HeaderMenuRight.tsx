@@ -44,6 +44,10 @@ interface IStoreProps extends IHeaderMenuRightDispatchProps {
 
 // Regular component props
 export interface IHeaderMenuRightProps extends IStoreProps {
+    currentScreen: string;
+    currentScreenParams: {
+        [key: string]: any;
+    };
     isVisible: boolean;
     isEmailVerifed: boolean;
     location: ILocationState;
@@ -141,9 +145,7 @@ class HeaderMenuRight extends React.PureComponent<
     };
 
     navTo = (routeName, params = {}) => {
-        const { location, navigation, updateGpsStatus } = this.props;
-
-        const currentScreen = this.getCurrentScreen();
+        const { currentScreen, location, navigation, updateGpsStatus } = this.props;
 
         if (routeName === 'Map') {
             requestLocationServiceActivation({
@@ -282,9 +284,10 @@ class HeaderMenuRight extends React.PureComponent<
 
     render() {
         const {
+            currentScreen,
+            currentScreenParams,
             isVisible,
             isEmailVerifed,
-            navigation,
             notifications,
             showActionSheet,
             // styleName,
@@ -296,8 +299,6 @@ class HeaderMenuRight extends React.PureComponent<
         } = this.props;
 
         const { isModalVisible, isPointsInfoModalVisible } = this.state;
-        const currentScreen = this.getCurrentScreen();
-        const currentScreenParams = this.getCurrentScreenParams();
         const unreadCount: number = notifications?.messages?.filter(m => m.isUnread)?.length || 0;
         const hasNotifications = unreadCount > 0;
         // let imageStyle = themeMenu.styles.toggleIcon;
@@ -346,7 +347,6 @@ class HeaderMenuRight extends React.PureComponent<
                                 onPress={() => showActionSheet('group-sheet', {
                                     payload: {
                                         group: currentScreenParams,
-                                        navigation,
                                     },
                                 })}
                                 type="clear"

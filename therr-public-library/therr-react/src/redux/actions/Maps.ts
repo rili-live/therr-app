@@ -90,6 +90,11 @@ const Maps = {
                     ...data,
                 }, // server doesn't return changes, so use request data
             });
+
+            return {
+                ...response.data,
+                ...data,
+            };
         }),
     getEventDetails: (id: number, data: any) => (dispatch: any) => MapsService.getEventDetails(id, data)
         .then((response: any) => {

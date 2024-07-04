@@ -62,7 +62,7 @@ export const thoughtCategories = [
 
 
 const hapticFeedbackOptions = {
-    enableVibrateFallback: true,
+    enableVibrateFallback: false,
     ignoreAndroidSystemSettings: false,
 };
 
