@@ -517,8 +517,12 @@ export default class EventsStore {
                 category: params.category || 'uncategorized',
                 createdAt: params.createdAt || undefined, // TODO: make more secure (only for social sync)
                 expiresAt: params.expiresAt,
-                scheduleStartAt: params.scheduleStartAt,
-                scheduleStopAt: params.scheduleStopAt,
+                scheduleStartAt: params.scheduleStartAt && typeof params.scheduleStartAt === 'number'
+                    ? new Date(params.scheduleStartAt)
+                    : params.scheduleStartAt,
+                scheduleStopAt: params.scheduleStopAt && typeof params.scheduleStopAt === 'number'
+                    ? new Date(params.scheduleStopAt)
+                    : params.scheduleStopAt,
                 fromUserId: params.fromUserId,
                 groupId: params.groupId,
                 spaceId: params.spaceId,

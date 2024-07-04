@@ -16,6 +16,6 @@ export const getEventDetailsValidation = [
 export const createEventValidations = [
     ...createAreaValidation,
     body('addressReadable').isString().optional(),
-    body('scheduleStartAt').isString().exists(),
-    body('scheduleStopAt').isString().exists(),
+    body('scheduleStartAt').exists(),
+    body('scheduleStopAt').exists(),
 ];
