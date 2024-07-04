@@ -1131,6 +1131,7 @@
     },
     "editChat": {
       "headerTitleCreate": "Create a Group",
+      "headerTitleEdit": "Edit Group",
       "pageTitle": "Create a Group"
     },
     "editMoment": {

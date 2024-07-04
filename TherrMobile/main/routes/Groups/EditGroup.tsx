@@ -141,10 +141,11 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
     }
 
     componentDidMount() {
-        const { forums, navigation, searchCategories } = this.props;
+        const { forums, navigation, searchCategories, route } = this.props;
+        const { group } = route.params || {};
 
         navigation.setOptions({
-            title: this.translate('pages.editChat.headerTitleCreate'),
+            title: group?.id ? this.translate('pages.editChat.headerTitleEdit') : this.translate('pages.editChat.headerTitleCreate'),
         });
 
         if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
