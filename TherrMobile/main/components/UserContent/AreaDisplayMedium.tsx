@@ -12,23 +12,23 @@ import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../PressableWithDoubleTap';
-import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
+// import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
-const hapticFeedbackOptions = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-};
+// const hapticFeedbackOptions = {
+//     enableVibrateFallback: false,
+//     ignoreAndroidSystemSettings: false,
+// };
 
 interface IUserDetails {
     id?: string;
@@ -101,7 +101,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
 
     onLikePress = (area) => {
         if (!area.isDraft) {
-            ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
+            // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateAreaReaction, user } = this.props;
 
             updateAreaReaction(area.id, {

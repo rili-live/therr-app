@@ -457,7 +457,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                                 icon={
                                                     <FontAwesome5Icon
                                                         name="trash-alt"
-                                                        size={25}
+                                                        size={22}
                                                         color={'black'}
                                                         style={this.themeAccentForms.styles.submitButtonIcon}
                                                     />

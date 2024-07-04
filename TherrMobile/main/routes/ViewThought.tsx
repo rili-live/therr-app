@@ -42,7 +42,7 @@ import { navToViewContent } from '../utilities/postViewHelpers';
 // import AccentInput from '../components/Input/Accent';
 
 const hapticFeedbackOptions = {
-    enableVibrateFallback: true,
+    enableVibrateFallback: false,
     ignoreAndroidSystemSettings: false,
 };
 
@@ -588,7 +588,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                                                 icon={
                                                     <FontAwesome5Icon
                                                         name="trash-alt"
-                                                        size={25}
+                                                        size={22}
                                                         color={'black'}
                                                         style={this.themeAccentForms.styles.submitButtonIcon}
                                                     />

@@ -250,6 +250,23 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         });
     };
 
+    onEdit = () => {
+        const { navigation, route, user } = this.props;
+        const { space } = route.params;
+        const { fetchedSpace } = this.state;
+        const spaceInView = {
+            ...space,
+            ...fetchedSpace,
+        };
+
+        navigation.navigate('EditSpace', {
+            area: spaceInView,
+            imageDetails: {},
+            isBusinessAccount: checkIsMySpace(spaceInView, user) || user.details?.isBusinessAccount,
+            isCreatorAccount: user.details?.isCreatorAccount,
+        });
+    };
+
     onDelete = () => {
         this.setState({
             isVerifyingDelete: true,
@@ -785,6 +802,29 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                     {
                                         !isVerifyingDelete &&
                                             <Button
+                                                buttonStyle={this.themeAccentForms.styles.draftButton}
+                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
+                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
+                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
+                                                containerStyle={[this.themeAccentForms.styles.submitButtonContainer, spacingStyles.marginRtXLg]}
+                                                title={this.translate(
+                                                    'forms.editSpace.buttons.edit'
+                                                )}
+                                                icon={
+                                                    <TherrIcon
+                                                        name="edit"
+                                                        size={22}
+                                                        color={'black'}
+                                                        style={this.themeAccentForms.styles.submitButtonIcon}
+                                                    />
+                                                }
+                                                onPress={this.onEdit}
+                                                raised={true}
+                                            />
+                                    }
+                                    {
+                                        !isVerifyingDelete &&
+                                            <Button
                                                 buttonStyle={this.themeAccentForms.styles.submitDeleteButton}
                                                 disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
                                                 disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
@@ -796,7 +836,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                                 icon={
                                                     <FontAwesome5Icon
                                                         name="trash-alt"
-                                                        size={25}
+                                                        size={22}
                                                         color={'black'}
                                                         style={this.themeAccentForms.styles.submitButtonIcon}
                                                     />

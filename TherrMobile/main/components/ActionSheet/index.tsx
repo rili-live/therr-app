@@ -13,7 +13,6 @@ declare module 'react-native-actions-sheet' {
     // 'example-sheet': SheetDefinition;
     'group-sheet': SheetDefinition<{
         payload: {
-            navigation: any;
             group: any;
             translate: (key: string, params?: any) => string;
             themeForms: {
@@ -21,7 +20,7 @@ declare module 'react-native-actions-sheet' {
                 styles: any;
             },
             hasGroupEditAccess: boolean;
-            onPressEditGroup: (navigation: any, group: any) => void;
+            onPressEditGroup: (group: any) => void;
             onPressShareGroup: (group: any) => void;
         };
     }>;

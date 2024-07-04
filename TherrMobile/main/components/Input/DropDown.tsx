@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 
 interface IDropDownProps {
+    enabled?: boolean;
     onChange: (newValue: null | string) => any;
     options: any[];
     initialValue?: string;
@@ -13,6 +14,7 @@ interface IDropDownProps {
 }
 
 export default ({
+    enabled = true,
     onChange,
     options,
     initialValue,
@@ -26,6 +28,7 @@ export default ({
 
     return (
         <ReactPicker
+            enabled={enabled}
             selectedValue={value}
             style={style || formStyles.pickerFlex}
             itemStyle={formStyles.pickerItem}

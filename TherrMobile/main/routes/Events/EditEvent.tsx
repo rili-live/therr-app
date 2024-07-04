@@ -10,7 +10,7 @@ import Toast from 'react-native-toast-message';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import { IUserState, IMapState, IContentState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
-import { Content, ErrorCodes, GroupMemberRoles } from 'therr-js-utilities/constants';
+import { Content, ErrorCodes, FilePaths, GroupMemberRoles } from 'therr-js-utilities/constants';
 import { MapsService } from 'therr-react/services';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
@@ -53,9 +53,10 @@ import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import formatHashtags from '../../utilities/formatHashtags';
 import { getImagePreviewPath } from '../../utilities/areaUtils';
-import { signImageUrl } from '../../utilities/content';
+import { getUserContentUri, signImageUrl } from '../../utilities/content';
 import { requestOSCameraPermissions } from '../../utilities/requestOSPermissions';
 import { sendForegroundNotification, sendTriggerNotification } from '../../utilities/pushNotifications';
+import { addAddressParams } from '../../utilities/areaUtils';
 import BottomSheet from '../../components/BottomSheet/BottomSheet';
 import TherrIcon from '../../components/TherrIcon';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
@@ -63,7 +64,6 @@ import SpaceRating from '../../components/Input/SpaceRating';
 import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 import UsersActions from '../../redux/actions/UsersActions';
 import searchLoading from '../../assets/search-loading.json';
-import { addAddressParams } from '../EditSpace';
 import InputEventName from '../Events/InputEventName';
 import EventStartEndFormGroup from './EventStartEndFormGroup';
 
@@ -99,7 +99,7 @@ export const eventCategories = [
 
 
 const hapticFeedbackOptions = {
-    enableVibrateFallback: true,
+    enableVibrateFallback: false,
     ignoreAndroidSystemSettings: false,
 };
 
@@ -180,14 +180,26 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         const { content, route } = props;
         const { area, nearbySpaces, imageDetails } = route.params;
         const initialMediaId = area?.mediaIds?.split(',')[0] || undefined;
+        const areaMedia = area?.medias?.[0];
+
+        let imagePreviewPath = imageDetails?.path
+            ? getImagePreviewPath(imageDetails?.path)
+            : (initialMediaId && content?.media[initialMediaId] || '');
+
+        if (!imagePreviewPath && areaMedia) {
+            imagePreviewPath = getUserContentUri(areaMedia);
+        }
 
         this.state = {
-            addressInputText: '',
             areaId: area?.id,
+            addressInputText: area?.space?.addressReadable || '',
             errorMsg: '',
             userGroups: getUserEventHostGroups(Object.values(props.user.myUserGroups || {})),
             hashtags: area?.hashTags ? area?.hashTags?.split(',') : [],
             inputs: {
+                addressReadable: area?.space?.addressReadable || '',
+                addressLatitude: area?.space?.latitude || '',
+                addressLongitude: area?.space?.longitude || '',
                 isDraft: false,
                 isPublic: area?.isPublic == null ? true : area?.isPublic,
                 radius: area?.radius || DEFAULT_RADIUS,
@@ -197,9 +209,9 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                 hashTags: '',
                 maxViews: area?.maxViews,
                 groupId: area?.groupId || undefined,
-                spaceId: area?.spaceId && nearbySpaces.find(s => s.id === area?.spaceId) ? area?.spaceId : undefined,
-                scheduleStartAt: new Date(),
-                scheduleStopAt: new Date(),
+                spaceId: area?.spaceId || undefined,
+                scheduleStartAt: area?.scheduleStartAt ? new Date(area?.scheduleStartAt) : new Date(),
+                scheduleStopAt: area?.scheduleStopAt ? new Date(area?.scheduleStopAt) : new Date(),
             },
             isAddressDropdownVisible: false,
             isEditingNearbySpaces: false,
@@ -208,12 +220,10 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             isLoading: true,
             isVisibilityBottomSheetVisible: false,
             isSubmitting: false,
-            nearbySpaces: nearbySpaces || [],
+            nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
             previewStyleState: {},
             selectedImage: imageDetails || {},
-            imagePreviewPath: imageDetails?.path
-                ? getImagePreviewPath(imageDetails?.path)
-                : (initialMediaId && content?.media[initialMediaId] || ''),
+            imagePreviewPath,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -246,10 +256,10 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
 
     componentDidMount() {
         const { getUserGroups, navigation } = this.props;
-        const { userGroups } = this.state;
+        const { areaId, userGroups } = this.state;
 
         navigation.setOptions({
-            title: this.translate('pages.editEvent.headerTitle'),
+            title: areaId ? this.translate('pages.editEvent.headerTitleEditing') : this.translate('pages.editEvent.headerTitle'),
         });
 
         // Fetch if user groups are missing title/groupName
@@ -324,7 +334,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         // Use public method for public spaces
         return signImageUrl(isPublic, {
             action: 'write',
-            filename: `content/events/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
+            filename: `${FilePaths.CONTENT}/events/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
         }).then((response) => {
             const signedUrl = response?.data?.url && response?.data?.url[0];
             createArgs.media = [{}];
@@ -433,8 +443,8 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
             maxViews,
             radius,
             rating,
-            scheduleStartAt,
-            scheduleStopAt,
+            scheduleStartAt: scheduleStartAt.getTime(),
+            scheduleStopAt: scheduleStopAt.getTime(),
             skipReward: shouldSkipRewards,
             spaceId,
             groupId,
@@ -481,52 +491,62 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                 createOrUpdatePromise
                     .then((response) => {
                         if (!shouldSkipDraftToast) {
+                            const onHide = () => {
+                                if (response?.therrCoinRewarded && response?.therrCoinRewarded > 0) {
+                                    // TODO: Only send toast if push notifications are disabled
+                                    // TODO: Include title of checkin
+                                    sendForegroundNotification({
+                                        title: this.translate('alertTitles.coinsReceived'),
+                                        body: this.translate('alertMessages.coinsReceived', {
+                                            total: response.therrCoinRewarded,
+                                        }),
+                                        android: {
+                                            actions: [
+                                                {
+                                                    pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
+                                                    title: this.translate('alertActions.exchange'),
+                                                },
+                                            ],
+                                        },
+                                    }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
+                                    Toast.show({
+                                        type: 'success',
+                                        text1: this.translate('alertTitles.coinsReceived'),
+                                        text2: this.translate('alertMessages.coinsReceived', {
+                                            total: response.therrCoinRewarded,
+                                        }),
+                                        visibilityTime: 3500,
+                                    });
+                                    Toast.show({
+                                        type: 'success',
+                                        text1: this.translate('alertTitles.coinsReceived'),
+                                        text2: this.translate('alertMessages.coinsReceived', {
+                                            total: response.therrCoinRewarded,
+                                        }),
+                                        visibilityTime: 3500,
+                                    });
+                                }
+                            };
+
+                            let text1 = isDraft
+                                ? this.translate('alertTitles.eventDraftSuccess')
+                                : this.translate('alertTitles.eventCreatedSuccess');
+                            let text2 = isDraft
+                                ? this.translate('alertMessages.eventDraftSuccess')
+                                : this.translate('alertMessages.eventCreatedSuccess');
+
+                            if (areaId) {
+                                text1 = this.translate('alertTitles.areaUpdatedSuccess');
+                                text2 = this.translate('alertMessages.eventUpdatedSuccess');
+                            }
+
                             Toast.show({
                                 type: 'successBig',
-                                text1: isDraft
-                                    ? this.translate('alertTitles.eventDraftSuccess')
-                                    : this.translate('alertTitles.eventCreatedSuccess'),
-                                text2: isDraft
-                                    ? this.translate('alertMessages.eventDraftSuccess')
-                                    : this.translate('alertMessages.eventCreatedSuccess'),
+                                text1,
+                                text2,
                                 visibilityTime: 2500,
                                 position: 'top',
-                                onHide: () => {
-                                    if (response?.therrCoinRewarded && response?.therrCoinRewarded > 0) {
-                                        // TODO: Only send toast if push notifications are disabled
-                                        // TODO: Include title of checkin
-                                        sendForegroundNotification({
-                                            title: this.translate('alertTitles.coinsReceived'),
-                                            body: this.translate('alertMessages.coinsReceived', {
-                                                total: response.therrCoinRewarded,
-                                            }),
-                                            android: {
-                                                actions: [
-                                                    {
-                                                        pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
-                                                        title: this.translate('alertActions.exchange'),
-                                                    },
-                                                ],
-                                            },
-                                        }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
-                                        Toast.show({
-                                            type: 'success',
-                                            text1: this.translate('alertTitles.coinsReceived'),
-                                            text2: this.translate('alertMessages.coinsReceived', {
-                                                total: response.therrCoinRewarded,
-                                            }),
-                                            visibilityTime: 3500,
-                                        });
-                                        Toast.show({
-                                            type: 'success',
-                                            text1: this.translate('alertTitles.coinsReceived'),
-                                            text2: this.translate('alertMessages.coinsReceived', {
-                                                total: response.therrCoinRewarded,
-                                            }),
-                                            visibilityTime: 3500,
-                                        });
-                                    }
-                                },
+                                onHide,
                             });
                         }
 
@@ -559,9 +579,34 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
 
                         if (!shouldSkipNavigate) {
                             setTimeout(() => {
-                                this.props.navigation.navigate('Map', {
-                                    shouldShowPreview: false,
-                                });
+                                if (areaId) {
+                                    navigation.reset({
+                                        index: 1,
+                                        routes: [
+                                            {
+                                                name: 'Map',
+                                            },
+                                            {
+                                                name: 'Areas',
+                                            },
+                                            {
+                                                name: 'ViewEvent',
+                                                params: {
+                                                    isMyContent: true,
+                                                    previousView: 'Areas',
+                                                    event: {
+                                                        id: areaId,
+                                                    },
+                                                    eventDetails: {},
+                                                },
+                                            },
+                                        ],
+                                    });
+                                } else {
+                                    this.props.navigation.navigate('Map', {
+                                        shouldShowPreview: false,
+                                    });
+                                }
                             }, 250);
                         } else {
                             this.setState({
@@ -940,7 +985,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         iconStyle: any,
         onPress: any,
     } => {
-        const { isEditingNearbySpaces, nearbySpaces } = this.state;
+        const { areaId, isEditingNearbySpaces, nearbySpaces } = this.state;
 
         if (!isEditingNearbySpaces && (nearbySpaces?.length || 0) > 0) {
             return {
@@ -953,7 +998,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         }
 
         return {
-            title: this.translate('forms.editEvent.buttons.submit'),
+            title: this.translate(areaId ? 'forms.editEvent.buttons.update' : 'forms.editEvent.buttons.submit'),
             icon: 'send',
             iconStyle: this.themeAccentForms.styles.submitButtonIcon,
             iconRight: false,
@@ -967,6 +1012,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
 
     renderEditingForm = () => {
         const {
+            areaId,
             addressInputText,
             errorMsg,
             hashtags,
@@ -1022,7 +1068,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                         marginBottom: 50,
                     }}>
                         <RoundInput
-                            autoFocus
+                            autoFocus={!areaId}
                             maxLength={100}
                             placeholder={this.translate(
                                 'forms.editEvent.labels.address'
@@ -1056,6 +1102,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             />
                         }
                         <InputEventName
+                            autoFocus={!!areaId}
                             translate={this.translate}
                             onChangeText={(text) =>
                                 this.onInputChange('notificationMsg', text)
@@ -1109,6 +1156,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             spacingStyles.alignCenter,
                         ]}>
                             <DropDown
+                                enabled={!areaId}
                                 onChange={(newValue) =>
                                     this.onInputChange('groupId', newValue || undefined)
                                 }

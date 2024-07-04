@@ -267,6 +267,9 @@ export default class SpacesStore {
                 'notificationMsg',
                 'radius',
                 'region',
+                'addressReadable',
+                'latitude',
+                'longitude',
             ])
             .from(SPACES_TABLE_NAME)
             .where({
@@ -662,6 +665,7 @@ export default class SpacesStore {
                 addressLocality: params.addressLocality,
                 postalCode: params.postalCode,
                 priceRange: params.priceRange,
+                hashTags: params.hashTags,
             };
 
             if (params.medias) {

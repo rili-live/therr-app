@@ -14,7 +14,7 @@ import {
 import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+// import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import Toast from 'react-native-toast-message';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
@@ -27,7 +27,7 @@ import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
-import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
+// import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
@@ -36,10 +36,10 @@ import SpaceRating from '../../components/Input/SpaceRating';
 
 const envConfig = getConfig();
 const { width: viewportWidth } = Dimensions.get('window');
-const hapticFeedbackOptions = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-};
+// const hapticFeedbackOptions = {
+//     enableVibrateFallback: false,
+//     ignoreAndroidSystemSettings: false,
+// };
 
 interface IUserDetails {
     id?: string;
@@ -154,7 +154,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
     onLikePress = (area) => {
         if (!area.isDraft) {
-            ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
+            // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateAreaReaction, user } = this.props;
 
             // Only display on own user post
@@ -181,7 +181,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         };
 
         return (
-            <View style={[
+            <View key={event.id} style={[
                 { width: viewportWidth },
                 spacingStyles.marginBotMd,
                 spacingStyles.flex,
