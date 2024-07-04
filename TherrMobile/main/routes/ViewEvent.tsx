@@ -231,6 +231,21 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         });
     };
 
+    onEdit = () => {
+        const { navigation, route } = this.props;
+        const { event } = route.params;
+        const { fetchedEvent } = this.state;
+        const eventInView = {
+            ...event,
+            ...fetchedEvent,
+        };
+
+        navigation.navigate('EditEvent', {
+            area: eventInView,
+            imageDetails: {},
+        });
+    };
+
     onDelete = () => {
         this.setState({
             isVerifyingDelete: true,
@@ -553,6 +568,29 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                                     {
                                         !isVerifyingDelete &&
                                             <Button
+                                                buttonStyle={this.themeAccentForms.styles.draftButton}
+                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
+                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
+                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
+                                                containerStyle={[this.themeAccentForms.styles.submitButtonContainer, spacingStyles.marginRtXLg]}
+                                                title={this.translate(
+                                                    'forms.editEvent.buttons.edit'
+                                                )}
+                                                icon={
+                                                    <TherrIcon
+                                                        name="edit"
+                                                        size={22}
+                                                        color={'black'}
+                                                        style={this.themeAccentForms.styles.submitButtonIcon}
+                                                    />
+                                                }
+                                                onPress={this.onEdit}
+                                                raised={true}
+                                            />
+                                    }
+                                    {
+                                        !isVerifyingDelete &&
+                                            <Button
                                                 buttonStyle={this.themeAccentForms.styles.submitDeleteButton}
                                                 disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
                                                 disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
@@ -564,7 +602,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                                                 icon={
                                                     <FontAwesome5Icon
                                                         name="trash-alt"
-                                                        size={25}
+                                                        size={22}
                                                         color={'black'}
                                                         style={this.themeAccentForms.styles.submitButtonIcon}
                                                     />

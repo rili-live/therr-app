@@ -52,7 +52,7 @@ const GroupSheet = (props: SheetProps<'group-sheet'>) => {
                         title={props.payload?.translate(
                             'actionSheets.group.buttons.edit'
                         )}
-                        onPress={() => props.payload?.onPressEditGroup(props.payload?.navigation, props.payload?.group)}
+                        onPress={() => props.payload?.onPressEditGroup(props.payload?.group)}
                         icon={
                             <TherrIcon
                                 style={spacingStyles.marginRtMd}

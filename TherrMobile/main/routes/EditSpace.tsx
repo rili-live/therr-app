@@ -45,8 +45,8 @@ import RoundInput from '../components/Input/Round';
 import RoundTextInput from '../components/Input/TextInput/Round';
 import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../components/BaseStatusBar';
-import { getImagePreviewPath } from '../utilities/areaUtils';
-import { signImageUrl } from '../utilities/content';
+import { addAddressParams, getImagePreviewPath } from '../utilities/areaUtils';
+import { getUserContentUri, signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
 import BottomSheet from '../components/BottomSheet/BottomSheet';
 import TherrIcon from '../components/TherrIcon';
@@ -67,86 +67,14 @@ export const spaceCategories = [
     'event/space',
 ];
 
-export const addAddressParams = (area, unsanitizedAddress) => {
-    const modifiedArea = {
-        ...area,
-    };
-    if (unsanitizedAddress.addressReadable) {
-        modifiedArea.addressReadable = unsanitizedAddress.addressReadable;
-        if (unsanitizedAddress.addressReadable.endsWith('USA')) {
-            const split = unsanitizedAddress.addressReadable.split(', ');
-            const stateNZip = split[split.length - 2];
-            const state = stateNZip.split(' ')[0];
-            const zip = stateNZip.split(' ')[1];
-            modifiedArea.postalCode = zip;
-            modifiedArea.addressStreetAddress = split[0];
-            modifiedArea.addressRegion = state;
-            modifiedArea.addressLocality = split[split.length - 3];
-        }
-    }
-    if (unsanitizedAddress.addressWebsite) {
-        modifiedArea.websiteUrl = unsanitizedAddress.addressWebsite;
-    }
-    if (unsanitizedAddress.addressIntlPhone) {
-        modifiedArea.phoneNumber = unsanitizedAddress.addressIntlPhone;
-    }
-    if (unsanitizedAddress.addressOpeningHours) {
-        const mapped = {};
-        unsanitizedAddress.addressOpeningHours.forEach((day) => {
-            const split = day.split(': ');
-            if (split[1] !== 'Closed') {
-                const timeEntry = split[1] === 'Open 24 hours' ? '00:00 AM – 11:59 PM' : split[1];
-                if (!mapped[timeEntry]) {
-                    mapped[timeEntry] = split[0].substring(0,2);
-                } else {
-                    mapped[timeEntry] = [mapped[timeEntry], split[0].substring(0,2)].join(',');
-                }
-            }
-        });
-        const schema: string[] = [];
-        for (const [key, value] of Object.entries(mapped)) {
-            let keyLeft = key.split(' – ')[0];
-            let keyRight = key.split(' – ')[1];
-            if (keyLeft == null || keyRight == null) {
-                console.log(key);
-            }
-            const isLeftPM = keyLeft.endsWith('PM');
-            const isRightPM = keyRight.endsWith('PM');
-            keyLeft = keyLeft.replace(' AM', '').replace(' PM', '');
-            keyRight = keyRight.replace(' AM', '').replace(' PM', '');
-            if (isLeftPM) {
-                const leftSplit = keyLeft.split(':');
-                keyLeft = `${Number(leftSplit[0]) + 12}:${leftSplit[1]}`;
-            }
-            if (isRightPM) {
-                const rightSplit = keyRight.split(':');
-                keyRight = `${Number(rightSplit[0]) + 12}:${rightSplit[1]}`;
-            }
-            schema.push(`${value} ${keyLeft}-${keyRight}`);
-        };
-        modifiedArea.openingHours = {
-            schema,
-            timezone: 'UTC',
-            isConfirmed: true,
-        };
-    }
-    if (unsanitizedAddress.addressRating) {
-        modifiedArea.thirdPartyRatings = unsanitizedAddress.addressRating;
-    }
-    if (unsanitizedAddress.addressNotificationMsg) {
-        modifiedArea.addressNotificationMsg = unsanitizedAddress.addressNotificationMsg;
-    }
-
-    return modifiedArea;
-};
-
 const hapticFeedbackOptions = {
-    enableVibrateFallback: true,
+    enableVibrateFallback: false,
     ignoreAndroidSystemSettings: false,
 };
 
 interface IEditSpaceDispatchProps {
     createSpace: Function;
+    updateSpace: Function;
     getPlacesSearchAutoComplete: Function;
 }
 
@@ -163,6 +91,7 @@ export interface IEditSpaceProps extends IStoreProps {
 }
 
 interface IEditSpaceState {
+    areaId?: string;
     addressInputText: string;
     errorMsg: string;
     hashtags: string[];
@@ -187,6 +116,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createSpace: MapActions.createSpace,
+    updateSpace: MapActions.updateSpace,
     getPlacesSearchAutoComplete: MapActions.getPlacesSearchAutoComplete,
 }, dispatch);
 
@@ -221,11 +151,21 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         const { content, route } = props;
         const { area, imageDetails, isBusinessAccount, isCreatorAccount } = route.params;
         const initialMediaId = area?.mediaIds?.split(',')[0] || undefined;
+        const areaMedia = area?.medias?.[0];
+
+        let imagePreviewPath = imageDetails?.path
+            ? getImagePreviewPath(imageDetails?.path)
+            : (initialMediaId && content?.media[initialMediaId] || '');
+
+        if (!imagePreviewPath && areaMedia) {
+            imagePreviewPath = getUserContentUri(areaMedia);
+        }
 
         this.state = {
+            areaId: area?.id,
             addressInputText: '',
             errorMsg: '',
-            hashtags: [],
+            hashtags: area?.hashTags ? area?.hashTags?.split(',') : [],
             isAddressDropdownVisible: false,
             isBottomSheetVisible: false,
             isBusinessAccount,
@@ -240,13 +180,18 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 notificationMsg: area?.notificationMsg || '',
                 hashTags: '',
                 maxViews: area?.maxViews,
+
+                // incentives
+                featuredIncentiveKey: area?.featuredIncentiveKey?.toString() || undefined,
+                featuredIncentiveValue: area?.featuredIncentiveValue?.toString() || undefined,
+                featuredIncentiveRewardKey: area?.featuredIncentiveRewardKey?.toString() || undefined,
+                featuredIncentiveRewardValue: area?.featuredIncentiveRewardValue?.toString() || undefined,
+                featuredIncentiveCurrencyId: area?.featuredIncentiveCurrencyId?.toString() || undefined,
             },
             isSubmitting: false,
             previewStyleState: {},
             selectedImage: imageDetails || {},
-            imagePreviewPath: imageDetails?.path
-                ? getImagePreviewPath(imageDetails?.path)
-                : (initialMediaId && content?.media[initialMediaId] || ''),
+            imagePreviewPath,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -313,11 +258,19 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     }
 
     componentDidMount() {
-        const { isBusinessAccount } = this.state;
+        const { areaId, isBusinessAccount } = this.state;
         const { navigation } = this.props;
 
+        let title = isBusinessAccount
+            ? this.translate('pages.editSpace.headerTitle')
+            : this.translate('pages.requestSpace.headerTitle');
+
+        if (areaId && isBusinessAccount) {
+            title = this.translate('pages.editSpace.headerTitleEditing');
+        }
+
         navigation.setOptions({
-            title: isBusinessAccount ? this.translate('pages.editSpace.headerTitle') : this.translate('pages.requestSpace.headerTitle'),
+            title,
         });
 
         this.unsubscribeNavListener = navigation.addListener('beforeRemove', (e) => {
@@ -360,7 +313,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 inputs.featuredIncentiveRewardValue === '0' ||
                 inputs.featuredIncentiveRewardValue === '0.' ||
                 inputs.featuredIncentiveRewardValue === '0.0' ||
-                inputs.featuredIncentiveRewardValue.endsWith('.')
+                inputs.featuredIncentiveRewardValue?.endsWith('.')
             )) {
                 return true;
             }
@@ -437,7 +390,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     };
 
     onSubmitWithIncentives = () => {
-        const { hashtags, isBusinessAccount, selectedImage } = this.state;
+        const { areaId, hashtags, isBusinessAccount, selectedImage } = this.state;
         const {
             addressReadable,
             addressLatitude,
@@ -512,13 +465,16 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             const createSpaceMethod = isBusinessAccount ? this.props.createSpace : MapsService.requestClaim;
 
             (selectedImage?.path ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
-                createSpaceMethod(modifiedCreateArgs)
+                const createOrUpdatePromise = areaId
+                    ? this.props.updateSpace(areaId, modifiedCreateArgs)
+                    : createSpaceMethod(modifiedCreateArgs);
+                createOrUpdatePromise
                     .then(() => {
                         if (isBusinessAccount) {
                             Toast.show({
                                 type: 'success',
-                                text1: this.translate('alertTitles.spaceCreatedSuccess'),
-                                text2: this.translate('alertMessages.spaceCreatedSuccess'),
+                                text1: areaId ? this.translate('alertTitles.areaUpdatedSuccess') : this.translate('alertTitles.spaceCreatedSuccess'),
+                                text2: this.translate('alertMessages.spaceUpdatedSuccess'),
                                 visibilityTime: 3500,
                             });
                             analytics().logEvent('space_create', {
@@ -647,7 +603,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 const sanitizedVal = match[1] + match[2];
                 newInputChanges.featuredIncentiveRewardValue = sanitizedVal;
             }
-            console.log(newInputChanges.featuredIncentiveRewardValue);
         }
 
         this.setState({
@@ -1158,6 +1113,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             }
                             options={this.incentiveRequirementKeys}
                             formStyles={this.themeForms.styles}
+                            initialValue={inputs.featuredIncentiveKey}
                         />
                     </View>
                     {
@@ -1192,6 +1148,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                     }
                                     options={this.incentiveRewardKeys}
                                     formStyles={this.themeForms.styles}
+                                    initialValue={inputs.featuredIncentiveRewardKey}
                                 />
                             </View>
                         </>
@@ -1252,7 +1209,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
+                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit, this.theme.styles.scrollView]}
                         contentContainerStyle={[
                             this.theme.styles.bodyScroll,
                             this.themeAccentLayout.styles.bodyEditScroll,

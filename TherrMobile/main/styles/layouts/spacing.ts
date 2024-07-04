@@ -148,6 +148,9 @@ const styles = StyleSheet.create({
     marginRtLg: {
         marginRight: large,
     },
+    marginRtXLg: {
+        marginRight: xlarge,
+    },
     marginLtNone: {
         marginLeft: 0,
     },

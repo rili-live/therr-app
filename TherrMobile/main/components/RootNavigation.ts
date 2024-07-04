@@ -1,10 +1,22 @@
 import { createNavigationContainerRef } from '@react-navigation/native';
-import { PartialState, State } from '@react-navigation/routers';
+import { PartialState, StackNavigationState } from '@react-navigation/routers';
 import { StackActions } from '@react-navigation/native';
 
 export const navigationRef = createNavigationContainerRef();
 
 export class RootNavigation {
+    static getCurrentRoute = () => {
+        if (navigationRef.isReady()) {
+            return navigationRef.getCurrentRoute();
+        }
+    };
+
+    static getCurrentOptions = () => {
+        if (navigationRef.isReady()) {
+            return navigationRef.getCurrentOptions();
+        }
+    };
+
     static navigate = (name, params?) => {
         if (navigationRef.isReady()) {
             // Cast as never (odd bug)
@@ -24,7 +36,7 @@ export class RootNavigation {
         }
     };
 
-    static reset = (state: PartialState<State> | State) => {
+    static reset = (state: PartialState<StackNavigationState<any>> | StackNavigationState<any>) => {
         if (navigationRef.isReady()) {
             navigationRef.reset(state);
         }

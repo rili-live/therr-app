@@ -54,7 +54,7 @@
     "@react-native-firebase/messaging": "^19.2.2",
     "@react-native-google-signin/google-signin": "^10.0.0",
     "@react-native-masked-view/masked-view": "^0.2.6",
-    "@react-native-picker/picker": "^2.1.0",
+    "@react-native-picker/picker": "^2.7.7",
     "@react-navigation/native": "^6.1.7",
     "@react-navigation/stack": "^6.3.29",
     "@shopify/flash-list": "^1.6.4",

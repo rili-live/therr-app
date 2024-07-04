@@ -596,6 +596,12 @@ export default class EventsStore {
                 category: params.category || 'uncategorized',
                 expiresAt: params.expiresAt,
                 fromUserId: params.fromUserId,
+                scheduleStartAt: params.scheduleStartAt && typeof params.scheduleStartAt === 'number'
+                    ? new Date(params.scheduleStartAt)
+                    : params.scheduleStartAt,
+                scheduleStopAt: params.scheduleStopAt && typeof params.scheduleStopAt === 'number'
+                    ? new Date(params.scheduleStopAt)
+                    : params.scheduleStopAt,
                 spaceId: params.spaceId,
                 locale: params.locale,
                 isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
