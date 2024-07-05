@@ -24,6 +24,7 @@ export interface IUpdateUserConnectionParams {
     interactionCount?: number;
     isConnectionBroken?: boolean;
     requestStatus?: UserConnectionTypes;
+    type?: number;
 }
 
 export default class UserConnectionsStore {

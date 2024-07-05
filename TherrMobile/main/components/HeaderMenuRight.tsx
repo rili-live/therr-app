@@ -57,7 +57,7 @@ export interface IHeaderMenuRightProps extends IStoreProps {
     styleName: 'light' | 'dark' | 'accent';
     updateGpsStatus: Function;
     user: any;
-    showActionSheet:(sheetId: 'group-sheet', options?: {
+    showActionSheet:(sheetId: 'group-sheet' | 'user-sheet', options?: {
         payload: Partial<Sheets[typeof sheetId]['payload']>;
         // onClose?: (data: Sheets[typeof sheetId]['returnValue'] | undefined) => void;
         context?: string;
@@ -345,6 +345,40 @@ class HeaderMenuRight extends React.PureComponent<
                                         color={theme.colors.primary3}
                                     />}
                                 onPress={() => showActionSheet('group-sheet', {
+                                    payload: {
+                                        group: currentScreenParams,
+                                    },
+                                })}
+                                type="clear"
+                                containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                            />
+                        </View>
+                    </>
+                );
+            }
+
+            if (currentScreen === 'ViewUser' && (currentScreenParams?.userInView?.id !== user.details.id) && user?.userInView?.connectionType > 0) {
+                const connectionType = user?.userInView?.connectionType;
+                const isStrongConnection = connectionType && connectionType > 1;
+                let iconName = 'star';
+                if (connectionType && connectionType === 2)  {
+                    iconName = 'star-half';
+                }
+                if (connectionType && connectionType > 2)  {
+                    iconName = 'star-filled';
+                }
+                return (
+                    <>
+                        <View>
+                            <Button
+                                icon={
+                                    <TherrIcon
+                                        name={iconName}
+                                        size={30}
+                                        style={{ color: isStrongConnection ? theme.colors.ternary2 : theme.colors.textGray }}
+                                    />
+                                }
+                                onPress={() => showActionSheet('user-sheet', {
                                     payload: {
                                         group: currentScreenParams,
                                     },

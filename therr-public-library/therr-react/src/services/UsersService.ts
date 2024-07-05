@@ -297,10 +297,9 @@ class UsersService {
         data,
     });
 
-    deleteUserGroup = (data: any) => axios({
+    deleteUserGroup = (groupId: string) => axios({
         method: 'delete',
-        url: '/users-service/users-groups',
-        data,
+        url: `/users-service/users-groups/${groupId}`,
     });
 
     // User Interests

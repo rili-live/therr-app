@@ -3,8 +3,20 @@
     "group": {
       "header": "Group Actions: {groupName}",
       "buttons": {
+        "archive": "Archive",
         "edit": "Edit Group",
+        "leave": "Leave Group",
         "share": "Share Link"
+      }
+    },
+    "user": {
+      "header": "Connection Type: {userName}",
+      "buttons": {
+        "type1": "Online Connection",
+        "type2": "In-Person Connection",
+        "type3": "Friend",
+        "type4": "Family",
+        "type5": "Close Friend"
       }
     }
   },
@@ -38,7 +50,9 @@
     "nameUnknown": "Anonymous User",
     "newAreasActivated": "New Areas Activated",
     "draftReminder": "✏️ Don't Forget Drafts ✏️",
-    "requestClaimSent": "Request Sent"
+    "requestClaimSent": "Request Sent",
+    "updated": "Update!",
+    "exitedGroup": "You have left the group"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
@@ -392,6 +406,7 @@
         "maxComments": "Max comments (per minute)",
         "expiresAt": "Countdown"
       },
+      "archiveSuccess": "Successfully archived",
       "backendSuccessHeader": "Success!",
       "backendSuccessMessage": "Your group was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."

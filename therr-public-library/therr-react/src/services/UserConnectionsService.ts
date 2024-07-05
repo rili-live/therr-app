@@ -51,6 +51,15 @@ class UserConnectionsService {
         },
     });
 
+    updateType = (otherUserId: number, type: 1 | 2 | 3 | 4 | 5) => axios({
+        method: 'put',
+        url: '/users-service/users/connections/type',
+        data: {
+            type,
+            otherUserId,
+        },
+    });
+
     search = (query: ISearchQuery) => {
         let queryString = getSearchQueryString(query);
         if (query.shouldCheckReverse) {

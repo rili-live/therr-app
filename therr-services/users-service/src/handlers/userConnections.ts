@@ -796,6 +796,45 @@ const updateUserConnection = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
 };
 
+const updateUserConnectionType = (req, res) => {
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
+    const acceptingUserId = userId;
+    const requestingUserId = req.body.otherUserId;
+
+    return Store.userConnections.getUserConnections({
+        requestingUserId,
+        acceptingUserId,
+    }, true)
+        .then((getResults) => {
+            if (!getResults.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user connection found with requesting user id, ${requestingUserId}.`,
+                    statusCode: 404,
+                });
+            }
+
+            return Store.userConnections
+                .updateUserConnection({
+                    requestingUserId: getResults[0].requestingUserId,
+                    acceptingUserId: getResults[0].acceptingUserId,
+                }, {
+                    type: req.body.type,
+                })
+                .then(() => Store.userConnections.getExpandedUserConnections({
+                    requestingUserId: getResults[0].requestingUserId,
+                    acceptingUserId: getResults[0].acceptingUserId,
+                }))
+                .then((results) => res.status(202).send(results[0]));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+};
+
 const incrementUserConnection = (req, res) => {
     const {
         authorization,
@@ -832,5 +871,6 @@ export {
     getUserConnection,
     searchUserConnections,
     updateUserConnection,
+    updateUserConnectionType,
     incrementUserConnection,
 };

@@ -103,6 +103,9 @@ const getUserProfileResponse = (userResult, friendship: undefined | { [key: stri
 
             // More details
             isNotConnected: !friendship || friendship.requestStatus === UserConnectionTypes.MIGHT_KNOW,
+            connectionType: friendship?.requestStatus === UserConnectionTypes.COMPLETE
+                ? friendship.type
+                : 0,
             isPendingConnection: friendship
                 // eslint-disable-next-line max-len
                 ? (friendship.requestStatus === UserConnectionTypes.DENIED

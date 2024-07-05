@@ -7,6 +7,7 @@ import {
     getUserConnection,
     searchUserConnections,
     updateUserConnection,
+    updateUserConnectionType,
     incrementUserConnection,
 } from '../handlers/userConnections';
 
@@ -20,6 +21,7 @@ router.get('/ranked', getTopRankedConnections);
 router.get('/:requestingUserId', getUserConnection);
 router.get('/', searchUserConnections);
 router.put('/', updateUserConnection);
+router.put('/type', updateUserConnectionType);
 
 // PRIVATE
 router.post('/find-people', express.json({

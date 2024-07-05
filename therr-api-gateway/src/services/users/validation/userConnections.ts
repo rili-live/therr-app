@@ -34,3 +34,8 @@ export const inviteConnectionsValidation = [
 export const updateUserConnectionValidation = [
     body('otherUserId').isString().exists(),
 ];
+
+export const updateUserConnectionTypeValidation = [
+    ...updateUserConnectionValidation,
+    body('type').isNumeric().exists(),
+];

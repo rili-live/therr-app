@@ -133,6 +133,7 @@ export default class ForumsStore {
                 `${CATEGORIES_TABLE_NAME}.iconColor as categories[].iconColor`,
             ])
             .orderBy(`${FORUMS_TABLE_NAME}.updatedAt`, conditions.order)
+            .whereNull('archivedAt')
             .where('isPublic', !options.usersInvitedForumIds);
 
         if (options.usersInvitedForumIds) {
@@ -218,6 +219,21 @@ export default class ForumsStore {
         const forumQueryString = knexBuilder.update({
             ...forumParams,
             updatedAt: new Date(),
+        })
+            .into(FORUMS_TABLE_NAME)
+            .where(conditions)
+            .returning(['id'])
+            .toString();
+
+        return this.db.write.query(forumQueryString).then((response) => response.rows);
+    }
+
+    archiveForum(conditions: {
+        id: string,
+        authorId: string; // to prevent non-owner from archiving
+    }) {
+        const forumQueryString = knexBuilder.update({
+            archivedAt: new Date(),
         })
             .into(FORUMS_TABLE_NAME)
             .where(conditions)
