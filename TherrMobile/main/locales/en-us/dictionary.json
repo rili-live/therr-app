@@ -5,6 +5,7 @@
       "buttons": {
         "archive": "Archive",
         "edit": "Edit Group",
+        "join": "Join Group",
         "leave": "Leave Group",
         "share": "Share Link"
       }
@@ -52,7 +53,8 @@
     "draftReminder": "✏️ Don't Forget Drafts ✏️",
     "requestClaimSent": "Request Sent",
     "updated": "Update!",
-    "exitedGroup": "You have left the group"
+    "exitedGroup": "You have left the group",
+    "joinedGroup": "You joined the group"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",

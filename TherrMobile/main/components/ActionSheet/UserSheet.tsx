@@ -33,7 +33,7 @@ const UserSheet = (props: SheetProps<'user-sheet'>) => {
                     type="clear"
                     buttonStyle={spacingStyles.justifyStart}
                     containerStyle={[spacingStyles.fullWidth]}
-                    titleStyle={[props.payload?.themeForms.styles.buttonLink]}
+                    titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
                     title={props.payload?.translate(
                         'actionSheets.user.buttons.type5'
                     )}
@@ -53,7 +53,7 @@ const UserSheet = (props: SheetProps<'user-sheet'>) => {
                     type="clear"
                     buttonStyle={spacingStyles.justifyStart}
                     containerStyle={[spacingStyles.fullWidth]}
-                    titleStyle={props.payload?.themeForms.styles.buttonLink}
+                    titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
                     title={props.payload?.translate(
                         'actionSheets.user.buttons.type4'
                     )}
@@ -73,7 +73,7 @@ const UserSheet = (props: SheetProps<'user-sheet'>) => {
                     type="clear"
                     buttonStyle={spacingStyles.justifyStart}
                     containerStyle={[spacingStyles.fullWidth]}
-                    titleStyle={props.payload?.themeForms.styles.buttonLink}
+                    titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
                     title={props.payload?.translate(
                         'actionSheets.user.buttons.type3'
                     )}
@@ -93,7 +93,7 @@ const UserSheet = (props: SheetProps<'user-sheet'>) => {
                     type="clear"
                     buttonStyle={spacingStyles.justifyStart}
                     containerStyle={[spacingStyles.fullWidth]}
-                    titleStyle={props.payload?.themeForms.styles.buttonLink}
+                    titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
                     title={props.payload?.translate(
                         'actionSheets.user.buttons.type2'
                     )}
@@ -113,7 +113,7 @@ const UserSheet = (props: SheetProps<'user-sheet'>) => {
                     type="clear"
                     buttonStyle={spacingStyles.justifyStart}
                     containerStyle={[spacingStyles.fullWidth]}
-                    titleStyle={props.payload?.themeForms.styles.buttonLink}
+                    titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
                     title={props.payload?.translate(
                         'actionSheets.user.buttons.type1'
                     )}

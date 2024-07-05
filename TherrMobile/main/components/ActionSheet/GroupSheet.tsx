@@ -34,7 +34,7 @@ const GroupSheet = (props: SheetProps<'group-sheet'>) => {
                     type="clear"
                     buttonStyle={spacingStyles.justifyStart}
                     containerStyle={[spacingStyles.fullWidth]}
-                    titleStyle={props.payload?.themeForms.styles.buttonLink}
+                    titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
                     title={props.payload?.translate(
                         'actionSheets.group.buttons.share'
                     )}
@@ -53,7 +53,7 @@ const GroupSheet = (props: SheetProps<'group-sheet'>) => {
                         type="clear"
                         buttonStyle={spacingStyles.justifyStart}
                         containerStyle={[spacingStyles.fullWidth]}
-                        titleStyle={props.payload?.themeForms.styles.buttonLink}
+                        titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
                         title={props.payload?.translate(
                             'actionSheets.group.buttons.edit'
                         )}
@@ -73,7 +73,7 @@ const GroupSheet = (props: SheetProps<'group-sheet'>) => {
                         type="clear"
                         buttonStyle={spacingStyles.justifyStart}
                         containerStyle={[spacingStyles.fullWidth]}
-                        titleStyle={props.payload?.themeForms.styles.buttonLink}
+                        titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
                         title={props.payload?.translate(
                             'actionSheets.group.buttons.leave'
                         )}
@@ -82,6 +82,26 @@ const GroupSheet = (props: SheetProps<'group-sheet'>) => {
                             <TherrIcon
                                 style={spacingStyles.marginRtMd}
                                 name="door-open"
+                                size={22}
+                                color={props.payload?.themeForms.colors.primary3}
+                            />}
+                    />
+                }
+                {
+                    props.payload?.canJoinGroup &&
+                    <Button
+                        type="clear"
+                        buttonStyle={spacingStyles.justifyStart}
+                        containerStyle={[spacingStyles.fullWidth]}
+                        titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
+                        title={props.payload?.translate(
+                            'actionSheets.group.buttons.join'
+                        )}
+                        onPress={() => props.payload?.onPressJoinGroup(props.payload?.group)}
+                        icon={
+                            <TherrIcon
+                                style={spacingStyles.marginRtMd}
+                                name="plus"
                                 size={22}
                                 color={props.payload?.themeForms.colors.primary3}
                             />}
