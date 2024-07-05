@@ -23,6 +23,18 @@ const Forums = {
 
         return resultData;
     }),
+    archiveForum: (id: string) => (dispatch: any) => ForumsService.archiveForum(id).then((response) => {
+        dispatch({
+            type: ForumActionTypes.DELETE_FORUM,
+            data: {
+                id,
+            },
+        });
+
+        return {
+            id,
+        };
+    }),
     searchCategories: (query: any) => (dispatch: any) => ForumsService.searchCategories(query)
         .then((response: any) => {
             dispatch({

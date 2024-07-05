@@ -267,6 +267,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             borderColor: themeName === 'retro' ? therrTheme.colors.primary : therrTheme.colors.textWhite,
         },
+        buttonLinkAlert: {
+            color: themeName === 'retro' ? therrTheme.colors.alertError : therrTheme.colors.alertError,
+            fontFamily: therrFontFamily,
+            borderColor: themeName === 'retro' ? therrTheme.colors.primary : therrTheme.colors.textWhite,
+        },
         buttonLinkHeader: {
             color: themeName === 'retro' ? therrTheme.colors.textWhite : therrTheme.colors.primary3,
             fontFamily: therrFontFamily,

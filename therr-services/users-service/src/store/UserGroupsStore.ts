@@ -89,7 +89,7 @@ export default class UserGroupsStore {
     }
 
     delete(id: string, userId: string) {
-        const queryString = knexBuilder.where({ id, userId })
+        const queryString = knexBuilder.where({ groupId: id, userId })
             .delete()
             .into(USER_GROUPS_TABLE_NAME)
             .returning('*')

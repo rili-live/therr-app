@@ -56,6 +56,11 @@ class ForumsService {
         data,
     });
 
+    archiveForum = (id: string) => axios({
+        method: 'delete',
+        url: `/messages-service/forums/${id}`,
+    });
+
     searchCategories = (query: ISearchQuery) => {
         const queryString = getSearchQueryString(query);
 

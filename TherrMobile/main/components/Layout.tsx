@@ -19,12 +19,13 @@ import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
 import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
-import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
+import { ContentActions, ForumActions, NotificationActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels, GroupMemberRoles } from 'therr-js-utilities/constants';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
+import Toast from 'react-native-toast-message';
 import { sendForegroundNotification, wrapOnMessageReceived } from '../utilities/pushNotifications';
 import routes from '../routes';
 import { buildNavTheme } from '../styles';
@@ -73,6 +74,7 @@ const forFade = ({ current }) => ({
 });
 
 interface ILayoutDispatchProps {
+    deleteUserGroup: Function;
     getMyAchievements: Function;
     getUserGroups: Function;
     logout: Function;
@@ -80,6 +82,7 @@ interface ILayoutDispatchProps {
     searchActiveMomentsByIds: Function;
     searchActiveSpacesByIds: Function;
     searchCategories: Function;
+    archiveForum: Function;
     searchNotifications: Function;
     searchUsers: Function;
     updateActiveMomentsStream: Function;
@@ -89,6 +92,7 @@ interface ILayoutDispatchProps {
     updateLocationPermissions: Function;
     updateTour: Function;
     updateUser: Function;
+    updateUserConnectionType: Function;
     // Prefetch
     beginPrefetchRequest: Function;
     completePrefetchRequest: Function;
@@ -124,6 +128,7 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            deleteUserGroup: UsersActions.deleteUserGroup,
             getMyAchievements: UsersActions.getMyAchievements,
             getUserGroups: UsersActions.getUserGroups,
             logout: UsersActions.logout,
@@ -133,6 +138,7 @@ const mapDispatchToProps = (dispatch: any) =>
             searchActiveMomentsByIds: ContentActions.searchActiveMomentsByIds,
             searchActiveSpacesByIds: ContentActions.searchActiveSpacesByIds,
             searchCategories: ForumActions.searchCategories,
+            archiveForum: ForumActions.archiveForum,
             updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
             updateActiveThoughtsStream: ContentActions.updateActiveThoughtsStream,
             updateActiveEventsStream: ContentActions.updateActiveEventsStream,
@@ -140,6 +146,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateLocationPermissions: LocationActions.updateLocationPermissions,
             updateTour: UsersActions.updateTour,
             updateUser: UsersActions.update,
+            updateUserConnectionType: UserConnectionsActions.updateType,
             // Prefetch
             beginPrefetchRequest: UIActions.beginPrefetchRequest,
             completePrefetchRequest: UIActions.completePrefetchRequest,
@@ -505,25 +512,67 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     };
 
-    actionSheetShow = (sheetId: 'group-sheet', options: {
+    actionSheetShow = (sheetId: 'group-sheet' | 'user-sheet', options: {
         payload: Partial<Sheets[typeof sheetId]['payload']>;
         // onClose?: (data: Sheets[typeof sheetId]['returnValue'] | undefined) => void;
         context?: string;
     }) => {
         if (sheetId === 'group-sheet') {
+            const payload = options.payload as  Partial<Sheets['group-sheet']['payload']>;
             const { user } = this.props;
-            const hasGroupEditAccess = user?.myUserGroups[options.payload.group.id]?.role === GroupMemberRoles.ADMIN;
+            const hasGroupEditAccess = user?.myUserGroups[payload.group.id]?.role === GroupMemberRoles.ADMIN;
+            const isGroupMember = user?.myUserGroups[payload.group.id]?.role && user?.myUserGroups[payload.group.id]?.role !== GroupMemberRoles.ADMIN;
+            const hasGroupArchiveAccess = user?.details?.id === payload.group.authorId;
             return SheetManager.show<typeof sheetId>(sheetId, {
                 payload: {
-                    group: options.payload.group,
+                    group: payload.group,
                     themeForms: this.themeForms,
                     translate: this.translate,
+                    hasGroupArchiveAccess,
                     hasGroupEditAccess,
+                    isGroupMember,
+                    onPressArchiveGroup: this.onPressArchiveGroup,
                     onPressEditGroup: this.onPressEditGroup,
+                    onPressLeaveGroup: this.onPressLeaveGroup,
                     onPressShareGroup: this.onPressShareGroup,
                 },
             });
+        } else if (sheetId === 'user-sheet') {
+            // const payload = options.payload as  Partial<Sheets['user-sheet']['payload']>;
+            const { user } = this.props;
+            return SheetManager.show<typeof sheetId>(sheetId, {
+                payload: {
+                    userInView: user?.userInView,
+                    themeForms: this.themeForms,
+                    translate: this.translate,
+                    onPressUpdatedConnectionType: this.onPressUpdatedConnectionType,
+                },
+            });
         }
+    };
+
+    onPressArchiveGroup = (group: any) => {
+        const route = RootNavigation.getCurrentRoute();
+        if (route?.name === 'ViewGroup') {
+            this.props.archiveForum(group.id).then(() => {
+                Toast.show({
+                    type: 'info',
+                    text1: this.translate('forms.editGroup.archiveSuccess'),
+                    visibilityTime: 2500,
+                });
+                RootNavigation.navigate('Groups', {
+                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                });
+            }).catch(() =>{
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('forms.editGroup.backendErrorMessage'),
+                    visibilityTime: 2500,
+                });
+            });
+        }
+
+        SheetManager.hide('group-sheet');
     };
 
     onPressEditGroup = (group: any) => {
@@ -537,10 +586,61 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         SheetManager.hide('group-sheet');
     };
 
-    onPressShareGroup = (group: any) => {
-        Clipboard.setString(`https://www.therr.com/groups/${group.id}`);
+    onPressLeaveGroup = (group: any) => {
+        const { deleteUserGroup } = this.props;
+        const route = RootNavigation.getCurrentRoute();
+        if (route?.name === 'ViewGroup') {
+            deleteUserGroup(group.id).then(() => {
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('alertTitles.exitedGroup'),
+                    visibilityTime: 2500,
+                });
+            }).catch(() => {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('forms.editGroup.backendErrorMessage'),
+                    visibilityTime: 2500,
+                });
+            });
+            RootNavigation.navigate('Groups', {
+                activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+            });
+        }
 
         SheetManager.hide('group-sheet');
+    };
+
+    onPressShareGroup = (group: any) => {
+        const route = RootNavigation.getCurrentRoute();
+        if (route?.name === 'ViewGroup') {
+            Clipboard.setString(`https://www.therr.com/groups/${group.id}`);
+
+        }
+
+        SheetManager.hide('group-sheet');
+    };
+
+    onPressUpdatedConnectionType = (userId: string, type: 1 | 2 | 3 | 4 | 5) => {
+        const { updateUserConnectionType } = this.props;
+        const route = RootNavigation.getCurrentRoute();
+        if (route?.name === 'ViewUser') {
+            updateUserConnectionType(userId, type).then(() => {
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('alertTitles.updated'),
+                    visibilityTime: 2500,
+                });
+            }).catch(() => {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    visibilityTime: 2500,
+                });
+            });
+        }
+
+        SheetManager.hide('user-sheet');
     };
 
     handleFirebasePushNotificationEvent = (data: false | { action: string }) => {

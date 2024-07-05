@@ -32,6 +32,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.textGray,
             fontFamily: therrFontFamily,
         },
+        buttonLinkAlert: {
+            color: therrTheme.colors.accentRed,
+            fontFamily: therrFontFamily,
+        },
         submitButtonContainer: {
             ...containerNoHorizontalStyles,
         },

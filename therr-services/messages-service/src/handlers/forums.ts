@@ -375,6 +375,19 @@ const updateForum = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
 };
 
+const archiveForum = (req, res) => {
+    const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const { forumId } = req.params;
+
+    return Store.forums.archiveForum({
+        id: forumId,
+        authorId: userId,
+    })
+        .then(([forum]) => res.status(202).send(forum))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
+};
+
 export {
     createActivity,
     createForum,
@@ -383,4 +396,5 @@ export {
     findForums,
     searchForums,
     updateForum,
+    archiveForum,
 };

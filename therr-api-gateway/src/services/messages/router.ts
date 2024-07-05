@@ -72,4 +72,10 @@ messagesServiceRouter.put('/forums/:forumId', updateForumValidation, handleServi
     method: 'put',
 }));
 
+// archive forum
+messagesServiceRouter.delete('/forums/:forumId', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
+    method: 'delete',
+}));
+
 export default messagesServiceRouter;

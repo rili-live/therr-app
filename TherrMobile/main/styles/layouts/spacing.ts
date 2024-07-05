@@ -222,6 +222,9 @@ const styles = StyleSheet.create({
     },
 
     // TEXT
+    textLeft: {
+        textAlign: 'left',
+    },
     textCenter: {
         textAlign: 'center',
     },

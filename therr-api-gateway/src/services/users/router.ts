@@ -23,6 +23,7 @@ import {
 import {
     createUserConnectionValidation,
     inviteConnectionsValidation,
+    updateUserConnectionTypeValidation,
     updateUserConnectionValidation,
 } from './validation/userConnections';
 import {
@@ -155,6 +156,11 @@ usersServiceRouter.get('/users/connections', handleServiceRequest({
 }));
 
 usersServiceRouter.put('/users/connections', updateUserConnectionValidation, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
+usersServiceRouter.put('/users/connections/type', updateUserConnectionTypeValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));
