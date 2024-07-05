@@ -7,6 +7,7 @@ import {
     findForums,
     searchForums,
     updateForum,
+    archiveForum,
 } from '../handlers/forums';
 
 const router = express.Router();
@@ -23,5 +24,6 @@ router.get('/:forumId', getForum);
 
 // UPDATE
 router.put('/:forumId', updateForum);
+router.delete('/:forumId', archiveForum);
 
 export default router;

@@ -35,6 +35,12 @@ const messages = (state: IForumsState = initialState, action: any) => {
             }
 
             return state.setIn(['searchResults'], modifiedSearchResults);
+        case ForumActionTypes.DELETE_FORUM:
+            if (updatedGroupIdx > -1) {
+                modifiedSearchResults.splice(updatedGroupIdx, 1);
+            }
+
+            return state.setIn(['searchResults'], modifiedSearchResults);
         case ForumActionTypes.SEARCH_FORUMS:
             return state.setIn(['searchResults'], action.data.results)
                 .setIn(['pagination'], action.data.pagination);

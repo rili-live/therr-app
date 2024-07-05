@@ -34,6 +34,10 @@ const tabMap = {
 };
 
 const getActiveTabIndex = (mapOfTabs: { [key: number]: string }, activeTab?: string) => {
+    if (activeTab === undefined || activeTab === null) {
+        return 0;
+    }
+
     if (activeTab === mapOfTabs[0]) {
         return 0;
     }

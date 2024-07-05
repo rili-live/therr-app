@@ -632,7 +632,7 @@ class UsersActions {
             dispatch({
                 type: UserActionTypes.USER_GROUP_DELETED,
                 data: {
-                    id: groupId,
+                    groupId,
                 },
             });
 

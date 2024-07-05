@@ -204,6 +204,9 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
         case UserActionTypes.USER_GROUP_CREATED:
             modifiedMyUserGroups[action.data.groupId] = action.data;
             return state.setIn(['myUserGroups'], modifiedMyUserGroups);
+        case UserActionTypes.USER_GROUP_DELETED:
+            delete modifiedMyUserGroups[action.data.groupId];
+            return state.setIn(['myUserGroups'], modifiedMyUserGroups);
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['isAuthenticated'], false)
                 .setIn(['socketDetails'], {})
