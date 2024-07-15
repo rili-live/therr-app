@@ -63,6 +63,7 @@
     "invalidCode": "Code is invalid or expired. Try again or resend.",
     "invalidRegionCode": "The app is not yet available in this region",
     "backendErrorMessage": "Please try again later.",
+    "duplicatePost": "Duplicate post",
     "cameraOrFilePermissionsDenied": "Camera or File permissions were denied. Please enable them in your device settings.",
     "createRequiresLogin": "Login to post a moment, share an event, or claim a business space",
     "discoverRequiresLogin": "View recently discovered content and thoughts from people worldwide",

@@ -207,7 +207,7 @@ class Notifications extends React.Component<
             }
         } else if (notification.type === NotificationsEmuns.Types.NEW_DM_RECEIVED) {
             if (notification.messageParams?.userId && notification.messageParams?.userName) {
-                navigation.navigate('ViewGroup', {
+                navigation.navigate('DirectMessage', {
                     connectionDetails: {
                         id: notification.messageParams?.userId,
                         userName: notification.messageParams?.userName,

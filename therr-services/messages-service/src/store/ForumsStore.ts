@@ -88,6 +88,23 @@ export default class ForumsStore {
         return this.db.write.query(forumQueryString).then((response) => response.rows);
     }
 
+    getForums(conditions: any, orConditions: any, isNotArchived = true) {
+        let forumQueryString = knexBuilder.select('*')
+            .from(FORUMS_TABLE_NAME);
+
+        if (isNotArchived) {
+            forumQueryString = forumQueryString.whereNull('archivedAt');
+        }
+
+        forumQueryString = forumQueryString.where(conditions);
+
+        if (orConditions) {
+            forumQueryString = forumQueryString.orWhere(orConditions);
+        }
+
+        return this.db.write.query(forumQueryString.toString()).then((response) => response.rows);
+    }
+
     findForums(ids: string[]) {
         const queryString = knexBuilder.select(['id', 'title'])
             .from(FORUMS_TABLE_NAME)

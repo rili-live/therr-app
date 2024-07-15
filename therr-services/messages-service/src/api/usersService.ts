@@ -13,7 +13,9 @@ const createUserForum = (headers: any, groupId: string) => axios({
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/privileged`,
     headers,
     data: {
-        groupId,
+        group: {
+            id: groupId,
+        },
         role: GroupMemberRoles.ADMIN,
         status: GroupRequestStatuses.APPROVED,
     },
