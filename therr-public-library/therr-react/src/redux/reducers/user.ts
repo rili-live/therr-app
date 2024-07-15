@@ -16,6 +16,7 @@ const initialState: IUserState = Immutable.from({
     thoughts: Immutable.from([]),
     myThoughts: Immutable.from([]),
     users: Immutable.from({}),
+    usersMightKnow: Immutable.from({}),
     influencerPairings: Immutable.from({}),
     myUserGroups: Immutable.from({}),
 });
@@ -58,7 +59,11 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                 .reduce((acc, item) => ({
                     ...acc,
                     [item.id]: item,
-                }), modifiedUsers));
+                }), modifiedUsers))
+                .setIn(['usersMightKnow'], action.data?.mightKnowResults?.reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), {}));
         case UserActionTypes.GET_USERS_REFETCH:
             // Convert array to object for faster lookup and de-duping
             return state.setIn(['users'], action.data.results
@@ -212,6 +217,7 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                 .setIn(['socketDetails'], {})
                 .setIn(['myUserGroups'], {})
                 .setIn(['users'], {})
+                .setIn(['usersMightKnow'], {})
                 .setIn(['details'], { id: state.details.id, userName: state.details.userName, media: state.details.media });
         default:
             return state;

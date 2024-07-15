@@ -108,6 +108,24 @@ export default class UserConnectionsStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    getMightKnowUserConnections(userId: string, conditions = {}, limit = 100) {
+        const queryString = knexBuilder.select('*')
+            .from(USER_CONNECTIONS_TABLE_NAME)
+            .where({
+                requestStatus: UserConnectionTypes.MIGHT_KNOW,
+                ...conditions,
+            })
+            .andWhere(() => knexBuilder.where({
+                requestingUserId: userId,
+            }).orWhere({
+                acceptingUserId: userId,
+            }))
+            .limit(limit)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     getExpandedUserConnections(conditions: any = {}) {
         const queryString = knexBuilder.select([
             `${USER_CONNECTIONS_TABLE_NAME}.id`,

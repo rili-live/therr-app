@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
+import { AccessLevels, ErrorCodes, UserConnectionTypes } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizeEmail from 'normalize-email';
 import { parseHeaders } from 'therr-js-utilities/http';
@@ -372,7 +372,15 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
     const actualLimit = limit || 21;
     const actualOffset = offset || 0;
 
-    return Store.users.searchUsers(userId, {
+    const mightKnowPromise = !query
+        ? Store.userConnections.getMightKnowUserConnections(userId)
+            .then((connections) => Store.users.findUsers({
+                ids: connections
+                    .map((con) => (con.requestingUserId === userId ? con.acceptingUserId : con.requestingUserId)),
+            }))
+        : Promise.resolve([]);
+
+    return mightKnowPromise.then((mightKnowResults) => Store.users.searchUsers(userId, {
         ids,
         query,
         queryColumnName,
@@ -386,13 +394,16 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
                     redactUserCreds(user);
                     return user;
                 }),
+                mightKnowResults: mightKnowResults.map((user) => ({
+                    ...user,
+                    isConnected: false,
+                })),
                 pagination: {
                     itemsPerPage: (actualLimit),
                     pageNumber: actualOffset + 1,
                 },
             });
-        })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+        })).catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
 /**

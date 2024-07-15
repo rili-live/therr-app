@@ -407,6 +407,19 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         return messages?.myDMs;
     };
 
+    sortUsers = (): any[] => {
+        const { user } = this.props;
+        const users = Object.values(user?.users || {});
+        const mightKnowUsers = Object.values(user?.usersMightKnow || {})
+            .filter((u: any) => !user?.users?.[u.id])?.slice(0, 10);
+
+        if (mightKnowUsers?.length) {
+            return mightKnowUsers.concat(users);
+        }
+
+        return users;
+    };
+
     handleChatTilePress = (chat) => {
         const { navigation } = this.props;
 
@@ -436,11 +449,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
     renderSceneMap = ({ route }) => {
         const { isRefreshingConnections, isRefreshingUserSearch, isRefreshingDMsSearch } = this.state;
-        const { user } = this.props;
 
         switch (route.key) {
             case PEOPLE_CAROUSEL_TABS.PEOPLE:
-                const people: any[] = Object.values(user?.users || {});
+                const people: any[] = this.sortUsers();
 
                 return (
                     <FlatList
