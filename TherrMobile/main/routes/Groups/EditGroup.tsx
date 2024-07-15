@@ -10,7 +10,7 @@ import Toast from 'react-native-toast-message';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import analytics from '@react-native-firebase/analytics';
 import { ForumActions } from 'therr-react/redux/actions';
-import { Content, FilePaths } from 'therr-js-utilities/constants';
+import { Content, ErrorCodes, FilePaths } from 'therr-js-utilities/constants';
 import { IContentState, IForumsState, IUserState } from 'therr-react/types';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
@@ -253,11 +253,16 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             error.statusCode === 401 ||
                             error.statusCode === 404
                         ) {
-                            const errorMessage = `${error.message}${
-                                error.parameters
-                                    ? '(' + error.parameters.toString() + ')'
-                                    : ''
-                            }`;
+                            let errorMessage = '';
+                            if (error.errorCode === ErrorCodes.DuplicatePost) {
+                                errorMessage = this.translate('alertTitles.duplicatePost');
+                            } else {
+                                errorMessage = `${error.message}${
+                                    error.parameters
+                                        ? '(' + error.parameters.toString() + ')'
+                                        : ''
+                                }`;
+                            }
                             Toast.show({
                                 type: 'errorBig',
                                 text1: this.translate('alertTitles.backendErrorMessage'),

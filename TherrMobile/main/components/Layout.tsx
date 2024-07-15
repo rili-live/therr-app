@@ -74,6 +74,7 @@ const forFade = ({ current }) => ({
 });
 
 interface ILayoutDispatchProps {
+    createUserGroup: Function;
     deleteUserGroup: Function;
     getMyAchievements: Function;
     getUserGroups: Function;
@@ -128,6 +129,7 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            createUserGroup: UsersActions.createUserGroup,
             deleteUserGroup: UsersActions.deleteUserGroup,
             getMyAchievements: UsersActions.getMyAchievements,
             getUserGroups: UsersActions.getUserGroups,
@@ -520,6 +522,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (sheetId === 'group-sheet') {
             const payload = options.payload as  Partial<Sheets['group-sheet']['payload']>;
             const { user } = this.props;
+            const canJoinGroup = !user?.myUserGroups[payload.group.id]?.role;
             const hasGroupEditAccess = user?.myUserGroups[payload.group.id]?.role === GroupMemberRoles.ADMIN;
             const isGroupMember = user?.myUserGroups[payload.group.id]?.role && user?.myUserGroups[payload.group.id]?.role !== GroupMemberRoles.ADMIN;
             const hasGroupArchiveAccess = user?.details?.id === payload.group.authorId;
@@ -528,11 +531,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     group: payload.group,
                     themeForms: this.themeForms,
                     translate: this.translate,
+                    canJoinGroup,
                     hasGroupArchiveAccess,
                     hasGroupEditAccess,
                     isGroupMember,
                     onPressArchiveGroup: this.onPressArchiveGroup,
                     onPressEditGroup: this.onPressEditGroup,
+                    onPressJoinGroup: this.onPressJoinGroup,
                     onPressLeaveGroup: this.onPressLeaveGroup,
                     onPressShareGroup: this.onPressShareGroup,
                 },
@@ -594,6 +599,33 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 Toast.show({
                     type: 'success',
                     text1: this.translate('alertTitles.exitedGroup'),
+                    visibilityTime: 2500,
+                });
+            }).catch(() => {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('forms.editGroup.backendErrorMessage'),
+                    visibilityTime: 2500,
+                });
+            });
+            RootNavigation.navigate('Groups', {
+                activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+            });
+        }
+
+        SheetManager.hide('group-sheet');
+    };
+
+    onPressJoinGroup = (group: any) => {
+        const { createUserGroup } = this.props;
+        const route = RootNavigation.getCurrentRoute();
+        if (route?.name === 'ViewGroup') {
+            createUserGroup({
+                groupId: group.id,
+            }).then(() => {
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('alertTitles.joinedGroup'),
                     visibilityTime: 2500,
                 });
             }).catch(() => {

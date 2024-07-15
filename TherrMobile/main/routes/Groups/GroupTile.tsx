@@ -76,8 +76,8 @@ export default ({
                 />
             </Pressable>
             <View style={spacingStyles.flexOne}>
-                <ListItem.Title>{group.title}</ListItem.Title>
-                <ListItem.Subtitle>{group.description}</ListItem.Subtitle>
+                <ListItem.Title numberOfLines={2}>{group.title}</ListItem.Title>
+                <ListItem.Subtitle numberOfLines={4}>{group.description}</ListItem.Subtitle>
                 <View style={themeChatTile.styles.footer}>
                     <View style={themeChatTile.styles.footerIconsContainer}>
                         {
