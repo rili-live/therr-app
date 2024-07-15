@@ -40,6 +40,7 @@ export interface IUserState extends Immutable.ImmutableObject<any> {
   thoughts: any;
   myThoughts: any;
   users: any;
+  usersMightKnow: any;
   myUserGroups: any;
 }
 
