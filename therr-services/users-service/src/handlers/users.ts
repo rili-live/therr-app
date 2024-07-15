@@ -378,7 +378,7 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
-    }, true)
+    }, true, true)
         .then((results) => {
             res.status(200).send({
                 results: results.map((user) => {

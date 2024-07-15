@@ -154,14 +154,20 @@ export default class UsersStore {
         queryColumnName,
         limit,
         offset,
-    }: ISearchUsersArgs, withConnections = false, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser']) {
+    }: ISearchUsersArgs, withConnections = false, onlyVerified = false, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser']) {
         const supportedSearchColumns = ['firstName', 'lastName', 'userName'];
         const MAX_LIMIT = 200;
         const throttledLimit = Math.min(limit || 100, MAX_LIMIT);
         let queryString: any = knexBuilder.select(returning).from(USERS_TABLE_NAME)
             .whereNotNull('userName')
             .andWhere('settingsIsProfilePublic', true)
-            .andWhereNot('id', requestingUserId)
+            .andWhereNot('id', requestingUserId);
+
+        if (onlyVerified) {
+            queryString = queryString.andWhere(knexBuilder.raw(`"accessLevels" \\? '${AccessLevels.MOBILE_VERIFIED}'`));
+        }
+
+        queryString = queryString
             .orderBy('createdAt', 'desc')
             .limit(throttledLimit)
             .offset(offset || 0);
@@ -183,6 +189,7 @@ export default class UsersStore {
         }
 
         queryString = queryString.toString();
+
         return this.db.read.query(queryString).then((response) => {
             if (!response.rows?.length) {
                 return [];
