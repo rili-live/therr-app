@@ -21,11 +21,13 @@ declare module 'react-native-actions-sheet' {
                 colors: ITherrThemeColors;
                 styles: any;
             },
+            canJoinGroup: boolean;
             hasGroupEditAccess: boolean;
             hasGroupArchiveAccess: boolean;
             isGroupMember: boolean;
             onPressArchiveGroup: (group: any) => void;
             onPressEditGroup: (group: any) => void;
+            onPressJoinGroup: (group: any) => void;
             onPressLeaveGroup: (group: any) => void;
             onPressShareGroup: (group: any) => void;
         };

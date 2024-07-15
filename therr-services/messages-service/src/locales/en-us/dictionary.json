@@ -1,4 +1,11 @@
 {
+  "errorMessages": {
+    "accessDenied": "Access to this resource is denied",
+    "forums": {
+        "duplicatePost": "Duplicate posts are not allowed",
+        "forumNotFound": "Group not found for given ID"
+    }
+  },
   "validation": "The required parameters were not provided.",
   "errors": {
     "matureText": "Invalid text. Please try again."

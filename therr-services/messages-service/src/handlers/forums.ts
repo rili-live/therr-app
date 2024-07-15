@@ -3,6 +3,7 @@ import { RequestHandler } from 'express';
 import moment from 'moment';
 import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
 import {
+    ErrorCodes,
     GroupRequestStatuses,
 } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
@@ -100,12 +101,30 @@ const createActivity = (req, res) => {
         });
 };
 
-const createForum = (req, res) => {
+const createForum = async (req, res) => {
     const {
         authorization,
         locale,
         userId,
     } = parseHeaders(req.headers);
+
+    const isDuplicate = await Store.forums.getForums({
+        authorId: userId,
+        title: req.body.title,
+    }, {
+        authorId: userId,
+        subtitle: req.body.subtitle,
+    }, true)
+        .then((forums) => forums?.length);
+
+    if (isDuplicate) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.forums.duplicatePost'),
+            statusCode: 400,
+            errorCode: ErrorCodes.DUPLICATE_POST,
+        });
+    }
 
     const isTextMature = isTextUnsafe([req.body.title, req.body.subtitle, req.body.description]);
 

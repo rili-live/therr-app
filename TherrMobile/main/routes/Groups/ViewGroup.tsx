@@ -210,6 +210,9 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
             });
         }).catch((err) => {
             console.log(err);
+            this.props.navigation.navigate('Groups', {
+                activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+            });
         });
 
         // TODO: Add logic to update this when user navigates away then returns
