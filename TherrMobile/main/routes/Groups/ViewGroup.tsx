@@ -678,7 +678,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                         <Text style={{ fontWeight: 'bold' }}>{this.translate('pages.groups.labels.subtitle')}</Text> {subtitle}
                                     </Text>
                                 }
-                                <Text style={spacingStyles.marginBotSm}>
+                                <Text style={spacingStyles.marginBotSm} numberOfLines={7}>
                                     {description}
                                 </Text>
                                 <HashtagsContainer
