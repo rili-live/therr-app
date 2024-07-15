@@ -417,7 +417,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             return mightKnowUsers.concat(users);
         }
 
-        return Object.values(user?.users || {});
+        return users;
     };
 
     handleChatTilePress = (chat) => {
