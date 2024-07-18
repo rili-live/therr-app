@@ -395,6 +395,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...buttonPillTitleStyles,
             color: therrTheme.colors.brandingWhite,
         },
+        dividerLine: {
+            flexGrow: 1,
+            borderBottomWidth: 1,
+            borderBottomColor: therrTheme.colors.textGray,
+        },
         orDividerContainer: {
             display: 'flex',
             flexDirection: 'row',

@@ -267,6 +267,17 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.textWhite,
             fontSize: 20,
         },
+        sectionTitleSmallest: {
+            ...sectionTitle,
+            color: therrTheme.colors.textWhite,
+            fontSize: 16,
+        },
+        sectionTitleSmallestCenter: {
+            ...sectionTitle,
+            color: therrTheme.colors.textWhite,
+            fontSize: 16,
+            textAlign: 'center',
+        },
         sectionTitleSmallCenter: {
             ...sectionTitle,
             color: therrTheme.colors.textWhite,
