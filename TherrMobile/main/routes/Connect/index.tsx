@@ -27,6 +27,7 @@ import UsersActions from '../../redux/actions/UsersActions';
 import UserSearchItem from './components/UserSearchItem';
 import { PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { hoursDaysOrYearsSince } from '../../utilities/formatDate';
+import PeopleYouMayKnow from './components/PeopleYouMayKnow';
 
 const { width: viewportWidth } = Dimensions.get('window');
 export const DEFAULT_PAGE_SIZE = 50;
@@ -407,17 +408,19 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         return messages?.myDMs;
     };
 
-    sortUsers = (): any[] => {
+    sortUsers = (): {
+        users: any[];
+        mightKnowUsers: any[];
+    } => {
         const { user } = this.props;
         const users = Object.values(user?.users || {});
         const mightKnowUsers = Object.values(user?.usersMightKnow || {})
             .filter((u: any) => !user?.users?.[u.id])?.slice(0, 10);
 
-        if (mightKnowUsers?.length) {
-            return mightKnowUsers.concat(users);
-        }
-
-        return users;
+        return {
+            users,
+            mightKnowUsers,
+        };
     };
 
     handleChatTilePress = (chat) => {
@@ -452,7 +455,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
         switch (route.key) {
             case PEOPLE_CAROUSEL_TABS.PEOPLE:
-                const people: any[] = this.sortUsers();
+                const {
+                    users: people,
+                    mightKnowUsers,
+                } = this.sortUsers();
 
                 return (
                     <FlatList
@@ -472,6 +478,19 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 user={user}
                             />
                         )}
+                        ListHeaderComponent={
+                            <PeopleYouMayKnow
+                                mightKnowUsers={mightKnowUsers}
+                                getConnectionOrUserDetails={this.getConnectionOrUserDetails}
+                                getConnectionSubtitle={this.getConnectionSubtitle}
+                                goToViewUser={this.goToViewUser}
+                                onSendConnectRequest={this.onSendConnectRequest}
+                                theme={this.theme}
+                                themeButtons={this.themeButtons}
+                                themeForms={this.themeForms}
+                                translate={this.translate}
+                            />
+                        }
                         ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(
                             'components.contactsSearch.noUsersFound'
                         )} />}

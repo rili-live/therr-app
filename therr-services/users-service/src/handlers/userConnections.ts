@@ -210,6 +210,18 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                         acceptingUserId: acceptingUser.id as string,
                     }, {
                         requestStatus: UserConnectionTypes.PENDING,
+                    }).then(([userConnection]) => {
+                        if (!userConnection) {
+                            return Store.userConnections.updateUserConnection({
+                                // Swap to ensure we find the connection
+                                requestingUserId: acceptingUser.id as string,
+                                acceptingUserId: requestingUserId,
+                            }, {
+                                requestStatus: UserConnectionTypes.PENDING,
+                            });
+                        }
+
+                        return [userConnection];
                     })
                     : Store.userConnections.createUserConnection({
                         requestingUserId,
@@ -522,7 +534,7 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
         }
     });
 
-    const contactsLimitedForPerformance = contactEmails.slice(0, 100).concat(contactPhones.slice(0, 100));
+    const contactsLimitedForPerformance = contactEmails.slice(0, 250).concat(contactPhones.slice(0, 250));
 
     return Store.users.findUsersByContactInfo(contactsLimitedForPerformance, ['id']).then((users: { id: string; }[]) => {
         // TODO: Add db constraint to prevent requestingUserId equal to acceptingUserId

@@ -34,6 +34,12 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
 
         return acc;
     }, {});
+    const modifiedMightKnowUsers = Object.entries(state.usersMightKnow || {}).slice(0, 100).reduce((acc, cur) => {
+        const [key, value] = cur;
+        acc[key] = value;
+
+        return acc;
+    }, {});
     const modifiedInfluencerPairings = Object.entries(state.influencerPairings || {}).slice(0, 100).reduce((acc, cur) => {
         const [key, value] = cur;
         acc[key] = value;
@@ -78,8 +84,14 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                     ...action.data.updates,
                 };
             }
+            if (modifiedMightKnowUsers[action.data.id]) {
+                modifiedMightKnowUsers[action.data.id] = {
+                    ...modifiedMightKnowUsers[action.data.id],
+                    ...action.data.updates,
+                };
+            }
             // Convert array to object for faster lookup and de-duping
-            return state.setIn(['users'], modifiedUsers); // Clear stale results
+            return state.setIn(['users'], modifiedUsers).setIn(['usersMightKnow'], modifiedMightKnowUsers); // Clear stale results
         case UserActionTypes.GET_USERS_PAIRINGS:
             // Convert array to object for faster lookup and de-duping
             return state.setIn(['influencerPairings'], action.data.results

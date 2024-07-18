@@ -1119,7 +1119,15 @@
       "inputPlaceholder": "Enter a message"
     },
     "contacts": {
-      "headerTitle": "Connect"
+      "headerTitle": "Connect",
+      "buttons": {
+        "syncContacts": "Sync Your Contacts?"
+      },
+      "labels": {
+        "allUsers": "All Users",
+        "peopleYouMightKnow": "People You Might Know",
+        "noContactsFound": "No users found."
+      }
     },
     "createForum": {
       "labels": {
