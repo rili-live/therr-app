@@ -60,6 +60,9 @@ const styles = StyleSheet.create({
     heightLg: {
         height: 100,
     },
+    minHeightMd: {
+        minWidth: 60,
+    },
     minWidthMd: {
         minWidth: 60,
     },

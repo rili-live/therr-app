@@ -686,7 +686,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             user
         );
 
-        let targetRouteView = '';
+        let targetRouteView = 'Notifications';
         let targetRouteParams: any = {};
         if (data && !Array.isArray(data) && typeof(data) === 'object') {
             if (data.action === 'app.therrmobile.ACHIEVEMENT_COMPLETED'
@@ -837,6 +837,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const viewSpaceFromDesktopRegex = RegExp('spaces/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const viewUserRegex = RegExp('users/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/view', 'i');
         const viewUserFromDesktopRegex = RegExp('users/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
+        const viewEventRegex = RegExp('events/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
+        const viewGroupRegex = RegExp('groups/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})', 'i');
         const isUserLoggedIn = isUserAuthenticated(user);
         const isUserMissingProps = UsersService.isAuthorized(
             {
@@ -952,6 +954,42 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             } else {
                 this.setState({
                     targetRouteView: 'ViewUser',
+                    targetRouteParams,
+                });
+            }
+        } else if (url?.match(viewEventRegex)) {
+            const eventId = (url?.match(viewEventRegex))[1];
+            let targetRouteParams: any = {};
+            if (eventId) {
+                targetRouteParams = {
+                    previousView: 'Areas',
+                    event: {
+                        id: eventId,
+                    },
+                    eventDetails: {},
+                };
+            }
+            if (isUserLoggedIn && !isUserMissingProps) {
+                RootNavigation.navigate('ViewEvent', targetRouteParams);
+            } else {
+                this.setState({
+                    targetRouteView: 'ViewEvent',
+                    targetRouteParams,
+                });
+            }
+        } else if (url?.match(viewGroupRegex)) {
+            const groupId = (url?.match(viewGroupRegex))[1];
+            let targetRouteParams: any = {};
+            if (groupId) {
+                targetRouteParams = {
+                    id: groupId,
+                };
+            }
+            if (isUserLoggedIn && !isUserMissingProps) {
+                RootNavigation.navigate('ViewGroup', targetRouteParams);
+            } else {
+                this.setState({
+                    targetRouteView: 'ViewGroup',
                     targetRouteParams,
                 });
             }

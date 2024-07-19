@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import { Button, Text } from 'react-native-elements';
+import LottieView from 'lottie-react-native';
 import UserSearchItem from './UserSearchItem';
 import spacingStyles from '../../../styles/layouts/spacing';
-
+import searchLoading from '../../../assets/search-loading.json';
+import { synceMobileContacts } from '../../../utilities/contacts';
 
 const PeopleYouMayKnow = ({
     mightKnowUsers,
@@ -15,9 +17,37 @@ const PeopleYouMayKnow = ({
     themeButtons,
     // themeForms,
     translate,
+    user,
 }) => {
     // TODO: Implement synceMobileContacts
-    const syncContacts = () => console.log('Sync Contacts');
+    const [isSyncing, setSyncing] = useState(false);
+    const [hasSynced, setHasSynced] = useState(false);
+    const [syncStatus, setSyncStatus] = useState('not-synced');
+    const syncContacts = () => {
+        // TODO: Store permissions in redux
+        const storePermissions = () => {};
+
+        setSyncing(true);
+
+        synceMobileContacts({
+            storePermissions,
+            user,
+        }).then(() => {
+            setSyncStatus('sync-success');
+        }).catch(() => {
+            setSyncStatus('sync-failed');
+        }).finally(() => {
+            setSyncing(false);
+            setHasSynced(true);
+        });
+    };
+
+    let buttonText = translate('pages.contacts.buttons.syncContacts');
+    if (syncStatus === 'sync-success') {
+        buttonText = translate('pages.contacts.buttons.syncSuccess');
+    } else if (syncStatus === 'sync-failed') {
+        buttonText = translate('pages.contacts.buttons.syncFailed');
+    }
 
     return (
         <>
@@ -29,23 +59,39 @@ const PeopleYouMayKnow = ({
             {
                 !mightKnowUsers?.length &&
                 <>
-                    <Text style={[
-                        theme.styles.sectionDescriptionNote,
-                        spacingStyles.marginBotMd,
-                    ]}>
-                        {translate('pages.contacts.labels.noContactsFound')}
-                    </Text>
+                    {
+                        !isSyncing &&
+                        <Text style={[
+                            theme.styles.sectionDescriptionNote,
+                            spacingStyles.marginBotMd,
+                        ]}>
+                            {translate('pages.contacts.labels.noContactsFound')}
+                        </Text>
+                    }
                     <View style={[
                         spacingStyles.marginHorizXlg,
                         spacingStyles.marginBotMd,
                     ]}>
-                        <Button
-                            onPress={syncContacts}
-                            containerStyle={themeButtons.styles.buttonPillContainerSquare}
-                            buttonStyle={themeButtons.styles.buttonPill}
-                            titleStyle={themeButtons.styles.buttonPillTitle}
-                            title={translate('pages.contacts.buttons.syncContacts')}
-                        />
+                        {
+                            isSyncing ?
+                                <LottieView
+                                    source={searchLoading}
+                                    // resizeMode="cover"
+                                    resizeMode="contain"
+                                    speed={1}
+                                    autoPlay
+                                    loop
+                                    style={[{top: 0, width: '100%', height: 50}]}
+                                /> :
+                                <Button
+                                    onPress={syncContacts}
+                                    containerStyle={themeButtons.styles.buttonPillContainerSquare}
+                                    buttonStyle={themeButtons.styles.buttonPill}
+                                    titleStyle={themeButtons.styles.buttonPillTitle}
+                                    title={buttonText}
+                                    disabled={isSyncing || hasSynced}
+                                />
+                        }
                     </View>
                 </>
             }
