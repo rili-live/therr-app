@@ -9,7 +9,6 @@ import analytics from '@react-native-firebase/analytics';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { FlatList } from 'react-native-gesture-handler';
-import Contacts from 'react-native-contacts';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import isEmail from 'validator/es/lib/isEmail';
 import Alert from '../../../components/Alert';
@@ -24,7 +23,7 @@ import { buildStyles as buildFormStyles } from '../../../styles/forms';
 import spacingStyles from '../../../styles/layouts/spacing';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../../../constants';
 import OrDivider from '../../../components/Input/OrDivider';
-import { requestOSContactsPermissions } from '../../../utilities/requestOSPermissions';
+import { synceMobileContacts } from '../../../utilities/contacts';
 
 interface ICreateConnectionDispatchProps {
     createUserConnection: Function;
@@ -283,7 +282,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
     };
 
     onGetPhoneContacts = () => {
-        const { navigation } = this.props;
+        const { navigation, user } = this.props;
         const { didIgnoreNameConfirm } = this.state;
         // TODO: Store permissions in redux
         const storePermissions = () => {};
@@ -293,27 +292,13 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
             return;
         }
 
-        return requestOSContactsPermissions(storePermissions).then((response) => {
-            const { user } = this.props;
-            const permissionsDenied = Object.keys(response).some((key) => {
-                return response[key] !== 'granted';
+        return synceMobileContacts({
+            storePermissions,
+            user,
+        }).then((contacts) => {
+            navigation.navigate('PhoneContacts', {
+                allContacts: contacts,
             });
-            if (!permissionsDenied) {
-                analytics().logEvent('phone_contacts_perm_granted', {
-                    userId: user.details.id,
-                }).catch((err) => console.log(err));
-                return Contacts.getAllWithoutPhotos().then(contacts => {
-                    // contacts returned
-
-                    navigation.navigate('PhoneContacts', {
-                        allContacts: contacts,
-                    });
-                });
-            } else {
-                analytics().logEvent('phone_contacts_perm_denied', {
-                    userId: user.details.id,
-                }).catch((err) => console.log(err));
-            }
         });
     };
 

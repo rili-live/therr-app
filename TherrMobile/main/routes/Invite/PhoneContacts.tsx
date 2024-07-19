@@ -79,24 +79,10 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
     }
 
     componentDidMount() {
-        const { contactList } = this.state;
         const { navigation } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.phoneContacts.headerTitle'),
-        });
-
-        const contactsSlimmedDown = contactList.map((contact) => ({
-            emailAddresses: contact.emailAddresses.filter((address) => address.label.toLowerCase() !== 'work'),
-            phoneNumbers: contact.phoneNumbers.filter((address) => address.label.toLowerCase() === 'mobile'),
-            isStarred: contact.isStarred,
-        })).filter((c) => c.emailAddresses.length || c.phoneNumbers.length).slice(0, 1000);
-
-        // Used to find people already on the app that the user may know
-        UserConnectionsService.findPeopleYouKnow({
-            contacts: contactsSlimmedDown,
-        }).catch((error) => {
-            console.log(error);
         });
     }
 

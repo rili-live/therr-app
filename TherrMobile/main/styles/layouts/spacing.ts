@@ -208,6 +208,9 @@ const styles = StyleSheet.create({
     marginHorizLg: {
         marginHorizontal: large,
     },
+    marginHorizXlg: {
+        marginHorizontal: xlarge,
+    },
     marginVertSm: {
         marginVertical: small,
     },

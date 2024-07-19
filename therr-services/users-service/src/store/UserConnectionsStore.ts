@@ -115,7 +115,7 @@ export default class UserConnectionsStore {
                 requestStatus: UserConnectionTypes.MIGHT_KNOW,
                 ...conditions,
             })
-            .andWhere(() => knexBuilder.where({
+            .andWhere((builder) => builder.where({
                 requestingUserId: userId,
             }).orWhere({
                 acceptingUserId: userId,
