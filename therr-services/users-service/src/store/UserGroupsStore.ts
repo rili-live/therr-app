@@ -37,7 +37,6 @@ export default class UserGroupsStore {
             .where(whereConditions);
 
         if (conditions.status) {
-            whereConditions.status = conditions.status;
             const statuses = [conditions.status];
             if (overrides?.shouldIncludePending) {
                 statuses.push(GroupRequestStatuses.PENDING);
@@ -48,6 +47,30 @@ export default class UserGroupsStore {
         if (overrides?.limit) {
             queryString = queryString.limit(overrides?.limit);
         }
+
+        return this.db.read.query(queryString.toString())
+            .then((response) => response.rows);
+    }
+
+    countMulti(conditions: { userId?: string, groupIds?: string[], status?: string }, overrides: any = {}) {
+        // const whereConditions: any = {};
+
+        let queryString = knexBuilder
+            .select(knexBuilder.raw('count(*), "groupId"'))
+            .from(USER_GROUPS_TABLE_NAME);
+
+        if (conditions.groupIds) {
+            queryString = queryString.whereIn('groupId', conditions.groupIds);
+        }
+
+        const statuses = [GroupRequestStatuses.APPROVED];
+        if (overrides?.shouldIncludePending) {
+            statuses.push(GroupRequestStatuses.PENDING);
+        }
+
+        queryString = queryString
+            .whereIn('status', statuses)
+            .groupBy('groupId');
 
         return this.db.read.query(queryString.toString())
             .then((response) => response.rows);
