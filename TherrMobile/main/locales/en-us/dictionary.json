@@ -1121,6 +1121,8 @@
     "contacts": {
       "headerTitle": "Connect",
       "buttons": {
+        "syncSuccess": "Sync Success!",
+        "syncFailed": "Failed to Sync",
         "syncContacts": "Sync Your Contacts?"
       },
       "labels": {
@@ -1182,7 +1184,8 @@
       },
       "labels": {
         "description": "Description:",
-        "subtitle": "Headline:"
+        "subtitle": "Headline:",
+        "memberCount": "{count} members"
       }
     },
     "invite": {
@@ -1576,7 +1579,7 @@
       },
       "shareLink": {
         "message": "You can find this location on Therr App: https://www.therr.com/spaces/{spaceId}",
-        "messageEvent": "You can find this event on Therr App: https://www.therr.com/events/{momentId}",
+        "messageEvent": "You can find this event on Therr App: https://www.therr.com/events/{eventId}",
         "messageMoment": "You can find this moment on Therr App: https://www.therr.com/moments/{momentId}",
         "title": "{spaceTitle} | Therr App",
         "titleEvent": "{eventTitle} | Therr App",

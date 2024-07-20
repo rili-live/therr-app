@@ -391,6 +391,21 @@ const notifyGroupMembers = (req, res) => {
         }))).catch((err) => handleHttpError({ err, res, message: 'SQL:USER_GROUPS_ROUTES:ERROR' }));
 };
 
+const countGroupMembers = (req, res) => Store.userGroups.countMulti({
+    groupIds: req.body.groupIds,
+}, {
+    shouldIncludePending: false,
+})
+    .then((results) => {
+        const countByGroupId = results.reduce((acc, cur) => ({
+            ...acc,
+            [cur.groupId]: Number(cur.count),
+        }), {});
+
+        return res.status(200).send(countByGroupId);
+    })
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_GROUPS_ROUTES:ERROR' }));
+
 export {
     getUserGroups,
     getGroupMembers,
@@ -399,4 +414,5 @@ export {
     updateUserGroup,
     deleteUserGroup,
     notifyGroupMembers,
+    countGroupMembers,
 };

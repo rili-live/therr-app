@@ -487,8 +487,8 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 onSendConnectRequest={this.onSendConnectRequest}
                                 theme={this.theme}
                                 themeButtons={this.themeButtons}
-                                themeForms={this.themeForms}
                                 translate={this.translate}
+                                user={this.props.user}
                             />
                         }
                         ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(

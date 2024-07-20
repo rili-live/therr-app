@@ -76,7 +76,16 @@ export default ({
                 />
             </Pressable>
             <View style={spacingStyles.flexOne}>
-                <ListItem.Title numberOfLines={2}>{group.title}</ListItem.Title>
+                <ListItem.Title style={{ fontWeight: '500' }} numberOfLines={2}>{group.title}</ListItem.Title>
+                {
+                    group.memberCount &&
+                    <ListItem.Subtitle
+                        style={[{ fontWeight: '300', fontSize: 13 }, spacingStyles.marginBotSm]}
+                        numberOfLines={2}>{translate('pages.groups.labels.memberCount', {
+                            count: group.memberCount,
+                        })}
+                    </ListItem.Subtitle>
+                }
                 <ListItem.Subtitle numberOfLines={4}>{group.description}</ListItem.Subtitle>
                 <View style={themeChatTile.styles.footer}>
                     <View style={themeChatTile.styles.footerIconsContainer}>

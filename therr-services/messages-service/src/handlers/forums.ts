@@ -10,6 +10,7 @@ import * as globalConfig from '../../../../global-config';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import {
+    countForumMembers,
     createUserForum,
     createUserForums,
     findUsers,
@@ -293,11 +294,18 @@ const searchForums: RequestHandler = (req: any, res: any) => {
             resultGroups.forEach((result) => userIdSet.add(result.authorId));
             const userIds = [...userIdSet];
 
-            return findUsers({
-                authorization,
-                'x-userid': userId,
-                'x-localecode': locale,
-            }, userIds).then((usersResponse) => {
+            return Promise.all([
+                findUsers({
+                    authorization,
+                    'x-userid': userId,
+                    'x-localecode': locale,
+                }, userIds),
+                countForumMembers({
+                    authorization,
+                    'x-userid': userId,
+                    'x-localecode': locale,
+                }, resultGroups.map((g) => g.id)),
+            ]).then(([usersResponse, countResponse]) => {
                 const users: any[] = usersResponse.data;
                 const usersById = users.reduce((acc, cur) => ({
                     ...acc,
@@ -315,6 +323,7 @@ const searchForums: RequestHandler = (req: any, res: any) => {
                                 author: {
                                     ...user,
                                 },
+                                memberCount: countResponse?.data?.[result.id],
                             };
                         }),
                     pagination: {
