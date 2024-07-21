@@ -223,12 +223,22 @@ class Notifications extends React.Component<
                 navigation.navigate('ViewGroup', {
                     id: notification.associationId,
                 });
+            } else {
+                navigation.navigate('Groups', {
+                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                });
             }
         } else if (notification.type === NotificationsEmuns.Types.NEW_GROUP_INVITE) {
-            // TODO: Navigate to the specific group
-            navigation.navigate('Groups', {
-                activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
-            });
+            const groupId = notification.associationId || notification.messageParams?.groupId;
+            if (groupId) {
+                navigation.navigate('ViewGroup', {
+                    id: notification.associationId,
+                });
+            } else {
+                navigation.navigate('Groups', {
+                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                });
+            }
         }
     };
 

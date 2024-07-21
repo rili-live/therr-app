@@ -13,6 +13,7 @@ interface ISendPushNotification {
     fromUserId: any;
     fromUserNames?: string[];
     groupName?: string;
+    groupId?: string;
     locale: any;
     toUserId: any;
     type: any;
@@ -35,6 +36,7 @@ export default (
     {
         authorization,
         groupName,
+        groupId,
         fromUserName,
         fromUserId,
         fromUserNames,
@@ -85,7 +87,7 @@ export default (
                     });
                 }
             } else if (retentionEmailType === PushNotifications.Types.newGroupMembers
-                    && groupName) {
+                    && groupName && groupId) {
                 sendEmail = () => sendNewGroupMembersEmail({
                     subject: 'New Member(s) Joined Your Group!',
                     toAddresses: [destinationUser.email],
@@ -96,11 +98,12 @@ export default (
                         settingsEmailInvites: destinationUser.settingsEmailInvites,
                     },
                 }, {
+                    groupId,
                     groupName,
                     membersList: fromUserNames,
                 });
             } else if (retentionEmailType === PushNotifications.Types.newGroupInvite
-                    && groupName) {
+                    && groupName && groupId) {
                 sendEmail = () => sendNewGroupInviteEmail({
                     subject: `${fromUserName} invited you to join the Group, ${groupName}`,
                     toAddresses: [destinationUser.email],
@@ -111,6 +114,7 @@ export default (
                         settingsEmailInvites: destinationUser.settingsEmailInvites,
                     },
                 }, {
+                    groupId,
                     groupName,
                     fromUserName,
                 });
@@ -133,6 +137,7 @@ export default (
                     fromUserName,
                     toUserDeviceToken: destinationUser.deviceMobileFirebaseToken,
                     type,
+                    groupId,
                     groupName,
                     groupMembersList: fromUserNames,
                 },

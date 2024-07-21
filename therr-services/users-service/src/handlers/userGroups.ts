@@ -145,6 +145,7 @@ const internalCreateUserGroups = (req, res) => {
                         isUnread: true,
                         messageLocaleKey: Notifications.MessageKeys.NEW_GROUP_INVITE,
                         messageParams: {
+                            groupId: group.id,
                             groupName: group.title,
                             inviterId: userId,
                             inviterUserName: inviter?.userName,
@@ -156,6 +157,7 @@ const internalCreateUserGroups = (req, res) => {
                             name: inviter?.userName,
                         },
                         retentionEmailType: PushNotifications.Types.newGroupInvite,
+                        groupId: group.id,
                         groupName: group.title,
                     }, {
                         shouldCreateDBNotification: true,
@@ -238,6 +240,7 @@ const createUserGroup = (req, res) => {
                         isUnread: true,
                         messageLocaleKey: Notifications.MessageKeys.NEW_GROUP_MEMBERS,
                         messageParams: {
+                            groupId: group.id,
                             groupName: group.title,
                             members: fromUserNames.join(', '),
                         },
@@ -248,6 +251,7 @@ const createUserGroup = (req, res) => {
                         },
                         fromUserNames,
                         retentionEmailType: PushNotifications.Types.newGroupMembers,
+                        groupId: group.id,
                         groupName: group.title,
                     }, {
                         shouldCreateDBNotification: true,
