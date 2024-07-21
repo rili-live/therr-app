@@ -10,6 +10,12 @@
         "posts": {
             "duplicatePost": "Duplicate posts are not allowed"
         },
+        "user": {
+            "invalidUserNamePassword": "User/password combination is incorrect",
+            "maxOrgs": "Max organizations reached",
+            "misMatchUserIDs": "UserIds do not match",
+            "uniqueUserName": "This username is already taken"
+        },
         "userAchievements": {
             "invalidAchievementClass": "Invalid achievement class. Nothing found in config.",
             "invalidAchievementId": "Invalid achievement ID. Nothing found in config.",

@@ -633,17 +633,24 @@ const updateUser = (req, res) => {
                 });
         })
         .catch((err) => {
+            if (err?.message?.includes('users_username_unique')) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.user.uniqueUserName'),
+                    statusCode: 400,
+                });
+            }
             if (err?.message === 'bad-password') {
                 return handleHttpError({
                     res,
-                    message: translate(locale, 'User/password combination is incorrect'),
+                    message: translate(locale, 'errorMessages.user.invalidUserNamePassword'),
                     statusCode: 400,
                 });
             }
             if (err?.message === 'max-organizations') {
                 return handleHttpError({
                     res,
-                    message: translate(locale, 'Max organizations reached'),
+                    message: translate(locale, 'errorMessages.user.maxOrgs'),
                     statusCode: 400,
                 });
             }
@@ -653,7 +660,10 @@ const updateUser = (req, res) => {
 };
 
 const updateLastKnownLocation = (req, res) => {
-    const userId = req.headers['x-userid'];
+    const {
+        locale,
+        userId,
+    } = parseHeaders(req.headers);
     const {
         latitude,
         longitude,
@@ -662,7 +672,7 @@ const updateLastKnownLocation = (req, res) => {
     if (userId !== req.params.id) {
         return handleHttpError({
             res,
-            message: 'UserIds do not match',
+            message: translate(locale, 'errorMessages.user.misMatchUserIDs'),
             statusCode: 400,
         });
     }
