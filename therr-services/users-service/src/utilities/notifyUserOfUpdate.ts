@@ -18,6 +18,7 @@ interface IEmailAndPushParams {
     fromUserNames?: string[];
     retentionEmailType?: PushNotifications.Types;
     groupName?: string;
+    groupId?: string;
 }
 
 const getPushNotificationType = (notificationType: Notifications.Types): PushNotifications.Types => {
@@ -88,6 +89,7 @@ export default (
                     whiteLabelOrigin: headers.whiteLabelOrigin,
                     retentionEmailType: emailAndPushParams.retentionEmailType,
                     groupName: emailAndPushParams.groupName,
+                    groupId: emailAndPushParams.groupId,
                     fromUserNames: emailAndPushParams.fromUserNames,
                 }, {
                     shouldSendPushNotification: config.shouldSendPushNotification,

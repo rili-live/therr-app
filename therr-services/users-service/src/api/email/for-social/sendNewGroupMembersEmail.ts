@@ -16,6 +16,7 @@ export interface ISendNewGroupMembersEmailConfig {
 }
 
 export interface ITemplateParams {
+    groupId: string;
     groupName: string;
     membersList?: string[];
 }
@@ -36,9 +37,9 @@ export default (emailParams: ISendNewGroupMembersEmailConfig, templateParams: IT
         body2: templateParams.membersList?.length
             ? `New members (${templateParams.membersList.join(', ')}) recently joined your group, ${templateParams.groupName}. Login and review their requests if approval is required to join the group.`
             : `New members recently joined your group, ${templateParams.groupName}. Login and review their requests if approval is required to join the group.`,
-        buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/login`,
+        buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/groups/${templateParams.groupId}`,
         buttonText: contextConfig.brandGoLinkText,
-        postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${globalConfig[process.env.NODE_ENV].hostFull}/login`,
+        postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${globalConfig[process.env.NODE_ENV].hostFull}/groups/${templateParams.groupId}`,
     };
 
     return sendEmail({
