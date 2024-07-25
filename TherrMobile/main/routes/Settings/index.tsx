@@ -7,6 +7,7 @@ import { bindActionCreators } from 'redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IUserState } from 'therr-react/types';
 import { Content, FilePaths, PasswordRegex } from 'therr-js-utilities/constants';
+import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import RNFB from 'react-native-blob-util';
@@ -246,8 +247,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     onInputChange = (name: string, value: string) => {
         let passwordErrorMessage = '';
         const { inputs } = this.state;
+        let sanitizedValue = value;
+        if (name === 'userName') {
+            sanitizedValue = sanitizeUserName(value);
+        }
         const newInputChanges = {
-            [name]: value,
+            [name]: sanitizedValue,
         };
 
         if (name === 'repeatPassword' && inputs.oldPassword) {

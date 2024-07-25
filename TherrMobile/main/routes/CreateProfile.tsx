@@ -4,6 +4,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Content } from 'therr-js-utilities/constants';
+import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import LottieView from 'lottie-react-native';
@@ -239,7 +240,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             phoneNumber: user.details.phoneNumber || phoneNumber,
             firstName,
             lastName,
-            userName: userName?.toLowerCase(),
+            userName,
             isBusinessAccount: accountType === 'business',
             isCreatorAccount: accountType === 'creator',
         };
@@ -319,7 +320,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         const { inputs } = this.state;
         let sanitizedValue = value;
         if (name === 'userName') {
-            sanitizedValue = value.replace(/[^\w.]/g, '').replace(/\.\./, '.').replace(/__/, '.');
+            sanitizedValue = sanitizeUserName(value);
         }
         const newInputChanges = {
             [name]: sanitizedValue,

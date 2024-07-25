@@ -259,6 +259,8 @@
       "createProfileSuccess": "Profile successfully updated!",
       "createProfileError": "Oops, something went wrong",
       "phoneNumberAlreadyInUseError": "Phone number is already in use for this account type",
+      "tooManyAccounts": "Users are limited to one of each account type (personal, creator, business)",
+      "invalidRegion": "Invalid region",
       "invalidCode": "Code is invalid or expired. Try again or resend.",
       "infoTitle": "Why Require Phone #?",
       "info": "We are dedicated to preventing fake users, so Multi-Factor Auth is a must. Requiring an e-mail and phone # along with geo-tag post requirements drastically limits the potential for fake users."
