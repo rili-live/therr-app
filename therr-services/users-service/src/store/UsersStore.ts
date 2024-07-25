@@ -310,7 +310,7 @@ export default class UsersStore {
     createUser(params: ICreateUserParams) {
         const sanitizedParams = {
             ...params,
-            userName: params?.userName?.toLowerCase(),
+            userName: params?.userName?.trim()?.toLowerCase(),
             email: normalizeEmail(params.email),
         };
         const queryString = knexBuilder.insert(sanitizedParams)
@@ -388,7 +388,7 @@ export default class UsersStore {
         }
 
         if (params.userName) {
-            modifiedParams.userName = params.userName;
+            modifiedParams.userName = params.userName.trim().toLowerCase();
         }
 
         if (params.phoneNumber) {

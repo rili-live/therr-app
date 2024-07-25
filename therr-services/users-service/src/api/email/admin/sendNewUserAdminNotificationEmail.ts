@@ -24,7 +24,8 @@ export interface IAccountTypeParams {
 export default (emailParams: ISendNewUserAdminNotificationEmailConfig, templateParams: ITemplateParams, accountTypeParams: IAccountTypeParams) => {
     const contextConfig = getHostContext(emailParams.agencyDomainName);
 
-    const otherEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',');
+    const otherEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',').filter((email) => !!email);
+    const therrAdminEmails = (process.env.AWS_NOTIFY_ADMIN_EMAIL_ADDRESSES || '').split(',').filter((email) => !!email);
     const dearUser = templateParams.inviterEmail
         ? `Welcome the new user, ${templateParams.name}, invited by ${templateParams.inviterEmail}!`
         : `Welcome the new user, ${templateParams.name}!`;
@@ -36,6 +37,6 @@ export default (emailParams: ISendNewUserAdminNotificationEmailConfig, templateP
 
     return sendEmail({
         ...emailParams,
-        toAddresses: [...emailParams.toAddresses, ...otherEmails],
+        toAddresses: [...emailParams.toAddresses, ...otherEmails, ...therrAdminEmails],
     }, htmlConfig);
 };
