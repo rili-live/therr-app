@@ -17,6 +17,7 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendUserFeedbackEmailConfig, templateParams: any) => {
+    const therrAdminEmails = (process.env.AWS_NOTIFY_ADMIN_EMAIL_ADDRESSES || '').split(',').filter((email) => !!email);
     const contextConfig = getHostContext(emailParams.agencyDomainName);
 
     const htmlConfig = {
@@ -27,5 +28,6 @@ export default (emailParams: ISendUserFeedbackEmailConfig, templateParams: any) 
 
     return sendEmail({
         ...emailParams,
+        toAddresses: [...emailParams.toAddresses, ...therrAdminEmails],
     }, htmlConfig);
 };
