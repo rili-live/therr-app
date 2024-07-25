@@ -13,6 +13,7 @@ import {
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { ApiService } from 'therr-react/services';
+import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
@@ -117,7 +118,7 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
 
         if (e.currentTarget.name === 'userName') {
             this.setState({
-                userName: e.currentTarget.value.toLowerCase(),
+                userName: sanitizeUserName(e.currentTarget.value),
             });
         } else {
             const newInputChanges: any = {
@@ -180,6 +181,16 @@ export class CreateUserProfileComponent extends React.Component<ICreateUserProfi
                     this.onValidationError(
                         'Phone # Error',
                         this.translate('pages.createProfile.phoneNumberAlreadyInUseError'),
+                    );
+                } else if (error?.errorCode === ErrorCodes.TOO_MANY_ACCOUNTS) {
+                    this.onValidationError(
+                        'Phone # Error',
+                        this.translate('pages.createProfile.tooManyAccounts'),
+                    );
+                } else if (error?.errorCode === ErrorCodes.INVALID_REGION) {
+                    this.onValidationError(
+                        'Phone # Error',
+                        this.translate('pages.createProfile.invalidRegion'),
                     );
                 } else {
                     ReactGA.event({
