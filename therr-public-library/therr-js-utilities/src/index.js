@@ -35,6 +35,7 @@ const utilities = [
     'is-valid-password',
     'localization',
     'promiser',
+    'sanitizers',
     'scroll-to',
     'normalize-phone-number',
     'print-logs',
