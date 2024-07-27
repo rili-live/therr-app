@@ -78,7 +78,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * ClaimASpace
  */
 export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, IClaimASpaceState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     private throttleTimeoutId: any;
 
@@ -315,6 +315,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
                             onInputChange={this.onInputChange}
                             onSubmit={this.onSubmitSpaceClaim}
                             submitText='Claim this Space'
+                            translate={this.translate}
                         />
                     </Col>
 

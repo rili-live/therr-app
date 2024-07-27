@@ -599,6 +599,7 @@ export default class SpacesStore {
                 sanitizedParams.thirdPartyRatings = params.thirdPartyRatings ? JSON.stringify(params.thirdPartyRatings) : JSON.stringify({});
             }
 
+            // TODO: Implement use of Categories.ts
             if (params.interestsKeys) {
                 sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
             } else if (Content.interestsMap[`forms.editMoment.categories.${params.category}`]) {

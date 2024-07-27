@@ -10,6 +10,35 @@
     "mobilePhoneNumber": "Input must be a valid, international mobile number beginning with '+'",
     "numbersOnly": "Input only accepts numeric values"
   },
+  "categories": {
+    "uncategorized": "Select a Category",
+    "storefront/shop": "Shop/ Storefront",
+    "restaurant/food": "Restaurant / Food",
+    "bar/drinks": "Bar / Drinks",
+    "marketplace/festival": "Marketplace / Festival",
+    "artwork/expression": "Artwork / Expression",
+    "music/concerts": "Music / Concerts",
+    "nature/parks": "Nature / Parks",
+    "hotels/lodging": "Hotels / Lodging",
+    "event/space": "Events Space",
+    "art": "Art",
+    "gaming": "Gaming",
+    "geocache": "Geocache",
+    "menu": "Menu",
+    "music": "Music",
+    "deals": "Deals / Coupons",
+    "fitness": "Sports / Fitness",
+    "storefront": "Storefront Promotion",
+    "idea": "Idea / Observation",
+    "food": "Food",
+    "nature": "Nature / Park",
+    "travel": "Travel / Tourism",
+    "warning": "Warning / Alert",
+    "seasonal": "Seasonal / Holidays",
+    "drinks": "Happy Hour / Drinks",
+    "nightLife": "Night Life / Social",
+    "sports": "Sports"
+  },
   "components": {
     "header": {
       "buttons": {

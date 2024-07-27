@@ -28,6 +28,7 @@ interface IMissingImagePlaceholder {
     };
 }
 
+// TODO: Implement Categories.ts
 const MissingImagePlaceholder = ({
     area,
     themeViewArea,
