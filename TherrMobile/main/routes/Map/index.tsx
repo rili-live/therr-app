@@ -305,7 +305,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isMinLoadTimeComplete: false,
             isSearchThisLocationBtnVisible: false,
             // User exists and was created less than 2 weeks ago
-            isUserNewish: props?.user?.details?.createdAt && new Date(props?.user?.details?.createdAt).getTime() < (Date.now() - 1000 * 60 * 60 * 24 * 14),
+            isUserNewish: props?.user?.details?.createdAt && new Date(props?.user?.details?.createdAt).getTime() > (Date.now() - 1000 * 60 * 60 * 24 * 14),
             nearbySpaces: [],
             shouldIgnoreSearchThisAreaButton: false,
             shouldRenderMapCircles: false,
