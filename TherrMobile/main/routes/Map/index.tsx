@@ -184,6 +184,7 @@ interface IMapState {
     isMapReady: boolean;
     isMinLoadTimeComplete: boolean;
     isSearchThisLocationBtnVisible: boolean;
+    isUserNewish: boolean;
     nearbySpaces: {
         id: string;
         title: string;
@@ -303,6 +304,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isMapReady: false,
             isMinLoadTimeComplete: false,
             isSearchThisLocationBtnVisible: false,
+            // User exists and was created less than 2 weeks ago
+            isUserNewish: props?.user?.details?.createdAt && new Date(props?.user?.details?.createdAt).getTime() < (Date.now() - 1000 * 60 * 60 * 24 * 14),
             nearbySpaces: [],
             shouldIgnoreSearchThisAreaButton: false,
             shouldRenderMapCircles: false,
@@ -1815,6 +1818,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isLocationUseDisclosureModalVisible,
             isMapReady,
             isMinLoadTimeComplete,
+            isUserNewish,
             isAreaAlertVisible,
             isSearchThisLocationBtnVisible,
             isSearchLoading,
@@ -2012,6 +2016,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 {
                     isMapReady && isMinLoadTimeComplete && this.isUserAuthenticated() &&
                     !user?.settings?.isNavigationTouring &&
+                    isUserNewish &&
                     (!user?.settings?.navigationTourCount || user?.settings?.navigationTourCount < 1) &&
                     <MapTourRenderer
                         getCurrentScreen={this.getCurrentScreen}
