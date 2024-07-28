@@ -247,6 +247,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             shouldIncludeMoments: true,
             shouldIncludeSpaces: true,
             // shouldIncludeThoughts: true,
+            translate: this.translate,
         }, 'createdAt');
 
         return (

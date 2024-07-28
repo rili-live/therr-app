@@ -1,6 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import * as countryGeo from 'country-reverse-geocoding';
-import { Content, Location } from 'therr-js-utilities/constants';
+import { Categories, Content, Location } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 import { storage } from '../api/aws';
@@ -602,6 +602,9 @@ export default class SpacesStore {
             // TODO: Implement use of Categories.ts
             if (params.interestsKeys) {
                 sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
+            } else if (Categories.SpaceCategories.includes(params.category) && Categories.CategoryToInterestsMap[params.category]) {
+                const interests = Categories.CategoryToInterestsMap[params.category];
+                sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
             } else if (Content.interestsMap[`forms.editMoment.categories.${params.category}`]) {
                 // Set a default interests where ever valid
                 const interests = [Content.interestsMap[`forms.editMoment.categories.${params.category}`]];

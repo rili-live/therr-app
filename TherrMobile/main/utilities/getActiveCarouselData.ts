@@ -71,6 +71,7 @@ interface IGetActiveDataArgs {
     shouldIncludeThoughts?: boolean;
     shouldIncludeMoments?: boolean;
     shouldIncludeSpaces?: boolean;
+    translate: any;
 }
 
 export default ({
@@ -82,6 +83,7 @@ export default ({
     shouldIncludeThoughts,
     shouldIncludeMoments,
     shouldIncludeSpaces,
+    translate,
 }: IGetActiveDataArgs, sortBy = 'createdAt', categories: string[] = [SELECT_ALL]) => {
     if (activeTab === CAROUSEL_TABS.NEWS) {
         return [];
@@ -117,9 +119,12 @@ export default ({
     }
 
     // TODO: performance optimize to prevent loading unnecessary data
+    // TODO: Remove translate after backwards compatibility
     let filteredData = categories.includes(SELECT_ALL) ?
         sortedData :
-        sortedData.filter(areaOrThought => categories.includes(areaOrThought.category));
+        sortedData.filter(areaOrThought => categories.includes(areaOrThought.category)
+            || categories.map((cat) => translate(cat)).includes(areaOrThought.category)
+            || categories.map((cat) => cat.replace('categories.', '')).includes(areaOrThought.category));
 
     return filteredData;
 };

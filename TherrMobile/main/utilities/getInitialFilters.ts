@@ -1,9 +1,10 @@
 
-import { allCategories, SELECT_ALL } from './categories';
+import { Categories } from 'therr-js-utilities/constants';
+import { SELECT_ALL } from './categories';
 
 export const authorOptions: { name: string; isChecked?: boolean }[] = [{ name: SELECT_ALL }, { name: 'me' }, { name: 'notMe' }];
 
-export const categoryOptions: { name: string; isChecked?: boolean }[] = allCategories.map(cat => ({ name: cat, data: [] }));
+export const categoryOptions: { name: string; isChecked?: boolean }[] = Object.values(Categories.CategoriesMap).map((cat: any) => ({ name: cat, data: [] }));
 
 export const visibilityOptions: { name: string; isChecked?: boolean }[] = [
     { name: SELECT_ALL },
@@ -23,9 +24,9 @@ const getInitialCategoryFilters = (translate, shouldDefaultUnselectTitle = false
     name: SELECT_ALL,
 }].concat(categoryOptions.map(c => ({
     ...c,
-    title: c.name === 'uncategorized'
+    title: c.name === 'categories.uncategorized'
         ? translate('pages.mapFilteredSearch.labels.uncategorized')
-        : translate(`forms.editMoment.categories.${c.name}`),
+        : translate(c.name),
 })));
 
 const getInitialVisibilityFilters = (translate) => visibilityOptions

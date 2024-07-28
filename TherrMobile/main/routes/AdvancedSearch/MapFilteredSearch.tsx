@@ -14,14 +14,12 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import { allCategories, SELECT_ALL } from '../../utilities/categories';
-import { getInitialAuthorFilters, getInitialCategoryFilters, getInitialVisibilityFilters } from '../../utilities/getInitialFilters';
+import {
+    getInitialAuthorFilters,
+    getInitialCategoryFilters,
+    getInitialVisibilityFilters,
+} from '../../utilities/getInitialFilters';
 
-export const authorOptions: { name: string; isChecked?: boolean }[] = [{ name: SELECT_ALL }, { name: 'me' }, { name: 'notMe' }];
-
-export const categoryOptions: { name: string; isChecked?: boolean }[] = allCategories.map(cat => ({ name: cat, data: [] }));
-
-export const visibilityOptions: { name: string; isChecked?: boolean }[] = [{ name: SELECT_ALL }, { name: 'public' }, { name: 'private' }];
 
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');

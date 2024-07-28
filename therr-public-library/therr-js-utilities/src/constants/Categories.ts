@@ -1,5 +1,7 @@
 /* eslint-disable max-len */
-const CategoriesMap = {
+const CategoriesMap: {
+    [key: number]: string;
+} = {
     1: 'categories.uncategorized',
     2: 'categories.storefront/shop',
     3: 'categories.restaurant/food',
@@ -10,32 +12,32 @@ const CategoriesMap = {
     8: 'categories.nature/parks',
     9: 'categories.hotels/lodging',
     10: 'categories.event/space',
-    11: 'categories.art',
+    11: 'categories.art', // remove
     12: 'categories.gaming',
     13: 'categories.geocache',
     14: 'categories.menu',
-    15: 'categories.music',
+    15: 'categories.music', // remove
     16: 'categories.deals',
-    17: 'categories.fitness',
+    17: 'categories.fitness', // remove
     18: 'categories.storefront',
-    19: 'categories.idea',
-    20: 'categories.food',
-    21: 'categories.nature',
+    19: 'categories.idea', // remove
+    20: 'categories.food', // remove
+    21: 'categories.nature', // remove
     22: 'categories.travel',
     23: 'categories.warning',
     24: 'categories.seasonal',
     25: 'categories.drinks',
     26: 'categories.nightLife',
-    27: 'categories.sports',
+    27: 'categories.sports', // remove
     28: 'categories.fitness/sports',
     29: 'categories.museum/academia',
 };
 
 const CategoryToInterestsMap = {
-    2: [
+    [CategoriesMap[2]]: [
         'interests.business.localBusiness',
     ],
-    3: [
+    [CategoriesMap[3]]: [
         'interests.foodDrink.dining',
         'interests.foodDrink.happyHour',
         'interests.foodDrink.desserts',
@@ -43,17 +45,17 @@ const CategoryToInterestsMap = {
         'interests.foodDrink.ramen',
         'interests.foodDrink.veganFood',
     ],
-    4: [
+    [CategoriesMap[4]]: [
         'interests.foodDrink.cocktails',
         'interests.foodDrink.happyHour',
         'interests.foodDrink.coffee',
         'interests.foodDrink.juiceSmoothies',
     ],
-    5: [
+    [CategoriesMap[5]]: [
         'interests.arts.visualArts',
         'interests.arts.liveMusic',
     ],
-    6: [
+    [CategoriesMap[6]]: [
         'interests.arts.painting',
         'interests.arts.visualArts',
         'interests.arts.anime',
@@ -69,23 +71,23 @@ const CategoryToInterestsMap = {
         'interests.arts.comedy',
         'interests.arts.reading',
     ],
-    7: [
+    [CategoriesMap[7]]: [
         'interests.arts.instruments',
         'interests.arts.liveMusic',
         'interests.arts.singing',
         'interests.foodDrink.happyHour',
     ],
-    8: [
+    [CategoriesMap[8]]: [
         'interests.sports.running',
         'interests.sports.cycling',
         'interests.sports.soccer',
         'interests.sports.Climbing',
     ],
-    9: [
+    [CategoriesMap[9]]: [
         'interests.business.businessTravel',
         'interests.travelTransport.travel',
     ],
-    10: [
+    [CategoriesMap[10]]: [
         'interests.business.localBusiness',
         'interests.arts.liveMusic',
         'interests.sports.baseball',
@@ -94,7 +96,7 @@ const CategoryToInterestsMap = {
         'interests.sports.soccer',
         'interests.sports.hockey',
     ],
-    11: [
+    [CategoriesMap[11]]: [
         'interests.arts.painting',
         'interests.arts.visualArts',
         'interests.arts.anime',
@@ -110,17 +112,17 @@ const CategoryToInterestsMap = {
         'interests.arts.comedy',
         'interests.arts.reading',
     ],
-    12: [
+    [CategoriesMap[12]]: [
         'interests.games.videoGamesConsole',
         'interests.games.videoGamesComputer',
         'interests.games.tableTopGames',
         'interests.games.boardGames',
     ],
-    13: [
+    [CategoriesMap[13]]: [
         'interests.games.boardGames',
         'interests.travelTransport.travel',
     ],
-    14: [
+    [CategoriesMap[14]]: [
         'interests.foodDrink.dining',
         'interests.foodDrink.happyHour',
         'interests.foodDrink.cocktails',
@@ -131,29 +133,29 @@ const CategoryToInterestsMap = {
         'interests.foodDrink.ramen',
         'interests.foodDrink.veganFood',
     ],
-    15: [
+    [CategoriesMap[15]]: [
         'interests.arts.instruments',
         'interests.arts.liveMusic',
         'interests.arts.singing',
         'interests.foodDrink.happyHour',
     ],
-    16: [
+    [CategoriesMap[16]]: [
         'interests.business.localBusiness',
         'interests.business.restaurant',
     ],
-    17: [
+    [CategoriesMap[17]]: [
         'interests.sports.gymWorkouts',
         'interests.sports.bowling',
         'interests.sports.Climbing',
         'interests.sports.rockClimbing',
         'interests.sports.cycling',
     ],
-    18: [
+    [CategoriesMap[18]]: [
         'interests.business.localBusiness',
         'interests.fashion.styleTrends',
         'interests.fashion.clothingAccessories',
     ],
-    19: [
+    [CategoriesMap[19]]: [
         'interests.arts.painting',
         'interests.arts.visualArts',
         'interests.arts.anime',
@@ -169,7 +171,7 @@ const CategoryToInterestsMap = {
         'interests.arts.comedy',
         'interests.arts.reading',
     ],
-    20: [
+    [CategoriesMap[20]]: [
         'interests.foodDrink.dining',
         'interests.foodDrink.happyHour',
         'interests.foodDrink.desserts',
@@ -177,32 +179,32 @@ const CategoryToInterestsMap = {
         'interests.foodDrink.ramen',
         'interests.foodDrink.veganFood',
     ],
-    21: [
+    [CategoriesMap[21]]: [
         'interests.sports.running',
         'interests.sports.cycling',
         'interests.sports.soccer',
         'interests.sports.rockClimbing',
     ],
-    22: [
+    [CategoriesMap[22]]: [
         'interests.business.businessTravel',
         'interests.travelTransport.travel',
     ],
-    24: [
+    [CategoriesMap[24]]: [
         'interests.fashion.styleTrends',
         'interests.fashion.clothingAccessories',
         'interests.fashion.bodyArtCostume',
     ],
-    25: [
+    [CategoriesMap[25]]: [
         'interests.foodDrink.cocktails',
         'interests.foodDrink.happyHour',
         'interests.foodDrink.coffee',
         'interests.foodDrink.juiceSmoothies',
     ],
-    26: [
+    [CategoriesMap[26]]: [
         'interests.foodDrink.cocktails',
         'interests.arts.dance',
     ],
-    27: [
+    [CategoriesMap[27]]: [
         'interests.sports.basketball',
         'interests.sports.baseball',
         'interests.sports.billiards',
@@ -220,7 +222,7 @@ const CategoryToInterestsMap = {
         'interests.sports.tennis',
         'interests.sports.volleyball',
     ],
-    28: [
+    [CategoriesMap[28]]: [
         'interests.sports.basketball',
         'interests.sports.baseball',
         'interests.sports.billiards',
@@ -238,7 +240,7 @@ const CategoryToInterestsMap = {
         'interests.sports.tennis',
         'interests.sports.volleyball',
     ],
-    29: [
+    [CategoriesMap[29]]: [
         'interests.arts.painting',
         'interests.arts.visualArts',
         'interests.arts.anime',
@@ -260,13 +262,13 @@ const CategoryToInterestsMap = {
 
 const MomentCategories = [
     CategoriesMap[1],
-    CategoriesMap[20],
-    CategoriesMap[15],
-    CategoriesMap[25],
-    CategoriesMap[11],
-    CategoriesMap[21],
+    CategoriesMap[3],
+    CategoriesMap[7],
+    CategoriesMap[4],
+    CategoriesMap[6],
+    CategoriesMap[8],
     CategoriesMap[22],
-    CategoriesMap[17],
+    CategoriesMap[28],
     CategoriesMap[26],
     CategoriesMap[19],
     CategoriesMap[13],
