@@ -90,6 +90,10 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         });
     };
 
+    goToMap = () => {
+        this.props.navigation.navigate('Map');
+    };
+
     toggleEULA = () => {
         const { isEULAVisible } = this.state;
         this.setState({
@@ -101,6 +105,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         const { isEULAVisible } = this.state;
         const pageTitle = this.translate('pages.register.pageTitle');
         const pageSubtitle = this.translate('pages.register.pageSubtitle');
+        const pageSubtitleMapPreviewLink = this.translate('pages.register.pageSubtitleMapPreviewLink');
         const iPadDynamicStyles: any = (Platform.OS === 'ios' && Platform.isPad)
             ? { paddingHorizontal: '10%' }
             : {};
@@ -116,7 +121,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                     {pageTitle}
                                 </Text>
                                 <Text style={this.themeFTUI.styles.subtitle}>
-                                    {pageSubtitle}
+                                    {pageSubtitle} <Text onPress={this.goToMap} style={this.themeForms.styles.buttonLink}>{pageSubtitleMapPreviewLink}</Text>
                                 </Text>
                             </View>
                             <RegisterForm

@@ -1078,7 +1078,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     Promise.allSettled(preLoadImageList.map((image) => {
                         const img = Image.resolveAssetSource(image).uri;
                         return Image.prefetch(img);
-                    })).finally(() => SplashScreen.hide({ fade: true }));
+                    })).finally(() => {
+                        // TODO: Update users lastSessionStartAt property to track user activity
+                        SplashScreen.hide({ fade: true });
+                    });
                 }}
                 onStateChange={async () => {
                     const previousRouteName = this.routeNameRef.current;

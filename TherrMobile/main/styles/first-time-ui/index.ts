@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, PixelRatio } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { therrFontFamily } from '../font';
 import { getTheme, ITherrTheme } from '../themes';
@@ -37,6 +37,15 @@ const createProfileGraphicStyles: any = {
     zIndex: -1,
 };
 
+const landingContentTitle: any = {
+    color: 'white',
+    fontSize: PixelRatio.get() <= 1 ? 32 : 42,
+    lineHeight: 52,
+    fontWeight: '600',
+    textAlign: 'center',
+    fontFamily: 'Lexend-Regular',
+};
+
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
@@ -63,6 +72,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         subtitle: {
             ...getSubTitleStyles(therrTheme),
+        },
+        subtitleLink: {
+            ...getSubTitleStyles(therrTheme),
+            color: therrTheme.colors.brandingBlueGreen,
         },
         subtitleCenter: {
             ...getSubTitleStyles(therrTheme),
@@ -110,12 +123,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             bottom: 0,
         },
         landingContentTitle: {
-            color: 'white',
-            fontSize: 42,
-            lineHeight: 52,
-            fontWeight: '600',
-            textAlign: 'center',
-            fontFamily: 'Lexend-Regular',
+            ...landingContentTitle,
+        },
+        landingContentTitleSmall: {
+            ...landingContentTitle,
+            fontSize: PixelRatio.get() <= 1 ? 26 : 36,
         },
     });
 
