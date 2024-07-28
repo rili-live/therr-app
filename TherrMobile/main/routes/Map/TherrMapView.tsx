@@ -864,7 +864,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         const animatedOverlayHeight = CARD_HEIGHT
             + this.themeBottomSheet.styles.scrollViewOuterContainer.bottom;
         // This converts degrees to miles then miles to meters (divided by 10)
-        const focusedAreaRadius = ((map?.longitudeDelta || 0) * 69 * 1609.34) / 12;
+        const focusedAreaRadius = Math.abs(((map?.longitudeDelta || 0) * 69 * 1609.34) / 12);
         const unfocusedAreaRadius = focusedAreaRadius / 2;
 
         return (
@@ -1064,7 +1064,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                             longitude: space.longitude,
                                             latitude: space.latitude,
                                         }}
-                                        radius={idx === areaInPreviewIndex ? focusedAreaRadius : unfocusedAreaRadius} /* meters */
+                                        radius={Math.abs(idx === areaInPreviewIndex ? focusedAreaRadius : unfocusedAreaRadius)} /* meters */
                                         strokeWidth={idx === areaInPreviewIndex ? 2 : 1}
                                         strokeColor={idx === areaInPreviewIndex ? 'rgba(170,10,170, 0.5)' : 'rgba(170,10,170, 0.12)'}
                                         fillColor={idx === areaInPreviewIndex ? 'rgba(170,10,170, 0.35)' : 'rgba(170,10,170, 0.08)'}
@@ -1082,7 +1082,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                         longitude: moment.longitude,
                                         latitude: moment.latitude,
                                     }}
-                                    radius={moment.radius} /* meters */
+                                    radius={Math.abs(moment.radius)} /* meters */
                                     strokeWidth={0}
                                     strokeColor={this.getMomentCircleStrokeColor(moment)}
                                     fillColor={this.getMomentCircleFillColor(moment)}
@@ -1100,7 +1100,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                         longitude: space.longitude,
                                         latitude: space.latitude,
                                     }}
-                                    radius={space.radius} /* meters */
+                                    radius={Math.abs(space.radius)} /* meters */
                                     strokeWidth={0}
                                     strokeColor={this.getSpaceCircleStrokeColor(space)}
                                     fillColor={this.getSpaceCircleFillColor(space)}
