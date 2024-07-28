@@ -10,7 +10,7 @@ import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-doten
 import { IUserState, IMapState, IContentState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
-import { Content, FilePaths, IncentiveRewardKeys, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
+import { Categories, Content, FilePaths, IncentiveRewardKeys, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -53,19 +53,6 @@ import TherrIcon from '../components/TherrIcon';
 import SearchTypeAheadResults from '../components/SearchTypeAheadResults';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
-
-export const spaceCategories = [
-    'uncategorized',
-    'storefront/shop',
-    'restaurant/food',
-    'marketplace/festival',
-    'artwork/expression',
-    'music/concerts',
-    'bar/drinks',
-    'nature/parks',
-    'hotels/lodging',
-    'event/space',
-];
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: false,
@@ -205,9 +192,9 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         // TODO: Make these IDs and values constants from shared config
-        this.categoryOptions = spaceCategories.map((category, index) => ({
+        this.categoryOptions = Categories.SpaceCategories.map((category: string, index) => ({
             id: index,
-            label: this.translate(`forms.editMoment.categories.${category}`),
+            label: this.translate(category),
             value: category,
         }));
         this.incentiveRequirementKeys = [

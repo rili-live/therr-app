@@ -255,6 +255,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
             shouldIncludeMoments: true,
             shouldIncludeSpaces: true,
             // shouldIncludeThoughts: true,
+            translate: this.translate,
         }, 'updatedAt');
 
         return (

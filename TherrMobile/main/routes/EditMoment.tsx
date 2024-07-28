@@ -9,7 +9,7 @@ import Toast from 'react-native-toast-message';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState, IContentState } from 'therr-react/types';
 import { ReactionActions, MapActions } from 'therr-react/redux/actions';
-import { Content, ErrorCodes, FilePaths } from 'therr-js-utilities/constants';
+import { Categories, Content, ErrorCodes, FilePaths } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -55,24 +55,6 @@ import ConfirmModal from '../components/Modals/ConfirmModal';
 import SpaceRating from '../components/Input/SpaceRating';
 
 const { width: viewportWidth } = Dimensions.get('window');
-
-// NOTE: When updating this list, be sure to update the MarkerIcon configs to include the new value(s)
-export const momentCategories = [
-    'uncategorized',
-    'music',
-    'food',
-    'drinks',
-    'art',
-    'nature',
-    'travel',
-    'fitness',
-    'idea',
-    'nightLife',
-    'geocache',
-    'seasonal',
-    'warning',
-];
-
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: false,
@@ -192,9 +174,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
-        this.categoryOptions = momentCategories.map((category, index) => ({
+        this.categoryOptions = Categories.MomentCategories.map((category: string, index) => ({
             id: index,
-            label: this.translate(`forms.editMoment.categories.${category}`),
+            label: this.translate(category),
             value: category,
         }));
         this.nearbySpaceOptions = [{

@@ -8,7 +8,7 @@ import Toast from 'react-native-toast-message';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
-import { ErrorCodes, MetricNames } from 'therr-js-utilities/constants';
+import { Categories, ErrorCodes, MetricNames } from 'therr-js-utilities/constants';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
@@ -615,7 +615,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     return false;
                 }
 
-                return area.category === filter.name;
+                // TODO: Remove this.translate after backwards compatibility rollout
+                return area.category === filter.name || area.category === this.translate(filter.name);
             });
         }
 
@@ -1385,14 +1386,16 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             setMapFilters({
                 filtersAuthor: authorFilters,
                 filtersCategory: categoryFilters,
-                filtersVisibility: this.initialVisibilityFilters.map(x => ({ ...x, isChecked: x.name.includes('event') || x.name.includes('public')})),
+                filtersVisibility: this.initialVisibilityFilters
+                    .map(x => ({ ...x, isChecked: x.name === Categories.CategoriesMap[10] || x.name.includes('public')})),
             });
         }
 
         if (this.quickFilterButtons[index].title === this.translate('pages.map.filterButtons.music')) {
             setMapFilters({
                 filtersAuthor: authorFilters,
-                filtersCategory: this.initialCategoryFilters.map(x => ({ ...x, isChecked: x.name === 'music' || x.name === 'music/concerts'})),
+                filtersCategory: this.initialCategoryFilters
+                    .map(x => ({ ...x, isChecked: x.name === Categories.CategoriesMap[7] || x.name === Categories.CategoriesMap[15]})),
                 filtersVisibility: visibilityFilters,
             });
         }

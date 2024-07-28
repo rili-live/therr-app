@@ -1,3 +1,4 @@
+import Categories from './Categories';
 import Content from './Content';
 import ErrorCodes from './ErrorCodes';
 import FilePaths from './FilePaths';
@@ -50,6 +51,7 @@ export {
     CurrencyTransactionMessages,
     GroupMemberRoles,
     GroupRequestStatuses,
+    Categories,
     Content,
     ErrorCodes,
     FilePaths,
