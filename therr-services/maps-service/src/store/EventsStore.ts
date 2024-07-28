@@ -1,6 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import * as countryGeo from 'country-reverse-geocoding';
-import { Content, Location } from 'therr-js-utilities/constants';
+import { Categories, Content, Location } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 import { storage } from '../api/aws';
@@ -554,6 +554,9 @@ export default class EventsStore {
 
             if (params.interestsKeys) {
                 sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
+            } else if (params.category && Categories.SpaceCategories.includes(params.category) && Categories.CategoryToInterestsMap[params.category]) {
+                const interests = Categories.CategoryToInterestsMap[params.category];
+                sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
             } else if (Content.interestsMap[`forms.editEvent.categories.${params.category}`]) {
                 // Set a default interests where ever valid
                 const interests = [Content.interestsMap[`forms.editEvent.categories.${params.category}`]];

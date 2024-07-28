@@ -367,6 +367,7 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
                     isForBookmarks: false,
                     shouldIncludeEvents: true,
                     shouldIncludeMoments: true,
+                    translate: this.translate,
                 }, 'distance');
                 const hasRenderedFirstContent = data?.[0]?.distance != null;
                 if (hasRenderedFirstContent) {
@@ -676,6 +677,7 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             shouldIncludeEvents: true,
             shouldIncludeMoments: true,
             shouldIncludeSpaces: false, // spaces are best viewed in the animated preview
+            translate: this.translate,
         }, 'distance');
         const missingMedias: {
             path: string;

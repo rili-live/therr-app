@@ -1,6 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
-import { Content } from 'therr-js-utilities/constants';
+import { Categories, Content } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 import { isTextUnsafe } from '../utilities/contentSafety';
 import UsersStore from './UsersStore';
@@ -383,6 +383,9 @@ export default class ThoughtsStore {
 
         if (params.interestsKeys) {
             sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
+        } else if (params.category && Categories.SpaceCategories.includes(params.category) && Categories.CategoryToInterestsMap[params.category]) {
+            const interests = Categories.CategoryToInterestsMap[params.category];
+            sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
         } else if (Content.interestsMap[`forms.editThought.categories.${params.category}`]) {
             // Set a default interests where ever valid
             const interests = [Content.interestsMap[`forms.editThought.categories.${params.category}`]];

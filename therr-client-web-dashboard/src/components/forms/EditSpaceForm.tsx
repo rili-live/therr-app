@@ -4,20 +4,8 @@ import {
 } from 'react-bootstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
+import { Categories } from 'therr-js-utilities/constants';
 import Dropzone from './Dropzone';
-
-const spaceCategories = [
-    'uncategorized',
-    'restaurant/food',
-    'music/concerts',
-    'storefront/shop',
-    'artwork/expression',
-    'hotels/lodging',
-    'bar/drinks',
-    'marketplace/festival',
-    'nature/parks',
-    'event/space',
-];
 
 interface IEditSpaceFormProps {
     addressTypeAheadResults: any[],
@@ -42,6 +30,7 @@ interface IEditSpaceFormProps {
     onSelectMedia?: (files: any[]) => any;
     submitText: string;
     shouldShowAdvancedFields?: boolean;
+    translate: (key: string, params?: any) => string;
 }
 
 const EditSpaceForm = ({
@@ -57,6 +46,7 @@ const EditSpaceForm = ({
     onSelectMedia,
     submitText,
     shouldShowAdvancedFields,
+    translate,
 }: IEditSpaceFormProps) => {
     const [birthday, setBirthday] = useState('');
 
@@ -137,8 +127,8 @@ const EditSpaceForm = ({
                                             as="select"
                                         >
                                             {
-                                                spaceCategories.map((cat, index) => (
-                                                    <option key={index} value={cat}>{cat}</option>
+                                                Categories.SpaceCategories.map((cat, index) => (
+                                                    <option key={index} value={cat}>{translate(cat)}</option>
                                                 ))
                                             }
                                         </Form.Control>

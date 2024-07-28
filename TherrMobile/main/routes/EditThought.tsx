@@ -7,7 +7,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import RNFB from 'react-native-blob-util';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState } from 'therr-react/types';
-import { Content, FilePaths } from 'therr-js-utilities/constants';
+import { Categories, Content, FilePaths } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -41,25 +41,6 @@ import BottomSheet from '../components/BottomSheet/BottomSheet';
 import TherrIcon from '../components/TherrIcon';
 
 const { width: viewportWidth } = Dimensions.get('window');
-
-// NOTE: When updating this list, be sure to update the MarkerIcon configs to include the new value(s)
-export const thoughtCategories = [
-    'uncategorized',
-    'music',
-    'food',
-    'drinks',
-    'art',
-    'nature',
-    'travel',
-    'fitness',
-    'idea',
-    'nightLife',
-    'geocache',
-    'seasonal',
-    'warning',
-    // 'sports',
-];
-
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: false,
@@ -151,9 +132,9 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
-        this.categoryOptions = thoughtCategories.map((category, index) => ({
+        this.categoryOptions = Categories.ThoughtCategories.map((category: string, index) => ({
             id: index,
-            label: this.translate(`forms.editThought.categories.${category}`),
+            label: this.translate(category),
             value: category,
         }));
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);

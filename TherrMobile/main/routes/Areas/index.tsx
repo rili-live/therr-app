@@ -239,6 +239,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             shouldIncludeThoughts: true,
             shouldIncludeMoments: true,
             shouldIncludeSpaces: true,
+            translate: this.translate,
         }, 'createdAt');
         if (!activeData?.length || activeData.length < 21) {
             this.handleRefresh();
@@ -648,6 +649,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     shouldIncludeMoments: true,
                     // TODO: Include promoted spaces in discoveries
                     shouldIncludeSpaces: false,
+                    translate: this.translate,
                 }, 'reaction.createdAt', categoriesFilter);
 
                 return (
@@ -687,6 +689,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     content,
                     isForBookmarks: false,
                     shouldIncludeThoughts: true,
+                    translate: this.translate,
                 }, 'createdAt', thoughtCategoriesFilter);
 
                 return (
@@ -729,6 +732,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                     shouldIncludeMoments: false,
                     // TODO: Include promoted spaces in discoveries
                     shouldIncludeSpaces: false,
+                    translate: this.translate,
                 }, 'reaction.createdAt', categoriesFilter);
                 return (
                     (<AreaCarousel

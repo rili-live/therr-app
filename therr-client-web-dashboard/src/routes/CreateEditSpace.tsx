@@ -13,7 +13,7 @@ import {
 } from 'react-bootstrap';
 import { MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService, UsersService } from 'therr-react/services';
-import { AccessLevels, Content } from 'therr-js-utilities/constants';
+import { AccessLevels, Categories, Content } from 'therr-js-utilities/constants';
 import {
     IContentState, IMapState as IMapReduxState, IUserState, IUserConnectionsState, AccessCheckType,
 } from 'therr-react/types';
@@ -33,7 +33,7 @@ const getInputDefaults = (space: any) => ({
             label: space?.addressReadable,
         },
     ] : undefined,
-    category: space?.category || 'uncategorized',
+    category: space?.category || Categories.CategoriesMap[1],
     isPublic: space?.isPublic,
     spaceTitle: space?.notificationMsg || '',
     spaceDescription: space?.message || '',
@@ -109,7 +109,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * CreateEditSpace
  */
 export class CreateEditSpaceComponent extends React.Component<ICreateEditSpaceProps, ICreateEditSpaceState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     private throttleTimeoutId: any;
 
@@ -417,6 +417,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                             onSubmit={this.onUpdateSpace}
                             submitText='Update Space'
                             shouldShowAdvancedFields
+                            translate={this.translate}
                         />
                     </Col>
 
