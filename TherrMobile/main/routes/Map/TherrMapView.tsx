@@ -1064,7 +1064,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                             longitude: space.longitude,
                                             latitude: space.latitude,
                                         }}
-                                        radius={Math.abs(idx === areaInPreviewIndex ? focusedAreaRadius : unfocusedAreaRadius)} /* meters */
+                                        radius={idx === areaInPreviewIndex ? focusedAreaRadius : unfocusedAreaRadius} /* meters */
                                         strokeWidth={idx === areaInPreviewIndex ? 2 : 1}
                                         strokeColor={idx === areaInPreviewIndex ? 'rgba(170,10,170, 0.5)' : 'rgba(170,10,170, 0.12)'}
                                         fillColor={idx === areaInPreviewIndex ? 'rgba(170,10,170, 0.35)' : 'rgba(170,10,170, 0.08)'}
@@ -1082,7 +1082,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                         longitude: moment.longitude,
                                         latitude: moment.latitude,
                                     }}
-                                    radius={Math.abs(moment.radius)} /* meters */
+                                    radius={moment.radius} /* meters */
                                     strokeWidth={0}
                                     strokeColor={this.getMomentCircleStrokeColor(moment)}
                                     fillColor={this.getMomentCircleFillColor(moment)}
@@ -1100,7 +1100,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                         longitude: space.longitude,
                                         latitude: space.latitude,
                                     }}
-                                    radius={Math.abs(space.radius)} /* meters */
+                                    radius={space.radius} /* meters */
                                     strokeWidth={0}
                                     strokeColor={this.getSpaceCircleStrokeColor(space)}
                                     fillColor={this.getSpaceCircleFillColor(space)}
