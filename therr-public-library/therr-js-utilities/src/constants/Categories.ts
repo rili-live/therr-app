@@ -19,8 +19,8 @@ const CategoriesMap: {
     15: 'categories.music', // remove
     16: 'categories.deals',
     17: 'categories.fitness', // remove
-    18: 'categories.storefront',
-    19: 'categories.idea', // remove
+    18: 'categories.storefront', // remove
+    19: 'categories.idea',
     20: 'categories.food', // remove
     21: 'categories.nature', // remove
     22: 'categories.travel',

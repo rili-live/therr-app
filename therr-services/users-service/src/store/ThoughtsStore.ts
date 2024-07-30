@@ -383,7 +383,7 @@ export default class ThoughtsStore {
 
         if (params.interestsKeys) {
             sanitizedParams.interestsKeys = JSON.stringify(params.interestsKeys) as any;
-        } else if (params.category && Categories.SpaceCategories.includes(params.category) && Categories.CategoryToInterestsMap[params.category]) {
+        } else if (params.category && Categories.ThoughtCategories.includes(params.category) && Categories.CategoryToInterestsMap[params.category]) {
             const interests = Categories.CategoryToInterestsMap[params.category];
             sanitizedParams.interestsKeys = JSON.stringify(interests) as any;
         } else if (Content.interestsMap[`forms.editThought.categories.${params.category}`]) {
