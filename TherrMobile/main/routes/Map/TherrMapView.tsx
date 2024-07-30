@@ -864,7 +864,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         const animatedOverlayHeight = CARD_HEIGHT
             + this.themeBottomSheet.styles.scrollViewOuterContainer.bottom;
         // This converts degrees to miles then miles to meters (divided by 10)
-        const focusedAreaRadius = ((map?.longitudeDelta || 0) * 69 * 1609.34) / 12;
+        const focusedAreaRadius = Math.abs(((map?.longitudeDelta || 0) * 69 * 1609.34) / 12);
         const unfocusedAreaRadius = focusedAreaRadius / 2;
 
         return (
