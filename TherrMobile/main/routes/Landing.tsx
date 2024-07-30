@@ -71,6 +71,7 @@ const BackgroundOverlay = ({
 );
 
 const ContentOverlay = ({
+    backgroundIndex,
     backgroundText,
     backgroundButtonText,
     onButtonPress,
@@ -98,7 +99,7 @@ const ContentOverlay = ({
         >
             <Text
                 style={[
-                    themeFTUI.styles.landingContentTitle,
+                    backgroundIndex === 2 ? themeFTUI.styles.landingContentTitleSmall : themeFTUI.styles.landingContentTitle,
                     spacingStyles.padHorizLg,
                     {
                         position: 'absolute',
@@ -293,7 +294,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         const { backgroundIndex, backgroundText, backgroundButtonText } = this.state;
         let onButtonPress = (e) => {
             e?.preventDefault();
-            this.navTo('Map');
+            this.navTo('Register');
         };
         let onButtonBackPress = (e) => {
             e?.preventDefault();
@@ -337,6 +338,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                         themeFTUI={this.themeFTUI}
                     />
                     <ContentOverlay
+                        backgroundIndex={backgroundIndex}
                         backgroundText={backgroundText}
                         backgroundButtonText={backgroundButtonText}
                         onButtonPress={onButtonPress}
