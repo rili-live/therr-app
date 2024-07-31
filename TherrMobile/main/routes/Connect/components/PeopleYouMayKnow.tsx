@@ -19,7 +19,6 @@ const PeopleYouMayKnow = ({
     translate,
     user,
 }) => {
-    // TODO: Implement synceMobileContacts
     const [isSyncing, setSyncing] = useState(false);
     const [hasSynced, setHasSynced] = useState(false);
     const [syncStatus, setSyncStatus] = useState('not-synced');
@@ -29,6 +28,7 @@ const PeopleYouMayKnow = ({
 
         setSyncing(true);
 
+        // TODO: Send a websocket event and return list of discovered 'might know' users
         synceMobileContacts({
             storePermissions,
             user,
