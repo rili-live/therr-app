@@ -273,18 +273,23 @@ export default class ThoughtsStore {
             .limit(restrictedLimit);
 
         if (filters.authorId) {
-            // TODO: Also return private posts if users are friends
             query = query.andWhere((builder) => {
-                builder
-                    .andWhere(`${THOUGHTS_TABLE_NAME}.fromUserId`, filters.authorId)
-                    .andWhere(`${THOUGHTS_TABLE_NAME}.isPublic`, true);
+                if (options.isFriend) {
+                    // TODO: Verify this is a non-public option
+                    builder
+                        .andWhere(`${THOUGHTS_TABLE_NAME}.fromUserId`, filters.authorId);
+                } else {
+                    builder
+                        .andWhere(`${THOUGHTS_TABLE_NAME}.fromUserId`, filters.authorId)
+                        .andWhere(`${THOUGHTS_TABLE_NAME}.isPublic`, true);
+                }
             });
         }
 
         // This restricts the query to only return thoughts that are in the list of thoughtIds
         // when the user is not viewing their own thoughts.
         // This ensures a thought is "activated" for the user when they view it.
-        if (!options?.isMe) {
+        if (!options?.isMe && !(options.isFriend && filters.authorId)) {
             query = query.andWhere((builder) => {
                 builder
                     .whereIn(`${THOUGHTS_TABLE_NAME}.id`, thoughtIds || []);
