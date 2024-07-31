@@ -405,7 +405,14 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         isDraft,
     } = req.body;
 
-    return Store.thoughts.find(thoughtIds, {
+    const isFriendPromise = !authorId
+        ? Promise.resolve([])
+        : Store.userConnections.getUserConnections({
+            requestingUserId: userId,
+            acceptingUserId: authorId,
+        }, true);
+
+    return isFriendPromise.then((connections) => Store.thoughts.find(thoughtIds, {
         authorId,
         limit: limit || 21,
         order,
@@ -417,8 +424,9 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         withReplies: !!withReplies,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
         isMe: userId === authorId,
+        isFriend: connections?.[0]?.requestStatus === UserConnectionTypes.COMPLETE,
     })
-        .then(({ thoughts, isLastPage }) => res.status(200).send({ thoughts, isLastPage }))
+        .then(({ thoughts, isLastPage }) => res.status(200).send({ thoughts, isLastPage })))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHTS_ROUTES:ERROR' }));
 };
 

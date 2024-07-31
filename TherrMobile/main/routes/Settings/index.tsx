@@ -183,7 +183,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             settingsPushMarketing: isOptedInToAds,
             settingsPushBackground: isOptedInToAds,
             settingsIsProfilePublic: isProfilePublic,
-            shouldHideMatureContent,
+            shouldHideMatureContent: shouldHideMatureContent === 'false' ? false : true,
         };
 
         if (oldPassword && password === repeatPassword) {
@@ -500,7 +500,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         onPress={this.gotToManagePreferences}>{this.translate('forms.settings.buttons.managePreferences')}</Text>
                                 </Text>
                                 <ReactPicker
-                                    selectedValue={inputs.shouldHideMatureContent}
+                                    selectedValue={inputs.shouldHideMatureContent?.toString()}
                                     style={this.themeForms.styles.picker}
                                     itemStyle={this.themeForms.styles.pickerItem}
                                     onValueChange={(itemValue) =>
@@ -508,10 +508,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }>
                                     <ReactPicker.Item label={this.translate(
                                         'forms.settings.labels.hideReportedContent'
-                                    )} value={true} />
+                                    )} value={'true'} />
                                     <ReactPicker.Item label={this.translate(
                                         'forms.settings.labels.showReportedContent'
-                                    )} value={false} />
+                                    )} value={'false'} />
                                 </ReactPicker>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
