@@ -534,7 +534,7 @@ const findPeopleYouMayKnow: RequestHandler = async (req: any, res: any) => {
         }
     });
 
-    const contactsLimitedForPerformance = contactEmails.slice(0, 250).concat(contactPhones.slice(0, 250));
+    const contactsLimitedForPerformance = contactEmails.slice(0, 500).concat(contactPhones.slice(0, 500));
 
     return Store.users.findUsersByContactInfo(contactsLimitedForPerformance, ['id']).then((users: { id: string; }[]) => {
         // TODO: Add db constraint to prevent requestingUserId equal to acceptingUserId
