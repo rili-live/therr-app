@@ -313,7 +313,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
                         this.setState({
                             isSubmitting: false,
                         });
-                        navigation.navigate(`/spaces/${routeParams.context}`);
+                        navigation.navigate(`/spaces/${routeParams.context || ''}${window?.location?.search}`);
                     }, 1500);
                 });
             }).catch((error) => {
