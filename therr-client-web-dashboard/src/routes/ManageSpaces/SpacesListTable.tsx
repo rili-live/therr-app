@@ -48,9 +48,19 @@ interface ISpacesListTableProps {
     spacesInView: ISpace[];
     editContext: string;
     isLoading: boolean;
+    previousQueryStringParams?: {
+        [key: string]: string;
+    };
+    translate: any;
 }
 
-const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTableProps) => {
+const SpacesListTable = ({
+    spacesInView,
+    editContext,
+    isLoading,
+    previousQueryStringParams,
+    translate,
+}: ISpacesListTableProps) => {
     if (isLoading) {
         return (
             <p className="text-center mt-1">Loading...</p>
@@ -68,6 +78,7 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
             addressReadable,
             notificationMsg,
             mediaIds,
+            medias,
             message,
             category,
             region,
@@ -75,7 +86,16 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
             updatedAt,
         } = space;
         const countryImage = countryImageMap[region];
-        const editSpacePath = editContext === 'admin' ? `/spaces/${id}/edit/${editContext}` : `/spaces/${id}/edit`;
+        let editSpacePath = editContext === 'admin' ? `/spaces/${id}/edit/${editContext}` : `/spaces/${id}/edit`;
+        if (previousQueryStringParams) {
+            const mockUrl = new URL(`https://www.example.com${editSpacePath}`);
+            Object.keys(previousQueryStringParams).forEach((key) => {
+                if (previousQueryStringParams[key]) {
+                    mockUrl.searchParams.append(key, previousQueryStringParams[key]);
+                }
+            });
+            editSpacePath = mockUrl.href.replace('https://www.example.com', '');
+        }
 
         return (
             <tr>
@@ -103,10 +123,10 @@ const SpacesListTable = ({ spacesInView, editContext, isLoading }: ISpacesListTa
                     <Link to={editSpacePath} state={{ space }}>{notificationMsg || '-'}</Link>
                 </td>
                 <td className="fw-bold">
-                    {!!mediaIds && '✓'}
+                    {!!medias?.length && '✓'}
                 </td>
                 <td className="fw-bold">
-                    {category || '-'}
+                    {category ? translate(category) : '-'}
                 </td>
                 <td className="fw-bold">
                     <Card.Link href={`${globalConfig[process.env.NODE_ENV].hostFull}/spaces/${id}`} target="_blank">{addressReadable || '-'}</Card.Link>
