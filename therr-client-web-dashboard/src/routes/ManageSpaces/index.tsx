@@ -40,7 +40,7 @@ import { ISpace } from '../../types';
 import { DEFAULT_COORDINATES, DEFAULT_QUERY_LOCALES } from '../../constants/LocationDefaults';
 import { getWebsiteName } from '../../utilities/getHostContext';
 
-const ItemsPerPage = 10;
+const ItemsPerPage = 20;
 
 interface IManageSpacesRouterProps {
     navigation: {
@@ -108,6 +108,18 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
     constructor(props: IManageSpacesProps) {
         super(props);
 
+        let pageNumber = 1;
+        if (window?.location?.search) {
+            const url = new URL(window?.location?.href);
+            const urlParams = new URLSearchParams(window?.location?.search);
+            pageNumber = parseInt(urlParams.get('page_number'), 10);
+            if (Number.isNaN(pageNumber) || pageNumber === 1) {
+                url.searchParams.delete('page_number');
+                window.history.pushState({}, '', url);
+            }
+            pageNumber = !Number.isNaN(pageNumber) ? Number(pageNumber) : 1;
+        }
+
         this.state = {
             alertIsVisible: false,
             alertVariation: 'success',
@@ -120,7 +132,7 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
             },
             pagination: {
                 itemsPerPage: ItemsPerPage,
-                pageNumber: 1,
+                pageNumber,
             },
             spacesInView: [],
             isLoading: false,
@@ -299,12 +311,32 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
 
     onPageBack = () => {
         const { pagination } = this.state;
-        this.fetchSpaces(pagination.pageNumber - 1, pagination.itemsPerPage);
+        const prevPageNumber = pagination.pageNumber - 1;
+        if (window?.location?.search) {
+            const url = new URL(window?.location?.href);
+            if (prevPageNumber === 1) {
+                url.searchParams.delete('page_number');
+            } else {
+                url.searchParams.set('page_number', prevPageNumber.toString());
+            }
+            window.history.pushState({}, '', url);
+        }
+        this.fetchSpaces(prevPageNumber, pagination.itemsPerPage);
     };
 
     onPageForward = () => {
         const { pagination } = this.state;
-        this.fetchSpaces(pagination.pageNumber + 1, pagination.itemsPerPage);
+        const nextPageNumber = pagination.pageNumber + 1;
+        if (window?.location?.search) {
+            const url = new URL(window?.location?.href);
+            if (nextPageNumber === 1) {
+                url.searchParams.delete('page_number');
+            } else {
+                url.searchParams.set('page_number', nextPageNumber.toString());
+            }
+            window.history.pushState({}, '', url);
+        }
+        this.fetchSpaces(nextPageNumber, pagination.itemsPerPage);
     };
 
     onSubmitError = (errTitle: string, errMsg: string) => {
@@ -350,6 +382,8 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
             isLoading,
         } = this.state;
         const { map, routeParams, user } = this.props;
+        const urlParams = new URLSearchParams(window?.location?.search);
+        const queryLocation = urlParams.get('location');
 
         return (
             <div id="page_settings" className="flex-box column">
@@ -388,6 +422,11 @@ export class ManageSpacesComponent extends React.Component<IManageSpacesProps, I
                                     spacesInView={spacesInView}
                                     editContext={routeParams.context}
                                     isLoading={isLoading}
+                                    previousQueryStringParams={{
+                                        location: queryLocation,
+                                        page_number: pagination.pageNumber.toString(),
+                                    }}
+                                    translate={this.translate}
                                 />
                         }
                         {

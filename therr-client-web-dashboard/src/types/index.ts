@@ -14,6 +14,7 @@ export interface ISpace {
     message: string;
     notificationMsg: string;
     mediaIds: string;
+    medias?: any[];
     mentionsIds: string;
     hashTags: string;
     maxViews: number;
