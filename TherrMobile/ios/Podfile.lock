@@ -1172,11 +1172,11 @@ PODS:
     - React-Core
   - react-native-geolocation-service (5.3.1):
     - React
-  - react-native-google-maps (1.15.2):
+  - react-native-google-maps (1.11.3):
     - Google-Maps-iOS-Utils (= 4.2.2)
     - GoogleMaps (= 7.4.0)
     - React-Core
-  - react-native-maps (1.15.2):
+  - react-native-maps (1.11.3):
     - React-Core
   - react-native-pager-view (6.1.2):
     - React-Core
@@ -1968,8 +1968,8 @@ SPEC CHECKSUMS:
   react-native-contacts: 0aa99963d8f29099d4725cd0d2f8b6ef5f0d9a2d
   react-native-date-picker: 90d1d60802a20085125657940b944f2bb4e5c113
   react-native-geolocation-service: 608e1da71a1ac31b4de64d9ef2815f697978c55b
-  react-native-google-maps: 712561ea5515795b0437c4895c197508958040c7
-  react-native-maps: 3df08c84c698a6f6a98c290a23c138d4706a42da
+  react-native-google-maps: b80d3947411fcf462ec420c3e6122b7fa24beb9a
+  react-native-maps: 79610ffcd0ec2ca8e0cefb48aa8ae7c62a75d7cc
   react-native-pager-view: 54bed894cecebe28cede54c01038d9d1e122de43
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   react-native-webview: 9f111dfbcfc826084d6c507f569e5e03342ee1c1
