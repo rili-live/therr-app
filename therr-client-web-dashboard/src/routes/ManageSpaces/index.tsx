@@ -40,7 +40,7 @@ import { ISpace } from '../../types';
 import { DEFAULT_COORDINATES, DEFAULT_QUERY_LOCALES } from '../../constants/LocationDefaults';
 import { getWebsiteName } from '../../utilities/getHostContext';
 
-const ItemsPerPage = 1;
+const ItemsPerPage = 20;
 
 interface IManageSpacesRouterProps {
     navigation: {
