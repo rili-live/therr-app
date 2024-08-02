@@ -91,8 +91,20 @@ const getUserMetrics = (req, res) => {
         errorCode: ErrorCodes.METRIC_ACCESS_RESTRICTED,
     });
 };
+const getMomentMetrics = (req, res) => {
+    const { momentId } = req.params;
+
+    return Store.userMetrics.countWhere('momentId', momentId)
+        .then(([{ count: viewCount }]) => res.status(200).send({
+            metrics: {
+                viewCount: parseInt(viewCount || '0', 10),
+            },
+        }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USERS_ROUTES:ERROR' }));
+};
 
 export {
     createUserMetric,
+    getMomentMetrics,
     getUserMetrics,
 };
