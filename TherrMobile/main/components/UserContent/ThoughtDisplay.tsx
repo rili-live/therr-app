@@ -315,6 +315,28 @@ const ThoughtContent = ({
                                 ]}
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
+                            {
+                                thought?.viewCount != null &&
+                                <Button
+                                    containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                    buttonStyle={themeViewContent.styles.thoughtReactionButton}
+                                    icon={
+                                        <TherrIcon
+                                            name="bar-chart"
+                                            size={22}
+                                            color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                        />
+                                    }
+                                    onPress={() => {}}
+                                    type="clear"
+                                    title={thought?.viewCount}
+                                    titleStyle={[
+                                        themeViewContent.styles.thoughtReactionButtonTitle,
+                                        { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                    ]}
+                                    TouchableComponent={TouchableWithoutFeedbackComponent}
+                                />
+                            }
                             <Button
                                 containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
                                 buttonStyle={themeViewContent.styles.thoughtReactionButton}
