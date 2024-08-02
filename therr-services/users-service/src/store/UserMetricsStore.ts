@@ -45,7 +45,8 @@ export default class UserMetricsStore {
     }
 
     countWhere(
-        thoughtId: string,
+        dimensionKey: string, // thoughtId, momentId, etc
+        dimensionValue: string,
         conditions = {},
     ) {
         // hard limit to prevent overloading client
@@ -55,7 +56,7 @@ export default class UserMetricsStore {
                 builder.distinct('userId')
                     .from(USER_METRICS_TABLE_NAME)
                     // eslint-disable-next-line quotes
-                    .whereRaw(`dimensions->>'thoughtId' = ?`, [thoughtId])
+                    .whereRaw(`dimensions->>'${dimensionKey}' = ?`, [dimensionValue])
                     .as('sub_query');
             })
             .where(conditions);
