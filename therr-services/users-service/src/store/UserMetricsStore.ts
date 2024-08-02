@@ -44,6 +44,25 @@ export default class UserMetricsStore {
         return this.db.read.query(query.toString()).then((response) => response.rows);
     }
 
+    countWhere(
+        thoughtId: string,
+        conditions = {},
+    ) {
+        // hard limit to prevent overloading client
+        const query = knexBuilder
+            .count()
+            .from((builder: KnexBuilder.Knex<any, any[]>) => {
+                builder.distinct('userId')
+                    .from(USER_METRICS_TABLE_NAME)
+                    // eslint-disable-next-line quotes
+                    .whereRaw(`dimensions->>'thoughtId' = ?`, [thoughtId])
+                    .as('sub_query');
+            })
+            .where(conditions);
+
+        return this.db.read.query(query.toString()).then((response) => response.rows);
+    }
+
     getForDateRange(startDate, endDate, filters) {
         // hard limit to prevent overloading client
         const query = knexBuilder

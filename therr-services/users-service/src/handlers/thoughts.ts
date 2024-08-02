@@ -217,13 +217,15 @@ const getThoughtDetails = (req, res) => {
     const shouldFetchUser = !!withUser;
     const shouldFetchReplies = !!withReplies;
 
-    // TODO: Fetch own reaction or reaction count for own thought ("likeCount")
-    return Store.thoughts.getById(thoughtId, {}, {
-        withUser: shouldFetchUser,
-        withReplies: shouldFetchReplies,
-        shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
-    })
-        .then(async ({ thoughts, users }) => {
+    return Promise.all([
+        Store.thoughts.getById(thoughtId, {}, {
+            withUser: shouldFetchUser,
+            withReplies: shouldFetchReplies,
+            shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
+        }),
+        Store.userMetrics.countWhere(thoughtId),
+    ])
+        .then(async ([{ thoughts, users }, [{ count: viewCount }]]) => {
             if (!thoughts.length) {
                 return handleHttpError({
                     res,
@@ -299,6 +301,7 @@ const getThoughtDetails = (req, res) => {
                         ...thought,
                     };
 
+                    thoughtResult.viewCount = parseInt(viewCount || '0', 10);
                     thoughtResult.likeCount = parseInt(thoughtCounts?.count || '0', 10);
 
                     if (userId && userId !== thought.fromUserId) {
