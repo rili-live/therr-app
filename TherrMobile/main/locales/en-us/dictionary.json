@@ -1330,7 +1330,7 @@
         "unknownError": "Oops! Something went wrong. Try again later",
         "ownSpaceCheckIn": "Cannot check in to own spaces",
         "lowFunds": "Business owner has insufficient funds. We will contact them to request refill",
-        "walkCloser": "Enable location and/or walk closer to activate this moment/space"
+        "walkCloser": "Some content is location activated. Enable location and travel to unlock this post."
       },
       "bottomSheet": {
         "noResults": "No Results"
