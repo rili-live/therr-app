@@ -554,6 +554,28 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     {
                         !area.isDraft &&
                         <>
+                            {
+                                area?.viewCount != null &&
+                                <Button
+                                    containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                                    buttonStyle={themeViewArea.styles.areaReactionButton}
+                                    icon={
+                                        <TherrIcon
+                                            name="bar-chart"
+                                            size={22}
+                                            color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                        />
+                                    }
+                                    onPress={() => {}}
+                                    type="clear"
+                                    title={area?.viewCount}
+                                    titleStyle={[
+                                        themeViewArea.styles.areaReactionButtonTitle,
+                                        { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                    ]}
+                                    TouchableComponent={TouchableWithoutFeedbackComponent}
+                                />
+                            }
                             <Button
                                 containerStyle={themeViewArea.styles.areaReactionButtonContainer}
                                 buttonStyle={themeViewArea.styles.areaReactionButton}
