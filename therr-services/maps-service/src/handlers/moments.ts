@@ -654,13 +654,31 @@ const getMomentDetails = (req, res) => {
     const shouldFetchUser = !!withUser;
 
     // TODO: Fetch own reaction or reaction count for own moment
-    return Store.moments.findMoments([momentId], {
-        limit: 1,
-    }, {
-        withMedia: shouldFetchMedia,
-        withUser: shouldFetchUser,
-    })
-        .then(({ moments, media, users }) => {
+    return Promise.all([
+        Store.moments.findMoments([momentId], {
+            limit: 1,
+        }, {
+            withMedia: shouldFetchMedia,
+            withUser: shouldFetchUser,
+        }),
+        axios({
+            method: 'get',
+            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/metrics/moments/${momentId}`,
+            headers: {
+                authorization: req.headers.authorization,
+                'x-localecode': req.headers['x-localecode'] || 'en-us',
+                'x-userid': userId,
+                'x-therr-origin-host': whiteLabelOrigin,
+            },
+        }),
+    ])
+        .then(([{ moments, media, users }, {
+            data: {
+                metrics: {
+                    viewCount,
+                },
+            },
+        }]) => {
             const moment = moments[0];
             let userHasAccessPromise = () => Promise.resolve(true);
             const isOwnMoment = userId === moment?.fromUserId;
@@ -776,6 +794,7 @@ const getMomentDetails = (req, res) => {
                         }
                     }
 
+                    moment.viewCount = parseInt(viewCount || '0', 10);
                     moment.likeCount = parseInt(momentCount?.count || 0, 10);
                     return res.status(200).send({
                         moment,

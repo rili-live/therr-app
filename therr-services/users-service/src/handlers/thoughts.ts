@@ -223,7 +223,7 @@ const getThoughtDetails = (req, res) => {
             withReplies: shouldFetchReplies,
             shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
         }),
-        Store.userMetrics.countWhere(thoughtId),
+        Store.userMetrics.countWhere('thoughtId', thoughtId),
     ])
         .then(async ([{ thoughts, users }, [{ count: viewCount }]]) => {
             if (!thoughts.length) {
