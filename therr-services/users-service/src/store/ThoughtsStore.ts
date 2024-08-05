@@ -64,18 +64,25 @@ export default class ThoughtsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
-    getRecentThoughts(limit = 1, returning = ['id']) {
-        const queryString = knexBuilder.select(returning)
+    getRecentThoughts(limit = 1, relatedInterestsKeys: string[] = [], returning = ['id']) {
+        const interestsKeysStr = relatedInterestsKeys.map((key) => `'${key}'`).join(',');
+
+        let query = knexBuilder.select(returning)
             .from(THOUGHTS_TABLE_NAME)
-            .where('createdAt', '>', new Date(Date.now() - 1000 * 60 * 60 * 24 * 5)) // 5 days
+            // .where('createdAt', '>', new Date(Date.now() - 1000 * 60 * 60 * 24 * 5)) // 5 days
             .andWhere({
                 isPublic: true,
                 isMatureContent: false,
             })
             .limit(limit)
-            .toString();
+            .orderBy('createdAt', 'desc');
 
-        return this.db.read.query(queryString).then((response) => response.rows);
+        if (relatedInterestsKeys?.length) {
+            // TODO: Test this with various interests lists
+            query = query.whereRaw(`"interestsKeys" \\?| array[${interestsKeysStr}]`);
+        }
+
+        return this.db.read.query(query.toString()).then((response) => response.rows);
     }
 
     // eslint-disable-next-line default-param-last

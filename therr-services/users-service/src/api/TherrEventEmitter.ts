@@ -7,29 +7,53 @@ const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - mi
 class TherrEventEmitter {
     // TODO: Query user interests and create reactions based on those interests
     // eslint-disable-next-line class-methods-use-this
-    public runThoughtReactionDistributorAlgorithm(contextUserId: string, createdAtOrUpdatedAt = 'createdAt', userCount = 1) {
+    public runThoughtDistributorAlgorithm(contextUserIds?: string[], createdAtOrUpdatedAt = 'createdAt', recentUsersCount = 1) {
         const numThoughts = randomIntFromInterval(3, 7);
-        return Store.users.getRecentUsers(userCount, ['id'], createdAtOrUpdatedAt)
-            .then((users) => Store.thoughts.getRecentThoughts(numThoughts).then((thoughts) => {
-                const promises: Promise<any>[] = [];
-                // New reactions for the user who just logged in
-                promises.push(
-                    createReactions(thoughts.map((thought) => thought.id), {
-                        'x-userid': contextUserId,
-                    }),
-                );
-                users
+        const getContextUsersPromise = contextUserIds?.length
+            ? Store.users.findUsersWithInterests({
+                ids: contextUserIds,
+            }, ['id'])
+            : Promise.resolve([]);
+        const getRecentUsersPromise = recentUsersCount > 0
+            ? Store.users.getRecentUsers(recentUsersCount, ['id'], createdAtOrUpdatedAt)
+            : Promise.resolve([]);
+        return Promise.all([
+            getContextUsersPromise,
+            getRecentUsersPromise,
+        ]).then(([
+            contextUsers,
+            recentUsers,
+        ]) => Promise.all([
+            Store.thoughts.getRecentThoughts(numThoughts, contextUsers
+                .reduce((acc, cur) => [...acc, ...(cur?.userInterests || []).map((i: any) => i.displayNameKey)], [])),
+            Store.thoughts.getRecentThoughts(numThoughts),
+        ]).then(([thoughtsForContext, thoughtsForRecent]) => {
+            const promises: Promise<any>[] = [];
+            // If no new thoughts match user interests, fallback to unfiltered thought
+            const contextReactionThoughts = thoughtsForContext?.length ? thoughtsForContext : thoughtsForRecent.slice(0, 1);
+            if (contextReactionThoughts.length) {
+                contextUsers
                     .forEach((user) => {
-                        // Create new reactions for the user who just logged in and several other recent users
                         promises.push(
-                            createReactions(thoughts.map((thought) => thought.id), {
+                            createReactions(contextReactionThoughts.map((thought) => thought.id), {
                                 'x-userid': user.id,
                             }),
                         );
                     });
+            }
+            if (thoughtsForRecent.length) {
+                recentUsers
+                    .forEach((user) => {
+                        promises.push(
+                            createReactions(thoughtsForRecent.map((thought) => thought.id), {
+                                'x-userid': user.id,
+                            }),
+                        );
+                    });
+            }
 
-                return Promise.all(promises);
-            }))
+            return Promise.all(promises);
+        }))
             .catch((err) => {
                 logSpan({
                     level: 'error',

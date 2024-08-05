@@ -5,10 +5,11 @@ import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import normalizeEmail from 'normalize-email';
 import { IConnection } from './connection';
 import {
+    INTERESTS_TABLE_NAME,
     SOCIAL_SYNCS_TABLE_NAME,
     USERS_TABLE_NAME,
     USER_CONNECTIONS_TABLE_NAME,
-    USER_ORGANIZATIONS_TABLE_NAME,
+    USER_INTERESTS_TABLE_NAME,
 } from './tableNames';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
@@ -148,13 +149,68 @@ export default class UsersStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    searchUsers(requestingUserId, {
+    findUsersWithInterests({
         ids,
-        query,
-        queryColumnName,
-        limit,
-        offset,
-    }: ISearchUsersArgs, withConnections = false, onlyVerified = false, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser']) {
+    }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'isSuperUser']) {
+        let queryString: any = knexBuilder
+            .select(returning.map((column) => `${USERS_TABLE_NAME}.${column}`))
+            // .select(returning)
+            .from(USERS_TABLE_NAME)
+            .leftJoin(USER_INTERESTS_TABLE_NAME, (builder) => {
+                // eslint-disable-next-line quotes
+                builder.on(knexBuilder.raw(`("main"."users"."id" = "main"."userInterests"."userId" and "isEnabled" = true)`));
+            })
+            .columns([
+                `${USER_INTERESTS_TABLE_NAME}.id as userInterests[].id`,
+                `${USER_INTERESTS_TABLE_NAME}.userId as userInterests[].userId`,
+                `${USER_INTERESTS_TABLE_NAME}.interestId as userInterests[].interestId`,
+                `${USER_INTERESTS_TABLE_NAME}.score as userInterests[].score`,
+                `${USER_INTERESTS_TABLE_NAME}.engagementCount as userInterests[].engagementCount`,
+            ])
+            .whereIn(`${USERS_TABLE_NAME}.id`, ids || []);
+
+        queryString = queryString.toString();
+
+        return this.db.read.query(queryString).then((response) => {
+            const usersWithInterests = formatSQLJoinAsJSON(response.rows, [{ propKey: 'userInterests', propId: 'id' }]);
+            const interestsIds = usersWithInterests
+                .reduce((acc, cur) => [...acc, ...(cur?.userInterests || []).map((i: any) => i.interestId)], []);
+
+            const interestsQuery: any = knexBuilder
+                .select(['id', 'displayNameKey'])
+                .from(INTERESTS_TABLE_NAME)
+                .whereIn('id', interestsIds);
+
+            return this.db.read.query(interestsQuery.toString()).then((interestsResponse) => {
+                const interestsMap = interestsResponse.rows.reduce((acc, cur) => ({
+                    ...acc,
+                    [cur.id]: cur.displayNameKey,
+                }), {});
+
+                return usersWithInterests.map((user) => ({
+                    ...user,
+                    userInterests: user?.userInterests?.map((userInterest) => ({
+                        ...userInterest,
+                        displayNameKey: interestsMap[userInterest.interestId],
+                    })),
+                }));
+            });
+        });
+    }
+
+    searchUsers(
+        requestingUserId,
+        {
+            ids,
+            query,
+            queryColumnName,
+            limit,
+            offset,
+        }: ISearchUsersArgs,
+        withConnections = false,
+        onlyVerified = false,
+        returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser'],
+    ) {
         const supportedSearchColumns = ['firstName', 'lastName', 'userName'];
         const MAX_LIMIT = 200;
         const throttledLimit = Math.min(limit || 100, MAX_LIMIT);
