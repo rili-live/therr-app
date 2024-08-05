@@ -90,7 +90,7 @@ const login: RequestHandler = (req: any, res: any) => {
                  *
                  * Uses createdAt to target recently created users
                  */
-                TherrEventEmitter.runThoughtReactionDistributorAlgorithm(userSearchResults[0].id, 'createdAt', 3);
+                TherrEventEmitter.runThoughtDistributorAlgorithm([userSearchResults[0].id], 'createdAt', 5);
 
                 if (req.body.isDashboard && !userSearchResults[0].isBusinessAccount) {
                     // TODO: Disallow login to dashboard for non-business users
