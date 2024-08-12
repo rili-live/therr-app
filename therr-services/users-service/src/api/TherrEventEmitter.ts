@@ -8,7 +8,7 @@ class TherrEventEmitter {
     // TODO: Query user interests and create reactions based on those interests
     // eslint-disable-next-line class-methods-use-this
     public runThoughtDistributorAlgorithm(contextUserIds?: string[], createdAtOrUpdatedAt = 'createdAt', recentUsersCount = 1) {
-        const numThoughts = randomIntFromInterval(3, 7);
+        const numThoughts = randomIntFromInterval(7, 20);
         const getContextUsersPromise = contextUserIds?.length
             ? Store.users.findUsersWithInterests({
                 ids: contextUserIds,
