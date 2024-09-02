@@ -52,11 +52,16 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         acceptingUserPhoneNumber,
         acceptingUserEmail,
     } = req.body;
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'];
     const fromUserFullName = `${requestingUserFirstName} ${requestingUserLastName}`;
-    const locale = req.headers['x-localecode'] || 'en-us';
+
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
+
     let acceptingUser: {
         id?: string,
         deviceMobileFirebaseToken?: string;
@@ -113,7 +118,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                         fromName: fromUserFullName,
                         fromEmail: requestingUserEmail,
                         toEmail: acceptingUserEmail,
-                    }, false, locale);
+                    }, false, locale, whiteLabelOrigin, brandVariation);
                 } else {
                     return handleHttpError({
                         res,
@@ -189,6 +194,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     userId,
                     locale,
                     whiteLabelOrigin,
+                    brandVariation,
                 }, {
                     achievementClass: 'socialite',
                     achievementTier: '1_1',
@@ -246,6 +252,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 type: 'new-connection-request',
                 retentionEmailType: PushNotifications.Types.newConnectionRequest,
                 whiteLabelOrigin,
+                brandVariation,
             });
 
             return connectionPromise.then(([userConnection]) => Store.notifications.createNotification({
@@ -296,6 +303,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     let coinRewardsTotal = 0;
 
@@ -357,6 +365,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                 subject: `${requestingUserFirstName} ${requestingUserLastName} invited you to Therr app`,
                 toAddresses: [contact.email],
                 agencyDomainName: whiteLabelOrigin,
+                brandVariation,
             }, {
                 fromName: `${requestingUserFirstName} ${requestingUserLastName}`,
                 fromEmail: requestingUserEmail || '',
@@ -392,6 +401,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                     userId,
                     locale,
                     whiteLabelOrigin,
+                    brandVariation,
                 }, {
                     achievementClass: 'socialite',
                     achievementTier: '1_1',
@@ -488,6 +498,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                         type: 'new-connection-request',
                         retentionEmailType: PushNotifications.Types.newConnectionRequest,
                         whiteLabelOrigin,
+                        brandVariation,
                     });
                 });
 
@@ -574,6 +585,7 @@ const getTopRankedConnections = (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     const {
         groupSize,
@@ -707,6 +719,7 @@ const updateUserConnection = (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     const acceptingUserId = userId;
     const requestingUserId = req.body.otherUserId;
@@ -741,6 +754,7 @@ const updateUserConnection = (req, res) => {
                             userId: getResults[0].requestingUserId,
                             locale,
                             whiteLabelOrigin,
+                            brandVariation,
                         }, {
                             achievementClass: 'socialite',
                             achievementTier: '1_2',
@@ -753,6 +767,7 @@ const updateUserConnection = (req, res) => {
                             userId: getResults[0].acceptingUserId,
                             locale,
                             whiteLabelOrigin,
+                            brandVariation,
                         }, {
                             achievementClass: 'socialite',
                             achievementTier: '1_2',
@@ -778,6 +793,7 @@ const updateUserConnection = (req, res) => {
                     toUserId: getResults[0].acceptingUserId,
                     type: PushNotifications.Types.connectionRequestAccepted,
                     whiteLabelOrigin,
+                    brandVariation,
                 });
             }).catch((err) => {
                 logSpan({
@@ -814,6 +830,7 @@ const updateUserConnectionType = (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     const acceptingUserId = userId;
     const requestingUserId = req.body.otherUserId;
@@ -853,6 +870,7 @@ const incrementUserConnection = (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     const requestingUserId = userId;
 

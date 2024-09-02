@@ -26,6 +26,7 @@ const getUserGroups = (req, res) => Store.userGroups.get({
                 authorization,
                 locale,
                 whiteLabelOrigin,
+                brandVariation,
                 userId,
             } = parseHeaders(req.headers);
 
@@ -96,6 +97,7 @@ const internalCreateUserGroups = (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     const {
         group,
@@ -138,6 +140,7 @@ const internalCreateUserGroups = (req, res) => {
                         authorization,
                         locale,
                         whiteLabelOrigin,
+                        brandVariation,
                     }, {
                         userId: member.userId,
                         type: Notifications.Types.NEW_GROUP_INVITE,
@@ -186,6 +189,7 @@ const createUserGroup = (req, res) => {
         authorization,
         locale,
         whiteLabelOrigin,
+        brandVariation,
         userId,
     } = parseHeaders(req.headers);
     const {
@@ -233,6 +237,7 @@ const createUserGroup = (req, res) => {
                         authorization,
                         locale,
                         whiteLabelOrigin,
+                        brandVariation,
                     }, {
                         userId: group.authorId,
                         type: Notifications.Types.NEW_GROUP_MEMBERS,
@@ -312,6 +317,7 @@ const notifyGroupMembers = (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     const {
         groupId,

@@ -28,6 +28,7 @@ const accessAndModifyCampaign = (
         userActorId: string;
         isAdmin: boolean;
         whiteLabelOrigin: string;
+        brandVariation: string;
     },
     campaignReqBody: any,
     effectiveStatus: CampaignStatuses,
@@ -165,6 +166,7 @@ const accessAndModifyCampaign = (
                                         subject: `Campaign in Review | ${title}`,
                                         toAddresses: [user.email],
                                         agencyDomainName: context.whiteLabelOrigin,
+                                        brandVariation: context.brandVariation,
                                         recipientIdentifiers: {
                                             id: user.id,
                                             accountEmail: user.email,
@@ -182,6 +184,7 @@ const accessAndModifyCampaign = (
                                     subject: '[Urgent Request] User Updated a Campaign',
                                     toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                                     agencyDomainName: context.whiteLabelOrigin,
+                                    brandVariation: context.brandVariation,
                                 }, {
                                     userId: context.userActorId,
                                     campaignDetails: {
@@ -417,6 +420,7 @@ const createCampaign = async (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     const {
@@ -491,6 +495,7 @@ const createCampaign = async (req, res) => {
                 subject: '[Urgent Request] User Created a Campaign',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                 agencyDomainName: whiteLabelOrigin,
+                brandVariation,
             }, {
                 userId,
                 campaignDetails: {
@@ -518,6 +523,7 @@ const updateCampaign = async (req, res) => {
         userId,
         userOrgsAccess,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     const writeAccessOrgIds = getUserOrgsIdsFromHeaders(userOrgsAccess, 'write');
 
@@ -535,6 +541,7 @@ const updateCampaign = async (req, res) => {
             userActorId: userId,
             isAdmin: false,
             whiteLabelOrigin,
+            brandVariation,
         },
         req.body,
         storedStatus,
@@ -568,6 +575,7 @@ const updateCampaignStatus = async (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     const {
@@ -588,6 +596,7 @@ const updateCampaignStatus = async (req, res) => {
                 userActorId: creatorId,
                 isAdmin: true,
                 whiteLabelOrigin,
+                brandVariation,
             },
             campaignExpanded,
             status,
@@ -602,6 +611,7 @@ const updateCampaignStatus = async (req, res) => {
                         subject: 'Campaign Update Approved',
                         toAddresses: [user.email],
                         agencyDomainName: whiteLabelOrigin,
+                        brandVariation,
                         recipientIdentifiers: {
                             id: user.id,
                             accountEmail: user.email,

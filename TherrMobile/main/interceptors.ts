@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { CommonActions } from '@react-navigation/native';
+import { BrandVariations } from 'therr-js-utilities/constants';
 // import { AlertActions } from './library/alerts';
 // import { LoaderActions } from './library/loader';
 import getConfig from './utilities/getConfig';
@@ -22,7 +23,7 @@ const initInterceptors = (
     axios.defaults.baseURL = baseUrl;
     axios.defaults.headers['x-platform'] = 'mobile';
     // NICHE - Set this to app niche
-    axios.defaults.headers['x-brand-variation'] = 'therr';
+    axios.defaults.headers['x-brand-variation'] = BrandVariations.THERR;
 
     // Global axios interceptor
     axios.interceptors.request.use((config) => {

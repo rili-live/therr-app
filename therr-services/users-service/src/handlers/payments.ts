@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import sendAdminUrgentErrorEmail from '../api/email/admin/sendAdminUrgentErrorEmail';
 import { handleSubscriptionCreateUpdate, productIdMap } from './helpers/payment-webhook-handlers';
@@ -10,7 +11,11 @@ import * as globalConfig from '../../../../global-config';
 
 const activateUserSubscription = (req, res) => {
     const { id } = req.params;
-    const userId = req.headers['x-userid'];
+    const {
+        userId,
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
 
     return stripe.checkout.sessions.retrieve(id, {
         expand: ['subscription'],
@@ -65,7 +70,8 @@ const activateUserSubscription = (req, res) => {
         sendAdminUrgentErrorEmail({
             subject: '[Urgent Error] Unknown Error',
             toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-            agencyDomainName: '',
+            agencyDomainName: whiteLabelOrigin,
+            brandVariation,
         }, {
             errorMessage: err?.message,
         }, {});
@@ -155,6 +161,7 @@ const handleWebhookEvents = async (req, res) => {
             subject: '[Urgent Error] Unknown Error',
             toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
             agencyDomainName: globalConfig[process.env.NODE_ENV].dashboardHost,
+            brandVariation: '',
         }, {
             errorMessage: err?.message,
         }, {

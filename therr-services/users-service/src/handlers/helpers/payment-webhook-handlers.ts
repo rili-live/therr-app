@@ -13,19 +13,23 @@ export const productIdMap: {
     [key: string]: {
         accessLevel: string;
         domain: string;
+        brandVariation: string;
     }
 } = {
     prod_OK9dEHmueTGDZ1: {
         accessLevel: AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
         domain: globalConfig[process.env.NODE_ENV].dashboardHost,
+        brandVariation: 'dashboard-therr',
     },
     prod_OK9e5d2awEPukG: {
         accessLevel: AccessLevels.DASHBOARD_SUBSCRIBER_PREMIUM,
         domain: globalConfig[process.env.NODE_ENV].dashboardHost,
+        brandVariation: 'dashboard-therr',
     },
     prod_OK9f7dJp7rtPB8: {
         accessLevel: AccessLevels.DASHBOARD_SUBSCRIBER_BASIC,
         domain: globalConfig[process.env.NODE_ENV].dashboardHost,
+        brandVariation: 'dashboard-therr',
     },
 };
 
@@ -62,6 +66,7 @@ const handleSubscriptionCreateUpdate = async (event) => {
                     subject: 'Free Trial Activated: Therr for Business',
                     toAddresses: [normedEmail],
                     agencyDomainName: productIdMap[eventObject.product?.id]?.domain || '',
+                    brandVariation: productIdMap[eventObject.product?.id]?.brandVariation || 'dashboard-therr',
                     recipientIdentifiers: {
                         id: user.id,
                         accountEmail: user.email,
@@ -88,6 +93,7 @@ const handleSubscriptionCreateUpdate = async (event) => {
                     subject: 'Subscriber Missing Email | Not Found',
                     toAddresses: [normedEmail, process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                     agencyDomainName: productIdMap[product.id].domain,
+                    brandVariation: productIdMap[eventObject.product?.id]?.brandVariation,
                     recipientIdentifiers: {
                         id: user.id,
                         accountEmail: user.email,
@@ -107,6 +113,7 @@ const handleSubscriptionCreateUpdate = async (event) => {
         subject: '[New Subscriber] New Dashboard Payment',
         toAddresses: [],
         agencyDomainName: productIdMap[eventObject.product?.id]?.domain || '',
+        brandVariation: productIdMap[eventObject.product?.id]?.brandVariation,
     }, {
         customerEmail: normedEmail,
     }, {

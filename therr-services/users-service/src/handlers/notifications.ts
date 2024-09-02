@@ -28,12 +28,14 @@ const createNotification = (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     return notifyUserOfUpdate({
         authorization: req.headers.authorization,
         locale,
         whiteLabelOrigin,
+        brandVariation,
     }, {
         userId: req.body.userId,
         type: req.body.type, // DB Notification type
