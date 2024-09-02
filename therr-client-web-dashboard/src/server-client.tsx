@@ -22,6 +22,7 @@ import * as globalConfig from '../../global-config';
 
 axios.defaults.baseURL = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute;
 axios.defaults.headers['x-platform'] = 'desktop';
+axios.defaults.headers['x-brand-variation'] = 'dashboard-therr';
 
 // TODO: RFRONT-9: Fix window is undefined hack?
 /* eslint-disable */
