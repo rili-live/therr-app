@@ -2,6 +2,7 @@ const parseHeaders = (headers: { [key: string]: any }) => {
     const authorization = headers.authorization;
     const locale = headers['x-localecode'] || 'en-us';
     const platform = headers['x-platform'] || '';
+    const brandVariation = headers['x-brand-variation'] || '';
     const requestId = headers['x-requestid'] || '';
     let userAccessLevels = [];
     const userDeviceToken = headers['x-user-device-token'] || '';
@@ -21,6 +22,7 @@ const parseHeaders = (headers: { [key: string]: any }) => {
         authorization,
         locale,
         platform,
+        brandVariation,
         requestId,
         userAccessLevels,
         userDeviceToken,

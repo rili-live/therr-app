@@ -23,6 +23,7 @@ import getUserContentUri from './utilities/getUserContentUri';
 
 axios.defaults.baseURL = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute;
 axios.defaults.headers['x-platform'] = 'desktop';
+axios.defaults.headers['x-brand-variation'] = 'therr';
 
 // TODO: RFRONT-9: Fix window is undefined hack?
 /* eslint-disable */

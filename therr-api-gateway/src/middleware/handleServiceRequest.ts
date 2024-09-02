@@ -23,6 +23,7 @@ const handleServiceRequest = ({
             'x-requestid': uuidv4(),
             'x-localecode': req.headers['x-localecode'] || '',
             'x-platform': req.headers['x-platform'] || '',
+            'x-brand-variation': req.headers['x-brand-variation'] || '',
             'x-user-device-token': req.headers['x-user-device-token'] || '',
             // (securely) Tacked on from JWT decode
             'x-userid': req.headers['x-userid'] || req['x-userid'] || '',

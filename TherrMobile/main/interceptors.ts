@@ -21,6 +21,8 @@ const initInterceptors = (
     // Global axios config
     axios.defaults.baseURL = baseUrl;
     axios.defaults.headers['x-platform'] = 'mobile';
+    // NICHE - Set this to app niche
+    axios.defaults.headers['x-brand-variation'] = 'therr';
 
     // Global axios interceptor
     axios.interceptors.request.use((config) => {
