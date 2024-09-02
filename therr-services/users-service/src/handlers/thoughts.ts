@@ -26,6 +26,7 @@ const createThought = async (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     const isDuplicate = await Store.thoughts.get({
@@ -79,6 +80,7 @@ const createThought = async (req, res) => {
                                 userId: parentThought.fromUserId,
                                 locale,
                                 whiteLabelOrigin,
+                                brandVariation,
                             }, {
                                 achievementClass: 'thinker',
                                 achievementTier: '1_2',
@@ -124,6 +126,7 @@ const createThought = async (req, res) => {
                             authorization,
                             locale,
                             whiteLabelOrigin,
+                            brandVariation,
                         }, {
                             userId: thoughts[0].fromUserId, // Notify parent thought's author
                             type: Notifications.Types.THOUGHT_REPLY,
@@ -166,6 +169,7 @@ const createThought = async (req, res) => {
                     userId,
                     locale,
                     whiteLabelOrigin,
+                    brandVariation,
                 }, {
                     achievementClass: 'thinker',
                     achievementTier: '1_1',
@@ -323,6 +327,7 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
     const {
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     const {
         // filterBy,

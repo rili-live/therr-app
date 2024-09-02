@@ -12,6 +12,7 @@ const createUpdateUserInterests = async (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     const {
@@ -49,6 +50,7 @@ const getUserInterests = (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     const isMeRoute = req.path.includes('/me');
@@ -70,6 +72,7 @@ const incrementUserInterests = (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     if (!userId) {

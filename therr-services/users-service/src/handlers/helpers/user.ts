@@ -239,6 +239,7 @@ const createUserHelper = (
     hasInviteCode = false,
     locale = 'en-us',
     whiteLabelOrigin = '',
+    brandVariation = '',
 ) => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
@@ -302,6 +303,7 @@ const createUserHelper = (
                     userId: user.id,
                     locale,
                     whiteLabelOrigin,
+                    brandVariation,
                 }, {
                     achievementClass: 'communityLeader',
                     achievementTier: '1_1',
@@ -423,6 +425,7 @@ const createUserHelper = (
                             subject: userByInviteDetails ? '[New User] New User Registration by Invite' : '[New User] New User Registration',
                             toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                             agencyDomainName: whiteLabelOrigin,
+                            brandVariation,
                         }, {
                             name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
                             inviterEmail: userByInviteDetails?.fromEmail || '',
@@ -437,7 +440,7 @@ const createUserHelper = (
                                 subject: '[Account Created] Therr One-Time Password',
                                 toAddresses: [userDetails.email],
                                 agencyDomainName: whiteLabelOrigin,
-
+                                brandVariation,
                             }, {
                                 name: userDetails.email,
                                 oneTimePassword: otPassword,
@@ -448,6 +451,7 @@ const createUserHelper = (
                             subject: `${userByInviteDetails?.fromName} Invited You to Therr app`,
                             toAddresses: [userByInviteDetails?.toEmail || ''],
                             agencyDomainName: whiteLabelOrigin,
+                            brandVariation,
                         }, {
                             fromName: userByInviteDetails?.fromName || '',
                             fromEmail: userByInviteDetails?.fromEmail || '',
@@ -464,6 +468,7 @@ const createUserHelper = (
                 subject: '[New User] New User Registration',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                 agencyDomainName: whiteLabelOrigin,
+                brandVariation,
             }, {
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
             }, {
@@ -478,6 +483,7 @@ const createUserHelper = (
                 subject: '[Account Verification] Therr User Account',
                 toAddresses: [userDetails.email],
                 agencyDomainName: whiteLabelOrigin,
+                brandVariation,
             }, {
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
                 verificationCodeToken: codeDetails.token,
@@ -496,6 +502,7 @@ const createUserHelper = (
 interface IValidateCredentials {
     locale: string;
     whiteLabelOrigin?: string;
+    brandVariation?: string;
     reqBody: {
         isSSO: boolean;
         isDashboard?: boolean;
@@ -515,6 +522,7 @@ interface IValidateCredentials {
 const validateCredentials = (userSearchResults, {
     locale,
     whiteLabelOrigin,
+    brandVariation,
     reqBody,
 }: IValidateCredentials, res) => {
     if (reqBody.isSSO) {
@@ -585,7 +593,7 @@ const validateCredentials = (userSearchResults, {
                         firstName: reqBody.userFirstName || fbUserFirstName,
                         lastName: reqBody.userLastName || fbUserLastName,
                         phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
-                    }, true, undefined, false, locale, whiteLabelOrigin).then((user) => [true, user, response]);
+                    }, true, undefined, false, locale, whiteLabelOrigin, brandVariation).then((user) => [true, user, response]);
                 }
             }
 

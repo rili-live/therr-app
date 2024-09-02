@@ -7,6 +7,7 @@ export interface ISendCoinsReceivedEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
     recipientIdentifiers: {
         id: string;
         accountEmail: string;

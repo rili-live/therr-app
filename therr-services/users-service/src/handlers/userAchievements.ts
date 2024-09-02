@@ -13,6 +13,7 @@ const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: an
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     const {
         achievementClass,
@@ -33,6 +34,7 @@ const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: an
         userId,
         locale,
         whiteLabelOrigin,
+        brandVariation,
     }, {
         achievementClass,
         achievementTier,

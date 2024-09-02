@@ -13,7 +13,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import printLogs from 'therr-js-utilities/print-logs';
 import serialize from 'serialize-javascript';
-import { Content } from 'therr-js-utilities/constants';
+import { BrandVariations, Content } from 'therr-js-utilities/constants';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
@@ -23,7 +23,7 @@ import getUserContentUri from './utilities/getUserContentUri';
 
 axios.defaults.baseURL = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute;
 axios.defaults.headers['x-platform'] = 'desktop';
-axios.defaults.headers['x-brand-variation'] = 'therr';
+axios.defaults.headers['x-brand-variation'] = BrandVariations.THERR;
 
 // TODO: RFRONT-9: Fix window is undefined hack?
 /* eslint-disable */

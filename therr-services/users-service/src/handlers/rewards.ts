@@ -1,5 +1,6 @@
 import { CurrencyTransactionMessages, ErrorCodes } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { parseHeaders } from 'therr-js-utilities/http';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import sendRewardsExchangeEmail from '../api/email/admin/sendRewardsExchangeEmail';
@@ -38,8 +39,11 @@ const fetchExchangeRate = () => Store.users.sumTotalCoins()
     });
 
 const requestRewardsExchange = (req, res) => {
-    const userId = req.headers['x-userid'] as string;
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        userId,
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
 
     return Store.users.getUserById(userId, ['userName', 'email', 'settingsTherrCoinTotal']).then(([user]) => {
         if (!user) {
@@ -68,6 +72,7 @@ const requestRewardsExchange = (req, res) => {
                     subject: '[Rewards Requested] Coin Exchange',
                     toAddresses: [],
                     agencyDomainName: whiteLabelOrigin,
+                    brandVariation,
                 }, {
                     amount: req.body.amount || user.settingsTherrCoinTotal,
                     exchangeRate,
@@ -101,7 +106,11 @@ const getCurrentExchangeRate = (req, res) => {
 };
 
 const transferCoins = (req, res) => {
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        userId,
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
 
     const {
         fromUserId, toUserId, amount, spaceId, spaceName,
@@ -127,6 +136,7 @@ const transferCoins = (req, res) => {
                                 subject: `[Insufficient Coins] Request for ${amount} TherrCoin(s) rejected!`,
                                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS],
                                 agencyDomainName: whiteLabelOrigin,
+                                brandVariation,
                             }, {
                                 coinTotal: amount,
                                 userName,
@@ -161,6 +171,7 @@ const transferCoins = (req, res) => {
                         subject: `[Coins Received] You earned ${amount} TherrCoin(s)!`,
                         toAddresses: [email],
                         agencyDomainName: whiteLabelOrigin,
+                        brandVariation,
                         recipientIdentifiers: {
                             id,
                             accountEmail: email,

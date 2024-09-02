@@ -9,6 +9,7 @@ export interface ISendCampaignApprovedEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
     recipientIdentifiers: {
         id: string;
         accountEmail: string;
@@ -21,7 +22,7 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendCampaignApprovedEmailConfig, templateParams: ITemplateParams) => {
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const dearUser = `${contextConfig.brandGreeting},`;
     const htmlConfig = {

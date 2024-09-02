@@ -17,6 +17,7 @@ export interface ISendEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
     recipientIdentifiers?: {
         id: string;
         accountEmail: string;
@@ -67,7 +68,7 @@ export default (
     htmlConfig: ISendEmailHtmlConfig,
     template: Handlebars.TemplateDelegate = defaultTherrEmailTemplate,
 ) => new Promise((resolve, reject) => {
-    const contextConfig = getHostContext(emailConfig.agencyDomainName);
+    const contextConfig = getHostContext(emailConfig.agencyDomainName, emailConfig.brandVariation);
     let unsubscribeUrl = htmlConfig.unsubscribeUrl || contextConfig.emailTemplates.unsubscribeUrl;
     // TODO: Generate user email token based on host context
     const unsubscribeUrlToken = unsubscribeUrl && emailConfig.recipientIdentifiers

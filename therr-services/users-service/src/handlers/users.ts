@@ -30,6 +30,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
     const {
         locale,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     const {
@@ -80,6 +81,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                             subject: '[Urgent Error] Bad Activation Code',
                             toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                             agencyDomainName: whiteLabelOrigin,
+                            brandVariation,
                         }, {
                             errorMessage: 'Activation Code already used',
                         }, {
@@ -101,7 +103,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                                 subject: '[Urgent Error] Activation Code Error',
                                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                                 agencyDomainName: whiteLabelOrigin,
-
+                                brandVariation,
                             }, {
                                 errorMessage: `Failed to update activation code: ${err?.message}`,
                             }, {
@@ -116,7 +118,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         subject: '[Urgent Error] Bad Activation Code',
                         toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                         agencyDomainName: whiteLabelOrigin,
-
+                        brandVariation,
                     }, {
                         errorMessage: 'Activation code not found',
                     }, {
@@ -130,6 +132,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                         subject: '[Urgent Error] Bad Activation Code',
                         toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                         agencyDomainName: whiteLabelOrigin,
+                        brandVariation,
                     }, {
                         errorMessage: `Error fetching activation codes: ${err?.message}`,
                     }, {
@@ -153,6 +156,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                             userId: inviter[0].id,
                             locale,
                             whiteLabelOrigin,
+                            brandVariation,
                         }, {
                             achievementClass: 'communityLeader',
                             achievementTier: '1_1',
@@ -185,7 +189,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 phoneNumber: req.body.phoneNumber,
                 userName: req.body.userName,
                 accessLevels: levels,
-            }, false, undefined, !!inviteCode, req.headers['x-localecode'], whiteLabelOrigin).then((user) => res.status(201).send(user)));
+            }, false, undefined, !!inviteCode, req.headers['x-localecode'], whiteLabelOrigin, brandVariation).then((user) => res.status(201).send(user)));
         })
         .catch((err) => {
             if (err?.message === 'invalid-password') {
@@ -454,6 +458,7 @@ const updateUser = (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     return Store.users.getUserById(userId)
@@ -498,6 +503,7 @@ const updateUser = (req, res) => {
                     newPassword: password,
                     userId,
                     whiteLabelOrigin,
+                    brandVariation,
                 }).catch((e) => {
                     logSpan({
                         level: 'error',
@@ -732,6 +738,7 @@ const updateUserCoins = (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     return Store.users.getUserById(userId)
@@ -768,6 +775,7 @@ const updateUserCoins = (req, res) => {
                     newPassword: password,
                     userId,
                     whiteLabelOrigin,
+                    brandVariation,
                 }).catch((e) => {
                     logSpan({
                         level: 'error',
@@ -895,6 +903,7 @@ const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers[
             locale,
             userId,
             whiteLabelOrigin,
+            brandVariation,
         } = parseHeaders(req.headers);
         const {
             email,
@@ -923,6 +932,7 @@ const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers[
             newPassword,
             userId,
             whiteLabelOrigin,
+            brandVariation,
         })
             .then(() => res.status(204).send())
             .catch(() => handleHttpError({
@@ -939,6 +949,7 @@ const deleteUser = (req, res) => {
         userName,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     // User should only be able to delete self
@@ -963,6 +974,7 @@ const deleteUser = (req, res) => {
                 subject: '😞 User Account Deleted',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                 agencyDomainName: whiteLabelOrigin,
+                brandVariation,
             }, {
                 userDetails: {
                     id: userId,
@@ -981,6 +993,7 @@ const deleteUser = (req, res) => {
 const createOneTimePassword = (req, res) => {
     const {
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     const { email, isDashboardRegistration } = req.body;
 
@@ -1007,6 +1020,7 @@ const createOneTimePassword = (req, res) => {
                     subject: '[Forgot Password?] Therr One-Time Password',
                     toAddresses: [email],
                     agencyDomainName: whiteLabelOrigin,
+                    brandVariation,
                 }, {
                     name: email,
                     oneTimePassword: otPassword,
@@ -1108,6 +1122,7 @@ const verifyUserAccount = (req, res) => {
 const resendVerification: RequestHandler = (req: any, res: any) => {
     const {
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: req.body.email, type: req.body.type });
@@ -1154,6 +1169,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
                         subject: '[Account Verification] Therr User Account',
                         toAddresses: [req.body.email],
                         agencyDomainName: whiteLabelOrigin,
+                        brandVariation,
                     }, {
                         name: users[0].firstName && users[0].lastName ? `${users[0].firstName} ${users[0].lastName}` : users[0].email,
                         verificationCodeToken: codeDetails.token,
@@ -1177,6 +1193,7 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
     const {
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     // TODO: Supply user agent to determine if web or mobile
     const {
@@ -1205,6 +1222,7 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
                     subject: 'Business Space Request in Review',
                     toAddresses: [users[0].email],
                     agencyDomainName: whiteLabelOrigin,
+                    brandVariation,
                     recipientIdentifiers: {
                         id: users[0].id,
                         accountEmail: users[0].email,
@@ -1216,6 +1234,7 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
                     subject: '[Urgent Request] User Claimed a Space',
                     toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                     agencyDomainName: whiteLabelOrigin,
+                    brandVariation,
                 }, {
                     address,
                     longitude,
@@ -1246,6 +1265,7 @@ const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
         locale,
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
     // TODO: Supply user agent to determine if web or mobile
     const {
@@ -1276,6 +1296,7 @@ const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
                 subject: 'Approved: Business Space Request',
                 toAddresses: [users[0].email],
                 agencyDomainName: whiteLabelOrigin,
+                brandVariation,
                 recipientIdentifiers: {
                     id: users[0].id,
                     accountEmail: users[0].email,

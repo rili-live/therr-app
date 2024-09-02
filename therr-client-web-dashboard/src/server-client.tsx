@@ -13,6 +13,7 @@ import LogRocket from 'logrocket';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import printLogs from 'therr-js-utilities/print-logs';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import serialize from 'serialize-javascript';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
@@ -22,7 +23,7 @@ import * as globalConfig from '../../global-config';
 
 axios.defaults.baseURL = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute;
 axios.defaults.headers['x-platform'] = 'desktop';
-axios.defaults.headers['x-brand-variation'] = 'dashboard-therr';
+axios.defaults.headers['x-brand-variation'] = BrandVariations.DASHBOARD_THERR;
 
 // TODO: RFRONT-9: Fix window is undefined hack?
 /* eslint-disable */

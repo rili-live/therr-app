@@ -8,6 +8,7 @@ export interface ISendSubscriberVerificationEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
 }
 
 interface ITemplateParams {
@@ -18,7 +19,7 @@ interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendSubscriberVerificationEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const htmlConfig = {
         header: `${contextConfig.brandName}: Subscribed to Updates`,

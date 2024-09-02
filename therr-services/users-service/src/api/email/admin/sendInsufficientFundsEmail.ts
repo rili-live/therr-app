@@ -7,6 +7,7 @@ export interface ISendInsufficientFundsEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
 }
 
 export interface ITemplateParams {

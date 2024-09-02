@@ -8,6 +8,7 @@ export interface ISendPendingInviteEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
     recipientIdentifiers: {
         id: string;
         accountEmail: string;
@@ -25,7 +26,7 @@ export default (emailParams: ISendPendingInviteEmailConfig, templateParams: ITem
         return Promise.resolve({});
     }
 
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const htmlConfig = {
         header: 'New Connection Request',

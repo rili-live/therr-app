@@ -8,6 +8,7 @@ export interface ISendPasswordChangeEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
 }
 
 export interface ITemplateParams {
@@ -17,7 +18,7 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendPasswordChangeEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const htmlConfig = {
         header: `${contextConfig.brandName}: Password Changed`,

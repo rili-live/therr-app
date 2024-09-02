@@ -8,6 +8,7 @@ export interface ISendNewGroupInviteEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
     recipientIdentifiers: {
         id: string;
         accountEmail: string;
@@ -27,7 +28,7 @@ export default (emailParams: ISendNewGroupInviteEmailConfig, templateParams: ITe
         return Promise.resolve({});
     }
 
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const htmlConfig = {
         header: 'New Group Invite',

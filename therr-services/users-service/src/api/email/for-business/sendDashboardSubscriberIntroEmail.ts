@@ -8,6 +8,7 @@ export interface ISendDashboardSubscriberIntroEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
     recipientIdentifiers: {
         id: string;
         accountEmail: string;
@@ -20,7 +21,7 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendDashboardSubscriberIntroEmailConfig, templateParams: ITemplateParams) => {
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const linkUrl = `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/login`;
     const productPlanName = templateParams.productName || 'Business Marketing & Customer Metrics';
