@@ -155,7 +155,7 @@ const hostContext: IBrandConfigs = {
     },
 };
 
-export const getHostContext = (host: string) => {
+export const getHostContext = (host: string, brandVariation?: string) => {
     if (!host) {
         return hostContext['therr.com'];
     }

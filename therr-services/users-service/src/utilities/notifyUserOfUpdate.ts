@@ -7,6 +7,7 @@ interface IHeaders {
     authorization: string;
     locale: string;
     whiteLabelOrigin: string;
+    brandVariation: string;
 }
 
 interface IEmailAndPushParams {
@@ -87,6 +88,7 @@ export default (
                     toUserId: emailAndPushParams.toUserId,
                     type: pushNotificationType,
                     whiteLabelOrigin: headers.whiteLabelOrigin,
+                    brandVariation: headers.brandVariation,
                     retentionEmailType: emailAndPushParams.retentionEmailType,
                     groupName: emailAndPushParams.groupName,
                     groupId: emailAndPushParams.groupId,

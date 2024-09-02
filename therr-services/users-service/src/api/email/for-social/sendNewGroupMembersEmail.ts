@@ -8,6 +8,7 @@ export interface ISendNewGroupMembersEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
     recipientIdentifiers: {
         id: string;
         accountEmail: string;
@@ -27,7 +28,7 @@ export default (emailParams: ISendNewGroupMembersEmailConfig, templateParams: IT
         return Promise.resolve({});
     }
 
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const htmlConfig = {
         header: 'New Member(s) Joined Your Group!',

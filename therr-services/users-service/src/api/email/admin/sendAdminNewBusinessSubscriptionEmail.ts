@@ -7,6 +7,7 @@ export interface ISendAdminNewBusinessSubscriptionEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
 }
 
 export interface ITemplateParams {
@@ -22,7 +23,7 @@ export interface IAccountTypeParams {
 }
 
 export default (emailParams: ISendAdminNewBusinessSubscriptionEmailConfig, templateParams: ITemplateParams, orderDetails: IAccountTypeParams) => {
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const otherEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',');
     const dearUser = `Welcome the new business dashboard subscriber, ${templateParams.customerEmail}`;

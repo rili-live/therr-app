@@ -19,6 +19,7 @@ interface ISendPushNotification {
     type: any;
     retentionEmailType?: PushNotifications.Types;
     whiteLabelOrigin: string;
+    brandVariation: string;
 }
 
 interface ISendPushNotificationAndOrEmailConfig {
@@ -45,6 +46,7 @@ export default (
         type,
         retentionEmailType,
         whiteLabelOrigin,
+        brandVariation,
     }: ISendPushNotification,
     config: ISendPushNotificationAndOrEmailConfig = {
         shouldSendPushNotification: true,
@@ -68,6 +70,7 @@ export default (
                         subject: `[New Connection Request] ${fromUserName} sent you a request`,
                         toAddresses: [destinationUser.email],
                         agencyDomainName: whiteLabelOrigin,
+                        brandVariation,
                         recipientIdentifiers: {
                             id: toUserId,
                             accountEmail: destinationUser.email,
@@ -92,6 +95,7 @@ export default (
                     subject: 'New Member(s) Joined Your Group!',
                     toAddresses: [destinationUser.email],
                     agencyDomainName: whiteLabelOrigin,
+                    brandVariation,
                     recipientIdentifiers: {
                         id: toUserId,
                         accountEmail: destinationUser.email,
@@ -108,6 +112,7 @@ export default (
                     subject: `${fromUserName} invited you to join the Group, ${groupName}`,
                     toAddresses: [destinationUser.email],
                     agencyDomainName: whiteLabelOrigin,
+                    brandVariation,
                     recipientIdentifiers: {
                         id: toUserId,
                         accountEmail: destinationUser.email,

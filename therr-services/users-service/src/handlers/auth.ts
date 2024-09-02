@@ -3,6 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import { AccessLevels, CurrentSocialValuations, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
+import { parseHeaders } from 'therr-js-utilities/http';
 import normalizeEmail from 'normalize-email';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -38,9 +39,13 @@ const basicHash = (input: string) => {
 
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => {
-    const authHeader = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        authorization: authHeader,
+        locale,
+        userId,
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
 
     // const { paymentSessionId } = req.body;
     // TODO: Use paymentSessionId to fetch subscription details and add accessLevels to user
@@ -81,8 +86,6 @@ const login: RequestHandler = (req: any, res: any) => {
 
     return getUsersPromise
         .then((userSearchResults) => {
-            const locale = req.headers['x-localecode'] || 'en-us';
-
             if (userSearchResults.length) {
                 /**
                  * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
@@ -134,6 +137,7 @@ const login: RequestHandler = (req: any, res: any) => {
             return validateCredentials(userSearchResults, {
                 locale,
                 whiteLabelOrigin,
+                brandVariation,
                 reqBody: {
                     isSSO: req.body.isSSO,
                     isDashboard: req.body.isDashboard,

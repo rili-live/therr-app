@@ -4,6 +4,7 @@ import axios from 'axios';
 import qs from 'qs';
 import FormData from 'form-data';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { parseHeaders } from 'therr-js-utilities/http';
 // import { ErrorCodes } from 'therr-js-utilities/constants';
 import handleHttpError from '../utilities/handleHttpError';
 import sendSocialSyncAdminNotificationEmail from '../api/email/admin/sendSocialSyncAdminNotificationEmail';
@@ -164,8 +165,11 @@ export const getMappedSocialSyncResults = (isMe: boolean, results: any[]) => {
 
 // CREATE
 const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
-    const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        userId,
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
     const socialPlatformPromises: Promise<any>[] = [];
     const { syncs } = req.body;
 
@@ -177,6 +181,7 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
                     subject: key === 'instagram' ? 'New IG Social Sync' : 'New FB-IG Social Sync',
                     toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                     agencyDomainName: whiteLabelOrigin,
+                    brandVariation,
                 }, {
                     userId,
                 });

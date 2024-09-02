@@ -9,6 +9,7 @@ export interface ISendClaimPendingReviewEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
     recipientIdentifiers: {
         id: string;
         accountEmail: string;
@@ -20,7 +21,7 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendClaimPendingReviewEmailConfig, templateParams: ITemplateParams) => {
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const dearUser = `${contextConfig.brandGreeting},`;
     const htmlConfig = {

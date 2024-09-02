@@ -2,6 +2,7 @@ import axios from 'axios';
 // import { AlertActions } from './library/alerts';
 // import { LoaderActions } from './library/loader';
 import { NavigateFunction } from 'react-router-dom';
+import { BrandVariations } from 'therr-js-utilities/constants';
 import store from './store';
 import * as globalConfig from '../../global-config';
 import UsersActions from './redux/actions/UsersActions';
@@ -21,7 +22,7 @@ const initInterceptors = (
     // Global axios config
     axios.defaults.baseURL = baseUrl;
     axios.defaults.headers['x-platform'] = 'desktop';
-    axios.defaults.headers['x-brand-variation'] = 'dashboard-therr';
+    axios.defaults.headers['x-brand-variation'] = BrandVariations.DASHBOARD_THERR;
 
     // Global axios interceptor
     axios.interceptors.request.use((config) => {

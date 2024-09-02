@@ -13,6 +13,7 @@ const getSubscriptionSettings: RequestHandler = (req: any, res: any) => {
     const {
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     return Store.users.findUser({
@@ -60,13 +61,17 @@ const getSubscriptionSettings: RequestHandler = (req: any, res: any) => {
 
 // CREATE
 const createFeedback: RequestHandler = (req: any, res: any) => {
-    const fromUserId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        userId: fromUserId,
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
 
     return sendUserFeedbackEmail({
         subject: '[Therr] New User Feedback',
         toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
         agencyDomainName: whiteLabelOrigin,
+        brandVariation,
     }, {
         fromUserId,
         feedback: req.body.feedback,
@@ -87,7 +92,10 @@ const createFeedback: RequestHandler = (req: any, res: any) => {
 };
 
 const createSubscriber: RequestHandler = (req: any, res: any) => {
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        whiteLabelOrigin,
+        brandVariation,
+    } = parseHeaders(req.headers);
 
     if (!req.body.email) {
         return handleHttpError({
@@ -114,6 +122,7 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
                     subject: '[Therr] Subscribed to General Updates',
                     toAddresses: [req.body.email],
                     agencyDomainName: whiteLabelOrigin,
+                    brandVariation,
                 }, {}).catch((error) => {
                     logSpan({
                         level: 'error',
@@ -139,6 +148,7 @@ const updateSubscriptions: RequestHandler = (req: any, res: any) => {
     const {
         userId,
         whiteLabelOrigin,
+        brandVariation,
     } = parseHeaders(req.headers);
 
     const {

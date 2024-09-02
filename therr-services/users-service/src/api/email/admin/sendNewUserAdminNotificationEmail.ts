@@ -7,6 +7,7 @@ export interface ISendNewUserAdminNotificationEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
 }
 
 export interface ITemplateParams {
@@ -22,7 +23,7 @@ export interface IAccountTypeParams {
 }
 
 export default (emailParams: ISendNewUserAdminNotificationEmailConfig, templateParams: ITemplateParams, accountTypeParams: IAccountTypeParams) => {
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const otherEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',').filter((email) => !!email);
     const therrAdminEmails = (process.env.AWS_NOTIFY_ADMIN_EMAIL_ADDRESSES || '').split(',').filter((email) => !!email);

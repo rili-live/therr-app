@@ -8,6 +8,7 @@ export interface ISendRewardsExchangeEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
 }
 
 export interface ITemplateParams {
@@ -20,7 +21,7 @@ export interface ITemplateParams {
 
 // TODO: Localize email
 export default (emailParams: ISendRewardsExchangeEmailConfig, templateParams: any) => {
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const adminEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',');
     const htmlConfig = {

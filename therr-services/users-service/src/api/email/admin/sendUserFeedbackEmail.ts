@@ -8,6 +8,7 @@ export interface ISendUserFeedbackEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
 }
 
 export interface ITemplateParams {
@@ -18,7 +19,7 @@ export interface ITemplateParams {
 // TODO: Localize email
 export default (emailParams: ISendUserFeedbackEmailConfig, templateParams: any) => {
     const therrAdminEmails = (process.env.AWS_NOTIFY_ADMIN_EMAIL_ADDRESSES || '').split(',').filter((email) => !!email);
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const htmlConfig = {
         header: `${contextConfig.brandName}: New Feedback`,

@@ -7,6 +7,7 @@ export interface ISendSocialSyncAdminNotificationEmailConfig {
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
+    brandVariation: string;
 }
 
 export interface ITemplateParams {
@@ -14,7 +15,7 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendSocialSyncAdminNotificationEmailConfig, templateParams: ITemplateParams) => {
-    const contextConfig = getHostContext(emailParams.agencyDomainName);
+    const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const otherEmails = (process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '').split(',');
     const htmlConfig = {
