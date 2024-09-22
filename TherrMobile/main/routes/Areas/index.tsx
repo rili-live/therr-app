@@ -418,11 +418,12 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             user,
             ui,
         } = this.props;
+        let promises: Promise<any>[] = [];
         if (tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES && !ui.isLoadingActiveMoments && !isLoadingMoments) {
             this.setState({
                 isLoadingMoments: true,
             });
-            updateActiveMomentsStream({
+            promises.push(updateActiveMomentsStream({
                 withMedia: true,
                 withUser: true,
                 offset: 0,
@@ -437,7 +438,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         isLoadingMoments: false,
                     });
                 }, 200);
-            });
+            }));
         }
 
         if ((tabMap[activeTabIndex] === CAROUSEL_TABS.DISCOVERIES || tabMap[activeTabIndex] === CAROUSEL_TABS.THOUGHTS)
@@ -445,7 +446,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             this.setState({
                 isLoadingThoughts: true,
             });
-            updateActiveThoughtsStream({
+            promises.push(updateActiveThoughtsStream({
                 withUser: true,
                 withReplies: true,
                 offset: 0,
@@ -460,14 +461,14 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         isLoadingThoughts: false,
                     });
                 }, 200);
-            });
+            }));
         }
 
         if (tabMap[activeTabIndex] === CAROUSEL_TABS.EVENTS && !ui.isLoadingActiveEvents && !isLoadingEvents) {
             this.setState({
                 isLoadingEvents: true,
             });
-            updateActiveEventsStream({
+            promises.push(updateActiveEventsStream({
                 withMedia: true,
                 withUser: true,
                 offset: 0,
@@ -482,8 +483,10 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         isLoadingEvents: false,
                     });
                 }, 200);
-            });
+            }));
         }
+
+        return Promise.all(promises);
     };
 
     toggleLocationUseDisclosure = () => {
