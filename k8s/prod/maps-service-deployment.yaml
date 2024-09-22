@@ -4,7 +4,7 @@ metadata:
   name: maps-service-deployment
   namespace: default
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       component: server-maps
@@ -31,8 +31,8 @@ spec:
         image: therrapp/maps-service:latest
         resources:
           limits:
-            memory: "256Mi"
-            cpu: "100m"
+            memory: "128Mi"
+            cpu: "25m"
         ports:
         - containerPort: 7773
         env:
