@@ -100,7 +100,7 @@
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This allows querying the user's current location to find nearby content shared by a user's connections</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Location is used to allow content sharing from the user's specific longitude/latitude. Other uses can access content within a specified distance of the original location.</string>
+	<string>Location is used to allow content sharing and activation while a user is traveling. Other users can discover content by proximity.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone usage is needed for recording audio in various locations and sharing with social connections.</string>
 	<key>NSMotionUsageDescription</key>
