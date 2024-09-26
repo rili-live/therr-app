@@ -22,11 +22,13 @@
     }
   },
   "alertActions": {
+    "acceptBackgroundLocation": "Allow all the time",
     "exchange": "Exchange",
     "edit": "Edit"
   },
   "alertTitles": {
     "activityCreated": "Activity Created",
+    "backgroundLocation": "Allow limited access to device location in the background?",
     "codeSent": "New Code Sent",
     "coinsReceived": "You Received Coins",
     "invalidCode": "Invalid Code",
@@ -58,6 +60,7 @@
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
+    "backgroundLocation": "In order to earn rewards and local discounts, please enable 'Allow all the time' permission",
     "codeSent": "Check your phone for a new verification code.",
     "coinsReceived": "🎁 You earned {total} TherrCoin(s) 🎁",
     "invalidCode": "Code is invalid or expired. Try again or resend.",

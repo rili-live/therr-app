@@ -262,9 +262,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 text: 'Local rewards finder activated',
             },
             backgroundPermissionRationale: {
-                title: 'Allow limited access to device location in the background?',
-                message: "In order to earn rewards and local discounts, please enable 'Allow all the time' permission",
-                positiveAction: 'Allow all the time',
+                title: this.translate('alertTitles.backgroundLocation'),
+                message: this.translate('alertMessages.backgroundLocation'),
+                positiveAction: this.translate('alertActions.acceptBackgroundLocation'),
             },
             locationUpdateInterval: 5000,
             // HTTP / SQLite config
