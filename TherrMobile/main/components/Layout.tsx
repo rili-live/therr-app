@@ -261,6 +261,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 smallIcon: 'drawable/ic_notification_icon',
                 text: 'Local rewards finder activated',
             },
+            backgroundPermissionRationale: {
+                title: 'Allow limited access to device location in the background?',
+                message: "In order to earn rewards and local discounts, please enable 'Allow all the time' permission",
+                positiveAction: 'Allow all the time',
+            },
             locationUpdateInterval: 5000,
             // HTTP / SQLite config
             url: `${getConfig().baseApiGatewayRoute}/push-notifications-service/location/process-user-background-location`,
