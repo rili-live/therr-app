@@ -213,7 +213,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (appleAuth.isSupported) {
             this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
                 console.warn('Apple credential revoked');
-                this.props.logout();
+                this.logout(this.props?.user?.details);
             });
         }
 
@@ -231,67 +231,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }).catch((err) => console.log(err));
             console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
         }));
-
         // this.subscriptions.push(BackgroundGeolocation.onMotionChange((event) => {
         //     console.log('BackgroundGeolocation-[onMotionChange]', event);
         // }));
-
         // this.subscriptions.push(BackgroundGeolocation.onActivityChange((event) => {
         //     console.log('BackgroundGeolocation-[onActivityChange]', event);
         // }));
-
         this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
+            // TODO: This might be the same as DeviceEventEmitter.addListener('locationProviderStatusChange'...above
             console.log('BackgroundGeolocation-[onProviderChange]', event);
         }));
 
-        const token = this.props?.user?.details?.idToken;
-        const backgroundConfig: Config = {
-            // Geolocation Config
-            desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_MEDIUM,
-            distanceFilter: 10,
-            // Activity Recognition
-            stopTimeout: 5,
-            // Application config
-            // debug: true, // <-- enable this hear sounds for background-geolocation life-cycle.
-            logLevel: BackgroundGeolocation.LOG_LEVEL_ERROR,
-            stopOnTerminate: false,   // <-- Allow the background-service to continue tracking when user closes the app.
-            startOnBoot: true,        // <-- Auto start tracking when device is powered-up.
-            notification: {
-                color: '#0f7b82',
-                smallIcon: 'drawable/ic_notification_icon',
-                text: 'Local rewards finder activated',
-            },
-            backgroundPermissionRationale: {
-                title: this.translate('alertTitles.backgroundLocation'),
-                message: this.translate('alertMessages.backgroundLocation'),
-                positiveAction: this.translate('alertActions.acceptBackgroundLocation'),
-            },
-            locationUpdateInterval: 5000,
-            // HTTP / SQLite config
-            url: `${getConfig().baseApiGatewayRoute}/push-notifications-service/location/process-user-background-location`,
-            batchSync: false,       // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
-            autoSync: true,         // <-- [Default: true] Set true to sync each location to server as it arrives.
-            headers: {              // <-- Optional HTTP headers
-                ...getRequestHeaders(this?.props?.user),
-            },
-            params: {               // <-- Optional HTTP params
-                // 'auth_token': 'maybe_your_server_authenticates_via_token_YES?',
-                userId: this.props?.user?.details?.id,
-            },
-        };
-        if (token) {
-            (backgroundConfig.headers as any).authorization = `Bearer ${token}`;
-        }
-        /// 2. ready the plugin.
-        BackgroundGeolocation.ready(backgroundConfig).then((state) => {
-            console.log('- BackgroundGeolocation is configured and ready: ', state.enabled);
-            analytics().logEvent('background_location_ready', {
-                isEnabled: state.enabled,
-                userId: this.props.user?.details?.id,
-            }).catch((err) => console.log(err));
-            BackgroundGeolocation.start();
-        });
-
+        this.readyAndStartBackgroundGeolocation();
         this.prefetchContent();
     }
 
@@ -317,12 +268,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (user.isAuthenticated) { // Happens after login
                 const token = user?.details?.idToken;
                 if (token) {
-                    BackgroundGeolocation.setConfig({
-                        headers: {
-                            authorization: `Bearer ${token}`,
-                            ...getRequestHeaders(this?.props?.user),
-                        },
-                    });
+                    this.readyAndStartBackgroundGeolocation();
                 }
 
                 if (user.details?.id) {
@@ -358,16 +304,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 }
 
                 if (Platform.OS !== 'ios') {
-                    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)
-                        .then((grantStatus) => {
-                            updateLocationPermissions({
-                                [PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION]: grantStatus,
-                            });
-                        });
                     PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
                         .then((grantStatus) => {
                             updateLocationPermissions({
                                 [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: grantStatus,
+                            });
+                        });
+                    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)
+                        .then((grantStatus) => {
+                            updateLocationPermissions({
+                                [PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION]: grantStatus,
                             });
                         });
                     PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA)
@@ -446,6 +392,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     .catch((err) => {
                         console.log('NOTIFICATIONS_ERROR', err);
                     });
+            } else {
+                BackgroundGeolocation.stop();
             }
         }
     }
@@ -465,6 +413,61 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
         this.subscriptions.forEach((subscription) => subscription.remove());
     }
+
+    // IMPORTANT: This should only be called once per session
+    readyAndStartBackgroundGeolocation = () => {
+        const userToken = this.props?.user?.details?.idToken;
+        if (this.props.user?.isAuthenticated && userToken) {
+            const backgroundConfig: Config = {
+                // Geolocation Config
+                desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
+                distanceFilter: 10,
+                // Activity Recognition
+                stopTimeout: 5,
+                // Application config
+                // debug: true, // <-- enable this hear sounds for background-geolocation life-cycle.
+                logLevel: BackgroundGeolocation.LOG_LEVEL_ERROR,
+                stopOnTerminate: false,   // <-- Allow the background-service to continue tracking when user closes the app.
+                startOnBoot: true,        // <-- Auto start tracking when device is powered-up.
+                notification: {
+                    color: '#0f7b82',
+                    smallIcon: 'drawable/ic_notification_icon',
+                    text: 'Local rewards finder activated',
+                },
+                backgroundPermissionRationale: {
+                    title: this.translate('alertTitles.backgroundLocation'),
+                    message: this.translate('alertMessages.backgroundLocation'),
+                    positiveAction: this.translate('alertActions.acceptBackgroundLocation'),
+                },
+                locationUpdateInterval: 5000,
+                // HTTP / SQLite config
+                url: `${getConfig().baseApiGatewayRoute}/push-notifications-service/location/process-user-background-location`,
+                batchSync: false,       // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
+                autoSync: true,         // <-- [Default: true] Set true to sync each location to server as it arrives.
+                headers: {              // <-- Optional HTTP headers
+                    ...getRequestHeaders(this?.props?.user),
+                    authorization: `Bearer ${userToken}`,
+                },
+                params: {               // <-- Optional HTTP params
+                    // 'auth_token': 'maybe_your_server_authenticates_via_token_YES?',
+                    userId: this.props?.user?.details?.id,
+                },
+            };
+
+            /// 2. ready the plugin.
+            BackgroundGeolocation.ready(backgroundConfig).then((state) => {
+                analytics().logEvent('background_location_ready', {
+                    isEnabled: state.enabled,
+                    userId: this.props.user?.details?.id,
+                }).catch((err) => console.log(err));
+
+                // Start background location
+                if (this.props.user?.isAuthenticated && userToken) {
+                    BackgroundGeolocation.start();
+                }
+            });
+        }
+    };
 
     reloadTheme = (shouldForceUpdate: boolean = false) => {
         const themeName = this.props?.user?.settings?.mobileThemeName;
@@ -1151,6 +1154,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.setState({
             targetRouteView: '',
             targetRouteParams: {},
+        });
+
+        this.subscriptions.forEach((subscription) => subscription.remove());
+        BackgroundGeolocation.stop().catch((err) => {
+            console.error(`Failed to stop background location after logout: ${err}`);
+            analytics().logEvent('background_location_stop_error', {
+                userId: this.props.user?.details?.id,
+            }).catch((err) => console.log(err));
         });
 
         return logout(userDetails);

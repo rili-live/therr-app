@@ -151,6 +151,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
     } = req.body;
     if (userId === '70e17c54-c61c-464d-a060-4dec3cc25b63' || userId === '568bf5d2-8595-4fd6-95da-32cc318618d3') {
         const formattedDetails = {
+            event: location?.event,
             isMoving: location?.is_moving,
             isBatteryCharging: location?.battery.is_charging,
             coords: {
