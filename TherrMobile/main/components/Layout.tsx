@@ -417,7 +417,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     // IMPORTANT: This should only be called once per session
     readyAndStartBackgroundGeolocation = () => {
         const userToken = this.props?.user?.details?.idToken;
-        if (this.props.user?.isAuthenticated && userToken) {
+        if (this.props.user?.isAuthenticated && userToken
+            && this.props.user?.settings?.settingsPushBackground
+            && this.props.user?.settings?.settingsPushMarketing) {
             const backgroundConfig: Config = {
                 // Geolocation Config
                 desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
