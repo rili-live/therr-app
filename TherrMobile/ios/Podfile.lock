@@ -8,6 +8,9 @@ PODS:
   - boost (1.83.0)
   - BVLinearGradient (2.6.2):
     - React-Core
+  - CocoaLumberjack (3.8.5):
+    - CocoaLumberjack/Core (= 3.8.5)
+  - CocoaLumberjack/Core (3.8.5)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.74.3)
   - Firebase (10.24.0):
@@ -1418,6 +1421,9 @@ PODS:
     - React-Core
   - RNBackgroundFetch (4.2.5):
     - React-Core
+  - RNBackgroundGeolocation (4.17.1):
+    - CocoaLumberjack (~> 3.8.5)
+    - React-Core
   - RNBootSplash (5.4.1):
     - React-Core
   - RNCAsyncStorage (1.22.3):
@@ -1637,6 +1643,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
   - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
+  - RNBackgroundGeolocation (from `../node_modules/react-native-background-geolocation`)
   - RNBootSplash (from `../node_modules/react-native-bootsplash`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
@@ -1664,6 +1671,7 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - AppAuth
+    - CocoaLumberjack
     - Firebase
     - FirebaseAnalytics
     - FirebaseAppCheckInterop
@@ -1848,6 +1856,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@invertase/react-native-apple-authentication"
   RNBackgroundFetch:
     :path: "../node_modules/react-native-background-fetch"
+  RNBackgroundGeolocation:
+    :path: "../node_modules/react-native-background-geolocation"
   RNBootSplash:
     :path: "../node_modules/react-native-bootsplash"
   RNCAsyncStorage:
@@ -1899,6 +1909,7 @@ SPEC CHECKSUMS:
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   BVLinearGradient: 34a999fda29036898a09c6a6b728b0b4189e1a44
+  CocoaLumberjack: 6a459bc897d6d80bd1b8c78482ec7ad05dffc3f0
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   FBLazyVector: 7e977dd099937dc5458851233141583abba49ff2
   Firebase: 91fefd38712feb9186ea8996af6cbdef41473442
@@ -1999,6 +2010,7 @@ SPEC CHECKSUMS:
   RecaptchaInterop: 7d1a4a01a6b2cb1610a47ef3f85f0c411434cb21
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNBackgroundFetch: 2f800a04434620db15ede2e8f21886608a2d1743
+  RNBackgroundGeolocation: 7662b761774c7203fbebbcaacbd92f61efe8f799
   RNBootSplash: eff8239c4f795ce42a0604873aef3733aac0dedd
   RNCAsyncStorage: 10591b9e0a91eaffee14e69b3721009759235125
   RNCClipboard: 0a720adef5ec193aa0e3de24c3977222c7e52a37

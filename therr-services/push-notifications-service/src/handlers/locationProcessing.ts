@@ -149,28 +149,27 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
     const {
         location,
     } = req.body;
-    if (userId === '70e17c54-c61c-464d-a060-4dec3cc25b63' || userId === '568bf5d2-8595-4fd6-95da-32cc318618d3') {
-        const formattedDetails = {
-            isMoving: location?.is_moving,
-            isBatteryCharging: location?.battery.is_charging,
-            coords: {
-                latitude: location?.coords.latitude,
-                longitude: location?.coords.longitude,
-            },
-            timestamp: location.timestamp,
-        };
-        logSpan({
-            level: 'info',
-            messageOrigin: 'API_SERVER',
-            messages: ['BackgroundGeolocation - DEBUG'],
-            traceArgs: {
-                'background.body': JSON.stringify(formattedDetails),
-                brandVariation,
-                userId,
-                whiteLabelOrigin,
-            },
-        });
-    }
+    const formattedDetails = {
+        event: location?.event,
+        isMoving: location?.is_moving,
+        isBatteryCharging: location?.battery.is_charging,
+        coords: {
+            latitude: location?.coords.latitude,
+            longitude: location?.coords.longitude,
+        },
+        timestamp: location.timestamp,
+    };
+    logSpan({
+        level: 'info',
+        messageOrigin: 'API_SERVER',
+        messages: ['BackgroundGeolocation - DEBUG'],
+        traceArgs: {
+            'background.body': JSON.stringify(formattedDetails),
+            brandVariation,
+            userId,
+            whiteLabelOrigin,
+        },
+    });
 
     return res.status(200).send();
 };

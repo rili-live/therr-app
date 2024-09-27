@@ -6,10 +6,12 @@ buildscript {
         buildToolsVersion = "34.0.0"
         minSdkVersion = 24
         compileSdkVersion = 34
+        appCompatVersion 	= "1.4.2"      // Or higher.  Required for new AndroidX compatibility.
         targetSdkVersion = 34
         googlePlayServicesVersion = "21.0.1"
         googlePlayServicesIidVersion = "17.0.0"
         googlePlayServicesAuthVersion = "19.2.0"
+        googlePlayServicesLocationVersion = "21.0.1"  // Or higher.
         kotlin_version = '1.9.22'
 
         ndkVersion = "26.2.11394342"
@@ -47,6 +49,11 @@ allprojects {
             // react-native-background-fetch
             url("${project(':react-native-background-fetch').projectDir}/libs")
         }
+        // Required for react-native-background-geolocation
+        maven {
+            url("${project(':react-native-background-geolocation').projectDir}/libs")
+        }
+        maven { url 'https://developer.huawei.com/repo/' }
 
         google()  // Google's Maven repository
 
