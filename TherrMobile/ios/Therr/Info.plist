@@ -12,6 +12,8 @@
 	<string>Therr</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleGetInfoString</key>
+	<string></string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -47,6 +49,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSApplicationCategoryType</key>
+	<string></string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>about</string>
@@ -96,19 +100,21 @@
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This allows querying the user's current location to find nearby content shared by a user's connections</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Location is used to allow content sharing from the user's specific longitude/latitude. Other uses can access content within a specified distance of the original location.</string>
+	<string>Location is used to allow content sharing and activation while a user is traveling. Other users can discover content by proximity.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone usage is needed for recording audio in various locations and sharing with social connections.</string>
+	<key>NSMotionUsageDescription</key>
+	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This permission allows the user to access and share photos from their library to the social space of the app.</string>
+	<key>NSPrivacyAccessedAPICategoryDiskSpace</key>
+	<string>DDA9.1: This permission allows the app to access disk space to prevent memory overuse.</string>
 	<key>NSPrivacyAccessedAPICategoryFileTimestamp</key>
 	<string>DDA9.1: This permission allows the app to access timestamp for displaying a datetime picker.</string>
 	<key>NSPrivacyAccessedAPICategorySystemBootTime</key>
 	<string>DDA9.1: This permission allows the app to access timestamp for scheduling push notifications.</string>
 	<key>NSPrivacyAccessedAPICategoryUserDefaults</key>
 	<string>DDA9.1: This permission allows the app to access timestamp for scheduling push notifications.</string>
-	<key>NSPrivacyAccessedAPICategoryDiskSpace</key>
-	<string>DDA9.1: This permission allows the app to access disk space to prevent memory overuse.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Octicons.ttf</string>
@@ -142,6 +148,7 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
+		<string>location</string>
 		<string>processing</string>
 		<string>remote-notification</string>
 	</array>

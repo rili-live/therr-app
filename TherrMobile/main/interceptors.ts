@@ -29,10 +29,8 @@ const initInterceptors = (
     axios.interceptors.request.use((config) => {
         const modifiedConfig = config;
         const storedUser = store.getState().user;
-        const token =
-            storedUser && storedUser.details && storedUser.details.idToken;
-        const userId =
-            storedUser && storedUser.details && storedUser.details.id;
+        const token = storedUser?.details?.idToken;
+        const userId = storedUser?.details?.id;
         const userSettings = storedUser?.settings || {};
 
         if (token) {
