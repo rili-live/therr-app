@@ -29,6 +29,8 @@
   "alertTitles": {
     "activityCreated": "Activity Created",
     "backgroundLocation": "Allow limited access to device location in the background?",
+    "backgroundLocationNotification": "Local rewards finder activated",
+    "backgroundLocationNotificationChannel": "Local rewards finder",
     "codeSent": "New Code Sent",
     "coinsReceived": "You Received Coins",
     "invalidCode": "Invalid Code",
