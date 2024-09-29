@@ -421,7 +421,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             && this.props.user?.settings?.settingsPushBackground) {
             const backgroundConfig: Config = {
                 // Geolocation Config
-                desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
+                desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_MEDIUM,
                 distanceFilter: 10,
                 // Activity Recognition
                 stopTimeout: 5,
@@ -430,16 +430,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 logLevel: BackgroundGeolocation.LOG_LEVEL_ERROR,
                 stopOnTerminate: false,   // <-- Allow the background-service to continue tracking when user closes the app.
                 startOnBoot: true,        // <-- Auto start tracking when device is powered-up.
+                triggerActivities: 'on_foot, walking, running',
                 notification: {
                     color: '#0f7b82',
                     smallIcon: 'drawable/ic_notification_icon',
-                    text: 'Local rewards finder activated',
+                    text: this.translate('alertTitles.backgroundLocationNotification'),
+                    channelName: this.translate('alertTitles.backgroundLocationNotificationChannel'),
                 },
                 backgroundPermissionRationale: {
                     title: this.translate('alertTitles.backgroundLocation'),
                     message: this.translate('alertMessages.backgroundLocation'),
                     positiveAction: this.translate('alertActions.acceptBackgroundLocation'),
                 },
+                // disableLocationAuthorizationAlert: true,
+                // locationAuthorizationAlert
                 locationUpdateInterval: 5000,
                 // HTTP / SQLite config
                 url: `${getConfig().baseApiGatewayRoute}/push-notifications-service/location/process-user-background-location`,
