@@ -5,8 +5,10 @@ import logSpan from 'therr-js-utilities/log-or-update-span';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import UserLocationCache from '../store/UserLocationCache';
-import { activateAreasAndNotify, getAllNearbyAreas } from './helpers/areaLocationHelpers';
-import { updateAchievements } from './helpers/updateAchievements';
+import {
+    getAllNearbyAreas,
+    selectAreasToActivate,
+} from './helpers/areaLocationHelpers';
 // import translate from '../utilities/translator';
 
 // CREATE/UPDATE
@@ -61,80 +63,18 @@ const processUserLocationChange: RequestHandler = (req, res) => {
             },
             limit: 100,
         })
-            .then(([filteredMoments, filteredSpaces]) => {
-                const momentIdsToActivate: string[] = [];
-                const momentsToActivate: any[] = [];
-                const spaceIdsToActivate: string[] = [];
-                const spacesToActivate: any[] = [];
-                // NOTE: only activate 'x' spaces max to limit high density locations
-                for (let i = 0; i <= Location.MAX_AREA_ACTIVATE_COUNT && i <= filteredSpaces.length - 1; i += 1) {
-                    spaceIdsToActivate.push(filteredSpaces[i].id);
-                    spacesToActivate.push(filteredSpaces[i]);
-                }
-                for (let i = 0; (i <= (Location.MAX_AREA_ACTIVATE_COUNT - spaceIdsToActivate.length) && i <= filteredMoments.length - 1); i += 1) {
-                    momentIdsToActivate.push(filteredMoments[i].id);
-                    momentsToActivate.push(filteredMoments[i]);
-                }
-
-                if (momentIdsToActivate.length) {
-                    logSpan({
-                        level: 'info',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['Moments Activated'],
-                        traceArgs: {
-                            'user.id': userId,
-                            'location.momentIdsToActivate': JSON.stringify(momentIdsToActivate),
-                        },
-                    });
-                }
-                if (spaceIdsToActivate.length) {
-                    logSpan({
-                        level: 'info',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['Spaces Activated'],
-                        traceArgs: {
-                            'user.id': userId,
-                            'location.spaceIdsToActivate': JSON.stringify(spaceIdsToActivate),
-                        },
-                    });
-                }
-
-                // Fire and forget (create or update reactions)
-                if (spaceIdsToActivate.length || momentIdsToActivate.length) {
-                    activateAreasAndNotify(
-                        headers,
-                        {
-                            moments: momentsToActivate,
-                            spaces: spacesToActivate,
-                            activatedMomentIds: momentIdsToActivate,
-                            activatedSpaceIds: spaceIdsToActivate,
-                        },
-                        userLocationCache,
-                        {
-                            longitude,
-                            latitude,
-                        },
-                    );
-
-                    updateAchievements(headers, momentIdsToActivate, spaceIdsToActivate);
-
-                    userLocationCache.removeMoments(momentIdsToActivate, {
-                        locale,
-                        userId,
-                        userDeviceToken,
-                    });
-
-                    userLocationCache.removeMoments(spaceIdsToActivate, {
-                        locale,
-                        userId,
-                        userDeviceToken,
-                    });
-                }
-
-                return [momentsToActivate, filteredSpaces];
-            })
-            .then(([filteredMoments, spacesToActivate]) => res.status(200).send({
-                activatedAreas: [spacesToActivate, ...filteredMoments],
+            .then(([filteredMoments, filteredSpaces]) => selectAreasToActivate(
+                headers,
+                userLocationCache,
+                {
+                    longitude,
+                    latitude,
+                },
+                filteredMoments,
+                filteredSpaces,
+            ))
+            .then(([momentsToActivate, spacesToActivate]) => res.status(200).send({
+                activatedAreas: [spacesToActivate, ...momentsToActivate],
             }))
             .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
     });
@@ -159,6 +99,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         },
         timestamp: location.timestamp,
     };
+    // TODO: send push notification is isMoving is false and location is not user's top 5 or already visited
     logSpan({
         level: 'info',
         messageOrigin: 'API_SERVER',

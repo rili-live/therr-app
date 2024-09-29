@@ -12,6 +12,7 @@ import { getSearchQueryString } from 'therr-js-utilities/http';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import { IAreaType } from 'therr-js-utilities/types';
 import UserLocationCache from '../../store/UserLocationCache';
+import { updateAchievements } from './updateAchievements';
 import { predictAndSendNotification } from '../../api/firebaseAdmin';
 import * as globalConfig from '../../../../../global-config';
 
@@ -20,7 +21,7 @@ export interface IUserlocation {
     latitude: number;
 }
 
-interface IHeaders {
+export interface IHeaders {
     authorization: any;
     locale: any;
     userId: any;
@@ -263,7 +264,7 @@ const fetchNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocationCa
     headers,
     userLocation,
     limit,
-}: IAreaGetSettings): Promise<any> => {
+}: IAreaGetSettings, distanceOverride = Location.AREA_PROXIMITY_EXPANDED_METERS): Promise<any> => {
     // Creates/Resets the origin each time we re-fetch areas
     userLocationCache.setOrigin({
         latitude: userLocation.latitude,
@@ -290,7 +291,7 @@ const fetchNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocationCa
             'x-therr-origin-host': headers.whiteLabelOrigin,
         },
         data: {
-            distanceOverride: Location.AREA_PROXIMITY_EXPANDED_METERS,
+            distanceOverride,
         },
     })
         .then((areasResponse) => (areasResponse?.data?.results || [])) // relevant areas within x meters
@@ -301,11 +302,11 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
     headers,
     userLocation,
     limit,
-}: IAreaGetSettings): Promise<any[]> => {
+}: IAreaGetSettings, distanceOverride = Location.AREA_PROXIMITY_EXPANDED_METERS): Promise<any[]> => {
     if (shouldInvalidateCache) {
         userLocationCache.invalidateCache();
 
-        // TODO: Update user.lastKnownLocation
+        // Update user.lastKnownLocation
         axios({
             method: 'put',
             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/${headers.userId}/location`,
@@ -327,13 +328,14 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
             headers,
             userLocation,
             limit,
-        });
+        }, distanceOverride);
 
+        // Use tighter radius for activating spaces to prevent cluttering user timeline
         const spacesPromise = fetchNearbyAreas('spaces', userLocationCache, {
             headers,
             userLocation,
             limit,
-        });
+        }, distanceOverride || (Location.AREA_PROXIMITY_METERS / 2));
 
         return Promise.all([momentsPromise, spacesPromise]);
     }
@@ -533,8 +535,77 @@ const activateAreasAndNotify = (
         });
 };
 
+const selectAreasToActivate = (
+    headers: IHeaders,
+    userLocationCache: UserLocationCache,
+    userLocation: IUserlocation,
+    filteredMoments: any[],
+    filteredSpaces: any[],
+) => {
+    const momentIdsToActivate: string[] = [];
+    const momentsToActivate: any[] = [];
+    const spaceIdsToActivate: string[] = [];
+    const spacesToActivate: any[] = [];
+    // NOTE: only activate 'x' spaces max to limit high density locations
+    for (let i = 0; i <= Location.MAX_AREA_ACTIVATE_COUNT && i <= filteredSpaces.length - 1; i += 1) {
+        spaceIdsToActivate.push(filteredSpaces[i].id);
+        spacesToActivate.push(filteredSpaces[i]);
+    }
+    for (let i = 0; (i <= (Location.MAX_AREA_ACTIVATE_COUNT - spaceIdsToActivate.length) && i <= filteredMoments.length - 1); i += 1) {
+        momentIdsToActivate.push(filteredMoments[i].id);
+        momentsToActivate.push(filteredMoments[i]);
+    }
+
+    if (momentIdsToActivate.length) {
+        logSpan({
+            level: 'info',
+            messageOrigin: 'API_SERVER',
+            messages: ['Moments Activated'],
+            traceArgs: {
+                'user.id': headers.userId,
+                'location.momentIdsToActivate': JSON.stringify(momentIdsToActivate),
+            },
+        });
+    }
+    if (spaceIdsToActivate.length) {
+        logSpan({
+            level: 'info',
+            messageOrigin: 'API_SERVER',
+            messages: ['Spaces Activated'],
+            traceArgs: {
+                'user.id': headers.userId,
+                'location.spaceIdsToActivate': JSON.stringify(spaceIdsToActivate),
+            },
+        });
+    }
+
+    // Fire and forget (create or update reactions)
+    if (spaceIdsToActivate.length || momentIdsToActivate.length) {
+        activateAreasAndNotify(
+            headers,
+            {
+                moments: momentsToActivate,
+                spaces: spacesToActivate,
+                activatedMomentIds: momentIdsToActivate,
+                activatedSpaceIds: spaceIdsToActivate,
+            },
+            userLocationCache,
+            userLocation,
+        );
+
+        updateAchievements(headers, momentIdsToActivate, spaceIdsToActivate);
+
+        userLocationCache.removeMoments(momentIdsToActivate, headers);
+
+        userLocationCache.removeMoments(spaceIdsToActivate, headers);
+    }
+
+    return [momentsToActivate, filteredSpaces];
+};
+
 export {
     activateAreasAndNotify,
+    selectAreasToActivate,
     hasSentNotificationRecently,
     getAllNearbyAreas,
     fetchNearbyAreas,
