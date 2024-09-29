@@ -31,8 +31,8 @@ spec:
         image: therrapp/push-notifications-service:latest
         resources:
           limits:
-            memory: "128Mi"
-            cpu: "25m"
+            memory: "192Mi"
+            cpu: "100m"
         ports:
         - containerPort: 7775
         env:
