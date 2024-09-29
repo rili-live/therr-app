@@ -335,7 +335,7 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
             headers,
             userLocation,
             limit,
-        }, distanceOverride || (Location.AREA_PROXIMITY_METERS / 2));
+        }, (distanceOverride || Location.AREA_PROXIMITY_METERS) / 2);
 
         return Promise.all([momentsPromise, spacesPromise]);
     }
@@ -535,7 +535,7 @@ const activateAreasAndNotify = (
         });
 };
 
-const selectAreasToActivate = (
+const selectAreasAndActivate = (
     headers: IHeaders,
     userLocationCache: UserLocationCache,
     userLocation: IUserlocation,
@@ -605,7 +605,7 @@ const selectAreasToActivate = (
 
 export {
     activateAreasAndNotify,
-    selectAreasToActivate,
+    selectAreasAndActivate,
     hasSentNotificationRecently,
     getAllNearbyAreas,
     fetchNearbyAreas,

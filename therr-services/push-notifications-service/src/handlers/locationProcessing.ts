@@ -7,7 +7,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import UserLocationCache from '../store/UserLocationCache';
 import {
     getAllNearbyAreas,
-    selectAreasToActivate,
+    selectAreasAndActivate,
 } from './helpers/areaLocationHelpers';
 // import translate from '../utilities/translator';
 
@@ -15,6 +15,7 @@ import {
 const processUserLocationChange: RequestHandler = (req, res) => {
     const {
         authorization,
+        brandVariation,
         locale,
         userId,
         userDeviceToken,
@@ -23,6 +24,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
 
     const headers = {
         authorization,
+        brandVariation,
         locale,
         userId,
         userDeviceToken,
@@ -63,7 +65,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
             },
             limit: 100,
         })
-            .then(([filteredMoments, filteredSpaces]) => selectAreasToActivate(
+            .then(([filteredMoments, filteredSpaces]) => selectAreasAndActivate(
                 headers,
                 userLocationCache,
                 {
@@ -82,10 +84,23 @@ const processUserLocationChange: RequestHandler = (req, res) => {
 
 const processUserBackgroundLocation: RequestHandler = (req, res) => {
     const {
+        authorization,
         brandVariation,
+        locale,
         userId,
+        userDeviceToken,
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
+
+    const headers = {
+        authorization,
+        brandVariation,
+        locale,
+        userId,
+        userDeviceToken,
+        whiteLabelOrigin,
+    };
+
     const {
         location,
     } = req.body;
@@ -99,7 +114,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         },
         timestamp: location.timestamp,
     };
-    // TODO: send push notification is isMoving is false and location is not user's top 5 or already visited
+
     logSpan({
         level: 'info',
         messageOrigin: 'API_SERVER',
@@ -112,7 +127,77 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         },
     });
 
-    return res.status(200).send();
+    const latitude = location?.coords.latitude;
+    const longitude = location?.coords.longitude;
+
+    if (location?.is_moving || !latitude || !longitude) {
+        return res.status(200).send();
+    }
+
+    // TODO: send check-in push notification if isMoving is false and location is not user's top 5 or already visited
+    // See BackgroundGeolocation.stopTimeout which is set to 5 minutes
+    // This means the user has stopped at a location for at least 5 minutes
+
+    const userLocationCache = new UserLocationCache(userId);
+
+    return userLocationCache.getOrigin().then((origin) => {
+        let isCacheInvalid = !origin;
+
+        if (!isCacheInvalid) {
+            const distanceFromOriginMeters = distanceTo({
+                lon: longitude,
+                lat: latitude,
+            }, {
+                lon: origin.longitude,
+                lat: origin.latitude,
+            });
+
+            // More sensitive invalidation for background location when use is stationary
+            isCacheInvalid = distanceFromOriginMeters > (Location.AREA_PROXIMITY_NEARBY_METERS / 4) - 1;
+        }
+
+        // Fetches x nearest areas within y meters of the user's current location (from the users's connections)
+        // AREA_PROXIMITY_METERS - More sensitive invalidation for background location when use is stationary
+        return getAllNearbyAreas(userLocationCache, isCacheInvalid, {
+            headers,
+            userLocation: {
+                longitude,
+                latitude,
+            },
+            limit: 100,
+        }, Location.AREA_PROXIMITY_METERS)
+            .then(([filteredMoments, filteredSpaces]) => selectAreasAndActivate(
+                headers,
+                userLocationCache,
+                {
+                    longitude,
+                    latitude,
+                },
+                filteredMoments,
+                filteredSpaces,
+            ))
+            .then(([momentsToActivate, spacesToActivate]) => {
+                logSpan({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['BackgroundGeolocation - Background areas activated'],
+                    traceArgs: {
+                        brandVariation,
+                        userId,
+                        whiteLabelOrigin,
+                        totalMomentsActivated: momentsToActivate?.length,
+                        totalSpacesActivated: spacesToActivate?.length,
+                    },
+                });
+                return res.status(200).send();
+            })
+            .catch((err) => {
+                handleHttpError({ err, res, message: 'SQL:MOMENT_PUSH_NOTIFICATIONS_ROUTES:ERROR' });
+
+                // Always return a 200 to BackgroundGeolocation plugin
+                return res.status(200).send();
+            });
+    });
 };
 
 export {
