@@ -67,7 +67,7 @@ const addAddressParams = (area, unsanitizedAddress) => {
                 keyRight = `${Number(rightSplit[0]) + 12}:${rightSplit[1]}`;
             }
             schema.push(`${value} ${keyLeft}-${keyRight}`);
-        };
+        }
         modifiedArea.openingHours = {
             schema,
             timezone: 'UTC',

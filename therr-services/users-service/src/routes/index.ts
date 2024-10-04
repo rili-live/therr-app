@@ -9,6 +9,7 @@ import subscribersRouter from './subscribersRouter';
 import usersRouter from './usersRouter';
 import userGroupsRouter from './userGroupsRouter';
 import userAchievementsRouter from './userAchievementsRouter';
+import userLocationsRouter from './userLocationsRouter';
 import notificationsRouter from './notificationsRouter';
 import rewardsRouter from './rewardsRouter';
 import thoughtsRouter from './thoughtsRouter';
@@ -34,6 +35,7 @@ router.use('/users/notifications', notificationsRouter);
 router.use('/users/interests', userInterestsRouter);
 router.use('/users/metrics', userMetricsRouter);
 router.use('/users/organizations', userOrganizationsRouter);
+router.use('/users-locations', userLocationsRouter);
 router.use('/users', usersRouter);
 router.use('/users-groups', userGroupsRouter);
 
