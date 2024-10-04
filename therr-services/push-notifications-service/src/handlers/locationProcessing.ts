@@ -9,6 +9,7 @@ import {
     getAllNearbyAreas,
     selectAreasAndActivate,
 } from './helpers/areaLocationHelpers';
+import { createUserLocation } from './helpers/userLocations';
 // import translate from '../utilities/translator';
 
 // CREATE/UPDATE
@@ -103,6 +104,9 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
 
     const {
         location,
+        platformOS,
+        deviceModel,
+        isDeviceTablet,
     } = req.body;
     const formattedDetails = {
         event: location?.event,
@@ -112,7 +116,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
             latitude: location?.coords.latitude,
             longitude: location?.coords.longitude,
         },
-        timestamp: location.timestamp,
+        timestamp: location?.timestamp,
     };
 
     logSpan({
@@ -124,6 +128,9 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
             brandVariation,
             userId,
             whiteLabelOrigin,
+            deviceModel,
+            isDeviceTablet,
+            platformOS,
         },
     });
 
@@ -137,6 +144,11 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
     // TODO: send check-in push notification if isMoving is false and location is not user's top 5 or already visited
     // See BackgroundGeolocation.stopTimeout which is set to 5 minutes
     // This means the user has stopped at a location for at least 5 minutes
+
+    createUserLocation(userId, headers, {
+        latitude,
+        longitude,
+    });
 
     const userLocationCache = new UserLocationCache(userId);
 

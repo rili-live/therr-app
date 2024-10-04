@@ -17,6 +17,7 @@ import messaging from '@react-native-firebase/messaging';
 import LogRocket from '@logrocket/react-native';
 import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
+import DeviceInfo from 'react-native-device-info';
 import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, UserConnectionsActions } from 'therr-react/redux/actions';
@@ -442,7 +443,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     message: this.translate('alertMessages.backgroundLocation'),
                     positiveAction: this.translate('alertActions.acceptBackgroundLocation'),
                 },
-                // disableLocationAuthorizationAlert: true,
+                disableLocationAuthorizationAlert: true,
                 // locationAuthorizationAlert
                 locationUpdateInterval: 5000,
                 // HTTP / SQLite config
@@ -456,6 +457,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 params: {               // <-- Optional HTTP params
                     // 'auth_token': 'maybe_your_server_authenticates_via_token_YES?',
                     userId: this.props?.user?.details?.id,
+                    platformOS: Platform.OS,
+                    deviceModel: DeviceInfo.getModel(),
+                    isDeviceTablet: DeviceInfo.isTablet(),
                 },
             };
 
