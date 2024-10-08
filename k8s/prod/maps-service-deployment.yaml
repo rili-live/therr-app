@@ -4,7 +4,7 @@ metadata:
   name: maps-service-deployment
   namespace: default
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       component: server-maps
@@ -32,7 +32,7 @@ spec:
         resources:
           limits:
             memory: "128Mi"
-            cpu: "100m"
+            cpu: "75m"
         ports:
         - containerPort: 7773
         env:
