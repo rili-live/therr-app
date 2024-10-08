@@ -17,15 +17,21 @@ import messaging from '@react-native-firebase/messaging';
 import LogRocket from '@logrocket/react-native';
 import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
+import DeviceInfo from 'react-native-device-info';
 import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { AccessLevels, GroupMemberRoles } from 'therr-js-utilities/constants';
+import { AccessLevels, BrandVariations, GroupMemberRoles } from 'therr-js-utilities/constants';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
+import BackgroundGeolocation, {
+    Config,
+    Subscription,
+} from 'react-native-background-geolocation';
+import getConfig from '../utilities/getConfig';
 import { sendForegroundNotification, wrapOnMessageReceived } from '../utilities/pushNotifications';
 import routes from '../routes';
 import { buildNavTheme } from '../styles';
@@ -71,6 +77,13 @@ const forFade = ({ current }) => ({
     cardStyle: {
         opacity: current.progress,
     },
+});
+
+const getRequestHeaders = (user) => ({
+    'x-userid': user?.details?.id,
+    'x-localecode':  user?.settings?.locale || 'en-us',
+    'x-platform': 'mobile',
+    'x-brand-variation': BrandVariations.THERR,
 });
 
 interface ILayoutDispatchProps {
@@ -170,6 +183,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private themeInfoModal = buildInfoModalStyles();
     private themeModal = buildModalStyles();
     private themeMenu = buildMenuStyles();
+    subscriptions: Subscription[] = [];
 
     constructor(props) {
         super(props);
@@ -200,7 +214,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (appleAuth.isSupported) {
             this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
                 console.warn('Apple credential revoked');
-                this.props.logout();
+                this.logout(this.props?.user?.details);
             });
         }
 
@@ -208,6 +222,28 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             this.props.updateGpsStatus(status);
         });
 
+        this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
+            analytics().logEvent('background_location_on_location', {
+                userId: this.props.user?.details?.id,
+            }).catch((err) => console.log(err));
+        }, (error) => {
+            analytics().logEvent('background_location_error', {
+                userId: this.props.user?.details?.id,
+            }).catch((err) => console.log(err));
+            console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
+        }));
+        // this.subscriptions.push(BackgroundGeolocation.onMotionChange((event) => {
+        //     console.log('BackgroundGeolocation-[onMotionChange]', event);
+        // }));
+        // this.subscriptions.push(BackgroundGeolocation.onActivityChange((event) => {
+        //     console.log('BackgroundGeolocation-[onActivityChange]', event);
+        // }));
+        this.subscriptions.push(BackgroundGeolocation.onProviderChange((event) => {
+            // TODO: This might be the same as DeviceEventEmitter.addListener('locationProviderStatusChange'...above
+            console.log('BackgroundGeolocation-[onProviderChange]', event);
+        }));
+
+        this.readyAndStartBackgroundGeolocation();
         this.prefetchContent();
     }
 
@@ -231,6 +267,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         if (user?.isAuthenticated !== prevProps.user?.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
+                const token = user?.details?.idToken;
+                if (token) {
+                    this.readyAndStartBackgroundGeolocation();
+                }
+
                 if (user.details?.id) {
                     crashlytics().setUserId(user.details?.id?.toString());
                     if (!__DEV__) {
@@ -264,16 +305,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 }
 
                 if (Platform.OS !== 'ios') {
-                    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)
-                        .then((grantStatus) => {
-                            updateLocationPermissions({
-                                [PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION]: grantStatus,
-                            });
-                        });
                     PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
                         .then((grantStatus) => {
                             updateLocationPermissions({
                                 [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: grantStatus,
+                            });
+                        });
+                    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)
+                        .then((grantStatus) => {
+                            updateLocationPermissions({
+                                [PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION]: grantStatus,
                             });
                         });
                     PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA)
@@ -352,6 +393,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     .catch((err) => {
                         console.log('NOTIFICATIONS_ERROR', err);
                     });
+            } else {
+                BackgroundGeolocation.stop();
             }
         }
     }
@@ -369,7 +412,71 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
 
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
+        this.subscriptions.forEach((subscription) => subscription.remove());
     }
+
+    // IMPORTANT: This should only be called once per session
+    readyAndStartBackgroundGeolocation = () => {
+        const userToken = this.props?.user?.details?.idToken;
+        if (this.props.user?.isAuthenticated && userToken
+            && this.props.user?.settings?.settingsPushBackground) {
+            const backgroundConfig: Config = {
+                // Geolocation Config
+                desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_MEDIUM,
+                distanceFilter: 10,
+                // Activity Recognition
+                stopTimeout: 5,
+                // Application config
+                // debug: true, // <-- enable this hear sounds for background-geolocation life-cycle.
+                logLevel: BackgroundGeolocation.LOG_LEVEL_ERROR,
+                stopOnTerminate: false,   // <-- Allow the background-service to continue tracking when user closes the app.
+                startOnBoot: true,        // <-- Auto start tracking when device is powered-up.
+                triggerActivities: 'on_foot, walking, running',
+                notification: {
+                    color: '#0f7b82',
+                    smallIcon: 'drawable/ic_notification_icon',
+                    text: this.translate('alertTitles.backgroundLocationNotification'),
+                    channelName: this.translate('alertTitles.backgroundLocationNotificationChannel'),
+                },
+                backgroundPermissionRationale: {
+                    title: this.translate('alertTitles.backgroundLocation'),
+                    message: this.translate('alertMessages.backgroundLocation'),
+                    positiveAction: this.translate('alertActions.acceptBackgroundLocation'),
+                },
+                disableLocationAuthorizationAlert: true,
+                // locationAuthorizationAlert
+                locationUpdateInterval: 5000,
+                // HTTP / SQLite config
+                url: `${getConfig().baseApiGatewayRoute}/push-notifications-service/location/process-user-background-location`,
+                batchSync: false,       // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
+                autoSync: true,         // <-- [Default: true] Set true to sync each location to server as it arrives.
+                headers: {              // <-- Optional HTTP headers
+                    ...getRequestHeaders(this?.props?.user),
+                    authorization: `Bearer ${userToken}`,
+                },
+                params: {               // <-- Optional HTTP params
+                    // 'auth_token': 'maybe_your_server_authenticates_via_token_YES?',
+                    userId: this.props?.user?.details?.id,
+                    platformOS: Platform.OS,
+                    deviceModel: DeviceInfo.getModel(),
+                    isDeviceTablet: DeviceInfo.isTablet(),
+                },
+            };
+
+            /// 2. ready the plugin.
+            BackgroundGeolocation.ready(backgroundConfig).then((state) => {
+                analytics().logEvent('background_location_ready', {
+                    isEnabled: state.enabled,
+                    userId: this.props.user?.details?.id,
+                }).catch((err) => console.log(err));
+
+                // Start background location
+                if (this.props.user?.isAuthenticated && userToken) {
+                    BackgroundGeolocation.start();
+                }
+            });
+        }
+    };
 
     reloadTheme = (shouldForceUpdate: boolean = false) => {
         const themeName = this.props?.user?.settings?.mobileThemeName;
@@ -1056,6 +1163,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.setState({
             targetRouteView: '',
             targetRouteParams: {},
+        });
+
+        this.subscriptions.forEach((subscription) => subscription.remove());
+        BackgroundGeolocation.stop().catch((err) => {
+            console.error(`Failed to stop background location after logout: ${err}`);
+            analytics().logEvent('background_location_stop_error', {
+                userId: this.props.user?.details?.id,
+            }).catch((err) => console.log(err));
         });
 
         return logout(userDetails);

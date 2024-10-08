@@ -31,8 +31,8 @@ spec:
         image: therrapp/reactions-service:latest
         resources:
           limits:
-            memory: "64Mi"
-            cpu: "25m"
+            memory: "128Mi"
+            cpu: "75m"
         ports:
         - containerPort: 7774
         env:

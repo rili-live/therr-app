@@ -14,4 +14,9 @@ reactionsServiceRouter.post('/location/process-user-location', postLocationChang
     method: 'post',
 }));
 
+reactionsServiceRouter.post('/location/process-user-background-location', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].basePushNotificationsServiceRoute}`,
+    method: 'post',
+}));
+
 export default reactionsServiceRouter;
