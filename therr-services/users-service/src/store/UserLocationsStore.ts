@@ -28,6 +28,7 @@ export default class UserLocationsStore {
             ])
             .from(USER_LOCATIONS_TABLE_NAME)
             .where(conditions)
+            .orderBy('visitCount', 'desc')
             .limit(limit)
             .toString();
 

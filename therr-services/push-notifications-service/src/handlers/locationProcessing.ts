@@ -9,7 +9,7 @@ import {
     getAllNearbyAreas,
     selectAreasAndActivate,
 } from './helpers/areaLocationHelpers';
-import { createUserLocation } from './helpers/userLocations';
+import { createUserLocation, getUserLocation } from './helpers/userLocations';
 // import translate from '../utilities/translator';
 
 // CREATE/UPDATE
@@ -119,31 +119,12 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         timestamp: location?.timestamp,
     };
 
-    logSpan({
-        level: 'info',
-        messageOrigin: 'API_SERVER',
-        messages: ['BackgroundGeolocation - DEBUG'],
-        traceArgs: {
-            'background.body': JSON.stringify(formattedDetails),
-            brandVariation,
-            userId,
-            whiteLabelOrigin,
-            deviceModel,
-            isDeviceTablet,
-            platformOS,
-        },
-    });
-
     const latitude = location?.coords.latitude;
     const longitude = location?.coords.longitude;
 
     if (location?.is_moving || !latitude || !longitude) {
         return res.status(200).send();
     }
-
-    // TODO: send check-in push notification if isMoving is false and location is not user's top 5 or already visited
-    // See BackgroundGeolocation.stopTimeout which is set to 5 minutes
-    // This means the user has stopped at a location for at least 5 minutes
 
     createUserLocation(userId, headers, {
         latitude,
@@ -178,16 +159,68 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
             },
             limit: 100,
         }, Location.AREA_PROXIMITY_METERS)
-            .then(([filteredMoments, filteredSpaces]) => selectAreasAndActivate(
-                headers,
-                userLocationCache,
-                {
-                    longitude,
-                    latitude,
-                },
-                filteredMoments,
-                filteredSpaces,
-            ))
+            .then(([filteredMoments, filteredSpaces]) => {
+                if (filteredSpaces?.length) {
+                    getUserLocation(userId, headers).then((response) => {
+                        const locations = response?.data?.userLocations || [];
+                        // Assume top 3 are probably home
+                        const nonHomeLocations = locations
+                            .filter((loc) => !loc.isDeclaredHome)
+                            .sort((a, b) => b.visitCount - a.visitCount)
+                            .slice(0);
+                        if (nonHomeLocations?.length) {
+                            const possibleSpacesUserIsVisiting: any[] = [];
+                            const spacesOrderedByDistance = filteredSpaces
+                                .map((s) => ({
+                                    ...s,
+                                    distanceFromUserMeters: distanceTo({
+                                        lon: latitude,
+                                        lat: longitude,
+                                    }, {
+                                        lon: s.longitude,
+                                        lat: s.latitude,
+                                    }),
+                                }))
+                                .sort((a, b) => a.distanceFromUserMeters - b.distanceFromUserMeters);
+                            spacesOrderedByDistance.some((space) => {
+                                possibleSpacesUserIsVisiting.push(space);
+                                // stop when user is out of range of remaining spaces
+                                return space.distanceFromUserMeters > Location.MAX_DISTANCE_TO_CHECK_IN_METERS;
+                            });
+
+                            logSpan({
+                                level: 'info',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['BackgroundGeolocation - DEBUG - Possible spaces visited'],
+                                traceArgs: {
+                                    brandVariation,
+                                    userId,
+                                    whiteLabelOrigin,
+                                    possibleSpaces: possibleSpacesUserIsVisiting.map((s) => ({ id: s.id, name: s.notificationMsg })),
+                                },
+                            });
+
+                            // TODO: Filter out userLocations.lastPushNotificationSent within n number of days
+                            // TODO: Filter out spaces that do not offer rewards and user has already received notification
+                            // TODO: send check-in push notification if isMoving is false and location is not user's top 5 or already visited
+                            // Limit push notifications to 1 per day
+                            // Use possibleSpacesUserIsVisiting
+                            // TODO: Update userLocations.lastPushNotificationSent
+                        }
+                    });
+                }
+
+                return selectAreasAndActivate(
+                    headers,
+                    userLocationCache,
+                    {
+                        longitude,
+                        latitude,
+                    },
+                    filteredMoments,
+                    filteredSpaces,
+                );
+            })
             .then(([momentsToActivate, spacesToActivate]) => {
                 logSpan({
                     level: 'info',
@@ -201,6 +234,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                         totalSpacesActivated: spacesToActivate?.length,
                     },
                 });
+
                 return res.status(200).send();
             })
             .catch((err) => {
