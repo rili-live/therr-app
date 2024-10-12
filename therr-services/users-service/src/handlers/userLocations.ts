@@ -4,6 +4,15 @@ import handleHttpError from '../utilities/handleHttpError';
 // import translate from '../utilities/translator';
 
 // READ
+const getUserLocations = (req, res) => Store.userLocations.get({
+    userId: req.params.userId,
+})
+    .then((results) => res.status(200).send({
+        userLocations: results,
+    }))
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_LOCATIONS_ROUTES:ERROR' }));
+
+// WRTIE
 const createUserLocations = (req, res) => Store.userLocations.create([{
     userId: req.params.userId,
     isDeclaredHome: req.body.isDeclaredHome,
@@ -13,11 +22,12 @@ const createUserLocations = (req, res) => Store.userLocations.create([{
     longitudeRounded: req.body.longitudeRounded,
     visitCount: req.body.visitCount,
 }])
-    .then((results) => res.status(200).send({
+    .then((results) => res.status(201).send({
         userLocations: results,
     }))
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_LOCATIONS_ROUTES:ERROR' }));
 
 export {
+    getUserLocations,
     createUserLocations,
 };
