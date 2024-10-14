@@ -249,6 +249,15 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             });
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_AREAS_ACTIVATED';
             return baseMessage;
+        case PushNotifications.Types.nudgeSpaceEngagement:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.nudgeSpaceEngagement.title'),
+                notificationBody: translate(config.userLocale, 'notifications.nudgeSpaceEngagement.body'),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT';
+            return baseMessage;
         case PushNotifications.Types.proximityRequiredMoment:
             return createBaseMessage({
                 data: modifiedData,
@@ -351,6 +360,10 @@ const predictAndSendNotification = (
             }
 
             if (type === PushNotifications.Types.newAreasActivated) {
+                return admin.messaging().send(message);
+            }
+
+            if (type === PushNotifications.Types.nudgeSpaceEngagement) {
                 return admin.messaging().send(message);
             }
 

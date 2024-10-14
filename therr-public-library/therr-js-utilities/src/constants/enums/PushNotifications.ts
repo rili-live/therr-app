@@ -10,6 +10,7 @@ export enum Types {
     newLikeReceived = 'new-like-received',
     newSuperLikeReceived = 'new-super-like-received',
     newAreasActivated = 'new-moments-activated',
+    nudgeSpaceEngagement = 'nudge-space-engagement',
     proximityRequiredMoment = 'proximity-required-moment',
     proximityRequiredSpace = 'proximity-required-space',
     newThoughtReplyReceived = 'new-thought-reply-received',
