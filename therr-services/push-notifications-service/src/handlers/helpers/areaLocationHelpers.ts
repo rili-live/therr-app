@@ -42,8 +42,14 @@ interface IActivationArgs {
     spaces: any[];
 }
 
-const hasSentNotificationRecently = (lastNotificationDate) => lastNotificationDate
-    && (Date.now() - lastNotificationDate < Location.MIN_TIME_BETWEEN_PUSH_NOTIFICATIONS_MS);
+const hasSentNotificationRecently = (lastNotificationDate, isCheckInNotification = false) => {
+    const minDuration = isCheckInNotification
+        ? Location.MIN_TIME_BETWEEN_CHECK_IN_PUSH_NOTIFICATIONS_MS
+        : Location.MIN_TIME_BETWEEN_PUSH_NOTIFICATIONS_MS;
+
+    return lastNotificationDate
+    && (Date.now() - lastNotificationDate < minDuration);
+};
 
 const canActivateArea = (area, userLocation: IUserlocation) => {
     const areaRequiredProximityMeters = area.radius + area.maxProximity;
@@ -89,6 +95,78 @@ const getCachedNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocati
                 limit,
             });
         });
+};
+
+const createAppAndPushNotification = (
+    areaType: IAreaType,
+    userLocationCache: UserLocationCache,
+    headers: IHeaders,
+    associationId: string,
+    messageData: any,
+    shouldSendAppNotification: boolean,
+    lastNotificationDate?: any,
+    pushNotificationType: PushNotifications.Types = (areaType === 'moments'
+        ? PushNotifications.Types.proximityRequiredMoment
+        : PushNotifications.Types.proximityRequiredSpace),
+) => {
+    if (areaType === 'moments') {
+        userLocationCache.setLastMomentNotificationDate(); // fire and forget
+    } else {
+        userLocationCache.setLastSpaceNotificationDate(); // fire and forget
+    }
+    let notificationData = {};
+
+    const appNotificationPromise = shouldSendAppNotification
+        ? axios({ // fire and forget
+            method: 'post',
+            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/notifications`,
+            headers: {
+                authorization: headers.authorization,
+                'x-localecode': headers.locale,
+                'x-userid': headers.userId,
+                'x-therr-origin-host': headers.whiteLabelOrigin,
+            },
+            data: {
+                userId: headers.userId,
+                type: (areaType === 'moments'
+                    ? Notifications.Types.DISCOVERED_UNIQUE_MOMENT
+                    : Notifications.Types.DISCOVERED_UNIQUE_SPACE),
+                isUnread: true,
+                associationId,
+                messageLocaleKey: areaType === 'moments'
+                    ? Notifications.MessageKeys.DISCOVERED_UNIQUE_MOMENT
+                    : Notifications.MessageKeys.DISCOVERED_UNIQUE_SPACE,
+            },
+        }) : Promise.resolve({
+            data: {},
+        });
+
+    return appNotificationPromise.then((response) => {
+        notificationData = response?.data;
+    }).catch((error) => {
+        console.log(error);
+    }).finally(() => {
+        const metrics = (areaType === 'moments' && lastNotificationDate)
+            ? {
+                lastMomentNotificationDate: lastNotificationDate,
+            }
+            : {
+                lastSpaceNotificationDate: lastNotificationDate,
+            };
+        return predictAndSendNotification(
+            pushNotificationType,
+            {
+                ...messageData,
+                notificationData,
+            },
+            {
+                deviceToken: headers.userDeviceToken,
+                userId: headers.userId,
+                userLocale: headers.locale,
+            },
+            metrics,
+        );
+    });
 };
 
 // Find areas within distance that have not been activated and are close enough to activate
@@ -144,7 +222,7 @@ const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLo
         .then(([reactionsResponse, lastNotificationDate]: any[]) => {
             const reactions = reactionsResponse?.data?.reactions || [];
             // TODO: RDATA-3 - Determine smart rules around sending push notifications
-            let shouldSkipNotification = hasSentNotificationRecently(lastNotificationDate);
+            const shouldSkipNotification = hasSentNotificationRecently(lastNotificationDate);
             const cacheableAreas: any[] = [];
             let maxActivationDistance = Location.AREA_PROXIMITY_METERS;
             let filteredAreasCount = 0;
@@ -157,58 +235,17 @@ const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLo
                 // Unique areas
                 if (area.doesRequireProximityView) { // Requires manual interaction (by clicking)
                     if (!shouldSkipNotification) {
-                        if (areaType === 'moments') {
-                            userLocationCache.setLastMomentNotificationDate(); // fire and forget
-                        } else {
-                            userLocationCache.setLastSpaceNotificationDate(); // fire and forget
-                        }
-                        let notificationData = {};
-                        shouldSkipNotification = true;
-
-                        return axios({ // fire and forget
-                            method: 'post',
-                            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/notifications`,
-                            headers: {
-                                authorization: headers.authorization,
-                                'x-localecode': headers.locale,
-                                'x-userid': headers.userId,
-                                'x-therr-origin-host': headers.whiteLabelOrigin,
+                        createAppAndPushNotification(
+                            areaType,
+                            userLocationCache,
+                            headers,
+                            area.id,
+                            {
+                                area,
                             },
-                            data: {
-                                userId: headers.userId,
-                                type: areaType === 'moments' ? Notifications.Types.DISCOVERED_UNIQUE_MOMENT : Notifications.Types.DISCOVERED_UNIQUE_SPACE,
-                                isUnread: true,
-                                associationId: area.id,
-                                messageLocaleKey: areaType === 'moments'
-                                    ? Notifications.MessageKeys.DISCOVERED_UNIQUE_MOMENT
-                                    : Notifications.MessageKeys.DISCOVERED_UNIQUE_SPACE,
-                            },
-                        }).then((response) => {
-                            notificationData = response?.data;
-                        }).catch((error) => {
-                            console.log(error);
-                        }).finally(() => {
-                            const metrics = areaType === 'moments'
-                                ? {
-                                    lastMomentNotificationDate: lastNotificationDate,
-                                }
-                                : {
-                                    lastSpaceNotificationDate: lastNotificationDate,
-                                };
-                            return predictAndSendNotification(
-                                (areaType === 'moments' ? PushNotifications.Types.proximityRequiredMoment : PushNotifications.Types.proximityRequiredSpace),
-                                {
-                                    area,
-                                    notificationData,
-                                },
-                                {
-                                    deviceToken: headers.userDeviceToken,
-                                    userId: headers.userId,
-                                    userLocale: headers.locale,
-                                },
-                                metrics,
-                            );
-                        });
+                            true,
+                            lastNotificationDate,
+                        );
                     }
 
                     return false; // Filter out these areas from being automatically-activated
@@ -604,6 +641,7 @@ const selectAreasAndActivate = (
 };
 
 export {
+    createAppAndPushNotification,
     activateAreasAndNotify,
     selectAreasAndActivate,
     hasSentNotificationRecently,

@@ -68,6 +68,10 @@
       "title": "New Areas Activated",
       "body": "You recently activated {totalAreasActivated} new areas(s)"
     },
+    "nudgeSpaceEngagement": {
+      "title": "Claim Cashback?",
+      "body": "Check in or complete a quick action to claim cashback and discounts"
+    },
     "unclaimedAchievementsReminder": {
       "title": "You have unclaimed achievements",
       "body": "You have {achievementsCount} unclaimed achievements"

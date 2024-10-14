@@ -27,7 +27,19 @@ const createUserLocations = (req, res) => Store.userLocations.create([{
     }))
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_LOCATIONS_ROUTES:ERROR' }));
 
+const updateUserLocation = (req, res) => Store.userLocations.update(req.params.userLocationId, {
+    isDeclaredHome: req.body.isDeclaredHome,
+    latitude: req.body.latitude,
+    longitude: req.body.longitude,
+    lastPushNotificationSent: req.body.lastPushNotificationSent,
+})
+    .then((results) => res.status(200).send({
+        userLocations: results,
+    }))
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_LOCATIONS_ROUTES:ERROR' }));
+
 export {
     getUserLocations,
     createUserLocations,
+    updateUserLocation,
 };

@@ -1,4 +1,4 @@
-import { Location } from 'therr-js-utilities/constants';
+import { Location, PushNotifications } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import { distanceTo } from 'geolocation-utils';
 import logSpan from 'therr-js-utilities/log-or-update-span';
@@ -6,10 +6,11 @@ import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import UserLocationCache from '../store/UserLocationCache';
 import {
+    createAppAndPushNotification,
     getAllNearbyAreas,
     selectAreasAndActivate,
 } from './helpers/areaLocationHelpers';
-import { createUserLocation, getUserLocation } from './helpers/userLocations';
+import { createUserLocation, getUserLocation, updateUserLocation } from './helpers/userLocations';
 // import translate from '../utilities/translator';
 
 // CREATE/UPDATE
@@ -108,16 +109,16 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         deviceModel,
         isDeviceTablet,
     } = req.body;
-    const formattedDetails = {
-        event: location?.event,
-        isMoving: location?.is_moving,
-        isBatteryCharging: location?.battery.is_charging,
-        coords: {
-            latitude: location?.coords.latitude,
-            longitude: location?.coords.longitude,
-        },
-        timestamp: location?.timestamp,
-    };
+    // const formattedDetails = {
+    //     event: location?.event,
+    //     isMoving: location?.is_moving,
+    //     isBatteryCharging: location?.battery.is_charging,
+    //     coords: {
+    //         latitude: location?.coords.latitude,
+    //         longitude: location?.coords.longitude,
+    //     },
+    //     timestamp: location?.timestamp,
+    // };
 
     const latitude = location?.coords.latitude;
     const longitude = location?.coords.longitude;
@@ -126,7 +127,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         return res.status(200).send();
     }
 
-    createUserLocation(userId, headers, {
+    const userLocationPromise = createUserLocation(userId, headers, {
         latitude,
         longitude,
     });
@@ -161,8 +162,12 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         }, Location.AREA_PROXIMITY_METERS)
             .then(([filteredMoments, filteredSpaces]) => {
                 if (filteredSpaces?.length) {
-                    getUserLocation(userId, headers).then((response) => {
-                        const locations = response?.data?.userLocations || [];
+                    Promise.all([
+                        userLocationPromise,
+                        getUserLocation(userId, headers),
+                    ]).then(([userLocationResponse, allLocationsResponse]) => {
+                        const locations = allLocationsResponse?.data?.userLocations || [];
+                        const currentLocation = userLocationResponse?.data?.userLocations?.[0];
                         // Assume top 3 are probably home
                         const nonHomeLocations = locations
                             .filter((loc) => !loc.isDeclaredHome)
@@ -200,12 +205,48 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                                 },
                             });
 
-                            // TODO: Filter out userLocations.lastPushNotificationSent within n number of days
-                            // TODO: Filter out spaces that do not offer rewards and user has already received notification
-                            // TODO: send check-in push notification if isMoving is false and location is not user's top 5 or already visited
-                            // Limit push notifications to 1 per day
-                            // Use possibleSpacesUserIsVisiting
-                            // TODO: Update userLocations.lastPushNotificationSent
+                            if (possibleSpacesUserIsVisiting.length) {
+                                // Use possibleSpacesUserIsVisiting
+                                // TODO: Filter out spaces that do not offer rewards and user has already received notification
+                                const spaceWithRewards = possibleSpacesUserIsVisiting[0];
+                                const now = Date.now();
+                                const msSinceLastNotification = now - (new Date(currentLocation.lastPushNotificationSent || now).getTime());
+                                // eslint-disable-next-line max-len
+                                const shouldSendNotification = !currentLocation.lastPushNotificationSent || msSinceLastNotification > Location.MIN_TIME_BETWEEN_CHECK_IN_PUSH_NOTIFICATIONS_MS;
+
+                                if (shouldSendNotification) {
+                                    logSpan({
+                                        level: 'info',
+                                        messageOrigin: 'API_SERVER',
+                                        messages: ['BackgroundGeolocation - Space engagement nudge sent'],
+                                        traceArgs: {
+                                            brandVariation,
+                                            userId,
+                                            whiteLabelOrigin,
+                                            possibleSpaces: possibleSpacesUserIsVisiting.map((s) => ({ id: s.id, name: s.notificationMsg })),
+                                            platformOS,
+                                            deviceModel,
+                                            isDeviceTablet,
+                                        },
+                                    });
+                                    createAppAndPushNotification(
+                                        'spaces',
+                                        userLocationCache,
+                                        headers,
+                                        spaceWithRewards.id,
+                                        {
+                                            area: spaceWithRewards,
+                                        },
+                                        false, // TODO: Support checking in and/or posting after leaving a spaces
+                                        PushNotifications.Types.nudgeSpaceEngagement, // TODO: Create a new push notification type
+                                    ).then(() => {
+                                        // Update userLocations.lastPushNotificationSent
+                                        updateUserLocation(currentLocation.id, headers, {
+                                            lastPushNotificationSent: new Date(),
+                                        });
+                                    });
+                                }
+                            }
                         }
                     });
                 }
@@ -232,6 +273,9 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                         whiteLabelOrigin,
                         totalMomentsActivated: momentsToActivate?.length,
                         totalSpacesActivated: spacesToActivate?.length,
+                        platformOS,
+                        deviceModel,
+                        isDeviceTablet,
                     },
                 });
 

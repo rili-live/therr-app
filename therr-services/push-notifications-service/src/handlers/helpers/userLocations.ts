@@ -52,7 +52,33 @@ const createUserLocation = (userId: string, headers, userLocation: {
     });
 });
 
+const updateUserLocation = (userLocationId: string, headers, data: {
+    lastPushNotificationSent: Date,
+}) => axios({
+    method: 'put',
+    url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-locations/${userLocationId}`,
+    headers: {
+        authorization: headers.authorization,
+        'x-localecode': headers.locale,
+        'x-userid': headers.userId,
+        'x-therr-origin-host': headers.whiteLabelOrigin,
+    },
+    data: {
+        lastPushNotificationSent: data.lastPushNotificationSent,
+    },
+}).catch((err) => {
+    logSpan({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: ['Error while updating userLocation'],
+        traceArgs: {
+            'error.message': err?.message,
+        },
+    });
+});
+
 export {
     getUserLocation,
     createUserLocation,
+    updateUserLocation,
 };
