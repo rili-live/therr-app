@@ -55,18 +55,9 @@ const createBaseMessage = (
         data,
         deviceToken,
     }: ICreateBaseMessage,
-    brandVariation: BrandVariations = BrandVariations.THERR,
 ): admin.messaging.Message | false => {
     const message: admin.messaging.Message = {
         data,
-        android: {
-            notification: {
-                icon: 'ic_notification_icon',
-                color: '#0f7b82',
-                // clickAction: 'app.therrmobile.VIEW_MOMENT',
-                // channelId: '', // TODO: Add matching channelIds from mobile app
-            },
-        },
         // apns: {
         //     payload: {
         //         aps: {
@@ -115,10 +106,12 @@ const createDataOnlyMessage = (
         },
     };
 
-    if (baseMessage?.android?.notification) {
-        // Required for background/quit data-only messages on Android
-        baseMessage.android.notification.priority = 'high';
+    if (!baseMessage?.android) {
+        baseMessage.android = {};
     }
+
+    // Required for background/quit data-only messages on Android
+    baseMessage.android.priority = 'high';
 
     return baseMessage;
 };
@@ -133,6 +126,14 @@ const createNotificationMessage = ({
         data,
         deviceToken,
     }),
+    android: {
+        notification: {
+            icon: 'ic_notification_icon',
+            color: '#0f7b82', // TODO: use brandVariation for icon color
+            // clickAction: 'app.therrmobile.VIEW_MOMENT',
+            // channelId: '', // TODO: Add matching channelIds from mobile app
+        },
+    },
     notification: {
         title: notificationTitle,
         body: notificationBody,
@@ -336,7 +337,6 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                 },
                 deviceToken: config.deviceToken,
             }, 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT');
-            baseMessage.android.notification.clickAction = 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT';
             return baseMessage;
         case PushNotifications.Types.proximityRequiredMoment:
             return createNotificationMessage({

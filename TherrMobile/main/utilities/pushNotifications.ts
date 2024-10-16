@@ -15,11 +15,10 @@ import { AndroidChannelIds, PressActionIds, getAndroidChannel } from '../constan
  */
 const sendBackgroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
     // Request permissions (required for iOS)
-    return notifee.requestPermission()
-        .then(() => notifee.createChannel({
-            ...(androidChannel || getAndroidChannel(AndroidChannelIds.default, false)),
-            importance: AndroidImportance.HIGH,
-        }))
+    return notifee.createChannel({
+        ...(androidChannel || getAndroidChannel(AndroidChannelIds.default, false)),
+        importance: AndroidImportance.HIGH,
+    })
         .then((channelId: string) => {
             return notifee.displayNotification({
                 title: notification.title,
@@ -33,7 +32,7 @@ const sendBackgroundNotification = (notification: Notification, androidChannel?:
                     pressAction: notification.android?.pressAction || {
                         id: PressActionIds.default,
                     },
-                    timestamp: Date.now(), // 8 minutes ago
+                    timestamp: Date.now(),
                     showTimestamp: true,
                 },
             });

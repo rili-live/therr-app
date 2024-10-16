@@ -47,7 +47,8 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
                 ],
             },
             data: remoteMessage?.data,
-        }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
+        }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false))
+            .catch((err) => console.log(err));
     }
 });
 
