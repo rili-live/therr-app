@@ -2,7 +2,6 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import LogRocket from '@logrocket/react-native';
 import analytics from '@react-native-firebase/analytics';
-import messaging from '@react-native-firebase/messaging';
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
 import { enableLatestRenderer } from 'react-native-maps';
 import { SheetProvider } from 'react-native-actions-sheet';
@@ -20,37 +19,11 @@ import { HEADER_HEIGHT_MARGIN } from './styles';
 import getTourSteps from './getTourSteps';
 import UsersActions from './redux/actions/UsersActions';
 import './components/ActionSheet';
-import { sendBackgroundNotification, wrapOnMessageReceived } from './utilities/pushNotifications';
-import { AndroidChannelIds, PressActionIds, getAndroidChannel } from './constants';
 
 // Disable in development
 analytics().setAnalyticsCollectionEnabled(!__DEV__);
 
 enableLatestRenderer();
-
-messaging().setBackgroundMessageHandler(async remoteMessage => {
-    await wrapOnMessageReceived(false, remoteMessage);
-
-    // Handle the data-only notification
-    if (remoteMessage?.data?.clickActionId === 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT') {
-        // TODO: Include translations from server push notification data
-        sendBackgroundNotification({
-            title: remoteMessage?.data?.notificationTitle?.toString() || '',
-            body: remoteMessage?.data?.notificationBody?.toString() || '',
-            android: {
-                pressAction: { id: PressActionIds.nudge, launchActivity: 'default' },
-                actions: [
-                    {
-                        pressAction: { id: PressActionIds.nudge, launchActivity: 'default' },
-                        title: remoteMessage?.data?.notificationPressActionCheckIn?.toString() || '',
-                    },
-                ],
-            },
-            data: remoteMessage?.data,
-        }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false))
-            .catch((err) => console.log(err));
-    }
-});
 
 // import { buildStyles } from './styles';
 

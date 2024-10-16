@@ -96,6 +96,7 @@ const createDataOnlyMessage = (
     baseMessage.apns = {
         payload: {
             aps: {
+                mutableContent: true,
                 contentAvailable: true,
             },
         },
