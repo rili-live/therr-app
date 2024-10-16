@@ -113,14 +113,6 @@ const testPushNotification: RequestHandler = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
-    if (!userId || (process.env.NODE_ENV === 'production'
-        && ![
-            'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32', // rilimain@gmail.com
-            'a730f85b-bc3a-46ab-97e9-48b8e5875f83', // zanselm5@gmail.com
-        ].includes(userId?.toString()))) {
-        return res.status(403).send('Invalid endpoint');
-    }
-
     const headers = {
         authorization,
         locale: (locale as string),
