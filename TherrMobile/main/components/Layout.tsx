@@ -331,8 +331,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
                 this.getIosNotificationPermissions()
                     .then(() => {
-                        // return messaging().registerDeviceForRemoteMessages();
-                        return Promise.resolve();
+                        return messaging().registerDeviceForRemoteMessages();
                     })
                     .then(() => {
                         // Get the token
@@ -347,7 +346,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             await wrapOnMessageReceived(true, remoteMessage);
 
                             if (remoteMessage?.data?.areasActivated) {
-                                const parsedAreasData = JSON.parse(remoteMessage.data.areasActivated);
+                                const parsedAreasData = typeof (remoteMessage?.data?.areasActivated) === 'string'
+                                    ? JSON.parse(remoteMessage?.data?.areasActivated)
+                                    : [];
                                 const momentsData = parsedAreasData.filter(area => area.momentId);
                                 const spacesData = parsedAreasData.filter(area => area.spaceId);
                                 if (parsedAreasData.length) {
@@ -382,10 +383,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     }
                                 }
                                 // TODO: Fetch associated media files
-                                // TODO: Fetch adn call insertActiveMoments to "activate" moments on map and discovered
+                                // TODO: Fetch and call insertActiveMoments to "activate" moments on map and discovered
                             }
                             if (remoteMessage?.data?.notificationData) {
-                                const parsedNotificationData = JSON.parse(remoteMessage.data.notificationData);
+                                const parsedNotificationData = typeof (remoteMessage?.data?.notificationData) === 'string'
+                                    ? JSON.parse(remoteMessage?.data?.notificationData)
+                                    : {};
                                 addNotification(parsedNotificationData);
                             }
                         });
@@ -819,6 +822,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteParams = {
                     activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
                 };
+            } else if (data.action === 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT') {
+                // TODO: Implement better user experience
+                targetRouteView = 'Achievements';
             } else if (data.action === 'app.therrmobile.NEW_GROUP_MESSAGE'
                 || data.action === 'app.therrmobile.NEW_GROUP_INVITE'
                 || data.action === 'app.therrmobile.NEW_GROUP_MEMBERS') {
@@ -887,6 +893,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return Promise.resolve();
             }
 
+            if (notification?.id && pressAction?.id === PressActionIds.nudge) {
+                // TODO: Implement user experience
+                if (isUserAuthorized) {
+                    RootNavigation.navigate('Achievements');
+                }
+                return Promise.resolve();
+            }
+
             if (notification?.id && pressAction?.id === PressActionIds.discovered) {
                 return Promise.resolve();
             }
@@ -896,7 +910,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             return Promise.resolve();
         }
 
-        if (isInForeground) {}
+        if (isInForeground) {
+            // TODO: Display in-app toast notification?
+        }
 
         return Promise.resolve();
     };

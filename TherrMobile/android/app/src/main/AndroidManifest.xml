@@ -78,6 +78,10 @@
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
+            <action android:name="app.therrmobile.NUDGE_SPACE_ENGAGEMENT" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
             <action android:name="app.therrmobile.NEW_CONNECTION" />
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>

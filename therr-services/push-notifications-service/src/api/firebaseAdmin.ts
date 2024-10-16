@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 import * as admin from 'firebase-admin';
-import { PushNotifications } from 'therr-js-utilities/constants';
+import { BrandVariations, PushNotifications } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import translate from '../utilities/translator';
 
@@ -33,35 +33,110 @@ interface INotificationMetrics {
 interface ICreateBaseMessage {
     data: any;
     deviceToken: any;
+}
+
+interface ICreateNotificationMessage extends ICreateBaseMessage {
     notificationTitle: string;
     notificationBody: string;
 }
 
-const createBaseMessage = ({
+const getAppBundleIdentifier = (brandVariation: BrandVariations) => {
+    switch (brandVariation) {
+        case BrandVariations.THERR:
+            return 'com.therr.mobile.Therr';
+        default:
+            return 'com.therr.mobile.Therr';
+    }
+};
+
+// TODO: Add brandVariation to dynamically set app bundle identifier
+const createBaseMessage = (
+    {
+        data,
+        deviceToken,
+    }: ICreateBaseMessage,
+    brandVariation: BrandVariations = BrandVariations.THERR,
+): admin.messaging.Message | false => {
+    const message: admin.messaging.Message = {
+        data,
+        android: {
+            notification: {
+                icon: 'ic_notification_icon',
+                color: '#0f7b82',
+                // clickAction: 'app.therrmobile.VIEW_MOMENT',
+                // channelId: '', // TODO: Add matching channelIds from mobile app
+            },
+        },
+        // apns: {
+        //     payload: {
+        //         aps: {
+        //             category: '', // apple apn category for click_action
+        //         },
+        //     },
+        // },
+        token: deviceToken,
+    };
+
+    return message;
+};
+
+// TODO: Add brandVariation to dynamically set app bundle identifier
+const createDataOnlyMessage = (
+    {
+        data,
+        deviceToken,
+    }: ICreateBaseMessage,
+    clickActionId: string,
+    brandVariation: BrandVariations = BrandVariations.THERR,
+): admin.messaging.Message | false => {
+    const baseMessage = createBaseMessage({
+        data: {
+            ...data,
+            clickActionId,
+        },
+        deviceToken,
+    });
+
+    if (baseMessage === false) {
+        return false;
+    }
+
+    // Required for background/quit data-only messages on iOS
+    baseMessage.apns = {
+        payload: {
+            aps: {
+                contentAvailable: true,
+            },
+        },
+        headers: {
+            'apns-push-type': 'background',
+            'apns-priority': '5',
+            'apns-topic': getAppBundleIdentifier(brandVariation), // your app bundle identifier
+        },
+    };
+
+    if (baseMessage?.android?.notification) {
+        // Required for background/quit data-only messages on Android
+        baseMessage.android.notification.priority = 'high';
+    }
+
+    return baseMessage;
+};
+
+const createNotificationMessage = ({
     data,
     deviceToken,
     notificationTitle,
     notificationBody,
-}: ICreateBaseMessage): admin.messaging.Message | false => ({
-    data,
+}: ICreateNotificationMessage): admin.messaging.Message | false => ({
+    ...createBaseMessage({
+        data,
+        deviceToken,
+    }),
     notification: {
         title: notificationTitle,
         body: notificationBody,
     },
-    android: {
-        notification: {
-            icon: 'ic_notification_icon',
-            color: '#0f7b82',
-            // clickAction: 'app.therrmobile.VIEW_MOMENT',
-        },
-    },
-    // apns: {
-    //     payload: {
-    //         aps: {
-    //             category: '', // apple apn category for click_action
-    //         },
-    //     },
-    // },
     token: deviceToken,
 });
 
@@ -76,7 +151,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
     switch (type) {
         // Automation
         case PushNotifications.Types.createYourProfileReminder:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.createYourProfileReminder.title'),
@@ -85,7 +160,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.CREATE_YOUR_PROFILE_REMINDER';
             return baseMessage;
         case PushNotifications.Types.createAMomentReminder:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.createAMomentReminder.title'),
@@ -94,7 +169,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.CREATE_A_MOMENT_REMINDER';
             return baseMessage;
         case PushNotifications.Types.latestPostLikesStats:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.latestPostLikesStats.title'),
@@ -105,7 +180,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.LATEST_POST_LIKES_STATS';
             return baseMessage;
         case PushNotifications.Types.latestPostViewcountStats:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.latestPostViewcountStats.title'),
@@ -116,7 +191,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.LATEST_POST_VIEWCOUNT_STATS';
             return baseMessage;
         case PushNotifications.Types.unreadNotificationsReminder:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.unreadNotificationsReminder.title'),
@@ -127,7 +202,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER';
             return baseMessage;
         case PushNotifications.Types.unclaimedAchievementsReminder:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.unclaimedAchievementsReminder.title'),
@@ -140,7 +215,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
 
         // Event Driven
         case PushNotifications.Types.achievementCompleted:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.achievementCompleted.title'),
@@ -149,7 +224,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.ACHIEVEMENT_COMPLETED';
             return baseMessage;
         case PushNotifications.Types.connectionRequestAccepted:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.connectionRequestAccepted.title'),
@@ -160,7 +235,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_CONNECTION';
             return baseMessage;
         case PushNotifications.Types.newConnectionRequest:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newConnectionRequest.title'),
@@ -171,7 +246,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_CONNECTION_REQUEST';
             return baseMessage;
         case PushNotifications.Types.newDirectMessage:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newDirectMessage.title'),
@@ -182,7 +257,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_DIRECT_MESSAGE';
             return baseMessage;
         case PushNotifications.Types.newGroupMessage:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newGroupMessage.title'),
@@ -193,7 +268,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_GROUP_MESSAGE';
             return baseMessage;
         case PushNotifications.Types.newGroupMembers:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newGroupMembers.title'),
@@ -205,7 +280,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_GROUP_MEMBERS';
             return baseMessage;
         case PushNotifications.Types.newGroupInvite:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newGroupInvite.title'),
@@ -217,7 +292,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_GROUP_INVITE';
             return baseMessage;
         case PushNotifications.Types.newLikeReceived:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newLikeReceived.title'),
@@ -228,7 +303,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_LIKE_RECEIVED';
             return baseMessage;
         case PushNotifications.Types.newSuperLikeReceived:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newSuperLikeReceived.title'),
@@ -239,7 +314,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED';
             return baseMessage;
         case PushNotifications.Types.newAreasActivated:
-            baseMessage = createBaseMessage({
+            baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newAreasActivated.title'),
@@ -249,31 +324,36 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             });
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_AREAS_ACTIVATED';
             return baseMessage;
+        // TODO: Make this a data-only message and test
+        // Implement Notifee local push notification on from-end
         case PushNotifications.Types.nudgeSpaceEngagement:
-            baseMessage = createBaseMessage({
-                data: modifiedData,
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.nudgeSpaceEngagement.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.nudgeSpaceEngagement.body'),
+                    notificationPressActionCheckIn: translate(config.userLocale, 'notifications.nudgeSpaceEngagement.pressActionCheckIn'),
+                },
                 deviceToken: config.deviceToken,
-                notificationTitle: translate(config.userLocale, 'notifications.nudgeSpaceEngagement.title'),
-                notificationBody: translate(config.userLocale, 'notifications.nudgeSpaceEngagement.body'),
-            });
+            }, 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT');
             baseMessage.android.notification.clickAction = 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT';
             return baseMessage;
         case PushNotifications.Types.proximityRequiredMoment:
-            return createBaseMessage({
+            return createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.discoveredUniqueMoment.title'),
                 notificationBody: translate(config.userLocale, 'notifications.discoveredUniqueMoment.body'),
             });
         case PushNotifications.Types.proximityRequiredSpace:
-            return createBaseMessage({
+            return createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.discoveredUniqueSpace.title'),
                 notificationBody: translate(config.userLocale, 'notifications.discoveredUniqueSpace.body'),
             });
         case PushNotifications.Types.newThoughtReplyReceived:
-            return createBaseMessage({
+            return createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newThoughtReplyReceived.title'),

@@ -215,20 +215,6 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                                 const shouldSendNotification = !currentLocation.lastPushNotificationSent || msSinceLastNotification > Location.MIN_TIME_BETWEEN_CHECK_IN_PUSH_NOTIFICATIONS_MS;
 
                                 if (shouldSendNotification) {
-                                    logSpan({
-                                        level: 'info',
-                                        messageOrigin: 'API_SERVER',
-                                        messages: ['BackgroundGeolocation - Space engagement nudge sent'],
-                                        traceArgs: {
-                                            brandVariation,
-                                            userId,
-                                            whiteLabelOrigin,
-                                            possibleSpaces: possibleSpacesUserIsVisiting.map((s) => ({ id: s.id, name: s.notificationMsg })),
-                                            platformOS,
-                                            deviceModel,
-                                            isDeviceTablet,
-                                        },
-                                    });
                                     createAppAndPushNotification(
                                         'spaces',
                                         userLocationCache,
@@ -240,6 +226,20 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                                         false, // TODO: Support checking in and/or posting after leaving a spaces
                                         PushNotifications.Types.nudgeSpaceEngagement, // TODO: Create a new push notification type
                                     ).then(() => {
+                                        logSpan({
+                                            level: 'info',
+                                            messageOrigin: 'API_SERVER',
+                                            messages: ['BackgroundGeolocation - Space engagement nudge sent'],
+                                            traceArgs: {
+                                                brandVariation,
+                                                userId,
+                                                whiteLabelOrigin,
+                                                possibleSpaces: possibleSpacesUserIsVisiting.map((s) => ({ id: s.id, name: s.notificationMsg })),
+                                                platformOS,
+                                                deviceModel,
+                                                isDeviceTablet,
+                                            },
+                                        });
                                         // Update userLocations.lastPushNotificationSent
                                         updateUserLocation(currentLocation.id, headers, {
                                             lastPushNotificationSent: new Date(),

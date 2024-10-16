@@ -106,10 +106,20 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
 };
 
+// eslint-disable-next-line max-len
+// Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=eGEh3WckRjy_aqM784gNM3:APA91bE2b-eXIOq3Wj-moMhjiwv3Ap-b2N8u7vhXiAsWNKRpkTROogV9Cge-r2CNb7wckP8AkQ4PKtD_Gr3FIuwtbtbdsLF5Bpem1gPNateVCH0wgGbc5I1kx-OUegM4TOp3WY5cbnoY&type=nudge-space-engagement"
 const testPushNotification: RequestHandler = (req, res) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
+
+    if (!userId || (process.env.NODE_ENV === 'production'
+        && ![
+            'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32', // rilimain@gmail.com
+            'a730f85b-bc3a-46ab-97e9-48b8e5875f83', // zanselm5@gmail.com
+        ].includes(userId?.toString()))) {
+        return res.status(403).send('Invalid endpoint');
+    }
 
     const headers = {
         authorization,
@@ -122,6 +132,24 @@ const testPushNotification: RequestHandler = (req, res) => {
         toUserDeviceToken,
         type,
     } = req.query;
+
+    if (type && type === PushNotifications.Types.nudgeSpaceEngagement) {
+        return predictAndSendNotification(
+            PushNotifications.Types.nudgeSpaceEngagement,
+            {
+                area: {
+                    id: 'e512af11-0a70-406a-bb81-794d328dbadb',
+                },
+            },
+            {
+                deviceToken: toUserDeviceToken,
+                userId: headers.userId,
+                userLocale: headers.locale,
+                fromUserName: fromUserName?.toString(),
+            },
+        ).then(() => res.status(201).send('Sent nudge!'))
+            .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
+    }
 
     return predictAndSendNotification(
         // TODO: This endpoint should accept a type
@@ -138,7 +166,7 @@ const testPushNotification: RequestHandler = (req, res) => {
             fromUserName: fromUserName?.toString(),
         },
     )
-        .then(() => res.status(201).send({}))
+        .then(() => res.status(201).send('Sent!'))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
 };
 

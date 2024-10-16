@@ -1,6 +1,44 @@
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-import notifee, { AndroidChannel, AndroidNotificationSetting, Notification, RepeatFrequency, TimestampTrigger, TriggerType } from '@notifee/react-native';
+import notifee, {
+    AndroidChannel,
+    AndroidImportance,
+    AndroidNotificationSetting,
+    Notification,
+    RepeatFrequency,
+    TimestampTrigger,
+    TriggerType,
+} from '@notifee/react-native';
 import { AndroidChannelIds, PressActionIds, getAndroidChannel } from '../constants';
+
+/**
+ * Sends a Notifee push notification when a data-only Firebase notification is received in the background
+ */
+const sendBackgroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
+    // Request permissions (required for iOS)
+    return notifee.requestPermission()
+        .then(() => notifee.createChannel({
+            ...(androidChannel || getAndroidChannel(AndroidChannelIds.default, false)),
+            importance: AndroidImportance.HIGH,
+        }))
+        .then((channelId: string) => {
+            return notifee.displayNotification({
+                title: notification.title,
+                body: notification.body,
+                android: {
+                    actions: notification.android?.actions || undefined,
+                    channelId,
+                    smallIcon: notification.android?.smallIcon || 'ic_notification_icon', // optional, defaults to 'ic_launcher'.
+                    color: '#0f7b82',
+                    // pressAction is needed if you want the notification to open the app when pressed
+                    pressAction: notification.android?.pressAction || {
+                        id: PressActionIds.default,
+                    },
+                    timestamp: Date.now(), // 8 minutes ago
+                    showTimestamp: true,
+                },
+            });
+        });
+};
 
 const sendForegroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
     // Request permissions (required for iOS)
@@ -45,8 +83,6 @@ const sendTriggerNotification = async (
         repeatFrequency: repeatFrequency,
     };
 
-    console.log(futureDate.getTime());
-
     // Request permissions (required for iOS)
     return notifee.requestPermission()
         .then(() => notifee.createChannel(androidChannel || getAndroidChannel(AndroidChannelIds.default, false)))
@@ -85,6 +121,7 @@ const wrapOnMessageReceived = async (
 };
 
 export {
+    sendBackgroundNotification,
     sendForegroundNotification,
     sendTriggerNotification,
     wrapOnMessageReceived,

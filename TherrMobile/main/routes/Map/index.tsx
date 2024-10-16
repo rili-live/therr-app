@@ -753,6 +753,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                     total: response?.therrCoinRewarded || '2',
                                 }),
                                 android: {
+                                    pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
                                     actions: [
                                         {
                                             pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },

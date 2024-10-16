@@ -70,7 +70,8 @@
     },
     "nudgeSpaceEngagement": {
       "title": "Claim Cashback?",
-      "body": "Check in or complete a quick action to claim cashback and discounts"
+      "body": "Check in or complete a quick action to claim cashback and discounts",
+      "pressActionCheckIn": "Check-In?"
     },
     "unclaimedAchievementsReminder": {
       "title": "You have unclaimed achievements",
