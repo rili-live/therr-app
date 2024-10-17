@@ -823,8 +823,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
                 };
             } else if (data.action === 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT') {
-                // TODO: Implement better user experience
-                targetRouteView = 'Achievements';
+                targetRouteView = 'Map';
+                if (!isNotAuthorized) {
+                    // TODO: Consider returning and displaying a toast to notify opportunity to earn rewards
+                }
             } else if (data.action === 'app.therrmobile.NEW_GROUP_MESSAGE'
                 || data.action === 'app.therrmobile.NEW_GROUP_INVITE'
                 || data.action === 'app.therrmobile.NEW_GROUP_MEMBERS') {
@@ -894,9 +896,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }
 
             if (notification?.id && pressAction?.id === PressActionIds.nudge) {
-                // TODO: Implement user experience
-                if (isUserAuthorized) {
-                    RootNavigation.navigate('Achievements');
+                const area = JSON.parse(notification?.data?.area?.toString() || '{}');
+
+                // TODO: Implement better user experience to simplify performing action to earn rewards
+                if (isUserAuthorized && area.id) {
+                    RootNavigation.navigate('ViewSpace', {
+                        isMyContent: area?.fromUserId === user.details.id,
+                        previousView: 'Map',
+                        space: {
+                            id: area?.id,
+                        },
+                        spaceDetails: area,
+                    });
                 }
                 return Promise.resolve();
             }

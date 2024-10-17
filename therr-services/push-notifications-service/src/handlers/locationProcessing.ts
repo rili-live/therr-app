@@ -222,6 +222,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                                         spaceWithRewards.id,
                                         {
                                             area: spaceWithRewards,
+                                            possibleSpacesUserIsVisiting: possibleSpacesUserIsVisiting?.slice(0, 3),
                                         },
                                         false, // TODO: Support checking in and/or posting after leaving a spaces
                                         PushNotifications.Types.nudgeSpaceEngagement, // TODO: Create a new push notification type
