@@ -76,6 +76,7 @@ enum PressActionIds {
     drafts = 'drafts',
     exchange = 'exchange-coins',
     markAsRead = 'mark-as-read',
+    nudge = 'nudge',
 }
 
 enum AndroidChannelIds {

@@ -386,6 +386,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                                 total: response.therrCoinRewarded,
                                             }),
                                             android: {
+                                                pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
                                                 actions: [
                                                     {
                                                         pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },

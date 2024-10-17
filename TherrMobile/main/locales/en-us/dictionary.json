@@ -23,6 +23,7 @@
   },
   "alertActions": {
     "acceptBackgroundLocation": "Allow all the time",
+    "checkIn": "Check-In?",
     "exchange": "Exchange",
     "edit": "Edit"
   },

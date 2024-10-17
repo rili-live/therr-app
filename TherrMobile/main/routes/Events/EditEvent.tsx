@@ -482,6 +482,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                             total: response.therrCoinRewarded,
                                         }),
                                         android: {
+                                            pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
                                             actions: [
                                                 {
                                                     pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
