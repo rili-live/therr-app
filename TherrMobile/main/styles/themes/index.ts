@@ -29,6 +29,7 @@ export interface ITherrThemeColors {
 
     // Text
     textBlack: string;
+    textDark: string;
     textGray: string;
     textDarkGray: string;
     textWhite: string;

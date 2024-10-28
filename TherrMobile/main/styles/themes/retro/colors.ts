@@ -15,6 +15,7 @@ const colors: ITherrThemeColors = {
 
     // Text
     textBlack: '#363636',
+    textDark: '#363636',
     textGray: 'rgba(255,255,255,.78)',
     textDarkGray: '#728f94',
     textWhite: '#fcfeff',
