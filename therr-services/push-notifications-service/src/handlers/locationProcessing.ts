@@ -10,7 +10,8 @@ import {
     getAllNearbyAreas,
     selectAreasAndActivate,
 } from './helpers/areaLocationHelpers';
-import { createUserLocation, getUserLocation, updateUserLocation } from './helpers/userLocations';
+import { createUserLocation, getUserLocations, updateUserLocation } from './helpers/userLocations';
+import { getCurrentUser } from './helpers/user';
 // import translate from '../utilities/translator';
 
 // CREATE/UPDATE
@@ -67,15 +68,15 @@ const processUserLocationChange: RequestHandler = (req, res) => {
             },
             limit: 100,
         })
-            .then(([filteredMoments, filteredSpaces]) => selectAreasAndActivate(
+            .then(([nearbyMoments, nearbySpaces]) => selectAreasAndActivate(
                 headers,
                 userLocationCache,
                 {
                     longitude,
                     latitude,
                 },
-                filteredMoments,
-                filteredSpaces,
+                nearbyMoments?.newlyDiscoveredAreas,
+                nearbySpaces?.newlyDiscoveredAreas,
             ))
             .then(([momentsToActivate, spacesToActivate]) => res.status(200).send({
                 activatedAreas: [spacesToActivate, ...momentsToActivate],
@@ -94,7 +95,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
 
-    const headers = {
+    const incompleteHeaders = {
         authorization,
         brandVariation,
         locale,
@@ -127,7 +128,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         return res.status(200).send();
     }
 
-    const userLocationPromise = createUserLocation(userId, headers, {
+    const userLocationPromise = createUserLocation(userId, incompleteHeaders, {
         latitude,
         longitude,
     });
@@ -150,144 +151,202 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
             isCacheInvalid = distanceFromOriginMeters > (Location.AREA_PROXIMITY_NEARBY_METERS / 4) - 1;
         }
 
-        // Fetches x nearest areas within y meters of the user's current location (from the users's connections)
-        // AREA_PROXIMITY_METERS - More sensitive invalidation for background location when use is stationary
-        return getAllNearbyAreas(userLocationCache, isCacheInvalid, {
-            headers,
-            userLocation: {
-                longitude,
-                latitude,
-            },
-            limit: 100,
-        }, Location.AREA_PROXIMITY_METERS)
-            .then(([filteredMoments, filteredSpaces]) => {
-                if (filteredSpaces?.length) {
-                    Promise.all([
-                        userLocationPromise,
-                        getUserLocation(userId, headers),
-                    ]).then(([userLocationResponse, allLocationsResponse]) => {
-                        const locations = allLocationsResponse?.data?.userLocations || [];
-                        const currentLocation = userLocationResponse?.data?.userLocations?.[0];
-                        // Assume top 3 are probably home
-                        const nonHomeLocations = locations
-                            .filter((loc) => !loc.isDeclaredHome)
-                            .sort((a, b) => b.visitCount - a.visitCount)
-                            .slice(0);
-                        if (nonHomeLocations?.length) {
-                            const possibleSpacesUserIsVisiting: any[] = [];
-                            const spacesOrderedByDistance = filteredSpaces
-                                .map((s) => ({
-                                    ...s,
-                                    distanceFromUserMeters: distanceTo({
-                                        lon: latitude,
-                                        lat: longitude,
-                                    }, {
-                                        lon: s.longitude,
-                                        lat: s.latitude,
-                                    }),
-                                }))
-                                .sort((a, b) => a.distanceFromUserMeters - b.distanceFromUserMeters);
-                            spacesOrderedByDistance.some((space) => {
-                                possibleSpacesUserIsVisiting.push(space);
-                                // stop when user is out of range of remaining spaces
-                                return space.distanceFromUserMeters > Location.MAX_DISTANCE_TO_CHECK_IN_METERS;
-                            });
+        // Need device token for notifications
+        const userPromise = !incompleteHeaders?.userDeviceToken
+            ? getCurrentUser(incompleteHeaders).then((response) => response?.data)
+            : Promise.resolve({
+                deviceMobileFirebaseToken: userDeviceToken,
+            });
+
+        userPromise.then(({
+            deviceMobileFirebaseToken,
+        }) => {
+            const headers = {
+                ...incompleteHeaders,
+                userDeviceToken: deviceMobileFirebaseToken,
+            };
+            // Fetches x nearest areas within y meters of the user's current location (from the users's connections)
+            // AREA_PROXIMITY_METERS - More sensitive invalidation for background location when use is stationary
+            // TODO: Add some dynamic caching that captures all nearby spaces along with cached newly discoverable areas
+            return getAllNearbyAreas(userLocationCache, true, {
+                headers,
+                userLocation: {
+                    longitude,
+                    latitude,
+                },
+                limit: 100,
+            }, Location.AREA_PROXIMITY_METERS)
+                .then(([nearbyMoments, nearbySpaces]) => {
+                    const filteredMoments = nearbyMoments?.newlyDiscoveredAreas;
+                    const filteredSpaces = nearbySpaces?.newlyDiscoveredAreas;
+                    if (filteredSpaces?.length) {
+                        Promise.all([
+                            userLocationPromise,
+                            getUserLocations(userId, headers),
+                        ]).then(([userLocationResponse, allLocationsResponse]) => {
+                            const pastLocations = allLocationsResponse?.data?.userLocations || [];
+                            const currentLocation = userLocationResponse?.data?.userLocations?.[0];
+                            const sortedPastLocations = pastLocations
+                                .filter((loc) => !loc.isDeclaredHome)
+                                .sort((a, b) => b.visitCount - a.visitCount);
+                            const possibleHomesCount = 3;
+                            const homeLocations = sortedPastLocations
+                                .slice(0, possibleHomesCount); // Assume top 3 are probably home
+                            const nonHomeLocations = sortedPastLocations
+                                .slice(possibleHomesCount);
 
                             logSpan({
                                 level: 'info',
                                 messageOrigin: 'API_SERVER',
-                                messages: ['BackgroundGeolocation - DEBUG - Possible spaces visited'],
+                                messages: ['DEBUG non-home locations'],
                                 traceArgs: {
                                     brandVariation,
                                     userId,
                                     whiteLabelOrigin,
-                                    possibleSpaces: possibleSpacesUserIsVisiting.map((s) => ({ id: s.id, name: s.notificationMsg })),
+                                    nonHomeLocations: JSON.stringify(nonHomeLocations || []),
                                 },
                             });
 
-                            if (possibleSpacesUserIsVisiting.length) {
-                                // Use possibleSpacesUserIsVisiting
-                                // TODO: Filter out spaces that do not offer rewards and user has already received notification
-                                const spaceWithRewards = possibleSpacesUserIsVisiting[0];
-                                const now = Date.now();
-                                const msSinceLastNotification = now - (new Date(currentLocation.lastPushNotificationSent || now).getTime());
-                                // eslint-disable-next-line max-len
-                                const shouldSendNotification = !currentLocation.lastPushNotificationSent || msSinceLastNotification > Location.MIN_TIME_BETWEEN_CHECK_IN_PUSH_NOTIFICATIONS_MS;
+                            const userIsNotAtHome = homeLocations.every((homeLocation) => distanceTo({
+                                lon: latitude,
+                                lat: longitude,
+                            }, {
+                                lon: homeLocation.longitude,
+                                lat: homeLocation.latitude,
+                            }) > Location.MAX_DISTANCE_TO_CHECK_IN_METERS);
 
-                                if (shouldSendNotification) {
-                                    createAppAndPushNotification(
-                                        'spaces',
-                                        userLocationCache,
-                                        headers,
-                                        spaceWithRewards.id,
-                                        {
-                                            area: spaceWithRewards,
-                                            possibleSpacesUserIsVisiting: possibleSpacesUserIsVisiting?.slice(0, 3),
-                                        },
-                                        false, // TODO: Support checking in and/or posting after leaving a spaces
-                                        PushNotifications.Types.nudgeSpaceEngagement, // TODO: Create a new push notification type
-                                    ).then(() => {
-                                        logSpan({
-                                            level: 'info',
-                                            messageOrigin: 'API_SERVER',
-                                            messages: ['BackgroundGeolocation - Space engagement nudge sent'],
-                                            traceArgs: {
-                                                brandVariation,
-                                                userId,
-                                                whiteLabelOrigin,
-                                                possibleSpaces: possibleSpacesUserIsVisiting.map((s) => ({ id: s.id, name: s.notificationMsg })),
-                                                platformOS,
-                                                deviceModel,
-                                                isDeviceTablet,
+                            if (userIsNotAtHome && nonHomeLocations?.length) {
+                                const possibleSpacesUserIsVisiting: any[] = [];
+                                const spacesOrderedByDistance = nearbySpaces?.areas
+                                    .map((s) => ({
+                                        ...s,
+                                        distanceFromUserMeters: distanceTo({
+                                            lon: latitude,
+                                            lat: longitude,
+                                        }, {
+                                            lon: s.longitude,
+                                            lat: s.latitude,
+                                        }),
+                                    }))
+                                    .sort((a, b) => a.distanceFromUserMeters - b.distanceFromUserMeters);
+                                spacesOrderedByDistance.some((space) => {
+                                    const isUserWithinDistance = space.distanceFromUserMeters <= Location.MAX_DISTANCE_TO_CHECK_IN_METERS;
+                                    possibleSpacesUserIsVisiting.push(space);
+
+                                    // stop when user is out of range of remaining spaces
+                                    return !isUserWithinDistance;
+                                });
+
+                                logSpan({
+                                    level: 'info',
+                                    messageOrigin: 'API_SERVER',
+                                    messages: ['BackgroundGeolocation - DEBUG - Possible spaces visited'],
+                                    traceArgs: {
+                                        brandVariation,
+                                        userId,
+                                        whiteLabelOrigin,
+                                        possibleSpaces: possibleSpacesUserIsVisiting.map((s) => ({ id: s.id, name: s.notificationMsg })),
+                                    },
+                                });
+
+                                if (possibleSpacesUserIsVisiting.length) {
+                                    // Select the first, closest space by default
+                                    const spaceWithRewards = possibleSpacesUserIsVisiting[0];
+                                    const now = Date.now();
+                                    const msSinceLastNotification = now - (new Date(currentLocation.lastPushNotificationSent || now).getTime());
+                                    // eslint-disable-next-line max-len
+                                    const shouldSendNotification = !currentLocation.lastPushNotificationSent || msSinceLastNotification > Location.MIN_TIME_BETWEEN_CHECK_IN_PUSH_NOTIFICATIONS_MS;
+
+                                    if (shouldSendNotification) {
+                                        createAppAndPushNotification(
+                                            'spaces',
+                                            userLocationCache,
+                                            headers,
+                                            spaceWithRewards.id,
+                                            {
+                                                area: {
+                                                    id: spaceWithRewards.id,
+                                                    notificationMsg: spaceWithRewards.notificationMsg,
+                                                    fromUserId: spaceWithRewards.fromUserId,
+                                                    featuredIncentiveKey: spaceWithRewards.featuredIncentiveKey,
+                                                    featuredIncentiveRewardKey: spaceWithRewards.featuredIncentiveRewardKey,
+                                                },
+                                                possibleSpacesUserIsVisiting: possibleSpacesUserIsVisiting?.slice(0, 3)
+                                                    .map((s) => ({
+                                                        id: s.id,
+                                                        notificationMsg: s.notificationMsg,
+                                                        fromUserId: s.fromUserId,
+                                                        featuredIncentiveKey: s.featuredIncentiveKey,
+                                                        featuredIncentiveRewardKey: s.featuredIncentiveRewardKey,
+                                                    })), // Top 3 are most relevant and keeps payload within limits
                                             },
+                                            false, // TODO: Support checking in and/or posting after leaving a spaces
+                                            null,
+                                            PushNotifications.Types.nudgeSpaceEngagement, // TODO: Create a new push notification type
+                                        ).then(() => {
+                                            logSpan({
+                                                level: 'info',
+                                                messageOrigin: 'API_SERVER',
+                                                messages: ['BackgroundGeolocation - Space engagement nudge sent'],
+                                                traceArgs: {
+                                                    brandVariation,
+                                                    userId,
+                                                    whiteLabelOrigin,
+                                                    possibleSpaces: possibleSpacesUserIsVisiting
+                                                        .map((s) => ({ id: s.id, name: s.notificationMsg })),
+                                                    platformOS,
+                                                    deviceModel,
+                                                    isDeviceTablet,
+                                                },
+                                            });
+                                            // Update userLocations.lastPushNotificationSent
+                                            updateUserLocation(currentLocation.id, headers, {
+                                                lastPushNotificationSent: new Date(),
+                                            });
                                         });
-                                        // Update userLocations.lastPushNotificationSent
-                                        updateUserLocation(currentLocation.id, headers, {
-                                            lastPushNotificationSent: new Date(),
-                                        });
-                                    });
+                                    }
                                 }
                             }
-                        }
+                        });
+                    }
+
+                    return selectAreasAndActivate(
+                        headers,
+                        userLocationCache,
+                        {
+                            longitude,
+                            latitude,
+                        },
+                        filteredMoments,
+                        filteredSpaces,
+                    );
+                })
+                .then(([momentsToActivate, spacesToActivate]) => {
+                    logSpan({
+                        level: 'info',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['BackgroundGeolocation - Background areas activated'],
+                        traceArgs: {
+                            brandVariation,
+                            userId,
+                            whiteLabelOrigin,
+                            totalMomentsActivated: momentsToActivate?.length,
+                            totalSpacesActivated: spacesToActivate?.length,
+                            platformOS,
+                            deviceModel,
+                            isDeviceTablet,
+                        },
                     });
-                }
 
-                return selectAreasAndActivate(
-                    headers,
-                    userLocationCache,
-                    {
-                        longitude,
-                        latitude,
-                    },
-                    filteredMoments,
-                    filteredSpaces,
-                );
-            })
-            .then(([momentsToActivate, spacesToActivate]) => {
-                logSpan({
-                    level: 'info',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['BackgroundGeolocation - Background areas activated'],
-                    traceArgs: {
-                        brandVariation,
-                        userId,
-                        whiteLabelOrigin,
-                        totalMomentsActivated: momentsToActivate?.length,
-                        totalSpacesActivated: spacesToActivate?.length,
-                        platformOS,
-                        deviceModel,
-                        isDeviceTablet,
-                    },
+                    return res.status(200).send();
+                })
+                .catch((err) => {
+                    handleHttpError({ err, res, message: 'SQL:MOMENT_PUSH_NOTIFICATIONS_ROUTES:ERROR' });
+
+                    // Always return a 200 to BackgroundGeolocation plugin
+                    return res.status(200).send();
                 });
-
-                return res.status(200).send();
-            })
-            .catch((err) => {
-                handleHttpError({ err, res, message: 'SQL:MOMENT_PUSH_NOTIFICATIONS_ROUTES:ERROR' });
-
-                // Always return a 200 to BackgroundGeolocation plugin
-                return res.status(200).send();
-            });
+        });
     });
 };
 

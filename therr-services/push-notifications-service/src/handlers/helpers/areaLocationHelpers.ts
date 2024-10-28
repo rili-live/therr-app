@@ -70,7 +70,7 @@ const getCachedNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocati
     headers,
     userLocation,
     limit,
-}: IAreaGetSettings) => {
+}: IAreaGetSettings): Promise<any[]> => {
     const maxActivationDistancePromise = areaType === 'moments'
         ? userLocationCache.getMaxMomentActivationDistance()
         : userLocationCache.getMaxSpaceActivationDistance();
@@ -301,7 +301,10 @@ const fetchNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocationCa
     headers,
     userLocation,
     limit,
-}: IAreaGetSettings, distanceOverride = Location.AREA_PROXIMITY_EXPANDED_METERS): Promise<any> => {
+}: IAreaGetSettings, distanceOverride = Location.AREA_PROXIMITY_EXPANDED_METERS): Promise<{
+    areas: any[],
+    newlyDiscoveredAreas: any[],
+}> => {
     // Creates/Resets the origin each time we re-fetch areas
     userLocationCache.setOrigin({
         latitude: userLocation.latitude,
@@ -332,14 +335,26 @@ const fetchNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocationCa
         },
     })
         .then((areasResponse) => (areasResponse?.data?.results || [])) // relevant areas within x meters
-        .then((areas) => filterNearbyAreas(areaType, areas, userLocationCache, headers, userLocation));
+        .then((areas) => filterNearbyAreas(areaType, areas, userLocationCache, headers, userLocation).then((newlyDiscoveredAreas) => ({
+            areas,
+            newlyDiscoveredAreas,
+        })));
 };
 
 const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidateCache: boolean, {
     headers,
     userLocation,
     limit,
-}: IAreaGetSettings, distanceOverride = Location.AREA_PROXIMITY_EXPANDED_METERS): Promise<any[]> => {
+}: IAreaGetSettings, distanceOverride = Location.AREA_PROXIMITY_EXPANDED_METERS): Promise<[
+    {
+        areas: any[],
+        newlyDiscoveredAreas: any[],
+    },
+    {
+        areas: any[],
+        newlyDiscoveredAreas: any[],
+    }
+]> => {
     if (shouldInvalidateCache) {
         userLocationCache.invalidateCache();
 
@@ -385,7 +400,10 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
             userLocation,
             limit,
         },
-    );
+    ).then((moments) => ({
+        areas: moments, // We didn't call ALL areas, so just return the (cached) areas that can be activated here
+        newlyDiscoveredAreas: moments,
+    }));
 
     const spacesPromise = getCachedNearbyAreas(
         'spaces',
@@ -395,7 +413,10 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
             userLocation,
             limit,
         },
-    );
+    ).then((spaces) => ({
+        areas: spaces, // We didn't call ALL areas, so just return the (cached) areas that can be activated here
+        newlyDiscoveredAreas: spaces,
+    }));
 
     return Promise.all([momentsPromise, spacesPromise]);
 };
