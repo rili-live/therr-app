@@ -2,7 +2,7 @@ import axios from 'axios';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../../global-config';
 
-const getUserLocation = (userId: string, headers) => axios({
+const getUserLocations = (userId: string, headers) => axios({
     method: 'get',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-locations/${userId}`,
     headers: {
@@ -78,7 +78,7 @@ const updateUserLocation = (userLocationId: string, headers, data: {
 });
 
 export {
-    getUserLocation,
+    getUserLocations,
     createUserLocation,
     updateUserLocation,
 };
