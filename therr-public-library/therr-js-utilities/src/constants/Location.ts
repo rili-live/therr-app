@@ -3,7 +3,7 @@ const locationConstants = {
     AREA_PROXIMITY_METERS: 1000,
     AREA_PROXIMITY_NEARBY_METERS: 1609, // ~1 mile // Used for cache invalidation
     AREA_PROXIMITY_EXPANDED_METERS: 160934, // ~100 miles // Temporarily increased until more user traction
-    MAX_DISTANCE_TO_CHECK_IN_METERS: 10,
+    MAX_DISTANCE_TO_CHECK_IN_METERS: 20,
     MAX_AREA_ACTIVATE_COUNT: 50,
     MIN_TIME_BETWEEN_PUSH_NOTIFICATIONS_MS: 1000 * 60 * 3, // 3 minutes
     MIN_TIME_BETWEEN_CHECK_IN_PUSH_NOTIFICATIONS_MS: 1000 * 60 * 30, // 30 minutes

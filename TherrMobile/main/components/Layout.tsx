@@ -899,9 +899,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 const area = JSON.parse(notification?.data?.area?.toString() || '{}');
 
                 // TODO: Implement better user experience to simplify performing action to earn rewards
+                // TODO: DEBUG to determine if background notifications contain area and isUserAuthorized on click
                 if (isUserAuthorized && area.id) {
                     RootNavigation.navigate('ViewSpace', {
-                        isMyContent: area?.fromUserId === user.details.id,
+                        isMyContent: area?.fromUserId === user?.details?.id,
                         previousView: 'Map',
                         space: {
                             id: area?.id,
