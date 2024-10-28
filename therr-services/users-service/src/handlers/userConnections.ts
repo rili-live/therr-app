@@ -60,6 +60,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         userId,
         whiteLabelOrigin,
         brandVariation,
+        platform,
     } = parseHeaders(req.headers);
 
     let acceptingUser: {
@@ -118,7 +119,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                         fromName: fromUserFullName,
                         fromEmail: requestingUserEmail,
                         toEmail: acceptingUserEmail,
-                    }, false, locale, whiteLabelOrigin, brandVariation);
+                    }, false, locale, whiteLabelOrigin, brandVariation, platform);
                 } else {
                     return handleHttpError({
                         res,

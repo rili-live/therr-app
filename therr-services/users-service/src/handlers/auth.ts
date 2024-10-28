@@ -45,6 +45,7 @@ const login: RequestHandler = (req: any, res: any) => {
         userId,
         whiteLabelOrigin,
         brandVariation,
+        platform,
     } = parseHeaders(req.headers);
 
     // const { paymentSessionId } = req.body;
@@ -138,6 +139,7 @@ const login: RequestHandler = (req: any, res: any) => {
                 locale,
                 whiteLabelOrigin,
                 brandVariation,
+                platform,
                 reqBody: {
                     isSSO: req.body.isSSO,
                     isDashboard: req.body.isDashboard,

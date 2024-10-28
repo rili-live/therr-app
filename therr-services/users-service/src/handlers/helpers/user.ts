@@ -240,6 +240,7 @@ const createUserHelper = (
     locale = 'en-us',
     whiteLabelOrigin = '',
     brandVariation = '',
+    platform = '',
 ) => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
@@ -426,6 +427,7 @@ const createUserHelper = (
                             toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                             agencyDomainName: whiteLabelOrigin,
                             brandVariation,
+                            platform,
                         }, {
                             name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
                             inviterEmail: userByInviteDetails?.fromEmail || '',
@@ -469,6 +471,7 @@ const createUserHelper = (
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                 agencyDomainName: whiteLabelOrigin,
                 brandVariation,
+                platform,
             }, {
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
             }, {
@@ -503,6 +506,7 @@ interface IValidateCredentials {
     locale: string;
     whiteLabelOrigin?: string;
     brandVariation?: string;
+    platform: string;
     reqBody: {
         isSSO: boolean;
         isDashboard?: boolean;
@@ -523,6 +527,7 @@ const validateCredentials = (userSearchResults, {
     locale,
     whiteLabelOrigin,
     brandVariation,
+    platform,
     reqBody,
 }: IValidateCredentials, res) => {
     if (reqBody.isSSO) {
@@ -593,7 +598,7 @@ const validateCredentials = (userSearchResults, {
                         firstName: reqBody.userFirstName || fbUserFirstName,
                         lastName: reqBody.userLastName || fbUserLastName,
                         phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
-                    }, true, undefined, false, locale, whiteLabelOrigin, brandVariation).then((user) => [true, user, response]);
+                    }, true, undefined, false, locale, whiteLabelOrigin, brandVariation, platform).then((user) => [true, user, response]);
                 }
             }
 

@@ -8,6 +8,7 @@ export interface ISendNewUserAdminNotificationEmailConfig {
     toAddresses: string[];
     agencyDomainName: string;
     brandVariation: string;
+    platform: string;
 }
 
 export interface ITemplateParams {
@@ -33,7 +34,7 @@ export default (emailParams: ISendNewUserAdminNotificationEmailConfig, templateP
     const htmlConfig = {
         header: `${contextConfig.brandName}: New User Registration 🎉`,
         dearUser,
-        body1: `A new user signed up for the app 🎉 (${JSON.stringify(accountTypeParams)})`,
+        body1: `A new userv (${emailParams.platform}) signed up for the app 🎉 (${JSON.stringify(accountTypeParams)})`,
     };
 
     return sendEmail({
