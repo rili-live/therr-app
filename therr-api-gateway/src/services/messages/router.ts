@@ -14,6 +14,12 @@ import checkResources from '../../middleware/checkResources';
 
 const messagesServiceRouter = express.Router();
 
+// Logging
+messagesServiceRouter.post('/app-logs', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
+    method: 'post',
+}));
+
 // Messages
 messagesServiceRouter.post('/direct-messages', createDirectMessageValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
