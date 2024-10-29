@@ -18,7 +18,7 @@ import LogRocket from '@logrocket/react-native';
 import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
 import DeviceInfo from 'react-native-device-info';
-import { UsersService } from 'therr-react/services';
+import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels, BrandVariations, GroupMemberRoles } from 'therr-js-utilities/constants';
@@ -267,6 +267,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         if (user?.isAuthenticated !== prevProps.user?.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
+                MessagesService.sendAppLog({
+                    platformOS: Platform.OS,
+                }, 'info');
                 const token = user?.details?.idToken;
                 if (token) {
                     this.readyAndStartBackgroundGeolocation();
@@ -859,6 +862,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const { type, detail } = event;
         const { notification, pressAction } = detail;
 
+        MessagesService.sendAppLog({
+            'notification.id': notification?.id,
+            'notification.data': notification?.data?.toString(),
+            'notification.pressAction.id': pressAction?.id,
+            'notification.isInForeground': isInForeground,
+            'notification.eventType': type,
+            platformOS: Platform.OS,
+        }, 'info');
+
         if (type === EventType.ACTION_PRESS || type === EventType.PRESS) {
             if (notification?.id && pressAction?.id === PressActionIds.markAsRead) {
                 // Remove the notification
@@ -900,7 +912,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
                 // TODO: Implement better user experience to simplify performing action to earn rewards
                 // TODO: DEBUG to determine if background notifications contain area and isUserAuthorized on click
-                if (isUserAuthorized && area.id) {
+                // if (isUserAuthorized && area.id) {
+                if (area.id) {
                     RootNavigation.navigate('ViewSpace', {
                         isMyContent: area?.fromUserId === user?.details?.id,
                         previousView: 'Map',
