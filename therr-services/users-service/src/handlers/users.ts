@@ -31,6 +31,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
         locale,
         whiteLabelOrigin,
         brandVariation,
+        platform,
     } = parseHeaders(req.headers);
 
     const {
@@ -176,20 +177,29 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            return getSubsAccessLvlsPromise.then((levels) => createUserHelper({
-                email: req.body.email,
-                password: req.body.password,
-                firstName: req.body.firstName,
-                isBusinessAccount: req.body.isBusinessAccount,
-                isCreatorAccount: req.body.isCreatorAccount,
-                isDashboardRegistration: req.body.isDashboardRegistration,
-                settingsEmailMarketing: req.body.settingsEmailMarketing,
-                settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
-                lastName: req.body.lastName,
-                phoneNumber: req.body.phoneNumber,
-                userName: req.body.userName,
-                accessLevels: levels,
-            }, false, undefined, !!inviteCode, req.headers['x-localecode'], whiteLabelOrigin, brandVariation).then((user) => res.status(201).send(user)));
+            return getSubsAccessLvlsPromise.then((levels) => createUserHelper(
+                {
+                    email: req.body.email,
+                    password: req.body.password,
+                    firstName: req.body.firstName,
+                    isBusinessAccount: req.body.isBusinessAccount,
+                    isCreatorAccount: req.body.isCreatorAccount,
+                    isDashboardRegistration: req.body.isDashboardRegistration,
+                    settingsEmailMarketing: req.body.settingsEmailMarketing,
+                    settingsEmailBusMarketing: req.body.settingsEmailBusMarketing,
+                    lastName: req.body.lastName,
+                    phoneNumber: req.body.phoneNumber,
+                    userName: req.body.userName,
+                    accessLevels: levels,
+                },
+                false,
+                undefined,
+                !!inviteCode,
+                req.headers['x-localecode'],
+                whiteLabelOrigin,
+                brandVariation,
+                platform,
+            ).then((user) => res.status(201).send(user)));
         })
         .catch((err) => {
             if (err?.message === 'invalid-password') {
