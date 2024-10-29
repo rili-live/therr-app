@@ -860,7 +860,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         MessagesService.sendAppLog({
             'notification.id': notification?.id,
-            'notification.data': notification?.data?.toString(),
+            'notification.body': notification?.body,
+            'notification.data': JSON.stringify(notification?.data),
             'notification.pressAction.id': pressAction?.id,
             'notification.isInForeground': isInForeground,
             'notification.eventType': type,
@@ -904,12 +905,17 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }
 
             if (notification?.id && pressAction?.id === PressActionIds.nudge) {
-                const area = JSON.parse(notification?.data?.area?.toString() || '{}');
+                let area: any = {};
+                if (typeof notification?.data?.area === 'string') {
+                    area = JSON.parse(notification?.data?.area as string);
+                } else if (typeof notification?.data?.area === 'object') {
+                    area = typeof notification?.data?.area;
+                }
 
                 // TODO: Implement better user experience to simplify performing action to earn rewards
                 // TODO: DEBUG to determine if background notifications contain area and isUserAuthorized on click
                 // if (isUserAuthorized && area.id) {
-                if (area.id) {
+                if (area?.id) {
                     RootNavigation.navigate('ViewSpace', {
                         isMyContent: area?.fromUserId === user?.details?.id,
                         previousView: 'Map',
