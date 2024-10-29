@@ -799,7 +799,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             user
         );
 
-        let targetRouteView = 'Notifications';
+        let targetRouteView = '';
         let targetRouteParams: any = {};
         if (data && !Array.isArray(data) && typeof(data) === 'object') {
             if (data.action === 'app.therrmobile.ACHIEVEMENT_COMPLETED'
@@ -846,12 +846,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteParams,
             });
             RootNavigation.navigate('Login');
-        } else {
-            // TODO: Find a way to get data from the push notification that was selected
-            // Otherwise the best alternative is to link to a generic, associated view
-            if (targetRouteView) {
-                RootNavigation.navigate(targetRouteView, targetRouteParams);
-            }
+        } else if (targetRouteView) {
+            RootNavigation.navigate(targetRouteView, targetRouteParams);
         }
     };
 
