@@ -17,7 +17,9 @@ interface ICreateMessageConfig {
     notificationsCount?: number;
     totalAreasActivated?: number;
     deviceToken: any;
+    fromUserId?: string;
     fromUserName?: string;
+    groupId?: string;
     groupName?: string;
     userId: string | string[];
     userLocale: string;
@@ -159,7 +161,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                 notificationTitle: translate(config.userLocale, 'notifications.createYourProfileReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.createYourProfileReminder.body'),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.CREATE_YOUR_PROFILE_REMINDER';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.CREATE_YOUR_PROFILE_REMINDER;
             return baseMessage;
         case PushNotifications.Types.createAMomentReminder:
             baseMessage = createNotificationMessage({
@@ -168,7 +170,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                 notificationTitle: translate(config.userLocale, 'notifications.createAMomentReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.createAMomentReminder.body'),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.CREATE_A_MOMENT_REMINDER';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.CREATE_A_MOMENT_REMINDER;
             return baseMessage;
         case PushNotifications.Types.latestPostLikesStats:
             baseMessage = createNotificationMessage({
@@ -179,7 +181,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     likeCount: config.likeCount || 0,
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.LATEST_POST_LIKES_STATS';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.LATEST_POST_LIKES_STATS;
             return baseMessage;
         case PushNotifications.Types.latestPostViewcountStats:
             baseMessage = createNotificationMessage({
@@ -190,7 +192,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     viewCount: config.viewCount || 0,
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.LATEST_POST_VIEWCOUNT_STATS';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS;
             return baseMessage;
         case PushNotifications.Types.unreadNotificationsReminder:
             baseMessage = createNotificationMessage({
@@ -201,7 +203,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     notificationsCount: config.notificationsCount || 0,
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER;
             return baseMessage;
         case PushNotifications.Types.unclaimedAchievementsReminder:
             baseMessage = createNotificationMessage({
@@ -212,7 +214,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     achievementsCount: config.achievementsCount || 0,
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.UNCLAIMED_ACHIEVEMENTS_REMINDER;
             return baseMessage;
 
         // Event Driven
@@ -223,7 +225,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                 notificationTitle: translate(config.userLocale, 'notifications.achievementCompleted.title'),
                 notificationBody: translate(config.userLocale, 'notifications.achievementCompleted.body'),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.ACHIEVEMENT_COMPLETED';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.ACHIEVEMENT_COMPLETED;
             return baseMessage;
         case PushNotifications.Types.connectionRequestAccepted:
             baseMessage = createNotificationMessage({
@@ -234,7 +236,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     userName: config.fromUserName,
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_CONNECTION';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION;
             return baseMessage;
         case PushNotifications.Types.newConnectionRequest:
             baseMessage = createNotificationMessage({
@@ -245,7 +247,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     userName: config.fromUserName,
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_CONNECTION_REQUEST';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST;
             return baseMessage;
         case PushNotifications.Types.newDirectMessage:
             baseMessage = createNotificationMessage({
@@ -256,18 +258,30 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     userName: config.fromUserName,
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_DIRECT_MESSAGE';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE;
             return baseMessage;
         case PushNotifications.Types.newGroupMessage:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.newGroupMessage.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.newGroupMessage.body', {
+                        groupName: config.groupName,
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.groupView,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.groupView,
+                            title: translate(config.userLocale, 'notifications.newGroupMessage.pressActionView'),
+                        },
+                        {
+                            id: PushNotifications.PressActionIds.groupReplyToMsg,
+                            title: translate(config.userLocale, 'notifications.newGroupMessage.pressActionReply'),
+                        },
+                    ]),
+                },
                 deviceToken: config.deviceToken,
-                notificationTitle: translate(config.userLocale, 'notifications.newGroupMessage.title'),
-                notificationBody: translate(config.userLocale, 'notifications.newGroupMessage.body', {
-                    groupName: config.groupName,
-                }),
-            });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_GROUP_MESSAGE';
+            }, PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE);
             return baseMessage;
         case PushNotifications.Types.newGroupMembers:
             baseMessage = createNotificationMessage({
@@ -279,7 +293,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     members: config.groupMembersList?.slice(0, 3).join(', '),
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_GROUP_MEMBERS';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MEMBERS;
             return baseMessage;
         case PushNotifications.Types.newGroupInvite:
             baseMessage = createNotificationMessage({
@@ -291,7 +305,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     fromUserName: config.fromUserName,
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_GROUP_INVITE';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_INVITE;
             return baseMessage;
         case PushNotifications.Types.newLikeReceived:
             baseMessage = createNotificationMessage({
@@ -302,7 +316,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     userName: config.fromUserName,
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_LIKE_RECEIVED';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED;
             return baseMessage;
         case PushNotifications.Types.newSuperLikeReceived:
             baseMessage = createNotificationMessage({
@@ -313,7 +327,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     userName: config.fromUserName,
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED;
             return baseMessage;
         case PushNotifications.Types.newAreasActivated:
             baseMessage = createNotificationMessage({
@@ -324,7 +338,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     totalAreasActivated: config.totalAreasActivated,
                 }),
             });
-            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_AREAS_ACTIVATED';
+            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_AREAS_ACTIVATED;
             return baseMessage;
         // TODO: Make this a data-only message and test
         // Implement Notifee local push notification on from-end
@@ -343,7 +357,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     ]),
                 },
                 deviceToken: config.deviceToken,
-            }, 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT');
+            }, PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT);
             return baseMessage;
         case PushNotifications.Types.proximityRequiredMoment:
             return createNotificationMessage({

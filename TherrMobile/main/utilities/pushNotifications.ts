@@ -15,16 +15,18 @@ import { AndroidChannelIds, PressActionIds, getAndroidChannel } from '../constan
  */
 const sendBackgroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
     // Request permissions (required for iOS)
-    return sendForegroundNotification(notification, androidChannel, AndroidImportance.HIGH);
+    return sendForegroundNotification(notification, androidChannel, AndroidImportance.HIGH, false);
 };
 
 const sendForegroundNotification = (
     notification: Notification,
     androidChannel?: AndroidChannel,
     importance: AndroidImportance = AndroidImportance.DEFAULT,
+    shouldRequestPermission = true,
 ) => {
+    const permissionPromise = shouldRequestPermission ? notifee.requestPermission() : Promise.resolve();
     // Request permissions (required for iOS)
-    return notifee.requestPermission()
+    return permissionPromise
         .then(() => notifee.createChannel({
             ...(androidChannel || getAndroidChannel(AndroidChannelIds.default, false)),
             importance,

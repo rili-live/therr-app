@@ -21,7 +21,7 @@ import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { AccessLevels, BrandVariations, GroupMemberRoles } from 'therr-js-utilities/constants';
+import { AccessLevels, BrandVariations, GroupMemberRoles, PushNotifications } from 'therr-js-utilities/constants';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -56,7 +56,7 @@ import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
-import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS, PressActionIds, getAndroidChannel } from '../constants';
+import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS, getAndroidChannel } from '../constants';
 import { socketIO } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
@@ -358,7 +358,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                             total: momentsData.length + spacesData.length,
                                         }),
                                         android: {
-                                            pressAction: { id: PressActionIds.discovered, launchActivity: 'default' },
+                                            pressAction: { id: PushNotifications.PressActionIds.discovered, launchActivity: 'default' },
                                         },
                                     }, getAndroidChannel(AndroidChannelIds.contentDiscovery, false));
                                     if (momentsData.length) {
@@ -801,37 +801,37 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         let targetRouteView = '';
         let targetRouteParams: any = {};
         if (data && !Array.isArray(data) && typeof(data) === 'object') {
-            if (data.action === 'app.therrmobile.ACHIEVEMENT_COMPLETED'
-                || data.action === 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER') {
+            if (data.action === PushNotifications.AndroidIntentActions.Therr.ACHIEVEMENT_COMPLETED
+                || data.action === PushNotifications.AndroidIntentActions.Therr.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
                 targetRouteView = 'Achievements';
-            } else if (data.action === 'app.therrmobile.NEW_CONNECTION') {
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION) {
                 targetRouteView = 'Connect';
                 targetRouteParams = {
                     activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
                 };
-            } else if (data.action === 'app.therrmobile.CREATE_A_MOMENT_REMINDER') {
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.CREATE_A_MOMENT_REMINDER) {
                 targetRouteView = 'Map';
-            } else if (data.action === 'app.therrmobile.LATEST_POST_LIKES_STATS'
-                || data.action === 'app.therrmobile.LATEST_POST_VIEWCOUNT_STATS') {
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.LATEST_POST_LIKES_STATS
+                || data.action === PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS) {
                 targetRouteView = 'ViewUser';
-            } else if (data.action === 'app.therrmobile.NEW_CONNECTION_REQUEST'
-                || data.action === 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER'
-                || data.action === 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED'
-                || data.action === 'app.therrmobile.NEW_LIKE_RECEIVED') {
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST
+                || data.action === PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER
+                || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED
+                || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED) {
                 targetRouteView = 'Notifications';
-            } else if (data.action === 'app.therrmobile.NEW_DIRECT_MESSAGE') {
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE) {
                 targetRouteView = 'Connect';
                 targetRouteParams = {
                     activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
                 };
-            } else if (data.action === 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT') {
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT) {
                 targetRouteView = 'Map';
                 if (!isNotAuthorized) {
                     // TODO: Consider returning and displaying a toast to notify opportunity to earn rewards
                 }
-            } else if (data.action === 'app.therrmobile.NEW_GROUP_MESSAGE'
-                || data.action === 'app.therrmobile.NEW_GROUP_INVITE'
-                || data.action === 'app.therrmobile.NEW_GROUP_MEMBERS') {
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE
+                || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_INVITE
+                || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MEMBERS) {
                 targetRouteView = 'Groups';
                 targetRouteParams = {
                     activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
@@ -857,22 +857,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const { type, detail } = event;
         const { notification, pressAction } = detail;
 
-        MessagesService.sendAppLog({
-            'notification.id': notification?.id,
-            'notification.data': JSON.stringify(notification?.data),
-            'notification.pressAction.id': pressAction?.id,
-            'notification.isInForeground': isInForeground,
-            'notification.eventType': type,
-            'notification.didCauseAppOpen': didCauseAppOpen,
-            platformOS: Platform.OS,
-        }, 'info');
-
-        if (didCauseAppOpen) {
-            return Promise.resolve();
-        }
-
         if (type === EventType.ACTION_PRESS || type === EventType.PRESS) {
-            if (notification?.id && pressAction?.id === PressActionIds.markAsRead) {
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.markAsRead) {
                 // Remove the notification
                 return notifee.cancelNotification(notification?.id);
             }
@@ -886,38 +872,41 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 user
             );
 
-            if (notification?.id && pressAction?.id === PressActionIds.exchange) {
+            MessagesService.sendAppLog({
+                'notification.id': notification?.id,
+                'notification.pressAction.id': pressAction?.id,
+                'notification.isInForeground': isInForeground,
+                'notification.eventType': type,
+                'notification.didCauseAppOpen': didCauseAppOpen,
+                'notification.isUserAuthorized': isUserAuthorized,
+                platformOS: Platform.OS,
+            }, 'info');
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.exchange) {
                 if (isUserAuthorized) {
                     RootNavigation.navigate('ExchangePointsDisclaimer');
                 }
                 return Promise.resolve();
             }
 
-            if (notification?.id && pressAction?.id === PressActionIds.drafts) {
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.drafts) {
                 if (isUserAuthorized) {
                     RootNavigation.navigate('MyDrafts');
                 }
                 return Promise.resolve();
             }
 
-            if (notification?.id && pressAction?.id === PressActionIds.discovered) {
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.discovered) {
                 if (isUserAuthorized) {
                     RootNavigation.navigate('Areas');
                 }
                 return Promise.resolve();
             }
 
-            if (notification?.id && pressAction?.id === PressActionIds.nudge) {
-                let area: any = {};
-                if (typeof notification?.data?.area === 'string') {
-                    area = JSON.parse(notification?.data?.area as string);
-                } else if (typeof notification?.data?.area === 'object') {
-                    area = typeof notification?.data?.area;
-                }
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.nudge) {
+                const area = JSON.parse(notification?.data?.area as string);
 
                 // TODO: Implement better user experience to simplify performing action to earn rewards
-                // TODO: DEBUG to determine if background notifications contain area and isUserAuthorized on click
-                // if (isUserAuthorized && area.id) {
                 if (area?.id) {
                     RootNavigation.navigate('ViewSpace', {
                         isMyContent: area?.fromUserId === user?.details?.id,
@@ -931,7 +920,23 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return Promise.resolve();
             }
 
-            if (notification?.id && pressAction?.id === PressActionIds.discovered) {
+            if (notification?.id
+                && (pressAction?.id === PushNotifications.PressActionIds.groupView || pressAction?.id === PushNotifications.PressActionIds.groupReplyToMsg)) {
+                const groupId = notification?.data?.groupId as string;
+
+                // TODO: Implement better user experience to simplify performing action to earn rewards
+                // TODO: DEBUG to determine if background notifications contain area and isUserAuthorized on click
+                // if (isUserAuthorized && area.id) {
+                if (groupId) {
+                    RootNavigation.navigate('ViewGroup', {
+                        activeTab: GROUP_CAROUSEL_TABS.CHAT,
+                        id: groupId,
+                    });
+                }
+                return Promise.resolve();
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.discovered) {
                 return Promise.resolve();
             }
         }

@@ -1,4 +1,5 @@
 import { AndroidChannel, AndroidImportance } from "@notifee/react-native";
+import { PushNotifications } from 'therr-js-utilities/constants';
 
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
@@ -70,15 +71,6 @@ const youtubeLinkRegex = /(?:http(?:s?):\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?
 const DEFAULT_FIRSTNAME = 'Anonymous';
 const DEFAULT_LASTNAME = 'User';
 
-enum PressActionIds {
-    default = 'default',
-    discovered = 'discovered',
-    drafts = 'drafts',
-    exchange = 'exchange-coins',
-    markAsRead = 'mark-as-read',
-    nudge = 'nudge',
-}
-
 enum AndroidChannelIds {
     default = 'default',
     contentDiscovery = 'contentDiscovery',
@@ -113,7 +105,8 @@ const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChann
 
     if (
         [
-            'app.therrmobile.NUDGE_SPACE_ENGAGEMENT',
+            PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
+            PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT,
         ].includes(clickActionId)
     ) {
         return getAndroidChannel(AndroidChannelIds.rewardUpdates);
@@ -175,7 +168,6 @@ export {
     AndroidChannelIds,
     getAndroidChannel,
     getAndroidChannelFromClickActionId,
-    PressActionIds,
 
     // User
     DEFAULT_FIRSTNAME,

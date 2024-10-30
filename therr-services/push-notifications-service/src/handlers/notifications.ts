@@ -27,6 +27,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         notificationsCount,
         totalAreasActivated,
         viewCount,
+        fromUserId,
+        groupId,
         groupName,
         groupMembersList,
     } = req.body;
@@ -35,7 +37,9 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         // TODO: This endpoint should accept a type
         type || PushNotifications.Types.newDirectMessage,
         {
+            groupId,
             fromUser: {
+                id: fromUserId,
                 userName: fromUserName,
             },
         },
