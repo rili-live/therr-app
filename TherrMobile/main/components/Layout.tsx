@@ -440,6 +440,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     smallIcon: 'drawable/ic_notification_icon',
                     text: this.translate('alertTitles.backgroundLocationNotification'),
                     channelName: this.translate('alertTitles.backgroundLocationNotificationChannel'),
+                    // channelId: AndroidChannelIds.rewardsFinder,
+                    priority: BackgroundGeolocation.NOTIFICATION_PRIORITY_MIN,
                 },
                 backgroundPermissionRationale: {
                     title: this.translate('alertTitles.backgroundLocation'),
