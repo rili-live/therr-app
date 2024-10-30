@@ -112,6 +112,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
 
 // eslint-disable-next-line max-len
 // Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=eGEh3WckRjy_aqM784gNM3:APA91bE2b-eXIOq3Wj-moMhjiwv3Ap-b2N8u7vhXiAsWNKRpkTROogV9Cge-r2CNb7wckP8AkQ4PKtD_Gr3FIuwtbtbdsLF5Bpem1gPNateVCH0wgGbc5I1kx-OUegM4TOp3WY5cbnoY&type=nudge-space-engagement"
+// eslint-disable-next-line max-len
+// Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=eGEh3WckRjy_aqM784gNM3:APA91bE2b-eXIOq3Wj-moMhjiwv3Ap-b2N8u7vhXiAsWNKRpkTROogV9Cge-r2CNb7wckP8AkQ4PKtD_Gr3FIuwtbtbdsLF5Bpem1gPNateVCH0wgGbc5I1kx-OUegM4TOp3WY5cbnoY&type=new-group-message"
 const testPushNotification: RequestHandler = (req, res) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
@@ -144,6 +146,22 @@ const testPushNotification: RequestHandler = (req, res) => {
                 fromUserName: fromUserName?.toString(),
             },
         ).then(() => res.status(201).send('Sent nudge!'))
+            .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
+    }
+
+    if (type && type === PushNotifications.Types.newGroupMessage) {
+        return predictAndSendNotification(
+            PushNotifications.Types.newGroupMessage,
+            {
+                groupId: '8ab7dda9-955f-4007-83ae-6e6441a71de0',
+            },
+            {
+                deviceToken: toUserDeviceToken,
+                userId: headers.userId,
+                userLocale: headers.locale,
+                fromUserName: fromUserName?.toString(),
+            },
+        ).then(() => res.status(201).send('Sent group message notification!'))
             .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
     }
 

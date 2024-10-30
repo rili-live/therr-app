@@ -96,6 +96,8 @@ class DirectMessage extends React.Component<
         if (!messages.dms || !messages.dms[connectionDetails.id]) {
             this.searchDmsByPage(1);
         }
+
+        // TODO: Fetch user details if missing username, name, image, etc.
     }
 
     goToUser = (userId) => {

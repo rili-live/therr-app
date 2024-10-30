@@ -38,7 +38,9 @@
     },
     "newDirectMessage": {
       "title": "New Unread Messages",
-      "body": "You have unread messages from {userName}"
+      "body": "You have unread messages from {userName}",
+      "pressActionReply": "Reply",
+      "pressActionView": "View"
     },
     "newGroupMessage": {
       "title": "New Group Messages",

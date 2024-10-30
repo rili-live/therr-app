@@ -819,18 +819,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED
                 || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED) {
                 targetRouteView = 'Notifications';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE) {
-                targetRouteView = 'Connect';
-                targetRouteParams = {
-                    activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
-                };
             } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT) {
                 targetRouteView = 'Map';
                 if (!isNotAuthorized) {
                     // TODO: Consider returning and displaying a toast to notify opportunity to earn rewards
                 }
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE
-                || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_INVITE
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_INVITE
                 || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MEMBERS) {
                 targetRouteView = 'Groups';
                 targetRouteParams = {
@@ -904,7 +898,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }
 
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.nudge) {
-                const area = JSON.parse(notification?.data?.area as string);
+                const area = JSON.parse(notification?.data?.area as string || '{}');
 
                 // TODO: Implement better user experience to simplify performing action to earn rewards
                 if (area?.id) {
@@ -931,6 +925,25 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     RootNavigation.navigate('ViewGroup', {
                         activeTab: GROUP_CAROUSEL_TABS.CHAT,
                         id: groupId,
+                    });
+                }
+                return Promise.resolve();
+            }
+
+            if (notification?.id
+                && (pressAction?.id === PushNotifications.PressActionIds.groupView || pressAction?.id === PushNotifications.PressActionIds.groupReplyToMsg)) {
+                const fromUserDetails = JSON.parse(notification?.data?.fromUser as string || '{}');
+
+
+                // TODO: Implement better user experience to simplify performing action to earn rewards
+                // TODO: DEBUG to determine if background notifications contain area and isUserAuthorized on click
+                // if (isUserAuthorized && area.id) {
+                if (fromUserDetails) {
+                    RootNavigation.navigate('DirectMessage', {
+                        connectionDetails: {
+                            id: fromUserDetails.id,
+                            userName: fromUserDetails.userName, // TODO: Ensure username rather than full name
+                        },
                     });
                 }
                 return Promise.resolve();

@@ -31,6 +31,8 @@ export enum PressActionIds {
     exchange = 'exchange-coins',
     markAsRead = 'mark-as-read',
     nudge = 'nudge',
+    dmView = 'view-dm',
+    dmReplyToMsg = 'reply-to-dm-msg',
     groupView = 'view-group',
     groupReplyToMsg = 'reply-to-group-msg',
 }

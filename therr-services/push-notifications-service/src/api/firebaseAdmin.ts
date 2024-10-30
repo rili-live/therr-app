@@ -250,15 +250,27 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST;
             return baseMessage;
         case PushNotifications.Types.newDirectMessage:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    otificationTitle: translate(config.userLocale, 'notifications.newDirectMessage.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.newDirectMessage.body', {
+                        userName: config.fromUserName,
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.dmView,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.dmView,
+                            title: translate(config.userLocale, 'notifications.newDirectMessage.pressActionView'),
+                        },
+                        {
+                            id: PushNotifications.PressActionIds.dmReplyToMsg,
+                            title: translate(config.userLocale, 'notifications.newDirectMessage.pressActionReply'),
+                        },
+                    ]),
+                },
                 deviceToken: config.deviceToken,
-                notificationTitle: translate(config.userLocale, 'notifications.newDirectMessage.title'),
-                notificationBody: translate(config.userLocale, 'notifications.newDirectMessage.body', {
-                    userName: config.fromUserName,
-                }),
-            });
-            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE;
+            }, PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE);
             return baseMessage;
         case PushNotifications.Types.newGroupMessage:
             baseMessage = createDataOnlyMessage({

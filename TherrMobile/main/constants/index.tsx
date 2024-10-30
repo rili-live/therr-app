@@ -105,6 +105,7 @@ const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChann
 
     if (
         [
+            PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
             PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
             PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT,
         ].includes(clickActionId)

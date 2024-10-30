@@ -1,4 +1,5 @@
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import { PushNotifications } from 'therr-js-utilities/constants';
 import notifee, {
     AndroidChannel,
     AndroidImportance,
@@ -8,7 +9,7 @@ import notifee, {
     TimestampTrigger,
     TriggerType,
 } from '@notifee/react-native';
-import { AndroidChannelIds, PressActionIds, getAndroidChannel } from '../constants';
+import { AndroidChannelIds, getAndroidChannel } from '../constants';
 
 /**
  * Sends a Notifee push notification when a data-only Firebase notification is received in the background
@@ -42,7 +43,7 @@ const sendForegroundNotification = (
                     color: '#0f7b82',
                     // pressAction is needed if you want the notification to open the app when pressed
                     pressAction: notification.android?.pressAction || {
-                        id: PressActionIds.default,
+                        id: PushNotifications.PressActionIds.default,
                     },
                     timestamp: Date.now(), // 8 minutes ago
                     showTimestamp: true,
@@ -85,7 +86,7 @@ const sendTriggerNotification = async (
                     color: '#0f7b82',
                     // pressAction is needed if you want the notification to open the app when pressed
                     pressAction: notification.android?.pressAction || {
-                        id: PressActionIds.default,
+                        id: PushNotifications.PressActionIds.default,
                     },
                     timestamp: Date.now(), // 8 minutes ago
                     showTimestamp: true,
