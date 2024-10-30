@@ -3,7 +3,6 @@ import React from 'react';
 import 'react-native-gesture-handler';
 import messaging from '@react-native-firebase/messaging';
 import { AppRegistry } from 'react-native';
-import { MessagesService } from 'therr-react/services';
 import { PushNotifications } from 'therr-js-utilities/constants';
 import App from './main/App';
 import { name as appName } from './app.json';
@@ -20,11 +19,6 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
     await wrapOnMessageReceived(false, remoteMessage);
 
     const { type, timestamp } = remoteMessage.data;
-
-    MessagesService.sendAppLog({
-        'remoteMessage.data': remoteMessage?.data,
-        'remoteMessage.clickActionId': remoteMessage?.data?.clickActionId,
-    }, 'info');
 
     // Handle data-only notifications which will be converted to Notifee notifications with press actions
     if (
