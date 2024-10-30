@@ -36,6 +36,7 @@ const sendBackgroundNotification = (notification: Notification, androidChannel?:
                     timestamp: Date.now(),
                     showTimestamp: true,
                 },
+                data: notification.data,
             });
         });
 };

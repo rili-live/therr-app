@@ -267,9 +267,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         if (user?.isAuthenticated !== prevProps.user?.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
-                MessagesService.sendAppLog({
-                    platformOS: Platform.OS,
-                }, 'info');
                 const token = user?.details?.idToken;
                 if (token) {
                     this.readyAndStartBackgroundGeolocation();
@@ -860,7 +857,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         MessagesService.sendAppLog({
             'notification.id': notification?.id,
-            'notification.body': notification?.body,
             'notification.data': JSON.stringify(notification?.data),
             'notification.pressAction.id': pressAction?.id,
             'notification.isInForeground': isInForeground,
