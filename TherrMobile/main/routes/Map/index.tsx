@@ -8,7 +8,7 @@ import Toast from 'react-native-toast-message';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
-import { Categories, ErrorCodes, MetricNames } from 'therr-js-utilities/constants';
+import { Categories, ErrorCodes, MetricNames, PushNotifications } from 'therr-js-utilities/constants';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
@@ -38,7 +38,6 @@ import {
     MAX_ANIMATION_LONGITUDE_DELTA,
     getAndroidChannel,
     AndroidChannelIds,
-    PressActionIds,
     MIN_TIME_BTW_CHECK_INS_MS,
     HAPTIC_FEEDBACK_TYPE,
 } from '../../constants';
@@ -753,10 +752,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                     total: response?.therrCoinRewarded || '2',
                                 }),
                                 android: {
-                                    pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
+                                    pressAction: { id: PushNotifications.PressActionIds.exchange, launchActivity: 'default' },
                                     actions: [
                                         {
-                                            pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
+                                            pressAction: { id: PushNotifications.PressActionIds.exchange, launchActivity: 'default' },
                                             title: this.translate('alertActions.exchange'),
                                         },
                                     ],

@@ -142,6 +142,7 @@ export default (
                     fromUserName,
                     toUserDeviceToken: destinationUser.deviceMobileFirebaseToken,
                     type,
+                    fromUserId,
                     groupId,
                     groupName,
                     groupMembersList: fromUserNames,
