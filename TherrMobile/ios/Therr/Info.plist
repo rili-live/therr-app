@@ -104,7 +104,7 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone usage is needed for recording audio in various locations and sharing with social connections.</string>
 	<key>NSMotionUsageDescription</key>
-	<string></string>
+	<string>Motion updates help increase battery efficiency by toggling between location services when movement is detected</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This permission allows the user to access and share photos from their library to the social space of the app.</string>
 	<key>NSPrivacyAccessedAPICategoryDiskSpace</key>
