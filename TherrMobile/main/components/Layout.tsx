@@ -866,6 +866,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 user
             );
 
+            // NOTE: Consider only showing notifications if `isInForeground` is false. Otherwise, notifications
+            // only appear after the user clicks the app when is was minimized
+
             // DEBUG logging only
             if (user?.details?.id === 'a730f85b-bc3a-46ab-97e9-48b8e5875f83') {
                 MessagesService.sendAppLog({
