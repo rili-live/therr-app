@@ -866,15 +866,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 user
             );
 
-            MessagesService.sendAppLog({
-                'notification.id': notification?.id,
-                'notification.pressAction.id': pressAction?.id,
-                'notification.isInForeground': isInForeground,
-                'notification.eventType': type,
-                'notification.didCauseAppOpen': didCauseAppOpen,
-                'notification.isUserAuthorized': isUserAuthorized,
-                platformOS: Platform.OS,
-            }, 'info');
+            // DEBUG logging only
+            if (user?.details?.id === 'a730f85b-bc3a-46ab-97e9-48b8e5875f83') {
+                MessagesService.sendAppLog({
+                    'notification.id': notification?.id,
+                    'notification.pressAction.id': pressAction?.id,
+                    'notification.isInForeground': isInForeground,
+                    'notification.eventType': type,
+                    'notification.didCauseAppOpen': didCauseAppOpen,
+                    'notification.isUserAuthorized': isUserAuthorized,
+                    platformOS: Platform.OS,
+                }, 'info');
+            }
 
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.exchange) {
                 if (isUserAuthorized) {
