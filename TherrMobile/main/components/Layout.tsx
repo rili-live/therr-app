@@ -903,7 +903,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.nudge) {
                 let area: any = {};
                 if (typeof notification?.data?.area === 'string') {
-                    JSON.parse(notification?.data?.area as string || '{}');
+                    area = JSON.parse(notification?.data?.area as string || '{}');
                 } else if (typeof notification?.data?.area === 'object') {
                     area = notification?.data?.area;
                 }
@@ -927,9 +927,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 const groupId = notification?.data?.groupId as string;
 
                 // TODO: Implement better user experience to simplify performing action to earn rewards
-                // TODO: DEBUG to determine if background notifications contain area and isUserAuthorized on click
-                // if (isUserAuthorized && area.id) {
-                if (groupId) {
+                if (isUserAuthorized && groupId) {
                     RootNavigation.navigate('ViewGroup', {
                         activeTab: GROUP_CAROUSEL_TABS.CHAT,
                         id: groupId,
@@ -939,14 +937,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }
 
             if (notification?.id
-                && (pressAction?.id === PushNotifications.PressActionIds.groupView || pressAction?.id === PushNotifications.PressActionIds.groupReplyToMsg)) {
-                const fromUserDetails = JSON.parse(notification?.data?.fromUser as string || '{}');
-
-
+                && (pressAction?.id === PushNotifications.PressActionIds.dmView || pressAction?.id === PushNotifications.PressActionIds.dmReplyToMsg)) {
+                let fromUserDetails: any = {};
+                if (typeof notification?.data?.fromUser === 'string') {
+                    fromUserDetails = JSON.parse(notification?.data?.fromUser as string || '{}');
+                } else if (typeof notification?.data?.fromUser === 'object') {
+                    fromUserDetails = notification?.data?.fromUser;
+                }
                 // TODO: Implement better user experience to simplify performing action to earn rewards
-                // TODO: DEBUG to determine if background notifications contain area and isUserAuthorized on click
-                // if (isUserAuthorized && area.id) {
-                if (fromUserDetails) {
+                if (isUserAuthorized && fromUserDetails?.id) {
                     RootNavigation.navigate('DirectMessage', {
                         connectionDetails: {
                             id: fromUserDetails.id,

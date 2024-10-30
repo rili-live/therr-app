@@ -157,12 +157,16 @@ const testPushNotification: RequestHandler = (req, res) => {
             {
                 fromUserId: 'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32',
                 fromUserName: 'rilimain',
+                fromUser: {
+                    id: 'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32',
+                    userName: 'rilimain',
+                },
             },
             {
                 deviceToken: toUserDeviceToken,
                 userId: headers.userId,
                 userLocale: headers.locale,
-                fromUserName: fromUserName?.toString(),
+                fromUserName: 'rilimain',
             },
         ).then(() => res.status(201).send('Sent direct message notification!'))
             .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
@@ -172,13 +176,15 @@ const testPushNotification: RequestHandler = (req, res) => {
         return predictAndSendNotification(
             PushNotifications.Types.newGroupMessage,
             {
-                groupId: '8ab7dda9-955f-4007-83ae-6e6441a71de0',
+                groupId: '2a220814-2915-46b7-b870-ceb96c388b8f',
+                groupName: 'Test Group',
             },
             {
                 deviceToken: toUserDeviceToken,
                 userId: headers.userId,
                 userLocale: headers.locale,
                 fromUserName: fromUserName?.toString(),
+                groupName: 'Test Group',
             },
         ).then(() => res.status(201).send('Sent group message notification!'))
             .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));

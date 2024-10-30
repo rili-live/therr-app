@@ -8,7 +8,7 @@ import { PushNotifications } from 'therr-js-utilities/constants';
 import App from './main/App';
 import { name as appName } from './app.json';
 import { sendBackgroundNotification, wrapOnMessageReceived } from './main/utilities/pushNotifications';
-import { PressActionIds, getAndroidChannelFromClickActionId } from './main/constants';
+import { getAndroidChannelFromClickActionId } from './main/constants';
 
 
 // Step 1.) Add PushNotifications.AndroidIntentActions.Therr to the list bellow and the getAndroidChannelFromClickActionId method
