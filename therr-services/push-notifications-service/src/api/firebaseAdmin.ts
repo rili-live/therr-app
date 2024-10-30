@@ -253,7 +253,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage = createDataOnlyMessage({
                 data: {
                     ...modifiedData,
-                    otificationTitle: translate(config.userLocale, 'notifications.newDirectMessage.title'),
+                    notificationTitle: translate(config.userLocale, 'notifications.newDirectMessage.title'),
                     notificationBody: translate(config.userLocale, 'notifications.newDirectMessage.body', {
                         userName: config.fromUserName,
                     }),

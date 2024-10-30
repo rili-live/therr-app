@@ -199,6 +199,8 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
 
             navigation.setOptions({
                 title: title || response?.data?.title,
+                subtitle: response?.data?.subtitle,
+                description: response?.data?.description,
             });
 
             joinForum({

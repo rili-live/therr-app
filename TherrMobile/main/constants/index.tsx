@@ -94,6 +94,11 @@ const AndroidChannels = {
         name: 'Reward Updates',
         importance: AndroidImportance.HIGH,
     },
+    reminders: {
+        id: 'reminders',
+        name: 'Reminders',
+        importance: AndroidImportance.HIGH,
+    },
 };
 
 const getAndroidChannel = (channelId: AndroidChannelIds, vibration = true): AndroidChannel => ({
@@ -102,11 +107,17 @@ const getAndroidChannel = (channelId: AndroidChannelIds, vibration = true): Andr
 });
 
 const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChannel => {
-
     if (
         [
             PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
             PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
+        ].includes(clickActionId)
+    ) {
+        return getAndroidChannel(AndroidChannelIds.reminders);
+    }
+
+    if (
+        [
             PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT,
         ].includes(clickActionId)
     ) {
