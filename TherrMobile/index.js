@@ -1,14 +1,12 @@
 import './wdyr'; // <--- first import, dev only
-
 import React from 'react';
 import 'react-native-gesture-handler';
 import messaging from '@react-native-firebase/messaging';
-import notifee from '@notifee/react-native';
 import { AppRegistry } from 'react-native';
 import App from './main/App';
 import { name as appName } from './app.json';
 import { sendBackgroundNotification, wrapOnMessageReceived } from './main/utilities/pushNotifications';
-import { AndroidChannelIds, PressActionIds, getAndroidChannel } from './main/constants';
+import { AndroidChannelIds, PressActionIds, getAndroidChannelFromClickActionId } from './main/constants';
 
 // Register background push notification handler
 messaging().setBackgroundMessageHandler(async remoteMessage => {
@@ -16,14 +14,17 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 
     const { type, timestamp } = remoteMessage.data;
 
-    // Handle the data-only notification
-    if (remoteMessage?.data?.clickActionId === 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT') {
-        // TODO: Include translations from server push notification data
-        return sendBackgroundNotification({
+    // Handle data-only notifications which will be converted to Notifee notifications with press actions
+    if (
+        [
+            'app.therrmobile.NUDGE_SPACE_ENGAGEMENT',
+        ].includes(remoteMessage?.data?.clickActionId)
+    ) {
+        const notification = {
             title: remoteMessage?.data?.notificationTitle?.toString() || '',
             body: remoteMessage?.data?.notificationBody?.toString() || '',
             android: {
-                pressAction: { id: PressActionIds.nudge, launchActivity: 'default' },
+                pressAction: { id: remoteMessage?.data?.notificationPressActionId, launchActivity: 'default' },
                 actions: [
                     {
                         pressAction: { id: PressActionIds.nudge, launchActivity: 'default' },
@@ -32,7 +33,27 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
                 ],
             },
             data: remoteMessage?.data,
-        }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false))
+        };
+
+        if (remoteMessage?.data?.notificationPressActionId) {
+            notification.android.pressAction = { id: remoteMessage?.data?.notificationPressActionId, launchActivity: 'default' };
+        }
+
+        if (remoteMessage?.data?.notificationLinkPressActions) {
+            const actions = JSON.parse(remoteMessage?.data?.notificationLinkPressActions);
+            notification.android.actions = [];
+            actions.forEach((action) => {
+                notification.android.actions.push({
+                    pressAction: { id: action.id, launchActivity: 'default' },
+                    title: action.title,
+                });
+            });
+        }
+
+        return sendBackgroundNotification(
+            notification,
+            getAndroidChannelFromClickActionId(remoteMessage?.data?.clickActionId),
+        )
             .catch((err) => console.log(err));
     }
 

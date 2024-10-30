@@ -89,7 +89,7 @@ enum AndroidChannelIds {
 const AndroidChannels = {
     default: {
         id: 'default',
-        name: 'Miscellaneous',
+        name: 'Other',
         importance: AndroidImportance.DEFAULT,
     },
     contentDiscovery: {
@@ -108,6 +108,19 @@ const getAndroidChannel = (channelId: AndroidChannelIds, vibration = true): Andr
     ...AndroidChannels[channelId],
     vibration,
 });
+
+const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChannel => {
+
+    if (
+        [
+            'app.therrmobile.NUDGE_SPACE_ENGAGEMENT',
+        ].includes(clickActionId)
+    ) {
+        return getAndroidChannel(AndroidChannelIds.rewardUpdates);
+    }
+
+    return getAndroidChannel(AndroidChannelIds.default);
+};
 
 export {
     // Carousel
@@ -161,6 +174,7 @@ export {
     AndroidChannels,
     AndroidChannelIds,
     getAndroidChannel,
+    getAndroidChannelFromClickActionId,
     PressActionIds,
 
     // User

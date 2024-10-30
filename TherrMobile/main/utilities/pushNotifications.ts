@@ -15,36 +15,20 @@ import { AndroidChannelIds, PressActionIds, getAndroidChannel } from '../constan
  */
 const sendBackgroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
     // Request permissions (required for iOS)
+    return sendForegroundNotification(notification, androidChannel, AndroidImportance.HIGH);
+};
+
+const sendForegroundNotification = (
+    notification: Notification,
+    androidChannel?: AndroidChannel,
+    importance: AndroidImportance = AndroidImportance.DEFAULT,
+) => {
+    // Request permissions (required for iOS)
     return notifee.requestPermission()
         .then(() => notifee.createChannel({
             ...(androidChannel || getAndroidChannel(AndroidChannelIds.default, false)),
-            importance: AndroidImportance.HIGH,
+            importance,
         }))
-        .then((channelId: string) => {
-            return notifee.displayNotification({
-                title: notification.title,
-                body: notification.body,
-                android: {
-                    actions: notification.android?.actions || undefined,
-                    channelId,
-                    smallIcon: notification.android?.smallIcon || 'ic_notification_icon', // optional, defaults to 'ic_launcher'.
-                    color: '#0f7b82',
-                    // pressAction is needed if you want the notification to open the app when pressed
-                    pressAction: notification.android?.pressAction || {
-                        id: PressActionIds.default,
-                    },
-                    timestamp: Date.now(),
-                    showTimestamp: true,
-                },
-                data: notification.data,
-            });
-        });
-};
-
-const sendForegroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
-    // Request permissions (required for iOS)
-    return notifee.requestPermission()
-        .then(() => notifee.createChannel(androidChannel || getAndroidChannel(AndroidChannelIds.default, false)))
         .then((channelId: string) => {
             return notifee.displayNotification({
                 title: notification.title,
@@ -61,6 +45,7 @@ const sendForegroundNotification = (notification: Notification, androidChannel?:
                     timestamp: Date.now(), // 8 minutes ago
                     showTimestamp: true,
                 },
+                data: notification.data,
             });
         });
 };

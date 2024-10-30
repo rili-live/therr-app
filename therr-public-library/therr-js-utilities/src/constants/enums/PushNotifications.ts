@@ -23,3 +23,12 @@ export enum Types {
     unreadNotificationsReminder = 'unread-notifications-reminder',
     unclaimedAchievementsReminder = 'unclaimed-achievements-reminder',
 }
+
+export enum PressActionIds {
+    default = 'default',
+    discovered = 'discovered',
+    drafts = 'drafts',
+    exchange = 'exchange-coins',
+    markAsRead = 'mark-as-read',
+    nudge = 'nudge'
+}

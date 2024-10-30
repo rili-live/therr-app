@@ -853,7 +853,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     /**
      * Abstract handler for all/most notifee push notification interactions
      */
-    handleNotifeeNotificationEvent = (event: Event, isInForeground: boolean): Promise<any> => {
+    handleNotifeeNotificationEvent = (event: Event, isInForeground: boolean, didCauseAppOpen = false): Promise<any> => {
         const { type, detail } = event;
         const { notification, pressAction } = detail;
 
@@ -863,8 +863,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             'notification.pressAction.id': pressAction?.id,
             'notification.isInForeground': isInForeground,
             'notification.eventType': type,
+            'notification.didCauseAppOpen': didCauseAppOpen,
             platformOS: Platform.OS,
         }, 'info');
+
+        if (didCauseAppOpen) {
+            return Promise.resolve();
+        }
 
         if (type === EventType.ACTION_PRESS || type === EventType.PRESS) {
             if (notification?.id && pressAction?.id === PressActionIds.markAsRead) {
@@ -963,7 +968,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         pressAction: initialNotification.pressAction,
                     },
                 };
-                this.handleNotifeeNotificationEvent(event, false);
+                this.handleNotifeeNotificationEvent(event, false, true);
             }
         }).catch((err) => {
             console.log(err);

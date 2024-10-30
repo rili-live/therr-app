@@ -334,7 +334,13 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                     ...modifiedData,
                     notificationTitle: translate(config.userLocale, 'notifications.nudgeSpaceEngagement.title'),
                     notificationBody: translate(config.userLocale, 'notifications.nudgeSpaceEngagement.body'),
-                    notificationPressActionCheckIn: translate(config.userLocale, 'notifications.nudgeSpaceEngagement.pressActionCheckIn'),
+                    notificationPressActionId: PushNotifications.PressActionIds.nudge,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.nudge,
+                            title: translate(config.userLocale, 'notifications.nudgeSpaceEngagement.pressActionCheckIn'),
+                        },
+                    ]),
                 },
                 deviceToken: config.deviceToken,
             }, 'app.therrmobile.NUDGE_SPACE_ENGAGEMENT');
