@@ -150,7 +150,13 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
         type,
         timestamp: Date.now().toString(), // values must be strings!
     };
-    Object.keys(data).forEach((key) => { modifiedData[key] = JSON.stringify(data[key]); });
+    Object.keys(data).forEach((key) => {
+        if (typeof data[key] === 'object') {
+            modifiedData[key] = JSON.stringify(data[key]);
+        } else {
+            modifiedData[key] = data[key];
+        }
+    });
 
     switch (type) {
         // Automation
