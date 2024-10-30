@@ -114,6 +114,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
 // Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=eGEh3WckRjy_aqM784gNM3:APA91bE2b-eXIOq3Wj-moMhjiwv3Ap-b2N8u7vhXiAsWNKRpkTROogV9Cge-r2CNb7wckP8AkQ4PKtD_Gr3FIuwtbtbdsLF5Bpem1gPNateVCH0wgGbc5I1kx-OUegM4TOp3WY5cbnoY&type=nudge-space-engagement"
 // eslint-disable-next-line max-len
 // Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=eGEh3WckRjy_aqM784gNM3:APA91bE2b-eXIOq3Wj-moMhjiwv3Ap-b2N8u7vhXiAsWNKRpkTROogV9Cge-r2CNb7wckP8AkQ4PKtD_Gr3FIuwtbtbdsLF5Bpem1gPNateVCH0wgGbc5I1kx-OUegM4TOp3WY5cbnoY&type=new-group-message"
+// eslint-disable-next-line max-len
+// Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=eGEh3WckRjy_aqM784gNM3:APA91bE2b-eXIOq3Wj-moMhjiwv3Ap-b2N8u7vhXiAsWNKRpkTROogV9Cge-r2CNb7wckP8AkQ4PKtD_Gr3FIuwtbtbdsLF5Bpem1gPNateVCH0wgGbc5I1kx-OUegM4TOp3WY5cbnoY&type=new-direct-message"
 const testPushNotification: RequestHandler = (req, res) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
@@ -146,6 +148,23 @@ const testPushNotification: RequestHandler = (req, res) => {
                 fromUserName: fromUserName?.toString(),
             },
         ).then(() => res.status(201).send('Sent nudge!'))
+            .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
+    }
+
+    if (type && type === PushNotifications.Types.newDirectMessage) {
+        return predictAndSendNotification(
+            PushNotifications.Types.newDirectMessage,
+            {
+                fromUserId: 'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32',
+                fromUserName: 'rilimain',
+            },
+            {
+                deviceToken: toUserDeviceToken,
+                userId: headers.userId,
+                userLocale: headers.locale,
+                fromUserName: fromUserName?.toString(),
+            },
+        ).then(() => res.status(201).send('Sent direct message notification!'))
             .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
     }
 

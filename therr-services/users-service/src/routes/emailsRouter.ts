@@ -29,12 +29,13 @@ router.post('/bounced', (req, res) => {
     const {
         notificationType,
         bounce,
+        complaint,
     } = JSON.parse(Message?.replace('\\"', '') || '{}');
 
     let promise: Promise<any[]> = Promise.resolve([]);
 
-    if (notificationType === 'Bounce' && bounce?.bouncedRecipients?.[0]?.emailAddress) {
-        if (bounce?.bounceType === 'Permanent') {
+    if ((notificationType === 'Bounce' || notificationType === 'Complaint') && bounce?.bouncedRecipients?.[0]?.emailAddress) {
+        if (bounce?.bounceType === 'Permanent' || bounce?.bounceSubType === 'MailboxFull' || complaint?.complaintFeedbackType === 'abuse') {
             const userEmail = bounce?.bouncedRecipients?.[0]?.emailAddress;
             promise = Store.users.getUserByEmail(userEmail).then(([user]) => {
                 if (user) {

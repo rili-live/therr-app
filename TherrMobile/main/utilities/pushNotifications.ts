@@ -16,7 +16,7 @@ import { AndroidChannelIds, getAndroidChannel } from '../constants';
  */
 const sendBackgroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
     // Request permissions (required for iOS)
-    return sendForegroundNotification(notification, androidChannel, AndroidImportance.HIGH, false);
+    return sendForegroundNotification(notification, androidChannel, AndroidImportance.HIGH, true);
 };
 
 const sendForegroundNotification = (
@@ -100,12 +100,13 @@ const sendTriggerNotification = async (
  */
 const wrapOnMessageReceived = async (
     isInForeground,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     remoteMessage: FirebaseMessagingTypes.RemoteMessage,
 ) => {
     if (isInForeground) {
-        console.log('Message handled in the foreground!', remoteMessage);
+        // console.log('Message handled in the foreground!', remoteMessage);
     } else {
-        console.log('Message handled in the background!', remoteMessage);
+        // console.log('Message handled in the background!', remoteMessage);
     }
 };
 

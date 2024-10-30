@@ -901,7 +901,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             }
 
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.nudge) {
-                const area = JSON.parse(notification?.data?.area as string || '{}');
+                let area: any = {};
+                if (typeof notification?.data?.area === 'string') {
+                    JSON.parse(notification?.data?.area as string || '{}');
+                } else if (typeof notification?.data?.area === 'object') {
+                    area = notification?.data?.area;
+                }
 
                 // TODO: Implement better user experience to simplify performing action to earn rewards
                 if (area?.id) {
