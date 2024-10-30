@@ -10,7 +10,7 @@ import Toast from 'react-native-toast-message';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import { IUserState, IMapState, IContentState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
-import { Categories, Content, ErrorCodes, FilePaths, GroupMemberRoles } from 'therr-js-utilities/constants';
+import { Categories, Content, ErrorCodes, FilePaths, GroupMemberRoles, PushNotifications } from 'therr-js-utilities/constants';
 import { MapsService } from 'therr-react/services';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
@@ -40,7 +40,6 @@ import {
     // MAX_RADIUS_PRIVATE,
     getAndroidChannel,
     AndroidChannelIds,
-    PressActionIds,
     HAPTIC_FEEDBACK_TYPE,
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
@@ -482,10 +481,10 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                             total: response.therrCoinRewarded,
                                         }),
                                         android: {
-                                            pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
+                                            pressAction: { id: PushNotifications.PressActionIds.exchange, launchActivity: 'default' },
                                             actions: [
                                                 {
-                                                    pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
+                                                    pressAction: { id: PushNotifications.PressActionIds.exchange, launchActivity: 'default' },
                                                     title: this.translate('alertActions.exchange'),
                                                 },
                                             ],
@@ -541,7 +540,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                 android: {
                                     actions: [
                                         {
-                                            pressAction: { id: PressActionIds.drafts, launchActivity: 'default' },
+                                            pressAction: { id: PushNotifications.PressActionIds.drafts, launchActivity: 'default' },
                                             title: this.translate('alertActions.edit'),
                                         },
                                     ],

@@ -1,4 +1,5 @@
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import { PushNotifications } from 'therr-js-utilities/constants';
 import notifee, {
     AndroidChannel,
     AndroidImportance,
@@ -8,17 +9,28 @@ import notifee, {
     TimestampTrigger,
     TriggerType,
 } from '@notifee/react-native';
-import { AndroidChannelIds, PressActionIds, getAndroidChannel } from '../constants';
+import { AndroidChannelIds, getAndroidChannel } from '../constants';
 
 /**
  * Sends a Notifee push notification when a data-only Firebase notification is received in the background
  */
 const sendBackgroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
     // Request permissions (required for iOS)
-    return notifee.requestPermission()
+    return sendForegroundNotification(notification, androidChannel, AndroidImportance.HIGH, false);
+};
+
+const sendForegroundNotification = (
+    notification: Notification,
+    androidChannel?: AndroidChannel,
+    importance: AndroidImportance = AndroidImportance.DEFAULT,
+    shouldRequestPermission = true,
+) => {
+    const permissionPromise = shouldRequestPermission ? notifee.requestPermission() : Promise.resolve();
+    // Request permissions (required for iOS)
+    return permissionPromise
         .then(() => notifee.createChannel({
             ...(androidChannel || getAndroidChannel(AndroidChannelIds.default, false)),
-            importance: AndroidImportance.HIGH,
+            importance,
         }))
         .then((channelId: string) => {
             return notifee.displayNotification({
@@ -31,35 +43,12 @@ const sendBackgroundNotification = (notification: Notification, androidChannel?:
                     color: '#0f7b82',
                     // pressAction is needed if you want the notification to open the app when pressed
                     pressAction: notification.android?.pressAction || {
-                        id: PressActionIds.default,
-                    },
-                    timestamp: Date.now(),
-                    showTimestamp: true,
-                },
-            });
-        });
-};
-
-const sendForegroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
-    // Request permissions (required for iOS)
-    return notifee.requestPermission()
-        .then(() => notifee.createChannel(androidChannel || getAndroidChannel(AndroidChannelIds.default, false)))
-        .then((channelId: string) => {
-            return notifee.displayNotification({
-                title: notification.title,
-                body: notification.body,
-                android: {
-                    actions: notification.android?.actions || undefined,
-                    channelId,
-                    smallIcon: notification.android?.smallIcon || 'ic_notification_icon', // optional, defaults to 'ic_launcher'.
-                    color: '#0f7b82',
-                    // pressAction is needed if you want the notification to open the app when pressed
-                    pressAction: notification.android?.pressAction || {
-                        id: PressActionIds.default,
+                        id: PushNotifications.PressActionIds.default,
                     },
                     timestamp: Date.now(), // 8 minutes ago
                     showTimestamp: true,
                 },
+                data: notification.data,
             });
         });
 };
@@ -97,7 +86,7 @@ const sendTriggerNotification = async (
                     color: '#0f7b82',
                     // pressAction is needed if you want the notification to open the app when pressed
                     pressAction: notification.android?.pressAction || {
-                        id: PressActionIds.default,
+                        id: PushNotifications.PressActionIds.default,
                     },
                     timestamp: Date.now(), // 8 minutes ago
                     showTimestamp: true,

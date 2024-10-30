@@ -9,7 +9,7 @@ import Toast from 'react-native-toast-message';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState, IContentState } from 'therr-react/types';
 import { ReactionActions, MapActions } from 'therr-react/redux/actions';
-import { Categories, Content, ErrorCodes, FilePaths } from 'therr-js-utilities/constants';
+import { Categories, Content, ErrorCodes, FilePaths, PushNotifications } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -36,7 +36,6 @@ import {
     MAX_RADIUS_PRIVATE,
     getAndroidChannel,
     AndroidChannelIds,
-    PressActionIds,
     HAPTIC_FEEDBACK_TYPE,
 } from '../constants';
 import Alert from '../components/Alert';
@@ -386,10 +385,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                                 total: response.therrCoinRewarded,
                                             }),
                                             android: {
-                                                pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
+                                                pressAction: { id: PushNotifications.PressActionIds.exchange, launchActivity: 'default' },
                                                 actions: [
                                                     {
-                                                        pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
+                                                        pressAction: { id: PushNotifications.PressActionIds.exchange, launchActivity: 'default' },
                                                         title: this.translate('alertActions.exchange'),
                                                     },
                                                 ],
@@ -425,7 +424,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 android: {
                                     actions: [
                                         {
-                                            pressAction: { id: PressActionIds.drafts, launchActivity: 'default' },
+                                            pressAction: { id: PushNotifications.PressActionIds.drafts, launchActivity: 'default' },
                                             title: this.translate('alertActions.edit'),
                                         },
                                     ],
