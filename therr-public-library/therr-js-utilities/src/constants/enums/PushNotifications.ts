@@ -30,11 +30,13 @@ export enum PressActionIds {
     drafts = 'drafts',
     exchange = 'exchange-coins',
     markAsRead = 'mark-as-read',
+    momentView = 'view-moment',
     nudge = 'nudge',
     dmView = 'view-dm',
     dmReplyToMsg = 'reply-to-dm-msg',
     groupView = 'view-group',
     groupReplyToMsg = 'reply-to-group-msg',
+    userView = 'view-user',
 }
 
 export enum TherrAndroidIntentActions {

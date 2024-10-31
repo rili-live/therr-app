@@ -109,6 +109,8 @@ const getAndroidChannel = (channelId: AndroidChannelIds, vibration = true): Andr
 const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChannel => {
     if (
         [
+            PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS,
+            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION,
             PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
             PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
         ].includes(clickActionId)

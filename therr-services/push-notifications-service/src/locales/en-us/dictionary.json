@@ -6,7 +6,9 @@
     },
     "connectionRequestAccepted": {
       "title": "New Connection",
-      "body": "Your connection request was accepted! Check the app to start a new conversation"
+      "body": "Your connection request was accepted! Check the app to start a new conversation",
+      "pressActionMessage": "Message",
+      "pressActionView": "View"
     },
     "createAMomentReminder": {
       "title": "Create a Moment to Make Connections",

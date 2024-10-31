@@ -22,6 +22,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         type,
 
         // optional
+        area,
         achievementsCount,
         likeCount,
         notificationsCount,
@@ -37,6 +38,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         // TODO: This endpoint should accept a type
         type || PushNotifications.Types.newDirectMessage,
         {
+            area,
             groupId,
             fromUser: {
                 id: fromUserId,
@@ -155,8 +157,6 @@ const testPushNotification: RequestHandler = (req, res) => {
         return predictAndSendNotification(
             PushNotifications.Types.newDirectMessage,
             {
-                fromUserId: 'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32',
-                fromUserName: 'rilimain',
                 fromUser: {
                     id: 'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32',
                     userName: 'rilimain',
@@ -195,7 +195,8 @@ const testPushNotification: RequestHandler = (req, res) => {
         type as any || PushNotifications.Types.newLikeReceived,
         {
             fromUser: {
-                userName: fromUserName,
+                id: 'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32',
+                userName: fromUserName?.toString() || 'rilimain',
             },
         },
         {

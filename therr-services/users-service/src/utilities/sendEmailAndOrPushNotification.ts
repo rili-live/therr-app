@@ -146,6 +146,11 @@ export default (
                     groupId,
                     groupName,
                     groupMembersList: fromUserNames,
+                    // achievementsCount,
+                    // likeCount,
+                    // notificationsCount,
+                    // totalAreasActivated,
+                    // viewCount,
                 },
             })
             : Promise.resolve();
