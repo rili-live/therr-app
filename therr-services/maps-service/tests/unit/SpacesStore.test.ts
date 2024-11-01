@@ -30,7 +30,7 @@ describe('SpacesStore', () => {
 
     describe('searchSpaces', () => {
         it('queries with postgis functions', () => {
-            const expected = `select * from "main"."spaces" where ST_DWithin(geom, ST_MakePoint(15.3034, -1.12314)::geography, 5) and "isMatureContent" = false and "isClaimPending" = false limit 100 offset 100`;
+            const expected = `select "id", "areaType", "locale", "addressReadable", "category", "websiteUrl", "notificationMsg", "medias", "mediaIds", "hashTags", "latitude", "longitude", "radius", "isMatureContent", "isModeratorApproved", "createdAt", "updatedAt", "featuredIncentiveKey", "featuredIncentiveValue", "featuredIncentiveRewardKey", "featuredIncentiveRewardValue", "featuredIncentiveCurrencyId", "phoneNumber", "isPointOfInterest", "priceRange", "openingHours", "interestsKeys" from "main"."spaces" where ST_DWithin(geom, ST_MakePoint(15.3034, -1.12314)::geography, 5) and "isMatureContent" = false and "isClaimPending" = false limit 100 offset 100`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),

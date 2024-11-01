@@ -157,6 +157,7 @@ const internalCreateUserGroups = (req, res) => {
                         toUserId: member.userId,
                         fromUser: {
                             id: userId,
+                            userName: inviter?.userName,
                             name: inviter?.userName,
                         },
                         retentionEmailType: PushNotifications.Types.newGroupInvite,
@@ -251,9 +252,6 @@ const createUserGroup = (req, res) => {
                         },
                     }, {
                         toUserId: group.authorId,
-                        fromUser: {
-                            id: userId,
-                        },
                         fromUserNames,
                         retentionEmailType: PushNotifications.Types.newGroupMembers,
                         groupId: group.id,

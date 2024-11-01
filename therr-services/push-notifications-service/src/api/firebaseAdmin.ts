@@ -33,7 +33,7 @@ interface INotificationMetrics {
 }
 
 interface ICreateBaseMessage {
-    data: any;
+    data: { [key: string]: string; };
     deviceToken: any;
 }
 
@@ -144,7 +144,11 @@ const createNotificationMessage = ({
     token: deviceToken,
 });
 
-const createMessage = (type: PushNotifications.Types, data: any, config: ICreateMessageConfig): admin.messaging.Message | false => {
+const createMessage = (
+    type: PushNotifications.Types,
+    data: PushNotifications.INotificationData,
+    config: ICreateMessageConfig,
+): admin.messaging.Message | false => {
     let baseMessage: any = {};
     const modifiedData = {
         type,
@@ -190,15 +194,17 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.LATEST_POST_LIKES_STATS;
             return baseMessage;
         case PushNotifications.Types.latestPostViewcountStats:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.latestPostViewcountStats.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.latestPostViewcountStats.body', {
+                        viewCount: config.viewCount || 0,
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.momentView,
+                },
                 deviceToken: config.deviceToken,
-                notificationTitle: translate(config.userLocale, 'notifications.latestPostViewcountStats.title'),
-                notificationBody: translate(config.userLocale, 'notifications.latestPostViewcountStats.body', {
-                    viewCount: config.viewCount || 0,
-                }),
-            });
-            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS;
+            }, PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS);
             return baseMessage;
         case PushNotifications.Types.unreadNotificationsReminder:
             baseMessage = createNotificationMessage({
@@ -234,28 +240,55 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.ACHIEVEMENT_COMPLETED;
             return baseMessage;
         case PushNotifications.Types.connectionRequestAccepted:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
+            // Expects modifiedData.fromUser = { id: ..., userName };
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.connectionRequestAccepted.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.connectionRequestAccepted.body', {
+                        userName: config.fromUserName,
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.userView,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.dmReplyToMsg,
+                            title: translate(config.userLocale, 'notifications.connectionRequestAccepted.pressActionMessage'),
+                        },
+                        {
+                            id: PushNotifications.PressActionIds.userView,
+                            title: translate(config.userLocale, 'notifications.connectionRequestAccepted.pressActionView'),
+                        },
+                    ]),
+                },
                 deviceToken: config.deviceToken,
-                notificationTitle: translate(config.userLocale, 'notifications.connectionRequestAccepted.title'),
-                notificationBody: translate(config.userLocale, 'notifications.connectionRequestAccepted.body', {
-                    userName: config.fromUserName,
-                }),
-            });
-            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION;
+            }, PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION);
             return baseMessage;
         case PushNotifications.Types.newConnectionRequest:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
+            // Expects modifiedData.fromUser = { id: ..., userName };
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.newConnectionRequest.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.newConnectionRequest.body', {
+                        userName: config.fromUserName,
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.userView,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.userAcceptConnectionRequest,
+                            title: translate(config.userLocale, 'notifications.newConnectionRequest.pressActionAccept'),
+                        },
+                        {
+                            id: PushNotifications.PressActionIds.userView,
+                            title: translate(config.userLocale, 'notifications.newConnectionRequest.pressActionView'),
+                        },
+                    ]),
+                },
                 deviceToken: config.deviceToken,
-                notificationTitle: translate(config.userLocale, 'notifications.newConnectionRequest.title'),
-                notificationBody: translate(config.userLocale, 'notifications.newConnectionRequest.body', {
-                    userName: config.fromUserName,
-                }),
-            });
-            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST;
+            }, PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST);
             return baseMessage;
         case PushNotifications.Types.newDirectMessage:
+            // Expects modifiedData.fromUser = { id: ..., userName };
             baseMessage = createDataOnlyMessage({
                 data: {
                     ...modifiedData,
@@ -408,7 +441,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
 // TODO: RDATA-3 - Add machine learning to predict whether to send push notification
 const predictAndSendNotification = (
     type: PushNotifications.Types,
-    data,
+    data: PushNotifications.INotificationData,
     config: ICreateMessageConfig,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     metrics?: INotificationMetrics,

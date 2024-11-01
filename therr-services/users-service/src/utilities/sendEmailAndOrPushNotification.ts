@@ -7,16 +7,12 @@ import sendNewGroupInviteEmail from '../api/email/for-social/sendNewGroupInviteE
 import * as globalConfig from '../../../../global-config';
 import { IFindUserArgs } from '../store/UsersStore';
 
-interface ISendPushNotification {
+interface ISendPushNotification extends PushNotifications.INotificationData {
     authorization: any;
-    fromUserName?: any;
-    fromUserId: any;
     fromUserNames?: string[];
-    groupName?: string;
-    groupId?: string;
     locale: any;
     toUserId: any;
-    type: any;
+    type: PushNotifications.Types;
     retentionEmailType?: PushNotifications.Types;
     whiteLabelOrigin: string;
     brandVariation: string;
@@ -38,8 +34,7 @@ export default (
         authorization,
         groupName,
         groupId,
-        fromUserName,
-        fromUserId,
+        fromUser,
         fromUserNames,
         locale,
         toUserId,
@@ -65,9 +60,9 @@ export default (
         // Only send email if configured
         if (config.shouldSendEmail) {
             if (retentionEmailType === PushNotifications.Types.newConnectionRequest) {
-                if (fromUserName) {
+                if (fromUser?.userName) {
                     sendEmail = () => sendPendingInviteEmail({
-                        subject: `[New Connection Request] ${fromUserName} sent you a request`,
+                        subject: `[New Connection Request] ${fromUser.userName} sent you a request`,
                         toAddresses: [destinationUser.email],
                         agencyDomainName: whiteLabelOrigin,
                         brandVariation,
@@ -77,13 +72,13 @@ export default (
                             settingsEmailInvites: destinationUser.settingsEmailInvites,
                         },
                     }, {
-                        fromName: fromUserName,
+                        fromName: fromUser.userName,
                     });
                 } else {
                     logSpan({
                         level: 'warn',
                         messageOrigin: 'API_SERVER',
-                        messages: ['"fromUserName" is not defined. Skipping email.'],
+                        messages: ['"fromUser.userName" is not defined. Skipping email.'],
                         traceArgs: {
                             issue: 'error with sendPendingInviteEmail',
                         },
@@ -109,7 +104,7 @@ export default (
             } else if (retentionEmailType === PushNotifications.Types.newGroupInvite
                     && groupName && groupId) {
                 sendEmail = () => sendNewGroupInviteEmail({
-                    subject: `${fromUserName} invited you to join the Group, ${groupName}`,
+                    subject: `${fromUser?.userName} invited you to join the Group, ${groupName}`,
                     toAddresses: [destinationUser.email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
@@ -121,7 +116,7 @@ export default (
                 }, {
                     groupId,
                     groupName,
-                    fromUserName,
+                    fromUserName: fromUser?.userName || 'A user',
                 });
             }
         }
@@ -135,17 +130,22 @@ export default (
                 headers: {
                     authorization,
                     'x-localecode': locale,
-                    'x-userid': fromUserId,
+                    'x-userid': fromUser?.id || '',
                     'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
-                    fromUserName,
+                    fromUserName: fromUser?.userName,
                     toUserDeviceToken: destinationUser.deviceMobileFirebaseToken,
                     type,
-                    fromUserId,
+                    fromUserId: fromUser?.id,
                     groupId,
                     groupName,
                     groupMembersList: fromUserNames,
+                    // achievementsCount,
+                    // likeCount,
+                    // notificationsCount,
+                    // totalAreasActivated,
+                    // viewCount,
                 },
             })
             : Promise.resolve();

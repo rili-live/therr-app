@@ -34,6 +34,7 @@
     "backgroundLocationNotificationChannel": "Local rewards finder",
     "codeSent": "New Code Sent",
     "coinsReceived": "You Received Coins",
+    "connectionAccepted": "Connection request accepted!",
     "invalidCode": "Invalid Code",
     "invalidRegionCode": "Invalid Region",
     "phoneVerifiedSuccess": "Phone Verification Success",

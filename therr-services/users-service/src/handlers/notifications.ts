@@ -46,6 +46,7 @@ const createNotification = (req, res) => {
     }, {
         toUserId: req.body.userId,
         fromUser: {
+            userName: req.body.fromUserName,
             name: req.body.fromUserName,
             id: req.headers['x-userid'],
         },

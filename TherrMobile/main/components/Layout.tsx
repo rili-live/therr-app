@@ -21,7 +21,7 @@ import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { AccessLevels, BrandVariations, GroupMemberRoles, PushNotifications } from 'therr-js-utilities/constants';
+import { AccessLevels, BrandVariations, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -56,7 +56,7 @@ import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
-import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS, getAndroidChannel } from '../constants';
+import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroidChannel } from '../constants';
 import { socketIO } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
@@ -106,6 +106,7 @@ interface ILayoutDispatchProps {
     updateLocationPermissions: Function;
     updateTour: Function;
     updateUser: Function;
+    updateUserConnection: Function;
     updateUserConnectionType: Function;
     // Prefetch
     beginPrefetchRequest: Function;
@@ -161,6 +162,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateLocationPermissions: LocationActions.updateLocationPermissions,
             updateTour: UsersActions.updateTour,
             updateUser: UsersActions.update,
+            updateUserConnection: UserConnectionsActions.update,
             updateUserConnectionType: UserConnectionsActions.updateType,
             // Prefetch
             beginPrefetchRequest: UIActions.beginPrefetchRequest,
@@ -426,7 +428,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             const backgroundConfig: Config = {
                 // Geolocation Config
                 desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_MEDIUM,
-                distanceFilter: 10,
+                distanceFilter: 15,
                 // Activity Recognition
                 stopTimeout: 5,
                 // Application config
@@ -450,7 +452,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 },
                 disableLocationAuthorizationAlert: true,
                 // locationAuthorizationAlert
-                locationUpdateInterval: 5000,
+                locationUpdateInterval: 1000 * 60,
                 // HTTP / SQLite config
                 url: `${getConfig().baseApiGatewayRoute}/push-notifications-service/location/process-user-background-location`,
                 batchSync: false,       // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
@@ -804,18 +806,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (data.action === PushNotifications.AndroidIntentActions.Therr.ACHIEVEMENT_COMPLETED
                 || data.action === PushNotifications.AndroidIntentActions.Therr.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
                 targetRouteView = 'Achievements';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION) {
-                targetRouteView = 'Connect';
-                targetRouteParams = {
-                    activeTab: PEOPLE_CAROUSEL_TABS.CONNECTIONS,
-                };
             } else if (data.action === PushNotifications.AndroidIntentActions.Therr.CREATE_A_MOMENT_REMINDER) {
                 targetRouteView = 'Map';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.LATEST_POST_LIKES_STATS
-                || data.action === PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS) {
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.LATEST_POST_LIKES_STATS) {
                 targetRouteView = 'ViewUser';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST
-                || data.action === PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER
                 || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED
                 || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED) {
                 targetRouteView = 'Notifications';
@@ -903,6 +898,27 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return Promise.resolve();
             }
 
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.momentView) {
+                let area: any = {};
+                if (typeof notification?.data?.area === 'string') {
+                    area = JSON.parse(notification?.data?.area as string || '{}');
+                } else if (typeof notification?.data?.area === 'object') {
+                    area = notification?.data?.area;
+                }
+
+                if (area?.id) {
+                    RootNavigation.navigate('ViewMoment', {
+                        isMyContent: area?.fromUserId === user?.details?.id,
+                        previousView: 'Map',
+                        moment: {
+                            id: area?.id,
+                        },
+                        momentDetails: area,
+                    });
+                }
+                return Promise.resolve();
+            }
+
             if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.nudge) {
                 let area: any = {};
                 if (typeof notification?.data?.area === 'string') {
@@ -929,13 +945,24 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 && (pressAction?.id === PushNotifications.PressActionIds.groupView || pressAction?.id === PushNotifications.PressActionIds.groupReplyToMsg)) {
                 const groupId = notification?.data?.groupId as string;
 
-                // TODO: Implement better user experience to simplify performing action to earn rewards
-                if (isUserAuthorized && groupId) {
-                    RootNavigation.navigate('ViewGroup', {
+                if (groupId) {
+                    const routeParams = {
                         activeTab: GROUP_CAROUSEL_TABS.CHAT,
                         id: groupId,
-                    });
+                    };
+
+                    if (!isUserAuthorized) {
+                        this.setState({
+                            targetRouteView: 'ViewGroup',
+                            targetRouteParams: routeParams,
+                        });
+
+                        return Promise.resolve();
+                    }
+
+                    RootNavigation.navigate('ViewGroup',routeParams);
                 }
+
                 return Promise.resolve();
             }
 
@@ -947,13 +974,99 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 } else if (typeof notification?.data?.fromUser === 'object') {
                     fromUserDetails = notification?.data?.fromUser;
                 }
-                // TODO: Implement better user experience to simplify performing action to earn rewards
-                if (isUserAuthorized && fromUserDetails?.id) {
-                    RootNavigation.navigate('DirectMessage', {
+                if (fromUserDetails?.id) {
+                    const routeParams = {
                         connectionDetails: {
                             id: fromUserDetails.id,
                             userName: fromUserDetails.userName, // TODO: Ensure username rather than full name
                         },
+                    };
+
+                    if (!isUserAuthorized) {
+                        this.setState({
+                            targetRouteView: 'DirectMessage',
+                            targetRouteParams: routeParams,
+                        });
+
+                        return Promise.resolve();
+                    }
+
+                    RootNavigation.navigate('DirectMessage', routeParams);
+                }
+                return Promise.resolve();
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.userView) {
+                let fromUserDetails: any = {};
+                if (typeof notification?.data?.fromUser === 'string') {
+                    fromUserDetails = JSON.parse(notification?.data?.fromUser as string || '{}');
+                } else if (typeof notification?.data?.fromUser === 'object') {
+                    fromUserDetails = notification?.data?.fromUser;
+                }
+                if (fromUserDetails?.id) {
+                    const routeParams = {
+                        userInView: {
+                            id: fromUserDetails.id,
+                        },
+                    };
+
+                    if (!isUserAuthorized) {
+                        this.setState({
+                            targetRouteView: 'ViewUser',
+                            targetRouteParams: routeParams,
+                        });
+
+                        return Promise.resolve();
+                    }
+
+                    RootNavigation.navigate('ViewUser', routeParams);
+                }
+                return Promise.resolve();
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.userAcceptConnectionRequest) {
+                let fromUserDetails: any = {};
+                if (typeof notification?.data?.fromUser === 'string') {
+                    fromUserDetails = JSON.parse(notification?.data?.fromUser as string || '{}');
+                } else if (typeof notification?.data?.fromUser === 'object') {
+                    fromUserDetails = notification?.data?.fromUser;
+                }
+                if (fromUserDetails?.id) {
+                    const routeParams = {
+                        userInView: {
+                            id: fromUserDetails.id,
+                        },
+                    };
+
+                    if (!isUserAuthorized) {
+                        this.setState({
+                            targetRouteView: 'ViewUser',
+                            targetRouteParams: routeParams,
+                        });
+
+                        return Promise.resolve();
+                    }
+
+                    this.props.updateUserConnection({
+                        connection: {
+                            otherUserId: fromUserDetails.id,
+                            requestStatus: UserConnectionTypes.COMPLETE,
+                        },
+                        user: user.details,
+                    }).then(() => {
+                        Toast.show({
+                            type: 'success',
+                            text1: this.translate('alertTitles.connectionAccepted'),
+                            visibilityTime: 2500,
+                        });
+                    }).catch(() => {
+                        Toast.show({
+                            type: 'error',
+                            text1: this.translate('alertTitles.backendErrorMessage'),
+                            visibilityTime: 2500,
+                        });
+                    }).finally(() => {
+                        RootNavigation.navigate('ViewUser', routeParams);
                     });
                 }
                 return Promise.resolve();

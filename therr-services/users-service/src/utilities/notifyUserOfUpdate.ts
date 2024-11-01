@@ -10,16 +10,15 @@ interface IHeaders {
     brandVariation: string;
 }
 
-interface IEmailAndPushParams {
+interface IEmailAndPushParams extends PushNotifications.INotificationData {
     toUserId: string;
-    fromUser: {
+    fromUser?: {
         id: string;
-        name?: string;
+        userName: string;
+        name: string;
     };
     fromUserNames?: string[];
     retentionEmailType?: PushNotifications.Types;
-    groupName?: string;
-    groupId?: string;
 }
 
 const getPushNotificationType = (notificationType: Notifications.Types): PushNotifications.Types => {
@@ -81,18 +80,12 @@ export default (
             if (config.shouldSendPushNotification || config.shouldSendEmail) {
                 // Fire and forget
                 sendEmailAndOrPushNotification(Store.users.findUser, {
+                    ...emailAndPushParams,
                     authorization: headers.authorization,
-                    fromUserName: emailAndPushParams.fromUser?.name,
-                    fromUserId: emailAndPushParams.fromUser?.id,
                     locale: headers.locale,
-                    toUserId: emailAndPushParams.toUserId,
                     type: pushNotificationType,
                     whiteLabelOrigin: headers.whiteLabelOrigin,
                     brandVariation: headers.brandVariation,
-                    retentionEmailType: emailAndPushParams.retentionEmailType,
-                    groupName: emailAndPushParams.groupName,
-                    groupId: emailAndPushParams.groupId,
-                    fromUserNames: emailAndPushParams.fromUserNames,
                 }, {
                     shouldSendPushNotification: config.shouldSendPushNotification,
                     shouldSendEmail: config.shouldSendEmail,

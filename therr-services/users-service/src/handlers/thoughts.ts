@@ -69,122 +69,129 @@ const createThought = async (req, res) => {
                     'user.id': userId,
                 },
             });
-            if (thought.parentId) {
-                // Reward users for replying to thoughts
-                Store.thoughts.getById(thought.parentId, {}).then(({ thoughts }) => {
-                    if (thoughts.length) {
-                        const parentThought = thoughts[0];
-                        if (parentThought.fromUserId !== userId) {
-                            createOrUpdateAchievement({
+
+            Store.users.getUserById(userId, ['userName']).then((usersResponse) => {
+                const user = usersResponse[0] || {};
+
+                if (thought.parentId) {
+                    // Reward users for replying to thoughts
+                    Store.thoughts.getById(thought.parentId, {}).then(({ thoughts }) => {
+                        if (thoughts.length) {
+                            const parentThought = thoughts[0];
+                            if (parentThought.fromUserId !== userId) {
+                                createOrUpdateAchievement({
+                                    authorization,
+                                    userId: parentThought.fromUserId,
+                                    locale,
+                                    whiteLabelOrigin,
+                                    brandVariation,
+                                }, {
+                                    achievementClass: 'thinker',
+                                    achievementTier: '1_2',
+                                    progressCount: 1,
+                                }).catch((err) => {
+                                    logSpan({
+                                        level: 'error',
+                                        messageOrigin: 'API_SERVER',
+                                        messages: ['Error while creating thinker achievement after creating a thought on parent, tier 1_2'],
+                                        traceArgs: {
+                                            'error.message': err?.message,
+                                        },
+                                    });
+                                });
+
+                                // Log metric when replying to other users' thoughts
+                                userMetricsService.uploadMetric({
+                                    name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${thought.category || 'uncategorized'}` as MetricNames,
+                                    value: '5', // Replying to a should is weighted more than viewing or liking
+                                    valueType: MetricValueTypes.NUMBER,
+                                    userId,
+                                }, {
+                                    thoughtId: thought.id,
+                                    isMatureContent: thought.isMatureContent,
+                                    isPublic: thought.isPublic,
+                                }, {
+                                    contentUserId: thought.fromUserId,
+                                }).catch((err) => {
+                                    logSpan({
+                                        level: 'error',
+                                        messageOrigin: 'API_SERVER',
+                                        messages: ['failed to upload user metric'],
+                                        traceArgs: {
+                                            'error.message': err?.message,
+                                            'error.response': err?.response?.data,
+                                            'user.id': userId,
+                                            'thought.id': thought.id,
+                                        },
+                                    });
+                                });
+                            }
+                            return notifyUserOfUpdate({
                                 authorization,
-                                userId: parentThought.fromUserId,
                                 locale,
                                 whiteLabelOrigin,
                                 brandVariation,
                             }, {
-                                achievementClass: 'thinker',
-                                achievementTier: '1_2',
-                                progressCount: 1,
+                                userId: thoughts[0].fromUserId, // Notify parent thought's author
+                                type: Notifications.Types.THOUGHT_REPLY,
+                                associationId: thought.parentId,
+                                isUnread: true,
+                                messageLocaleKey: Notifications.MessageKeys.THOUGHT_REPLY,
+                                messageParams: {
+                                    thoughtId: thought.parentId,
+                                    fromUserName: user.userName,
+                                },
+                            }, {
+                                toUserId: thoughts[0].fromUserId, // Notify parent thought's author
+                                fromUser: {
+                                    id: userId,
+                                    userName: user.userName,
+                                    name: user.userName,
+                                },
+                            }, {
+                                shouldCreateDBNotification: true,
+                                shouldSendPushNotification: true,
+                                shouldSendEmail: true,
                             }).catch((err) => {
                                 logSpan({
                                     level: 'error',
                                     messageOrigin: 'API_SERVER',
-                                    messages: ['Error while creating thinker achievement after creating a thought on parent, tier 1_2'],
+                                    messages: ['Error while creating total notification for thought reply'],
                                     traceArgs: {
                                         'error.message': err?.message,
-                                    },
-                                });
-                            });
-
-                            // Log metric when replying to other users' thoughts
-                            userMetricsService.uploadMetric({
-                                name: `${MetricNames.USER_CONTENT_PREF_CAT_PREFIX}${thought.category || 'uncategorized'}` as MetricNames,
-                                value: '5', // Replying to a should is weighted more than viewing or liking
-                                valueType: MetricValueTypes.NUMBER,
-                                userId,
-                            }, {
-                                thoughtId: thought.id,
-                                isMatureContent: thought.isMatureContent,
-                                isPublic: thought.isPublic,
-                            }, {
-                                contentUserId: thought.fromUserId,
-                            }).catch((err) => {
-                                logSpan({
-                                    level: 'error',
-                                    messageOrigin: 'API_SERVER',
-                                    messages: ['failed to upload user metric'],
-                                    traceArgs: {
-                                        'error.message': err?.message,
-                                        'error.response': err?.response?.data,
-                                        'user.id': userId,
-                                        'thought.id': thought.id,
+                                        'thought.id': thought.parentId,
                                     },
                                 });
                             });
                         }
-                        return notifyUserOfUpdate({
-                            authorization,
-                            locale,
-                            whiteLabelOrigin,
-                            brandVariation,
-                        }, {
-                            userId: thoughts[0].fromUserId, // Notify parent thought's author
-                            type: Notifications.Types.THOUGHT_REPLY,
-                            associationId: thought.parentId,
-                            isUnread: true,
-                            messageLocaleKey: Notifications.MessageKeys.THOUGHT_REPLY,
-                            messageParams: {
-                                thoughtId: thought.parentId,
-                                // TODO: Add fromUserName for notification text
-                            },
-                        }, {
-                            toUserId: thoughts[0].fromUserId, // Notify parent thought's author
-                            fromUser: {
-                                id: userId,
-                            },
-                        }, {
-                            shouldCreateDBNotification: true,
-                            shouldSendPushNotification: true,
-                            shouldSendEmail: true,
-                        }).catch((err) => {
-                            logSpan({
-                                level: 'error',
-                                messageOrigin: 'API_SERVER',
-                                messages: ['Error while creating total notification for thought reply'],
-                                traceArgs: {
-                                    'error.message': err?.message,
-                                    'thought.id': thought.parentId,
-                                },
-                            });
-                        });
-                    }
 
-                    return Promise.resolve();
-                }).catch((err) => console.log(err));
-            } else {
-                // TODO: Create reactions for (some of) user's connections
-                // requires new endpoint createReactionsForUsers
-                createOrUpdateAchievement({
-                    authorization,
-                    userId,
-                    locale,
-                    whiteLabelOrigin,
-                    brandVariation,
-                }, {
-                    achievementClass: 'thinker',
-                    achievementTier: '1_1',
-                    progressCount: 1,
-                }).catch((err) => {
-                    logSpan({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['Error while creating thinker achievement after creating a thought, tier 1_1'],
-                        traceArgs: {
-                            'error.message': err?.message,
-                        },
+                        return Promise.resolve();
+                    }).catch((err) => console.log(err));
+                } else {
+                    // TODO: Create reactions for (some of) user's connections
+                    // requires new endpoint createReactionsForUsers
+                    createOrUpdateAchievement({
+                        authorization,
+                        userId,
+                        locale,
+                        whiteLabelOrigin,
+                        brandVariation,
+                    }, {
+                        achievementClass: 'thinker',
+                        achievementTier: '1_1',
+                        progressCount: 1,
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Error while creating thinker achievement after creating a thought, tier 1_1'],
+                            traceArgs: {
+                                'error.message': err?.message,
+                            },
+                        });
                     });
-                });
-            }
+                }
+            });
 
             return axios({ // Create companion reaction for user's own thought
                 method: 'post',

@@ -30,14 +30,17 @@ export enum PressActionIds {
     drafts = 'drafts',
     exchange = 'exchange-coins',
     markAsRead = 'mark-as-read',
+    momentView = 'view-moment',
     nudge = 'nudge',
     dmView = 'view-dm',
     dmReplyToMsg = 'reply-to-dm-msg',
     groupView = 'view-group',
     groupReplyToMsg = 'reply-to-group-msg',
+    userView = 'view-user',
+    userAcceptConnectionRequest = 'accept-user-connection-request'
 }
 
-export enum TherrAndroidIntentActions {
+enum TherrAndroidIntentActions {
     ACHIEVEMENT_COMPLETED = 'app.therrmobile.ACHIEVEMENT_COMPLETED',
     CREATE_YOUR_PROFILE_REMINDER = 'app.therrmobile.CREATE_YOUR_PROFILE_REMINDER',
     CREATE_A_MOMENT_REMINDER = 'app.therrmobile.CREATE_A_MOMENT_REMINDER',
@@ -55,6 +58,24 @@ export enum TherrAndroidIntentActions {
     NEW_SUPER_LIKE_RECEIVED = 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
+}
+
+export interface INotificationData {
+    associationId?: string;
+    areasActivated?: { spaceId?: string }[];
+    area?: {
+        id: string;
+    },
+    fromUser?: {
+        id: string;
+        userName: string;
+        name?: string;
+    };
+    fromUserDetails?: any;
+    groupDetails?: any;
+    groupId?: string;
+    groupName?: string;
+    notificationData?: { [key: string]: any }; // Data for the app notification / redux state
 }
 
 export const AndroidIntentActions = {
