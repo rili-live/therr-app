@@ -74,8 +74,10 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
     };
 
     const {
+        area,
         users,
         type,
+        fromUser,
         fromUserDetails,
         groupDetails,
 
@@ -91,8 +93,14 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         // TODO: This endpoint should accept a type
         type || PushNotifications.Types.newGroupMessage,
         {
+            area,
+            groupId: groupDetails?.id,
             fromUserDetails,
             groupDetails,
+            fromUser: fromUser || {
+                id: fromUserDetails?.id,
+                userName: fromUserDetails?.userName,
+            },
         },
         {
             deviceToken: user.deviceMobileFirebaseToken,
@@ -119,6 +127,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
 // Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=eGEh3WckRjy_aqM784gNM3:APA91bE2b-eXIOq3Wj-moMhjiwv3Ap-b2N8u7vhXiAsWNKRpkTROogV9Cge-r2CNb7wckP8AkQ4PKtD_Gr3FIuwtbtbdsLF5Bpem1gPNateVCH0wgGbc5I1kx-OUegM4TOp3WY5cbnoY&type=new-group-message"
 // eslint-disable-next-line max-len
 // Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=eGEh3WckRjy_aqM784gNM3:APA91bE2b-eXIOq3Wj-moMhjiwv3Ap-b2N8u7vhXiAsWNKRpkTROogV9Cge-r2CNb7wckP8AkQ4PKtD_Gr3FIuwtbtbdsLF5Bpem1gPNateVCH0wgGbc5I1kx-OUegM4TOp3WY5cbnoY&type=new-direct-message"
+// eslint-disable-next-line max-len
+// Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=eGEh3WckRjy_aqM784gNM3:APA91bE2b-eXIOq3Wj-moMhjiwv3Ap-b2N8u7vhXiAsWNKRpkTROogV9Cge-r2CNb7wckP8AkQ4PKtD_Gr3FIuwtbtbdsLF5Bpem1gPNateVCH0wgGbc5I1kx-OUegM4TOp3WY5cbnoY&type=new-connection-request"
 const testPushNotification: RequestHandler = (req, res) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
@@ -136,78 +146,51 @@ const testPushNotification: RequestHandler = (req, res) => {
         type,
     } = req.query;
 
-    if (type && type === PushNotifications.Types.nudgeSpaceEngagement) {
-        return predictAndSendNotification(
-            PushNotifications.Types.nudgeSpaceEngagement,
-            {
-                area: {
-                    id: 'e512af11-0a70-406a-bb81-794d328dbadb',
-                },
+    let notificationData: any = {
+        fromUser: {
+            id: 'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32',
+            userName: fromUserName?.toString() || 'rilimain',
+        },
+    };
+    const notificationConfig: any = {
+        deviceToken: toUserDeviceToken,
+        userId: headers.userId,
+        userLocale: headers.locale,
+        fromUserName: fromUserName?.toString() || 'rilimain',
+    };
+
+    if (type === PushNotifications.Types.nudgeSpaceEngagement) {
+        notificationData = {
+            area: {
+                id: 'e512af11-0a70-406a-bb81-794d328dbadb',
             },
-            {
-                deviceToken: toUserDeviceToken,
-                userId: headers.userId,
-                userLocale: headers.locale,
-                fromUserName: fromUserName?.toString(),
-            },
-        ).then(() => res.status(201).send('Sent nudge!'))
-            .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
+        };
     }
 
-    if (type && type === PushNotifications.Types.newDirectMessage) {
-        return predictAndSendNotification(
-            PushNotifications.Types.newDirectMessage,
-            {
-                fromUser: {
-                    id: 'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32',
-                    userName: 'rilimain',
-                },
+    if (type === PushNotifications.Types.newDirectMessage
+        || type === PushNotifications.Types.newConnectionRequest
+    ) {
+        notificationData = {
+            fromUser: {
+                id: 'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32',
+                userName: 'rilimain',
             },
-            {
-                deviceToken: toUserDeviceToken,
-                userId: headers.userId,
-                userLocale: headers.locale,
-                fromUserName: 'rilimain',
-            },
-        ).then(() => res.status(201).send('Sent direct message notification!'))
-            .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
+        };
     }
 
-    if (type && type === PushNotifications.Types.newGroupMessage) {
-        return predictAndSendNotification(
-            PushNotifications.Types.newGroupMessage,
-            {
-                groupId: '2a220814-2915-46b7-b870-ceb96c388b8f',
-                groupName: 'Test Group',
-            },
-            {
-                deviceToken: toUserDeviceToken,
-                userId: headers.userId,
-                userLocale: headers.locale,
-                fromUserName: fromUserName?.toString(),
-                groupName: 'Test Group',
-            },
-        ).then(() => res.status(201).send('Sent group message notification!'))
-            .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
+    if (type === PushNotifications.Types.newGroupMessage) {
+        notificationData = {
+            groupId: '2a220814-2915-46b7-b870-ceb96c388b8f',
+            groupName: 'Test Group',
+        };
+        notificationConfig.groupName = 'Test Group';
     }
 
     return predictAndSendNotification(
-        // TODO: This endpoint should accept a type
         type as any || PushNotifications.Types.newLikeReceived,
-        {
-            fromUser: {
-                id: 'b5e97b45-3d2e-41c2-a28a-5c47aa36eb32',
-                userName: fromUserName?.toString() || 'rilimain',
-            },
-        },
-        {
-            deviceToken: toUserDeviceToken,
-            userId: headers.userId,
-            userLocale: headers.locale,
-            fromUserName: fromUserName?.toString(),
-        },
-    )
-        .then(() => res.status(201).send('Sent!'))
+        notificationData,
+        notificationConfig,
+    ).then(() => res.status(201).send(`Sent ${type} notification!`))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
 };
 

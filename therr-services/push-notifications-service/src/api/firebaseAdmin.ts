@@ -276,11 +276,11 @@ const createMessage = (
                     notificationLinkPressActions: JSON.stringify([
                         {
                             id: PushNotifications.PressActionIds.userAcceptConnectionRequest,
-                            title: translate(config.userLocale, 'notifications.newConnectionRequest.pressActionView'),
+                            title: translate(config.userLocale, 'notifications.newConnectionRequest.pressActionAccept'),
                         },
                         {
                             id: PushNotifications.PressActionIds.userView,
-                            title: translate(config.userLocale, 'notifications.newConnectionRequest.pressActionAccept'),
+                            title: translate(config.userLocale, 'notifications.newConnectionRequest.pressActionView'),
                         },
                     ]),
                 },

@@ -21,7 +21,7 @@ import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { AccessLevels, BrandVariations, GroupMemberRoles, PushNotifications } from 'therr-js-utilities/constants';
+import { AccessLevels, BrandVariations, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -106,7 +106,7 @@ interface ILayoutDispatchProps {
     updateLocationPermissions: Function;
     updateTour: Function;
     updateUser: Function;
-    createUserConnection: Function;
+    updateUserConnection: Function;
     updateUserConnectionType: Function;
     // Prefetch
     beginPrefetchRequest: Function;
@@ -162,7 +162,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateLocationPermissions: LocationActions.updateLocationPermissions,
             updateTour: UsersActions.updateTour,
             updateUser: UsersActions.update,
-            createUserConnection: UserConnectionsActions.create,
+            updateUserConnection: UserConnectionsActions.update,
             updateUserConnectionType: UserConnectionsActions.updateType,
             // Prefetch
             beginPrefetchRequest: UIActions.beginPrefetchRequest,
@@ -1047,16 +1047,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         return Promise.resolve();
                     }
 
-                    this.props.createUserConnection({
-                        requestingUserId: user.details.id,
-                        requestingUserFirstName: user.details.firstName,
-                        requestingUserLastName: user.details.lastName,
-                        requestingUserEmail: user.details.email,
-                        acceptingUserId: user?.userInView.id,
-                        acceptingUserPhoneNumber: user?.userInView.phoneNumber,
-                        acceptingUserEmail: user?.userInView.email,
-                    }, {
-                        userName: user?.details?.userName,
+                    this.props.updateUserConnection({
+                        connection: {
+                            otherUserId: fromUserDetails.id,
+                            requestStatus: UserConnectionTypes.COMPLETE,
+                        },
+                        user: user.details,
                     }).then(() => {
                         Toast.show({
                             type: 'success',
@@ -1069,6 +1065,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             text1: this.translate('alertTitles.backendErrorMessage'),
                             visibilityTime: 2500,
                         });
+                    }).finally(() => {
+                        RootNavigation.navigate('ViewUser', routeParams);
                     });
                 }
                 return Promise.resolve();
