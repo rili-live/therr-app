@@ -11,22 +11,6 @@ admin.initializeApp({
     // databaseURL: 'https://<DATABASE_NAME>.firebaseio.com',
 });
 
-interface INotificationData {
-    areasActivated?: { spaceId?: string }[];
-    area?: {
-        id: string;
-    },
-    fromUser?: {
-        id: string;
-        userName: string;
-    };
-    fromUserDetails?: any;
-    groupDetails?: any;
-    groupId?: string;
-    groupName?: string;
-    notificationData?: { [key: string]: any }; // Data for the app notification / redux state
-}
-
 interface ICreateMessageConfig {
     achievementsCount?: number;
     likeCount?: number;
@@ -162,7 +146,7 @@ const createNotificationMessage = ({
 
 const createMessage = (
     type: PushNotifications.Types,
-    data: INotificationData,
+    data: PushNotifications.INotificationData,
     config: ICreateMessageConfig,
 ): admin.messaging.Message | false => {
     let baseMessage: any = {};
@@ -256,15 +240,6 @@ const createMessage = (
             baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.ACHIEVEMENT_COMPLETED;
             return baseMessage;
         case PushNotifications.Types.connectionRequestAccepted:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
-                deviceToken: config.deviceToken,
-                notificationTitle: translate(config.userLocale, 'notifications.connectionRequestAccepted.title'),
-                notificationBody: translate(config.userLocale, 'notifications.connectionRequestAccepted.body', {
-                    userName: config.fromUserName,
-                }),
-            });
-            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION;
             // Expects modifiedData.fromUser = { id: ..., userName };
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -289,15 +264,28 @@ const createMessage = (
             }, PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION);
             return baseMessage;
         case PushNotifications.Types.newConnectionRequest:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
+            // Expects modifiedData.fromUser = { id: ..., userName };
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.newConnectionRequest.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.newConnectionRequest.body', {
+                        userName: config.fromUserName,
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.userView,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.userAcceptConnectionRequest,
+                            title: translate(config.userLocale, 'notifications.newConnectionRequest.pressActionView'),
+                        },
+                        {
+                            id: PushNotifications.PressActionIds.userView,
+                            title: translate(config.userLocale, 'notifications.newConnectionRequest.pressActionAccept'),
+                        },
+                    ]),
+                },
                 deviceToken: config.deviceToken,
-                notificationTitle: translate(config.userLocale, 'notifications.newConnectionRequest.title'),
-                notificationBody: translate(config.userLocale, 'notifications.newConnectionRequest.body', {
-                    userName: config.fromUserName,
-                }),
-            });
-            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST;
+            }, PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST);
             return baseMessage;
         case PushNotifications.Types.newDirectMessage:
             // Expects modifiedData.fromUser = { id: ..., userName };
@@ -453,7 +441,7 @@ const createMessage = (
 // TODO: RDATA-3 - Add machine learning to predict whether to send push notification
 const predictAndSendNotification = (
     type: PushNotifications.Types,
-    data: INotificationData,
+    data: PushNotifications.INotificationData,
     config: ICreateMessageConfig,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     metrics?: INotificationMetrics,

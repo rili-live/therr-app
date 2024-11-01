@@ -22,6 +22,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
     if (
         [
             PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS,
+            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST,
             PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION,
             PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
             PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,

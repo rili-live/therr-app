@@ -18,6 +18,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
 
     const {
         fromUserName,
+        fromUser,
         toUserDeviceToken,
         type,
 
@@ -40,7 +41,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         {
             area,
             groupId,
-            fromUser: {
+            fromUser: fromUser || {
                 id: fromUserId,
                 userName: fromUserName,
             },
@@ -49,7 +50,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             deviceToken: toUserDeviceToken,
             userId: headers.userId,
             userLocale: headers.locale,
-            fromUserName,
+            fromUserName: fromUserName || fromUser?.userName,
             achievementsCount,
             likeCount,
             notificationsCount,

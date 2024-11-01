@@ -106,6 +106,7 @@ interface ILayoutDispatchProps {
     updateLocationPermissions: Function;
     updateTour: Function;
     updateUser: Function;
+    createUserConnection: Function;
     updateUserConnectionType: Function;
     // Prefetch
     beginPrefetchRequest: Function;
@@ -161,6 +162,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateLocationPermissions: LocationActions.updateLocationPermissions,
             updateTour: UsersActions.updateTour,
             updateUser: UsersActions.update,
+            createUserConnection: UserConnectionsActions.create,
             updateUserConnectionType: UserConnectionsActions.updateType,
             // Prefetch
             beginPrefetchRequest: UIActions.beginPrefetchRequest,
@@ -808,8 +810,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'Map';
             } else if (data.action === PushNotifications.AndroidIntentActions.Therr.LATEST_POST_LIKES_STATS) {
                 targetRouteView = 'ViewUser';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST
-                || data.action === PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER
                 || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED
                 || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED) {
                 targetRouteView = 'Notifications';
@@ -944,12 +945,24 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 && (pressAction?.id === PushNotifications.PressActionIds.groupView || pressAction?.id === PushNotifications.PressActionIds.groupReplyToMsg)) {
                 const groupId = notification?.data?.groupId as string;
 
-                if (isUserAuthorized && groupId) {
-                    RootNavigation.navigate('ViewGroup', {
+                if (groupId) {
+                    const routeParams = {
                         activeTab: GROUP_CAROUSEL_TABS.CHAT,
                         id: groupId,
-                    });
+                    };
+
+                    if (!isUserAuthorized) {
+                        this.setState({
+                            targetRouteView: 'ViewGroup',
+                            targetRouteParams: routeParams,
+                        });
+
+                        return Promise.resolve();
+                    }
+
+                    RootNavigation.navigate('ViewGroup',routeParams);
                 }
+
                 return Promise.resolve();
             }
 
@@ -961,13 +974,24 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 } else if (typeof notification?.data?.fromUser === 'object') {
                     fromUserDetails = notification?.data?.fromUser;
                 }
-                if (isUserAuthorized && fromUserDetails?.id) {
-                    RootNavigation.navigate('DirectMessage', {
+                if (fromUserDetails?.id) {
+                    const routeParams = {
                         connectionDetails: {
                             id: fromUserDetails.id,
                             userName: fromUserDetails.userName, // TODO: Ensure username rather than full name
                         },
-                    });
+                    };
+
+                    if (!isUserAuthorized) {
+                        this.setState({
+                            targetRouteView: 'DirectMessage',
+                            targetRouteParams: routeParams,
+                        });
+
+                        return Promise.resolve();
+                    }
+
+                    RootNavigation.navigate('DirectMessage', routeParams);
                 }
                 return Promise.resolve();
             }
@@ -979,11 +1003,72 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 } else if (typeof notification?.data?.fromUser === 'object') {
                     fromUserDetails = notification?.data?.fromUser;
                 }
-                if (isUserAuthorized && fromUserDetails?.id) {
-                    RootNavigation.navigate('ViewUser', {
+                if (fromUserDetails?.id) {
+                    const routeParams = {
                         userInView: {
                             id: fromUserDetails.id,
                         },
+                    };
+
+                    if (!isUserAuthorized) {
+                        this.setState({
+                            targetRouteView: 'ViewUser',
+                            targetRouteParams: routeParams,
+                        });
+
+                        return Promise.resolve();
+                    }
+
+                    RootNavigation.navigate('ViewUser', routeParams);
+                }
+                return Promise.resolve();
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.userAcceptConnectionRequest) {
+                let fromUserDetails: any = {};
+                if (typeof notification?.data?.fromUser === 'string') {
+                    fromUserDetails = JSON.parse(notification?.data?.fromUser as string || '{}');
+                } else if (typeof notification?.data?.fromUser === 'object') {
+                    fromUserDetails = notification?.data?.fromUser;
+                }
+                if (fromUserDetails?.id) {
+                    const routeParams = {
+                        userInView: {
+                            id: fromUserDetails.id,
+                        },
+                    };
+
+                    if (!isUserAuthorized) {
+                        this.setState({
+                            targetRouteView: 'ViewUser',
+                            targetRouteParams: routeParams,
+                        });
+
+                        return Promise.resolve();
+                    }
+
+                    this.props.createUserConnection({
+                        requestingUserId: user.details.id,
+                        requestingUserFirstName: user.details.firstName,
+                        requestingUserLastName: user.details.lastName,
+                        requestingUserEmail: user.details.email,
+                        acceptingUserId: user?.userInView.id,
+                        acceptingUserPhoneNumber: user?.userInView.phoneNumber,
+                        acceptingUserEmail: user?.userInView.email,
+                    }, {
+                        userName: user?.details?.userName,
+                    }).then(() => {
+                        Toast.show({
+                            type: 'success',
+                            text1: this.translate('alertTitles.connectionAccepted'),
+                            visibilityTime: 2500,
+                        });
+                    }).catch(() => {
+                        Toast.show({
+                            type: 'error',
+                            text1: this.translate('alertTitles.backendErrorMessage'),
+                            visibilityTime: 2500,
+                        });
                     });
                 }
                 return Promise.resolve();

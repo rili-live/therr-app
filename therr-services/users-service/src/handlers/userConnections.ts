@@ -246,11 +246,13 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 settingsEmailInvites: boolean;
             }]), {
                 authorization,
-                fromUserName: fromUserFullName,
-                fromUserId: userId,
+                fromUser: {
+                    id: userId,
+                    userName: fromUserFullName,
+                },
                 locale,
                 toUserId: acceptingUser.id as string,
-                type: 'new-connection-request',
+                type: PushNotifications.Types.newConnectionRequest,
                 retentionEmailType: PushNotifications.Types.newConnectionRequest,
                 whiteLabelOrigin,
                 brandVariation,
@@ -298,6 +300,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         requestingUserEmail,
         inviteList,
     } = req.body;
+    // TODO: Use email instead?
     const fromUserFullName = `${requestingUserFirstName} ${requestingUserLastName}`;
     const {
         authorization,
@@ -492,11 +495,13 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                         settingsEmailInvites: boolean;
                     }]), {
                         authorization,
-                        fromUserName: fromUserFullName,
-                        fromUserId: userId,
+                        fromUser: {
+                            id: userId,
+                            userName: fromUserFullName,
+                        },
                         locale,
                         toUserId: acceptingUser.id,
-                        type: 'new-connection-request',
+                        type: PushNotifications.Types.newConnectionRequest,
                         retentionEmailType: PushNotifications.Types.newConnectionRequest,
                         whiteLabelOrigin,
                         brandVariation,
@@ -744,8 +749,8 @@ const updateUserConnection = (req, res) => {
                 });
             }
 
-            Store.users.getUserById(requestingUserId, ['userName']).then((otherUserRows) => {
-                const fromUserName = otherUserRows[0]?.userName;
+            Store.users.getUserById(requestingUserId, ['userName', 'email']).then((otherUserRows) => {
+                const fromUserName = otherUserRows[0]?.userName || otherUserRows[0]?.email;
 
                 if (requestStatus === UserConnectionTypes.COMPLETE) {
                     Promise.all([
@@ -788,8 +793,10 @@ const updateUserConnection = (req, res) => {
 
                 sendEmailAndOrPushNotification(Store.users.findUser, {
                     authorization,
-                    fromUserName: fromUserName || '',
-                    fromUserId: userId,
+                    fromUser: {
+                        id: userId,
+                        userName: fromUserName || '',
+                    },
                     locale,
                     toUserId: getResults[0].acceptingUserId,
                     type: PushNotifications.Types.connectionRequestAccepted,

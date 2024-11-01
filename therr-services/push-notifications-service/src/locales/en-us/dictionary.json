@@ -36,7 +36,9 @@
     },
     "newConnectionRequest": {
       "title": "New Connection Request",
-      "body": "You have a new connection request from {userName}"
+      "body": "You have a new connection request from {userName}",
+      "pressActionAccept": "Accept",
+      "pressActionView": "View"
     },
     "newDirectMessage": {
       "title": "New Unread Messages",
