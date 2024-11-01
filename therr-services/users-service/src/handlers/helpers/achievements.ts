@@ -70,9 +70,6 @@ const createOrUpdateAchievement: (requesterDetails: IRequesterDetails, requestBo
                         messageLocaleKey: Notifications.MessageKeys.ACHIEVEMENT_COMPLETED,
                     }, {
                         toUserId: userId,
-                        fromUser: {
-                            id: userId,
-                        },
                     }, {
                         shouldCreateDBNotification: true,
                         shouldSendPushNotification: true,

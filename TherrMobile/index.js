@@ -14,15 +14,16 @@ import { getAndroidChannelFromClickActionId } from './main/constants';
 // Step 2.) Make sure the server side firebase message is data-only
 // Step 3.) Remove navigation logic for clickId in Layout.tsx
 // Step 4.) Update handleNotifeeNotificationEvent in Layout to handle the press action IDs
-// Register background push notification handler
+/** Register background push notification handler */
 messaging().setBackgroundMessageHandler(async remoteMessage => {
     await wrapOnMessageReceived(false, remoteMessage);
-
-    const { type, timestamp } = remoteMessage.data;
 
     // Handle data-only notifications which will be converted to Notifee notifications with press actions
     if (
         [
+            PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS,
+            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST,
+            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION,
             PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
             PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
             PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT,

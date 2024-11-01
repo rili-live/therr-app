@@ -26,6 +26,7 @@ import {
 } from 'therr-react/types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TabBar, TabView } from 'react-native-tab-view';
+import Toast from 'react-native-toast-message';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -563,6 +564,12 @@ class ViewUser extends React.Component<
             }).then(() => {
                 updateUserInView({
                     isPendingConnection: true,
+                });
+            }).catch(() => {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('alertTitles.backendErrorMessage'),
+                    visibilityTime: 2500,
                 });
             });
         } else if (activeConfirmModal === 'remove-connection-request') {
