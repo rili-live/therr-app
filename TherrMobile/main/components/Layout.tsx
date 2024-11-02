@@ -810,15 +810,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'Map';
             } else if (data.action === PushNotifications.AndroidIntentActions.Therr.LATEST_POST_LIKES_STATS) {
                 targetRouteView = 'ViewUser';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER
-                || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED
-                || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED) {
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER) {
                 targetRouteView = 'Notifications';
-            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT) {
-                targetRouteView = 'Map';
-                if (!isNotAuthorized) {
-                    // TODO: Consider returning and displaying a toast to notify opportunity to earn rewards
-                }
             } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_INVITE
                 || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MEMBERS) {
                 targetRouteView = 'Groups';
@@ -914,6 +907,48 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             id: area?.id,
                         },
                         momentDetails: area,
+                    });
+                }
+                return Promise.resolve();
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.spaceView) {
+                let area: any = {};
+                if (typeof notification?.data?.area === 'string') {
+                    area = JSON.parse(notification?.data?.area as string || '{}');
+                } else if (typeof notification?.data?.area === 'object') {
+                    area = notification?.data?.area;
+                }
+
+                if (area?.id) {
+                    RootNavigation.navigate('ViewSpace', {
+                        isMyContent: area?.fromUserId === user?.details?.id,
+                        previousView: 'Map',
+                        space: {
+                            id: area?.id,
+                        },
+                        spaceDetails: area,
+                    });
+                }
+                return Promise.resolve();
+            }
+
+            if (notification?.id && pressAction?.id === PushNotifications.PressActionIds.thoughtView) {
+                let thought: any = {};
+                if (typeof notification?.data?.thought === 'string') {
+                    thought = JSON.parse(notification?.data?.thought as string || '{}');
+                } else if (typeof notification?.data?.thought === 'object') {
+                    thought = notification?.data?.thought;
+                }
+
+                if (thought?.id) {
+                    RootNavigation.navigate('ViewThought', {
+                        isMyContent: thought?.fromUserId === user?.details?.id,
+                        previousView: 'Map',
+                        thought: {
+                            id: thought?.id,
+                        },
+                        thoughtDetails: thought,
                     });
                 }
                 return Promise.resolve();

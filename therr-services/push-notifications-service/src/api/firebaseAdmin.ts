@@ -42,6 +42,18 @@ interface ICreateNotificationMessage extends ICreateBaseMessage {
     notificationBody: string;
 }
 
+const getPostActionId = (postType?: string) => {
+    let id = PushNotifications.PressActionIds.spaceView;
+
+    if (postType === 'moments') {
+        id = PushNotifications.PressActionIds.momentView;
+    }
+    if (postType === 'thoughts') {
+        id = PushNotifications.PressActionIds.thoughtView;
+    }
+    return id;
+};
+
 const getAppBundleIdentifier = (brandVariation: BrandVariations) => {
     switch (brandVariation) {
         case BrandVariations.THERR:
@@ -150,7 +162,7 @@ const createMessage = (
     config: ICreateMessageConfig,
 ): admin.messaging.Message | false => {
     let baseMessage: any = {};
-    const modifiedData = {
+    const modifiedData: any = {
         type,
         timestamp: Date.now().toString(), // values must be strings!
     };
@@ -359,26 +371,42 @@ const createMessage = (
             baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_INVITE;
             return baseMessage;
         case PushNotifications.Types.newLikeReceived:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.newLikeReceived.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.newLikeReceived.body', {
+                        userName: config.fromUserName,
+                    }),
+                    notificationPressActionId: getPostActionId(modifiedData?.postType),
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: getPostActionId(modifiedData?.postType),
+                            title: translate(config.userLocale, 'notifications.newLikeReceived.pressActionView'),
+                        },
+                    ]),
+                },
                 deviceToken: config.deviceToken,
-                notificationTitle: translate(config.userLocale, 'notifications.newLikeReceived.title'),
-                notificationBody: translate(config.userLocale, 'notifications.newLikeReceived.body', {
-                    userName: config.fromUserName,
-                }),
-            });
-            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED;
+            }, PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED);
             return baseMessage;
         case PushNotifications.Types.newSuperLikeReceived:
-            baseMessage = createNotificationMessage({
-                data: modifiedData,
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.newSuperLikeReceived.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.newSuperLikeReceived.body', {
+                        userName: config.fromUserName,
+                    }),
+                    notificationPressActionId: getPostActionId(modifiedData?.postType),
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: getPostActionId(modifiedData?.postType),
+                            title: translate(config.userLocale, 'notifications.newSuperLikeReceived.pressActionView'),
+                        },
+                    ]),
+                },
                 deviceToken: config.deviceToken,
-                notificationTitle: translate(config.userLocale, 'notifications.newSuperLikeReceived.title'),
-                notificationBody: translate(config.userLocale, 'notifications.newSuperLikeReceived.body', {
-                    userName: config.fromUserName,
-                }),
-            });
-            baseMessage.android.notification.clickAction = PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED;
+            }, PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED);
             return baseMessage;
         case PushNotifications.Types.newAreasActivated:
             baseMessage = createNotificationMessage({
@@ -425,14 +453,24 @@ const createMessage = (
                 notificationBody: translate(config.userLocale, 'notifications.discoveredUniqueSpace.body'),
             });
         case PushNotifications.Types.newThoughtReplyReceived:
-            return createNotificationMessage({
-                data: modifiedData,
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.newThoughtReplyReceived.title'),
+                    notificationBody: translate(config.userLocale, 'notifications.newThoughtReplyReceived.body', {
+                        userName: config.fromUserName,
+                    }),
+                    notificationPressActionId: PushNotifications.PressActionIds.thoughtView,
+                    notificationLinkPressActions: JSON.stringify([
+                        {
+                            id: PushNotifications.PressActionIds.thoughtView,
+                            title: translate(config.userLocale, 'notifications.newThoughtReplyReceived.pressActionView'),
+                        },
+                    ]),
+                },
                 deviceToken: config.deviceToken,
-                notificationTitle: translate(config.userLocale, 'notifications.newThoughtReplyReceived.title'),
-                notificationBody: translate(config.userLocale, 'notifications.newThoughtReplyReceived.body', {
-                    userName: config.fromUserName,
-                }),
-            });
+            }, PushNotifications.AndroidIntentActions.Therr.NEW_THOUGHT_REPLY_RECEIVED);
+            return baseMessage;
         default:
             return false;
     }

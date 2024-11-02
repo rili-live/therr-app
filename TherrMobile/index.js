@@ -26,6 +26,9 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
             PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION,
             PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
             PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
+            PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED,
+            PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED,
+            PushNotifications.AndroidIntentActions.Therr.NEW_THOUGHT_REPLY_RECEIVED,
             PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT,
         ].includes(remoteMessage?.data?.clickActionId)
     ) {
