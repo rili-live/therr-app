@@ -62,15 +62,18 @@
     },
     "newLikeReceived": {
       "title": "New Reaction",
-      "body": "{userName} liked your post"
+      "body": "{userName} liked your post",
+      "pressActionView": "View Post"
     },
     "newSuperLikeReceived": {
       "title": "New Reaction",
-      "body": "{userName} super-liked your post"
+      "body": "{userName} super-liked your post",
+      "pressActionView": "View Post"
     },
     "newThoughtReplyReceived": {
       "title": "New Post Reply",
-      "body": "{userName} replied to your post"
+      "body": "{userName} replied to your post",
+      "pressActionView": "View Reply"
     },
     "newAreasActivated": {
       "title": "New Areas Activated",

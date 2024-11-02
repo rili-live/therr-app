@@ -36,6 +36,7 @@ const throttleAndNotify = (socket, decodedAuthenticationToken, {
                             areaId: contentId,
                             userName: reactorUserName,
                             userId: reactorUserId,
+                            contentUserId,
                             postType,
                         } : {
                             thoughtId: contentId,

@@ -20,19 +20,21 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         fromUserName,
         fromUser,
         toUserDeviceToken,
+        thought,
         type,
 
         // optional
         area,
         achievementsCount,
-        likeCount,
-        notificationsCount,
-        totalAreasActivated,
-        viewCount,
         fromUserId,
         groupId,
         groupName,
         groupMembersList,
+        likeCount,
+        notificationsCount,
+        postType,
+        totalAreasActivated,
+        viewCount,
     } = req.body;
 
     return predictAndSendNotification(
@@ -45,6 +47,8 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
                 id: fromUserId,
                 userName: fromUserName,
             },
+            postType,
+            thought,
         },
         {
             deviceToken: toUserDeviceToken,
@@ -80,6 +84,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
         fromUser,
         fromUserDetails,
         groupDetails,
+        postType,
+        thought,
 
         // optional
         achievementsCount,
@@ -101,6 +107,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
                 id: fromUserDetails?.id,
                 userName: fromUserDetails?.userName,
             },
+            postType,
+            thought,
         },
         {
             deviceToken: user.deviceMobileFirebaseToken,

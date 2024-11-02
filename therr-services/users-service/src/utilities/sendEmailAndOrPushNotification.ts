@@ -7,7 +7,7 @@ import sendNewGroupInviteEmail from '../api/email/for-social/sendNewGroupInviteE
 import * as globalConfig from '../../../../global-config';
 import { IFindUserArgs } from '../store/UsersStore';
 
-interface ISendPushNotification extends PushNotifications.INotificationData {
+export interface ISendPushNotification extends PushNotifications.INotificationData {
     authorization: any;
     fromUserNames?: string[];
     locale: any;
@@ -31,13 +31,16 @@ export default (
         settingsEmailInvites: boolean;
     }[]>,
     {
+        area,
         authorization,
         groupName,
         groupId,
         fromUser,
         fromUserNames,
         locale,
+        postType,
         toUserId,
+        thought,
         type,
         retentionEmailType,
         whiteLabelOrigin,
@@ -134,13 +137,16 @@ export default (
                     'x-therr-origin-host': whiteLabelOrigin,
                 },
                 data: {
+                    area,
                     fromUserName: fromUser?.userName,
-                    toUserDeviceToken: destinationUser.deviceMobileFirebaseToken,
-                    type,
                     fromUserId: fromUser?.id,
                     groupId,
                     groupName,
                     groupMembersList: fromUserNames,
+                    postType,
+                    toUserDeviceToken: destinationUser.deviceMobileFirebaseToken,
+                    type,
+                    thought,
                     // achievementsCount,
                     // likeCount,
                     // notificationsCount,

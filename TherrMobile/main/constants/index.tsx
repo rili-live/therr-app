@@ -114,6 +114,9 @@ const getAndroidChannelFromClickActionId = (clickActionId: string): AndroidChann
             PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST,
             PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
             PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
+            PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED,
+            PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED,
+            PushNotifications.AndroidIntentActions.Therr.NEW_THOUGHT_REPLY_RECEIVED,
         ].includes(clickActionId)
     ) {
         return getAndroidChannel(AndroidChannelIds.reminders);

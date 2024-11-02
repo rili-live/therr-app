@@ -140,6 +140,8 @@ const createThought = async (req, res) => {
                                 messageParams: {
                                     thoughtId: thought.parentId,
                                     fromUserName: user.userName,
+                                    contentUserId: thoughts[0].fromUserId, // author
+                                    postType: 'thoughts',
                                 },
                             }, {
                                 toUserId: thoughts[0].fromUserId, // Notify parent thought's author
