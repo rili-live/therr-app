@@ -1,3 +1,5 @@
+import { IPostType } from '../../types';
+
 export enum Types {
     // Event Driven
     achievementCompleted = 'achievement-completed',
@@ -36,6 +38,8 @@ export enum PressActionIds {
     dmReplyToMsg = 'reply-to-dm-msg',
     groupView = 'view-group',
     groupReplyToMsg = 'reply-to-group-msg',
+    thoughtView = 'view-thought',
+    spaceView = 'view-space',
     userView = 'view-user',
     userAcceptConnectionRequest = 'accept-user-connection-request'
 }
@@ -55,6 +59,7 @@ enum TherrAndroidIntentActions {
     NEW_GROUP_INVITE = 'app.therrmobile.NEW_GROUP_INVITE',
     NEW_GROUP_MEMBERS = 'app.therrmobile.NEW_GROUP_MEMBERS',
     NEW_LIKE_RECEIVED = 'app.therrmobile.NEW_LIKE_RECEIVED',
+    NEW_THOUGHT_REPLY_RECEIVED = 'app.therrmobile.NEW_THOUGHT_REPLY_RECEIVED',
     NEW_SUPER_LIKE_RECEIVED = 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
@@ -65,6 +70,7 @@ export interface INotificationData {
     areasActivated?: { spaceId?: string }[];
     area?: {
         id: string;
+        fromUserId?: string;
     },
     fromUser?: {
         id: string;
@@ -76,6 +82,11 @@ export interface INotificationData {
     groupId?: string;
     groupName?: string;
     notificationData?: { [key: string]: any }; // Data for the app notification / redux state
+    postType?: IPostType,
+    thought?: {
+        id: string;
+        fromUserId?: string;
+    };
 }
 
 export const AndroidIntentActions = {

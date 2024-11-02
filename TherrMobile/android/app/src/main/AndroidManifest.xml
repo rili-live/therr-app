@@ -113,6 +113,11 @@
             <action android:name="app.therrmobile.NEW_SUPER_LIKE_RECEIVED" />
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
+        </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.NEW_THOUGHT_REPLY_RECEIVED" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
         <intent-filter>
             <action android:name="app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER" />
             <category android:name="android.intent.category.DEFAULT" />

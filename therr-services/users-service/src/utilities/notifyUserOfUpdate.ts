@@ -1,7 +1,7 @@
 import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import { ICreateNotificationParams } from '../store/NotificationsStore';
 import Store from '../store';
-import sendEmailAndOrPushNotification from './sendEmailAndOrPushNotification';
+import sendEmailAndOrPushNotification, { ISendPushNotification } from './sendEmailAndOrPushNotification';
 
 interface IHeaders {
     authorization: string;
@@ -78,15 +78,30 @@ export default (
 
             // TODO: Handle additional notification types (currently only handles DM notification)
             if (config.shouldSendPushNotification || config.shouldSendEmail) {
-                // Fire and forget
-                sendEmailAndOrPushNotification(Store.users.findUser, {
+                const pushNotificationParams: ISendPushNotification = {
                     ...emailAndPushParams,
                     authorization: headers.authorization,
                     locale: headers.locale,
                     type: pushNotificationType,
                     whiteLabelOrigin: headers.whiteLabelOrigin,
                     brandVariation: headers.brandVariation,
-                }, {
+                };
+                if (dbNotification.messageParams?.areaId) {
+                    pushNotificationParams.area = {
+                        id: dbNotification.messageParams?.areaId,
+                        fromUserId: dbNotification.messageParams?.contentUserId,
+                    };
+                    pushNotificationParams.postType = dbNotification.messageParams?.postType;
+                }
+                if (dbNotification.messageParams?.thoughtId) {
+                    pushNotificationParams.thought = {
+                        id: dbNotification.messageParams?.thoughtId,
+                        fromUserId: dbNotification.messageParams?.contentUserId,
+                    };
+                    pushNotificationParams.postType = dbNotification.messageParams?.postType;
+                }
+                // Fire and forget
+                sendEmailAndOrPushNotification(Store.users.findUser, pushNotificationParams, {
                     shouldSendPushNotification: config.shouldSendPushNotification,
                     shouldSendEmail: config.shouldSendEmail,
                 });
