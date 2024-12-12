@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as countryGeo from 'country-reverse-geocoding';
 import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
+import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import {
     AccessLevels,
     Content,
@@ -40,6 +41,11 @@ const rewardMomentPosted = ({
     authorization,
     locale,
     whiteLabelOrigin,
+    platform,
+    brandVariation,
+    requestId,
+    userDeviceToken,
+    userName,
 }, {
     spaceId,
     userId,
@@ -97,7 +103,19 @@ const rewardMomentPosted = ({
         });
 
         if (isClaimable && therrCoinIncentive) {
-            return axios({
+            return internalRestRequest({
+                headers: {
+                    authorization,
+                    'x-platform': platform,
+                    'x-brand-variation': brandVariation,
+                    'x-therr-origin-host': whiteLabelOrigin,
+                    'x-localecode': locale,
+                    'x-requestid': requestId,
+                    'x-user-device-token': userDeviceToken,
+                    'x-userid': userId,
+                    'x-username': userName,
+                },
+            }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/rewards/transfer-coins`,
                 headers: {
@@ -148,6 +166,11 @@ const createMoment = async (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        platform,
+        brandVariation,
+        requestId,
+        userDeviceToken,
+        userName,
     } = parseHeaders(req.headers);
     let therrCoinRewarded = 0;
 
@@ -174,6 +197,11 @@ const createMoment = async (req, res) => {
             authorization,
             locale,
             whiteLabelOrigin,
+            platform,
+            brandVariation,
+            requestId,
+            userDeviceToken,
+            userName,
         }, {
             spaceId: req.body.spaceId,
             userId,
@@ -199,7 +227,9 @@ const createMoment = async (req, res) => {
             locale,
             fromUserId: userId,
         })
-            .then(([moment]) => axios({ // Create companion reaction for user's own moment
+            .then(([moment]) => internalRestRequest({
+                headers: req.headers,
+            }, { // Create companion reaction for user's own moment
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/${moment.id}`,
                 headers: {
@@ -240,6 +270,16 @@ const createMoment = async (req, res) => {
                         valueType: MetricValueTypes.NUMBER,
                         userId: userId || undefined,
                     }, {}, {
+                        authorization,
+                        'x-platform': platform,
+                        'x-brand-variation': brandVariation,
+                        'x-therr-origin-host': whiteLabelOrigin,
+                        'x-localecode': locale,
+                        'x-requestid': requestId,
+                        'x-user-device-token': userDeviceToken,
+                        'x-userid': userId,
+                        'x-username': userName,
+                    }, {
                         latitude: moment.latitude,
                         longitude: moment.longitude,
                         spaceId,
@@ -286,12 +326,7 @@ const createMoment = async (req, res) => {
                     });
                 }
 
-                updateAchievements({
-                    authorization,
-                    locale,
-                    userId,
-                    whiteLabelOrigin,
-                }, req.body);
+                updateAchievements(req.headers, req.body);
 
                 return res.status(201).send({
                     ...moment,
@@ -321,6 +356,9 @@ const createIntegratedMomentBase = ({
     userId,
     media,
     whiteLabelOrigin,
+    brandVariation,
+    userDeviceToken,
+    userName,
 }, res) => Store.externalMediaIntegrations.get({
     fromUserId: userId,
     platform,
@@ -419,7 +457,19 @@ const createIntegratedMomentBase = ({
 
                 return Promise.all([
                     Promise.resolve(moment),
-                    axios({ // Create companion reaction for user's own moment
+                    internalRestRequest({
+                        headers: {
+                            authorization,
+                            'x-platform': platform,
+                            'x-brand-variation': brandVariation,
+                            'x-therr-origin-host': whiteLabelOrigin,
+                            'x-localecode': locale,
+                            'x-requestid': requestId,
+                            'x-user-device-token': userDeviceToken,
+                            'x-userid': userId,
+                            'x-username': userName,
+                        },
+                    }, { // Create companion reaction for user's own moment
                         method: 'post',
                         url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/${moment.id}`,
                         headers: {
@@ -455,6 +505,9 @@ const createIntegratedMoment = (req, res) => {
         requestId,
         userId,
         whiteLabelOrigin,
+        brandVariation,
+        userDeviceToken,
+        userName,
     } = parseHeaders(req.headers);
 
     const {
@@ -493,6 +546,9 @@ const createIntegratedMoment = (req, res) => {
             requestId,
             userId,
             whiteLabelOrigin,
+            brandVariation,
+            userDeviceToken,
+            userName,
         }, res))
         .catch((err) => {
             if (err?.message?.includes('duplicate key value violates unique constraint')) {
@@ -509,10 +565,16 @@ const createIntegratedMoment = (req, res) => {
 
 // TODO: Delete this endpoint after it has served its purpose
 const dynamicCreateIntegratedMoment = (req, res) => {
-    const authorization = req.headers.authorization;
-    const requestId = req.headers['x-requestid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        requestId,
+        userId: headerUserId,
+        whiteLabelOrigin,
+        brandVariation,
+        userDeviceToken,
+        userName,
+    } = parseHeaders(req.headers);
 
     const {
         media,
@@ -526,8 +588,11 @@ const dynamicCreateIntegratedMoment = (req, res) => {
         media,
         platform,
         requestId,
-        userId,
+        userId: headerUserId,
         whiteLabelOrigin,
+        brandVariation,
+        userDeviceToken,
+        userName,
     }, res)
         .catch((err) => {
             if (err?.message?.includes('duplicate key value violates unique constraint')) {
@@ -544,13 +609,21 @@ const dynamicCreateIntegratedMoment = (req, res) => {
 
 // UPDATE
 const updateMoment = (req, res) => {
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+        platform,
+        brandVariation,
+        requestId,
+        userDeviceToken,
+        userName,
+    } = parseHeaders(req.headers);
     const { momentId } = req.params;
 
     // Ensure user can only update own moments
-    return Store.moments.findMoments([momentId], { fromUserId: userId }).then(({ moments }) => {
+    return Store.moments.findMoments(req.headers, [momentId], { fromUserId: userId }).then(({ moments }) => {
         if (!moments.length) {
             return handleHttpError({
                 res,
@@ -576,6 +649,16 @@ const updateMoment = (req, res) => {
                     valueType: MetricValueTypes.NUMBER,
                     userId: userId || undefined,
                 }, {}, {
+                    authorization,
+                    'x-platform': platform,
+                    'x-brand-variation': brandVariation,
+                    'x-therr-origin-host': whiteLabelOrigin,
+                    'x-localecode': locale,
+                    'x-requestid': requestId,
+                    'x-user-device-token': userDeviceToken,
+                    'x-userid': userId,
+                    'x-username': userName,
+                }, {
                     latitude: moment.latitude,
                     longitude: moment.longitude,
                     spaceId,
@@ -595,9 +678,14 @@ const updateMoment = (req, res) => {
 
                 if (!req.body.skipReward) {
                     rewardsPromise = rewardMomentPosted({
-                        authorization: req.headers.authorization,
+                        authorization,
                         locale,
                         whiteLabelOrigin,
+                        platform,
+                        brandVariation,
+                        requestId,
+                        userDeviceToken,
+                        userName,
                     }, {
                         spaceId: req.body.spaceId,
                         userId,
@@ -639,8 +727,13 @@ const getMomentDetails = (req, res) => {
         authorization,
         locale,
         userId,
-        userAccessLevels,
         whiteLabelOrigin,
+        platform,
+        brandVariation,
+        requestId,
+        userDeviceToken,
+        userName,
+        userAccessLevels,
     } = parseHeaders(req.headers);
 
     const { momentId } = req.params;
@@ -655,13 +748,15 @@ const getMomentDetails = (req, res) => {
 
     // TODO: Fetch own reaction or reaction count for own moment
     return Promise.all([
-        Store.moments.findMoments([momentId], {
+        Store.moments.findMoments(req.headers, [momentId], {
             limit: 1,
         }, {
             withMedia: shouldFetchMedia,
             withUser: shouldFetchUser,
         }),
-        axios({
+        internalRestRequest({
+            headers: req.headers,
+        }, {
             method: 'get',
             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/metrics/moments/${momentId}`,
             headers: {
@@ -718,6 +813,16 @@ const getMomentDetails = (req, res) => {
                         isMatureContent: moment.isMatureContent,
                         isPublic: moment.isPublic,
                     }, {
+                        authorization,
+                        'x-platform': platform,
+                        'x-brand-variation': brandVariation,
+                        'x-therr-origin-host': whiteLabelOrigin,
+                        'x-localecode': locale,
+                        'x-requestid': requestId,
+                        'x-user-device-token': userDeviceToken,
+                        'x-userid': userId,
+                        'x-username': userName,
+                    }, {
                         contentUserId: moment.fromUserId,
                         authorization: req.headers.authorization,
                         userId,
@@ -767,7 +872,9 @@ const getMomentDetails = (req, res) => {
                     }
 
                     if (userId !== moment.fromUserId) {
-                        axios({
+                        internalRestRequest({
+                            headers: req.headers,
+                        }, {
                             method: 'post',
                             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/increment`,
                             headers: {
@@ -820,7 +927,7 @@ const getIntegratedMoments: RequestHandler = async (req: any, res: any) => {
                 integrationsMap[integration.momentId] = integration;
                 return integration.momentId;
             });
-            return Store.moments.findMoments(momentIds, {
+            return Store.moments.findMoments(req.headers, momentIds, {
                 limit: MAX_INTERGRATIONS_PER_USER,
             }, {
                 withMedia: true,
@@ -876,7 +983,9 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
         queryString = `${queryString}&shouldCheckReverse=true`;
         const connectionsResponse: any = !userId
             ? {}
-            : await axios({
+            : await internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'get',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
                 headers: {
@@ -895,6 +1004,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
             .filter((id) => !!id); // eslint-disable-line eqeqeq
     }
     const searchPromise = Store.moments.searchMoments(
+        req.headers,
         searchArgs[0],
         searchArgs[1],
         fromUserIds,
@@ -966,6 +1076,7 @@ const searchMyMoments: RequestHandler = async (req: any, res: any) => {
         requirements.isPublic = true;
     }
     const searchPromise = Store.moments.searchMyMoments(
+        req.headers,
         userId,
         requirements,
         searchArgs[0],
@@ -1007,10 +1118,15 @@ const searchSpaceMoments: RequestHandler = async (req: any, res: any) => {
         withMedia,
     } = req.query;
 
-    const searchPromise = Store.moments.findSpaceMoments(spaceIds || [], {
-        withMedia,
-        withUser,
-    }, itemsPerPage || 100);
+    const searchPromise = Store.moments.findSpaceMoments(
+        req.headers,
+        spaceIds || [],
+        {
+            withMedia,
+            withUser,
+        },
+        itemsPerPage || 100,
+    );
 
     return Promise.all([searchPromise]).then(([moments]) => {
         const response = {

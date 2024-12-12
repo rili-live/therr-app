@@ -2,6 +2,7 @@ import KnexBuilder, { Knex } from 'knex';
 import * as countryGeo from 'country-reverse-geocoding';
 import { Categories, Content, Location } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { IConnection } from './connection';
 import { storage } from '../api/aws';
 import MediaStore, { ICreateMediaParams } from './MediaStore';
@@ -172,7 +173,7 @@ export default class EventsStore {
     }
 
     // eslint-disable-next-line default-param-last
-    searchEvents(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
+    searchEvents(internalReqHeaders: InternalConfigHeaders, conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
         const now = new Date();
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
@@ -258,7 +259,7 @@ export default class EventsStore {
                         userIds.push(event.fromUserId);
                     }
                 });
-                eventDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                eventDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
 
                 const [users] = await Promise.all(eventDetailsPromises);
 
@@ -273,6 +274,7 @@ export default class EventsStore {
 
     // eslint-disable-next-line default-param-last
     searchMyEvents(
+        internalReqHeaders: InternalConfigHeaders,
         userId: string,
         requirements: any = {},
         conditions: any = {},
@@ -325,7 +327,7 @@ export default class EventsStore {
                 });
                 // NOTE: The media db was replaced by moment.medias JSONB
                 eventDetailsPromises.push(Promise.resolve(null));
-                eventDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                eventDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
 
                 const [media, users] = await Promise.all(eventDetailsPromises);
 
@@ -345,7 +347,7 @@ export default class EventsStore {
         });
     }
 
-    findEvents(eventIds, filters, options: any = {}) {
+    findEvents(internalReqHeaders: InternalConfigHeaders, eventIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         let restrictedLimit = filters?.limit || 1000;
         restrictedLimit = restrictedLimit > 1000 ? 1000 : restrictedLimit;
@@ -397,7 +399,7 @@ export default class EventsStore {
                 });
                 // NOTE: The media db was replaced by moment.medias JSONB
                 eventDetailsPromises.push(Promise.resolve(null));
-                eventDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                eventDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
                 eventDetailsPromises.push(options.withRatings ? getRatings('space', eventResultIds) : Promise.resolve(null));
 
                 const [media, users, ratings] = await Promise.all(eventDetailsPromises);
@@ -419,7 +421,7 @@ export default class EventsStore {
         });
     }
 
-    findGroupEvents(groupIds: string[], overrides = {
+    findGroupEvents(internalReqHeaders: InternalConfigHeaders, groupIds: string[], overrides = {
         withMedia: false,
         withUser: false,
     }, limit = 100, offset = 0) {
@@ -451,7 +453,7 @@ export default class EventsStore {
                 });
                 // NOTE: The media db was replaced by moment.medias JSONB
                 eventDetailsPromises.push(Promise.resolve(null));
-                eventDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                eventDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
 
                 const [media, users] = await Promise.all(eventDetailsPromises);
 

@@ -2,6 +2,7 @@ import KnexBuilder, { Knex } from 'knex';
 import * as countryGeo from 'country-reverse-geocoding';
 import { Categories, Content, Location } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { IConnection } from './connection';
 import { storage } from '../api/aws';
 import MediaStore, { ICreateMediaParams } from './MediaStore';
@@ -167,7 +168,7 @@ export default class MomentsStore {
     }
 
     // eslint-disable-next-line default-param-last
-    searchMoments(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
+    searchMoments(internalReqHeaders: InternalConfigHeaders, conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let proximityMax = overrides?.distanceOverride || Location.AREA_PROXIMITY_METERS;
@@ -248,7 +249,7 @@ export default class MomentsStore {
                         userIds.push(moment.fromUserId);
                     }
                 });
-                momentDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                momentDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
 
                 const [users] = await Promise.all(momentDetailsPromises);
 
@@ -263,6 +264,7 @@ export default class MomentsStore {
 
     // eslint-disable-next-line default-param-last
     searchMyMoments(
+        internalReqHeaders: InternalConfigHeaders,
         userId: string,
         requirements: any = {},
         conditions: any = {},
@@ -315,7 +317,7 @@ export default class MomentsStore {
                 });
                 // NOTE: The media db was replaced by moment.medias JSONB
                 momentDetailsPromises.push(Promise.resolve(null));
-                momentDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                momentDetailsPromises.push(overrides.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
 
                 const [media, users] = await Promise.all(momentDetailsPromises);
 
@@ -335,7 +337,7 @@ export default class MomentsStore {
         });
     }
 
-    findSpaceMoments(spaceIds: string[], options = {
+    findSpaceMoments(internalReqHeaders: InternalConfigHeaders, spaceIds: string[], options = {
         withMedia: false,
         withUser: false,
     }, limit = 10, offset = 0, returning = '*') {
@@ -367,7 +369,7 @@ export default class MomentsStore {
                 });
                 // NOTE: The media db was replaced by moment.medias JSONB
                 momentDetailsPromises.push(Promise.resolve(null));
-                momentDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                momentDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
 
                 const [media, users] = await Promise.all(momentDetailsPromises);
 
@@ -388,7 +390,7 @@ export default class MomentsStore {
         });
     }
 
-    findMoments(momentIds, filters, options: any = {}) {
+    findMoments(internalReqHeaders: InternalConfigHeaders, momentIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         let restrictedLimit = filters?.limit || 1000;
         restrictedLimit = restrictedLimit > 1000 ? 1000 : restrictedLimit;
@@ -436,7 +438,7 @@ export default class MomentsStore {
                 });
                 // NOTE: The media db was replaced by moment.medias JSONB
                 momentDetailsPromises.push(Promise.resolve(null));
-                momentDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                momentDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
 
                 const [media, users] = await Promise.all(momentDetailsPromises);
 

@@ -1,5 +1,6 @@
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -8,8 +9,18 @@ import userMetricsService from '../api/userMetricsService';
 // CREATE
 const createUserMetric = async (req, res) => {
     const requestingUserId = req.headers['x-userid'];
-    const authorization = req.headers.authorization;
-    const locale = req.headers['x-localecode'] || 'en-us';
+
+    const {
+        authorization,
+        locale,
+        platform,
+        brandVariation,
+        whiteLabelOrigin,
+        requestId,
+        userDeviceToken,
+        userId,
+        userName,
+    } = parseHeaders(req.headers);
 
     const {
         name,
@@ -36,6 +47,16 @@ const createUserMetric = async (req, res) => {
         userId: requestingUserId,
     }, {
         ...dimensions,
+    }, {
+        authorization,
+        'x-platform': platform,
+        'x-brand-variation': brandVariation,
+        'x-therr-origin-host': whiteLabelOrigin,
+        'x-localecode': locale,
+        'x-requestid': requestId,
+        'x-user-device-token': userDeviceToken,
+        'x-userid': userId,
+        'x-username': userName,
     }, {
         contentUserId,
         latitude,

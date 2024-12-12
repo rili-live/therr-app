@@ -27,6 +27,10 @@ const createThought = async (req, res) => {
         userId,
         whiteLabelOrigin,
         brandVariation,
+        platform,
+        requestId,
+        userDeviceToken,
+        userName,
     } = parseHeaders(req.headers);
 
     const isDuplicate = await Store.thoughts.get({
@@ -110,6 +114,16 @@ const createThought = async (req, res) => {
                                     thoughtId: thought.id,
                                     isMatureContent: thought.isMatureContent,
                                     isPublic: thought.isPublic,
+                                }, {
+                                    authorization,
+                                    'x-platform': platform,
+                                    'x-brand-variation': brandVariation,
+                                    'x-therr-origin-host': whiteLabelOrigin,
+                                    'x-localecode': locale,
+                                    'x-requestid': requestId,
+                                    'x-user-device-token': userDeviceToken,
+                                    'x-userid': userId,
+                                    'x-username': userName,
                                 }, {
                                     contentUserId: thought.fromUserId,
                                 }).catch((err) => {
@@ -217,8 +231,17 @@ const createThought = async (req, res) => {
 
 // READ
 const getThoughtDetails = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+        brandVariation,
+        platform,
+        requestId,
+        userDeviceToken,
+        userName,
+    } = parseHeaders(req.headers);
 
     const { thoughtId } = req.params;
 
@@ -264,6 +287,16 @@ const getThoughtDetails = (req, res) => {
                 thoughtId: thought.id,
                 isMatureContent: thought.isMatureContent,
                 isPublic: thought.isPublic,
+            }, {
+                authorization,
+                'x-platform': platform,
+                'x-brand-variation': brandVariation,
+                'x-therr-origin-host': whiteLabelOrigin,
+                'x-localecode': locale,
+                'x-requestid': requestId,
+                'x-user-device-token': userDeviceToken,
+                'x-userid': userId,
+                'x-username': userName,
             }, {
                 contentUserId: thought.fromUserId,
             }).catch((err) => {

@@ -2,6 +2,7 @@ import { Beeline, Configure } from 'honeycomb-beeline'; // eslint-disable-line i
 import {
     IMetric, IMetricCombined, IMetricDimensions, IMetricUniqueProperties, MetricsProvider,
 } from './types';
+import { InternalConfigHeaders } from '../internal-rest-request';
 import DefaultMetricsProvider from './default-metrics-provider';
 
 export default class MetricsService {
@@ -20,8 +21,9 @@ export default class MetricsService {
     uploadMetric = (
         metric: IMetric,
         dimensions: IMetricDimensions,
+        headers: InternalConfigHeaders,
         uniqueDbProperties: IMetricUniqueProperties = {},
-    ) => this.provider.uploadMetric(metric, dimensions, uniqueDbProperties);
+    ) => this.provider.uploadMetric(metric, dimensions, headers, uniqueDbProperties);
 
-    uploadMetrics = (metrics: IMetricCombined[]) => this.provider.uploadMetrics(metrics);
+    uploadMetrics = (metrics: IMetricCombined[], headers: InternalConfigHeaders) => this.provider.uploadMetrics(metrics, headers);
 }

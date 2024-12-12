@@ -31,6 +31,7 @@ const utilities = [
     'email-validator',
     'format-sql-join-as-json',
     'http-response',
+    'internal-rest-request',
     'is-valid-input',
     'is-valid-password',
     'localization',

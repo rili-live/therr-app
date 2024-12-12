@@ -1,7 +1,8 @@
-import axios from 'axios';
 import {
     AccessLevels, CurrencyTransactionMessages, CurrentCheckInValuations, ErrorCodes, MetricNames, MetricValueTypes,
 } from 'therr-js-utilities/constants';
+import { parseHeaders } from 'therr-js-utilities/http';
+import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
@@ -15,10 +16,17 @@ import incrementInterestEngagement from '../utilities/incrementInterestEngagemen
 // CREATE
 const createSpaceMetric = async (req, res) => {
     const reqPath = req.path;
-    const authorization = req.headers.authorization;
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        authorization,
+        locale,
+        platform,
+        brandVariation,
+        requestId,
+        userDeviceToken,
+        userId,
+        userName,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const checkInCount = 1;
     const {
@@ -78,7 +86,9 @@ const createSpaceMetric = async (req, res) => {
     }];
 
     const rewardUserPromise = (spaceId && space.fromUserId && name === MetricNames.SPACE_USER_CHECK_IN && userId !== space.fromUserId)
-        ? axios({ // Create companion reaction for user's own moment
+        ? internalRestRequest({
+            headers: req.headers,
+        }, { // Create companion reaction for user's own moment
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/rewards/transfer-coins`,
             headers: {
@@ -139,7 +149,17 @@ const createSpaceMetric = async (req, res) => {
                 latitude: param.userLatitude,
                 longitude: param.userLongitude,
             },
-        }))).then((metrics) => {
+        })), {
+            authorization,
+            'x-platform': platform,
+            'x-brand-variation': brandVariation,
+            'x-therr-origin-host': whiteLabelOrigin,
+            'x-localecode': locale,
+            'x-requestid': requestId,
+            'x-user-device-token': userDeviceToken,
+            'x-userid': userId,
+            'x-username': userName,
+        }).then((metrics) => {
             if (reqPath.includes('/check-in')) {
                 if (userId !== space.fromUserId) {
                     incrementInterestEngagement(space.interestsKeys, 3, {

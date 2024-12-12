@@ -1,4 +1,3 @@
-import axios from 'axios';
 import path from 'path';
 import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
 import {
@@ -7,6 +6,7 @@ import {
     MetricNames,
     MetricValueTypes,
 } from 'therr-js-utilities/constants';
+import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import { RequestHandler } from 'express';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { storage } from '../api/aws';
@@ -27,10 +27,12 @@ const MAX_DISTANCE_TO_ADDRESS_METERS = 2000;
 
 // CREATE
 const createSpace = async (req, res) => {
-    const authorization = req.headers.authorization;
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const isDuplicate = await Store.spaces.get({
         fromUserId: userId,
@@ -62,7 +64,9 @@ const createSpace = async (req, res) => {
         locale,
         fromUserId: userId,
     })
-        .then(([space]) => axios({ // Create companion reaction for user's own space
+        .then(([space]) => internalRestRequest({
+            headers: req.headers,
+        }, { // Create companion reaction for user's own space
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/space-reactions/${space.id}`,
             headers: {
@@ -185,6 +189,11 @@ const getSpaceDetails = (req, res) => {
         userId,
         userAccessLevels,
         whiteLabelOrigin,
+        platform,
+        brandVariation,
+        requestId,
+        userDeviceToken,
+        userName,
     } = parseHeaders(req.headers);
 
     const { spaceId } = req.params;
@@ -202,7 +211,7 @@ const getSpaceDetails = (req, res) => {
     const shouldFetchUser = !!withUser;
 
     // TODO: Fetch own reaction or reaction count for own space
-    return Store.spaces.findSpaces([spaceId], {
+    return Store.spaces.findSpaces(req.headers, [spaceId], {
         limit: 1,
     }, {
         withMedia: shouldFetchMedia,
@@ -227,6 +236,16 @@ const getSpaceDetails = (req, res) => {
                 valueType: MetricValueTypes.NUMBER,
                 userId: userId || undefined,
             }, {}, {
+                authorization,
+                'x-platform': platform,
+                'x-brand-variation': brandVariation,
+                'x-therr-origin-host': whiteLabelOrigin,
+                'x-localecode': locale,
+                'x-requestid': requestId,
+                'x-user-device-token': userDeviceToken,
+                'x-userid': userId,
+                'x-username': userName,
+            }, {
                 latitude: space.latitude,
                 longitude: space.longitude,
                 spaceId: space.id,
@@ -254,6 +273,16 @@ const getSpaceDetails = (req, res) => {
                     spaceId: space.id,
                     isMatureContent: space.isMatureContent,
                     isPublic: space.isPublic,
+                }, {
+                    authorization,
+                    'x-platform': platform,
+                    'x-brand-variation': brandVariation,
+                    'x-therr-origin-host': whiteLabelOrigin,
+                    'x-localecode': locale,
+                    'x-requestid': requestId,
+                    'x-user-device-token': userDeviceToken,
+                    'x-userid': userId,
+                    'x-username': userName,
                 }, {
                     contentUserId: space.fromUserId,
                     authorization: req.headers.authorization,
@@ -372,7 +401,9 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
         queryString = `${queryString}&shouldCheckReverse=true`;
         const connectionsResponse: any = !userId
             ? {}
-            : await axios({
+            : await internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'get',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
                 headers: {
@@ -491,7 +522,9 @@ const claimSpace: RequestHandler = async (req: any, res: any) => {
             });
         }
 
-        return axios({
+        return internalRestRequest({
+            headers: req.headers,
+        }, {
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/request-space/${spaceId}`,
             headers: {
@@ -586,7 +619,9 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
         thirdPartyRatings,
     } = req.body;
 
-    return axios({
+    return internalRestRequest({
+        headers: req.headers,
+    }, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/request-space`,
         headers: {
@@ -640,7 +675,9 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                 openingHours,
                 thirdPartyRatings,
                 radius: 5, // small radius to prevent overlaps
-            }).then(([space]) => axios({ // Create companion reaction for user's own space
+            }).then(([space]) => internalRestRequest({
+                headers: req.headers,
+            }, { // Create companion reaction for user's own space
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/space-reactions/${space.id}`,
                 headers: {
@@ -756,7 +793,9 @@ const approveSpaceRequest: RequestHandler = async (req: any, res: any) => {
             });
         }
 
-        return axios({
+        return internalRestRequest({
+            headers: req.headers,
+        }, {
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/request-approve/${spaceId}`,
             headers: {
