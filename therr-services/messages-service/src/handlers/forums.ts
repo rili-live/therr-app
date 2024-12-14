@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { RequestHandler } from 'express';
 import moment from 'moment';
 import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
@@ -66,12 +66,11 @@ const createActivity = (req, res) => {
         .then(([dbForum]) => {
             forumId = dbForum.id;
 
-            return createUserForums({
-                'x-userid': userId,
-                'x-localecode': locale,
-            }, dbForum, group.memberIds).then((userGroupsResponse) => [dbForum, userGroupsResponse?.data?.userGroups]);
+            return createUserForums(req.headers, dbForum, group.memberIds).then((userGroupsResponse) => [dbForum, userGroupsResponse?.data?.userGroups]);
         })
-        .then(([dbForum, userGroups]) => axios({
+        .then(([dbForum, userGroups]) => internalRestRequest({
+            headers: req.headers,
+        }, {
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/events`,
             headers: {
@@ -155,10 +154,7 @@ const createForum = async (req, res) => {
         doesExpire: req.body.doesExpire || true,
         isPublic: req.body.isPublic || true,
     })
-        .then(([forum]) => createUserForum({
-            'x-userid': userId,
-            'x-localecode': locale,
-        }, forum.id).then((response) => {
+        .then(([forum]) => createUserForum(req.headers, forum.id).then((response) => {
             const userGroup = response.data;
 
             return res.status(201).send({
@@ -191,7 +187,9 @@ const getForum = (req, res) => {
         withMedia: true,
     });
 
-    return axios({
+    return internalRestRequest({
+        headers: req.headers,
+    }, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/events/search/for-group-ids${queryString}`,
         headers: {
@@ -271,10 +269,7 @@ const searchForums: RequestHandler = (req: any, res: any) => {
     // });
     const countPromise = Promise.resolve();
 
-    return getUserForums({
-        'x-userid': userId,
-        'x-localecode': locale,
-    }).then((userGroupsResponse) => {
+    return getUserForums(req.headers).then((userGroupsResponse) => {
         const validGroupIds = userGroupsResponse?.data?.userGroups
             ?.filter((userGroup) => userGroup?.status === GroupRequestStatuses.APPROVED || userGroup?.status === GroupRequestStatuses.PENDING)
             .map((userGroup) => userGroup.groupId);
@@ -295,16 +290,8 @@ const searchForums: RequestHandler = (req: any, res: any) => {
             const userIds = [...userIdSet];
 
             return Promise.all([
-                findUsers({
-                    authorization,
-                    'x-userid': userId,
-                    'x-localecode': locale,
-                }, userIds),
-                countForumMembers({
-                    authorization,
-                    'x-userid': userId,
-                    'x-localecode': locale,
-                }, resultGroups.map((g) => g.id)),
+                findUsers(req.headers, userIds),
+                countForumMembers(req.headers, resultGroups.map((g) => g.id)),
             ]).then(([usersResponse, countResponse]) => {
                 const users: any[] = usersResponse.data;
                 const usersById = users.reduce((acc, cur) => ({

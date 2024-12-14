@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import * as globalConfig from '../../../../global-config';
 

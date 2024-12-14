@@ -1,6 +1,7 @@
 import io from 'socket.io-client';
 import createSocketIoMiddleware from 'redux-socket.io';
 import {
+    BrandVariations,
     SOCKET_MIDDLEWARE_ACTION,
     SocketClientActionTypes,
     WEB_CLIENT_PREFIX,
@@ -55,7 +56,12 @@ if (__DEV__) {
 export const updateSocketToken = (user, shouldConnect?: boolean) => {
     if (user && user.details && user.details.idToken) {
         socketIO.io.opts.query = {
+            userId: user.details.id,
+            userName: user.details.userName,
+            locale: user.settings.locale,
             token: user.details.idToken,
+            platform: 'mobile',
+            brandVariation: BrandVariations.THERR,
         };
 
         if (shouldConnect) {

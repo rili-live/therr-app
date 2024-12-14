@@ -1,5 +1,4 @@
 import { RequestHandler } from 'express';
-// import axios from 'axios';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';

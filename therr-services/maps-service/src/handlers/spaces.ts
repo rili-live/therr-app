@@ -307,10 +307,7 @@ const getSpaceDetails = (req, res) => {
             // Verify that user has activated space and has access to view it
             if (userId && space?.fromUserId !== userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
                 // TODO: Check if user is part of organization and has access to view
-                userHasAccessPromise = () => getReactions('space', spaceId, {
-                    'x-userid': userId,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                });
+                userHasAccessPromise = () => getReactions('space', spaceId, req.headers);
             }
 
             const serializedSpace = {
@@ -321,6 +318,7 @@ const getSpaceDetails = (req, res) => {
             const promises = [
                 userHasAccessPromise(),
                 countReactions('space', spaceId, {
+                    ...req.headers,
                     'x-userid': userId || undefined,
                 }),
             ];
@@ -333,12 +331,7 @@ const getSpaceDetails = (req, res) => {
 
             return Promise.all(promises).then(([isActivated, eventCount, events]) => {
                 if (userId && userId !== space.fromUserId) {
-                    incrementInterestEngagement(space.interestsKeys, 2, {
-                        authorization,
-                        locale,
-                        userId,
-                        whiteLabelOrigin,
-                    });
+                    incrementInterestEngagement(space.interestsKeys, 2, req.headers);
                 }
                 serializedSpace.likeCount = parseInt(eventCount?.count || 0, 10);
                 serializedSpace.events = events;
@@ -459,7 +452,6 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
 
 const searchMySpaces: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
     const {
         // filterBy,
         itemsPerPage,
@@ -468,10 +460,7 @@ const searchMySpaces: RequestHandler = async (req: any, res: any) => {
 
     const integerColumns = ['maxViews'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    return getUserOrganizations({
-        'x-userid': userId,
-        'x-therr-origin-host': whiteLabelOrigin,
-    }).then((orgResults) => {
+    return getUserOrganizations(req.headers).then((orgResults) => {
         const orgsWithReadAccess = orgResults.userOrganizations.filter((org) => (
             org.accessLevels.includes(AccessLevels.ORGANIZATIONS_ADMIN)
             || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_BILLING)

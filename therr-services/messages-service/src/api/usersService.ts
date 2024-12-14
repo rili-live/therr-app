@@ -1,17 +1,19 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { GroupMemberRoles, GroupRequestStatuses } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
 
-const getUserForums = (headers: any) => axios({
+const getUserForums = (headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
     method: 'get',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups`,
-    headers,
 });
 
-const createUserForum = (headers: any, groupId: string) => axios({
+const createUserForum = (headers: InternalConfigHeaders, groupId: string) => internalRestRequest({
+    headers,
+}, {
     method: 'post',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/privileged`,
-    headers,
     data: {
         group: {
             id: groupId,
@@ -21,19 +23,21 @@ const createUserForum = (headers: any, groupId: string) => axios({
     },
 });
 
-const countForumMembers = (headers: any, groupIds: string[]) => axios({
+const countForumMembers = (headers: InternalConfigHeaders, groupIds: string[]) => internalRestRequest({
+    headers,
+}, {
     method: 'post',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/count-members`,
-    headers,
     data: {
         groupIds,
     },
 });
 
-const createUserForums = (headers: any, group: any, memberIds: string[]) => axios({
+const createUserForums = (headers: InternalConfigHeaders, group: any, memberIds: string[]) => internalRestRequest({
+    headers,
+}, {
     method: 'post',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/privileged`,
-    headers,
     data: {
         group: {
             id: group.id,
@@ -50,10 +54,11 @@ const createUserForums = (headers: any, group: any, memberIds: string[]) => axio
     },
 });
 
-const findUsers = (headers: any, userIds: string[]) => axios({
+const findUsers = (headers: InternalConfigHeaders, userIds: string[]) => internalRestRequest({
+    headers,
+}, {
     method: 'post',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/find`,
-    headers,
     data: {
         ids: userIds,
     },

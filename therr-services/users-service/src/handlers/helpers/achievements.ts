@@ -1,6 +1,7 @@
 import { achievementsByClass } from 'therr-js-utilities/config';
 import { Notifications } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
 import { ICreateOrUpdateResponse, IDBAchievement } from '../../store/UserAchievementsStore';
 import notifyUserOfUpdate from '../../utilities/notifyUserOfUpdate';
@@ -11,21 +12,10 @@ const getAchIdNumber = (id: string) => {
     return parseInt(arr.join(''), 10);
 };
 
-interface IRequesterDetails {
-    authorization?: string;
-    userId: string;
-    locale: string;
-    whiteLabelOrigin: string;
-    brandVariation: string;
-}
-
-const createOrUpdateAchievement: (requesterDetails: IRequesterDetails, requestBody: any) => Promise<ICreateOrUpdateResponse> = ({
-    authorization,
-    userId,
-    locale,
-    whiteLabelOrigin,
-    brandVariation,
-}, {
+const createOrUpdateAchievement: (
+    requesterDetails: InternalConfigHeaders,
+    requestBody: any,
+) => Promise<ICreateOrUpdateResponse> = (headers: InternalConfigHeaders, {
     achievementClass,
     achievementTier,
     progressCount,
@@ -35,7 +25,7 @@ const createOrUpdateAchievement: (requesterDetails: IRequesterDetails, requestBo
     }
 
     return Store.userAchievements.get({
-        userId,
+        userId: headers['x-userid'] || '',
         achievementTier,
         achievementClass,
     }).then((results) => {
@@ -47,7 +37,7 @@ const createOrUpdateAchievement: (requesterDetails: IRequesterDetails, requestBo
         const tierAchievementsArr = tierAchievementKeys.map((key) => ({ ...achievementsInClass[key], id: key }));
 
         return Store.userAchievements.updateAndCreateConsecutive({
-            userId,
+            userId: headers['x-userid'] || '',
             achievementClass,
             achievementTier,
         }, progressCount, tierAchievementsArr, latestAch);
@@ -56,20 +46,15 @@ const createOrUpdateAchievement: (requesterDetails: IRequesterDetails, requestBo
             [...result.created, ...result.updated].forEach((achievement) => {
                 // NOTE: Does not include e-mail because scheduler will e-mail users
                 // who have not claimed rewards
-                if (authorization && achievement.completedAt) {
-                    notifyUserOfUpdate({
-                        authorization,
-                        locale,
-                        whiteLabelOrigin,
-                        brandVariation,
-                    }, {
-                        userId,
+                if (headers.authorization && achievement.completedAt) {
+                    notifyUserOfUpdate(headers, {
+                        userId: headers['x-userid'] || '',
                         type: Notifications.Types.ACHIEVEMENT_COMPLETED,
                         associationId: achievement.id,
                         isUnread: true,
                         messageLocaleKey: Notifications.MessageKeys.ACHIEVEMENT_COMPLETED,
                     }, {
-                        toUserId: userId,
+                        toUserId: headers['x-userid'] || '',
                     }, {
                         shouldCreateDBNotification: true,
                         shouldSendPushNotification: true,

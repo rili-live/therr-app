@@ -33,12 +33,7 @@ const createOrUpdateEventReaction = (req, res) => {
                 .then(([eventReaction]) => {
                     const event = existing[0];
                     if (userId !== event.fromUserId && eventReaction.attendingCount > 0) {
-                        incrementInterestEngagement(event.interestsKeys, 3, {
-                            authorization,
-                            locale,
-                            userId,
-                            whiteLabelOrigin,
-                        });
+                        incrementInterestEngagement(event.interestsKeys, 3, req.headers);
                     }
                     return res.status(200).send(eventReaction);
                 });

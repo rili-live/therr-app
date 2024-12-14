@@ -1,10 +1,10 @@
-import axios, { AxiosHeaders, AxiosRequestConfig, RawAxiosRequestHeaders } from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 
 interface InternalConfigHeaders {
     authorization?: string;
     'x-platform': string;
     'x-brand-variation': string;
-    'x-therr-origin-host': string;
+    'x-therr-origin-host'?: string;
     'x-localecode': string;
     'x-requestid'?: string;
     'x-user-device-token'?: string;

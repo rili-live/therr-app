@@ -1,27 +1,30 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import * as globalConfig from '../../../../global-config';
 
 const baseReactionsServiceRoute = globalConfig[process.env.NODE_ENV || 'development'].baseReactionsServiceRoute;
 
-const getReactions = (thoughtId: string, headers) => axios({
+const getReactions = (thoughtId: string, headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
     method: 'get',
     url: `${baseReactionsServiceRoute}/thought-reactions/${thoughtId}`,
-    headers,
 });
 
-const findReactions = (thoughtId: string, headers) => axios({
+const findReactions = (thoughtId: string, headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
     method: 'post',
     url: `${baseReactionsServiceRoute}/thought-reactions/find/dynamic`,
-    headers,
     data: {
         thoughtIds: [thoughtId],
     },
 });
 
-const countReactions = (thoughtId: string, headers) => axios({
+const countReactions = (thoughtId: string, headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
     method: 'get',
     url: `${baseReactionsServiceRoute}/thought-reactions/${thoughtId}/count`,
-    headers,
 })
     .then(({ data: countResult }) => countResult);
 
@@ -34,10 +37,11 @@ const hasUserReacted = (thoughtId: string, headers) => getReactions(thoughtId, h
         throw err;
     });
 
-const createReactions = (thoughtIds: string[], headers) => axios({
+const createReactions = (thoughtIds: string[], headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
     method: 'post',
     url: `${baseReactionsServiceRoute}/thought-reactions/create-update/multiple`,
-    headers,
     data: {
         thoughtIds,
         userHasActivated: true,

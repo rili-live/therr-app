@@ -400,7 +400,7 @@ export default class EventsStore {
                 // NOTE: The media db was replaced by moment.medias JSONB
                 eventDetailsPromises.push(Promise.resolve(null));
                 eventDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
-                eventDetailsPromises.push(options.withRatings ? getRatings('space', eventResultIds) : Promise.resolve(null));
+                eventDetailsPromises.push(options.withRatings ? getRatings('space', eventResultIds, internalReqHeaders) : Promise.resolve(null));
 
                 const [media, users, ratings] = await Promise.all(eventDetailsPromises);
 

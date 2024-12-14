@@ -1,13 +1,14 @@
 import { getSearchQueryString } from 'therr-js-utilities/http';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { IInternalConfig } from 'therr-js-utilities/internal-rest-request';
 import restRequest from './restRequest';
 import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config';
 
 // TODO: Optimize for performance
 // eslint-disable-next-line default-param-last
-export default (socket, userDetails, actionType, shouldReturnActiveConnections = false, decodedAuthenticationToken: any) => {
+export default (internalConfig: IInternalConfig, socket, userDetails, actionType, shouldReturnActiveConnections = false, decodedAuthenticationToken: any) => {
     const query = {
         filterBy: 'acceptingUserId',
         query: userDetails.id,
@@ -23,7 +24,7 @@ export default (socket, userDetails, actionType, shouldReturnActiveConnections =
         queryString = `${queryString}&shouldCheckReverse=true`;
     }
 
-    return restRequest({
+    return restRequest(internalConfig, {
         method: 'get',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/connections${queryString}`,
     }, socket, decodedAuthenticationToken).then(({

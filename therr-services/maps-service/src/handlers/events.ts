@@ -655,9 +655,7 @@ const getEventDetails = (req, res) => {
                     // Private events require a reactions/activation
                     if (userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
                         // Check if user is a member of the group hosting this event
-                        return getUserGroup(event.groupId, {
-                            'x-userid': userId || undefined,
-                        });
+                        return getUserGroup(event.groupId, req.headers);
                     }
 
                     return Promise.resolve(false);
@@ -717,9 +715,7 @@ const getEventDetails = (req, res) => {
                 }
 
                 const promises = [
-                    countReactions('event', eventId, {
-                        'x-userid': userId || undefined,
-                    }),
+                    countReactions('event', eventId, req.headers),
                 ];
 
                 if (event.spaceId) {
@@ -728,12 +724,7 @@ const getEventDetails = (req, res) => {
 
                 return Promise.all(promises).then(([eventCount, space]) => {
                     if (userId && userId !== event.fromUserId) {
-                        incrementInterestEngagement(event.interestsKeys, 2, {
-                            authorization,
-                            locale,
-                            userId,
-                            whiteLabelOrigin,
-                        });
+                        incrementInterestEngagement(event.interestsKeys, 2, req.headers);
                     }
                     if (space) {
                         // Response including space details for navigation

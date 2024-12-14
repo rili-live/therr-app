@@ -491,7 +491,7 @@ export default class SpacesStore {
                 // NOTE: The media db was replaced by moment.medias JSONB
                 spaceDetailsPromises.push(Promise.resolve(null));
                 spaceDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
-                spaceDetailsPromises.push(options.withRatings ? getRatings('space', spaceResultIds) : Promise.resolve(null));
+                spaceDetailsPromises.push(options.withRatings ? getRatings('space', spaceResultIds, internalReqHeaders) : Promise.resolve(null));
 
                 const [media, users, ratings] = await Promise.all(spaceDetailsPromises);
 

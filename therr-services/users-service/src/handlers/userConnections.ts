@@ -113,13 +113,13 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     && deepEmailValidation?.valid) {
                     // NOTE: This caused AWS SES Bounce rates to block our account.
                     // This is disabled until we can find a better way to handle this.
-                    unverifiedUser = await createUserHelper({
+                    unverifiedUser = await createUserHelper(req.headers, {
                         email: acceptingUserEmail,
                     }, false, {
                         fromName: fromUserFullName,
                         fromEmail: requestingUserEmail,
                         toEmail: acceptingUserEmail,
-                    }, false, locale, whiteLabelOrigin, brandVariation, platform);
+                    }, false);
                 } else {
                     return handleHttpError({
                         res,
@@ -190,13 +190,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     requestStatus: UserConnectionTypes.PENDING,
                 });
             } else {
-                createOrUpdateAchievement({
-                    authorization,
-                    userId,
-                    locale,
-                    whiteLabelOrigin,
-                    brandVariation,
-                }, {
+                createOrUpdateAchievement(req.headers, {
                     achievementClass: 'socialite',
                     achievementTier: '1_1',
                     progressCount: 1,
@@ -244,7 +238,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 email: string;
                 isUnclaimed: boolean;
                 settingsEmailInvites: boolean;
-            }]), {
+            }]), req.headers, {
                 authorization,
                 fromUser: {
                     id: userId,
@@ -400,13 +394,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                 isAccepted: false,
             })))
             .then((createdIds) => {
-                createOrUpdateAchievement({
-                    authorization,
-                    userId,
-                    locale,
-                    whiteLabelOrigin,
-                    brandVariation,
-                }, {
+                createOrUpdateAchievement(req.headers, {
                     achievementClass: 'socialite',
                     achievementTier: '1_1',
                     progressCount: createdIds.length,
@@ -493,7 +481,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                         email: string;
                         isUnclaimed: boolean;
                         settingsEmailInvites: boolean;
-                    }]), {
+                    }]), req.headers, {
                         authorization,
                         fromUser: {
                             id: userId,
@@ -756,11 +744,8 @@ const updateUserConnection = (req, res) => {
                     Promise.all([
                         // For sender
                         createOrUpdateAchievement({
-                            authorization,
-                            userId: getResults[0].requestingUserId,
-                            locale,
-                            whiteLabelOrigin,
-                            brandVariation,
+                            'x-userid': getResults[0].requestingUserId,
+                            ...req.headers,
                         }, {
                             achievementClass: 'socialite',
                             achievementTier: '1_2',
@@ -769,11 +754,8 @@ const updateUserConnection = (req, res) => {
 
                         // For accepter
                         createOrUpdateAchievement({
-                            authorization,
-                            userId: getResults[0].acceptingUserId,
-                            locale,
-                            whiteLabelOrigin,
-                            brandVariation,
+                            'x-userid': getResults[0].acceptingUserId,
+                            ...req.headers,
                         }, {
                             achievementClass: 'socialite',
                             achievementTier: '1_2',
@@ -791,7 +773,7 @@ const updateUserConnection = (req, res) => {
                     });
                 }
 
-                sendEmailAndOrPushNotification(Store.users.findUser, {
+                sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                     authorization,
                     fromUser: {
                         id: userId,

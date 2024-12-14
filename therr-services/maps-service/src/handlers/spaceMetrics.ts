@@ -162,12 +162,7 @@ const createSpaceMetric = async (req, res) => {
         }).then((metrics) => {
             if (reqPath.includes('/check-in')) {
                 if (userId !== space.fromUserId) {
-                    incrementInterestEngagement(space.interestsKeys, 3, {
-                        authorization,
-                        locale,
-                        userId,
-                        whiteLabelOrigin,
-                    });
+                    incrementInterestEngagement(space.interestsKeys, 3, req.headers);
                 }
             }
             return res.status(201).send({
@@ -207,9 +202,7 @@ const getSpaceMetrics = (req, res) => {
 
     const { spaceId } = req.params;
 
-    return getUserOrganizations({
-        'x-userid': userId,
-    }).then((orgResults) => {
+    return getUserOrganizations(req.headers).then((orgResults) => {
         const orgsWithReadAccess = orgResults.userOrganizations.filter((org) => (
             org.accessLevels.includes(AccessLevels.ORGANIZATIONS_ADMIN)
             || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_BILLING)

@@ -794,9 +794,7 @@ const getMomentDetails = (req, res) => {
 
                     // Private moments require a reactions/activation
                     if (userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
-                        return getReactions('moment', momentId, {
-                            'x-userid': userId || undefined,
-                        });
+                        return getReactions('moment', momentId, req.headers);
                     }
 
                     return Promise.resolve(false);
@@ -856,9 +854,7 @@ const getMomentDetails = (req, res) => {
                 }
 
                 const promises = [
-                    countReactions('moment', momentId, {
-                        'x-userid': userId || undefined,
-                    }),
+                    countReactions('moment', momentId, req.headers),
                 ];
 
                 if (moment.spaceId) {
@@ -892,12 +888,7 @@ const getMomentDetails = (req, res) => {
                         });
 
                         if (userId !== moment.fromUserId) {
-                            incrementInterestEngagement(moment.interestsKeys, 2, {
-                                authorization,
-                                locale,
-                                userId,
-                                whiteLabelOrigin,
-                            });
+                            incrementInterestEngagement(moment.interestsKeys, 2, req.headers);
                         }
                     }
 

@@ -1,5 +1,6 @@
 import { Socket } from 'socket.io';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { IInternalConfig } from 'therr-js-utilities/internal-rest-request';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
 import globalConfig from '../../../../global-config';
 import restRequest from '../utilities/restRequest';
@@ -9,7 +10,7 @@ interface IUpdateNotificationData {
     userName: string;
 }
 
-const updateNotification = (socket: Socket, data: IUpdateNotificationData, decodedAuthenticationToken: any) => {
+const updateNotification = (internalConfig: IInternalConfig, socket: Socket, data: IUpdateNotificationData, decodedAuthenticationToken: any) => {
     logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
@@ -18,7 +19,7 @@ const updateNotification = (socket: Socket, data: IUpdateNotificationData, decod
             'socket.id': socket.id,
         },
     });
-    return restRequest({
+    return restRequest(internalConfig, {
         method: 'put',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications/${data?.notification?.id}`,
         data: {

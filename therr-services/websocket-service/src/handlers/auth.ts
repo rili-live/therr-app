@@ -2,6 +2,7 @@ import moment from 'moment';
 import * as socketio from 'socket.io';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
+import { IInternalConfig } from 'therr-js-utilities/internal-rest-request';
 import redisSessions from '../store/redisSessions';
 import notifyConnections from '../utilities/notify-connections';
 import { COMMON_DATE_FORMAT, UserStatus } from '../constants';
@@ -26,7 +27,7 @@ interface ILogoutArgs {
     data?: ILoginData;
 }
 
-const login = ({
+const login = (internalConfig: IInternalConfig, {
     appName,
     socket,
     data,
@@ -53,6 +54,7 @@ const login = ({
             },
         }).then((response: any) => {
             notifyConnections(
+                internalConfig,
                 socket,
                 { ...data, status: UserStatus.ACTIVE },
                 SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_IN,
@@ -105,7 +107,7 @@ const login = ({
     });
 };
 
-const logout = ({
+const logout = (internalConfig: IInternalConfig, {
     socket,
     data,
 }: ILogoutArgs) => {
@@ -115,6 +117,7 @@ const logout = ({
 
     if (data && data.id) {
         const promise = notifyConnections(
+            internalConfig,
             socket,
             data,
             SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_OUT,

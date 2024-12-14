@@ -129,7 +129,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         return res.status(200).send();
     }
 
-    const userLocationPromise = createUserLocation(userId, incompleteHeaders, {
+    const userLocationPromise = createUserLocation(userId, req.headers as any, {
         latitude,
         longitude,
     });
@@ -154,7 +154,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
 
         // Need device token for notifications
         const userPromise = !incompleteHeaders?.userDeviceToken
-            ? getCurrentUser(incompleteHeaders).then((response) => response?.data)
+            ? getCurrentUser(req.headers as any).then((response) => response?.data)
             : Promise.resolve({
                 deviceMobileFirebaseToken: userDeviceToken,
             });
