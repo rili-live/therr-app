@@ -1,4 +1,4 @@
 #!/bin/bash
 
 NODE_VERSION="20.18.1"
-NPM_VERSION="10.3.0"
+NPM_VERSION="11.0.0"
