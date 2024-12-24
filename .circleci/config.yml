@@ -33,10 +33,13 @@ jobs:
           name: Verify nvm version
           command: |
             nvm --version
-            nvm list
             node -v
+            npm -v
+            nvm install $NODE_VERSION
             nvm use $NODE_VERSION
+            node -v
             nvm install-latest-npm
+            npm -v
       - run:
           name: Install Dependencies
           command: npm ci --omit=optional --legacy-peer-deps && _bin/apply-to-all.sh 'npm ci --omit=optional --legacy-peer-deps'
