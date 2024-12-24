@@ -46,8 +46,8 @@ jobs:
       - run:
           name: Build Libraries
           command: |
-          npm i sass-embedded-linux-x64 -D --legacy-peer-deps
-          npm run build:base
+            npm i sass-embedded-linux-x64 -D --legacy-peer-deps
+            npm run build:base
       - persist_to_workspace:
           root: ~/
           paths:
