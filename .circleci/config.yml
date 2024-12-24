@@ -33,6 +33,9 @@ jobs:
           name: Verify nvm version
           command: |
             nvm --version
+            nvm list
+            node -v
+            nvm use $NODE_VERSION
             nvm install-latest-npm
       - run:
           name: Install Dependencies
