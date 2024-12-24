@@ -29,6 +29,9 @@ jobs:
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
             echo 'export NVM_DIR=$HOME/.nvm' >> $BASH_ENV
             echo 'source $NVM_DIR/nvm.sh' >> $BASH_ENV
+      - run:
+          name: Verify nvm version
+          command: |
             nvm --version
             nvm install-latest-npm
       - run:
