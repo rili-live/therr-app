@@ -194,10 +194,11 @@ const getFormattedMetrics = (startDate, endDate, spaceId, metricNames) => {
 };
 
 const getSpaceMetrics = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const userAccessLevels = req.headers['x-user-access-levels'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        userAccessLevels: accessLevels,
+        locale,
+        userId,
+    } = parseHeaders(req.headers);
     const shouldTargetEngagements = req.path.includes('/engagement');
 
     const { spaceId } = req.params;

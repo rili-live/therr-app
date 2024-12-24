@@ -65,12 +65,6 @@ const searchActiveSpaces = async (req: any, res: any) => {
             }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/spaces/find`,
-                headers: {
-                    authorization,
-                    'x-localecode': locale,
-                    'x-userid': userId,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                },
                 data: {
                     spaceIds,
                     limit,
@@ -165,12 +159,6 @@ const searchActiveSpacesByIds = async (req: any, res: any) => {
             }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/spaces/find`,
-                headers: {
-                    authorization,
-                    'x-localecode': locale,
-                    'x-userid': userId,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                },
                 data: {
                     spaceIds: activatedSpaceIds,
                     limit: 100,

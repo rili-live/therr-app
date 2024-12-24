@@ -1148,7 +1148,7 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
         isDraft,
     } = req.body;
 
-    return Store.moments.findMoments(momentIds, {
+    return Store.moments.findMoments(req.headers, momentIds, {
         authorId,
         limit: limit || 21,
         order,

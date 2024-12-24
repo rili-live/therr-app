@@ -307,9 +307,7 @@ const getThoughtDetails = (req, res) => {
 
             // Verify that user has activated thought and has access to view it
             if (!thought.isPublic && !isOwnThought) {
-                userHasAccessPromise = hasUserReacted(thoughtId, {
-                    'x-userid': userId,
-                });
+                userHasAccessPromise = hasUserReacted(thoughtId, req.headers);
             }
 
             return userHasAccessPromise.then((isActivated) => {

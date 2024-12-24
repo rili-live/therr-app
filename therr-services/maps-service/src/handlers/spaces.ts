@@ -399,12 +399,6 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
             }, {
                 method: 'get',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
-                headers: {
-                    authorization: req.headers.authorization,
-                    'x-localecode': req.headers['x-localecode'] || 'en-us',
-                    'x-userid': userId,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                },
             }).catch((err) => {
                 console.log(err);
                 return {
@@ -755,12 +749,13 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
  * Admin endpoint to enable pending space claims. Also sends email to requestor.
  */
 const approveSpaceRequest: RequestHandler = async (req: any, res: any) => {
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
-    const userAccessLevels = req.headers['x-user-access-levels'];
-    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        authorization,
+        userAccessLevels: accessLevels,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     const { spaceId } = req.params;
 
     if (!accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
@@ -856,7 +851,7 @@ const findSpaces: RequestHandler = async (req: any, res: any) => {
         lastContentCreatedAt,
     } = req.body;
 
-    return Store.spaces.findSpaces(spaceIds, {
+    return Store.spaces.findSpaces(req.headers, spaceIds as string[], {
         limit: limit || 21,
         order,
         before: lastContentCreatedAt,
@@ -869,11 +864,12 @@ const findSpaces: RequestHandler = async (req: any, res: any) => {
 };
 
 const getSignedUrl = (req, res, bucket) => {
-    const requestId = req.headers['x-requestid'];
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userAccessLevels = req.headers['x-user-access-levels'];
-    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        userAccessLevels: accessLevels,
+        locale,
+        userId,
+        requestId,
+    } = parseHeaders(req.headers);
     const {
         overrideFromUserId,
     } = req.query;
@@ -922,10 +918,11 @@ const getSignedUrlPublicBucket = (req, res) => getSignedUrl(req, res, process.en
 
 // WRITE
 const updateSpace = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const userAccessLevels = req.headers['x-user-access-levels'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        userAccessLevels: accessLevels,
+        locale,
+        userId,
+    } = parseHeaders(req.headers);
     const {
         overrideFromUserId,
     } = req.body;
