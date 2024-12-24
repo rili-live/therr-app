@@ -1,5 +1,4 @@
 import { RequestHandler } from 'express';
-// import axios from 'axios';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
@@ -15,7 +14,6 @@ const createOrUpdateMomentReaction = (req, res) => {
     const {
         locale,
         userId,
-        whiteLabelOrigin,
     } = parseHeaders(req.headers);
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
@@ -25,12 +23,7 @@ const createOrUpdateMomentReaction = (req, res) => {
         momentId: req.params.momentId,
     }).then((reactionsResponse) => {
         if (reactionsResponse?.length) {
-            updateAchievements({
-                authorization: req.headers.authorization,
-                locale,
-                userId,
-                whiteLabelOrigin,
-            }, req.body);
+            updateAchievements(req.headers, req.body);
 
             return Store.momentReactions.update({
                 userId,

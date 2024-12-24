@@ -2,6 +2,7 @@ import { Location, PushNotifications } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import { distanceTo } from 'geolocation-utils';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import UserLocationCache from '../store/UserLocationCache';
@@ -61,7 +62,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
 
         // Fetches x nearest areas within y meters of the user's current location (from the users's connections)
         return getAllNearbyAreas(userLocationCache, isCacheInvalid, {
-            headers,
+            headers: req.headers as any,
             userLocation: {
                 longitude,
                 latitude,
@@ -69,7 +70,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
             limit: 100,
         })
             .then(([nearbyMoments, nearbySpaces]) => selectAreasAndActivate(
-                headers,
+                req.headers as any,
                 userLocationCache,
                 {
                     longitude,
@@ -128,7 +129,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         return res.status(200).send();
     }
 
-    const userLocationPromise = createUserLocation(userId, incompleteHeaders, {
+    const userLocationPromise = createUserLocation(userId, req.headers as any, {
         latitude,
         longitude,
     });
@@ -153,7 +154,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
 
         // Need device token for notifications
         const userPromise = !incompleteHeaders?.userDeviceToken
-            ? getCurrentUser(incompleteHeaders).then((response) => response?.data)
+            ? getCurrentUser(req.headers as any).then((response) => response?.data)
             : Promise.resolve({
                 deviceMobileFirebaseToken: userDeviceToken,
             });
@@ -161,9 +162,9 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
         userPromise.then(({
             deviceMobileFirebaseToken,
         }) => {
-            const headers = {
-                ...incompleteHeaders,
-                userDeviceToken: deviceMobileFirebaseToken,
+            const headers: InternalConfigHeaders = {
+                ...req.headers as any,
+                'x-user-device-token': deviceMobileFirebaseToken,
             };
             // Fetches x nearest areas within y meters of the user's current location (from the users's connections)
             // AREA_PROXIMITY_METERS - More sensitive invalidation for background location when use is stationary

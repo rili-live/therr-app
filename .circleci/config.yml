@@ -30,7 +30,7 @@ jobs:
             echo 'export NVM_DIR=$HOME/.nvm' >> $BASH_ENV
             echo 'source $NVM_DIR/nvm.sh' >> $BASH_ENV
       - run:
-          name: Verify nvm version
+          name: Verify nvm, node, and npm version
           command: |
             nvm --version
             node -v
@@ -45,7 +45,9 @@ jobs:
           command: npm ci --omit=optional --legacy-peer-deps && _bin/apply-to-all.sh 'npm ci --omit=optional --legacy-peer-deps'
       - run:
           name: Build Libraries
-          command: npm run build:base
+          command: |
+            npm i sass-embedded-linux-x64 -D --legacy-peer-deps
+            npm run build:base
       - persist_to_workspace:
           root: ~/
           paths:

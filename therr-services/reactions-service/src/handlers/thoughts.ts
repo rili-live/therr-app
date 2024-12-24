@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -58,7 +58,9 @@ const searchActiveThoughts = async (req: any, res: any) => {
             }), {});
             const thoughtIds = reactions?.map((reaction) => reaction.thoughtId) || [];
 
-            return axios({
+            return internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/thoughts/find`,
                 headers: {

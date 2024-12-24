@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { parseHeaders } from 'therr-js-utilities/http';
+import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import handleHttpError from '../utilities/handleHttpError';
 import * as globalConfig from '../../../../global-config';
 import Store from '../store';
@@ -17,7 +17,9 @@ const getNearbyConnections = async (req, res) => {
     } = req.params;
     const distanceOrDefault = distanceMeters || '96560.6'; // ~60 miles converted to meters
 
-    return axios({
+    return internalRestRequest({
+        headers: req.headers,
+    }, {
         method: 'get',
         // eslint-disable-next-line max-len
         url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections/ranked?distanceMeters=${distanceOrDefault}`,
@@ -56,7 +58,9 @@ const generateActivity = async (req, res) => {
         url = `${url}&latitude=${latitude}&longitude=${longitude}`;
     }
 
-    const getRankedConnectionsPromise = axios({
+    const getRankedConnectionsPromise = internalRestRequest({
+        headers: req.headers,
+    }, {
         method: 'get',
         url,
         headers: {

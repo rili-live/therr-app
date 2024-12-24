@@ -1,12 +1,13 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import * as globalConfig from '../../../../global-config';
 
 const baseReactionsServiceRoute = globalConfig[process.env.NODE_ENV || 'development'].baseReactionsServiceRoute;
 
-export default (areaType: 'moment' | 'space' | 'event', areaId: string, headers) => axios({
+export default (areaType: 'moment' | 'space' | 'event', areaId: string, headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
     method: 'get',
     url: `${baseReactionsServiceRoute}/${areaType}-reactions/${areaId}`,
-    headers,
 })
     .then(({ data: areaReaction }) => !!(areaReaction && areaReaction.userHasActivated))
     .catch((err) => {
@@ -16,17 +17,19 @@ export default (areaType: 'moment' | 'space' | 'event', areaId: string, headers)
         throw err;
     });
 
-export const countReactions = (areaType: 'moment' | 'space' | 'event', areaId: string, headers) => axios({
+export const countReactions = (areaType: 'moment' | 'space' | 'event', areaId: string, headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
     method: 'get',
     url: `${baseReactionsServiceRoute}/${areaType}-reactions/${areaId}/count`,
-    headers,
 })
     .then(({ data: countResult }) => countResult);
 
-export const getRating = (areaType: 'space' | 'event', areaId: string, headers?) => axios({
+export const getRating = (areaType: 'space' | 'event', areaId: string, headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
     method: 'get',
     url: `${baseReactionsServiceRoute}/${areaType}-reactions/${areaId}/ratings`,
-    headers,
 })
     .then(({ data: rating }) => rating)
     .catch((err) => {
@@ -37,6 +40,6 @@ export const getRating = (areaType: 'space' | 'event', areaId: string, headers?)
     });
 
 // TODO: This would be more performance as a single request to reactions-service
-export const getRatings = (areaType: 'space' | 'event', areaIds: string[], headers?) => Promise.all(
+export const getRatings = (areaType: 'space' | 'event', areaIds: string[], headers: InternalConfigHeaders) => Promise.all(
     areaIds.map((id) => getRating(areaType, id, headers)),
 );

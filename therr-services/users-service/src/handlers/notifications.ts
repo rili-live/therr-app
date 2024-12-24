@@ -31,12 +31,7 @@ const createNotification = (req, res) => {
         brandVariation,
     } = parseHeaders(req.headers);
 
-    return notifyUserOfUpdate({
-        authorization: req.headers.authorization,
-        locale,
-        whiteLabelOrigin,
-        brandVariation,
-    }, {
+    return notifyUserOfUpdate(req.headers, {
         userId: req.body.userId,
         type: req.body.type, // DB Notification type
         associationId: req.body.associationId,
@@ -94,7 +89,7 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
      * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
      * We will probably want to move this to a scheduler to run at a set interval.
      */
-    TherrEventEmitter.runThoughtDistributorAlgorithm([userId], 'updatedAt', 0);
+    TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userId], 'updatedAt', 0);
 
     // const countPromise = Store.notifications.countRecords({
     //     filterBy,

@@ -29,13 +29,7 @@ const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: an
         });
     }
 
-    return createOrUpdateAchievement({
-        authorization,
-        userId,
-        locale,
-        whiteLabelOrigin,
-        brandVariation,
-    }, {
+    return createOrUpdateAchievement(req.headers, {
         achievementClass,
         achievementTier,
         progressCount,

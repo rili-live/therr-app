@@ -1,4 +1,5 @@
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../store';
 import { createReactions } from './reactions';
 
@@ -7,7 +8,7 @@ const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - mi
 class TherrEventEmitter {
     // TODO: Query user interests and create reactions based on those interests
     // eslint-disable-next-line class-methods-use-this
-    public runThoughtDistributorAlgorithm(contextUserIds?: string[], createdAtOrUpdatedAt = 'createdAt', recentUsersCount = 1) {
+    public runThoughtDistributorAlgorithm(headers: InternalConfigHeaders, contextUserIds?: string[], createdAtOrUpdatedAt = 'createdAt', recentUsersCount = 1) {
         const numThoughts = randomIntFromInterval(7, 20);
         const getContextUsersPromise = contextUserIds?.length
             ? Store.users.findUsersWithInterests({
@@ -35,9 +36,7 @@ class TherrEventEmitter {
                 contextUsers
                     .forEach((user) => {
                         promises.push(
-                            createReactions(contextReactionThoughts.map((thought) => thought.id), {
-                                'x-userid': user.id,
-                            }),
+                            createReactions(contextReactionThoughts.map((thought) => thought.id), headers),
                         );
                     });
             }
@@ -45,9 +44,7 @@ class TherrEventEmitter {
                 recentUsers
                     .forEach((user) => {
                         promises.push(
-                            createReactions(thoughtsForRecent.map((thought) => thought.id), {
-                                'x-userid': user.id,
-                            }),
+                            createReactions(thoughtsForRecent.map((thought) => thought.id), headers),
                         );
                     });
             }

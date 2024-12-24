@@ -1,4 +1,5 @@
 import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { ICreateNotificationParams } from '../store/NotificationsStore';
 import Store from '../store';
 import sendEmailAndOrPushNotification, { ISendPushNotification } from './sendEmailAndOrPushNotification';
@@ -48,7 +49,7 @@ interface INotifyUserOfUpdateConfig {
 }
 
 export default (
-    headers: IHeaders,
+    headers: InternalConfigHeaders,
     dbNotification: ICreateNotificationParams,
     emailAndPushParams: IEmailAndPushParams,
     config: INotifyUserOfUpdateConfig = {
@@ -81,10 +82,10 @@ export default (
                 const pushNotificationParams: ISendPushNotification = {
                     ...emailAndPushParams,
                     authorization: headers.authorization,
-                    locale: headers.locale,
+                    locale: headers['x-localecode'],
                     type: pushNotificationType,
-                    whiteLabelOrigin: headers.whiteLabelOrigin,
-                    brandVariation: headers.brandVariation,
+                    whiteLabelOrigin: headers['x-therr-origin-host'] || '',
+                    brandVariation: headers['x-brand-variation'],
                 };
                 if (dbNotification.messageParams?.areaId) {
                     pushNotificationParams.area = {
@@ -101,7 +102,7 @@ export default (
                     pushNotificationParams.postType = dbNotification.messageParams?.postType;
                 }
                 // Fire and forget
-                sendEmailAndOrPushNotification(Store.users.findUser, pushNotificationParams, {
+                sendEmailAndOrPushNotification(Store.users.findUser, headers, pushNotificationParams, {
                     shouldSendPushNotification: config.shouldSendPushNotification,
                     shouldSendEmail: config.shouldSendEmail,
                 });

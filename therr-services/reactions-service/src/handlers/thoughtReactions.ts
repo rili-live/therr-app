@@ -1,5 +1,4 @@
 import { RequestHandler } from 'express';
-// import axios from 'axios';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -24,12 +23,7 @@ const createOrUpdateThoughtReaction = (req, res) => {
         // TODO: Use INSERT...ON CONFLICT...MERGE
         // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
         if (reactionsResponse?.length) {
-            updateAchievements({
-                authorization: req.headers.authorization,
-                locale,
-                userId,
-                whiteLabelOrigin,
-            }, req.body, reactionsResponse[0]);
+            updateAchievements(req.headers, req.body, reactionsResponse[0]);
 
             return Store.thoughtReactions.update({
                 userId,

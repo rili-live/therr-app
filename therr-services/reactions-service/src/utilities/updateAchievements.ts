@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../global-config';
 
@@ -27,7 +27,9 @@ const updateAchievements = (headers, reqBody, existingReaction?): Promise<any> =
         return Promise.resolve();
     }
 
-    return axios({
+    return internalRestRequest({
+        headers,
+    }, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/achievements`,
         headers: {

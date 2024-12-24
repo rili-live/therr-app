@@ -1,7 +1,12 @@
 // eslint-disable-next-line import/no-unresolved
 import io from 'socket.io-client';
 import createSocketIoMiddleware from 'redux-socket.io';
-import { SOCKET_MIDDLEWARE_ACTION, SocketClientActionTypes, WEB_CLIENT_PREFIX } from 'therr-js-utilities/constants';
+import {
+    BrandVariations,
+    SOCKET_MIDDLEWARE_ACTION,
+    SocketClientActionTypes,
+    WEB_CLIENT_PREFIX,
+} from 'therr-js-utilities/constants';
 import * as globalConfig from '../../global-config';
 
 // Environment Variables
@@ -20,7 +25,12 @@ export const socketIO = io(`${envVars.baseSocketUrl}`, {
 export const updateSocketToken = (user, shouldConnect?: boolean) => {
     if (user?.details?.idToken) {
         socketIO.io.opts.query = {
+            userId: user.details.id,
+            userName: user.details.userName,
+            locale: user.settings.locale,
             token: user.details.idToken,
+            platform: 'mobile',
+            brandVariation: BrandVariations.THERR,
         };
 
         if (shouldConnect) {

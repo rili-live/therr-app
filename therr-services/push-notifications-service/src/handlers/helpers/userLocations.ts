@@ -1,16 +1,12 @@
-import axios from 'axios';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import * as globalConfig from '../../../../../global-config';
 
-const getUserLocations = (userId: string, headers) => axios({
+const getUserLocations = (userId: string, headers: InternalConfigHeaders) => internalRestRequest({
+    headers,
+}, {
     method: 'get',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-locations/${userId}`,
-    headers: {
-        authorization: headers.authorization,
-        'x-localecode': headers.locale,
-        'x-userid': headers.userId,
-        'x-therr-origin-host': headers.whiteLabelOrigin,
-    },
 }).catch((err) => {
     logSpan({
         level: 'error',
@@ -22,21 +18,17 @@ const getUserLocations = (userId: string, headers) => axios({
     });
 });
 
-const createUserLocation = (userId: string, headers, userLocation: {
+const createUserLocation = (userId: string, headers: InternalConfigHeaders, userLocation: {
     latitude: number;
     longitude: number;
     // latitudeRounded?: number;
     // longitudeRounded?: number;
     // visitCount?: number;
-}) => axios({
+}) => internalRestRequest({
+    headers,
+}, {
     method: 'post',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-locations/${userId}`,
-    headers: {
-        authorization: headers.authorization,
-        'x-localecode': headers.locale,
-        'x-userid': headers.userId,
-        'x-therr-origin-host': headers.whiteLabelOrigin,
-    },
     data: {
         latitude: userLocation.latitude,
         longitude: userLocation.longitude,
@@ -52,17 +44,13 @@ const createUserLocation = (userId: string, headers, userLocation: {
     });
 });
 
-const updateUserLocation = (userLocationId: string, headers, data: {
+const updateUserLocation = (userLocationId: string, headers: InternalConfigHeaders, data: {
     lastPushNotificationSent: Date,
-}) => axios({
+}) => internalRestRequest({
+    headers,
+}, {
     method: 'put',
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-locations/${userLocationId}`,
-    headers: {
-        authorization: headers.authorization,
-        'x-localecode': headers.locale,
-        'x-userid': headers.userId,
-        'x-therr-origin-host': headers.whiteLabelOrigin,
-    },
     data: {
         lastPushNotificationSent: data.lastPushNotificationSent,
     },

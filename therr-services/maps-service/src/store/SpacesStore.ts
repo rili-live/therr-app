@@ -2,6 +2,7 @@ import KnexBuilder, { Knex } from 'knex';
 import * as countryGeo from 'country-reverse-geocoding';
 import { Categories, Content, Location } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { IConnection } from './connection';
 import { storage } from '../api/aws';
 import MediaStore, { ICreateMediaParams } from './MediaStore';
@@ -447,7 +448,7 @@ export default class SpacesStore {
         return this.db.read.query(query.toString()).then((response) => response.rows);
     }
 
-    findSpaces(spaceIds, filters, options: any = {}) {
+    findSpaces(internalReqHeaders: InternalConfigHeaders, spaceIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         let restrictedLimit = filters?.limit || 1000;
         restrictedLimit = restrictedLimit > 1000 ? 1000 : restrictedLimit;
@@ -489,8 +490,8 @@ export default class SpacesStore {
                 });
                 // NOTE: The media db was replaced by moment.medias JSONB
                 spaceDetailsPromises.push(Promise.resolve(null));
-                spaceDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
-                spaceDetailsPromises.push(options.withRatings ? getRatings('space', spaceResultIds) : Promise.resolve(null));
+                spaceDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }, internalReqHeaders) : Promise.resolve(null));
+                spaceDetailsPromises.push(options.withRatings ? getRatings('space', spaceResultIds, internalReqHeaders) : Promise.resolve(null));
 
                 const [media, users, ratings] = await Promise.all(spaceDetailsPromises);
 

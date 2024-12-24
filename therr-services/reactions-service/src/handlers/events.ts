@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { distanceTo } from 'geolocation-utils';
 import { parseHeaders } from 'therr-js-utilities/http';
 import { getReadableDistance } from 'therr-js-utilities/location';
@@ -61,7 +61,9 @@ const searchActiveEvents = async (req: any, res: any) => {
             const eventIds = reactions?.map((reaction) => reaction.eventId) || [];
 
             // TODO: Add way to search by authorId
-            return axios({
+            return internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/events/find`,
                 headers: {
@@ -159,7 +161,9 @@ const searchActiveEventsByIds = async (req: any, res: any) => {
             reactions = reactionsResponse;
             const activatedEventIds = reactions?.map((reaction) => reaction.eventId) || [];
 
-            return axios({
+            return internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/events/find`,
                 headers: {

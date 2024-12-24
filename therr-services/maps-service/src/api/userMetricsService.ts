@@ -1,4 +1,3 @@
-import axios from 'axios';
 import {
     MetricsService,
     IMetric,
@@ -6,6 +5,7 @@ import {
     IMetricDimensions,
     IMetricCombined,
 } from 'therr-js-utilities/metrics';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import * as globalConfig from '../../../../global-config';
 
 export class UserMetricsProvider {
@@ -13,8 +13,17 @@ export class UserMetricsProvider {
     uploadMetric = (
         metric: IMetric,
         dimensions: IMetricDimensions,
+        headers: InternalConfigHeaders,
         uniqueDbProperties: IMetricUniqueProperties = {},
-    ) => axios({ // Create companion reaction for user's own moment
+    ) => internalRestRequest({
+        // headers: {
+        //     authorization: uniqueDbProperties.authorization, // Hijack this arg object (this will be replaced with actual metrics provider)
+        //     'x-localecode': uniqueDbProperties.locale, // Hijack this arg object (this will be replaced with actual metrics provider)
+        //     'x-userid': uniqueDbProperties.userId, // Hijack this arg object (this will be replaced with actual metrics provider)
+        //     'x-therr-origin-host': uniqueDbProperties.originDomain || '',
+        // },
+        headers,
+    }, { // Create companion reaction for user's own moment
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/metrics`,
         headers: {
@@ -34,8 +43,8 @@ export class UserMetricsProvider {
         },
     });
 
-    uploadMetrics = (metrics: IMetricCombined[]) => Promise.all(
-        metrics.map((metric) => this.uploadMetric(metric, metric.dimensions, metric.uniqueDbProperties)),
+    uploadMetrics = (metrics: IMetricCombined[], headers: InternalConfigHeaders) => Promise.all(
+        metrics.map((metric) => this.uploadMetric(metric, metric.dimensions, headers, metric.uniqueDbProperties)),
     );
 }
 

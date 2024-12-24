@@ -1,6 +1,7 @@
 import * as socketio from 'socket.io';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
+import { IInternalConfig } from 'therr-js-utilities/internal-rest-request';
 import redisSessions from '../store/redisSessions';
 import notifyConnections from '../utilities/notify-connections';
 import { UserStatus } from '../constants';
@@ -23,7 +24,7 @@ interface IUpdateSessionnArgs {
     };
 }
 
-const update = ({
+const update = (internalConfig: IInternalConfig, {
     appName,
     socket,
     data,
@@ -64,6 +65,7 @@ const update = ({
             },
         }).then((response: any) => {
             notifyConnections(
+                internalConfig,
                 socket,
                 { ...user, status: UserStatus.ACTIVE },
                 SocketServerActionTypes.ACTIVE_CONNECTION_REFRESHED,

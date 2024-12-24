@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { distanceTo } from 'geolocation-utils';
 import { parseHeaders } from 'therr-js-utilities/http';
 import { getReadableDistance } from 'therr-js-utilities/location';
@@ -60,15 +60,11 @@ const searchActiveSpaces = async (req: any, res: any) => {
             }), {});
             const spaceIds = reactions?.map((reaction) => reaction.spaceId) || [];
 
-            return axios({
+            return internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/spaces/find`,
-                headers: {
-                    authorization,
-                    'x-localecode': locale,
-                    'x-userid': userId,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                },
                 data: {
                     spaceIds,
                     limit,
@@ -158,15 +154,11 @@ const searchActiveSpacesByIds = async (req: any, res: any) => {
             reactions = reactionsResponse;
             const activatedSpaceIds = reactions?.map((reaction) => reaction.spaceId) || [];
 
-            return axios({
+            return internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/spaces/find`,
-                headers: {
-                    authorization,
-                    'x-localecode': locale,
-                    'x-userid': userId,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                },
                 data: {
                     spaceIds: activatedSpaceIds,
                     limit: 100,
