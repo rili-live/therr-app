@@ -23,7 +23,5 @@ spec:
         # Whitelabel
         - 'dashboard.appymeal.com'
         - '*.dashboard.appymeal.com'
-        - 'adsorchestra.com'
-        - '*.adsorchestra.com'
-        - 'adsorchestrator.com'
-        - '*.adsorchestrator.com'
+        - 'adsly.app'
+        - '*.adsly.app'

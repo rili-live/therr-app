@@ -118,6 +118,41 @@ const hostContext: IBrandConfigs = {
             businessCopyrightYear: '2021',
         },
     },
+    'adsly.app': {
+        host: 'adsly.app',
+
+        // Branding
+        brandName: 'Adsly Marketing',
+        brandGreeting: 'Hello',
+        brandGoLinkText: 'Go Adsly',
+        websiteName: 'Adsly Marketing',
+        contactEmail: 'info@therr.com',
+        instagramHandle: 'therr.for.business',
+        facebookHandle: 'therr.for.business',
+        twitterHandle: 'therr_app',
+        parentHomepageName: 'Therr for Business',
+        parentHomepageUrl: 'https://business.therr.com',
+        parentAboutUrl: 'https://business.therr.com/about',
+        parentBlogUrl: 'https://business.therr.com/blog',
+        parentBlogName: 'The Official \'Therr For Business\' Blog',
+        parentAppUrl: 'https://www.therr.app/',
+        parentAppName: 'Therr App',
+        parentContactUrl: 'https://business.therr.com/contact',
+
+        // Email Context
+        emailTemplates: {
+            brandBackgroundHexDark: '#d45d1c',
+            brandBackgroundLight: '#ffffff',
+            fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@therr.com',
+            fromEmailTitle: 'Adsly',
+            homepageLinkUri: globalConfig[process.env.NODE_ENV].dashboardHostFull,
+            logoRelativePath: 'assets/images/adsly-logo.png',
+            logoAltText: 'Adsly logo',
+            unsubscribeUrl: 'https://dashboard.therr.com/emails/unsubscribe',
+            legalBusinessName: 'Therr Inc.',
+            businessCopyrightYear: '2021',
+        },
+    },
     'dashboard.appymeal.com': {
         host: 'dashboard.appymeal.com',
 
