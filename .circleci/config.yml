@@ -45,7 +45,9 @@ jobs:
           command: npm ci --omit=optional --legacy-peer-deps && _bin/apply-to-all.sh 'npm ci --omit=optional --legacy-peer-deps'
       - run:
           name: Build Libraries
-          command: npm run build:base
+          command: |
+          npm i sass-embedded-linux-x64 -D --legacy-peer-deps
+          npm run build:base
       - persist_to_workspace:
           root: ~/
           paths:
