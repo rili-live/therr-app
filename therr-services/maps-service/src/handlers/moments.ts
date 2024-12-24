@@ -979,12 +979,6 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
             }, {
                 method: 'get',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
-                headers: {
-                    authorization: req.headers.authorization,
-                    'x-localecode': req.headers['x-localecode'] || 'en-us',
-                    'x-userid': userId,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                },
             }).catch((err) => {
                 console.log(err);
                 return {};

@@ -64,12 +64,6 @@ const searchActiveMoments = async (req: any, res: any) => {
             }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/moments/find`,
-                headers: {
-                    authorization,
-                    'x-localecode': locale,
-                    'x-userid': userId,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                },
                 data: {
                     momentIds,
                     limit,
