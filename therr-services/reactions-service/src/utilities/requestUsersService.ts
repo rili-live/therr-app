@@ -1,34 +1,19 @@
-import axios, { Method } from 'axios';
+import { Method } from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import * as globalConfig from '../../../../global-config';
-
-interface IRequestUsersServiceConfig {
-    authorization: string;
-    locale: string;
-    userId: string;
-    whiteLabelOrigin: string;
-}
 
 interface IRequestUsersServiceArgs {
     path: string;
     method: Method;
 }
 
-export default ({
-    authorization,
-    locale,
-    userId,
-    whiteLabelOrigin,
-}: IRequestUsersServiceConfig, {
+export default (headers: InternalConfigHeaders, {
     path,
     method,
-}: IRequestUsersServiceArgs, requestBody = {}) => axios({
+}: IRequestUsersServiceArgs, requestBody = {}) => internalRestRequest({
+    headers,
+}, {
     method,
     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}${path}`,
-    headers: {
-        authorization,
-        'x-localecode': locale,
-        'x-userid': userId,
-        'x-therr-origin-host': whiteLabelOrigin,
-    },
     data: requestBody,
 });

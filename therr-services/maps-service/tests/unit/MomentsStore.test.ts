@@ -41,8 +41,14 @@ describe('MomentsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
                 },
             };
+            const mockHeaders = {
+                'x-platform': 'mobile',
+                'x-brand-variation': 'therr',
+                'x-localecode': 'en-us',
+                'x-username': 'testUser',
+            };
             const store = new MomentsStore(mockStore, mockMediaStore);
-            store.searchMoments({
+            store.searchMoments(mockHeaders, {
                 pagination: {
                     itemsPerPage: 100,
                     pageNumber: 2,

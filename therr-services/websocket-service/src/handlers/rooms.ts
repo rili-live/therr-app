@@ -1,6 +1,7 @@
 import moment from 'moment';
 import * as socketio from 'socket.io';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { IInternalConfig } from 'therr-js-utilities/internal-rest-request';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
 import { COMMON_DATE_FORMAT } from '../constants';
 import restRequest from '../utilities/restRequest';
@@ -16,7 +17,7 @@ interface IRoomData {
     userImgSrc: string;
 }
 
-const joinRoom = (socket: socketio.Socket, data: IRoomData, decodedAuthenticationToken: any) => {
+const joinRoom = (internalConfig: IInternalConfig, socket: socketio.Socket, data: IRoomData, decodedAuthenticationToken: any) => {
     const now = moment(Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
     const roomId = `${FORUM_PREFIX}${data.roomId}`;
 
@@ -29,7 +30,7 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData, decodedAuthenticatio
     const socketMessage = `You joined the room, ${data.roomName}`;
     const dbMessage = `${data.userName} joined the room, ${data.roomName}`;
 
-    restRequest({
+    restRequest(internalConfig, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseMessagesServiceRoute}/forums-messages`,
         data: {
@@ -86,7 +87,7 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData, decodedAuthenticatio
     });
 };
 
-const leaveRoom = (socket: socketio.Socket, data: IRoomData, decodedAuthenticationToken: any) => {
+const leaveRoom = (internalConfig: IInternalConfig, socket: socketio.Socket, data: IRoomData, decodedAuthenticationToken: any) => {
     const now = moment(Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
 
     socket.leave(`${FORUM_PREFIX}${data.roomId}`);

@@ -73,6 +73,12 @@ describe('handlers/helpers/user', () => {
                 userName: 'testUser', // this should be made lowercase
                 isCreatorAccount: false,
             };
+            const mockHeaders = {
+                'x-platform': 'mobile',
+                'x-brand-variation': 'therr',
+                'x-localecode': 'en-us',
+                'x-username': 'testUser',
+            };
             const mockUserStoreConnection = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({
@@ -101,7 +107,7 @@ describe('handlers/helpers/user', () => {
                 .value(new UsersStore(mockUserStoreConnection));
             const awsStub = sinon.stub(awsSES, 'sendEmail').yields(null, {});
 
-            createUserHelper(mockUserDetails, false, undefined, true).then((result) => {
+            createUserHelper(mockHeaders, mockUserDetails, false, undefined, true).then((result) => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`insert into "main"."verificationCodes" ("code", "type") values (`))
                     .to.be.equal(true);
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
@@ -126,6 +132,12 @@ describe('handlers/helpers/user', () => {
             const mockUserDetails = {
                 email: 'test.user@gmail.com', // this email should get normalized
             };
+            const mockHeaders = {
+                'x-platform': 'mobile',
+                'x-brand-variation': 'therr',
+                'x-localecode': 'en-us',
+                'x-username': 'testUser',
+            };
             const mockUserStoreConnection = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({
@@ -154,7 +166,7 @@ describe('handlers/helpers/user', () => {
                 .value(new UsersStore(mockUserStoreConnection));
             const awsStub = sinon.stub(awsSES, 'sendEmail').yields(null, {});
 
-            createUserHelper(mockUserDetails, true).then((result) => {
+            createUserHelper(mockHeaders, mockUserDetails, true).then((result) => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`insert into "main"."verificationCodes" ("code", "type") values (`))
                     .to.be.equal(true);
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
@@ -192,6 +204,12 @@ describe('handlers/helpers/user', () => {
                 fromEmail: 'test2.user@gmail.com', // this email should get normalized
                 toEmail: 'bob.jones@gmail.com', // this email should get normalized
             };
+            const mockHeaders = {
+                'x-platform': 'mobile',
+                'x-brand-variation': 'therr',
+                'x-localecode': 'en-us',
+                'x-username': 'testUser',
+            };
             const mockUserStoreConnection = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({
@@ -220,7 +238,7 @@ describe('handlers/helpers/user', () => {
                 .value(new UsersStore(mockUserStoreConnection));
             const awsStub = sinon.stub(awsSES, 'sendEmail').yields(null, {});
 
-            createUserHelper(mockUserDetails, false, mockUserByInviteDetails).then((result) => {
+            createUserHelper(mockHeaders, mockUserDetails, false, mockUserByInviteDetails).then((result) => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`insert into "main"."verificationCodes" ("code", "type") values (`))
                     .to.be.equal(true);
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))

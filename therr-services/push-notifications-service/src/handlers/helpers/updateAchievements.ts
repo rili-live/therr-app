@@ -1,21 +1,17 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../../global-config';
 
 // TODO: Add single request enpoint to update multiple achievements
-const updateAchievements = (headers, momentIdsToActivate, spaceIdsToActivate): Promise<any[]> => {
+const updateAchievements = (headers: InternalConfigHeaders, momentIdsToActivate, spaceIdsToActivate): Promise<any[]> => {
     const promises: Promise<any>[] = [];
 
     if (momentIdsToActivate.length) {
-        promises.push(axios({
+        promises.push(internalRestRequest({
+            headers,
+        }, {
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/achievements`,
-            headers: {
-                authorization: headers.authorization,
-                'x-localecode': headers.locale,
-                'x-userid': headers.userId,
-                'x-therr-origin-host': headers.whiteLabelOrigin,
-            },
             data: {
                 achievementClass: 'explorer',
                 achievementTier: '1_1',
@@ -24,15 +20,11 @@ const updateAchievements = (headers, momentIdsToActivate, spaceIdsToActivate): P
         }));
     }
     if (spaceIdsToActivate.length) {
-        promises.push(axios({
+        promises.push(internalRestRequest({
+            headers,
+        }, {
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/achievements`,
-            headers: {
-                authorization: headers.authorization,
-                'x-localecode': headers.locale,
-                'x-userid': headers.userId,
-                'x-therr-origin-host': headers.whiteLabelOrigin,
-            },
             data: {
                 achievementClass: 'explorer',
                 achievementTier: '1_3',

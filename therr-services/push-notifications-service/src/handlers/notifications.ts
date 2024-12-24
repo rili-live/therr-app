@@ -136,7 +136,7 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
 // eslint-disable-next-line max-len
 // Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=eGEh3WckRjy_aqM784gNM3:APA91bE2b-eXIOq3Wj-moMhjiwv3Ap-b2N8u7vhXiAsWNKRpkTROogV9Cge-r2CNb7wckP8AkQ4PKtD_Gr3FIuwtbtbdsLF5Bpem1gPNateVCH0wgGbc5I1kx-OUegM4TOp3WY5cbnoY&type=new-direct-message"
 // eslint-disable-next-line max-len
-// Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=eGEh3WckRjy_aqM784gNM3:APA91bE2b-eXIOq3Wj-moMhjiwv3Ap-b2N8u7vhXiAsWNKRpkTROogV9Cge-r2CNb7wckP8AkQ4PKtD_Gr3FIuwtbtbdsLF5Bpem1gPNateVCH0wgGbc5I1kx-OUegM4TOp3WY5cbnoY&type=new-connection-request"
+// Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=e6HW-ZgHi-p6jgOUJyk-oc:APA91bGIlp4qZYEKXnDyAi1nvbiqIeTs7RAAgj6QzWVZV7vqtZnCzfnfAVmkB3nK_49DmeOEn70s5xm_kIcEyLJ_NntfcQvlTafof7dZo9gZwhBvCmrCXGr6jw_gvpHaxtS2VAYB0FUG&type=nudge-space-engagement"
 const testPushNotification: RequestHandler = (req, res) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];

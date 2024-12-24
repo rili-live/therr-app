@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { distanceTo } from 'geolocation-utils';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import {
@@ -9,6 +8,7 @@ import {
     PushNotifications,
 } from 'therr-js-utilities/constants';
 import { getSearchQueryString } from 'therr-js-utilities/http';
+import { InternalConfigHeaders, internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import { IAreaType } from 'therr-js-utilities/types';
 import UserLocationCache from '../../store/UserLocationCache';
@@ -30,7 +30,7 @@ export interface IHeaders {
 }
 
 interface IAreaGetSettings {
-    headers: IHeaders;
+    headers: InternalConfigHeaders;
     userLocation: IUserlocation;
     limit: number;
 }
@@ -81,17 +81,17 @@ const getCachedNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocati
 
             if (areaType === 'moments') {
                 return userLocationCache.getMomentsWithinDistance(userLocation, radius, {
-                    locale: headers.locale,
-                    userDeviceToken: headers.userDeviceToken,
-                    userId: headers.userId,
+                    locale: headers['x-localecode'],
+                    userDeviceToken: headers['x-user-device-token'],
+                    userId: headers['x-userid'],
                     limit,
                 });
             }
 
             return userLocationCache.getSpacesWithinDistance(userLocation, radius, {
-                locale: headers.locale,
-                userDeviceToken: headers.userDeviceToken,
-                userId: headers.userId,
+                locale: headers['x-localecode'],
+                userDeviceToken: headers['x-user-device-token'],
+                userId: headers['x-userid'],
                 limit,
             });
         });
@@ -100,7 +100,7 @@ const getCachedNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocati
 const createAppAndPushNotification = (
     areaType: IAreaType,
     userLocationCache: UserLocationCache,
-    headers: IHeaders,
+    headers: InternalConfigHeaders,
     associationId: string,
     messageData: any,
     shouldSendAppNotification: boolean,
@@ -117,17 +117,13 @@ const createAppAndPushNotification = (
     let notificationData = {};
 
     const appNotificationPromise = shouldSendAppNotification
-        ? axios({ // fire and forget
+        ? internalRestRequest({
+            headers,
+        }, { // fire and forget
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/notifications`,
-            headers: {
-                authorization: headers.authorization,
-                'x-localecode': headers.locale,
-                'x-userid': headers.userId,
-                'x-therr-origin-host': headers.whiteLabelOrigin,
-            },
             data: {
-                userId: headers.userId,
+                userId: headers['x-userid'],
                 type: (areaType === 'moments'
                     ? Notifications.Types.DISCOVERED_UNIQUE_MOMENT
                     : Notifications.Types.DISCOVERED_UNIQUE_SPACE),
@@ -153,6 +149,10 @@ const createAppAndPushNotification = (
             : {
                 lastSpaceNotificationDate: lastNotificationDate,
             };
+        const locale = headers['x-localecode'] || 'en-us';
+        const userDeviceToken = headers['x-user-device-token'] || '';
+        const userId = headers['x-userid'] || '';
+
         return predictAndSendNotification(
             pushNotificationType,
             {
@@ -160,9 +160,9 @@ const createAppAndPushNotification = (
                 notificationData,
             },
             {
-                deviceToken: headers.userDeviceToken,
-                userId: headers.userId,
-                userLocale: headers.locale,
+                deviceToken: userDeviceToken,
+                userId,
+                userLocale: locale,
             },
             metrics,
         );
@@ -170,7 +170,7 @@ const createAppAndPushNotification = (
 };
 
 // Find areas within distance that have not been activated and are close enough to activate
-const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLocationCache, headers: IHeaders, userLocation: IUserlocation) => {
+const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLocationCache, headers: InternalConfigHeaders, userLocation: IUserlocation) => {
     if (!areas.length) {
         return Promise.resolve([]);
     }
@@ -187,15 +187,11 @@ const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLo
         };
 
     // Find associated reactions for/to the nearby areas
-    return axios({
+    return internalRestRequest({
+        headers,
+    }, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/${areaTypeSingular}-reactions/find/dynamic`,
-        headers: {
-            authorization: headers.authorization,
-            'x-localecode': headers.locale,
-            'x-userid': headers.userId,
-            'x-therr-origin-host': headers.whiteLabelOrigin,
-        },
         data,
     })
         .then((reactionsResponse) => {
@@ -279,17 +275,17 @@ const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLo
                 userLocationCache.setMaxMomentActivationDistance(maxActivationDistance); // fire and forget
                 // fire and forget
                 userLocationCache.addMoments(cacheableAreas, {
-                    locale: headers.locale,
-                    userDeviceToken: headers.userDeviceToken,
-                    userId: headers.userId,
+                    locale: headers['x-localecode'],
+                    userDeviceToken: headers['x-user-device-token'],
+                    userId: headers['x-userid'],
                 });
             } else {
                 userLocationCache.setMaxSpaceActivationDistance(maxActivationDistance); // fire and forget
                 // fire and forget
                 userLocationCache.addSpaces(cacheableAreas, {
-                    locale: headers.locale,
-                    userDeviceToken: headers.userDeviceToken,
-                    userId: headers.userId,
+                    locale: headers['x-localecode'],
+                    userDeviceToken: headers['x-user-device-token'],
+                    userId: headers['x-userid'],
                 });
             }
 
@@ -321,15 +317,11 @@ const fetchNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocationCa
         longitude: userLocation.longitude,
     };
 
-    return axios({
+    return internalRestRequest({
+        headers,
+    }, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/${areaType}/search${getSearchQueryString(query)}`,
-        headers: {
-            authorization: headers.authorization,
-            'x-localecode': headers.locale,
-            'x-userid': headers.userId,
-            'x-therr-origin-host': headers.whiteLabelOrigin,
-        },
         data: {
             distanceOverride,
         },
@@ -359,15 +351,11 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
         userLocationCache.invalidateCache();
 
         // Update user.lastKnownLocation
-        axios({
+        internalRestRequest({
+            headers,
+        }, {
             method: 'put',
-            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/${headers.userId}/location`,
-            headers: {
-                authorization: headers.authorization,
-                'x-localecode': headers.locale,
-                'x-userid': headers.userId,
-                'x-therr-origin-host': headers.whiteLabelOrigin,
-            },
+            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/${headers['x-userid']}/location`,
             data: {
                 latitude: userLocation.latitude,
                 longitude: userLocation.longitude,
@@ -421,15 +409,11 @@ const getAllNearbyAreas = (userLocationCache: UserLocationCache, shouldInvalidat
     return Promise.all([momentsPromise, spacesPromise]);
 };
 
-const sendSpaceMetric = (headers: IHeaders, spaces: any[], userLocation: IUserlocation, metricName: MetricNames) => axios({
+const sendSpaceMetric = (headers: InternalConfigHeaders, spaces: any[], userLocation: IUserlocation, metricName: MetricNames) => internalRestRequest({
+    headers,
+}, {
     method: 'post',
     url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/space-metrics`,
-    headers: {
-        authorization: headers.authorization,
-        'x-localecode': headers.locale,
-        'x-userid': headers.userId,
-        'x-therr-origin-host': headers.whiteLabelOrigin,
-    },
     data: {
         name: metricName,
         spaceIds: spaces.map((space) => space.id),
@@ -452,7 +436,7 @@ const sendSpaceMetric = (headers: IHeaders, spaces: any[], userLocation: IUserlo
 });
 
 const activateAreasAndNotify = (
-    headers: IHeaders,
+    headers: InternalConfigHeaders,
     activationArgs: IActivationArgs,
     userLocationCache: UserLocationCache,
     userLocation: {
@@ -466,29 +450,21 @@ const activateAreasAndNotify = (
         moments,
         spaces,
     } = activationArgs;
-    const momentReactionsPromise: Promise<any> = activatedMomentIds.length ? axios({
+    const momentReactionsPromise: Promise<any> = activatedMomentIds.length ? internalRestRequest({
+        headers,
+    }, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/create-update/multiple`,
-        headers: {
-            authorization: headers.authorization,
-            'x-localecode': headers.locale,
-            'x-userid': headers.userId,
-            'x-therr-origin-host': headers.whiteLabelOrigin,
-        },
         data: {
             momentIds: activatedMomentIds,
             userHasActivated: true,
         },
     }) : Promise.resolve();
-    const spaceReactionsPromise: Promise<any> = activatedSpaceIds.length ? axios({
+    const spaceReactionsPromise: Promise<any> = activatedSpaceIds.length ? internalRestRequest({
+        headers,
+    }, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/space-reactions/create-update/multiple`,
-        headers: {
-            authorization: headers.authorization,
-            'x-localecode': headers.locale,
-            'x-userid': headers.userId,
-            'x-therr-origin-host': headers.whiteLabelOrigin,
-        },
         data: {
             spaceIds: activatedSpaceIds,
             userHasActivated: true,
@@ -531,17 +507,13 @@ const activateAreasAndNotify = (
             if (!hasSentNotificationRecently(lastMomentNotificationDate) && !hasSentNotificationRecently(lastSpaceNotificationDate)) {
                 let notificationData = {};
 
-                return axios({
+                return internalRestRequest({
+                    headers,
+                }, {
                     method: 'post',
                     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/notifications`,
-                    headers: {
-                        authorization: headers.authorization,
-                        'x-localecode': headers.locale,
-                        'x-userid': headers.userId,
-                        'x-therr-origin-host': headers.whiteLabelOrigin,
-                    },
                     data: {
-                        userId: headers.userId,
+                        userId: headers['x-userid'],
                         type: Notifications.Types.NEW_AREAS_ACTIVATED,
                         isUnread: true,
                         messageLocaleKey: Notifications.MessageKeys.NEW_AREAS_ACTIVATED,
@@ -556,6 +528,10 @@ const activateAreasAndNotify = (
                 }).catch((error) => {
                     console.log(error);
                 }).finally(() => {
+                    const locale = headers['x-localecode'] || 'en-us';
+                    const userDeviceToken = headers['x-user-device-token'] || '';
+                    const userId = headers['x-userid'] || '';
+
                     predictAndSendNotification(
                         PushNotifications.Types.newAreasActivated,
                         {
@@ -566,9 +542,9 @@ const activateAreasAndNotify = (
                             notificationData,
                         },
                         {
-                            deviceToken: headers.userDeviceToken,
-                            userId: headers.userId,
-                            userLocale: headers.locale,
+                            deviceToken: userDeviceToken,
+                            userId,
+                            userLocale: locale,
                             totalAreasActivated: activatedMomentIds.length + activatedSpaceIds.length,
                         },
                         {
@@ -594,7 +570,7 @@ const activateAreasAndNotify = (
 };
 
 const selectAreasAndActivate = (
-    headers: IHeaders,
+    headers: InternalConfigHeaders,
     userLocationCache: UserLocationCache,
     userLocation: IUserlocation,
     filteredMoments: any[],
@@ -620,7 +596,7 @@ const selectAreasAndActivate = (
             messageOrigin: 'API_SERVER',
             messages: ['Moments Activated'],
             traceArgs: {
-                'user.id': headers.userId,
+                'user.id': headers['x-userid'],
                 'location.momentIdsToActivate': JSON.stringify(momentIdsToActivate),
             },
         });
@@ -631,7 +607,7 @@ const selectAreasAndActivate = (
             messageOrigin: 'API_SERVER',
             messages: ['Spaces Activated'],
             traceArgs: {
-                'user.id': headers.userId,
+                'user.id': headers['x-userid'],
                 'location.spaceIdsToActivate': JSON.stringify(spaceIdsToActivate),
             },
         });

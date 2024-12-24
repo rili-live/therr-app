@@ -1,5 +1,6 @@
 import * as socketio from 'socket.io';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { IInternalConfig } from 'therr-js-utilities/internal-rest-request';
 import {
     Notifications,
 } from 'therr-js-utilities/constants';
@@ -10,7 +11,7 @@ import redisHelper from '../utilities/redisHelper';
 import globalConfig from '../../../../global-config';
 
 // TODO: Handle various reaction types, and consider websocket messages to notify active users
-const throttleAndNotify = (socket, decodedAuthenticationToken, {
+const throttleAndNotify = (internalConfig: IInternalConfig, socket, decodedAuthenticationToken, {
     contentId,
     contentUserId,
     reactorUserId,
@@ -21,7 +22,7 @@ const throttleAndNotify = (socket, decodedAuthenticationToken, {
     redisHelper.throttleReactionNotifications(contentUserId, reactorUserId)
         .then((shouldCreateNotification) => {
             if (shouldCreateNotification) { // fire and forget
-                return restRequest({
+                return restRequest(internalConfig, {
                     method: 'post',
                     url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications`,
                     data: {
@@ -59,14 +60,14 @@ const throttleAndNotify = (socket, decodedAuthenticationToken, {
 };
 
 // TODO: Notify when user bookmarks a moment/space/thought
-const sendReactionPushNotification = (socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
+const sendReactionPushNotification = (internalConfig: IInternalConfig, socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
     // Send new moment/space reaction notification
     const areaReaction = data.momentReaction || data.spaceReaction;
     const areaType: IAreaType = data.momentReaction ? 'moments' : 'spaces';
     const postType: IPostType = areaReaction ? areaType : 'thoughts';
     const thoughtReaction = data.thoughtReaction;
     if (areaReaction?.userHasLiked || areaReaction?.userHasSuperLiked) {
-        throttleAndNotify(socket, decodedAuthenticationToken, {
+        throttleAndNotify(internalConfig, socket, decodedAuthenticationToken, {
             contentId: areaReaction.momentId || areaReaction.spaceId,
             contentUserId: data.areaUserId,
             reactorUserId: areaReaction.userId,
@@ -75,7 +76,7 @@ const sendReactionPushNotification = (socket: socketio.Socket, data: any, decode
             postType,
         }, true);
     } else if (thoughtReaction?.userHasLiked || thoughtReaction?.userHasSuperLiked) {
-        throttleAndNotify(socket, decodedAuthenticationToken, {
+        throttleAndNotify(internalConfig, socket, decodedAuthenticationToken, {
             contentId: thoughtReaction.thoughtId,
             contentUserId: data.thoughtUserId,
             reactorUserId: thoughtReaction.userId,

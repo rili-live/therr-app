@@ -8,8 +8,10 @@ import {
     SocketServerActionTypes,
     SocketClientActionTypes,
     SOCKET_MIDDLEWARE_ACTION,
+    BrandVariations,
 } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { internalRestRequest, IInternalConfig } from 'therr-js-utilities/internal-rest-request';
 import * as socketHandlers from './handlers';
 import * as globalConfig from '../../../global-config';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
@@ -153,10 +155,20 @@ const startExpressSocketIOServer = () => {
                 decodedAuthenticationToken.locale = decodedAuthenticationToken.locale || 'en-us';
             }
 
+            const internalRestConfig: IInternalConfig = {
+                headers: {
+                    'x-platform': socket.handshake.query.platform as string || 'mobile', // TODO: get this from request
+                    'x-brand-variation': socket.handshake.query.brandVariation as string || BrandVariations.THERR, // TODO: get this from request
+                    'x-localecode': socket.handshake.query.locale as string,
+                    'x-userid': socket.handshake.query.userId as string || '',
+                    'x-username': socket.handshake.query.userName as string || '',
+                },
+            };
+
             switch (action.type) {
                 case SocketClientActionTypes.JOIN_ROOM:
                     if (decodedAuthenticationToken) {
-                        socketHandlers.joinRoom(socket, action.data, decodedAuthenticationToken);
+                        socketHandlers.joinRoom(internalRestConfig, socket, action.data, decodedAuthenticationToken);
                         // Notify all users
                         socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
                             type: SocketServerActionTypes.SEND_ROOMS_LIST,
@@ -167,7 +179,7 @@ const startExpressSocketIOServer = () => {
                     break;
                 case SocketClientActionTypes.EXIT_ROOM:
                     if (decodedAuthenticationToken) {
-                        socketHandlers.leaveRoom(socket, action.data, decodedAuthenticationToken);
+                        socketHandlers.leaveRoom(internalRestConfig, socket, action.data, decodedAuthenticationToken);
                         // Notify all users
                         socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
                             type: SocketServerActionTypes.SEND_ROOMS_LIST,
@@ -177,7 +189,7 @@ const startExpressSocketIOServer = () => {
 
                     break;
                 case SocketClientActionTypes.LOGIN:
-                    socketHandlers.login({
+                    socketHandlers.login(internalRestConfig, {
                         appName: rsAppName,
                         socket,
                         data: action.data,
@@ -185,7 +197,7 @@ const startExpressSocketIOServer = () => {
                     break;
                 case SocketClientActionTypes.LOGOUT:
                     if (action.data) {
-                        socketHandlers.logout({
+                        socketHandlers.logout(internalRestConfig, {
                             socket,
                             data: action.data,
                         });
@@ -193,7 +205,7 @@ const startExpressSocketIOServer = () => {
                     break;
                 case SocketClientActionTypes.UPDATE_SESSION:
                     if (decodedAuthenticationToken) {
-                        socketHandlers.updateSession({
+                        socketHandlers.updateSession(internalRestConfig, {
                             appName: rsAppName,
                             socket,
                             data: action.data,
@@ -202,17 +214,17 @@ const startExpressSocketIOServer = () => {
                     break;
                 case SocketClientActionTypes.SEND_DIRECT_MESSAGE:
                     if (decodedAuthenticationToken) {
-                        socketHandlers.sendDirectMessage(socket, action.data, decodedAuthenticationToken);
+                        socketHandlers.sendDirectMessage(internalRestConfig, socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 case SocketClientActionTypes.SEND_MESSAGE:
                     if (decodedAuthenticationToken) {
-                        socketHandlers.sendForumMessage(socket, action.data, decodedAuthenticationToken);
+                        socketHandlers.sendForumMessage(internalRestConfig, socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 case SocketClientActionTypes.UPDATE_NOTIFICATION:
                     if (decodedAuthenticationToken) {
-                        socketHandlers.updateNotification(socket, action.data, decodedAuthenticationToken);
+                        socketHandlers.updateNotification(internalRestConfig, socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 case SocketClientActionTypes.LOAD_ACTIVE_CONNECTIONS:
@@ -222,17 +234,17 @@ const startExpressSocketIOServer = () => {
                     break;
                 case SocketClientActionTypes.CREATE_USER_CONNECTION:
                     if (decodedAuthenticationToken) {
-                        socketHandlers.createConnection(socket, action.data, decodedAuthenticationToken);
+                        socketHandlers.createConnection(internalRestConfig, socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 case SocketClientActionTypes.UPDATE_USER_CONNECTION:
                     if (decodedAuthenticationToken) {
-                        socketHandlers.updateConnection(socket, action.data, decodedAuthenticationToken);
+                        socketHandlers.updateConnection(internalRestConfig, socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 case SocketClientActionTypes.CREATE_OR_UPDATE_REACTION:
                     if (decodedAuthenticationToken) {
-                        socketHandlers.sendReactionPushNotification(socket, action.data, decodedAuthenticationToken);
+                        socketHandlers.sendReactionPushNotification(internalRestConfig, socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 default:
@@ -252,12 +264,23 @@ const startExpressSocketIOServer = () => {
             });
             leaveAndNotifyRooms(socket);
 
+            const internalRestConfig: IInternalConfig = {
+                headers: {
+                    'x-platform': socket.handshake.query.platform as string || 'mobile', // TODO: get this from request
+                    'x-brand-variation': socket.handshake.query.brandVariation as string || BrandVariations.THERR, // TODO: get this from request
+                    'x-localecode': socket.handshake.query.locale as string,
+                    'x-userid': socket.handshake.query.userId as string || '',
+                    'x-username': socket.handshake.query.userName as string || '',
+                },
+            };
+
             // TODO: RSERV-34 - Lower expire ttl of associated redis cache (socket, userId)
             // Consider implications for "remember me?" localStorage
             const user = await redisSessions.getUserBySocketId(socket.id);
             if (user) {
                 redisSessions.updateStatus(user, UserStatus.AWAY);
                 notifyConnections(
+                    internalRestConfig,
                     socket,
                     { ...user, status: UserStatus.AWAY },
                     SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED,

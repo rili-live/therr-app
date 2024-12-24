@@ -1,5 +1,4 @@
 import { RequestHandler } from 'express';
-import axios from 'axios';
 import moment from 'moment';
 import { getSearchQueryArgs, parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
@@ -50,11 +49,7 @@ const searchForumMessages: RequestHandler = (req: any, res: any) => {
         results.forEach((result) => userIdSet.add(result.fromUserId));
         const userIds = [...userIdSet];
 
-        return findUsers({
-            authorization,
-            'x-userid': userId,
-            'x-localecode': locale,
-        }, userIds).then((usersResponse) => {
+        return findUsers(req.headers, userIds).then((usersResponse) => {
             const users: any[] = usersResponse.data;
             const usersById = users.reduce((acc, cur) => ({
                 ...acc,

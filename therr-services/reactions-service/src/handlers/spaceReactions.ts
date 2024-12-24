@@ -1,5 +1,4 @@
 import { RequestHandler } from 'express';
-// import axios from 'axios';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -35,12 +34,7 @@ const createOrUpdateSpaceReaction = (req, res) => {
                 .then(([spaceReaction]) => {
                     const space = existing[0];
                     if (userId !== space.fromUserId && spaceReaction.rating > 3) {
-                        incrementInterestEngagement(space.interestsKeys, 3, {
-                            authorization,
-                            locale,
-                            userId,
-                            whiteLabelOrigin,
-                        });
+                        incrementInterestEngagement(space.interestsKeys, 3, req.headers);
                     }
                     return res.status(200).send(spaceReaction);
                 });

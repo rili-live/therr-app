@@ -1,5 +1,6 @@
 import * as socketio from 'socket.io';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { IInternalConfig } from 'therr-js-utilities/internal-rest-request';
 import moment from 'moment';
 import {
     Notifications,
@@ -13,8 +14,8 @@ import globalConfig from '../../../../global-config';
 import { FORUM_PREFIX } from './rooms';
 import { COMMON_DATE_FORMAT } from '../constants';
 
-const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
-    restRequest({
+const sendDirectMessage = (internalConfig: IInternalConfig, socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
+    restRequest(internalConfig, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseMessagesServiceRoute}/direct-messages`,
         data: {
@@ -58,7 +59,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
             redisHelper.throttleDmNotifications(data.to.id, data.userId)
                 .then((shouldCreateNotification) => {
                     if (shouldCreateNotification) { // fire and forget
-                        restRequest({
+                        restRequest(internalConfig, {
                             method: 'post',
                             url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications`,
                             data: {
@@ -123,8 +124,8 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
     });
 };
 
-const sendForumMessage = (socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
-    restRequest({
+const sendForumMessage = (internalConfig: IInternalConfig, socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
+    restRequest(internalConfig, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseMessagesServiceRoute}/forums-messages`,
         data: {
@@ -164,7 +165,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any, decodedAuthenticat
 
         // TODO: Send a push notification to each user who is a member of the room (excluding sender)
         // DO NOT create a db notification unless user lacks a sockedId in Redis
-        return restRequest({
+        return restRequest(internalConfig, {
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users-groups/notify-members`,
             data: {

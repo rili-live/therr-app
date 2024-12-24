@@ -4,6 +4,7 @@ import appleSignin from 'apple-signin-auth';
 import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
 import normalizeEmail from 'normalize-email';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import Store from '../../store';
 import { hashPassword } from '../../utilities/userHelpers';
 import { validatePassword } from '../../utilities/passwordUtils';
@@ -232,15 +233,12 @@ const isUserProfileIncomplete = (updateArgs, existingUser?) => {
 
 // eslint-disable-next-line default-param-last
 const createUserHelper = (
+    headers: InternalConfigHeaders,
     userDetails: IRequiredUserDetails,
     // eslint-disable-next-line default-param-last
     isSSO = false,
     userByInviteDetails?: IUserByInviteDetails,
     hasInviteCode = false,
-    locale = 'en-us',
-    whiteLabelOrigin = '',
-    brandVariation = '',
-    platform = '',
 ) => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
@@ -301,10 +299,8 @@ const createUserHelper = (
 
             if (hasInviteCode) {
                 createOrUpdateAchievement({
-                    userId: user.id,
-                    locale,
-                    whiteLabelOrigin,
-                    brandVariation,
+                    'x-userid': user.id,
+                    ...headers,
                 }, {
                     achievementClass: 'communityLeader',
                     achievementTier: '1_1',
@@ -338,9 +334,9 @@ const createUserHelper = (
                         accessLevels: [AccessLevels.ORGANIZATIONS_ADMIN],
                     }];
 
-                    if (whiteLabelOrigin) {
+                    if (headers['x-therr-origin-host']) {
                         const whiteLabelOrg = await Store.organizations.get({
-                            domain: whiteLabelOrigin,
+                            domain: headers['x-therr-origin-host'],
                             isAgency: true,
                         });
 
@@ -425,9 +421,9 @@ const createUserHelper = (
                         sendNewUserAdminNotificationEmail({
                             subject: userByInviteDetails ? '[New User] New User Registration by Invite' : '[New User] New User Registration',
                             toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-                            agencyDomainName: whiteLabelOrigin,
-                            brandVariation,
-                            platform,
+                            agencyDomainName: headers['x-therr-origin-host'] || '',
+                            brandVariation: headers['x-brand-variation'] || '',
+                            platform: headers['x-platform'],
                         }, {
                             name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
                             inviterEmail: userByInviteDetails?.fromEmail || '',
@@ -441,8 +437,8 @@ const createUserHelper = (
                             return sendSSONewUserEmail({
                                 subject: '[Account Created] Therr One-Time Password',
                                 toAddresses: [userDetails.email],
-                                agencyDomainName: whiteLabelOrigin,
-                                brandVariation,
+                                agencyDomainName: headers['x-therr-origin-host'] || '',
+                                brandVariation: headers['x-brand-variation'] || '',
                             }, {
                                 name: userDetails.email,
                                 oneTimePassword: otPassword,
@@ -452,8 +448,8 @@ const createUserHelper = (
                         return sendNewUserInviteEmail({
                             subject: `${userByInviteDetails?.fromName} Invited You to Therr app`,
                             toAddresses: [userByInviteDetails?.toEmail || ''],
-                            agencyDomainName: whiteLabelOrigin,
-                            brandVariation,
+                            agencyDomainName: headers['x-therr-origin-host'] || '',
+                            brandVariation: headers['x-brand-variation'] || '',
                         }, {
                             fromName: userByInviteDetails?.fromName || '',
                             fromEmail: userByInviteDetails?.fromEmail || '',
@@ -469,9 +465,9 @@ const createUserHelper = (
             sendNewUserAdminNotificationEmail({
                 subject: '[New User] New User Registration',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-                agencyDomainName: whiteLabelOrigin,
-                brandVariation,
-                platform,
+                agencyDomainName: headers['x-therr-origin-host'] || '',
+                brandVariation: headers['x-brand-variation'] || '',
+                platform: headers['x-platform'],
             }, {
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
             }, {
@@ -485,8 +481,8 @@ const createUserHelper = (
             return sendVerificationEmail({
                 subject: '[Account Verification] Therr User Account',
                 toAddresses: [userDetails.email],
-                agencyDomainName: whiteLabelOrigin,
-                brandVariation,
+                agencyDomainName: headers['x-therr-origin-host'] || '',
+                brandVariation: headers['x-brand-variation'] || '',
             }, {
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
                 verificationCodeToken: codeDetails.token,
@@ -504,9 +500,6 @@ const createUserHelper = (
 
 interface IValidateCredentials {
     locale: string;
-    whiteLabelOrigin?: string;
-    brandVariation?: string;
-    platform: string;
     reqBody: {
         isSSO: boolean;
         isDashboard?: boolean;
@@ -523,11 +516,8 @@ interface IValidateCredentials {
 }
 
 // eslint-disable-next-line arrow-body-style
-const validateCredentials = (userSearchResults, {
+const validateCredentials = (headers: InternalConfigHeaders, userSearchResults, {
     locale,
-    whiteLabelOrigin,
-    brandVariation,
-    platform,
     reqBody,
 }: IValidateCredentials, res) => {
     if (reqBody.isSSO) {
@@ -593,12 +583,12 @@ const validateCredentials = (userSearchResults, {
                         );
                 }
                 if (!existingUsersFromFBEmail.length) {
-                    return createUserHelper({
+                    return createUserHelper(headers, {
                         email: reqBody.userEmail || fbUserEmail,
                         firstName: reqBody.userFirstName || fbUserFirstName,
                         lastName: reqBody.userLastName || fbUserLastName,
                         phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
-                    }, true, undefined, false, locale, whiteLabelOrigin, brandVariation, platform).then((user) => [true, user, response]);
+                    }, true, undefined, false).then((user) => [true, user, response]);
                 }
             }
 

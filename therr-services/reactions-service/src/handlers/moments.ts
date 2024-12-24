@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { distanceTo } from 'geolocation-utils';
 import { parseHeaders } from 'therr-js-utilities/http';
 import { getReadableDistance } from 'therr-js-utilities/location';
@@ -59,15 +59,11 @@ const searchActiveMoments = async (req: any, res: any) => {
             const momentIds = reactions?.map((reaction) => reaction.momentId) || [];
 
             // TODO: Add way to search by authorId
-            return axios({
+            return internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/moments/find`,
-                headers: {
-                    authorization,
-                    'x-localecode': locale,
-                    'x-userid': userId,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                },
                 data: {
                     momentIds,
                     limit,
@@ -158,7 +154,9 @@ const searchActiveMomentsByIds = async (req: any, res: any) => {
             reactions = reactionsResponse;
             const activatedMomentIds = reactions?.map((reaction) => reaction.momentId) || [];
 
-            return axios({
+            return internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/moments/find`,
                 headers: {

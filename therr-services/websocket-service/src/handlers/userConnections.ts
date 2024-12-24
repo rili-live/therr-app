@@ -1,5 +1,6 @@
 import * as socketio from 'socket.io';
 import logSpan from 'therr-js-utilities/log-or-update-span';
+import { IInternalConfig } from 'therr-js-utilities/internal-rest-request';
 import {
     Notifications, SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION, UserConnectionTypes,
 } from 'therr-js-utilities/constants';
@@ -22,7 +23,7 @@ interface IUpdateUserConnectionData {
     user: any;
 }
 
-const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionData, decodedAuthenticationToken: any) => {
+const createConnection = (internalConfig: IInternalConfig, socket: socketio.Socket, data: ICreateUserConnectionData, decodedAuthenticationToken: any) => {
     logSpan({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
@@ -48,7 +49,7 @@ const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionDa
     });
 };
 
-const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionData, decodedAuthenticationToken: any) => {
+const updateConnection = (internalConfig: IInternalConfig, socket: socketio.Socket, data: IUpdateUserConnectionData, decodedAuthenticationToken: any) => {
     let requestingSocketId;
     logSpan({
         level: 'info',
@@ -59,7 +60,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
         },
     });
 
-    return restRequest({
+    return restRequest(internalConfig, {
         method: 'put',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/connections`,
         data: {
@@ -133,7 +134,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
         return connection;
     }).then((connection: any) => {
         if (connection.requestStatus === UserConnectionTypes.COMPLETE) { // Do not send notification when connection denied
-            return restRequest({
+            return restRequest(internalConfig, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications`,
                 data: {

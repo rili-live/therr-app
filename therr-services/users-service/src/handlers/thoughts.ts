@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
 import {
     ErrorCodes, MetricNames, MetricValueTypes, Notifications,
@@ -27,6 +27,10 @@ const createThought = async (req, res) => {
         userId,
         whiteLabelOrigin,
         brandVariation,
+        platform,
+        requestId,
+        userDeviceToken,
+        userName,
     } = parseHeaders(req.headers);
 
     const isDuplicate = await Store.thoughts.get({
@@ -81,10 +85,8 @@ const createThought = async (req, res) => {
                             if (parentThought.fromUserId !== userId) {
                                 createOrUpdateAchievement({
                                     authorization,
-                                    userId: parentThought.fromUserId,
-                                    locale,
-                                    whiteLabelOrigin,
-                                    brandVariation,
+                                    'x-userid': parentThought.fromUserId,
+                                    ...req.headers,
                                 }, {
                                     achievementClass: 'thinker',
                                     achievementTier: '1_2',
@@ -111,6 +113,16 @@ const createThought = async (req, res) => {
                                     isMatureContent: thought.isMatureContent,
                                     isPublic: thought.isPublic,
                                 }, {
+                                    authorization,
+                                    'x-platform': platform,
+                                    'x-brand-variation': brandVariation,
+                                    'x-therr-origin-host': whiteLabelOrigin,
+                                    'x-localecode': locale,
+                                    'x-requestid': requestId,
+                                    'x-user-device-token': userDeviceToken,
+                                    'x-userid': userId,
+                                    'x-username': userName,
+                                }, {
                                     contentUserId: thought.fromUserId,
                                 }).catch((err) => {
                                     logSpan({
@@ -126,12 +138,7 @@ const createThought = async (req, res) => {
                                     });
                                 });
                             }
-                            return notifyUserOfUpdate({
-                                authorization,
-                                locale,
-                                whiteLabelOrigin,
-                                brandVariation,
-                            }, {
+                            return notifyUserOfUpdate(req.headers, {
                                 userId: thoughts[0].fromUserId, // Notify parent thought's author
                                 type: Notifications.Types.THOUGHT_REPLY,
                                 associationId: thought.parentId,
@@ -174,10 +181,7 @@ const createThought = async (req, res) => {
                     // requires new endpoint createReactionsForUsers
                     createOrUpdateAchievement({
                         authorization,
-                        userId,
-                        locale,
-                        whiteLabelOrigin,
-                        brandVariation,
+                        ...req.headers,
                     }, {
                         achievementClass: 'thinker',
                         achievementTier: '1_1',
@@ -195,7 +199,9 @@ const createThought = async (req, res) => {
                 }
             });
 
-            return axios({ // Create companion reaction for user's own thought
+            return internalRestRequest({
+                headers: req.headers,
+            }, { // Create companion reaction for user's own thought
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/thought-reactions/${thought.id}`,
                 headers: {
@@ -217,8 +223,17 @@ const createThought = async (req, res) => {
 
 // READ
 const getThoughtDetails = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+        brandVariation,
+        platform,
+        requestId,
+        userDeviceToken,
+        userName,
+    } = parseHeaders(req.headers);
 
     const { thoughtId } = req.params;
 
@@ -265,6 +280,16 @@ const getThoughtDetails = (req, res) => {
                 isMatureContent: thought.isMatureContent,
                 isPublic: thought.isPublic,
             }, {
+                authorization,
+                'x-platform': platform,
+                'x-brand-variation': brandVariation,
+                'x-therr-origin-host': whiteLabelOrigin,
+                'x-localecode': locale,
+                'x-requestid': requestId,
+                'x-user-device-token': userDeviceToken,
+                'x-userid': userId,
+                'x-username': userName,
+            }, {
                 contentUserId: thought.fromUserId,
             }).catch((err) => {
                 logSpan({
@@ -282,9 +307,7 @@ const getThoughtDetails = (req, res) => {
 
             // Verify that user has activated thought and has access to view it
             if (!thought.isPublic && !isOwnThought) {
-                userHasAccessPromise = hasUserReacted(thoughtId, {
-                    'x-userid': userId,
-                });
+                userHasAccessPromise = hasUserReacted(thoughtId, req.headers);
             }
 
             return userHasAccessPromise.then((isActivated) => {
@@ -298,15 +321,11 @@ const getThoughtDetails = (req, res) => {
                 }
 
                 let createReactionsPromise = Promise.resolve({});
-                countReactionsPromise = countReactions(thoughtId, {
-                    'x-userid': userId,
-                });
+                countReactionsPromise = countReactions(thoughtId, req.headers);
 
                 // Activate child thoughts otherwise
                 if (thought.replies?.length) {
-                    createReactionsPromise = createReactions(thought.replies.map((reply) => reply.id), {
-                        'x-userid': userId,
-                    });
+                    createReactionsPromise = createReactions(thought.replies.map((reply) => reply.id), req.headers);
                 }
 
                 return Promise.all([countReactionsPromise, createReactionsPromise]).then(([thoughtCounts]) => {
@@ -363,7 +382,9 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
             order: 'desc',
         });
         queryString = `${queryString}&shouldCheckReverse=true`;
-        const connectionsResponse: any = await axios({
+        const connectionsResponse: any = await internalRestRequest({
+            headers: req.headers,
+        }, {
             method: 'get',
             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
             headers: {

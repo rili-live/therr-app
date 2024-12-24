@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { PushNotifications } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import sendPendingInviteEmail from '../api/email/for-social/retention/sendPendingInviteEmail';
@@ -30,6 +30,7 @@ export default (
         isUnclaimed: boolean;
         settingsEmailInvites: boolean;
     }[]>,
+    headers: InternalConfigHeaders,
     {
         area,
         authorization,
@@ -127,7 +128,9 @@ export default (
         sendEmail();
 
         const pushNotificationPromise: Promise<any> = config.shouldSendPushNotification
-            ? axios({
+            ? internalRestRequest({
+                headers,
+            }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].basePushNotificationsServiceRoute}/notifications/send`,
                 headers: {

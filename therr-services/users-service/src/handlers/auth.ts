@@ -94,7 +94,7 @@ const login: RequestHandler = (req: any, res: any) => {
                  *
                  * Uses createdAt to target recently created users
                  */
-                TherrEventEmitter.runThoughtDistributorAlgorithm([userSearchResults[0].id], 'createdAt', 10);
+                TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userSearchResults[0].id], 'createdAt', 10);
 
                 if (req.body.isDashboard && !userSearchResults[0].isBusinessAccount) {
                     // TODO: Disallow login to dashboard for non-business users
@@ -135,11 +135,8 @@ const login: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            return validateCredentials(userSearchResults, {
+            return validateCredentials(req.headers, userSearchResults, {
                 locale,
-                whiteLabelOrigin,
-                brandVariation,
-                platform,
                 reqBody: {
                     isSSO: req.body.isSSO,
                     isDashboard: req.body.isDashboard,

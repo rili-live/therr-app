@@ -74,11 +74,7 @@ const searchMyDirectMessages: RequestHandler = (req: any, res: any) => {
     return Store.directMessages.searchLatestDMs(userId, searchArgs[0]).then((results) => {
         const userIds = results?.map((result) => (result.toUserId !== userId ? result.toUserId : result.fromUserId));
         // TODO: Fetch user details for display
-        return findUsers({
-            authorization,
-            'x-userid': userId,
-            'x-localecode': locale,
-        }, userIds).then((usersResponse) => {
+        return findUsers(req.headers, userIds).then((usersResponse) => {
             const usersMap = usersResponse?.data?.reduce((acc, cur) => { acc[cur.id] = cur; return acc; }, {});
             const resultsWithUser = results.map((result) => {
                 const otherUserId = (result.toUserId !== userId ? result.toUserId : result.fromUserId);

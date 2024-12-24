@@ -1,5 +1,5 @@
 // import { RequestHandler } from 'express';
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import { parseHeaders } from 'therr-js-utilities/http';
 import {
     GroupMemberRoles,
@@ -30,7 +30,9 @@ const getUserGroups = (req, res) => Store.userGroups.get({
                 userId,
             } = parseHeaders(req.headers);
 
-            const groupResponse = await axios({
+            const groupResponse = await internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}/forums/find`,
                 headers: {
@@ -136,12 +138,7 @@ const internalCreateUserGroups = (req, res) => {
             const invitedMembers = userGroups.filter((g) => g.userId !== userId);
             if (invitedMembers?.length) {
                 Store.users.getUserById(userId, ['id', 'userName']).then(([inviter]) => {
-                    const promises = invitedMembers.map((member) => notifyUserOfUpdate({
-                        authorization,
-                        locale,
-                        whiteLabelOrigin,
-                        brandVariation,
-                    }, {
+                    const promises = invitedMembers.map((member) => notifyUserOfUpdate(req.headers, {
                         userId: member.userId,
                         type: Notifications.Types.NEW_GROUP_INVITE,
                         associationId: group.id,
@@ -197,7 +194,9 @@ const createUserGroup = (req, res) => {
         groupId,
     } = req.body;
 
-    return axios({
+    return internalRestRequest({
+        headers: req.headers,
+    }, {
         method: 'get',
         url: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}/forums/${groupId}`,
         headers: {
@@ -234,12 +233,7 @@ const createUserGroup = (req, res) => {
             }])
                 .then(([userGroup]) => {
                     // Fetch group author and notify
-                    notifyUserOfUpdate({
-                        authorization,
-                        locale,
-                        whiteLabelOrigin,
-                        brandVariation,
-                    }, {
+                    notifyUserOfUpdate(req.headers, {
                         userId: group.authorId,
                         type: Notifications.Types.NEW_GROUP_MEMBERS,
                         associationId: groupId,
@@ -338,7 +332,9 @@ const notifyGroupMembers = (req, res) => {
     }
 
     // TODO: Fetch group name
-    return axios({
+    return internalRestRequest({
+        headers: req.headers,
+    }, {
         method: 'get',
         url: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}/forums/${groupId}`,
         headers: {
@@ -371,7 +367,9 @@ const notifyGroupMembers = (req, res) => {
                 }));
 
                 // NOTE: This does NOT create app notifications (only push notifications)
-                return axios({
+                return internalRestRequest({
+                    headers: req.headers,
+                }, {
                     method: 'post',
                     url: `${globalConfig[process.env.NODE_ENV].basePushNotificationsServiceRoute}/notifications/send-multiple`,
                     headers: {

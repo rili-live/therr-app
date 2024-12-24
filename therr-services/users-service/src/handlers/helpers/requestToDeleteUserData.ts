@@ -1,20 +1,22 @@
-import axios from 'axios';
+import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
 import globalConfig from '../../../../../global-config';
 
-const requestToDeleteUserData = (headers) => {
+const requestToDeleteUserData = (headers: InternalConfigHeaders) => {
     // TODO: Delete messages in messages service
     // TODO: Delete notifications in notifications service
     // TODO: Delete forums in messages service
-    const mapServicePromise = axios({
+    const mapServicePromise = internalRestRequest({
+        headers,
+    }, {
         method: 'delete',
         url: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}/delete-user-data`,
-        headers,
         data: {},
     });
-    const reactionsServicePromise = axios({
+    const reactionsServicePromise = internalRestRequest({
+        headers,
+    }, {
         method: 'delete',
         url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/delete-user-data`,
-        headers,
         data: {},
     });
 

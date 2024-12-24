@@ -1,4 +1,3 @@
-import axios from 'axios';
 import path from 'path';
 import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
 import {
@@ -7,6 +6,7 @@ import {
     MetricNames,
     MetricValueTypes,
 } from 'therr-js-utilities/constants';
+import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import { RequestHandler } from 'express';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { storage } from '../api/aws';
@@ -27,10 +27,12 @@ const MAX_DISTANCE_TO_ADDRESS_METERS = 2000;
 
 // CREATE
 const createSpace = async (req, res) => {
-    const authorization = req.headers.authorization;
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
 
     const isDuplicate = await Store.spaces.get({
         fromUserId: userId,
@@ -62,7 +64,9 @@ const createSpace = async (req, res) => {
         locale,
         fromUserId: userId,
     })
-        .then(([space]) => axios({ // Create companion reaction for user's own space
+        .then(([space]) => internalRestRequest({
+            headers: req.headers,
+        }, { // Create companion reaction for user's own space
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/space-reactions/${space.id}`,
             headers: {
@@ -185,6 +189,11 @@ const getSpaceDetails = (req, res) => {
         userId,
         userAccessLevels,
         whiteLabelOrigin,
+        platform,
+        brandVariation,
+        requestId,
+        userDeviceToken,
+        userName,
     } = parseHeaders(req.headers);
 
     const { spaceId } = req.params;
@@ -202,7 +211,7 @@ const getSpaceDetails = (req, res) => {
     const shouldFetchUser = !!withUser;
 
     // TODO: Fetch own reaction or reaction count for own space
-    return Store.spaces.findSpaces([spaceId], {
+    return Store.spaces.findSpaces(req.headers, [spaceId], {
         limit: 1,
     }, {
         withMedia: shouldFetchMedia,
@@ -227,6 +236,16 @@ const getSpaceDetails = (req, res) => {
                 valueType: MetricValueTypes.NUMBER,
                 userId: userId || undefined,
             }, {}, {
+                authorization,
+                'x-platform': platform,
+                'x-brand-variation': brandVariation,
+                'x-therr-origin-host': whiteLabelOrigin,
+                'x-localecode': locale,
+                'x-requestid': requestId,
+                'x-user-device-token': userDeviceToken,
+                'x-userid': userId,
+                'x-username': userName,
+            }, {
                 latitude: space.latitude,
                 longitude: space.longitude,
                 spaceId: space.id,
@@ -255,6 +274,16 @@ const getSpaceDetails = (req, res) => {
                     isMatureContent: space.isMatureContent,
                     isPublic: space.isPublic,
                 }, {
+                    authorization,
+                    'x-platform': platform,
+                    'x-brand-variation': brandVariation,
+                    'x-therr-origin-host': whiteLabelOrigin,
+                    'x-localecode': locale,
+                    'x-requestid': requestId,
+                    'x-user-device-token': userDeviceToken,
+                    'x-userid': userId,
+                    'x-username': userName,
+                }, {
                     contentUserId: space.fromUserId,
                     authorization: req.headers.authorization,
                     userId,
@@ -278,10 +307,7 @@ const getSpaceDetails = (req, res) => {
             // Verify that user has activated space and has access to view it
             if (userId && space?.fromUserId !== userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
                 // TODO: Check if user is part of organization and has access to view
-                userHasAccessPromise = () => getReactions('space', spaceId, {
-                    'x-userid': userId,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                });
+                userHasAccessPromise = () => getReactions('space', spaceId, req.headers);
             }
 
             const serializedSpace = {
@@ -292,6 +318,7 @@ const getSpaceDetails = (req, res) => {
             const promises = [
                 userHasAccessPromise(),
                 countReactions('space', spaceId, {
+                    ...req.headers,
                     'x-userid': userId || undefined,
                 }),
             ];
@@ -304,12 +331,7 @@ const getSpaceDetails = (req, res) => {
 
             return Promise.all(promises).then(([isActivated, eventCount, events]) => {
                 if (userId && userId !== space.fromUserId) {
-                    incrementInterestEngagement(space.interestsKeys, 2, {
-                        authorization,
-                        locale,
-                        userId,
-                        whiteLabelOrigin,
-                    });
+                    incrementInterestEngagement(space.interestsKeys, 2, req.headers);
                 }
                 serializedSpace.likeCount = parseInt(eventCount?.count || 0, 10);
                 serializedSpace.events = events;
@@ -372,15 +394,11 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
         queryString = `${queryString}&shouldCheckReverse=true`;
         const connectionsResponse: any = !userId
             ? {}
-            : await axios({
+            : await internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'get',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
-                headers: {
-                    authorization: req.headers.authorization,
-                    'x-localecode': req.headers['x-localecode'] || 'en-us',
-                    'x-userid': userId,
-                    'x-therr-origin-host': whiteLabelOrigin,
-                },
             }).catch((err) => {
                 console.log(err);
                 return {
@@ -428,7 +446,6 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
 
 const searchMySpaces: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
     const {
         // filterBy,
         itemsPerPage,
@@ -437,10 +454,7 @@ const searchMySpaces: RequestHandler = async (req: any, res: any) => {
 
     const integerColumns = ['maxViews'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    return getUserOrganizations({
-        'x-userid': userId,
-        'x-therr-origin-host': whiteLabelOrigin,
-    }).then((orgResults) => {
+    return getUserOrganizations(req.headers).then((orgResults) => {
         const orgsWithReadAccess = orgResults.userOrganizations.filter((org) => (
             org.accessLevels.includes(AccessLevels.ORGANIZATIONS_ADMIN)
             || org.accessLevels.includes(AccessLevels.ORGANIZATIONS_BILLING)
@@ -491,7 +505,9 @@ const claimSpace: RequestHandler = async (req: any, res: any) => {
             });
         }
 
-        return axios({
+        return internalRestRequest({
+            headers: req.headers,
+        }, {
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/request-space/${spaceId}`,
             headers: {
@@ -586,7 +602,9 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
         thirdPartyRatings,
     } = req.body;
 
-    return axios({
+    return internalRestRequest({
+        headers: req.headers,
+    }, {
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/request-space`,
         headers: {
@@ -640,7 +658,9 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                 openingHours,
                 thirdPartyRatings,
                 radius: 5, // small radius to prevent overlaps
-            }).then(([space]) => axios({ // Create companion reaction for user's own space
+            }).then(([space]) => internalRestRequest({
+                headers: req.headers,
+            }, { // Create companion reaction for user's own space
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/space-reactions/${space.id}`,
                 headers: {
@@ -729,12 +749,13 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
  * Admin endpoint to enable pending space claims. Also sends email to requestor.
  */
 const approveSpaceRequest: RequestHandler = async (req: any, res: any) => {
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
-    const userAccessLevels = req.headers['x-user-access-levels'];
-    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        authorization,
+        userAccessLevels: accessLevels,
+        locale,
+        userId,
+        whiteLabelOrigin,
+    } = parseHeaders(req.headers);
     const { spaceId } = req.params;
 
     if (!accessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
@@ -756,7 +777,9 @@ const approveSpaceRequest: RequestHandler = async (req: any, res: any) => {
             });
         }
 
-        return axios({
+        return internalRestRequest({
+            headers: req.headers,
+        }, {
             method: 'post',
             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/request-approve/${spaceId}`,
             headers: {
@@ -828,7 +851,7 @@ const findSpaces: RequestHandler = async (req: any, res: any) => {
         lastContentCreatedAt,
     } = req.body;
 
-    return Store.spaces.findSpaces(spaceIds, {
+    return Store.spaces.findSpaces(req.headers, spaceIds as string[], {
         limit: limit || 21,
         order,
         before: lastContentCreatedAt,
@@ -841,11 +864,12 @@ const findSpaces: RequestHandler = async (req: any, res: any) => {
 };
 
 const getSignedUrl = (req, res, bucket) => {
-    const requestId = req.headers['x-requestid'];
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userAccessLevels = req.headers['x-user-access-levels'];
-    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        userAccessLevels: accessLevels,
+        locale,
+        userId,
+        requestId,
+    } = parseHeaders(req.headers);
     const {
         overrideFromUserId,
     } = req.query;
@@ -894,10 +918,11 @@ const getSignedUrlPublicBucket = (req, res) => getSignedUrl(req, res, process.en
 
 // WRITE
 const updateSpace = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const userAccessLevels = req.headers['x-user-access-levels'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const accessLevels = userAccessLevels ? JSON.parse(userAccessLevels) : [];
+    const {
+        userAccessLevels: accessLevels,
+        locale,
+        userId,
+    } = parseHeaders(req.headers);
     const {
         overrideFromUserId,
     } = req.body;

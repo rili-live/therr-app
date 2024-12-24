@@ -1,3 +1,4 @@
+import { InternalConfigHeaders } from '../internal-rest-request';
 import { MetricNames, MetricValueTypes } from '../constants';
 
 export interface IMetricDimensions {
@@ -30,9 +31,10 @@ export abstract class MetricsProvider {
     abstract uploadMetric: (
         metric: IMetric,
         dimensions: IMetricDimensions,
+        headers: InternalConfigHeaders,
         uniqueDbProperties?: IMetricUniqueProperties,
     ) => Promise<any>
 
     // eslint-disable-next-line class-methods-use-this
-    abstract uploadMetrics:(metrics: IMetricCombined[]) => Promise<any[]>
+    abstract uploadMetrics:(metrics: IMetricCombined[], headers: InternalConfigHeaders) => Promise<any[]>
 }

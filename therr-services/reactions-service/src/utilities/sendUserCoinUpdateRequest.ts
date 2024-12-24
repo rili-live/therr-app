@@ -12,12 +12,7 @@ const sendUserCoinUpdateRequest = (req, currentReaction) => {
     const coinValue = getReactionValuation(currentReaction, req.body);
 
     if (coinValue !== 0) {
-        return requestUsersService({
-            authorization: req.headers.authorization,
-            userId,
-            locale,
-            whiteLabelOrigin,
-        }, {
+        return requestUsersService(req.headers, {
             path: `/users/${userId}/coins`,
             method: 'put',
         }, {

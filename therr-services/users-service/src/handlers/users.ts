@@ -154,10 +154,8 @@ const createUser: RequestHandler = (req: any, res: any) => {
                     if (inviter.length) {
                         // TODO: Send confirmation e-mail to inviter
                         return createOrUpdateAchievement({
-                            userId: inviter[0].id,
-                            locale,
-                            whiteLabelOrigin,
-                            brandVariation,
+                            'x-userid': inviter[0].id,
+                            ...req.headers,
                         }, {
                             achievementClass: 'communityLeader',
                             achievementTier: '1_1',
@@ -178,6 +176,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
             }
 
             return getSubsAccessLvlsPromise.then((levels) => createUserHelper(
+                req.headers,
                 {
                     email: req.body.email,
                     password: req.body.password,
@@ -195,10 +194,6 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 false,
                 undefined,
                 !!inviteCode,
-                req.headers['x-localecode'],
-                whiteLabelOrigin,
-                brandVariation,
-                platform,
             ).then((user) => res.status(201).send(user)));
         })
         .catch((err) => {

@@ -1,6 +1,6 @@
-import axios from 'axios';
 import * as countryGeo from 'country-reverse-geocoding';
 import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
+import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import {
     AccessLevels,
     Content,
@@ -39,6 +39,11 @@ const rewardEventPosted = ({
     authorization,
     locale,
     whiteLabelOrigin,
+    platform,
+    brandVariation,
+    requestId,
+    userDeviceToken,
+    userName,
 }, {
     spaceId,
     userId,
@@ -96,7 +101,19 @@ const rewardEventPosted = ({
         });
 
         if (isClaimable && therrCoinIncentive) {
-            return axios({
+            return internalRestRequest({
+                headers: {
+                    authorization,
+                    'x-platform': platform,
+                    'x-brand-variation': brandVariation,
+                    'x-therr-origin-host': whiteLabelOrigin,
+                    'x-localecode': locale,
+                    'x-requestid': requestId,
+                    'x-user-device-token': userDeviceToken,
+                    'x-userid': userId,
+                    'x-username': userName,
+                },
+            }, {
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/rewards/transfer-coins`,
                 headers: {
@@ -147,6 +164,11 @@ const createEvent = async (req, res) => {
         locale,
         userId,
         whiteLabelOrigin,
+        platform,
+        brandVariation,
+        requestId,
+        userDeviceToken,
+        userName,
     } = parseHeaders(req.headers);
     let therrCoinRewarded = 0;
 
@@ -196,6 +218,11 @@ const createEvent = async (req, res) => {
             authorization,
             locale,
             whiteLabelOrigin,
+            platform,
+            brandVariation,
+            requestId,
+            userDeviceToken,
+            userName,
         }, {
             spaceId: req.body.spaceId,
             userId,
@@ -273,7 +300,9 @@ const createEvent = async (req, res) => {
             locale,
             fromUserId: userId,
         })
-            .then(([event]) => axios({ // Create companion reaction for user's own event
+            .then(([event]) => internalRestRequest({
+                headers: req.headers,
+            }, { // Create companion reaction for user's own event
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/event-reactions/${event.id}`,
                 headers: {
@@ -289,7 +318,9 @@ const createEvent = async (req, res) => {
             }).then(({ data: reaction }) => {
                 // Create reaction for first n group members
                 const MEMBERS_LIMIT = 200;
-                axios({ // Create companion reaction for all users in the event group
+                internalRestRequest({
+                    headers: req.headers,
+                }, { // Create companion reaction for all users in the event group
                     method: 'get',
                     url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users-groups/${groupId}?limit=${MEMBERS_LIMIT}&returning=simple`,
                     headers: {
@@ -298,7 +329,9 @@ const createEvent = async (req, res) => {
                         'x-userid': userId,
                         'x-therr-origin-host': whiteLabelOrigin,
                     },
-                }).then((response) => axios({
+                }).then((response) => internalRestRequest({
+                    headers: req.headers,
+                }, {
                     method: 'post',
                     url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/event-reactions/create-update/multiple-users`,
                     headers: {
@@ -370,6 +403,16 @@ const createEvent = async (req, res) => {
                         valueType: MetricValueTypes.NUMBER,
                         userId: userId || undefined,
                     }, {}, {
+                        authorization,
+                        'x-platform': platform,
+                        'x-brand-variation': brandVariation,
+                        'x-therr-origin-host': whiteLabelOrigin,
+                        'x-localecode': locale,
+                        'x-requestid': requestId,
+                        'x-user-device-token': userDeviceToken,
+                        'x-userid': userId,
+                        'x-username': userName,
+                    }, {
                         latitude: event.latitude,
                         longitude: event.longitude,
                         spaceId,
@@ -416,12 +459,7 @@ const createEvent = async (req, res) => {
                     });
                 }
 
-                updateAchievements({
-                    authorization,
-                    locale,
-                    userId,
-                    whiteLabelOrigin,
-                }, req.body);
+                updateAchievements(req.headers, req.body);
 
                 return res.status(201).send({
                     ...event,
@@ -445,13 +483,21 @@ const createEvent = async (req, res) => {
 
 // UPDATE
 const updateEvent = (req, res) => {
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
-    const whiteLabelOrigin = req.headers['x-therr-origin-host'] || '';
+    const {
+        authorization,
+        locale,
+        userId,
+        whiteLabelOrigin,
+        platform,
+        brandVariation,
+        requestId,
+        userDeviceToken,
+        userName,
+    } = parseHeaders(req.headers);
     const { eventId } = req.params;
 
     // Ensure user can only update own events
-    return Store.events.findEvents([eventId], { fromUserId: userId }).then(({ events }) => {
+    return Store.events.findEvents(req.headers, [eventId], { fromUserId: userId }).then(({ events }) => {
         if (!events.length) {
             return handleHttpError({
                 res,
@@ -480,6 +526,16 @@ const updateEvent = (req, res) => {
                     valueType: MetricValueTypes.NUMBER,
                     userId: userId || undefined,
                 }, {}, {
+                    authorization,
+                    'x-platform': platform,
+                    'x-brand-variation': brandVariation,
+                    'x-therr-origin-host': whiteLabelOrigin,
+                    'x-localecode': locale,
+                    'x-requestid': requestId,
+                    'x-user-device-token': userDeviceToken,
+                    'x-userid': userId,
+                    'x-username': userName,
+                }, {
                     latitude: event.latitude,
                     longitude: event.longitude,
                     spaceId,
@@ -502,6 +558,11 @@ const updateEvent = (req, res) => {
                         authorization: req.headers.authorization,
                         locale,
                         whiteLabelOrigin,
+                        platform,
+                        brandVariation,
+                        requestId,
+                        userDeviceToken,
+                        userName,
                     }, {
                         spaceId: req.body.spaceId,
                         userId,
@@ -545,6 +606,11 @@ const getEventDetails = (req, res) => {
         userId,
         userAccessLevels,
         whiteLabelOrigin,
+        platform,
+        brandVariation,
+        requestId,
+        userDeviceToken,
+        userName,
     } = parseHeaders(req.headers);
 
     const { eventId } = req.params;
@@ -560,7 +626,7 @@ const getEventDetails = (req, res) => {
     const shouldFetchRating = !!withRatings;
 
     // TODO: Fetch own reaction or reaction count for own event
-    return Store.events.findEvents([eventId], {
+    return Store.events.findEvents(req.headers, [eventId], {
         limit: 1,
     }, {
         withMedia: shouldFetchMedia,
@@ -589,9 +655,7 @@ const getEventDetails = (req, res) => {
                     // Private events require a reactions/activation
                     if (userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
                         // Check if user is a member of the group hosting this event
-                        return getUserGroup(event.groupId, {
-                            'x-userid': userId || undefined,
-                        });
+                        return getUserGroup(event.groupId, req.headers);
                     }
 
                     return Promise.resolve(false);
@@ -607,6 +671,16 @@ const getEventDetails = (req, res) => {
                         eventId: event.id,
                         isMatureContent: event.isMatureContent,
                         isPublic: event.isPublic,
+                    }, {
+                        authorization,
+                        'x-platform': platform,
+                        'x-brand-variation': brandVariation,
+                        'x-therr-origin-host': whiteLabelOrigin,
+                        'x-localecode': locale,
+                        'x-requestid': requestId,
+                        'x-user-device-token': userDeviceToken,
+                        'x-userid': userId,
+                        'x-username': userName,
                     }, {
                         contentUserId: event.fromUserId,
                         authorization: req.headers.authorization,
@@ -641,9 +715,7 @@ const getEventDetails = (req, res) => {
                 }
 
                 const promises = [
-                    countReactions('event', eventId, {
-                        'x-userid': userId || undefined,
-                    }),
+                    countReactions('event', eventId, req.headers),
                 ];
 
                 if (event.spaceId) {
@@ -652,12 +724,7 @@ const getEventDetails = (req, res) => {
 
                 return Promise.all(promises).then(([eventCount, space]) => {
                     if (userId && userId !== event.fromUserId) {
-                        incrementInterestEngagement(event.interestsKeys, 2, {
-                            authorization,
-                            locale,
-                            userId,
-                            whiteLabelOrigin,
-                        });
+                        incrementInterestEngagement(event.interestsKeys, 2, req.headers);
                     }
                     if (space) {
                         // Response including space details for navigation
@@ -717,7 +784,9 @@ const searchEvents: RequestHandler = async (req: any, res: any) => {
         queryString = `${queryString}&shouldCheckReverse=true`;
         const connectionsResponse: any = !userId
             ? {}
-            : await axios({
+            : await internalRestRequest({
+                headers: req.headers,
+            }, {
                 method: 'get',
                 url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
                 headers: {
@@ -740,6 +809,7 @@ const searchEvents: RequestHandler = async (req: any, res: any) => {
             .filter((id) => !!id); // eslint-disable-line eqeqeq
     }
     const searchPromise = Store.events.searchEvents(
+        req.headers,
         searchArgs[0],
         searchArgs[1],
         fromUserIds,
@@ -815,6 +885,7 @@ const searchMyEvents: RequestHandler = async (req: any, res: any) => {
         requirements.isPublic = true;
     }
     const searchPromise = Store.events.searchMyEvents(
+        req.headers,
         userId,
         requirements,
         searchArgs[0],
@@ -857,7 +928,7 @@ const searchGroupEvents: RequestHandler = async (req: any, res: any) => {
         withMedia,
     } = req.query;
 
-    const searchPromise = Store.events.findGroupEvents(groupIds || [], {
+    const searchPromise = Store.events.findGroupEvents(req.headers, groupIds || [], {
         withUser,
         withMedia,
     });
@@ -920,7 +991,7 @@ const findEvents: RequestHandler = async (req: any, res: any) => {
         isDraft,
     } = req.body;
 
-    return Store.events.findEvents(eventIds, {
+    return Store.events.findEvents(req.headers, eventIds, {
         authorId,
         limit: limit || 21,
         order,

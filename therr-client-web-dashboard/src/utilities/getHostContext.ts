@@ -135,6 +135,9 @@ const getWebsiteName = () => {
         if (window?.location?.hostname === 'dashboard.appymeal.com') {
             return brandConfigs['dashboard.appymeal.com'].websiteName;
         }
+        if (window?.location?.hostname === 'adsly.app') {
+            return brandConfigs['adsly.app'].websiteName;
+        }
         if (window?.location?.hostname === 'adsorchestra.com') {
             return brandConfigs['adsorchestra.com'].websiteName;
         }
