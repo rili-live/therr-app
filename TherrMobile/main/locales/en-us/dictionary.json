@@ -1599,13 +1599,13 @@
       "next": "Next",
       "previous": "Previous",
       "headers": {
-        "create": "Tour: Create 🎨",
-        "connect": "Tour: Connect 🌐",
-        "discovered": "Tour: Discovered 🏞️",
-        "gps": "Tour: Location 📍",
-        "map": "Tour: Map 🌎",
-        "matchUp": "Tour: Match Up 🔥",
-        "menu": "Tour: Menu 💬"
+        "create": "Create 🎨",
+        "connect": "Connect 🌐",
+        "discovered": "Discovered 🏞️",
+        "gps": "Location 📍",
+        "map": "Map 🌎",
+        "matchUp": "Match Up 🔥",
+        "menu": "Menu 💬"
       },
       "tips": {
         "create1": "Click to toggle 'create actions'. These content types require geo-location to encourage local-first engagement.",
