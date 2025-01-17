@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "Therr.app"
-               BlueprintName = "Therr"
-               ReferencedContainer = "container:Therr.xcodeproj">
+               BuildableName = "Teem.app"
+               BlueprintName = "Teem"
+               ReferencedContainer = "container:Teem.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Therr.app"
-            BlueprintName = "Therr"
-            ReferencedContainer = "container:Therr.xcodeproj">
+            BuildableName = "Teem.app"
+            BlueprintName = "Teem"
+            ReferencedContainer = "container:Teem.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Therr.app"
-            BlueprintName = "Therr"
-            ReferencedContainer = "container:Therr.xcodeproj">
+            BuildableName = "Teem.app"
+            BlueprintName = "Teem"
+            ReferencedContainer = "container:Teem.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

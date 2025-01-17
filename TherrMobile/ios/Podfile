@@ -17,8 +17,8 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'Therr' do
-  project 'Therr', 'Therr_Debug' => :debug, 'Debug' => :debug, 'Therr_Release' => :release, 'Release' => :release
+target 'Teem' do
+  project 'Teem', 'Therr_Debug' => :debug, 'Debug' => :debug, 'Therr_Release' => :release, 'Release' => :release
   # React Native Maps dependencies
   # The following line is only needed if building on an Apple silicon Mac without rosetta.
   # pod 'Google-Maps-iOS-Utils', :git => 'https://github.com/Simon-TechForm/google-maps-ios-utils.git', :branch => 'feat/support-apple-silicon'
@@ -48,7 +48,7 @@ target 'Therr' do
   pod 'Permission-Notifications', :path => "#{permissions_path}/Notifications"
   pod 'Permission-PhotoLibrary', :path => "#{permissions_path}/PhotoLibrary"
 
-  # Pods for Therr
+  # Pods for Teem
   pod 'BVLinearGradient', :path => '../node_modules/react-native-linear-gradient'
   pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
   pod 'RCTTypeSafety', :path => "../node_modules/react-native/Libraries/TypeSafety"
@@ -87,7 +87,7 @@ target 'Therr' do
   pod 'GoogleUtilities', :modular_headers => true
   
 
-  target 'TherrTests' do
+  target 'TeemTests' do
     inherit! :complete
     # Pods for testing
   end
