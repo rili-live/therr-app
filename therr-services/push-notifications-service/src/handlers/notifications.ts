@@ -1,14 +1,18 @@
 import { RequestHandler } from 'express';
 import { PushNotifications } from 'therr-js-utilities/constants';
+import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import { predictAndSendNotification } from '../api/firebaseAdmin';
 // import translate from '../utilities/translator';
 
 // CREATE/UPDATE
 const predictAndSendPushNotification: RequestHandler = (req, res) => {
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        brandVariation,
+        userId,
+        locale,
+    } = parseHeaders(req.headers);
 
     const headers = {
         authorization,
@@ -63,14 +67,19 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             groupName,
             groupMembersList,
         },
+        undefined,
+        brandVariation,
     )
         .then(() => res.status(201).send({}))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
 };
 
 const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        brandVariation,
+        userId,
+        locale,
+    } = parseHeaders(req.headers);
 
     const headers = {
         locale: (locale as string),
@@ -122,6 +131,8 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
             totalAreasActivated,
             viewCount,
         },
+        undefined,
+        brandVariation,
     ));
 
     return Promise.all(promises)
@@ -138,9 +149,12 @@ const predictAndSendMultiPushNotification: RequestHandler = (req, res) => {
 // eslint-disable-next-line max-len
 // Example: curl -H "x-userid: 123" "http://localhost:7775/v1/notifications/test?toUserDeviceToken=e6HW-ZgHi-p6jgOUJyk-oc:APA91bGIlp4qZYEKXnDyAi1nvbiqIeTs7RAAgj6QzWVZV7vqtZnCzfnfAVmkB3nK_49DmeOEn70s5xm_kIcEyLJ_NntfcQvlTafof7dZo9gZwhBvCmrCXGr6jw_gvpHaxtS2VAYB0FUG&type=nudge-space-engagement"
 const testPushNotification: RequestHandler = (req, res) => {
-    const authorization = req.headers.authorization;
-    const userId = req.headers['x-userid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        authorization,
+        brandVariation,
+        userId,
+        locale,
+    } = parseHeaders(req.headers);
 
     const headers = {
         authorization,
@@ -198,6 +212,8 @@ const testPushNotification: RequestHandler = (req, res) => {
         type as any || PushNotifications.Types.newLikeReceived,
         notificationData,
         notificationConfig,
+        undefined,
+        brandVariation,
     ).then(() => res.status(201).send(`Sent ${type} notification!`))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
 };

@@ -165,6 +165,7 @@ const createAppAndPushNotification = (
                 userLocale: locale,
             },
             metrics,
+            headers['x-brand-variation'] as any,
         );
     });
 };
@@ -551,6 +552,7 @@ const activateAreasAndNotify = (
                             lastMomentNotificationDate: lastMomentNotificationDate as any,
                             lastSpaceNotificationDate: lastSpaceNotificationDate as any,
                         },
+                        headers['x-brand-variation'] as any,
                     );
                 });
             }
