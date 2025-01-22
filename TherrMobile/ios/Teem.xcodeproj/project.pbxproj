@@ -47,27 +47,27 @@
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = "Teem";
+			remoteInfo = Teem;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
-		00E356EE1AD99517003FC87E /* TeemTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TeemTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		00E356EE1AD99517003FC87E /* TeemTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeemTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00E356F21AD99517003FC87E /* TeemTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "TeemTests.m"; sourceTree = "<group>"; };
+		00E356F21AD99517003FC87E /* TeemTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TeemTests.m; sourceTree = "<group>"; };
 		02C80B30226A68BB6202F68F /* Pods-Teem-TeemTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Teem-TeemTests.release.xcconfig"; path = "Target Support Files/Pods-Teem-TeemTests/Pods-Teem-TeemTests.release.xcconfig"; sourceTree = "<group>"; };
 		03382E3E5EF14D85A7D4B2D5 /* therr-logo.svg */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "therr-logo.svg"; path = "../main/assets/therr-logo.svg"; sourceTree = "<group>"; };
 		0787819506C94321956D70E8 /* google-letter-logo.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "google-letter-logo.png"; path = "../main/assets/google-letter-logo.png"; sourceTree = "<group>"; };
 		0FDA7E83E273463095DE7C9D /* bootsplash_logo@1,5x.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "bootsplash_logo@1,5x.png"; path = "../main/assets/bootsplash_logo@1,5x.png"; sourceTree = "<group>"; };
 		124C5AF1BBC24C06AA3B0790 /* TherrFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = TherrFont.ttf; path = ../main/assets/fonts/TherrFont.ttf; sourceTree = "<group>"; };
 		12D22065542CD981A7430BCB /* Pods-Teem-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Teem-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Teem-tvOS/Pods-Teem-tvOS.release.xcconfig"; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* Teem.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Teem.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = "Teem/AppDelegate.h"; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = "Teem/AppDelegate.mm"; sourceTree = "<group>"; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = "Teem/Images.xcassets"; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Teem/Info.plist"; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = "Teem/main.m"; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* Teem.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Teem.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Teem/AppDelegate.h; sourceTree = "<group>"; };
+		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = Teem/AppDelegate.mm; sourceTree = "<group>"; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Teem/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Teem/Info.plist; sourceTree = "<group>"; };
+		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Teem/main.m; sourceTree = "<group>"; };
 		13D3351AB5B24B319FE71B16 /* Lexend-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Medium.ttf"; path = "../main/assets/fonts/Lexend-Medium.ttf"; sourceTree = "<group>"; };
 		16A98059AF174E4B8194ACF2 /* Lexend-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Light.ttf"; path = "../main/assets/fonts/Lexend-Light.ttf"; sourceTree = "<group>"; };
 		1D29FE24EF9C442B92CE6333 /* Lexend-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-ExtraBold.ttf"; path = "../resources/fonts/Lexend-ExtraBold.ttf"; sourceTree = "<group>"; };
@@ -185,7 +185,7 @@
 				00E356F21AD99517003FC87E /* TeemTests.m */,
 				00E356F01AD99517003FC87E /* Supporting Files */,
 			);
-			path = "TeemTests";
+			path = TeemTests;
 			sourceTree = "<group>";
 		};
 		00E356F01AD99517003FC87E /* Supporting Files */ = {
@@ -210,7 +210,7 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				13B07FB71A68108700A75B9A /* main.m */,
 			);
-			name = "Teem";
+			name = Teem;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -370,8 +370,7 @@
 			dependencies = (
 				00E356F51AD99517003FC87E /* PBXTargetDependency */,
 			);
-			name = "TeemTests";
-			productname = "TeemTests";
+			name = TeemTests;
 			productReference = 00E356EE1AD99517003FC87E /* TeemTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -393,8 +392,8 @@
 			);
 			dependencies = (
 			);
-			name = "Teem";
-			productName = "Teem";
+			name = Teem;
+			productName = Teem;
 			productReference = 13B07F961A680F5B00A75B9A /* Teem.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -671,7 +670,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = "TeemTests/Info.plist";
+				INFOPLIST_FILE = TeemTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -683,7 +682,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.therr.mobile.Teem";
+				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Teem;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "TeemTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -700,7 +699,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				COPY_PHASE_STRIP = NO;
-				INFOPLIST_FILE = "TeemTests/Info.plist";
+				INFOPLIST_FILE = TeemTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -712,7 +711,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.therr.mobile.Teem";
+				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Teem;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "TeemTests-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -822,8 +821,8 @@
 					"$(SRCROOT)/../node_modules/react-native/Libraries/LinkingIOS",
 				);
 				IBC_MODULE = "$(PRODUCT_MODULE_NAME)";
-				INFOPLIST_FILE = "Teem/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Teem";
+				INFOPLIST_FILE = Teem/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Teem;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -925,8 +924,8 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.therr.mobile.Teem";
-				PRODUCT_NAME = "Teem";
+				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Teem;
+				PRODUCT_NAME = Teem;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Teem App Development 4-5-24";
 				SWIFT_OBJC_BRIDGING_HEADER = "Teem-Bridging-Header.h";
@@ -1034,8 +1033,8 @@
 					"$(SRCROOT)/../node_modules/react-native/Libraries/LinkingIOS",
 				);
 				IBC_MODULE = "$(PRODUCT_MODULE_NAME)";
-				INFOPLIST_FILE = "Teem/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Teem";
+				INFOPLIST_FILE = Teem/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Teem;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1129,8 +1128,8 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.therr.mobile.Teem";
-				PRODUCT_NAME = "Teem";
+				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Teem;
+				PRODUCT_NAME = Teem;
 				PROVISIONING_PROFILE_SPECIFIER = "Teem App Distribution 5-3-22";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Teem App Distribution 4-5-24";
 				SWIFT_OBJC_BRIDGING_HEADER = "Teem-Bridging-Header.h";
@@ -1207,7 +1206,10 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -1273,7 +1275,10 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;

@@ -18,7 +18,7 @@ if linkage != nil
 end
 
 target 'Teem' do
-  project 'Teem', 'Therr_Debug' => :debug, 'Debug' => :debug, 'Therr_Release' => :release, 'Release' => :release
+  project 'Teem', 'Teem_Debug' => :debug, 'Debug' => :debug, 'Teem_Release' => :release, 'Release' => :release
   # React Native Maps dependencies
   # The following line is only needed if building on an Apple silicon Mac without rosetta.
   # pod 'Google-Maps-iOS-Utils', :git => 'https://github.com/Simon-TechForm/google-maps-ios-utils.git', :branch => 'feat/support-apple-silicon'
