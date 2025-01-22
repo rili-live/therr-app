@@ -1,25 +1,39 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.therr.mobile.Teem"
   xmlns:tools="http://schemas.android.com/tools">
+  <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+  <uses-permission android:name="android.permission.CAMERA" />
+  <uses-permission android:name="android.permission.READ_CONTACTS" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+  <uses-permission android:name="android.permission.INTERNET" />
 
-    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-    <uses-permission android:name="android.permission.INTERNET" />
-    
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
-    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
+  <uses-feature
+    android:name="android.hardware.camera"
+    android:required="false" />
+  <uses-feature
+    android:name="android.hardware.camera.front"
+    android:required="false" />
 
-    <application
-      android:name=".MainApplication"
+  <application
+    android:name=".MainApplication"
+    android:label="@string/app_name"
+    android:icon="@mipmap/ic_launcher"
+    android:roundIcon="@mipmap/ic_launcher_round"
+    android:usesCleartextTraffic="true"
+    android:allowBackup="false"
+    android:theme="@style/AppTheme">
+    <meta-data
+      android:name="com.transistorsoft.locationmanager.license"
+      android:value="7ae51b9238254e95b67105b91d62ee57189cd534ad26a47c73efb2e2cd257b48" />
+    <activity
+      android:name=".MainActivity"
       android:label="@string/app_name"
       android:icon="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher_round"
@@ -128,133 +142,206 @@
         </intent-filter>
       </activity>
 
-      <meta-data
-        android:name="com.google.android.geo.API_KEY"
-        android:value="${GOOGLE_APIS_ANDROID_KEY}"
-      />
-      <!-- <service android:name="io.invertase.firebase.messaging.RNFirebaseMessagingService" android:exported="true">
-        <intent-filter>
-          <action android:name="com.google.firebase.MESSAGING_EVENT" />
-        </intent-filter>
-      </service>
-      <service android:name="io.invertase.firebase.messaging.RNFirebaseInstanceIdService" android:exported="true">
-        <intent-filter>
-          <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
-        </intent-filter>
-      </service> -->
-      <meta-data
-        android:name="com.google.firebase.messaging.default_notification_icon"
-        android:resource="@drawable/ic_notification_icon"
-        tools:replace="android:resource"
-      />
-      <meta-data
-        android:name="com.google.firebase.messaging.default_notification_color"
-        android:resource="@color/therr_blue"
-        tools:replace="android:resource"
-      />
-      <meta-data
-        android:name="com.google.firebase.messaging.default_notification_channel_id"
-        android:value="@string/default_notification_channel_id"
-        tools:replace="android:value" />
-      <uses-library android:name="org.apache.http.legacy" android:required="false"/>
-    </application>
+        <data
+          android:scheme="https"
+          android:host="www.therr.com" />
 
-    <queries>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="http"/>
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="https"/>
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="geo" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="google.navigation" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="applemaps" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="citymapper" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="uber" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="lyft" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="transit" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="truckmap" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="waze" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="yandexnavi" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="moovit" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="yandexmaps://maps.yandex." />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="yandextaxi" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="kakaomap" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="mapycz" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="mapsme" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="osmand.geo" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="gett" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="nmap" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="dgis" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="lftgpas" />
-      </intent>
-      <intent>
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="petalmaps" />
-      </intent>
-    </queries>
+        <data
+          android:scheme="https"
+          android:host="therr.com" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.ACHIEVEMENT_COMPLETED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.CREATE_YOUR_PROFILE_REMINDER" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.CREATE_A_MOMENT_REMINDER" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.LATEST_POST_LIKES_STATS" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.LATEST_POST_VIEWCOUNT_STATS" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.NEW_AREAS_ACTIVATED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.NUDGE_SPACE_ENGAGEMENT" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.NEW_CONNECTION" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.NEW_CONNECTION_REQUEST" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.NEW_DIRECT_MESSAGE" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.NEW_GROUP_MESSAGE" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.NEW_GROUP_INVITE" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.NEW_GROUP_MEMBERS" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.NEW_LIKE_RECEIVED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.NEW_SUPER_LIKE_RECEIVED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+
+      <intent-filter>
+        <action android:name="app.therrmobile.NEW_THOUGHT_REPLY_RECEIVED" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
+
+    <meta-data
+      android:name="com.google.android.geo.API_KEY"
+      android:value="${GOOGLE_APIS_ANDROID_KEY}" />
+
+    <meta-data
+      android:name="com.google.firebase.messaging.default_notification_icon"
+      android:resource="@drawable/ic_notification_icon"
+      tools:replace="android:resource" />
+    <meta-data
+      android:name="com.google.firebase.messaging.default_notification_color"
+      android:resource="@color/therr_blue"
+      tools:replace="android:resource" />
+    <meta-data
+      android:name="com.google.firebase.messaging.default_notification_channel_id"
+      android:value="@string/default_notification_channel_id"
+      tools:replace="android:value" />
+    <uses-library
+      android:name="org.apache.http.legacy"
+      android:required="false" />
+  </application>
+
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="http" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="https" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="geo" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="google.navigation" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="applemaps" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="citymapper" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="uber" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="lyft" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="transit" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="truckmap" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="waze" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="yandexnavi" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="moovit" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="yandexmaps://maps.yandex." />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="yandextaxi" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="kakaomap" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="mapycz" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="mapsme" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="osmand.geo" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="gett" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="nmap" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="dgis" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="lftgpas" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="petalmaps" />
+    </intent>
+  </queries>
 </manifest>

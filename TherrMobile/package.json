@@ -68,7 +68,7 @@
     "react-native-background-fetch": "^4.2.3",
     "react-native-background-geolocation": "^4.17.1",
     "react-native-blob-util": "^0.19.1",
-    "react-native-bootsplash": "^5.4.1",
+    "react-native-bootsplash": "^6.0.0",
     "react-native-config": "^1.5.2",
     "react-native-contacts": "^7.0.4",
     "react-native-country-picker-modal": "^2.0.0",

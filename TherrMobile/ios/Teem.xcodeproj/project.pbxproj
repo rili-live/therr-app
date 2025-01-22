@@ -39,6 +39,8 @@
 		B31CBB9A40424042B80A9EEF /* Lexend-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1D29FE24EF9C442B92CE6333 /* Lexend-ExtraBold.ttf */; };
 		BF1AAC2817CD4831A7C9B88A /* Lexend-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CD15F12F138B49E8BA10EE32 /* Lexend-ExtraLight.ttf */; };
 		F0CBAA697E4B49DA9FD6626C /* Lexend-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 68A1BBC0CA244A228C509B6B /* Lexend-Regular.ttf */; };
+		D3D8AE9723124B0EA47429A1 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9804E00C3BD4D6D8AFE386A /* BootSplash.storyboard */; };
+		00B36B8E10844EBFB1853B4B /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -151,6 +153,8 @@
 		F1DD5295B3A84303ABA9A753 /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		FDE6B26EEAF346908CBF0725 /* therr-logo-with-shadow.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "therr-logo-with-shadow.png"; path = "../main/assets/therr-logo-with-shadow.png"; sourceTree = "<group>"; };
 		FDF1087DEAA345039EA6A70E /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
+		A9804E00C3BD4D6D8AFE386A /* BootSplash.storyboard */ = {isa = PBXFileReference; name = "BootSplash.storyboard"; path = "Therr/BootSplash.storyboard"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */ = {isa = PBXFileReference; name = "Colors.xcassets"; path = "Therr/Colors.xcassets"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = folder.assetcatalog; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -465,6 +469,8 @@
 				828BAD9501C34D7D9A9D1CEA /* Lexend-Thin.ttf in Resources */,
 				3010792C01E04F0597F51208 /* SSOFont.ttf in Resources */,
 				95020E9E7316455981E47842 /* TherrFont.ttf in Resources */,
+				D3D8AE9723124B0EA47429A1 /* BootSplash.storyboard in Resources */,
+				00B36B8E10844EBFB1853B4B /* Colors.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
