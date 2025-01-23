@@ -325,7 +325,7 @@ const UserDisplayHeader = ({
                         !!userInView?.connectionCount &&
                         <Pressable style={themeUser.styles.connectionCountContainer} onPress={goToConnections}>
                             <LogoIcon
-                                name="therr-logo"
+                                name="teem-logo"
                                 size={20}
                                 style={themeUser.styles.connectionCountIcon}
                             />

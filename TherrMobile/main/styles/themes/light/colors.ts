@@ -64,7 +64,7 @@ const colors: ITherrThemeColors = {
     accentTeal: '#2BC5D6',
     accentLime: '#26B379',
     accentDivider: '#4950571c',
-    accentLogo: '#1E8A96',
+    accentLogo: '#9748FF',
 
     // Socials
     facebook: '#4167b2',
