@@ -150,8 +150,6 @@ jobs:
           docker_layer_caching: true
       - attach_workspace:
             at: ~/
-      - load_deps_image:
-          for: deploying
       - run:
           name: Login to DockerHub
           command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
@@ -179,7 +177,11 @@ workflows:
   # For more details on extending your workflow, see the configuration docs: https://circleci.com/docs/2.0/configuration-reference/#workflows
   build_test_publish_deploy:
     jobs:
-      - docker_build_base_image
+      - docker_build_base_image:
+          filters:
+            branches:
+              ignore:
+                - main
       - test_libraries:
           requires:
           - docker_build_base_image
@@ -204,8 +206,6 @@ workflows:
               only:
                 - stage
       - deploy:
-          requires:
-          - docker_build_base_image
           filters:
             branches:
               only:
