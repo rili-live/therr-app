@@ -9,64 +9,75 @@ orbs:
   node: circleci/node@7.0.0
   kubernetes: circleci/kubernetes@1.3.1
 
-jobs:
-  install_dependencies:
-    # These next lines define a Docker executor: https://circleci.com/docs/2.0/executor-types/
-    # You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-    # A list of available CircleCI Docker Convenience Images are available here: https://circleci.com/developer/images/image/cimg/node
-    docker:
-      - image: cimg/node:20.18.1
-    # Then run your tests!
-    # CircleCI will report the results back to your VCS provider.
+commands:
+  load_deps_image:
+    description: "Load the Therr dependencies image and tag it as latest"
+    parameters:
+      for:
+        type: string
     steps:
-      # Checkout the code as the first step.
+      - run:
+          name: Load Therr Deps image
+          command: |
+            echo Loading dependencies image for << parameters.for >> Therr services
+            docker image load < "images/therr_deps_${CIRCLE_SHA1}"
+      - run:
+         name: Tag Therr Deps image locally
+         command: |
+           docker tag "therrapp/service-dependencies:${CIRCLE_SHA1}" "therrapp/service-dependencies:latest"
+
+jobs:
+  docker_build_base_image:
+    docker:
+      - image: cimg/go:1.22.11
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
+    steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
+      - attach_workspace:
+          at: ~/
+      - run: |
+          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run:
-          name: Setup NVM
+          name: Build Docker Dependencies Image
+          command: docker build -t "therrapp/service-dependencies:${CIRCLE_SHA1}" .
+      - run:
+          name: Save Docker Dependencies Image as tar
           command: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-            echo 'export NVM_DIR=$HOME/.nvm' >> $BASH_ENV
-            echo 'source $NVM_DIR/nvm.sh' >> $BASH_ENV
-      - run:
-          name: Verify nvm, node, and npm version
-          command: |
-            nvm --version
-            node -v
-            npm -v
-            nvm install $NODE_VERSION
-            nvm use $NODE_VERSION
-            node -v
-            nvm install-latest-npm
-            npm -v
-      - run:
-          name: Install Dependencies
-          command: npm ci --omit=optional --legacy-peer-deps && _bin/apply-to-all.sh 'npm ci --omit=optional --legacy-peer-deps'
-      - run:
-          name: Build Libraries
-          command: |
-            npm i sass-embedded-linux-x64 -D --legacy-peer-deps
-            npm run build:base
+            mkdir -p images
+            docker image save -o "images/therr_deps_${CIRCLE_SHA1}" "therrapp/service-dependencies:${CIRCLE_SHA1}"
       - persist_to_workspace:
           root: ~/
           paths:
             - project
-  test-units:
+            - images
+  test_libraries:
     docker:
-      - image: cimg/node:20.18.1
+      - image: cimg/go:1.22.11
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
       - attach_workspace:
           at: ~/
+      - load_deps_image:
+          for: testing
       - run:
-          name: Run Unit Tests
-          command: echo "Hello, Test"
-      # - run:
-      #     name: Lint
-      #     command: npm run lint:all
-  docker_build_publish_images:
+          name: Inspect loaded image
+          command: docker image ls
+      - run:
+          name: Run JS Utilities Library Unit Tests
+          command: docker run -it therrapp/service-dependencies /bin/sh -c 'cd therr-public-library/therr-js-utilities/; npm test'
+      - run:
+          name: Run React Library Unit Tests
+          command: docker run -it therrapp/service-dependencies /bin/sh -c 'cd therr-public-library/therr-react/; npm test'
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
+  docker_build_test_publish_images:
     docker:
       - image: cimg/go:1.20.0
         auth:
@@ -81,11 +92,16 @@ jobs:
           docker_layer_caching: true
       - attach_workspace:
             at: ~/
+      - load_deps_image:
+          for: building
       - run: |
           echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run:
           name: Build Docker Images
           command: ./_bin/cicd/build.sh
+      - run:
+          name: Run Unit Tests on Microservices
+          command: ./_bin/cicd/test-microservices.sh
       - add_ssh_keys:
           fingerprints:
             - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
@@ -103,10 +119,12 @@ jobs:
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: |
-          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - attach_workspace:
             at: ~/
+      - load_deps_image:
+          for: testing
+      - run: |
+          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run:
           name: Apply Stage w/ Kubectl
           # This should pull the latest images (verify and determine if necessary to set image with commit SHA)
@@ -127,6 +145,10 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
+      - attach_workspace:
+            at: ~/
+      - load_deps_image:
+          for: deploying
       - run: |
           echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run: |
@@ -151,34 +173,33 @@ workflows:
   # For more details on extending your workflow, see the configuration docs: https://circleci.com/docs/2.0/configuration-reference/#workflows
   build_test_publish_deploy:
     jobs:
-      - install_dependencies:
-          filters:
-            branches:
-              ignore:
-                - main
-      - test-units:
+      - docker_build_base_image:
+      - test_libraries:
           requires:
-          - install_dependencies
+          - docker_build_base_image
           filters:
             branches:
               ignore:
                 - stage
                 - main
-      - docker_build_publish_images:
+      - docker_build_test_publish_images:
           requires:
-          - install_dependencies
+          - docker_build_base_image
           filters:
             branches:
               only:
                 - stage
       - test-integrations:
           requires:
-          - docker_build_publish_images
+          - docker_build_test_publish_images
+          - docker_build_base_image
           filters:
             branches:
               only:
                 - stage
       - deploy:
+          requires:
+          - docker_build_base_image
           filters:
             branches:
               only:
