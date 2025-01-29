@@ -173,7 +173,7 @@ workflows:
   # For more details on extending your workflow, see the configuration docs: https://circleci.com/docs/2.0/configuration-reference/#workflows
   build_test_publish_deploy:
     jobs:
-      - docker_build_base_image:
+      - docker_build_base_image
       - test_libraries:
           requires:
           - docker_build_base_image
