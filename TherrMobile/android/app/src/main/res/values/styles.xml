@@ -1,19 +1,8 @@
 <resources>
-
-    <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="android:textColor">#000000</item>
         <item name="android:statusBarColor">@color/therr_blue</item>
-    </style>
-
-    <!-- BootTheme should inherit from Theme.BootSplash or Theme.BootSplash.EdgeToEdge -->
-    <style name="BootTheme" parent="Theme.BootSplash">
-        <item name="bootSplashBackground">@color/bootsplash_background</item>
-        <item name="bootSplashLogo">@drawable/bootsplash_logo</item>
-        <!-- <item name="windowSplashScreenAnimationDuration">300</item> -->
-        <!-- <item name="bootSplashBrand">@drawable/bootsplash_brand</item> Only if you have a brand image -->
-        <item name="postBootSplashTheme">@style/AppTheme</item>
     </style>
 
     <style name="DatePickerTheme" parent="DatePickerBaseTheme">
@@ -21,4 +10,9 @@
         <item name="colorAccent">@color/therr_blue</item>
     </style>
 
+    <style name="BootTheme" parent="Theme.BootSplash">
+        <item name="bootSplashBackground">@color/bootsplash_background</item>
+        <item name="bootSplashLogo">@drawable/bootsplash_logo</item>
+        <item name="postBootSplashTheme">@style/AppTheme</item>
+    </style>
 </resources>

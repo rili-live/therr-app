@@ -60,35 +60,35 @@ should_build_service()
 # Docker Build
 if should_build_web_app || should_build_web_app_dashboard; then
   docker build -t therrapp/client-web$SUFFIX:latest -t therrapp/client-web$SUFFIX:$GIT_SHA -f ./therr-client-web/Dockerfile \
-    --build-arg NODE_VERSION=${NODE_VERSION} .
+    --build-arg NODE_VERSION=${NODE_VERSION} ./therr-client-web
 fi
 if should_build_service "therr-api-gateway"; then
   docker build -t therrapp/api-gateway$SUFFIX:latest -t therrapp/api-gateway$SUFFIX:$GIT_SHA -f ./therr-api-gateway/Dockerfile \
-    --build-arg NODE_VERSION=${NODE_VERSION} .
+    --build-arg NODE_VERSION=${NODE_VERSION} ./therr-api-gateway
 fi
 if should_build_service "therr-services/push-notifications-service"; then
   docker build -t therrapp/push-notifications-service$SUFFIX:latest -t therrapp/push-notifications-service$SUFFIX:$GIT_SHA -f ./therr-services/push-notifications-service/Dockerfile \
-    --build-arg NODE_VERSION=${NODE_VERSION} .
+    --build-arg NODE_VERSION=${NODE_VERSION} ./therr-services/push-notifications-service
 fi
 if should_build_service "therr-services/maps-service"; then
   docker build -t therrapp/maps-service$SUFFIX:latest -t therrapp/maps-service$SUFFIX:$GIT_SHA -f ./therr-services/maps-service/Dockerfile \
-    --build-arg NODE_VERSION=${NODE_VERSION} .
+    --build-arg NODE_VERSION=${NODE_VERSION} ./therr-services/maps-service
 fi
 if should_build_service "therr-services/messages-service"; then
   docker build -t therrapp/messages-service$SUFFIX:latest -t therrapp/messages-service$SUFFIX:$GIT_SHA -f ./therr-services/messages-service/Dockerfile \
-    --build-arg NODE_VERSION=${NODE_VERSION} .
+    --build-arg NODE_VERSION=${NODE_VERSION} ./therr-services/messages-service
 fi
 if should_build_service "therr-services/reactions-service"; then
   docker build -t therrapp/reactions-service$SUFFIX:latest -t therrapp/reactions-service$SUFFIX:$GIT_SHA -f ./therr-services/reactions-service/Dockerfile \
-  --build-arg NODE_VERSION=${NODE_VERSION} .
+  --build-arg NODE_VERSION=${NODE_VERSION} ./therr-services/reactions-service
 fi
 if should_build_service "therr-services/users-service"; then
   docker build -t therrapp/users-service$SUFFIX:latest -t therrapp/users-service$SUFFIX:$GIT_SHA -f ./therr-services/users-service/Dockerfile \
-  --build-arg NODE_VERSION=${NODE_VERSION} .
+  --build-arg NODE_VERSION=${NODE_VERSION} ./therr-services/users-service
 fi
 if should_build_service "therr-services/websocket-service"; then
   docker build -t therrapp/websocket-service$SUFFIX:latest -t therrapp/websocket-service$SUFFIX:$GIT_SHA -f ./therr-services/websocket-service/Dockerfile \
-    --build-arg NODE_VERSION=${NODE_VERSION} .
+    --build-arg NODE_VERSION=${NODE_VERSION} ./therr-services/websocket-service
 fi
 
 echo "Docker build complete for all services with changes"
