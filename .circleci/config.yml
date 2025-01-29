@@ -158,13 +158,13 @@ jobs:
       - run: 
           name: Login to Google Cloud and connect to GKE Cluster
           command: |
-          gke-gcloud-auth-plugin --version
-          echo "export USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> ~/.bashrc
-          source ~/.bashrc
-          echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
-          gcloud --quiet config set project therr-app
-          gcloud --quiet config set compute/zone us-central1-a
-          gcloud container clusters get-credentials cluster-1
+            gke-gcloud-auth-plugin --version
+            echo "export USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> ~/.bashrc
+            source ~/.bashrc
+            echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+            gcloud --quiet config set project therr-app
+            gcloud --quiet config set compute/zone us-central1-a
+            gcloud container clusters get-credentials cluster-1
       - add_ssh_keys:
           fingerprints:
             - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
