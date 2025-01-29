@@ -4,6 +4,7 @@
 import * as React from 'react';
 import { shallow } from 'enzyme';
 import { Key as KeyCode } from 'ts-keycode-enum';
+import { act } from 'react-test-renderer';
 import SelectBox from '../SelectBox';
 
 describe('SelectBox', () => {
@@ -33,10 +34,10 @@ describe('SelectBox', () => {
     });
 
     const simulateButtonKeydown = (keyCode: any) => {
-        wrapper.find('button').simulate('keyDown', {
+        act(() => wrapper.find('button').simulate('keyDown', {
             keyCode,
             preventDefault: mockPreventDefault,
-        });
+        }));
     };
 
     it('should initialize with expected option selected', () => {
@@ -44,11 +45,11 @@ describe('SelectBox', () => {
     });
 
     it('hides options when clicked outside of component', () => {
-        wrapper.instance().toggleSelectionVisibility();
+        act(() => wrapper.instance().toggleSelectionVisibility());
         expect(wrapper.state().optionsAreVisible).toBe(true);
-        wrapper.instance().handlePageClick({
+        act(() => wrapper.instance().handlePageClick({
             target: 'not-the-button-element',
-        });
+        }));
         expect(wrapper.state().optionsAreVisible).toBe(false);
     });
 
@@ -85,7 +86,7 @@ describe('SelectBox', () => {
         });
         expect(wrapper.find('.select-box').hasClass('disabled')).toBe(true);
         expect(wrapper.state().optionsAreVisible).toBe(false);
-        wrapper.instance().toggleSelectionVisibility();
+        act(() => wrapper.instance().toggleSelectionVisibility());
         expect(wrapper.state().optionsAreVisible).toBe(false);
         wrapper.find('button').simulate('focus');
         wrapper.find('button').simulate('keyDown', {
@@ -100,27 +101,27 @@ describe('SelectBox', () => {
     it('applies "is-touched" class when input is focused', () => {
         expect(wrapper.find('.select-box').length).toBe(1);
         expect(wrapper.find('.select-box').hasClass('is-touched')).toBe(false);
-        wrapper.instance().onFocus();
+        act(() => wrapper.instance().onFocus());
         wrapper.update();
         expect(wrapper.find('.select-box').hasClass('is-touched')).toBe(true);
     });
 
     it('updates input with correct, supplied value', () => {
         const expectedText = mockOptions[1].text;
-        wrapper.instance().handleSelectionChange({
+        act(() => wrapper.instance().handleSelectionChange({
             preventDefault: jest.fn(),
             target: {
                 dataset: {
                     index: 1,
                 },
             },
-        });
+        }));
         wrapper.update();
         expect(wrapper.find('.select-box').text()).toBe(expectedText);
     });
 
     it('highlights the correct option using AX arrow keys', () => {
-        wrapper.instance().toggleSelectionVisibility();
+        act(() => wrapper.instance().toggleSelectionVisibility());
         wrapper.update();
         expect(wrapper.state().optionsAreVisible).toBe(true);
         expect(wrapper.find('.option-container').length).toBe(3);
@@ -145,7 +146,7 @@ describe('SelectBox', () => {
         expect(wrapper.state().optionsAreVisible).toBe(false);
         expect(wrapper.find('.option-container').length).toBe(0);
 
-        wrapper.instance().toggleSelectionVisibility();
+        act(() => wrapper.instance().toggleSelectionVisibility());
         wrapper.update();
         expect(wrapper.state().optionsAreVisible).toBe(true);
         expect(wrapper.find('.option-container').length).toBe(3);

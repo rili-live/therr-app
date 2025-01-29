@@ -3,6 +3,7 @@
  */
 import * as React from 'react';
 import { mount } from 'enzyme';
+import { act } from 'react-test-renderer';
 import { Key as KeyCode } from 'ts-keycode-enum';
 import SearchBox from '../SearchBox';
 
@@ -40,12 +41,12 @@ describe('SearchBox', () => {
     it('applies and removes "is-dirty" class when text is added and removed', () => {
         const expectedValue = 'Test entry';
         const inputWrapper = wrapper.find('Input');
-        inputWrapper.instance().handleInputChange({
+        act(() => inputWrapper.instance().handleInputChange({
             target: {
                 name: searchBoxName,
                 value: expectedValue,
             },
-        });
+        }));
         wrapper.setProps({
             value: expectedValue,
         });
@@ -54,12 +55,12 @@ describe('SearchBox', () => {
         expect(mockOnChange).toHaveBeenCalledWith(searchBoxName, expectedValue);
         expect(wrapper.state().inputValue).toBe(expectedValue);
         expect(wrapper.find('.search-box').hasClass('is-dirty')).toBe(true);
-        inputWrapper.instance().handleInputChange({
+        act(() => inputWrapper.instance().handleInputChange({
             target: {
                 name: searchBoxName,
                 value: '',
             },
-        });
+        }));
         wrapper.setProps({
             value: '',
         });
