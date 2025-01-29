@@ -3,6 +3,7 @@
  */
 import * as React from 'react';
 import { mount } from 'enzyme';
+import { act } from 'react-test-renderer';
 import Input from '../Input';
 import VALIDATIONS from '../../../constants/VALIDATIONS';
 
@@ -22,21 +23,21 @@ describe('Input', () => {
 
     it('applies and removes "is-dirty" class when text is added and removed', () => {
         const expectedValue = 'Test entry';
-        wrapper.instance().handleInputChange({
+        act(() => wrapper.instance().handleInputChange({
             target: {
                 name: inputName,
                 value: expectedValue,
             },
-        });
+        }));
         wrapper.update();
         expect(mockOnChange).toHaveBeenCalledTimes(1);
         expect(wrapper.find('input').hasClass('is-dirty')).toBe(true);
-        wrapper.instance().handleInputChange({
+        act(() => wrapper.instance().handleInputChange({
             target: {
                 name: inputName,
                 value: '',
             },
-        });
+        }));
         wrapper.update();
         expect(wrapper.state().inputValue).toBe('');
         expect(wrapper.find('input').hasClass('is-dirty')).toBe(false);
@@ -93,12 +94,12 @@ describe('Input', () => {
 
     it('updates input with correct, supplied value', () => {
         const expectedValue = 'Test entry';
-        wrapper.instance().handleInputChange({
+        act(() => wrapper.instance().handleInputChange({
             target: {
                 name: inputName,
                 value: expectedValue,
             },
-        });
+        }));
         wrapper.update();
 
         // This prop is not really a React prop, but rather the value property on a standard input
