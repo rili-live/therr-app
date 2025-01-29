@@ -39,8 +39,9 @@ jobs:
           docker_layer_caching: true
       - attach_workspace:
           at: ~/
-      - run: |
-          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
+      - run:
+          name: Login to DockerHub
+          command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run:
           name: Build Docker Dependencies Image
           command: docker build -t "therrapp/service-dependencies:${CIRCLE_SHA1}" .
@@ -65,13 +66,13 @@ jobs:
       - load_deps_image:
           for: testing
       - run:
-          name: Inspect loaded image
+          name: Inspect loaded Docker image
           command: docker image ls
       - run:
-          name: Run JS Utilities Library Unit Tests
+          name: Run Unit Tests - JS Utilities Library
           command: docker run -it therrapp/service-dependencies /bin/sh -c 'cd therr-public-library/therr-js-utilities/; npm test'
       - run:
-          name: Run React Library Unit Tests
+          name: Run Unit Tests - React Library
           command: docker run -it therrapp/service-dependencies /bin/sh -c 'cd therr-public-library/therr-react/; npm test'
       - persist_to_workspace:
           root: ~/
@@ -94,10 +95,11 @@ jobs:
             at: ~/
       - load_deps_image:
           for: building
-      - run: |
-          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run:
-          name: Build Docker Images
+          name: Login to DockerHub
+          command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
+      - run:
+          name: Build Microservice Docker Images
           command: ./_bin/cicd/build.sh
       - run:
           name: Run Unit Tests on Microservices
@@ -123,8 +125,9 @@ jobs:
             at: ~/
       - load_deps_image:
           for: testing
-      - run: |
-          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
+      - run:
+          name: Login to DockerHub
+          command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run:
           name: Apply Stage w/ Kubectl
           # This should pull the latest images (verify and determine if necessary to set image with commit SHA)
@@ -149,9 +152,12 @@ jobs:
             at: ~/
       - load_deps_image:
           for: deploying
-      - run: |
-          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
-      - run: |
+      - run:
+          name: Login to DockerHub
+          command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
+      - run: 
+          name: Login to Google Cloud and connect to GKE Cluster
+          command: |
           gke-gcloud-auth-plugin --version
           echo "export USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> ~/.bashrc
           source ~/.bashrc
@@ -163,7 +169,7 @@ jobs:
           fingerprints:
             - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
       - run:
-          name: Deploy To GKE
+          name: Deploy Changes To GKE
           command: ./_bin/cicd/deploy.sh
 
 workflows:
