@@ -8,14 +8,16 @@ RUN npm i npm@latest -g
 
 WORKDIR /app
 
-# Create app directory
-RUN mkdir /app/therr-client-web
+# Create client web directory
 RUN mkdir /app/therr-client-web-dashboard
-WORKDIR /app/therr-client-web
-COPY . .
-COPY ../_bin/start-frontend-services.sh ./start-frontend-services.sh
+WORKDIR /app/therr-client-web-dashboard
+COPY ./therr-client-web-dashboard .
 
-COPY ../therr-client-web-dashboard ../therr-client-web-dashboard
+# Create client web dashboard directory
+RUN mkdir /app/therr-client-web
+WORKDIR /app/therr-client-web
+COPY ./therr-client-web .
+COPY ./_bin/start-frontend-services.sh .
 
 # Install microservice dependencies (client-web)
 RUN \
@@ -63,6 +65,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/therr-client-web ./therr-client-web
 COPY --from=builder /app/therr-client-web-dashboard ./therr-client-web-dashboard
 
+COPY --from=builder --chown=nodeuser:nodejs /app/therr-client-web/start-frontend-services.sh ./
 COPY --from=builder --chown=nodeuser:nodejs /app/therr-client-web/build ./
 COPY --from=builder --chown=nodeuser:nodejs /app/therr-client-web/build ./build
 COPY --from=builder --chown=nodeuser:nodejs /app/therr-client-web-dashboard/build ./

@@ -60,7 +60,7 @@ should_build_service()
 # Docker Build
 if should_build_web_app || should_build_web_app_dashboard; then
   docker build -t therrapp/client-web$SUFFIX:latest -t therrapp/client-web$SUFFIX:$GIT_SHA -f ./therr-client-web/Dockerfile \
-    --build-arg NODE_VERSION=${NODE_VERSION} ./therr-client-web
+    --build-arg NODE_VERSION=${NODE_VERSION} .
 fi
 if should_build_service "therr-api-gateway"; then
   docker build -t therrapp/api-gateway$SUFFIX:latest -t therrapp/api-gateway$SUFFIX:$GIT_SHA -f ./therr-api-gateway/Dockerfile \
