@@ -1,7 +1,7 @@
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
-import { AccessLevels, UserConnectionTypes } from 'therr-js-utilities/constants';
+import { AccessLevels, BrandVariations, UserConnectionTypes } from 'therr-js-utilities/constants';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
 import normalizeEmail from 'normalize-email';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
@@ -58,6 +58,8 @@ interface IGetUserHelperArgs {
         userName?: string;
     };
 }
+
+const isBrandValid = (brand: string) => Object.values(BrandVariations).includes(brand as BrandVariations);
 
 /**
  * Removed sensitive information from user response so we don't return it in REST responses
@@ -273,6 +275,12 @@ const createUserHelper = (
             }
             return Store.users.createUser({
                 accessLevels: JSON.stringify([...userAccessLevels]),
+                brandVariations: (headers['x-brand-variation'] && isBrandValid(headers['x-brand-variation']))
+                    ? JSON.stringify({
+                        brand: headers['x-brand-variation'],
+                        details: {},
+                    })
+                    : undefined,
                 email: userDetails.email,
                 firstName: userDetails.firstName || undefined,
                 hasAgreedToTerms,
