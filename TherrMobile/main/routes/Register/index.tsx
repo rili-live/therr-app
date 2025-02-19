@@ -121,7 +121,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                     {pageTitle}
                                 </Text>
                                 <Text style={this.themeFTUI.styles.subtitle}>
-                                    {pageSubtitle} <Text onPress={this.goToMap} style={this.themeForms.styles.buttonLink}>{pageSubtitleMapPreviewLink}</Text>
+                                    {pageSubtitle}
                                 </Text>
                             </View>
                             <RegisterForm

@@ -31,16 +31,19 @@ class HeaderMenuLeft extends React.Component<
     }
 
     handlePress = () => {
-        const { isAuthenticated, isEmailVerifed, navigation } = this.props;
-        if (isAuthenticated && isEmailVerifed) {
-            navigation.navigate('Map', {
-                shouldShowPreview: false,
-            });
-        } else if (isAuthenticated) {
-            navigation.navigate('CreateProfile');
-        } else {
-            navigation.navigate('Map');
-        }
+        // const { isAuthenticated, isEmailVerifed, navigation } = this.props;
+        const { navigation } = this.props;
+        // if (isAuthenticated && isEmailVerifed) {
+        //     navigation.navigate('Map', {
+        //         shouldShowPreview: false,
+        //     });
+        // } else if (isAuthenticated) {
+        //     navigation.navigate('CreateProfile');
+        // } else {
+        //     navigation.navigate('Map');
+        // }
+
+        navigation.navigate('Home');
     };
 
     render() {

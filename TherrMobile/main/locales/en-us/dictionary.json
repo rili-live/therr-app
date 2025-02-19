@@ -1402,7 +1402,7 @@
     "register": {
       "headerTitle": "Teem",
       "pageTitle": "Sign Up",
-      "pageSubtitle": "Create a profile and see what you are missing or view the",
+      "pageSubtitle": "Create a profile and start building your teem!",
       "pageSubtitleMapPreviewLink": "public map",
       "passwordRequirements1": "Contains a mixture of letters and numbers",
       "passwordRequirements2": "At least one capital letter",
@@ -1486,7 +1486,7 @@
       "pageTitle": "User Profile",
       "siteDescription1": "Welcome to Teem app. As we gather feedback and develop new features, let us know how we can improve the experience.",
       "siteDescription2": "So how does it work?",
-      "siteDescription3": "Content on the map is proximity activated. Share a moment with your connections on the map. Discover spaces nearby, and claim TeemCoins for actions (posting, reviewing, visiting, etc).",
+      "siteDescription3": "Match with friends nearby, schedule hangouts, and create groups/teems to share common interests. Share a moment with your connections on the map to branch out and meet new friends.",
       "siteDescription4": "Then, check your feed for moments posted by others in the locales you travel to most often. Get to know the local culture by searching content that was shared nearby. Just tap anywhere on the map to start exploring.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",

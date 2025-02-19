@@ -70,7 +70,7 @@ const initInterceptors = (
                     index: 1,
                     routes: [
                         {
-                            name: 'Login',
+                            name: 'Register',
                         },
                     ],
                 })
