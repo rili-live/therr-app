@@ -5,7 +5,6 @@ import { getHostContext } from '../../constants/hostContext';
 
 export interface ISendPasswordChangeEmailConfig {
     charset?: string;
-    subject: string;
     toAddresses: string[];
     agencyDomainName: string;
     brandVariation: string;
@@ -31,5 +30,6 @@ export default (emailParams: ISendPasswordChangeEmailConfig, templateParams: ITe
 
     return sendEmail({
         ...emailParams,
+        subject: `[Password Changed] ${contextConfig.brandShortName} Account Settings`,
     }, htmlConfig);
 };
