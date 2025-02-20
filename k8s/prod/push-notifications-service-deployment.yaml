@@ -90,7 +90,7 @@ spec:
       - name: cloud-sql-proxy
         # It is recommended to use the latest version of the Cloud SQL proxy
         # Make sure to update on a regular schedule!
-        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.10.1
+        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.3
         args:
           # If connecting from a VPC-native GKE cluster, you can use the
           # following flag to have the proxy connect over private IP

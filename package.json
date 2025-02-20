@@ -162,6 +162,7 @@
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.752.0",
     "@babel/preset-react": "^7.18.6",
     "@fortawesome/fontawesome-free": "^6.4.0",
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
@@ -177,7 +178,6 @@
     "apple-signin-auth": "^1.7.4",
     "assert": "^2.0.0",
     "awesome-phonenumber": "^5.10.0",
-    "aws-sdk": "^2.1203.0",
     "axios": "^1.0.0",
     "babel-plugin-add-react-displayname": "^0.0.5",
     "bad-words": "^3.0.4",
@@ -220,7 +220,6 @@
     "lottie-react": "^2.4.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
-    "sass": "^1.83.0",
     "normalize-email": "^1.1.1",
     "password-generator": "^2.3.2",
     "pg": "^8.10.0",
@@ -247,6 +246,7 @@
     "redux": "^4.2.0",
     "redux-logger": "^3.0.6",
     "redux-socket.io": "^1.4.0",
+    "sass": "^1.83.0",
     "seamless-immutable": "^7.1.4",
     "serialize-javascript": "^6.0.1",
     "simplebar-react": "^2.3.0",
