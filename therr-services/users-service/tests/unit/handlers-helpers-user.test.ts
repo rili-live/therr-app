@@ -244,7 +244,6 @@ describe('handlers/helpers/user', () => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
                     .to.be.equal(true);
                 // Create User
-                console.log(mockUserStoreConnection.write.query.args[0][0])
                 expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "brandVariations", "email", "firstName", "hasAgreedToTerms", "isBusinessAccount", "isCreatorAccount", "lastName", "password", "phoneNumber", "settingsEmailBusMarketing", "settingsEmailMarketing", "userName", "verificationCodes") values ('["user.default"]', '{"brand":"therr","details":{}}', 'test2user@gmail.com', DEFAULT, false, DEFAULT, DEFAULT, DEFAULT, '`))
                     .to.be.equal(true);
                 expect(mockUserStoreConnection.write.query.args[0][0].includes(`', DEFAULT, DEFAULT, DEFAULT, DEFAULT, '{"email":{"code":"`))
