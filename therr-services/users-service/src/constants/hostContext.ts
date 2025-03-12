@@ -11,6 +11,7 @@ interface IBrandConfig {
 
     // Branding
     brandName: string;
+    brandShortName: string;
     brandGreeting: string;
     brandGoLinkText: string;
     websiteName: string;
@@ -55,6 +56,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Therr App',
+        brandShortName: 'Therr',
         brandGreeting: 'Hey Therr',
         brandGoLinkText: 'Go Therr',
         websiteName: 'Therr App',
@@ -91,6 +93,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Teem App',
+        brandShortName: 'Teem',
         brandGreeting: 'Hey Teem',
         brandGoLinkText: 'Teem up!',
         websiteName: 'Teem App',
@@ -127,6 +130,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Therr for Business',
+        brandShortName: 'Therr for Biz',
         brandGreeting: 'Hey Therr',
         brandGoLinkText: 'Go Therr',
         websiteName: 'Therr for Business',
@@ -162,6 +166,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Adsly Marketing',
+        brandShortName: 'Adsly,',
         brandGreeting: 'Hello',
         brandGoLinkText: 'Go Adsly',
         websiteName: 'Adsly Marketing',
@@ -197,6 +202,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'AppyMeal',
+        brandShortName: 'AppyMeal',
         brandGreeting: 'Hey',
         brandGoLinkText: 'Get Appy',
         websiteName: 'AppyMeal Marketing',
