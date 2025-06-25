@@ -10,7 +10,7 @@ import { sendBackgroundNotification, wrapOnMessageReceived } from './main/utilit
 import { getAndroidChannelFromClickActionId } from './main/constants';
 
 
-// Step 1.) Add PushNotifications.AndroidIntentActions.Therr to the list bellow and the getAndroidChannelFromClickActionId method
+// Step 1.) Add PushNotifications.AndroidIntentActions.Teem to the list bellow and the getAndroidChannelFromClickActionId method
 // Step 2.) Make sure the server side firebase message is data-only
 // Step 3.) Remove navigation logic for clickId in Layout.tsx
 // Step 4.) Update handleNotifeeNotificationEvent in Layout to handle the press action IDs
@@ -21,15 +21,15 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
     // Handle data-only notifications which will be converted to Notifee notifications with press actions
     if (
         [
-            PushNotifications.AndroidIntentActions.Therr.LATEST_POST_VIEWCOUNT_STATS,
-            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION_REQUEST,
-            PushNotifications.AndroidIntentActions.Therr.NEW_CONNECTION,
-            PushNotifications.AndroidIntentActions.Therr.NEW_DIRECT_MESSAGE,
-            PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MESSAGE,
-            PushNotifications.AndroidIntentActions.Therr.NEW_LIKE_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NEW_SUPER_LIKE_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NEW_THOUGHT_REPLY_RECEIVED,
-            PushNotifications.AndroidIntentActions.Therr.NUDGE_SPACE_ENGAGEMENT,
+            PushNotifications.AndroidIntentActions.Teem.LATEST_POST_VIEWCOUNT_STATS,
+            PushNotifications.AndroidIntentActions.Teem.NEW_CONNECTION_REQUEST,
+            PushNotifications.AndroidIntentActions.Teem.NEW_CONNECTION,
+            PushNotifications.AndroidIntentActions.Teem.NEW_DIRECT_MESSAGE,
+            PushNotifications.AndroidIntentActions.Teem.NEW_GROUP_MESSAGE,
+            PushNotifications.AndroidIntentActions.Teem.NEW_LIKE_RECEIVED,
+            PushNotifications.AndroidIntentActions.Teem.NEW_SUPER_LIKE_RECEIVED,
+            PushNotifications.AndroidIntentActions.Teem.NEW_THOUGHT_REPLY_RECEIVED,
+            PushNotifications.AndroidIntentActions.Teem.NUDGE_SPACE_ENGAGEMENT,
         ].includes(remoteMessage?.data?.clickActionId)
     ) {
         const notification = {
