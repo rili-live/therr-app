@@ -1,5 +1,5 @@
 {
-  "name": "Therr",
+  "name": "teem",
   "version": "0.0.6",
   "private": true,
   "scripts": {
@@ -18,7 +18,7 @@
     "clean:env": "rm -rf node_modules/.cache/babel-loader/*",
     "env:export": "export $(cat .env | xargs)",
     "getSHA": "pushd android && ./gradlew signingReport; popd",
-    "ios": "rm -rf node_modules/.cache/babel-loader/*, && npm run ios:bundle && ./node_modules/.bin/react-native run-ios --scheme 'Therr_Debug'",
+    "ios": "rm -rf node_modules/.cache/babel-loader/*, && npm run ios:bundle && ./node_modules/.bin/react-native run-ios --scheme 'Teem_Debug'",
     "ios:clean": "rm -rf ~/Library/Caches/CocoaPods && rm -rf ./ios/Pods && rm -rf ~/Library/Developer/Xcode/DerivedData/* && rm -rf /Volumes/Samsung_T5/imac/Xcode/DerivedData/* && npm run ios:pod:install",
     "ios:bundle": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --assets-dest ./ios",
     "ios:bundle:release": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --assets-dest ./ios --dev=false --platform ios",
@@ -35,7 +35,7 @@
     "lint": "../node_modules/.bin/eslint . --ext .js,.jsx,.ts,.tsx ./",
     "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
     "postinstall": "patch-package",
-    "app:uninstall": "adb uninstall app.therrmobile",
+    "app:uninstall": "adb uninstall app.teemmobile",
     "troubleshoot:android:stopGradle": "pushd android; ./gradlew --stop; popd",
     "troubleshoot:android:clean": "npm run android:clean"
   },

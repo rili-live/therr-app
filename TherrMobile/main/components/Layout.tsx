@@ -83,7 +83,7 @@ const getRequestHeaders = (user) => ({
     'x-userid': user?.details?.id,
     'x-localecode':  user?.settings?.locale || 'en-us',
     'x-platform': 'mobile',
-    'x-brand-variation': BrandVariations.THERR,
+    'x-brand-variation': BrandVariations.TEEM,
 });
 
 interface ILayoutDispatchProps {
