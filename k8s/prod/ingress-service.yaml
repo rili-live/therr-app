@@ -40,8 +40,6 @@ spec:
       - www.api.therr.com
       - websocket-service.therr.com
       - www.websocket-service.therr.com
-      - dashboard.appymeal.com
-      - www.dashboard.appymeal.com
       - adsly.app
       - www.adsly.app
     secretName: therr-network-secret
@@ -128,26 +126,6 @@ spec:
         pathType: ImplementationSpecific
         
   # Whitelabel
-  - host: dashboard.appymeal.com
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: client-cluster-ip-service
-            port:
-              number: 7071
-        pathType: ImplementationSpecific
-  - host: www.dashboard.appymeal.com
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: client-cluster-ip-service
-            port:
-              number: 7071
-        pathType: ImplementationSpecific
   - host: adsly.app
     http:
       paths:
