@@ -24,8 +24,8 @@ Setup the .env with correct credentials. Each microservice has it's own package.
 ## Documentation
 Documentation is mantained within the repo to align with a mentality of inline documentation,
 knowledge share, self documenting code, and consolidation of information/configrations.
-* [General Documentation & Best Practices](./_docs/#readme)
-* [CI/CD Documentation](./_docs/#readme)
+* [General Documentation & Best Practices](./docs/#readme)
+* [CI/CD Documentation](./docs/#readme)
 
 ### Libraries & Utilities Docs
 *These packages should use treeshaking and emphasize reusability, clean code, single-purpose methodologies*
