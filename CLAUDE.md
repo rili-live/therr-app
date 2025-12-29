@@ -18,6 +18,21 @@ Before making code changes, check the current git branch name:
 
 This prevents accidentally putting shared code in niche-specific branches or vice versa.
 
+### Project Brief Context (Required)
+
+Always associate the current context with the appropriate project brief based on the checked out branch:
+
+| Current Branch | Project Brief to Reference |
+|----------------|----------------------------|
+| `general`, `stage`, `main` | `docs/niche-sub-apps/PROJECT_BRIEF.md` (core Therr App) |
+| `niche/HABITS-general` | `docs/niche-sub-apps/HABITS_PROJECT_BRIEF.md` |
+| `niche/TEEM-general` | `docs/niche-sub-apps/TEEM_PROJECT_BRIEF.md` |
+| `niche/<TAG>-general` | `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` |
+
+**Pattern**: For any `niche/<TAG>-general` branch, the corresponding project brief is `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` (uppercase TAG with underscores).
+
+When working on a branch, read the associated project brief early in the conversation to understand the product context, vision, and specific requirements for that app variant.
+
 ## Key Dependencies
 
 - **React**: 18.x.x (web clients) - Use hooks, functional components
@@ -60,7 +75,8 @@ npm run install:all     # Install deps across all packages
 Read these files when relevant to the task:
 
 - `docs/ARCHITECTURE.md` - System design, service boundaries, data layer patterns
-- `docs/PROJECT_BRIEF.md` - Product vision and roadmap context
+- `docs/niche-sub-apps/PROJECT_BRIEF.md` - Core Therr App product vision and roadmap
+- `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` - Niche app variant context (see "Project Brief Context" above)
 - `docs/NICHE_APP_SETUP_STEPS.md` - Brand variation setup process
 
 ## Monorepo Structure
