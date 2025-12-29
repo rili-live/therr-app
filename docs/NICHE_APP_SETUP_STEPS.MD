@@ -2,33 +2,13 @@
 
 These niche apps are a branch and/or child app of Therr App. The general idea is for a niche app to inherit the core foundations of Therr with unique, niche branding, content filtering specific to that branding, and some simple customizations that are controlled by feature flags.
 
-To use this page as a checklist, make a copy of this file.
-
-## Domain Name & Landing Page Setup
-
-1. Buy a domain name (preferably through Google Cloud DNS)
-2. Update the Godaddy config to point nameservers to Google Cloud
-3. Update the DNS on Google Cloud by creating a new zone and DNS record
-4. Install wordpress and configure the domain name to point to it. We have an EC2 instance on AWS where the landing pages for Therr app and Therr for Business are installed. There is also a MySQL database in the account. Credentials are stored in LastPass.
-   - Mysql username: `admin`
-   - Create a new database like `wordpress_<YOUR_NICHE>`
-   - Use the `%` wildcard in place of localhost
-     - ie.) `CREATE USER 'wordpressuser'@'%' IDENTIFIED BY 'password';`
-     - ie.) `GRANT ALL ON wordpress.* TO 'wordpressuser'@'%';`
-5. Create new dir `mkdir /var/www/newdomain.com` with your new domain name
-6. Create a duplicate of the nginx configuration file `sudo cp /etc/nginx/sites-available/business.therr.com /etc/nginx/sites-available/newdomain.com`
-7. Enter edit mode `vim /etc/nginx/sites-available/newdomain.com`
-8. Find and replace the domain name `:%s/business.therr.com/newdomain.com/g`
-9. Use certbot to create https cert
-   - Reference: https://spinupwp.com/hosting-wordpress-yourself-setting-up-sites/
-10. Finally symlink to sites-enabled and restart nginx
-11. Use this tutorial for reference: https://www.digitalocean.com/community/tutorials/how-to-install-wordpress-with-lemp-on-ubuntu-22-04
-12. Create an email and configure identity in AWS SES with DNS
-    - Emails can be created with google workspaces or zoho.com (ie. info@teem-social.com)
-    - Add the identity through AWS SES and follow the steps to verify DNS in Google Cloud DNS
-    - Update hostContext to use new email
-
 ## Mobile App Setup (ex. Uses Teem for demonstration)
+
+### Prerequisites
+
+Before setting up the mobile app, you may need to complete the following:
+
+- **Domain Name & Landing Page**: If your niche app requires a dedicated website, landing page, or custom email domain, see Google Drive documentation for instructions on configuring DNS, WordPress, SSL certificates, and AWS SES email identity.
 
 ### Configuration Updates (commit to "general" branch)
 
