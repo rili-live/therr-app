@@ -160,12 +160,12 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 ### Phase 1: Foundation (Weeks 1-2)
 **Goal:** Prepare codebase for rapid AI-assisted development
 
-- Make mono repo fully Claude Code compatible
-- Create comprehensive component documentation
-- Set up modular feature flag system
-- Upgrade dependencies to latest stable versions
-- Remove location/map infrastructure
-- Document existing Therr features to repurpose
+- [x] Make mono repo fully Claude Code compatible
+- [ ] Create comprehensive component documentation
+- [ ] Set up modular feature flag system
+- [ ] Upgrade dependencies to latest stable versions
+- [ ] Remove location/map infrastructure
+- [ ] Document existing Therr features to repurpose
 
 **Deliverable:** Clean, documented codebase ready for new features
 
@@ -174,13 +174,13 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 ### Phase 2: Core Pact Features (Weeks 3-4)
 **Goal:** Build minimum viable product
 
-- Streamline user authentication & onboarding
-- Build "Create Pact" flow with **mandatory invite**
-- Implement daily check-in mechanism
-- Add photo/note proof upload
-- Create pact activity feed
-- Build push notification system for partner activity
-- Add basic streak tracking
+- [ ] Streamline user authentication & onboarding
+- [ ] Build "Create Pact" flow with **mandatory invite**
+- [ ] Implement daily check-in mechanism
+- [ ] Add photo/note proof upload
+- [ ] Create pact activity feed
+- [ ] Build push notification system for partner activity
+- [ ] Add basic streak tracking
 
 **Deliverable:** Two users can create pacts, invite each other, check in daily, see partner activity
 
@@ -189,13 +189,13 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 ### Phase 3: Viral Mechanics (Weeks 5-6)
 **Goal:** Build growth engine into the product
 
-- Referral invite system (cannot be skipped)
-- Shareable pact templates with unique links
-- Social proof elements (success stories, leaderboard)
-- "Challenge a Friend" with pre-filled invites
-- Weekly email summaries with share buttons
-- Friend activity notifications to create FOMO
-- Public pact directory (opt-in)
+- [ ] Referral invite system (cannot be skipped)
+- [ ] Shareable pact templates with unique links
+- [ ] Social proof elements (success stories, leaderboard)
+- [ ] "Challenge a Friend" with pre-filled invites
+- [ ] Weekly email summaries with share buttons
+- [ ] Friend activity notifications to create FOMO
+- [ ] Public pact directory (opt-in)
 
 **Deliverable:** Every user action encourages friend invites
 
@@ -204,13 +204,13 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 ### Phase 4: Monetization (Weeks 7-8)
 **Goal:** Implement freemium model and revenue generation
 
-- Freemium paywall (1 pact free, unlimited premium)
-- In-app purchase flows (iOS & Android)
-- Premium analytics dashboard
-- Video proof uploads (premium feature)
-- Custom consequences builder
-- Apple Health / Google Fit integration
-- Subscription management
+- [ ] Freemium paywall (1 pact free, unlimited premium)
+- [ ] In-app purchase flows (iOS & Android)
+- [ ] Premium analytics dashboard
+- [ ] Video proof uploads (premium feature)
+- [ ] Custom consequences builder
+- [ ] Apple Health / Google Fit integration
+- [ ] Subscription management
 
 **Deliverable:** Revenue-generating premium tier
 
@@ -219,12 +219,12 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 ### Phase 5: Polish & Testing (Weeks 9-10)
 **Goal:** Optimize user experience and prepare for launch
 
-- Optimize onboarding flow (reduce friction)
-- A/B test invite messaging
-- Bug fixes and performance optimization
-- Create app store assets (screenshots, video, description)
-- Beta testing with 50-100 users
-- Gather feedback and iterate
+- [ ] Optimize onboarding flow (reduce friction)
+- [ ] A/B test invite messaging
+- [ ] Bug fixes and performance optimization
+- [ ] Create app store assets (screenshots, video, description)
+- [ ] Beta testing with 50-100 users
+- [ ] Gather feedback and iterate
 
 **Deliverable:** Polished app ready for public launch
 
@@ -233,12 +233,12 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 ### Phase 6: Launch (Weeks 11-12)
 **Goal:** Get first 500-1,000 users organically
 
-- Submit to App Store & Google Play Store
-- Product Hunt launch
-- Post in Reddit communities (r/productivity, r/fitness, r/habittracking)
-- Reach out to micro-influencers in fitness/productivity
-- Personal network outreach
-- Monitor metrics and iterate
+- [ ] Submit to App Store & Google Play Store
+- [ ] Product Hunt launch
+- [ ] Post in Reddit communities (r/productivity, r/fitness, r/habittracking)
+- [ ] Reach out to micro-influencers in fitness/productivity
+- [ ] Personal network outreach
+- [ ] Monitor metrics and iterate
 
 **Deliverable:** 500-1,000 users with viral loop active
 
