@@ -107,6 +107,60 @@ Place utility functions in shared libraries only when:
 
 Avoid creating abstractions for hypothetical future reuse.
 
+## Package-Level Documentation
+
+Each package has its own `CLAUDE.md` with package-specific details:
+
+| Package | CLAUDE.md Location |
+|---------|-------------------|
+| API Gateway | `therr-api-gateway/CLAUDE.md` |
+| Users Service | `therr-services/users-service/CLAUDE.md` |
+| Maps Service | `therr-services/maps-service/CLAUDE.md` |
+| Messages Service | `therr-services/messages-service/CLAUDE.md` |
+| Reactions Service | `therr-services/reactions-service/CLAUDE.md` |
+| Push Notifications | `therr-services/push-notifications-service/CLAUDE.md` |
+| WebSocket Service | `therr-services/websocket-service/CLAUDE.md` |
+| therr-js-utilities | `therr-public-library/therr-js-utilities/CLAUDE.md` |
+| therr-react | `therr-public-library/therr-react/CLAUDE.md` |
+| therr-styles | `therr-public-library/therr-styles/CLAUDE.md` |
+| Web Client | `therr-client-web/CLAUDE.md` |
+| Dashboard | `therr-client-web-dashboard/CLAUDE.md` |
+| Mobile App | `TherrMobile/CLAUDE.md` |
+
+## Feature Flags & Brand Variations
+
+### Brand Variation System
+
+The codebase supports multiple app variants via the `BrandVariations` enum:
+
+```typescript
+// therr-public-library/therr-js-utilities/src/constants/enums/Branding.ts
+export enum BrandVariations {
+    THERR = 'therr',
+    TEEM = 'teem',
+    // Add new variants here
+}
+```
+
+Brand variation is passed via HTTP header `x-brand-variation` and used to:
+- Customize push notification content
+- Filter content by brand
+- Apply brand-specific business logic
+
+### Adding a New Brand Variation
+
+1. Add to `BrandVariations` enum in `therr-js-utilities`
+2. Update `getHostContext()` in relevant services
+3. Add Firebase config in `push-notifications-service`
+4. Configure mobile app (see `TherrMobile/CLAUDE.md`)
+
+### Feature Flags (Future)
+
+Feature flags will be implemented via:
+- Backend: Service-level configuration
+- Frontend: Redux state or context
+- Mobile: Similar pattern with AsyncStorage persistence
+
 ## Notes
 
 - Most npm deps are in root `package.json` (shared across packages)
