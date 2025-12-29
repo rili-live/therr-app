@@ -1,0 +1,96 @@
+name: "HABITS Development Task"
+description: "Technical task for Friends With Habits development"
+title: "[HABITS TASK] "
+labels: ["habits", "task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Friends With Habits Development Task
+
+        Reference: [HABITS Project Brief](../../docs/niche-sub-apps/HABITS_PROJECT_BRIEF.md)
+
+        Use this template for technical tasks, refactoring, infrastructure work, or tasks that don't fit feature/bug templates.
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Roadmap Phase
+      description: Which phase does this task belong to?
+      options:
+        - "Phase 1: Foundation (Weeks 1-2)"
+        - "Phase 2: Core Pact Features (Weeks 3-4)"
+        - "Phase 3: Viral Mechanics (Weeks 5-6)"
+        - "Phase 4: Monetization (Weeks 7-8)"
+        - "Phase 5: Polish & Testing (Weeks 9-10)"
+        - "Phase 6: Launch (Weeks 11-12)"
+        - "Post-Launch / Maintenance"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Task Type
+      description: What type of task is this?
+      options:
+        - "Infrastructure / Setup"
+        - "Refactoring"
+        - "Documentation"
+        - "Testing"
+        - "Performance Optimization"
+        - "Dependency Updates"
+        - "CI/CD"
+        - "Database Migration"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: What needs to be done?
+    validations:
+      required: true
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Break down the task into steps
+      placeholder: |
+        - [ ] Step 1
+        - [ ] Step 2
+        - [ ] Step 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected-packages
+    attributes:
+      label: Affected Packages
+      description: Which packages/services will be modified?
+      placeholder: |
+        - TherrMobile
+        - therr-js-utilities
+        - users-service
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Technical Notes
+      description: Any additional context or implementation notes
+    validations:
+      required: false
+
+  - type: input
+    id: blocked-by
+    attributes:
+      label: Blocked By
+      description: Issue numbers this task depends on
+      placeholder: "#123, #456"
+    validations:
+      required: false
