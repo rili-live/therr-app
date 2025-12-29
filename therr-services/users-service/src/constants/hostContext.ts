@@ -114,13 +114,13 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#9748FF',
             brandBackgroundLight: '#ffffff',
-            fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@teem-social.com',
+            fromEmail: 'info@teem-social.com',
             fromEmailTitle: 'Teem App',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].hostFull,
             logoRelativePath: 'assets/images/teem-splash-logo-200.png',
             logoAltText: 'Teem logo',
             unsubscribeUrl: 'https://therr.com/emails/unsubscribe', // TODO: Build an actual route and page for this
-            legalBusinessName: 'Teem app by Teem Inc.',
+            legalBusinessName: 'Teem app by Therr Inc.',
             businessCopyrightYear: '2021',
             shouldIncludeSocialIcons: 'true',
         },

@@ -73,76 +73,76 @@
             android:host="therr.com" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.ACHIEVEMENT_COMPLETED" />
+          <action android:name="com.therr.mobile.ACHIEVEMENT_COMPLETED" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.CREATE_YOUR_PROFILE_REMINDER" />
+          <action android:name="com.therr.mobile.CREATE_YOUR_PROFILE_REMINDER" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.CREATE_A_MOMENT_REMINDER" />
+          <action android:name="com.therr.mobile.CREATE_A_MOMENT_REMINDER" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.LATEST_POST_LIKES_STATS" />
+          <action android:name="com.therr.mobile.LATEST_POST_LIKES_STATS" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.LATEST_POST_VIEWCOUNT_STATS" />
+          <action android:name="com.therr.mobile.LATEST_POST_VIEWCOUNT_STATS" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NEW_AREAS_ACTIVATED" />
+          <action android:name="com.therr.mobile.NEW_AREAS_ACTIVATED" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NUDGE_SPACE_ENGAGEMENT" />
+          <action android:name="com.therr.mobile.NUDGE_SPACE_ENGAGEMENT" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NEW_CONNECTION" />
+          <action android:name="com.therr.mobile.NEW_CONNECTION" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NEW_CONNECTION_REQUEST" />
+          <action android:name="com.therr.mobile.NEW_CONNECTION_REQUEST" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NEW_DIRECT_MESSAGE" />
+          <action android:name="com.therr.mobile.NEW_DIRECT_MESSAGE" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NEW_GROUP_MESSAGE" />
+          <action android:name="com.therr.mobile.NEW_GROUP_MESSAGE" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NEW_GROUP_INVITE" />
+          <action android:name="com.therr.mobile.NEW_GROUP_INVITE" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NEW_GROUP_MEMBERS" />
+          <action android:name="com.therr.mobile.NEW_GROUP_MEMBERS" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NEW_LIKE_RECEIVED" />
+          <action android:name="com.therr.mobile.NEW_LIKE_RECEIVED" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NEW_SUPER_LIKE_RECEIVED" />
+          <action android:name="com.therr.mobile.NEW_SUPER_LIKE_RECEIVED" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
 
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NEW_THOUGHT_REPLY_RECEIVED" />
+          <action android:name="com.therr.mobile.NEW_THOUGHT_REPLY_RECEIVED" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.UNREAD_NOTIFICATIONS_REMINDER" />
+          <action android:name="com.therr.mobile.UNREAD_NOTIFICATIONS_REMINDER" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
-          <action android:name="com.therr.mobile.Teem.UNCLAIMED_ACHIEVEMENTS_REMINDER" />
+          <action android:name="com.therr.mobile.UNCLAIMED_ACHIEVEMENTS_REMINDER" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
       </activity>
