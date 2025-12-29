@@ -24,6 +24,7 @@ Setup the .env with correct credentials. Each microservice has it's own package.
 ## Documentation
 Documentation is mantained within the repo to align with a mentality of inline documentation,
 knowledge share, self documenting code, and consolidation of information/configrations.
+* [Architecture Overview](./docs/ARCHITECTURE.md) - System design, patterns, and technical decisions
 * [General Documentation & Best Practices](./docs/#readme)
 * [CI/CD Documentation](./docs/#readme)
 
