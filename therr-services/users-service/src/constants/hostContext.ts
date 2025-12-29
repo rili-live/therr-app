@@ -114,7 +114,7 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#9748FF',
             brandBackgroundLight: '#ffffff',
-            fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@teem-social.com',
+            fromEmail: 'info@teem-social.com',
             fromEmailTitle: 'Teem App',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].hostFull,
             logoRelativePath: 'assets/images/teem-splash-logo-200.png',
