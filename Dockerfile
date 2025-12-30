@@ -21,18 +21,17 @@ COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci --ignore-scripts --omit=optional --legacy-peer-deps; \
+  elif [ -f package-lock.json ]; then npm ci --ignore-scripts --legacy-peer-deps; \
   elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
   fi
-RUN npm i sass-embedded-linux-x64 -D --legacy-peer-deps
 RUN npm rebuild bcrypt --build-from-source
 
 # Install and build styles library
 WORKDIR /app/therr-public-library/therr-styles
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci --ignore-scripts --omit=optional --legacy-peer-deps; \
+  elif [ -f package-lock.json ]; then npm ci --ignore-scripts --legacy-peer-deps; \
   elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
   fi
@@ -42,7 +41,7 @@ RUN npm run build
 WORKDIR /app/therr-public-library/therr-js-utilities
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci --ignore-scripts --omit=optional --legacy-peer-deps; \
+  elif [ -f package-lock.json ]; then npm ci --ignore-scripts --legacy-peer-deps; \
   elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
   fi
@@ -52,7 +51,7 @@ RUN npm run build
 WORKDIR /app/therr-public-library/therr-react
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci --ignore-scripts --omit=optional --legacy-peer-deps; \
+  elif [ -f package-lock.json ]; then npm ci --ignore-scripts --legacy-peer-deps; \
   elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
   fi
