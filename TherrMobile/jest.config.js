@@ -19,7 +19,9 @@ module.exports = {
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],
     setupFiles: ['./test-setup.ts'],
-    testURL: 'https://www.example.com/',
+    testEnvironmentOptions: {
+        url: 'https://www.example.com/',
+    },
     // transform: {
     //     '^.+\\.tsx?$': 'ts-jest',
     //     '^.+\\.jsx?$': 'babel-jest',
