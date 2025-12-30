@@ -1,0 +1,279 @@
+services:
+  # ===========================================
+  # INFRASTRUCTURE
+  # ===========================================
+  postgres:
+    image: postgis/postgis:15-3.4
+    container_name: therr-postgres-dev
+    environment:
+      POSTGRES_USER: therr
+      POSTGRES_PASSWORD: mysecretpassword
+    ports:
+      - "5431:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U therr"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: therr-redis-dev
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ===========================================
+  # LIBRARY BUILDER (runs once, then exits)
+  # ===========================================
+  library-builder:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: therr-library-builder
+    volumes:
+      - .:/app:delegated
+      - node_modules_cache:/app/node_modules
+    working_dir: /app
+    command: >
+      sh -c "
+        echo '=== Installing root dependencies ===' &&
+        npm ci --legacy-peer-deps &&
+        echo '=== Building therr-styles ===' &&
+        cd therr-public-library/therr-styles &&
+        npm ci --legacy-peer-deps &&
+        npm run build &&
+        echo '=== Building therr-js-utilities ===' &&
+        cd ../therr-js-utilities &&
+        npm ci --legacy-peer-deps &&
+        npm run build &&
+        echo '=== Building therr-react ===' &&
+        cd ../therr-react &&
+        npm ci --legacy-peer-deps &&
+        npm run build &&
+        echo '=== Libraries built successfully! ==='
+      "
+    environment:
+      - NODE_ENV=development
+
+  # ===========================================
+  # DATABASE MIGRATIONS (runs once)
+  # ===========================================
+  db-migrations:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: therr-db-migrations
+    volumes:
+      - .:/app:delegated
+      - node_modules_cache:/app/node_modules
+    working_dir: /app
+    env_file:
+      - .env.docker
+    depends_on:
+      library-builder:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo '=== Running users-service migrations ===' &&
+        cd therr-services/users-service &&
+        npm ci --legacy-peer-deps &&
+        npm run migrations:run &&
+        echo '=== Running messages-service migrations ===' &&
+        cd ../messages-service &&
+        npm ci --legacy-peer-deps &&
+        npm run migrations:run &&
+        echo '=== Running maps-service migrations ===' &&
+        cd ../maps-service &&
+        npm ci --legacy-peer-deps &&
+        npm run migrations:run &&
+        echo '=== Running reactions-service migrations ===' &&
+        cd ../reactions-service &&
+        npm ci --legacy-peer-deps &&
+        npm run migrations:run &&
+        echo '=== All migrations completed! ==='
+      "
+
+  # ===========================================
+  # API GATEWAY
+  # ===========================================
+  api-gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: therr-api-gateway-dev
+    volumes:
+      - .:/app:delegated
+      - node_modules_cache:/app/node_modules
+    working_dir: /app/therr-api-gateway
+    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    ports:
+      - "7770:7770"
+    env_file:
+      - .env.docker
+    depends_on:
+      library-builder:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # ===========================================
+  # USERS SERVICE
+  # ===========================================
+  users-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: therr-users-service-dev
+    volumes:
+      - .:/app:delegated
+      - node_modules_cache:/app/node_modules
+    working_dir: /app/therr-services/users-service
+    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    ports:
+      - "7771:7771"
+    env_file:
+      - .env.docker
+    depends_on:
+      db-migrations:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # ===========================================
+  # MESSAGES SERVICE
+  # ===========================================
+  messages-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: therr-messages-service-dev
+    volumes:
+      - .:/app:delegated
+      - node_modules_cache:/app/node_modules
+    working_dir: /app/therr-services/messages-service
+    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    ports:
+      - "7772:7772"
+    env_file:
+      - .env.docker
+    depends_on:
+      db-migrations:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # ===========================================
+  # MAPS SERVICE (requires PostGIS)
+  # ===========================================
+  maps-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: therr-maps-service-dev
+    volumes:
+      - .:/app:delegated
+      - node_modules_cache:/app/node_modules
+    working_dir: /app/therr-services/maps-service
+    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    ports:
+      - "7773:7773"
+    env_file:
+      - .env.docker
+    depends_on:
+      db-migrations:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # ===========================================
+  # REACTIONS SERVICE
+  # ===========================================
+  reactions-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: therr-reactions-service-dev
+    volumes:
+      - .:/app:delegated
+      - node_modules_cache:/app/node_modules
+    working_dir: /app/therr-services/reactions-service
+    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    ports:
+      - "7774:7774"
+    env_file:
+      - .env.docker
+    depends_on:
+      db-migrations:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # ===========================================
+  # PUSH NOTIFICATIONS SERVICE
+  # ===========================================
+  push-notifications-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: therr-push-notifications-dev
+    volumes:
+      - .:/app:delegated
+      - node_modules_cache:/app/node_modules
+    working_dir: /app/therr-services/push-notifications-service
+    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    ports:
+      - "7775:7775"
+    env_file:
+      - .env.docker
+    depends_on:
+      library-builder:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # ===========================================
+  # WEBSOCKET SERVICE
+  # ===========================================
+  websocket-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: therr-websocket-service-dev
+    volumes:
+      - .:/app:delegated
+      - node_modules_cache:/app/node_modules
+    working_dir: /app/therr-services/websocket-service
+    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    ports:
+      - "7743:7743"
+    env_file:
+      - .env.docker
+    depends_on:
+      library-builder:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # ===========================================
+  # WEB CLIENT & DASHBOARD
+  # ===========================================
+  # Frontend apps are NOT included in Docker Compose.
+  # Run them locally for better hot reload and debugging:
+  #   cd therr-client-web && npm run dev
+  #   cd therr-client-web-dashboard && npm run dev
+
+volumes:
+  postgres_dev_data:
+    name: therr-postgres-dev-data
+  node_modules_cache:
+    name: therr-node-modules-cache
