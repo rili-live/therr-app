@@ -19,7 +19,7 @@
     "lint:fix:changed": "_bin/apply-to-changed.sh 'npm run lint:fix'",
     "install:base": "npm run prep && npm install && _bin/apply-to-all.sh 'npm install' rootOnly",
     "install:all": "npm run prep && npm install --legacy-peer-deps && _bin/apply-to-all.sh 'npm install --legacy-peer-deps'",
-    "audit:all": "npm run prep && npm audit fix && _bin/apply-to-all.sh 'npm audit fix'",
+    "audit:all": "npm run prep && npm audit fix --legacy-peer-deps && _bin/apply-to-all.sh 'npm audit fix'",
     "install:all:ci": "npm run prep && npm ci --omit=optional --legacy-peer-deps && _bin/apply-to-all.sh 'npm ci --omit=optional --legacy-peer-deps'",
     "install:base:ci": "npm run prep && npm ci --omit=optional --legacy-peer-deps && _bin/apply-to-all.sh 'npm ci --omit=optional --legacy-peer-deps' rootOnly",
     "docker:run:postgres": "docker run --name therr-postgres -e POSTGRES_USER=therr -e POSTGRES_PASSWORD=mysecretpassword -d -p 5431:5432 -v postgresTherrDbData:/var/lib/postgresql/data:delegated,rw postgis/postgis:15-3.4",
@@ -268,5 +268,9 @@
     "validator": "^13.7.0",
     "yargs": "^13.3.2",
     "yup": "^1.1.1"
+  },
+  "optionalDependencies": {
+    "@parcel/watcher-linux-x64-musl": "^2.5.0",
+    "sass-embedded-linux-musl-x64": "^1.83.0"
   }
 }
