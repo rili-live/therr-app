@@ -1,6 +1,6 @@
 <manifest
   xmlns:android="http://schemas.android.com/apk/res/android"
-  package="app.therrmobile"
+  package="com.therr.mobile.Teem"
   xmlns:tools="http://schemas.android.com/tools">
   <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
   <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
@@ -36,31 +36,125 @@
     <activity
       android:name=".MainActivity"
       android:label="@string/app_name"
-      android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
-      android:launchMode="singleTask"
-      android:windowSoftInputMode="adjustResize"
-      android:exported="true"
-      android:screenOrientation="portrait"
+      android:icon="@mipmap/ic_launcher"
+      android:roundIcon="@mipmap/ic_launcher_round"
+      android:usesCleartextTraffic="true"
+      android:allowBackup="false"
       android:theme="@style/BootTheme">
-      <intent-filter android:autoVerify="true">
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
-      <intent-filter
-        android:autoVerify="true"
-        android:label="@string/filter_view_https_therr">
-        <action android:name="android.intent.action.VIEW" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <category android:name="android.intent.category.BROWSABLE" />
+      <meta-data
+        android:name="com.transistorsoft.locationmanager.license"
+        android:value="7ae51b9238254e95b67105b91d62ee57189cd534ad26a47c73efb2e2cd257b48" />
+      <activity
+        android:name=".MainActivity"
+        android:label="@string/app_name"
+        android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+        android:launchMode="singleTask"
+        android:windowSoftInputMode="adjustResize"
+        android:exported="true"
+        android:screenOrientation="portrait"
+        android:theme="@style/BootTheme">
+        <intent-filter android:autoVerify="true">
+          <action android:name="android.intent.action.MAIN" />
+          <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        <intent-filter
+          android:autoVerify="true"
+          android:label="@string/filter_view_https_therr">
+          <action android:name="android.intent.action.VIEW" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <category android:name="android.intent.category.BROWSABLE" />
 
-        <data
-          android:scheme="https"
-          android:host="www.therr.com" />
+          <data
+            android:scheme="https"
+            android:host="www.therr.com" />
 
-        <data
-          android:scheme="https"
-          android:host="therr.com" />
-      </intent-filter>
+          <data
+            android:scheme="https"
+            android:host="therr.com" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.ACHIEVEMENT_COMPLETED" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.CREATE_YOUR_PROFILE_REMINDER" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.CREATE_A_MOMENT_REMINDER" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.LATEST_POST_LIKES_STATS" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.LATEST_POST_VIEWCOUNT_STATS" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.NEW_AREAS_ACTIVATED" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.NUDGE_SPACE_ENGAGEMENT" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.NEW_CONNECTION" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.NEW_CONNECTION_REQUEST" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.NEW_DIRECT_MESSAGE" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.NEW_GROUP_MESSAGE" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.NEW_GROUP_INVITE" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.NEW_GROUP_MEMBERS" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.NEW_LIKE_RECEIVED" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.NEW_SUPER_LIKE_RECEIVED" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.NEW_THOUGHT_REPLY_RECEIVED" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.UNREAD_NOTIFICATIONS_REMINDER" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="com.therr.mobile.Teem.UNCLAIMED_ACHIEVEMENTS_REMINDER" />
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+      </activity>
+
+      <data
+        android:scheme="https"
+        android:host="www.therr.com" />
+
+      <data
+        android:scheme="https"
+        android:host="therr.com" />
+
       <intent-filter>
         <action android:name="app.therrmobile.ACHIEVEMENT_COMPLETED" />
         <category android:name="android.intent.category.DEFAULT" />

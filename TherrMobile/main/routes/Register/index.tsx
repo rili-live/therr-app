@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { Text, View, SafeAreaView, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
+import Toast from 'react-native-toast-message';
 import { IUserState } from 'therr-react/types';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
@@ -85,8 +86,14 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
     }
 
     onSuccess = () => {
-        this.props.navigation.navigate('Login', {
-            userMessage: this.translate('pages.login.userAlerts.registerSuccess'),
+        // this.props.navigation.navigate('Login', {
+        //     userMessage: this.translate('pages.login.userAlerts.registerSuccess'),
+        // });
+        Toast.show({
+            type: 'successBig',
+            text1: this.translate('alertTitles.waitlistSuccess'),
+            text2: this.translate('alertMessages.waitlistSuccess'),
+            visibilityTime: 5000,
         });
     };
 
@@ -121,7 +128,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                     {pageTitle}
                                 </Text>
                                 <Text style={this.themeFTUI.styles.subtitle}>
-                                    {pageSubtitle} <Text onPress={this.goToMap} style={this.themeForms.styles.buttonLink}>{pageSubtitleMapPreviewLink}</Text>
+                                    {pageSubtitle}
                                 </Text>
                             </View>
                             <RegisterForm

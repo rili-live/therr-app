@@ -18,8 +18,6 @@ spec:
     - 'websocket-service.therr.com'
     - 'www.websocket-service.therr.com'
     # Whitelabel
-    - 'dashboard.appymeal.com'
-    - 'www.dashboard.appymeal.com'
     - 'adsly.app'
     - 'www.adsly.app'
   duration: 4320h # 180d

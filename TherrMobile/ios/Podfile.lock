@@ -1424,7 +1424,7 @@ PODS:
   - RNBackgroundGeolocation (4.17.1):
     - CocoaLumberjack (~> 3.8.5)
     - React-Core
-  - RNBootSplash (5.4.1):
+  - RNBootSplash (6.3.2):
     - React-Core
   - RNCAsyncStorage (1.22.3):
     - React-Core
@@ -2011,7 +2011,7 @@ SPEC CHECKSUMS:
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNBackgroundFetch: 2f800a04434620db15ede2e8f21886608a2d1743
   RNBackgroundGeolocation: 7662b761774c7203fbebbcaacbd92f61efe8f799
-  RNBootSplash: eff8239c4f795ce42a0604873aef3733aac0dedd
+  RNBootSplash: 3a44c2c3ebfce98254de887ceed22c4941c8c6c5
   RNCAsyncStorage: 10591b9e0a91eaffee14e69b3721009759235125
   RNCClipboard: 0a720adef5ec193aa0e3de24c3977222c7e52a37
   RNCMaskedView: bc0170f389056201c82a55e242e5d90070e18e5a
@@ -2037,6 +2037,6 @@ SPEC CHECKSUMS:
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Yoga: 88480008ccacea6301ff7bf58726e27a72931c8d
 
-PODFILE CHECKSUM: 393bf6d58ba3f174d198d80315c87e19117acb3a
+PODFILE CHECKSUM: 06fc9803496613cad60221bfb593f6f9b29b227c
 
 COCOAPODS: 1.15.2
