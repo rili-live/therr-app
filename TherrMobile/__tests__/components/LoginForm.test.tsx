@@ -41,6 +41,6 @@ describe('LoginForm', () => {
                 themeForms={{ styles: mockStyles, colors: {} as any }}
             />
         );
-        expect(component.getInstance().isLoginFormDisabled()).toEqual(true);
+        expect(component.getInstance()?.isLoginFormDisabled()).toEqual(true);
     });
 });

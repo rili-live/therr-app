@@ -122,15 +122,8 @@ jobs:
     environment:
       CICD_BRANCH: << pipeline.git.branch >>
     steps:
-      - setup_remote_docker:
-          docker_layer_caching: true
       - attach_workspace:
             at: ~/
-      - load_deps_image:
-          for: testing
-      - run:
-          name: Login to DockerHub
-          command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run:
           name: Apply Stage w/ Kubectl
           # This should pull the latest images (verify and determine if necessary to set image with commit SHA)
