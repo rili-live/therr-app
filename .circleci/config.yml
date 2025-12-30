@@ -103,14 +103,17 @@ jobs:
           command: ./_bin/cicd/build.sh
       - run:
           name: Run Unit Tests on Microservices
-          command: ./_bin/cicd/test-microservices.sh
+          command: ./_bin/cicd/test-microservices-unit.sh
+      - run:
+          name: Run Integration Tests on Microservices
+          command: ./_bin/cicd/test-microservices-integration.sh
       - add_ssh_keys:
           fingerprints:
             - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
       - run:
           name: Publish Docker Images
           command: ./_bin/cicd/publish.sh
-  test-integrations:
+  test-e2e-staging:
     docker:
       - image: google/cloud-sdk
         auth:
@@ -197,7 +200,7 @@ workflows:
             branches:
               only:
                 - stage
-      - test-integrations:
+      - test-e2e-staging:
           requires:
           - docker_build_test_publish_images
           - docker_build_base_image
