@@ -13,11 +13,14 @@ services:
   postgres-ci:
     image: postgis/postgis:15-3.4
     container_name: therr-postgres-ci
+    hostname: postgres-ci
     environment:
       POSTGRES_USER: therr
       POSTGRES_PASSWORD: testpassword
     networks:
-      - therr-ci-network
+      therr-ci-network:
+        aliases:
+          - postgres-ci
     volumes:
       - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     healthcheck:
@@ -29,8 +32,11 @@ services:
   redis-ci:
     image: redis:7-alpine
     container_name: therr-redis-ci
+    hostname: redis-ci
     networks:
-      - therr-ci-network
+      therr-ci-network:
+        aliases:
+          - redis-ci
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 3s
