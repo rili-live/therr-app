@@ -25,7 +25,7 @@ RUN \
   elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
   fi
-RUN npm i sass-embedded-linux-x64 -D --legacy-peer-deps
+RUN npm i sass-embedded-linux-musl-x64 -D --legacy-peer-deps
 RUN npm rebuild bcrypt --build-from-source
 
 # Install and build styles library
