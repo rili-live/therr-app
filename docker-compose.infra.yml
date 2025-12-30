@@ -1,0 +1,35 @@
+# Lightweight Docker Compose for infrastructure only
+# Use this when you want Docker for databases but run services locally
+
+services:
+  postgres:
+    image: postgis/postgis:15-3.4
+    container_name: therr-postgres-dev
+    environment:
+      POSTGRES_USER: therr
+      POSTGRES_PASSWORD: mysecretpassword
+    ports:
+      - "5431:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U therr"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: therr-redis-dev
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_dev_data:
+    name: therr-postgres-dev-data

@@ -39,7 +39,7 @@ button.anchor:visited {
   color: #2073a1;
 }
 button.secondary {
-  background: #d5d8da;
+  background: rgb(213.4855769231, 215.75, 218.0144230769);
 }
 button.secondary:hover:not([disabled]) {
   background: #dee1e4;

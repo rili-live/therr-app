@@ -8,6 +8,9 @@ const clientPort = 7070;
 const dashboardClientPort = 7071;
 const websocketPort = 7743;
 const hostDev = '127.0.0.1';
+// Docker development uses service names for inter-container communication
+// Safe check for browser environments where process is undefined
+const isDockerDev = typeof process !== 'undefined' && process.env && process.env.DOCKER_DEV === 'true';
 const hostStage = 'stage.therr.com';
 const dashboardHostStage = 'stage.dashboard.therr.com';
 const hostProd = 'therr.com';
@@ -19,13 +22,15 @@ module.exports = {
         googleOAuth2WebClientId
     },
     development: {
+        // For client-side (browser) requests, always use hostDev (localhost/127.0.0.1)
+        // For server-side (inter-service) requests in Docker, use container names
         baseApiGatewayRoute: `http://${hostDev}:${apiGatewayPort}/v1`,
-        baseMapsServiceRoute: `http://${hostDev}:${apiMapsPort}/v1`,
-        baseMessagesServiceRoute: `http://${hostDev}:${apiMessagesPort}/v1`,
-        basePushNotificationsServiceRoute: `http://${hostDev}:${apiPushNotificationsPort}/v1`,
-        baseReactionsServiceRoute: `http://${hostDev}:${apiReactionsPort}/v1`,
+        baseMapsServiceRoute: isDockerDev ? `http://maps-service:${apiMapsPort}/v1` : `http://${hostDev}:${apiMapsPort}/v1`,
+        baseMessagesServiceRoute: isDockerDev ? `http://messages-service:${apiMessagesPort}/v1` : `http://${hostDev}:${apiMessagesPort}/v1`,
+        basePushNotificationsServiceRoute: isDockerDev ? `http://push-notifications-service:${apiPushNotificationsPort}/v1` : `http://${hostDev}:${apiPushNotificationsPort}/v1`,
+        baseReactionsServiceRoute: isDockerDev ? `http://reactions-service:${apiReactionsPort}/v1` : `http://${hostDev}:${apiReactionsPort}/v1`,
         baseSocketUrl: `http://${hostDev}:${websocketPort}`,
-        baseUsersServiceRoute: `http://${hostDev}:${apiUsersPort}/v1`,
+        baseUsersServiceRoute: isDockerDev ? `http://users-service:${apiUsersPort}/v1` : `http://${hostDev}:${apiUsersPort}/v1`,
         baseImageKitEndpoint: 'https://ik.imagekit.io/qmtvldd7sl/dev/',
         googleAnalyticsKey: 'G-WNB4XQ8W1Z',
         googleAnalyticsKeyDashboard: 'G-Z8R2CE2Z7C',
@@ -42,7 +47,7 @@ module.exports = {
             pingTimeout: 1000 * 15,
             userSocketSessionExpire: 1000 * 60 * 30,
         },
-        tempLocationExpansionDistMeters: 100000, 
+        tempLocationExpansionDistMeters: 100000,
     },
     stage: {
         baseApiGatewayRoute: `https://api.${hostStage}/v1`,
