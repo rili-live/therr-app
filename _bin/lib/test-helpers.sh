@@ -40,6 +40,7 @@ run_migrations() {
 
   docker run --rm \
     --network therr-ci-network \
+    --dns 127.0.0.11 \
     -e DB_HOST_MAIN_WRITE=$CI_DB_HOST \
     -e DB_PORT_MAIN_WRITE=$CI_DB_PORT \
     -e DB_USER_MAIN_WRITE=$CI_DB_USER \
@@ -81,6 +82,7 @@ run_integration_tests() {
   # shellcheck disable=SC2046
   docker run --rm \
     --network therr-ci-network \
+    --dns 127.0.0.11 \
     $(get_common_env_vars) \
     -e ${SERVICE_ENV_VAR}=$DB_NAME \
     $IMAGE_NAME /bin/sh -c 'npm run test:integration' || {
