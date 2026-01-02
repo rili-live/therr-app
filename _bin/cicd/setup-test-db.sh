@@ -40,7 +40,25 @@ until docker exec therr-redis-ci redis-cli ping > /dev/null 2>&1; do
 done
 printMessageSuccess "Redis is ready!"
 
-# Give PostgreSQL a moment to complete initialization
+# Wait for PostgreSQL healthcheck to pass (ensures init scripts have completed)
+printMessageWarning "Waiting for PostgreSQL healthcheck to pass..."
+RETRY_COUNT=0
+MAX_HEALTH_RETRIES=30
+until [ "$(docker inspect --format='{{.State.Health.Status}}' therr-postgres-ci 2>/dev/null)" = "healthy" ]; do
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+  if [ $RETRY_COUNT -ge $MAX_HEALTH_RETRIES ]; then
+    printMessageError "PostgreSQL healthcheck failed after $MAX_HEALTH_RETRIES attempts"
+    echo "Container health status: $(docker inspect --format='{{.State.Health.Status}}' therr-postgres-ci 2>/dev/null || echo 'unknown')"
+    echo "Last health check log:"
+    docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' therr-postgres-ci 2>/dev/null || echo "No health logs available"
+    exit 1
+  fi
+  echo "Waiting for healthcheck... (attempt $RETRY_COUNT/$MAX_HEALTH_RETRIES) - Status: $(docker inspect --format='{{.State.Health.Status}}' therr-postgres-ci 2>/dev/null || echo 'checking')"
+  sleep 2
+done
+printMessageSuccess "PostgreSQL healthcheck passed!"
+
+# Give PostgreSQL a moment to complete initialization after healthcheck
 sleep 3
 
 # Verify network connectivity from test containers (confirms DNS + TCP)
@@ -62,13 +80,78 @@ printMessageSuccess "Redis network connectivity verified!"
 # Now test Postgres connectivity
 printMessageWarning "Verifying network connectivity to postgres-ci..."
 RETRY_COUNT=0
-until docker run --rm --network therr-ci-network postgres:15-alpine pg_isready -h postgres-ci -U therr > /dev/null 2>&1; do
+
+# Debug: Show postgres container status
+echo "=== Postgres Container Status ==="
+docker ps -a --filter "name=therr-postgres-ci" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+echo ""
+
+# Debug: Show container health status
+echo "=== Container Health Check ==="
+docker inspect --format='{{.State.Health.Status}}' therr-postgres-ci 2>/dev/null || echo "Health status not available"
+echo ""
+
+# Debug: Show postgres logs (last 20 lines)
+echo "=== Postgres Container Logs (last 20 lines) ==="
+docker logs --tail 20 therr-postgres-ci 2>&1 || echo "Could not retrieve logs"
+echo ""
+
+# Debug: Test DNS resolution within the network
+echo "=== Testing DNS Resolution for postgres-ci ==="
+docker run --rm --network therr-ci-network postgres:15-alpine sh -c "getent hosts postgres-ci" 2>&1 || echo "DNS resolution failed"
+echo ""
+
+# Debug: Test raw TCP connectivity to port 5432 using nc (netcat)
+echo "=== Testing TCP Connectivity to postgres-ci:5432 ==="
+docker run --rm --network therr-ci-network alpine:3.18 sh -c "apk add --no-cache netcat-openbsd >/dev/null 2>&1 && nc -zv postgres-ci 5432 2>&1" || echo "TCP test failed or container issue"
+echo ""
+
+# Get the container's IP address as a fallback for DNS issues
+POSTGRES_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' therr-postgres-ci 2>/dev/null || echo "")
+echo "Postgres container IP: ${POSTGRES_IP:-unknown}"
+
+# Try connectivity using hostname first, fall back to IP if needed
+until docker run --rm --network therr-ci-network postgres:15-alpine pg_isready -h postgres-ci -p 5432 -U therr 2>&1; do
   RETRY_COUNT=$((RETRY_COUNT + 1))
+
+  # On failure, also try direct IP connection for diagnosis
+  if [ -n "$POSTGRES_IP" ]; then
+    echo "Trying direct IP connection to $POSTGRES_IP..."
+    if docker run --rm --network therr-ci-network postgres:15-alpine pg_isready -h "$POSTGRES_IP" -p 5432 -U therr 2>&1; then
+      echo "Direct IP connection succeeded! This indicates a DNS resolution issue."
+      echo "Continuing with IP-based connection..."
+      # Use IP for remaining operations
+      export POSTGRES_CI_HOST="$POSTGRES_IP"
+      break
+    fi
+  fi
+
   if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
     printMessageError "Network connectivity to postgres-ci failed after $MAX_RETRIES attempts - Redis worked, so this is Postgres-specific"
+
+    # Final diagnostic dump on failure
+    echo ""
+    echo "=== FAILURE DIAGNOSTICS ==="
+    echo "--- Full Postgres Logs ---"
+    docker logs therr-postgres-ci 2>&1 || echo "Could not retrieve logs"
+    echo ""
+    echo "--- Network Inspection ---"
+    docker network inspect therr-ci-network 2>&1 || echo "Could not inspect network"
+    echo ""
+    echo "--- All Container Status ---"
+    docker ps -a
+    echo ""
+    echo "--- Attempting psql connection for detailed error ---"
+    docker run --rm --network therr-ci-network postgres:15-alpine psql -h postgres-ci -p 5432 -U therr -d therr -c "SELECT 1" 2>&1 || true
     exit 1
   fi
   echo "Waiting for postgres-ci connectivity... (attempt $RETRY_COUNT/$MAX_RETRIES)"
+
+  # Show pg_isready output on each retry for debugging
+  echo "pg_isready output:"
+  docker run --rm --network therr-ci-network postgres:15-alpine pg_isready -h postgres-ci -p 5432 -U therr 2>&1 || true
+  echo ""
+
   sleep 2
 done
 printMessageSuccess "Postgres network connectivity verified!"
