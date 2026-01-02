@@ -90,7 +90,37 @@ until [ "$(docker inspect --format='{{.State.Health.Status}}' therr-postgres-ci 
 done
 printMessageSuccess "PostgreSQL healthcheck passed!"
 
-# Give PostgreSQL a moment to stabilize after healthcheck passes
+# =============================================================================
+# Initialize Databases
+# =============================================================================
+# Note: We create databases via docker exec instead of volume-mounted init scripts
+# because CircleCI's remote Docker environment doesn't support volume mounts from
+# the local filesystem to the remote Docker daemon.
+
+printMessageWarning "Creating test databases..."
+
+# Create databases individually (PostgreSQL doesn't support IF NOT EXISTS for CREATE DATABASE)
+# Ignore errors if database already exists
+for db in therr_dev_users therr_dev_messages therr_dev_maps therr_dev_reactions; do
+  echo "Creating database: $db"
+  docker exec therr-postgres-ci psql -U therr -d therr -c "CREATE DATABASE $db;" 2>&1 || echo "Database $db may already exist, continuing..."
+  docker exec therr-postgres-ci psql -U therr -d therr -c "GRANT ALL PRIVILEGES ON DATABASE $db TO therr;" 2>&1 || true
+done
+
+# Enable PostGIS extension on maps database
+printMessageWarning "Enabling PostGIS extensions on maps database..."
+docker exec therr-postgres-ci psql -U therr -d therr_dev_maps -c "CREATE EXTENSION IF NOT EXISTS postgis;" 2>&1 || true
+docker exec therr-postgres-ci psql -U therr -d therr_dev_maps -c "CREATE EXTENSION IF NOT EXISTS postgis_topology;" 2>&1 || true
+
+# Verify databases were created
+printMessageWarning "Verifying databases..."
+docker exec therr-postgres-ci psql -U therr -d therr -c "\l" | grep therr_dev || {
+  printMessageError "Failed to create test databases"
+  exit 1
+}
+printMessageSuccess "Test databases created successfully!"
+
+# Give PostgreSQL a moment to stabilize
 sleep 2
 
 # Verify network connectivity from test containers (confirms DNS + TCP)
@@ -109,40 +139,14 @@ until docker run --rm --network therr-ci-network redis:7-alpine redis-cli -h red
 done
 printMessageSuccess "Redis network connectivity verified!"
 
-# Now test Postgres connectivity
+# Now test Postgres connectivity from a test container (simulates how tests will connect)
 printMessageWarning "Verifying network connectivity to postgres-ci..."
 RETRY_COUNT=0
-
-# Debug: Show postgres container status
-echo "=== Postgres Container Status ==="
-docker ps -a --filter "name=therr-postgres-ci" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-echo ""
-
-# Debug: Show container health status
-echo "=== Container Health Check ==="
-docker inspect --format='{{.State.Health.Status}}' therr-postgres-ci 2>/dev/null || echo "Health status not available"
-echo ""
-
-# Debug: Show postgres logs (last 20 lines)
-echo "=== Postgres Container Logs (last 20 lines) ==="
-docker logs --tail 20 therr-postgres-ci 2>&1 || echo "Could not retrieve logs"
-echo ""
-
-# Debug: Test DNS resolution within the network
-echo "=== Testing DNS Resolution for postgres-ci ==="
-docker run --rm --network therr-ci-network postgres:15-alpine sh -c "getent hosts postgres-ci" 2>&1 || echo "DNS resolution failed"
-echo ""
-
-# Debug: Test raw TCP connectivity to port 5432 using nc (netcat)
-echo "=== Testing TCP Connectivity to postgres-ci:5432 ==="
-docker run --rm --network therr-ci-network alpine:3.18 sh -c "apk add --no-cache netcat-openbsd >/dev/null 2>&1 && nc -zv postgres-ci 5432 2>&1" || echo "TCP test failed or container issue"
-echo ""
 
 # Get the container's IP address as a fallback for DNS issues
 POSTGRES_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' therr-postgres-ci 2>/dev/null || echo "")
 echo "Postgres container IP: ${POSTGRES_IP:-unknown}"
 
-# Try connectivity using hostname first, fall back to IP if needed
 until docker run --rm --network therr-ci-network postgres:15-alpine pg_isready -h postgres-ci -p 5432 -U therr 2>&1; do
   RETRY_COUNT=$((RETRY_COUNT + 1))
 
@@ -152,38 +156,26 @@ until docker run --rm --network therr-ci-network postgres:15-alpine pg_isready -
     if docker run --rm --network therr-ci-network postgres:15-alpine pg_isready -h "$POSTGRES_IP" -p 5432 -U therr 2>&1; then
       echo "Direct IP connection succeeded! This indicates a DNS resolution issue."
       echo "Continuing with IP-based connection..."
-      # Use IP for remaining operations
-      export POSTGRES_CI_HOST="$POSTGRES_IP"
       break
     fi
   fi
 
   if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-    printMessageError "Network connectivity to postgres-ci failed after $MAX_RETRIES attempts - Redis worked, so this is Postgres-specific"
-
-    # Final diagnostic dump on failure
+    printMessageError "Network connectivity to postgres-ci failed after $MAX_RETRIES attempts"
     echo ""
     echo "=== FAILURE DIAGNOSTICS ==="
-    echo "--- Full Postgres Logs ---"
-    docker logs therr-postgres-ci 2>&1 || echo "Could not retrieve logs"
+    echo "--- Container Status ---"
+    docker ps -a --filter "name=therr-postgres-ci"
+    echo ""
+    echo "--- Postgres Container Logs ---"
+    docker logs --tail 50 therr-postgres-ci 2>&1 || echo "Could not retrieve logs"
     echo ""
     echo "--- Network Inspection ---"
     docker network inspect therr-ci-network 2>&1 || echo "Could not inspect network"
-    echo ""
-    echo "--- All Container Status ---"
-    docker ps -a
-    echo ""
-    echo "--- Attempting psql connection for detailed error ---"
-    docker run --rm --network therr-ci-network postgres:15-alpine psql -h postgres-ci -p 5432 -U therr -d therr -c "SELECT 1" 2>&1 || true
     exit 1
   fi
+
   echo "Waiting for postgres-ci connectivity... (attempt $RETRY_COUNT/$MAX_RETRIES)"
-
-  # Show pg_isready output on each retry for debugging
-  echo "pg_isready output:"
-  docker run --rm --network therr-ci-network postgres:15-alpine pg_isready -h postgres-ci -p 5432 -U therr 2>&1 || true
-  echo ""
-
   sleep 2
 done
 printMessageSuccess "Postgres network connectivity verified!"

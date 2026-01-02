@@ -17,18 +17,18 @@ services:
     environment:
       POSTGRES_USER: therr
       POSTGRES_PASSWORD: testpassword
+      # Database initialization is handled by setup-test-db.sh after container starts
+      # This avoids volume mount issues in CircleCI's remote Docker environment
     networks:
       therr-ci-network:
         aliases:
           - postgres-ci
-    volumes:
-      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U therr"]
       interval: 5s
       timeout: 5s
       retries: 20
-      start_period: 30s
+      start_period: 10s
 
   redis-ci:
     image: redis:7-alpine
