@@ -43,19 +43,19 @@ printMessageSuccess "Redis is ready!"
 # Give PostgreSQL a moment to complete initialization
 sleep 3
 
-# Verify DNS resolution is working from a test container
-printMessageWarning "Verifying network DNS resolution..."
+# Verify network connectivity from a test container (confirms DNS + TCP)
+printMessageWarning "Verifying network connectivity to postgres-ci..."
 MAX_DNS_RETRIES=10
 DNS_RETRY_COUNT=0
-until docker run --rm --network therr-ci-network alpine:3.18 nslookup postgres-ci > /dev/null 2>&1; do
+until docker run --rm --network therr-ci-network postgres:15-alpine pg_isready -h postgres-ci -U therr > /dev/null 2>&1; do
   DNS_RETRY_COUNT=$((DNS_RETRY_COUNT + 1))
   if [ $DNS_RETRY_COUNT -ge $MAX_DNS_RETRIES ]; then
-    printMessageError "DNS resolution for postgres-ci failed after $MAX_DNS_RETRIES attempts"
+    printMessageError "Network connectivity to postgres-ci failed after $MAX_DNS_RETRIES attempts"
     exit 1
   fi
-  echo "Waiting for DNS resolution... (attempt $DNS_RETRY_COUNT/$MAX_DNS_RETRIES)"
+  echo "Waiting for network connectivity... (attempt $DNS_RETRY_COUNT/$MAX_DNS_RETRIES)"
   sleep 2
 done
-printMessageSuccess "DNS resolution verified!"
+printMessageSuccess "Network connectivity verified!"
 
 printMessageSuccess "CI test infrastructure is ready!"
