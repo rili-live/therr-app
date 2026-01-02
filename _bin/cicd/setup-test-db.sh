@@ -43,19 +43,34 @@ printMessageSuccess "Redis is ready!"
 # Give PostgreSQL a moment to complete initialization
 sleep 3
 
-# Verify network connectivity from a test container (confirms DNS + TCP)
-printMessageWarning "Verifying network connectivity to postgres-ci..."
-MAX_DNS_RETRIES=10
-DNS_RETRY_COUNT=0
-until docker run --rm --network therr-ci-network postgres:15-alpine pg_isready -h postgres-ci -U therr > /dev/null 2>&1; do
-  DNS_RETRY_COUNT=$((DNS_RETRY_COUNT + 1))
-  if [ $DNS_RETRY_COUNT -ge $MAX_DNS_RETRIES ]; then
-    printMessageError "Network connectivity to postgres-ci failed after $MAX_DNS_RETRIES attempts"
+# Verify network connectivity from test containers (confirms DNS + TCP)
+# Test Redis first - if this fails, it's a network/DNS issue, not Postgres-specific
+printMessageWarning "Verifying network connectivity to redis-ci..."
+MAX_RETRIES=10
+RETRY_COUNT=0
+until docker run --rm --network therr-ci-network redis:7-alpine redis-cli -h redis-ci ping > /dev/null 2>&1; do
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+  if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+    printMessageError "Network connectivity to redis-ci failed after $MAX_RETRIES attempts - this indicates a Docker network/DNS issue"
     exit 1
   fi
-  echo "Waiting for network connectivity... (attempt $DNS_RETRY_COUNT/$MAX_DNS_RETRIES)"
+  echo "Waiting for redis-ci connectivity... (attempt $RETRY_COUNT/$MAX_RETRIES)"
   sleep 2
 done
-printMessageSuccess "Network connectivity verified!"
+printMessageSuccess "Redis network connectivity verified!"
+
+# Now test Postgres connectivity
+printMessageWarning "Verifying network connectivity to postgres-ci..."
+RETRY_COUNT=0
+until docker run --rm --network therr-ci-network postgres:15-alpine pg_isready -h postgres-ci -U therr > /dev/null 2>&1; do
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+  if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+    printMessageError "Network connectivity to postgres-ci failed after $MAX_RETRIES attempts - Redis worked, so this is Postgres-specific"
+    exit 1
+  fi
+  echo "Waiting for postgres-ci connectivity... (attempt $RETRY_COUNT/$MAX_RETRIES)"
+  sleep 2
+done
+printMessageSuccess "Postgres network connectivity verified!"
 
 printMessageSuccess "CI test infrastructure is ready!"
