@@ -163,7 +163,7 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 - [x] Make mono repo fully Claude Code compatible
 - [ ] Add regression tests to keep core app and sub-apps aligned
   - [x] Implement regression tests for main functionality of users-service
-  - [ ] Implement regression tests for main functionality of messages-service
+  - [x] Implement regression tests for main functionality of messages-service
   - [ ] Implement regression tests for main functionality of reactions-service
   - [ ] Implement regression tests for main functionality of push-notifications-service
   - [ ] Implement regression tests for main functionality of websocket-service
