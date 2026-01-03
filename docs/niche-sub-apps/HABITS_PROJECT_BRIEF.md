@@ -175,9 +175,9 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
     - [x] Direct messaging & WebSocket communication (real-time messages, pagination, connection state)
     - [ ] Groups & forums (forum creation, message posting, member management, categories)
     - [x] User profile & settings (profile editing, password change, notification/privacy preferences)
-    - [ ] Push notifications (FCM setup, foreground/background handling, scheduled notifications)
+    - [x] Push notifications (FCM setup, foreground/background handling, scheduled notifications)
     - [ ] Content feeds & carousels (discoveries, events, bookmarks, reactions, pagination)
-    - [ ] User connections (user search, connection requests, blocking, people you may know)
+    - [x] User connections (user search, connection requests, blocking, people you may know)
     - [ ] Navigation & route access control (authenticated vs public routes, email verification gates)
 - [ ] Set up modular feature flag system for TherrMobile (utilizing TherrMobile/env-config.js)
 - [ ] Upgrade dependencies to latest stable versions
