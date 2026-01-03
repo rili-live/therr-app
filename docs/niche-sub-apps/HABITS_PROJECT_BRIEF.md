@@ -169,12 +169,12 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
   - [ ] Implement regression tests for main functionality of websocket-service
   - [ ] Implement regression tests for main functionality of therr-api-gateway-service
   - [ ] Implement regression tests for main functionality of TherrMobile React Native codebase
-    - [ ] Authentication system (login, register, OAuth with Google/Apple, session management)
+    - [x] Authentication system (login, register, OAuth with Google/Apple, session management)
     - [ ] Map & geolocation (location permissions, GPS tracking, content discovery, area search)
     - [ ] Content creation (moments/events/spaces/thoughts, image capture/upload, location tagging)
-    - [ ] Direct messaging & WebSocket communication (real-time messages, pagination, connection state)
+    - [x] Direct messaging & WebSocket communication (real-time messages, pagination, connection state)
     - [ ] Groups & forums (forum creation, message posting, member management, categories)
-    - [ ] User profile & settings (profile editing, password change, notification/privacy preferences)
+    - [x] User profile & settings (profile editing, password change, notification/privacy preferences)
     - [ ] Push notifications (FCM setup, foreground/background handling, scheduled notifications)
     - [ ] Content feeds & carousels (discoveries, events, bookmarks, reactions, pagination)
     - [ ] User connections (user search, connection requests, blocking, people you may know)
