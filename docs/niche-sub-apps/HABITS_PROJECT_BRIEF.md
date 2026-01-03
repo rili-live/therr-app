@@ -157,7 +157,7 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 
 ## 12-WEEK EXECUTION ROADMAP
 
-### Phase 1: Foundation (Weeks 1-2)
+### Phase 1: Foundation (Weeks 1-2, January 5-15) 
 **Goal:** Prepare codebase for rapid AI-assisted development
 
 - [x] Make mono repo fully Claude Code compatible
@@ -168,7 +168,17 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
   - [ ] Implement regression tests for main functionality of push-notifications-service
   - [ ] Implement regression tests for main functionality of websocket-service
   - [ ] Implement regression tests for main functionality of therr-api-gateway-service
-  - [ ] Implement regression tests for main functionality of TherrMobile React Native codebase
+  - [x] Implement regression tests for main functionality of TherrMobile React Native codebase
+    - [x] Authentication system (login, register, OAuth with Google/Apple, session management)
+    - [x] Map & geolocation (location permissions, GPS tracking, content discovery, area search)
+    - [x] Content creation (moments/events/spaces/thoughts, image capture/upload, location tagging)
+    - [x] Direct messaging & WebSocket communication (real-time messages, pagination, connection state)
+    - [x] Groups & forums (forum creation, message posting, member management, categories)
+    - [x] User profile & settings (profile editing, password change, notification/privacy preferences)
+    - [x] Push notifications (FCM setup, foreground/background handling, scheduled notifications)
+    - [x] Content feeds & carousels (discoveries, events, bookmarks, reactions, pagination)
+    - [x] User connections (user search, connection requests, blocking, people you may know)
+    - [x] Navigation & route access control (authenticated vs public routes, email verification gates)
 - [ ] Set up modular feature flag system for TherrMobile (utilizing TherrMobile/env-config.js)
 - [ ] Upgrade dependencies to latest stable versions
 - [ ] Document existing Therr features to repurpose
@@ -178,7 +188,7 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 
 ---
 
-### Phase 2: Core Pact Features (Weeks 3-4)
+### Phase 2: Core Pact Features (Weeks 3-4, January 19-29)
 **Goal:** Build minimum viable product
 
 - [ ] Streamline user authentication & onboarding
@@ -193,7 +203,7 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 
 ---
 
-### Phase 3: Viral Mechanics (Weeks 5-6)
+### Phase 3: Viral Mechanics (Weeks 5-6, February 2-12)
 **Goal:** Build growth engine into the product
 
 - [ ] Referral invite system (cannot be skipped)
@@ -208,7 +218,7 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 
 ---
 
-### Phase 4: Monetization (Weeks 7-8)
+### Phase 4: Monetization (Weeks 7-8, February 16-27)
 **Goal:** Implement freemium model and revenue generation
 
 - [ ] Freemium paywall (1 pact free, unlimited premium)
@@ -223,7 +233,7 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 
 ---
 
-### Phase 5: Polish & Testing (Weeks 9-10)
+### Phase 5: Polish & Testing (Weeks 9-10, March 2-13)
 **Goal:** Optimize user experience and prepare for launch
 
 - [ ] Optimize onboarding flow (reduce friction)
@@ -237,7 +247,7 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 
 ---
 
-### Phase 6: Launch (Weeks 11-12)
+### Phase 6: Launch (Weeks 11-12, March 16-27)
 **Goal:** Get first 500-1,000 users organically
 
 - [ ] Submit to App Store & Google Play Store
