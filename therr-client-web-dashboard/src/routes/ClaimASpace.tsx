@@ -202,7 +202,7 @@ export class ClaimASpaceComponent extends React.Component<IClaimASpaceProps, ICl
         });
     };
 
-    onSubmitSpaceClaim = (event: React.MouseEvent<HTMLInputElement>) => {
+    onSubmitSpaceClaim = (event: React.MouseEvent<HTMLButtonElement>) => {
         const { user } = this.props;
         event.preventDefault();
         const {

@@ -4,6 +4,7 @@
   "description": "The main Therr app root",
   "main": "index.js",
   "engines": {
+    "node": ">=24.12.0",
     "npm": ">=11.0.0"
   },
   "scripts": {
@@ -273,6 +274,9 @@
     "react-chartist": {
       "chartist": "$chartist",
       "react": "$react"
+    },
+    "@types/enzyme": {
+      "@types/react": "$@types/react"
     }
   },
   "optionalDependencies": {

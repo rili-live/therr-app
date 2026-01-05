@@ -158,10 +158,11 @@ exports.loadCSS = (paths, env, dontHash) => {
                         {
                             loader: 'postcss-loader',
                             options: {
-                                options: {},
-                                plugins: () => {
-                                    autoprefixer();
-                                }
+                                postcssOptions: {
+                                    plugins: [
+                                        autoprefixer(),
+                                    ],
+                                },
                             },
                         },
                         'sass-loader',

@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { AccessLevels, CurrentSocialValuations, OAuthIntegrationProviders } from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';

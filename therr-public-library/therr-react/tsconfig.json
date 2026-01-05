@@ -5,6 +5,7 @@
 		"baseUrl": ".",
 		"rootDir": "./src/",
 		"typeRoots": ["../../node_modules/@types", "typings"],
+		"types": ["node", "react", "react-dom", "jest"],
 		"declaration": true,
 		"removeComments": false,
 		"noLib": false,

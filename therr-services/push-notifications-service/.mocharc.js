@@ -1,4 +1,4 @@
 module.exports = {
-  extension: ['js'],
+  extension: ['ts', 'js'],
   recursive: true,
 };
