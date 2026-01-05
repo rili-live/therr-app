@@ -161,24 +161,14 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 **Goal:** Prepare codebase for rapid AI-assisted development
 
 - [x] Make mono repo fully Claude Code compatible
-- [ ] Add regression tests to keep core app and sub-apps aligned
+- [x] Add regression tests across the repo to keep core api, base app, and sub-apps aligned
   - [x] Implement regression tests for main functionality of users-service
   - [x] Implement regression tests for main functionality of messages-service
-  - [ ] Implement regression tests for main functionality of reactions-service
-  - [ ] Implement regression tests for main functionality of push-notifications-service
-  - [ ] Implement regression tests for main functionality of websocket-service
-  - [ ] Implement regression tests for main functionality of therr-api-gateway-service
+  - [x] Implement regression tests for main functionality of reactions-service
+  - [x] Implement regression tests for main functionality of push-notifications-service
+  - [x] Implement regression tests for main functionality of websocket-service
+  - [x] Implement regression tests for main functionality of therr-api-gateway-service
   - [x] Implement regression tests for main functionality of TherrMobile React Native codebase
-    - [x] Authentication system (login, register, OAuth with Google/Apple, session management)
-    - [x] Map & geolocation (location permissions, GPS tracking, content discovery, area search)
-    - [x] Content creation (moments/events/spaces/thoughts, image capture/upload, location tagging)
-    - [x] Direct messaging & WebSocket communication (real-time messages, pagination, connection state)
-    - [x] Groups & forums (forum creation, message posting, member management, categories)
-    - [x] User profile & settings (profile editing, password change, notification/privacy preferences)
-    - [x] Push notifications (FCM setup, foreground/background handling, scheduled notifications)
-    - [x] Content feeds & carousels (discoveries, events, bookmarks, reactions, pagination)
-    - [x] User connections (user search, connection requests, blocking, people you may know)
-    - [x] Navigation & route access control (authenticated vs public routes, email verification gates)
 - [ ] Set up modular feature flag system for TherrMobile (utilizing TherrMobile/env-config.js)
 - [ ] Upgrade dependencies to latest stable versions
 - [ ] Document existing Therr features to repurpose

@@ -225,7 +225,7 @@ const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLo
             let filteredAreasCount = 0;
 
             // Only interested in reactions that have not been activated
-            const filteredAreas = areas.filter((area, index) => {
+            const filteredAreas = areas.filter((area) => {
                 maxActivationDistance = Math.max(maxActivationDistance, (area.radius + area.maxProximity));
                 const userIsCloseEnough = canActivateArea(area, userLocation);
 
@@ -448,7 +448,7 @@ const activateAreasAndNotify = (
     const {
         activatedMomentIds,
         activatedSpaceIds,
-        moments,
+        // moments, // TODO: Add moment metrics
         spaces,
     } = activationArgs;
     const momentReactionsPromise: Promise<any> = activatedMomentIds.length ? internalRestRequest({

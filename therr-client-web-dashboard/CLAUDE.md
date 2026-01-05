@@ -132,3 +132,14 @@ npm test              # Run tests
 - OAuth2 landing page for social integrations
 - Stripe payment callback handling
 - Admin routes require `SUPER_ADMIN` access level
+
+## Code Quality
+
+Before completing code changes, run linting and fix all errors:
+
+```bash
+npx eslint src/**/*.ts src/**/*.tsx --fix   # Auto-fix issues
+npx eslint src/**/*.ts src/**/*.tsx         # Verify no errors remain
+```
+
+See root `CLAUDE.md` for full code quality requirements.

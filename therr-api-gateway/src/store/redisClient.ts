@@ -1,4 +1,4 @@
-import printLogs from 'therr-js-utilities/print-logs';
+// import printLogs from 'therr-js-utilities/print-logs';
 import Redis from 'ioredis';
 import RedisStore from 'rate-limit-redis';
 import logSpan from 'therr-js-utilities/log-or-update-span';
@@ -66,10 +66,10 @@ const connectToRedis = (client: Redis.Redis, options, callback) => {
     // We must connect manually since lazyConnect is true
     const redisConnectPromises = [
         client.connect()
-            .catch((e) => { console.log('Handled error thrown after attempting to connect to Redis'); }),
+            .catch(() => { console.log('Handled error thrown after attempting to connect to Redis'); }),
     ];
 
-    Promise.all(redisConnectPromises).then((responses: any[]) => {
+    Promise.all(redisConnectPromises).then(() => {
         clearTimeout(connectionTimerId);
         connectionRetryCount = 0;
         connectionWaitTime = 0;

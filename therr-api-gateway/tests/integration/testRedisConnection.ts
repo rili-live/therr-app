@@ -32,6 +32,7 @@ const createTestRedisClient = (): RedisClient => {
         lazyConnect: true,
     });
     // Suppress unhandled error events when Redis is unavailable
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     client.on('error', () => {});
     return client;
 };
@@ -47,6 +48,7 @@ const createTestRedisEphemeralClient = (): RedisClient => {
         lazyConnect: true,
     });
     // Suppress unhandled error events when Redis is unavailable
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     client.on('error', () => {});
     return client;
 };

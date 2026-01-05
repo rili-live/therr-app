@@ -162,3 +162,14 @@ npm run build:watch  # Watch mode
 - **No side effects**: Keep utilities pure
 - **Version consistency**: Used by all packages, changes affect entire monorepo
 - Changes here require rebuilding dependent packages
+
+## Code Quality
+
+Before completing code changes, run linting and fix all errors:
+
+```bash
+npx eslint src/**/*.ts --fix   # Auto-fix issues
+npx eslint src/**/*.ts         # Verify no errors remain
+```
+
+See root `CLAUDE.md` for full code quality requirements.

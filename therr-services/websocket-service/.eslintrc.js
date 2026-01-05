@@ -23,6 +23,8 @@ module.exports = {
         'consistent-return': 'off',
         'prefer-destructuring': 'off',
         'import/prefer-default-export': 'off',
+        'no-unused-expressions': 'off', // Allow chai assertions like expect().to.be.eq(true)
+        '@typescript-eslint/no-unused-expressions': 'off',
         'import/extensions': [
             'error',
             'always',

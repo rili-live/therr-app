@@ -183,3 +183,14 @@ See `docs/NICHE_APP_SETUP_STEPS.md` for full guide.
 - Requires Xcode (iOS) and Android Studio (Android)
 - Google Sign-In requires platform-specific OAuth IDs
 - Background geolocation for location features
+
+## Code Quality
+
+Before completing code changes, run linting and fix all errors:
+
+```bash
+npm run lint:fix   # Auto-fix issues (runs ESLint on main/**)
+npm run lint       # Verify no errors remain
+```
+
+See root `CLAUDE.md` for full code quality requirements.
