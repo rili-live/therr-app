@@ -70,6 +70,29 @@ npm run build:changed   # Smart rebuild (changed packages only)
 npm run install:all     # Install deps across all packages
 ```
 
+## Code Quality Requirements
+
+**Before completing any code changes, you MUST:**
+
+1. **Run linting** on modified files and fix all errors:
+   ```bash
+   npx eslint <file-path> --fix    # Auto-fix what's possible
+   npx eslint <file-path>          # Check for remaining errors
+   ```
+
+2. **For TypeScript files**, ensure no type errors:
+   ```bash
+   npx tsc --noEmit -p <package>/tsconfig.json
+   ```
+
+3. **Common lint rules** enforced across the codebase:
+   - No unused variables or imports
+   - Consistent indentation (2 spaces)
+   - No `any` types without explicit reason
+   - Prefer `const` over `let` when variable is not reassigned
+
+**Do not consider code changes complete until linting passes with zero errors.**
+
 ## Documentation Context
 
 Read these files when relevant to the task:

@@ -231,3 +231,14 @@ export default new NewFeatureService();
 - **Seamless Immutable**: Redux state uses `seamless-immutable` library
 - **Storage abstraction**: Supports localStorage (web) and AsyncStorage (mobile)
 - Changes require rebuilding consuming packages (web, dashboard, mobile)
+
+## Code Quality
+
+Before completing code changes, run linting and fix all errors:
+
+```bash
+npx eslint src/**/*.ts src/**/*.tsx --fix   # Auto-fix issues
+npx eslint src/**/*.ts src/**/*.tsx         # Verify no errors remain
+```
+
+See root `CLAUDE.md` for full code quality requirements.

@@ -60,3 +60,14 @@ Key tables: `users`, `userConnections`, `userGroups`, `notifications`, `userAchi
 
 - Makes HTTP calls to: reactions-service (for user metrics)
 - Called by: api-gateway (all endpoints), other services for user data
+
+## Code Quality
+
+Before completing code changes, run linting and fix all errors:
+
+```bash
+npx eslint src/**/*.ts --fix   # Auto-fix issues
+npx eslint src/**/*.ts         # Verify no errors remain
+```
+
+See root `CLAUDE.md` for full code quality requirements.

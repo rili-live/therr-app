@@ -63,3 +63,14 @@ Each has: userId, contentId, reactionType, createdAt, updatedAt
 
 - Called by: api-gateway, maps-service
 - Calls: users-service (for coin updates, achievements)
+
+## Code Quality
+
+Before completing code changes, run linting and fix all errors:
+
+```bash
+npx eslint src/**/*.ts --fix   # Auto-fix issues
+npx eslint src/**/*.ts         # Verify no errors remain
+```
+
+See root `CLAUDE.md` for full code quality requirements.
