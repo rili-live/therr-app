@@ -1,0 +1,95 @@
+name: "HABITS Feature Request"
+description: "New feature for Friends With Habits app"
+title: "[HABITS] "
+labels: ["habits", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Friends With Habits Feature Request
+
+        Reference: [HABITS Project Brief](../../docs/niche-sub-apps/HABITS_PROJECT_BRIEF.md)
+
+        **Core Principle:** Every feature should support mandatory social accountability and viral growth.
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Roadmap Phase
+      description: Which phase does this feature belong to?
+      options:
+        - "Phase 1: Foundation (Weeks 1-2)"
+        - "Phase 2: Core Pact Features (Weeks 3-4)"
+        - "Phase 3: Viral Mechanics (Weeks 5-6)"
+        - "Phase 4: Monetization (Weeks 7-8)"
+        - "Phase 5: Polish & Testing (Weeks 9-10)"
+        - "Phase 6: Launch (Weeks 11-12)"
+        - "Post-Launch / Future"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Feature Tier
+      description: Is this a free or premium feature?
+      options:
+        - "Free (MVP)"
+        - "Premium ($6.99/month)"
+        - "Both"
+        - "Infrastructure (not user-facing)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: What should this feature do?
+      placeholder: "As a user, I want to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: viral-impact
+    attributes:
+      label: Viral Growth Impact
+      description: How does this feature encourage friend invites or social sharing?
+      placeholder: "This feature encourages viral growth by..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How do we know this feature is complete?
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Works on both iOS and Android
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Platforms
+      description: Which platforms need this feature?
+      multiple: true
+      options:
+        - "iOS"
+        - "Android"
+        - "Web"
+        - "Backend API"
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Notes
+      description: Any implementation details or constraints?
+      placeholder: "Consider reusing existing Therr infrastructure for..."
+    validations:
+      required: false

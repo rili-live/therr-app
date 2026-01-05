@@ -18,22 +18,8 @@ import { getCurrentUser } from './helpers/user';
 // CREATE/UPDATE
 const processUserLocationChange: RequestHandler = (req, res) => {
     const {
-        authorization,
-        brandVariation,
-        locale,
         userId,
-        userDeviceToken,
-        whiteLabelOrigin,
     } = parseHeaders(req.headers);
-
-    const headers = {
-        authorization,
-        brandVariation,
-        locale,
-        userId,
-        userDeviceToken,
-        whiteLabelOrigin,
-    };
 
     const {
         // radiusOfAwareness,

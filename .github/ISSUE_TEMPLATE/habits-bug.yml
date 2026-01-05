@@ -1,0 +1,104 @@
+name: "HABITS Bug Report"
+description: "Report a bug in Friends With Habits app"
+title: "[HABITS BUG] "
+labels: ["habits", "bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Friends With Habits Bug Report
+
+        Reference: [HABITS Project Brief](../../docs/niche-sub-apps/HABITS_PROJECT_BRIEF.md)
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature Area
+      description: Which part of the app is affected?
+      options:
+        - "Authentication / Onboarding"
+        - "Pact Creation"
+        - "Daily Check-ins"
+        - "Activity Feed"
+        - "Notifications"
+        - "Streaks / Achievements"
+        - "Invites / Referrals"
+        - "Premium Features"
+        - "Settings"
+        - "Other"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: Where does this bug occur?
+      options:
+        - "iOS"
+        - "Android"
+        - "Both iOS and Android"
+        - "Web"
+        - "Backend/API"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: App Version
+      description: What version of the app are you using?
+      placeholder: "1.0.0"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: What happened?
+      placeholder: "When I try to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: "I expected..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this bug?
+      placeholder: |
+        1. Go to...
+        2. Tap on...
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Logs
+      description: Add any screenshots or error logs
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - "Critical - App crashes or data loss"
+        - "High - Major feature broken"
+        - "Medium - Feature partially broken"
+        - "Low - Minor inconvenience"
+    validations:
+      required: true

@@ -16,10 +16,13 @@ module.exports = {
             '<rootDir>../therr-public-library/therr-js-utilities/lib/$1',
         '@react-native-firebase/messaging': '<rootDir>/__mocks__/firebase/messaging.ts',
         '@invertase/react-native-apple-authentication': '<rootDir>/__mocks__/@invertase/react-native-apple-authentication.js',
+        'react-native-device-info': '<rootDir>/__mocks__/react-native-device-info.ts',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],
     setupFiles: ['./test-setup.ts'],
-    testURL: 'https://www.example.com/',
+    testEnvironmentOptions: {
+        url: 'https://www.example.com/',
+    },
     // transform: {
     //     '^.+\\.tsx?$': 'ts-jest',
     //     '^.+\\.jsx?$': 'babel-jest',

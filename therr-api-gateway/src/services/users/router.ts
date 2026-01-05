@@ -1,5 +1,5 @@
 import express from 'express';
-import { AccessLevels, FilePaths } from 'therr-js-utilities/constants';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import handleServiceRequest from '../../middleware/handleServiceRequest';

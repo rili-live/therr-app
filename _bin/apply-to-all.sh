@@ -28,7 +28,7 @@ then
 fi
 
 # Remaining directores to run script in. Order matters.
-declare -a arr=("therr-client-web" "therr-client-web-dashboard" "TherrMobile" "therr-api-gateway" "therr-services/push-notifications-service" "therr-services/maps-service" "therr-services/messages-service" "therr-services/reactions-service" "therr-services/users-service" "therr-services/websocket-service")
+declare -a arr=("therr-client-web" "therr-client-web-dashboard" "therr-api-gateway" "therr-services/push-notifications-service" "therr-services/maps-service" "therr-services/messages-service" "therr-services/reactions-service" "therr-services/users-service" "therr-services/websocket-service" "TherrMobile")
 for i in "${arr[@]}"; do
     pushd ${i}
     if [ -f package.json ]

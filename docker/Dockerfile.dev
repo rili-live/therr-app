@@ -1,0 +1,13 @@
+ARG NODE_VERSION=24.12.0
+FROM node:${NODE_VERSION}-alpine
+
+# Install build dependencies for native modules (bcrypt, etc.)
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Install npm 11+ as required by monorepo
+RUN npm i npm@latest -g
+
+WORKDIR /app
+
+# Default command - will be overridden by docker-compose
+CMD ["sh"]
