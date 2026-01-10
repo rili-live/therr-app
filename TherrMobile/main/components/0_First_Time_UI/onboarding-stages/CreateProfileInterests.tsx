@@ -141,7 +141,7 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                                     <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
                                         {
                                             interests.map((interest) => {
-                                                const style = !!interest.isEnabled
+                                                const style = interest.isEnabled
                                                     ? { borderWidth: 1, borderRadius: 12, borderColor: theme.colors.selectionColor }
                                                     : {};
                                                 return (

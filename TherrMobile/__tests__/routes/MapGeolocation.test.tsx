@@ -861,7 +861,7 @@ describe('Map View and User Location Updates', () => {
         }
 
         const isRegionSignificantlyDifferent = (region1?: IRegion, region2?: IRegion): boolean => {
-            if (!region1 || !region2) return true;
+            if (!region1 || !region2) {return true;}
 
             return region1.latitude.toFixed(6) !== region2.latitude.toFixed(6)
                 || region1.longitude.toFixed(6) !== region2.longitude.toFixed(6);
@@ -1425,8 +1425,8 @@ describe('Search This Location Functionality', () => {
         const MOMENTS_REFRESH_THROTTLE_MS = 30000;
 
         const shouldThrottle = (lastRefresh: number | undefined, overrideThrottle: boolean): boolean => {
-            if (overrideThrottle) return false;
-            if (!lastRefresh) return false;
+            if (overrideThrottle) {return false;}
+            if (!lastRefresh) {return false;}
 
             return (Date.now() - lastRefresh) <= MOMENTS_REFRESH_THROTTLE_MS;
         };
@@ -1717,8 +1717,8 @@ describe('Check-In Functionality', () => {
         ): boolean => {
             const engagement = recentEngagements[spaceId];
 
-            if (!engagement) return true;
-            if (engagement.engagementType !== 'check-in') return true;
+            if (!engagement) {return true;}
+            if (engagement.engagementType !== 'check-in') {return true;}
 
             return (Date.now() - engagement.timestamp) >= MIN_TIME_BTW_CHECK_INS_MS;
         };

@@ -802,7 +802,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         let targetRouteView = '';
         let targetRouteParams: any = {};
-        if (data && !Array.isArray(data) && typeof(data) === 'object') {
+        if (data && !Array.isArray(data) && typeof (data) === 'object') {
             if (data.action === PushNotifications.AndroidIntentActions.Therr.ACHIEVEMENT_COMPLETED
                 || data.action === PushNotifications.AndroidIntentActions.Therr.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
                 targetRouteView = 'Achievements';
