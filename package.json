@@ -131,7 +131,6 @@
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-webpack-plugin": "^4.2.0",
-    "happypack": "^5.0.1",
     "html-webpack-plugin": "^5.6.3",
     "husky": "^9.1.7",
     "install": "^0.13.0",
