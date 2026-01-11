@@ -1,4 +1,4 @@
-package com.therr.mobile.Teem
+package app.therrmobile
 
 import android.content.Intent
 import android.os.Bundle
@@ -17,7 +17,7 @@ class MainActivity : ReactActivity() {
    * Returns the name of the main component registered from JavaScript. This is used to schedule
    * rendering of the component.
    */
-  override fun getMainComponentName(): String = "Teem"
+  override fun getMainComponentName(): String = "Therr"
 
   // Store the URL we're receiving from the share system
   var importUrl: String? = null

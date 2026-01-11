@@ -35,12 +35,12 @@ android_library(
 
 android_build_config(
     name = "build_config",
-    package = "com.therr.mobile.Teem",
+    package = "app.therrmobile",
 )
 
 android_resource(
     name = "res",
-    package = "com.therr.mobile.Teem",
+    package = "app.therrmobile",
     res = "src/main/res",
 )
 

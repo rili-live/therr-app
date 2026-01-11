@@ -1,4 +1,4 @@
-package com.therr.mobile.Teem
+package app.therrmobile
 
 import android.app.Application
 import com.facebook.react.PackageList

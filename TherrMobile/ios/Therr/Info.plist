@@ -9,7 +9,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Teem</string>
+	<string>Therr</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleGetInfoString</key>
@@ -37,7 +37,7 @@
 			</array>
 		</dict>
 		<dict>
-			<key/>
+			<key></key>
 			<string></string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>

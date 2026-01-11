@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00E356F31AD99517003FC87E /* TeemTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TeemTests.m */; };
-		049DBC8BD32795A026CD577E /* libPods-Teem.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 269A8BEF73C08FCC4CE2F5BA /* libPods-Teem.a */; };
+		00E356F31AD99517003FC87E /* TherrTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TherrTests.m */; };
+		049DBC8BD32795A026CD577E /* libPods-Therr.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 269A8BEF73C08FCC4CE2F5BA /* libPods-Therr.a */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
@@ -33,7 +33,7 @@
 		71F658432BDBF98C002EE8AF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 71F658422BDBF98C002EE8AF /* PrivacyInfo.xcprivacy */; };
 		71F9E0B6277251A8006CDC68 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 71F9E0B5277251A8006CDC68 /* BootSplash.storyboard */; };
 		828BAD9501C34D7D9A9D1CEA /* Lexend-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 999CE776FF7F40688242002F /* Lexend-Thin.ttf */; };
-		8940DE96474BDD89358A944A /* libPods-Teem-TeemTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AF609D4578E265330DA2521 /* libPods-Teem-TeemTests.a */; };
+		8940DE96474BDD89358A944A /* libPods-Therr-TherrTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AF609D4578E265330DA2521 /* libPods-Therr-TherrTests.a */; };
 		95020E9E7316455981E47842 /* TherrFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D601798F0A8545528392CD6D /* TherrFont.ttf */; };
 		ABCD912DF5C342BBABAE6A85 /* Lexend-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AC850BEDED1840EE92F5E02B /* Lexend-Light.ttf */; };
 		B31CBB9A40424042B80A9EEF /* Lexend-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1D29FE24EF9C442B92CE6333 /* Lexend-ExtraBold.ttf */; };
@@ -48,38 +48,38 @@
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = Teem;
+			remoteInfo = Therr;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
-		00E356EE1AD99517003FC87E /* TeemTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeemTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		00E356EE1AD99517003FC87E /* TherrTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TherrTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00E356F21AD99517003FC87E /* TeemTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TeemTests.m; sourceTree = "<group>"; };
-		02C80B30226A68BB6202F68F /* Pods-Teem-TeemTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Teem-TeemTests.release.xcconfig"; path = "Target Support Files/Pods-Teem-TeemTests/Pods-Teem-TeemTests.release.xcconfig"; sourceTree = "<group>"; };
+		00E356F21AD99517003FC87E /* TherrTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TherrTests.m; sourceTree = "<group>"; };
+		02C80B30226A68BB6202F68F /* Pods-Therr-TherrTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-TherrTests.release.xcconfig"; path = "Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests.release.xcconfig"; sourceTree = "<group>"; };
 		03382E3E5EF14D85A7D4B2D5 /* therr-logo.svg */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "therr-logo.svg"; path = "../main/assets/therr-logo.svg"; sourceTree = "<group>"; };
 		0787819506C94321956D70E8 /* google-letter-logo.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "google-letter-logo.png"; path = "../main/assets/google-letter-logo.png"; sourceTree = "<group>"; };
 		0EA39688562A41A680689DE9 /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = Teem/Colors.xcassets; sourceTree = "<group>"; };
 		0FDA7E83E273463095DE7C9D /* bootsplash_logo@1,5x.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "bootsplash_logo@1,5x.png"; path = "../main/assets/bootsplash_logo@1,5x.png"; sourceTree = "<group>"; };
 		124C5AF1BBC24C06AA3B0790 /* TherrFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = TherrFont.ttf; path = ../main/assets/fonts/TherrFont.ttf; sourceTree = "<group>"; };
-		12D22065542CD981A7430BCB /* Pods-Teem-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Teem-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Teem-tvOS/Pods-Teem-tvOS.release.xcconfig"; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* Teem.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Teem.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Teem/AppDelegate.h; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = Teem/AppDelegate.mm; sourceTree = "<group>"; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Teem/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Teem/Info.plist; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Teem/main.m; sourceTree = "<group>"; };
+		12D22065542CD981A7430BCB /* Pods-Therr-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Therr-tvOS/Pods-Therr-tvOS.release.xcconfig"; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* Therr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Therr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Therr/AppDelegate.h; sourceTree = "<group>"; };
+		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = Therr/AppDelegate.mm; sourceTree = "<group>"; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Therr/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Therr/Info.plist; sourceTree = "<group>"; };
+		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Therr/main.m; sourceTree = "<group>"; };
 		13D3351AB5B24B319FE71B16 /* Lexend-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Medium.ttf"; path = "../main/assets/fonts/Lexend-Medium.ttf"; sourceTree = "<group>"; };
 		16A98059AF174E4B8194ACF2 /* Lexend-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Light.ttf"; path = "../main/assets/fonts/Lexend-Light.ttf"; sourceTree = "<group>"; };
 		1D29FE24EF9C442B92CE6333 /* Lexend-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-ExtraBold.ttf"; path = "../resources/fonts/Lexend-ExtraBold.ttf"; sourceTree = "<group>"; };
 		2472A839E46A4744A5CC6BC9 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
 		249AC0D9A3AC4A0B908E73AC /* profile-placeholder.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "profile-placeholder.png"; path = "../main/assets/profile-placeholder.png"; sourceTree = "<group>"; };
 		25F3861E824649188343BA69 /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
-		269A8BEF73C08FCC4CE2F5BA /* libPods-Teem.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Teem.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		269A8BEF73C08FCC4CE2F5BA /* libPods-Therr.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2933014BC6FD480A8D9C0B80 /* marker.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = marker.png; path = ../main/assets/marker.png; sourceTree = "<group>"; };
-		2D02E47B1E0B4A5D006451C7 /* Teem-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Teem-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2D02E4901E0B4A5D006451C7 /* Teem-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Teem-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D02E47B1E0B4A5D006451C7 /* Therr-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Therr-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D02E4901E0B4A5D006451C7 /* Therr-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Therr-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F674C59F75441E49246F668 /* AntDesign.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
 		306868688D0A4C918476D8B9 /* Lexend-Thin.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Thin.ttf"; path = "../main/assets/fonts/Lexend-Thin.ttf"; sourceTree = "<group>"; };
 		32DF2FC8A8F44C6CA2C87572 /* bootsplash_logo@2x.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "bootsplash_logo@2x.png"; path = "../main/assets/bootsplash_logo@2x.png"; sourceTree = "<group>"; };
@@ -87,8 +87,8 @@
 		396BC63B295D4F4CB29856F9 /* therr-logo.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "therr-logo.png"; path = "../main/assets/therr-logo.png"; sourceTree = "<group>"; };
 		3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = Therr/Colors.xcassets; sourceTree = "<group>"; };
 		3DA9A00AB9A54236B9758281 /* google-logo.svg */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "google-logo.svg"; path = "../main/assets/google-logo.svg"; sourceTree = "<group>"; };
-		57D55D0B7C5CA0FD4E1AF6F7 /* libPods-Teem-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Teem-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		5AF609D4578E265330DA2521 /* libPods-Teem-TeemTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Teem-TeemTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		57D55D0B7C5CA0FD4E1AF6F7 /* libPods-Therr-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5AF609D4578E265330DA2521 /* libPods-Therr-TherrTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-TherrTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		60CA80A2B9D14D938BD2D7F1 /* bootsplash_logo@4x.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "bootsplash_logo@4x.png"; path = "../main/assets/bootsplash_logo@4x.png"; sourceTree = "<group>"; };
 		6111736447B54DB895B27539 /* SSOFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SSOFont.ttf; path = ../resources/fonts/SSOFont.ttf; sourceTree = "<group>"; };
 		65A714420C6F463F8B8A6C0F /* Lexend-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Medium.ttf"; path = "../resources/fonts/Lexend-Medium.ttf"; sourceTree = "<group>"; };
@@ -99,12 +99,12 @@
 		714AA58026B0911A003E88A1 /* Contacts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Contacts.framework; path = System/Library/Frameworks/Contacts.framework; sourceTree = SDKROOT; };
 		714EBB2725C6FBEA00910449 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fonts; path = ../main/assets/fonts; sourceTree = "<group>"; };
 		715B895E2618EA6300408914 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		715B89BF2619FD6600408914 /* TherrDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TherrDebug.entitlements; path = Teem/TherrDebug.entitlements; sourceTree = "<group>"; };
-		715B89C52619FD9100408914 /* TeemRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TeemRelease.entitlements; path = Teem/TeemRelease.entitlements; sourceTree = "<group>"; };
+		715B89BF2619FD6600408914 /* TherrDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TherrDebug.entitlements; path = Therr/TherrDebug.entitlements; sourceTree = "<group>"; };
+		715B89C52619FD9100408914 /* TherrRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TherrRelease.entitlements; path = Therr/TherrRelease.entitlements; sourceTree = "<group>"; };
 		717DDE3E26FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "RNBackgroundFetch+AppDelegate.m"; path = "../node_modules/react-native-background-fetch/ios/RNBackgroundFetch/RNBackgroundFetch+AppDelegate.m"; sourceTree = "<group>"; };
 		71AB94BF26B09B3700EDA342 /* libreact-native-config.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libreact-native-config.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		71AD19E4265046B100498CBE /* Teem-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Teem-Bridging-Header.h"; sourceTree = "<group>"; };
-		71AD19E5265046B100498CBE /* TeemTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TeemTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		71AD19E4265046B100498CBE /* Therr-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Therr-Bridging-Header.h"; sourceTree = "<group>"; };
+		71AD19E5265046B100498CBE /* TherrTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TherrTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		71C492CF26A463B5004D33C1 /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		71ED0B42267D2AAD002AA90C /* libRNGoogleSignin.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libRNGoogleSignin.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		71ED0B45267D2AB7002AA90C /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
@@ -112,7 +112,7 @@
 		71ED0B49267D2AD6002AA90C /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		71ED0B4B267D2AE0002AA90C /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		71F658422BDBF98C002EE8AF /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		71F9E0B5277251A8006CDC68 /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = Teem/BootSplash.storyboard; sourceTree = "<group>"; };
+		71F9E0B5277251A8006CDC68 /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = Therr/BootSplash.storyboard; sourceTree = "<group>"; };
 		75F5FC0188604134B89F0E09 /* FontAwesome.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
 		7AF08F3CE9D94071A397F991 /* Lexend-ExtraLight.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-ExtraLight.ttf"; path = "../main/assets/fonts/Lexend-ExtraLight.ttf"; sourceTree = "<group>"; };
 		7EFE63A5F26F4E8E9C8AA892 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
@@ -129,15 +129,15 @@
 		B384DBC074E547ACA44ED49F /* Lexend-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Regular.ttf"; path = "../main/assets/fonts/Lexend-Regular.ttf"; sourceTree = "<group>"; };
 		B3DFC5C6217043D8862772F5 /* SSOFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SSOFont.ttf; path = ../main/assets/fonts/SSOFont.ttf; sourceTree = "<group>"; };
 		B4AB12EDEF8942A598832046 /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
-		B4C0AFF7A0EB3CDCB76035AA /* Pods-Teem-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Teem-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-Teem-tvOSTests/Pods-Teem-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
-		B67245E08F5B27DB70ACD5DE /* Pods-Teem-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Teem-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Teem-tvOS/Pods-Teem-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
+		B4C0AFF7A0EB3CDCB76035AA /* Pods-Therr-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-Therr-tvOSTests/Pods-Therr-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
+		B67245E08F5B27DB70ACD5DE /* Pods-Therr-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Therr-tvOS/Pods-Therr-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		B6AC10877A7046E295E229DD /* FontAwesome5_Brands.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Brands.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf"; sourceTree = "<group>"; };
 		B6ACA09A08A64285AF7A4A44 /* Lexend-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-SemiBold.ttf"; path = "../resources/fonts/Lexend-SemiBold.ttf"; sourceTree = "<group>"; };
-		B8E0C8C7EFF2E15B2ED2C1CF /* Pods-Teem.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Teem.release.xcconfig"; path = "Target Support Files/Pods-Teem/Pods-Teem.release.xcconfig"; sourceTree = "<group>"; };
+		B8E0C8C7EFF2E15B2ED2C1CF /* Pods-Therr.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr.release.xcconfig"; path = "Target Support Files/Pods-Therr/Pods-Therr.release.xcconfig"; sourceTree = "<group>"; };
 		BA6595D5063946F5A6B73126 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		BBA4B64FA1E94D198C8489A0 /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		C2ADCA8DEFBD41979C0D4562 /* Fontisto.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Fontisto.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Fontisto.ttf"; sourceTree = "<group>"; };
-		C2C948F4D5679F3AEE65C205 /* Pods-Teem-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Teem-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Teem-tvOSTests/Pods-Teem-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
+		C2C948F4D5679F3AEE65C205 /* Pods-Therr-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Therr-tvOSTests/Pods-Therr-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		C510306C313145CF9EDB5764 /* Lexend-Black.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Black.ttf"; path = "../resources/fonts/Lexend-Black.ttf"; sourceTree = "<group>"; };
 		C6337D7E3B9B447F8D6C090B /* bootsplash_logo.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = bootsplash_logo.png; path = ../main/assets/bootsplash_logo.png; sourceTree = "<group>"; };
 		CAD7F3013329410FB1471362 /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
@@ -145,10 +145,10 @@
 		D15094A3CF044E94B50F48A8 /* Lexend-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-ExtraBold.ttf"; path = "../main/assets/fonts/Lexend-ExtraBold.ttf"; sourceTree = "<group>"; };
 		D5C450B2558340A4B4F49077 /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
 		D601798F0A8545528392CD6D /* TherrFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = TherrFont.ttf; path = ../resources/fonts/TherrFont.ttf; sourceTree = "<group>"; };
-		DACA37B7937449C65A25F7C0 /* Pods-Teem-TeemTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Teem-TeemTests.debug.xcconfig"; path = "Target Support Files/Pods-Teem-TeemTests/Pods-Teem-TeemTests.debug.xcconfig"; sourceTree = "<group>"; };
+		DACA37B7937449C65A25F7C0 /* Pods-Therr-TherrTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-TherrTests.debug.xcconfig"; path = "Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests.debug.xcconfig"; sourceTree = "<group>"; };
 		DBC3848B9B924E93854AFE15 /* therr-text.svg */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "therr-text.svg"; path = "../main/assets/therr-text.svg"; sourceTree = "<group>"; };
-		E1F0CD9A27D9BB9F141FB04F /* libPods-Teem-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Teem-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E5A874528DCBB960959D1E29 /* Pods-Teem.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Teem.debug.xcconfig"; path = "Target Support Files/Pods-Teem/Pods-Teem.debug.xcconfig"; sourceTree = "<group>"; };
+		E1F0CD9A27D9BB9F141FB04F /* libPods-Therr-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E5A874528DCBB960959D1E29 /* Pods-Therr.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr.debug.xcconfig"; path = "Target Support Files/Pods-Therr/Pods-Therr.debug.xcconfig"; sourceTree = "<group>"; };
 		E8C10A744BE04A898B2EDDE2 /* apple-logo.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "apple-logo.png"; path = "../main/assets/apple-logo.png"; sourceTree = "<group>"; };
 		EC8BB08B674341F59980BB9E /* Lexend-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-SemiBold.ttf"; path = "../main/assets/fonts/Lexend-SemiBold.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -162,7 +162,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8940DE96474BDD89358A944A /* libPods-Teem-TeemTests.a in Frameworks */,
+				8940DE96474BDD89358A944A /* libPods-Therr-TherrTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,20 +176,20 @@
 				71ED0B4A267D2AD6002AA90C /* SystemConfiguration.framework in Frameworks */,
 				71ED0B48267D2ACA002AA90C /* SafariServices.framework in Frameworks */,
 				71ED0B43267D2AAD002AA90C /* libRNGoogleSignin.a in Frameworks */,
-				049DBC8BD32795A026CD577E /* libPods-Teem.a in Frameworks */,
+				049DBC8BD32795A026CD577E /* libPods-Therr.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00E356EF1AD99517003FC87E /* TeemTests */ = {
+		00E356EF1AD99517003FC87E /* TherrTests */ = {
 			isa = PBXGroup;
 			children = (
-				00E356F21AD99517003FC87E /* TeemTests.m */,
+				00E356F21AD99517003FC87E /* TherrTests.m */,
 				00E356F01AD99517003FC87E /* Supporting Files */,
 			);
-			path = TeemTests;
+			path = TherrTests;
 			sourceTree = "<group>";
 		};
 		00E356F01AD99517003FC87E /* Supporting Files */ = {
@@ -200,12 +200,12 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		13B07FAE1A68108700A75B9A /* Teem */ = {
+		13B07FAE1A68108700A75B9A /* Therr */ = {
 			isa = PBXGroup;
 			children = (
 				71F9E0B5277251A8006CDC68 /* BootSplash.storyboard */,
 				717DDE3E26FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m */,
-				715B89C52619FD9100408914 /* TeemRelease.entitlements */,
+				715B89C52619FD9100408914 /* TherrRelease.entitlements */,
 				715B89BF2619FD6600408914 /* TherrDebug.entitlements */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
@@ -215,7 +215,7 @@
 				13B07FB71A68108700A75B9A /* main.m */,
 				0EA39688562A41A680689DE9 /* Colors.xcassets */,
 			);
-			name = Teem;
+			name = Therr;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -229,10 +229,10 @@
 				71ED0B45267D2AB7002AA90C /* AddressBook.framework */,
 				71ED0B42267D2AAD002AA90C /* libRNGoogleSignin.a */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				269A8BEF73C08FCC4CE2F5BA /* libPods-Teem.a */,
-				5AF609D4578E265330DA2521 /* libPods-Teem-TeemTests.a */,
-				57D55D0B7C5CA0FD4E1AF6F7 /* libPods-Teem-tvOS.a */,
-				E1F0CD9A27D9BB9F141FB04F /* libPods-Teem-tvOSTests.a */,
+				269A8BEF73C08FCC4CE2F5BA /* libPods-Therr.a */,
+				5AF609D4578E265330DA2521 /* libPods-Therr-TherrTests.a */,
+				57D55D0B7C5CA0FD4E1AF6F7 /* libPods-Therr-tvOS.a */,
+				E1F0CD9A27D9BB9F141FB04F /* libPods-Therr-tvOSTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -253,16 +253,15 @@
 				715B895E2618EA6300408914 /* GoogleService-Info.plist */,
 				714EBB2725C6FBEA00910449 /* fonts */,
 				712C1DF325C649470078CB60 /* assets */,
-				13B07FAE1A68108700A75B9A /* Teem */,
+				13B07FAE1A68108700A75B9A /* Therr */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				00E356EF1AD99517003FC87E /* TeemTests */,
+				00E356EF1AD99517003FC87E /* TherrTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				B57E316FCBFD99CDED558C61 /* Pods */,
 				EB3A45D744634A65B1C6CB50 /* Resources */,
-				71AD19E4265046B100498CBE /* Teem-Bridging-Header.h */,
-				71AD19E5265046B100498CBE /* TeemTests-Bridging-Header.h */,
-				AC860E2F2D41530C00D51ED4 /* Recovered References */,
+				71AD19E4265046B100498CBE /* Therr-Bridging-Header.h */,
+				71AD19E5265046B100498CBE /* TherrTests-Bridging-Header.h */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -272,10 +271,10 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* Teem.app */,
-				00E356EE1AD99517003FC87E /* TeemTests.xctest */,
-				2D02E47B1E0B4A5D006451C7 /* Teem-tvOS.app */,
-				2D02E4901E0B4A5D006451C7 /* Teem-tvOSTests.xctest */,
+				13B07F961A680F5B00A75B9A /* Therr.app */,
+				00E356EE1AD99517003FC87E /* TherrTests.xctest */,
+				2D02E47B1E0B4A5D006451C7 /* Therr-tvOS.app */,
+				2D02E4901E0B4A5D006451C7 /* Therr-tvOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -292,14 +291,14 @@
 		B57E316FCBFD99CDED558C61 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				E5A874528DCBB960959D1E29 /* Pods-Teem.debug.xcconfig */,
-				B8E0C8C7EFF2E15B2ED2C1CF /* Pods-Teem.release.xcconfig */,
-				DACA37B7937449C65A25F7C0 /* Pods-Teem-TeemTests.debug.xcconfig */,
-				02C80B30226A68BB6202F68F /* Pods-Teem-TeemTests.release.xcconfig */,
-				B67245E08F5B27DB70ACD5DE /* Pods-Teem-tvOS.debug.xcconfig */,
-				12D22065542CD981A7430BCB /* Pods-Teem-tvOS.release.xcconfig */,
-				C2C948F4D5679F3AEE65C205 /* Pods-Teem-tvOSTests.debug.xcconfig */,
-				B4C0AFF7A0EB3CDCB76035AA /* Pods-Teem-tvOSTests.release.xcconfig */,
+				E5A874528DCBB960959D1E29 /* Pods-Therr.debug.xcconfig */,
+				B8E0C8C7EFF2E15B2ED2C1CF /* Pods-Therr.release.xcconfig */,
+				DACA37B7937449C65A25F7C0 /* Pods-Therr-TherrTests.debug.xcconfig */,
+				02C80B30226A68BB6202F68F /* Pods-Therr-TherrTests.release.xcconfig */,
+				B67245E08F5B27DB70ACD5DE /* Pods-Therr-tvOS.debug.xcconfig */,
+				12D22065542CD981A7430BCB /* Pods-Therr-tvOS.release.xcconfig */,
+				C2C948F4D5679F3AEE65C205 /* Pods-Therr-tvOSTests.debug.xcconfig */,
+				B4C0AFF7A0EB3CDCB76035AA /* Pods-Therr-tvOSTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -369,9 +368,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		00E356ED1AD99517003FC87E /* TeemTests */ = {
+		00E356ED1AD99517003FC87E /* TherrTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "TeemTests" */;
+			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "TherrTests" */;
 			buildPhases = (
 				03C3C00027C6E22B24494F52 /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
@@ -385,14 +384,14 @@
 			dependencies = (
 				00E356F51AD99517003FC87E /* PBXTargetDependency */,
 			);
-			name = TeemTests;
-			productName = TeemTests;
-			productReference = 00E356EE1AD99517003FC87E /* TeemTests.xctest */;
+			name = TherrTests;
+			productName = TherrTests;
+			productReference = 00E356EE1AD99517003FC87E /* TherrTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		13B07F861A680F5B00A75B9A /* Teem */ = {
+		13B07F861A680F5B00A75B9A /* Therr */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Teem" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Therr" */;
 			buildPhases = (
 				5D819E7DB0B81E3C3E92116C /* [CP] Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
@@ -408,9 +407,9 @@
 			);
 			dependencies = (
 			);
-			name = Teem;
-			productName = Teem;
-			productReference = 13B07F961A680F5B00A75B9A /* Teem.app */;
+			name = Therr;
+			productName = Therr;
+			productReference = 13B07F961A680F5B00A75B9A /* Therr.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -431,7 +430,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Teem" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Therr" */;
 			compatibilityVersion = "Xcode 12.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -444,8 +443,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* Teem */,
-				00E356ED1AD99517003FC87E /* TeemTests */,
+				13B07F861A680F5B00A75B9A /* Therr */,
+				00E356ED1AD99517003FC87E /* TherrTests */,
 			);
 		};
 /* End PBXProject section */
@@ -519,7 +518,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Teem-TeemTests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-Therr-TherrTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -546,15 +545,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Teem-TeemTests/Pods-Teem-TeemTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Teem-TeemTests/Pods-Teem-TeemTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Teem-TeemTests/Pods-Teem-TeemTests-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		5D819E7DB0B81E3C3E92116C /* [CP] Check Pods Manifest.lock */ = {
@@ -572,7 +571,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Teem-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-Therr-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -585,15 +584,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Teem-TeemTests/Pods-Teem-TeemTests-resources-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Teem-TeemTests/Pods-Teem-TeemTests-resources-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Teem-TeemTests/Pods-Teem-TeemTests-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		6C95AD03649349BC510BF23B /* [CP-User] [RNFB] Core Configuration */ = {
@@ -615,15 +614,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Teem/Pods-Teem-resources-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Therr/Pods-Therr-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Teem/Pods-Teem-resources-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Therr/Pods-Therr-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Teem/Pods-Teem-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Therr/Pods-Therr-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		948D39C46D17EFE6A2067DD1 /* [CP] Embed Pods Frameworks */ = {
@@ -632,15 +631,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Teem/Pods-Teem-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Therr/Pods-Therr-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Teem/Pods-Teem-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Therr/Pods-Therr-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Teem/Pods-Teem-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Therr/Pods-Therr-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -650,7 +649,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00E356F31AD99517003FC87E /* TeemTests.m in Sources */,
+				00E356F31AD99517003FC87E /* TherrTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -670,7 +669,7 @@
 /* Begin PBXTargetDependency section */
 		00E356F51AD99517003FC87E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* Teem */;
+			target = 13B07F861A680F5B00A75B9A /* Therr */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -678,7 +677,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DACA37B7937449C65A25F7C0 /* Pods-Teem-TeemTests.debug.xcconfig */;
+			baseConfigurationReference = DACA37B7937449C65A25F7C0 /* Pods-Therr-TherrTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -687,7 +686,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = TeemTests/Info.plist;
+				INFOPLIST_FILE = TherrTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -699,24 +698,24 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Teem;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "TeemTests-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "TherrTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Teem.app/Teem";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Therr.app/Therr";
 			};
 			name = Debug;
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 02C80B30226A68BB6202F68F /* Pods-Teem-TeemTests.release.xcconfig */;
+			baseConfigurationReference = 02C80B30226A68BB6202F68F /* Pods-Therr-TherrTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				COPY_PHASE_STRIP = NO;
-				INFOPLIST_FILE = TeemTests/Info.plist;
+				INFOPLIST_FILE = TherrTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -728,21 +727,21 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Teem;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "TeemTests-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "TherrTests-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Teem.app/Teem";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Therr.app/Therr";
 			};
 			name = Release;
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E5A874528DCBB960959D1E29 /* Pods-Teem.debug.xcconfig */;
+			baseConfigurationReference = E5A874528DCBB960959D1E29 /* Pods-Therr.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Teem/TherrDebug.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Therr/TherrDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
@@ -838,8 +837,8 @@
 					"$(SRCROOT)/../node_modules/react-native/Libraries/LinkingIOS",
 				);
 				IBC_MODULE = "$(PRODUCT_MODULE_NAME)";
-				INFOPLIST_FILE = Teem/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Teem;
+				INFOPLIST_FILE = Therr/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Therr: Social Health Network";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -941,11 +940,11 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Teem;
-				PRODUCT_NAME = Teem;
+				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Therr;
+				PRODUCT_NAME = Therr;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Teem App Development 4-5-24";
-				SWIFT_OBJC_BRIDGING_HEADER = "Teem-Bridging-Header.h";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Therr App Development 4-5-24";
+				SWIFT_OBJC_BRIDGING_HEADER = "Therr-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -955,11 +954,11 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B8E0C8C7EFF2E15B2ED2C1CF /* Pods-Teem.release.xcconfig */;
+			baseConfigurationReference = B8E0C8C7EFF2E15B2ED2C1CF /* Pods-Therr.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Teem/TeemRelease.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Therr/TherrRelease.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 210;
@@ -1050,8 +1049,8 @@
 					"$(SRCROOT)/../node_modules/react-native/Libraries/LinkingIOS",
 				);
 				IBC_MODULE = "$(PRODUCT_MODULE_NAME)";
-				INFOPLIST_FILE = Teem/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Teem;
+				INFOPLIST_FILE = Therr/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Therr: Social Health Network";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1145,11 +1144,11 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Teem;
-				PRODUCT_NAME = Teem;
-				PROVISIONING_PROFILE_SPECIFIER = "Teem App Distribution 5-3-22";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Teem App Distribution 4-5-24";
-				SWIFT_OBJC_BRIDGING_HEADER = "Teem-Bridging-Header.h";
+				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Therr;
+				PRODUCT_NAME = Therr;
+				PROVISIONING_PROFILE_SPECIFIER = "Therr App Distribution 5-3-22";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Therr App Distribution 4-5-24";
+				SWIFT_OBJC_BRIDGING_HEADER = "Therr-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -1301,7 +1300,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "TeemTests" */ = {
+		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "TherrTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				00E356F61AD99517003FC87E /* Debug */,
@@ -1310,7 +1309,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Teem" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Therr" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -1319,7 +1318,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Teem" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Therr" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
