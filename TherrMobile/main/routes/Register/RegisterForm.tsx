@@ -244,7 +244,7 @@ export class RegisterFormComponent extends React.Component<
     };
 
     openPrivacyPolicy = () => {
-        Linking.openURL('https://teem-social.com/privacy-policy');
+        Linking.openURL('https://www.therr.app/privacy-policy.html');
     };
 
     public render() {
@@ -375,7 +375,7 @@ export class RegisterFormComponent extends React.Component<
                         onPress={this.onSubmit}
                         disabled={this.isRegisterFormDisabled()}
                     />
-                    {/* <OrDivider
+                    <OrDivider
                         translate={this.translate}
                         themeForms={themeForms}
                         containerStyle={spacingStyles.marginVertXLg}
@@ -402,7 +402,7 @@ export class RegisterFormComponent extends React.Component<
                                 type={AppleButton.Type.CONTINUE}
                             />
                         </View>
-                    } */}
+                    }
                 </View>
             </>
         );
