@@ -38,8 +38,9 @@
 		ABCD912DF5C342BBABAE6A85 /* Lexend-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AC850BEDED1840EE92F5E02B /* Lexend-Light.ttf */; };
 		B31CBB9A40424042B80A9EEF /* Lexend-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1D29FE24EF9C442B92CE6333 /* Lexend-ExtraBold.ttf */; };
 		BF1AAC2817CD4831A7C9B88A /* Lexend-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CD15F12F138B49E8BA10EE32 /* Lexend-ExtraLight.ttf */; };
-		C56D90AA7E444AC3879D8AB0 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0EA39688562A41A680689DE9 /* Colors.xcassets */; };
 		F0CBAA697E4B49DA9FD6626C /* Lexend-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 68A1BBC0CA244A228C509B6B /* Lexend-Regular.ttf */; };
+		D3D8AE9723124B0EA47429A1 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9804E00C3BD4D6D8AFE386A /* BootSplash.storyboard */; };
+		00B36B8E10844EBFB1853B4B /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,7 +61,6 @@
 		02C80B30226A68BB6202F68F /* Pods-Therr-TherrTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-TherrTests.release.xcconfig"; path = "Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests.release.xcconfig"; sourceTree = "<group>"; };
 		03382E3E5EF14D85A7D4B2D5 /* therr-logo.svg */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "therr-logo.svg"; path = "../main/assets/therr-logo.svg"; sourceTree = "<group>"; };
 		0787819506C94321956D70E8 /* google-letter-logo.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "google-letter-logo.png"; path = "../main/assets/google-letter-logo.png"; sourceTree = "<group>"; };
-		0EA39688562A41A680689DE9 /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = Teem/Colors.xcassets; sourceTree = "<group>"; };
 		0FDA7E83E273463095DE7C9D /* bootsplash_logo@1,5x.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "bootsplash_logo@1,5x.png"; path = "../main/assets/bootsplash_logo@1,5x.png"; sourceTree = "<group>"; };
 		124C5AF1BBC24C06AA3B0790 /* TherrFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = TherrFont.ttf; path = ../main/assets/fonts/TherrFont.ttf; sourceTree = "<group>"; };
 		12D22065542CD981A7430BCB /* Pods-Therr-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Therr-tvOS/Pods-Therr-tvOS.release.xcconfig"; sourceTree = "<group>"; };
@@ -85,7 +85,6 @@
 		32DF2FC8A8F44C6CA2C87572 /* bootsplash_logo@2x.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "bootsplash_logo@2x.png"; path = "../main/assets/bootsplash_logo@2x.png"; sourceTree = "<group>"; };
 		365F573960E144D8A35F492F /* Lexend-Black.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Black.ttf"; path = "../main/assets/fonts/Lexend-Black.ttf"; sourceTree = "<group>"; };
 		396BC63B295D4F4CB29856F9 /* therr-logo.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "therr-logo.png"; path = "../main/assets/therr-logo.png"; sourceTree = "<group>"; };
-		3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = Therr/Colors.xcassets; sourceTree = "<group>"; };
 		3DA9A00AB9A54236B9758281 /* google-logo.svg */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "google-logo.svg"; path = "../main/assets/google-logo.svg"; sourceTree = "<group>"; };
 		57D55D0B7C5CA0FD4E1AF6F7 /* libPods-Therr-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5AF609D4578E265330DA2521 /* libPods-Therr-TherrTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-TherrTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -122,7 +121,6 @@
 		999CE776FF7F40688242002F /* Lexend-Thin.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Thin.ttf"; path = "../resources/fonts/Lexend-Thin.ttf"; sourceTree = "<group>"; };
 		9D301F8E359543F4A7D37CCA /* Lexend-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Bold.ttf"; path = "../resources/fonts/Lexend-Bold.ttf"; sourceTree = "<group>"; };
 		A6447B3D623142C8801B0AC7 /* bootsplash_logo@3x.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "bootsplash_logo@3x.png"; path = "../main/assets/bootsplash_logo@3x.png"; sourceTree = "<group>"; };
-		A9804E00C3BD4D6D8AFE386A /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = Therr/BootSplash.storyboard; sourceTree = "<group>"; };
 		AA19C8149E274E688B20226A /* apple-logo.jpeg */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "apple-logo.jpeg"; path = "../main/assets/apple-logo.jpeg"; sourceTree = "<group>"; };
 		AC850BEDED1840EE92F5E02B /* Lexend-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Light.ttf"; path = "../resources/fonts/Lexend-Light.ttf"; sourceTree = "<group>"; };
 		B2EA9CA08AD346FF978F89EB /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
@@ -155,6 +153,8 @@
 		F1DD5295B3A84303ABA9A753 /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		FDE6B26EEAF346908CBF0725 /* therr-logo-with-shadow.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "therr-logo-with-shadow.png"; path = "../main/assets/therr-logo-with-shadow.png"; sourceTree = "<group>"; };
 		FDF1087DEAA345039EA6A70E /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
+		A9804E00C3BD4D6D8AFE386A /* BootSplash.storyboard */ = {isa = PBXFileReference; name = "BootSplash.storyboard"; path = "Therr/BootSplash.storyboard"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */ = {isa = PBXFileReference; name = "Colors.xcassets"; path = "Therr/Colors.xcassets"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = folder.assetcatalog; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -213,7 +213,6 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				13B07FB71A68108700A75B9A /* main.m */,
-				0EA39688562A41A680689DE9 /* Colors.xcassets */,
 			);
 			name = Therr;
 			sourceTree = "<group>";
@@ -277,15 +276,6 @@
 				2D02E4901E0B4A5D006451C7 /* Therr-tvOSTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		AC860E2F2D41530C00D51ED4 /* Recovered References */ = {
-			isa = PBXGroup;
-			children = (
-				A9804E00C3BD4D6D8AFE386A /* BootSplash.storyboard */,
-				3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */,
-			);
-			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		B57E316FCBFD99CDED558C61 /* Pods */ = {
@@ -480,7 +470,8 @@
 				828BAD9501C34D7D9A9D1CEA /* Lexend-Thin.ttf in Resources */,
 				3010792C01E04F0597F51208 /* SSOFont.ttf in Resources */,
 				95020E9E7316455981E47842 /* TherrFont.ttf in Resources */,
-				C56D90AA7E444AC3879D8AB0 /* Colors.xcassets in Resources */,
+				D3D8AE9723124B0EA47429A1 /* BootSplash.storyboard in Resources */,
+				00B36B8E10844EBFB1853B4B /* Colors.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1222,7 +1213,10 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -1288,7 +1282,10 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;

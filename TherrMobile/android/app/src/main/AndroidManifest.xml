@@ -39,10 +39,9 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:usesCleartextTraffic="true"
       android:allowBackup="false"
-      android:theme="@style/BootTheme">
-      <meta-data
-        android:name="com.transistorsoft.locationmanager.license"
-        android:value="7ae51b9238254e95b67105b91d62ee57189cd534ad26a47c73efb2e2cd257b48" />
+      android:theme="@style/AppTheme"> <!-- Apply @style/AppTheme on .MainApplication -->
+       <!-- react-native-background-geolocation licence -->
+      <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="7ae51b9238254e95b67105b91d62ee57189cd534ad26a47c73efb2e2cd257b48" />
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
@@ -51,25 +50,22 @@
         android:windowSoftInputMode="adjustResize"
         android:exported="true"
         android:screenOrientation="portrait"
-        android:theme="@style/BootTheme">
+        android:theme="@style/BootTheme"> <!-- Apply @style/BootTheme on .MainActivity -->
         <intent-filter android:autoVerify="true">
-          <action android:name="android.intent.action.MAIN" />
-          <category android:name="android.intent.category.LAUNCHER" />
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
-        <intent-filter
-          android:autoVerify="true"
-          android:label="@string/filter_view_https_therr">
+        <intent-filter android:autoVerify="true" android:label="@string/filter_view_https_therr">
           <action android:name="android.intent.action.VIEW" />
           <category android:name="android.intent.category.DEFAULT" />
           <category android:name="android.intent.category.BROWSABLE" />
-
-          <data
-            android:scheme="https"
-            android:host="www.therr.com" />
-
-          <data
-            android:scheme="https"
-            android:host="therr.com" />
+          <!-- Accepts URIs that begin with "http://www.therr.com -->
+          <data android:scheme="https"
+                android:host="www.therr.com"  />
+          <!-- note that the leading "/" is required for pathPrefix-->
+          <data android:scheme="https"
+                android:host="therr.com"  />
+          <!-- note that the leading "/" is required for pathPrefix-->
         </intent-filter>
         <intent-filter>
             <action android:name="app.therrmobile.ACHIEVEMENT_COMPLETED" />
@@ -131,10 +127,6 @@
             <action android:name="app.therrmobile.NEW_SUPER_LIKE_RECEIVED" />
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
-
-        <intent-filter>
-          <action android:name="com.therr.mobile.Teem.NEW_THOUGHT_REPLY_RECEIVED" />
-          <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
             <action android:name="app.therrmobile.NEW_THOUGHT_REPLY_RECEIVED" />
@@ -150,14 +142,14 @@
         </intent-filter>
       </activity>
 
-      <data
-        android:scheme="https"
-        android:host="www.therr.com" />
+        <data
+          android:scheme="https"
+          android:host="www.therr.com" />
 
-      <data
-        android:scheme="https"
-        android:host="therr.com" />
-
+        <data
+          android:scheme="https"
+          android:host="therr.com" />
+      </intent-filter>
       <intent-filter>
         <action android:name="app.therrmobile.ACHIEVEMENT_COMPLETED" />
         <category android:name="android.intent.category.DEFAULT" />

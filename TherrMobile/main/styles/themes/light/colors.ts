@@ -5,7 +5,7 @@ const colors: ITherrThemeColors = {
     // Main
     primary: '#ffffff',
     primary2: '#fcfeff',
-    primary3: '#9748FF',
+    primary3: '#1C7F8A',
     primary4: '#104B52',
     primary5: '#17657D',
     secondary: '#E37107',
