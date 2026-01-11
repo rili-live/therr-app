@@ -174,12 +174,12 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
   - [x] Update dev dependencies within major versions (babel 7.28, typescript 5.9, eslint plugins, typings)
   - [x] Update stylelint to 16.x with SCSS config
   - [x] Resolve linting errors from updated packages
-  - [ ] Update React 18.2 to 18.3 (minor, safe to do)
+  - [x] Update React 18.2 to 18.3 (minor, safe to do)
   - [ ] Evaluate React 19 upgrade (major - requires refactoring, defer until stability)
   - [ ] Update react-router-dom from 6.3 to 6.x latest (within major version)
   - [ ] Update Redux Toolkit from 1.9 to 2.x (major - requires migration, plan separately)
   - [ ] Replace deprecated react-chartist with modern charting library (recharts or react-chartjs-2)
-  - [ ] Update webpack from 5.x to latest 5.x (safe within major)
+  - [x] Update webpack from 5.x to latest 5.x (safe within major)
   - [ ] Audit and address remaining npm vulnerabilities
 - [ ] Set up modular feature flag system for TherrMobile (utilizing TherrMobile/env-config.js)
   - [ ] Define FeatureFlags enum, types, and brand-specific configs in therr-js-utilities (create `constants/enums/FeatureFlags.ts` with flag names like `ENABLE_MAP`, `ENABLE_PACTS`, `ENABLE_STREAKS`, and `config/featureFlags/` directory with per-brand default configurations for THERR, HABITS, TEEM)
