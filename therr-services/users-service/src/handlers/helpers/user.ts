@@ -435,6 +435,7 @@ const createUserHelper = (
 
                         if (isSSO) {
                             return sendSSONewUserEmail({
+                                subject: '[Account Created] Therr One-Time Password',
                                 toAddresses: [userDetails.email],
                                 agencyDomainName: headers['x-therr-origin-host'] || '',
                                 brandVariation: headers['x-brand-variation'] || '',
@@ -478,6 +479,7 @@ const createUserHelper = (
             // STANDARD USER REGISTRATION
             // TODO: If this bounces, update user email preferences and notify admin
             return sendVerificationEmail({
+                subject: '[Account Verification] Therr User Account',
                 toAddresses: [userDetails.email],
                 agencyDomainName: headers['x-therr-origin-host'] || '',
                 brandVariation: headers['x-brand-variation'] || '',
