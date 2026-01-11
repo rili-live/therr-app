@@ -65,7 +65,7 @@ class HeaderMenuLeft extends React.Component<
                 type="clear"
                 icon={
                     <TherrIcon
-                        name="teem-logo"
+                        name="therr-logo"
                         size={26}
                         style={[
                             logoStyle,
