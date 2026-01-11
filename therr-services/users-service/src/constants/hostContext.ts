@@ -1,10 +1,7 @@
 /**
  * See ../getHostContext.ts in therr-client-web-dashboard for similar logic
  */
-import { BrandVariations } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
-
-const isBrandValid = (brand: string) => Object.values(BrandVariations).includes(brand as BrandVariations);
 
 interface IBrandConfig {
     host: string;
@@ -236,13 +233,7 @@ const hostContext: IBrandConfigs = {
 };
 
 export const getHostContext = (host: string, brandVariation?: string) => {
-    // Mobile or local development
     if (!host) {
-        if (brandVariation && isBrandValid(brandVariation)) {
-            if (brandVariation === BrandVariations.TEEM) {
-                return hostContext['teem-social.com'];
-            }
-        }
         return hostContext['therr.com'];
     }
 
