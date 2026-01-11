@@ -1,4 +1,4 @@
-import { AndroidChannel, AndroidImportance } from "@notifee/react-native";
+import { AndroidChannel, AndroidImportance } from '@notifee/react-native';
 import { PushNotifications } from 'therr-js-utilities/constants';
 
 // CAROUSEL Constants

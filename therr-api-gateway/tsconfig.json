@@ -1,10 +1,19 @@
 {
+	"ts-node": {
+		"compilerOptions": {
+			"module": "commonjs"
+		},
+		"moduleTypes": {
+			"**/*.ts": "cjs"
+		}
+	},
 	"compilerOptions": {
 		"module": "commonjs",
 		"target": "es6",
 		"baseUrl": ".",
 		"rootDir": ".",
 		"typeRoots": ["../node_modules/@types", "typings"],
+		"types": ["node", "mocha", "chai", "sinon", "express"],
 		"declaration": false,
 		"removeComments": false,
 		"noLib": false,

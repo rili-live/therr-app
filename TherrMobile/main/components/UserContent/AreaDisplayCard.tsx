@@ -105,7 +105,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                                         uri: areaMedia,
                                     }}
                                     style={[themeViewArea.styles.cardImage]}
-                                    resizeMode='cover'
+                                    resizeMode="cover"
                                     PlaceholderContent={<ActivityIndicator />}
                                 /> :
                                 <MissingImagePlaceholder

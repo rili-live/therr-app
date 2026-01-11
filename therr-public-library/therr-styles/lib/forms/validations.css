@@ -1,7 +1,7 @@
 .validation-errors {
   color: #c23e37;
-  font-size: rem-calc(13px);
-  margin: rem-calc(2px);
+  font-size: 0.8125rem;
+  margin: 0.125rem;
   margin-bottom: 0;
   background: rgba(251, 254, 255, 0.7490196078);
   padding: 0.25rem;

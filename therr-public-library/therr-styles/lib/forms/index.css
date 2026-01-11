@@ -1,3 +1,24 @@
+.validation-errors {
+  color: #c23e37;
+  font-size: 0.8125rem;
+  margin: 0.125rem;
+  margin-bottom: 0;
+  background: rgba(251, 254, 255, 0.7490196078);
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  box-sizing: border-box;
+}
+.validation-errors.phone {
+  margin-bottom: 0.5rem;
+}
+.validation-errors .message-container {
+  position: relative;
+}
+.validation-errors .message-container .message {
+  display: block;
+  margin-left: 1.25rem;
+}
+
 .radio-group .radio-option {
   align-items: center;
   display: flex;
@@ -115,27 +136,6 @@
   opacity: 0;
 }
 
-.validation-errors {
-  color: #c23e37;
-  font-size: rem-calc(13px);
-  margin: rem-calc(2px);
-  margin-bottom: 0;
-  background: rgba(251, 254, 255, 0.7490196078);
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-  box-sizing: border-box;
-}
-.validation-errors.phone {
-  margin-bottom: 0.5rem;
-}
-.validation-errors .message-container {
-  position: relative;
-}
-.validation-errors .message-container .message {
-  display: block;
-  margin-left: 1.25rem;
-}
-
 a,
 button {
   box-sizing: border-box;
@@ -156,7 +156,7 @@ h1:focus {
 label {
   color: #dee1e4;
   font-weight: 700;
-  font-size: rem-calc(15px);
+  font-size: 0.9375rem;
   line-height: 2.5rem;
   margin-bottom: 0;
   padding-left: 1.5rem;
@@ -172,7 +172,7 @@ label.required::before {
 }
 
 ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
-  font-size: rem-calc("18px");
+  font-size: "18px"/16pxrem;
 }
 
 input[type=color],
@@ -195,19 +195,19 @@ select,
 textarea {
   background-color: #dee1e4;
   border: 1px solid #cdcdcd;
-  border-radius: rem-calc(16px);
+  border-radius: 1rem;
   box-shadow: none;
   box-sizing: border-box;
   color: #262626;
   display: block;
   font-family: inherit;
   font-size: 1rem;
-  height: rem-calc(52px);
+  height: 3.25rem;
   margin: 0;
   padding: 0.5rem 0.75rem;
   transition: border-color 0.15s linear, background 0.15s linear;
   width: 100%;
-  margin-bottom: rem-calc(25px);
+  margin-bottom: 1.5625rem;
 }
 input[type=color].with-errors, input[type=color].ignore-errors,
 input[type=date].with-errors,

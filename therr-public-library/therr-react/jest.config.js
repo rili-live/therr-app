@@ -15,7 +15,9 @@ module.exports = {
     rootDir: './',
     setupFiles: [],
     setupFilesAfterEnv: ['./test-setup.ts'],
-    testURL: 'https://www.example.com/',
+    testEnvironmentOptions: {
+        url: 'https://www.example.com/',
+    },
     transform: {
         '^.+\\.tsx?$': 'ts-jest',
         '^.+\\.jsx?$': 'babel-jest',

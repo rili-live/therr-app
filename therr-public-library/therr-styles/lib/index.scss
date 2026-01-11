@@ -1,12 +1,12 @@
-@import './helpers';
-@import './accessibility';
-@import './buttons';
-@import './formatting';
-@import './forms/index';
-@import './icons';
-@import './layout';
-@import './pagination';
-@import './spinner';
+@use './helpers' as *;
+@forward './accessibility';
+@forward './buttons';
+@forward './formatting';
+@forward './forms/index';
+@forward './icons';
+@forward './layout';
+@forward './pagination';
+@forward './spinner';
 
 .text-center {
     text-align: center;

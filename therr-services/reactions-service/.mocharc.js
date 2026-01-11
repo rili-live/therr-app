@@ -1,3 +1,3 @@
 module.exports = {
-  extension: ['js'],
+  extension: ['ts', 'js'],
 };

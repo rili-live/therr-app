@@ -2,19 +2,14 @@ import * as React from 'react';
 import { Linking, Platform, View } from 'react-native';
 import { Button, Text } from 'react-native-elements';
 import { PasswordRegex } from 'therr-js-utilities/constants';
-import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
-import OrDivider from '../../components/Input/OrDivider';
-import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
-import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
 import { ISSOUserDetails } from '../Login/LoginForm';
 import TherrIcon from '../../components/TherrIcon';
-import spacingStyles from '../../styles/layouts/spacing';
 
 // Regular component props
 interface IRegisterFormProps {
@@ -255,7 +250,6 @@ export class RegisterFormComponent extends React.Component<
     public render() {
         const {
             isPasswordEntryDirty,
-            isSubmitting,
             passwordErrorMessage,
             prevRegisterError,
         } = this.state;

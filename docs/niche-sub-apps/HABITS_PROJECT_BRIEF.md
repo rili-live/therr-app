@@ -157,88 +157,123 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
 
 ## 12-WEEK EXECUTION ROADMAP
 
-### Phase 1: Foundation (Weeks 1-2)
+### Phase 1: Foundation (Weeks 1-2, January 5-15) 
 **Goal:** Prepare codebase for rapid AI-assisted development
 
-- Make mono repo fully Claude Code compatible
-- Create comprehensive component documentation
-- Set up modular feature flag system
-- Upgrade dependencies to latest stable versions
-- Remove location/map infrastructure
-- Document existing Therr features to repurpose
+- [x] Make mono repo fully Claude Code compatible
+- [x] Add regression tests across the repo to keep core api, base app, and sub-apps aligned
+  - [x] Implement regression tests for main functionality of users-service
+  - [x] Implement regression tests for main functionality of messages-service
+  - [x] Implement regression tests for main functionality of reactions-service
+  - [x] Implement regression tests for main functionality of push-notifications-service
+  - [x] Implement regression tests for main functionality of websocket-service
+  - [x] Implement regression tests for main functionality of therr-api-gateway-service
+  - [x] Implement regression tests for main functionality of TherrMobile React Native codebase
+- [ ] Upgrade dependencies to latest stable versions
+  - [x] Fix peer dependency conflicts (ts-node upgraded to 10.x, react-chartist overrides added)
+  - [x] Update dev dependencies within major versions (babel 7.28, typescript 5.9, eslint plugins, typings)
+  - [x] Update stylelint to 16.x with SCSS config
+  - [x] Resolve linting errors from updated packages
+  - [x] Update React 18.2 to 18.3 (minor, safe to do)
+  - [ ] Evaluate React 19 upgrade (major - requires refactoring, defer until stability)
+  - [ ] Update react-router-dom from 6.3 to 6.x latest (within major version)
+  - [ ] Update Redux Toolkit from 1.9 to 2.x (major - requires migration, plan separately)
+  - [ ] Replace deprecated react-chartist with modern charting library (recharts or react-chartjs-2)
+  - [x] Update webpack from 5.x to latest 5.x (safe within major)
+  - [ ] Audit and address remaining npm vulnerabilities
+- [ ] Set up modular feature flag system for TherrMobile (utilizing TherrMobile/env-config.js)
+  - [ ] Define FeatureFlags enum, types, and brand-specific configs in therr-js-utilities (create `constants/enums/FeatureFlags.ts` with flag names like `ENABLE_MAP`, `ENABLE_PACTS`, `ENABLE_STREAKS`, and `config/featureFlags/` directory with per-brand default configurations for THERR, HABITS, TEEM)
+  - [ ] Centralize brand variation and create FeatureFlagContext (move hardcoded `BrandVariations.TEEM` from Layout.tsx, socket-io-middleware.ts, and interceptors.ts to `TherrMobile/main/config/brandConfig.ts`; create `FeatureFlagContext.tsx` with Provider and `useFeatureFlag` hook)
+  - [ ] Integrate FeatureFlagProvider into TherrMobile App root (wrap app in App.tsx, ensure initialization before Layout renders, support loading flags based on current brand variation)
+  - [ ] Add feature flag support to route configuration and navigation filtering (extend `ExtendedRouteOptions` in routes/index.tsx with `requiredFeatures` array; update Layout.tsx route filtering to hide routes when required features are disabled)
+  - [ ] Create FeatureGate component and update MainButtonMenu (build `<FeatureGate feature={...}>` component for conditional UI rendering with AND/OR logic; update MainButtonMenu.tsx to hide/show nav buttons based on flags)
+  - [ ] Define HABITS-specific feature flag configuration (disable: Map, Location, Moments, Spaces, Events, generic social feed; enable: Pacts, Invites, Streaks, Consequences, Proof uploads, mandatory invite flow)
+  - [ ] Add AsyncStorage persistence for runtime flag overrides (implement flag override storage for A/B testing per Phase 5 requirements; create merge logic in FeatureFlagProvider to combine defaults with overrides)
+  - [ ] Add premium feature flags for HABITS monetization (define `PREMIUM_VIDEO_PROOF`, `PREMIUM_ANALYTICS`, `PREMIUM_CUSTOM_CONSEQUENCES`, `PREMIUM_HEALTH_INTEGRATIONS`, `PREMIUM_UNLIMITED_PACTS`; integrate with user subscription status from Redux)
+  - [ ] Add feature flag developer tools for debug mode (create dev-only Settings screen or modal to toggle flags at runtime when `__DEV__` is true; persist overrides to AsyncStorage for testing)
+- [ ] Document existing Therr features to repurpose
+  - [ ] Document User Authentication & Profiles repurposing (review `users-service/src/handlers/auth.ts`, `users-service/src/handlers/users.ts`, `TherrMobile/main/routes/Login/`, `TherrMobile/main/routes/Register/`; document OAuth flows, profile fields, JWT handling; identify fields to hide/disable for HABITS; deliverable: add HABITS_AUTH_REPURPOSING.md to docs/)
+  - [ ] Document Social Connections repurposing for Pacts (review `users-service/src/handlers/userConnections.ts`, `UserConnectionsStore.ts`, `TherrMobile/main/routes/Connect/`, `TherrMobile/main/routes/Invite/`; document connection request flow, database schema; propose `pacts` table schema extending connections; deliverable: add HABITS_PACTS_SCHEMA.md to docs/)
+  - [ ] Document Rewards/Points system repurposing for Streaks (review `users-service/src/handlers/rewards.ts`, `userAchievements.ts`, `therr-js-utilities/constants/achievements`; document TherrCoin/AchievementTier mechanics; propose streak-based achievements; deliverable: add HABITS_STREAKS_DESIGN.md to docs/)
+  - [ ] Document Check-in mechanism repurposing for Habit Check-ins (review `maps-service/src/handlers/moments.ts`, `MomentsStore.ts`, `reactions-service/src/handlers/momentReactions.ts`; document moments schema and media handling; propose `habit_checkins` table removing geo requirements; deliverable: add HABITS_CHECKINS_DESIGN.md to docs/)
+  - [ ] Document Push Notifications repurposing for Habit Reminders (review `push-notifications-service/src/handlers/`, `TherrMobile/main/utilities/pushNotifications.ts`, `therr-js-utilities/constants/enums/PushNotifications.ts`; document FCM setup and notification types; propose habit-specific notification types; deliverable: add HABITS_NOTIFICATIONS_DESIGN.md to docs/)
+  - [ ] Document Real-time Updates repurposing for Pact Activity Feed (review `websocket-service/src/handlers/`, `TherrMobile/main/socket-io-middleware.ts`, `TherrMobile/main/routes/Activities/`; document Socket.IO rooms and events; propose pact-specific real-time events; deliverable: add HABITS_REALTIME_DESIGN.md to docs/)
+  - [ ] Document Media Upload repurposing for Proof Uploads (review `maps-service/src/handlers/helpers/createMediaUrls.ts`, `MediaStore.ts`, AWS S3 integration; document signed URL flow and media types; propose proof upload requirements; deliverable: add HABITS_MEDIA_DESIGN.md to docs/)
+  - [ ] Document Groups repurposing for Pact Management (review `users-service/src/handlers/userGroups.ts`, `UserGroupsStore.ts`, `TherrMobile/main/routes/Groups/`; document group roles, membership, and notifications; propose pact-specific adaptations; deliverable: add HABITS_GROUPS_DESIGN.md to docs/)
+- [ ] Consider viability and value of implementing React Native Paper to accelerate UI development and maintenance
 
 **Deliverable:** Clean, documented codebase ready for new features
 
 ---
 
-### Phase 2: Core Pact Features (Weeks 3-4)
+### Phase 2: Core Pact Features (Weeks 3-4, January 19-29)
 **Goal:** Build minimum viable product
 
-- Streamline user authentication & onboarding
-- Build "Create Pact" flow with **mandatory invite**
-- Implement daily check-in mechanism
-- Add photo/note proof upload
-- Create pact activity feed
-- Build push notification system for partner activity
-- Add basic streak tracking
+- [ ] Streamline user authentication & onboarding
+- [ ] Build "Create Pact" flow with **mandatory invite**
+- [ ] Implement daily check-in mechanism
+- [ ] Add photo/note proof upload
+- [ ] Create pact activity feed
+- [ ] Build push notification system for partner activity
+- [ ] Add basic streak tracking
 
 **Deliverable:** Two users can create pacts, invite each other, check in daily, see partner activity
 
 ---
 
-### Phase 3: Viral Mechanics (Weeks 5-6)
+### Phase 3: Viral Mechanics (Weeks 5-6, February 2-12)
 **Goal:** Build growth engine into the product
 
-- Referral invite system (cannot be skipped)
-- Shareable pact templates with unique links
-- Social proof elements (success stories, leaderboard)
-- "Challenge a Friend" with pre-filled invites
-- Weekly email summaries with share buttons
-- Friend activity notifications to create FOMO
-- Public pact directory (opt-in)
+- [ ] Referral invite system (cannot be skipped)
+- [ ] Shareable pact templates with unique links
+- [ ] Social proof elements (success stories, leaderboard)
+- [ ] "Challenge a Friend" with pre-filled invites
+- [ ] Weekly email summaries with share buttons
+- [ ] Friend activity notifications to create FOMO
+- [ ] Public pact directory (opt-in)
 
 **Deliverable:** Every user action encourages friend invites
 
 ---
 
-### Phase 4: Monetization (Weeks 7-8)
+### Phase 4: Monetization (Weeks 7-8, February 16-27)
 **Goal:** Implement freemium model and revenue generation
 
-- Freemium paywall (1 pact free, unlimited premium)
-- In-app purchase flows (iOS & Android)
-- Premium analytics dashboard
-- Video proof uploads (premium feature)
-- Custom consequences builder
-- Apple Health / Google Fit integration
-- Subscription management
+- [ ] Freemium paywall (1 pact free, unlimited premium)
+- [ ] In-app purchase flows (iOS & Android)
+- [ ] Premium analytics dashboard
+- [ ] Video proof uploads (premium feature)
+- [ ] Custom consequences builder
+- [ ] Apple Health / Google Fit integration
+- [ ] Subscription management
 
 **Deliverable:** Revenue-generating premium tier
 
 ---
 
-### Phase 5: Polish & Testing (Weeks 9-10)
+### Phase 5: Polish & Testing (Weeks 9-10, March 2-13)
 **Goal:** Optimize user experience and prepare for launch
 
-- Optimize onboarding flow (reduce friction)
-- A/B test invite messaging
-- Bug fixes and performance optimization
-- Create app store assets (screenshots, video, description)
-- Beta testing with 50-100 users
-- Gather feedback and iterate
+- [ ] Optimize onboarding flow (reduce friction)
+- [ ] A/B test invite messaging
+- [ ] Bug fixes and performance optimization
+- [ ] Create app store assets (screenshots, video, description)
+- [ ] Beta testing with 50-100 users
+- [ ] Gather feedback and iterate
 
 **Deliverable:** Polished app ready for public launch
 
 ---
 
-### Phase 6: Launch (Weeks 11-12)
+### Phase 6: Launch (Weeks 11-12, March 16-27)
 **Goal:** Get first 500-1,000 users organically
 
-- Submit to App Store & Google Play Store
-- Product Hunt launch
-- Post in Reddit communities (r/productivity, r/fitness, r/habittracking)
-- Reach out to micro-influencers in fitness/productivity
-- Personal network outreach
-- Monitor metrics and iterate
+- [ ] Submit to App Store & Google Play Store
+- [ ] Product Hunt launch
+- [ ] Post in Reddit communities (r/productivity, r/fitness, r/habittracking)
+- [ ] Reach out to micro-influencers in fitness/productivity
+- [ ] Personal network outreach
+- [ ] Monitor metrics and iterate
 
 **Deliverable:** 500-1,000 users with viral loop active
 

@@ -81,3 +81,14 @@ Uses `express-validator` for input validation:
 
 - Routes to: users-service, maps-service, messages-service, reactions-service, push-notifications-service
 - Uses: Redis for rate limiting and caching
+
+## Code Quality
+
+Before completing code changes, run linting and fix all errors:
+
+```bash
+npx eslint src/**/*.ts --fix   # Auto-fix issues
+npx eslint src/**/*.ts         # Verify no errors remain
+```
+
+See root `CLAUDE.md` for full code quality requirements.

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: HABITS Project Brief
+    url: https://github.com/rili-live/therr-app/blob/main/docs/niche-sub-apps/HABITS_PROJECT_BRIEF.md
+    about: "Read the Friends With Habits project brief for context on features and roadmap"
+  - name: Core Therr Documentation
+    url: https://github.com/rili-live/therr-app/blob/main/docs/ARCHITECTURE.md
+    about: "Technical architecture and system design documentation"

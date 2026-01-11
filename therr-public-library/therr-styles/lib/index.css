@@ -39,7 +39,7 @@ button.anchor:visited {
   color: #2073a1;
 }
 button.secondary {
-  background: #d5d8da;
+  background: rgb(213.4855769231, 215.75, 218.0144230769);
 }
 button.secondary:hover:not([disabled]) {
   background: #dee1e4;
@@ -64,6 +64,27 @@ button.primary:hover:not([disabled]) {
 
 .bold {
   font-weight: 800;
+}
+
+.validation-errors {
+  color: #c23e37;
+  font-size: 0.8125rem;
+  margin: 0.125rem;
+  margin-bottom: 0;
+  background: rgba(251, 254, 255, 0.7490196078);
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  box-sizing: border-box;
+}
+.validation-errors.phone {
+  margin-bottom: 0.5rem;
+}
+.validation-errors .message-container {
+  position: relative;
+}
+.validation-errors .message-container .message {
+  display: block;
+  margin-left: 1.25rem;
 }
 
 .radio-group .radio-option {
@@ -181,27 +202,6 @@ button.primary:hover:not([disabled]) {
 .search-box.is-active::before, .search-box.is-dirty::before {
   left: -1.25rem;
   opacity: 0;
-}
-
-.validation-errors {
-  color: #c23e37;
-  font-size: 0.8125rem;
-  margin: 0.125rem;
-  margin-bottom: 0;
-  background: rgba(251, 254, 255, 0.7490196078);
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-  box-sizing: border-box;
-}
-.validation-errors.phone {
-  margin-bottom: 0.5rem;
-}
-.validation-errors .message-container {
-  position: relative;
-}
-.validation-errors .message-container .message {
-  display: block;
-  margin-left: 1.25rem;
 }
 
 a,

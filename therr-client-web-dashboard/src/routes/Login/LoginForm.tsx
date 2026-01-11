@@ -60,7 +60,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
         return !this.state.inputs.userName || !this.state.inputs.password || this.state.isSubmitting;
     }
 
-    onSubmit = (event: React.MouseEvent<HTMLInputElement>) => {
+    onSubmit = (event: React.MouseEvent<HTMLElement>) => {
         event.preventDefault();
         const { toggleAlert } = this.props;
         const { password, rememberMe, userName } = this.state.inputs;
@@ -149,7 +149,6 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                             name='userName'
                             value={this.state.inputs.userName}
                             onChange={this.onInputChange}
-                            onSubmit={this.onSubmit}
                             placeholder={this.translate('components.loginForm.placeHolders.userName')}
                         />
                     </InputGroup>
@@ -168,7 +167,6 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                                 name='password'
                                 value={this.state.inputs.password}
                                 onChange={this.onInputChange}
-                                onSubmit={this.onSubmit}
                             />
                         </InputGroup>
                     </Form.Group>
@@ -180,7 +178,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                         <Card.Link as={Link} to="/reset-password" className='small text-end'>Forgot password?</Card.Link>
                     </div>
                 </Form.Group>
-                <Button id="login_button" variant='primary' type='submit' className='w-100' onClick={this.onSubmit} onSubmit={this.onSubmit} disabled={this.isLoginFormDisabled()}>
+                <Button id="login_button" variant='primary' type='submit' className='w-100' onClick={this.onSubmit} disabled={this.isLoginFormDisabled()}>
                     {this.translate('components.loginForm.buttons.login')}
                 </Button>
             </Form>

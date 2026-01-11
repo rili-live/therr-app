@@ -10,16 +10,87 @@ main: [![Build status](https://build.appcenter.ms/v0.1/apps/0f4a527c-5807-47dc-b
 A social network that connects people by proximity through the distance of time
 
 ## Getting Started
-First we need to setup Postgres and Redis to run locally. Mac users can install [postgres with brew](https://formulae.brew.sh/formula/postgresql@14). It's best to configure postgres with no password for simplicity. We can also create a user and grant them superuser privileges. See 'Database Setup below'. Also make sure postgis is installed along with postgres as its required for maps services. See 'Database Setup below'.
+
+### Option 1: Docker Compose - Backend Services (Recommended)
+
+Run backend services in Docker, frontend locally. Best balance of convenience and debugging.
+
+```bash
+# Start backend stack (first run takes ~5-10 min)
+npm run docker:dev:up
+
+# View logs
+npm run docker:dev:logs
+
+# Stop everything
+npm run docker:dev:down
+
+# Clean restart (wipes databases)
+npm run docker:dev:clean && npm run docker:dev:up
+```
+
+Then start frontend apps locally (in separate terminals):
+```bash
+cd therr-client-web && npm run dev          # Web Client: http://localhost:7070
+cd therr-client-web-dashboard && npm run dev # Dashboard: http://localhost:7071
+```
+
+Backend services available at:
+- API Gateway: http://localhost:7770
+- Users Service: http://localhost:7771
+- Messages Service: http://localhost:7772
+- Maps Service: http://localhost:7773
+- Reactions Service: http://localhost:7774
+- Push Notifications: http://localhost:7775
+- WebSocket: http://localhost:7743
+
+### Option 2: Docker Compose - Infrastructure Only (Hybrid)
+
+Run databases in Docker, services locally. Best performance, lower memory usage.
+
+```bash
+# Start postgres + redis
+npm run docker:infra:up
+
+# Run services locally (in separate terminals)
+npm run install:all && npm run build:all:dev
+cd therr-api-gateway && npm run dev
+cd therr-services/users-service && npm run dev
+# ... etc for other services
+```
+
+### Option 3: Manual Setup
+
+If you prefer running services natively:
 
 #### Database Setup
-We first need to create our 4 dev databases therr_dev_users, therr_dev_maps, therr_dev_reactions, therr_dev_messages and create a schema, "main" in each db. Then we can proceed to run the database migration scrips found in each sub-directory. See each microservice README.md (ie. therr-services/users-service/README.md) for detailed steps.
+First we need to setup Postgres and Redis to run locally. Mac users can install [postgres with brew](https://formulae.brew.sh/formula/postgresql@14). Make sure postgis is installed as it's required for maps services.
+
+**Using Docker for databases only:**
+```bash
+npm run docker:run:postgres  # PostgreSQL on port 5431
+npm run docker:run:redis     # Redis on port 6380
+```
+
+We need to create 4 dev databases: `therr_dev_users`, `therr_dev_maps`, `therr_dev_reactions`, `therr_dev_messages`. Then run the database migration scripts found in each sub-directory. See each microservice README.md for detailed steps.
 
 #### Installing Dependencies
-We have some helper scripts in the root package.json. Try `npm run install:all` to loop through each microservice and install npm packages. This script first preps your environment to ensure you have the correct npm and node version. It's best to use nvm to manage these versions. Run `npm run build:all:dev` from the root to build all the custom libraries.
+We have helper scripts in the root package.json. Use nvm to manage node versions.
 
-#### Running The App Locally
-Setup the .env with correct credentials. Each microservice has it's own package.json with start scripts. We can simply build with `npm run build:dev` then run `npm run start` to run the nodejs service with nodemon. See each microservice README.md (ie. therr-services/users-service/README.md) for detailed steps.
+```bash
+npm run install:all      # Install deps across all packages
+npm run build:all:dev    # Build all custom libraries
+```
+
+#### Running Services
+Setup the `.env` with correct credentials (copy from `.env.template`). Each microservice can be started with:
+
+```bash
+cd therr-services/users-service
+npm run dev  # Runs webpack watch + nodemon
+```
+
+See each microservice README.md for detailed steps.
 
 ## Documentation
 Documentation is mantained within the repo to align with a mentality of inline documentation,

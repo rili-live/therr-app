@@ -22,7 +22,7 @@ const write: Pool = new Pool({
     port: Number(process.env.DB_PORT_MAIN_WRITE),
 });
 
-read.on('error', (err, client) => {
+read.on('error', (err) => {
     logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
@@ -40,7 +40,7 @@ read.on('error', (err, client) => {
     });
 });
 
-write.on('error', (err, client) => {
+write.on('error', (err) => {
     logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
