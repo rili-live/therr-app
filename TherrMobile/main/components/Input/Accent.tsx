@@ -8,13 +8,14 @@ export class AccentInput extends BaseInput {
     }
 
     render() {
-        const { themeForms } = this.props;
+        const { themeForms, ref: _ref, ...restProps } = this.props as any;
 
         return (
             <BaseInput
                 inputStyle={themeForms.styles.inputAccent}
                 selectionColor={themeForms.colors.accentYellow}
-                {...this.props}
+                {...restProps}
+                themeForms={themeForms}
             />
         );
     }

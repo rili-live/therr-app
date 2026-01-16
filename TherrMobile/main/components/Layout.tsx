@@ -860,12 +860,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // DEBUG logging only
             if (user?.details?.id === 'a730f85b-bc3a-46ab-97e9-48b8e5875f83') {
                 MessagesService.sendAppLog({
-                    'notification.id': notification?.id,
-                    'notification.pressAction.id': pressAction?.id,
-                    'notification.isInForeground': isInForeground,
-                    'notification.eventType': type,
-                    'notification.didCauseAppOpen': didCauseAppOpen,
-                    'notification.isUserAuthorized': isUserAuthorized,
+                    'notification.id': notification?.id || '',
+                    'notification.pressAction.id': pressAction?.id || '',
+                    'notification.isInForeground': String(isInForeground),
+                    'notification.eventType': String(type),
+                    'notification.didCauseAppOpen': String(didCauseAppOpen),
+                    'notification.isUserAuthorized': String(isUserAuthorized),
                     platformOS: Platform.OS,
                 }, 'info');
             }

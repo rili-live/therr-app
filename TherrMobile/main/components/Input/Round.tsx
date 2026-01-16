@@ -8,7 +8,7 @@ export class RoundInput extends BaseInput {
         super(props);
     }
     render() {
-        const { themeForms, value } = this.props;
+        const { themeForms, value, ref: _ref, ...restProps } = this.props as any;
 
         return (
             <BaseInput
@@ -16,7 +16,8 @@ export class RoundInput extends BaseInput {
                 style={ !value?.length ? themeForms.styles.placeholderText : themeForms.styles.inputText }
                 placeholderTextColor={themeForms.styles.placeholderText.color}
                 inputContainerStyle={themeForms.styles.inputContainerRound}
-                {...this.props}
+                {...restProps}
+                themeForms={themeForms}
                 inputStyle={[(Platform.OS !== 'ios' ? themeForms.styles.input : themeForms.styles.inputAlt), this.props.inputStyle]}
             />
         );

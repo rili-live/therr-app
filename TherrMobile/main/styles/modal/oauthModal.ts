@@ -41,7 +41,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            boxSizing: 'border-box',
             flexGrow: 1,
         },
         webView: {

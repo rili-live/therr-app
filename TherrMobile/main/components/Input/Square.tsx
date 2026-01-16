@@ -8,12 +8,13 @@ export class SquareInput extends BaseInput {
     }
 
     render() {
-        const { themeForms } = this.props;
+        const { themeForms, ref: _ref, ...restProps } = this.props as any;
 
         return (
             <BaseInput
                 inputContainerStyle={themeForms.styles.inputContainerSquare}
-                {...this.props}
+                {...restProps}
+                themeForms={themeForms}
             />
         );
     }
