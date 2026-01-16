@@ -10,6 +10,8 @@ import PasswordRequirements from '../../components/Input/PasswordRequirements';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import { ISSOUserDetails } from '../Login/LoginForm';
 import TherrIcon from '../../components/TherrIcon';
+import OrDivider from '../../components/Input/OrDivider';
+import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
 
 // Regular component props
 interface IRegisterFormProps {

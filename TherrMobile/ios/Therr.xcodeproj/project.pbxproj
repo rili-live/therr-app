@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00B36B8E10844EBFB1853B4B /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */; };
 		00E356F31AD99517003FC87E /* TherrTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TherrTests.m */; };
 		049DBC8BD32795A026CD577E /* libPods-Therr.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 269A8BEF73C08FCC4CE2F5BA /* libPods-Therr.a */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
@@ -38,9 +39,8 @@
 		ABCD912DF5C342BBABAE6A85 /* Lexend-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AC850BEDED1840EE92F5E02B /* Lexend-Light.ttf */; };
 		B31CBB9A40424042B80A9EEF /* Lexend-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1D29FE24EF9C442B92CE6333 /* Lexend-ExtraBold.ttf */; };
 		BF1AAC2817CD4831A7C9B88A /* Lexend-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CD15F12F138B49E8BA10EE32 /* Lexend-ExtraLight.ttf */; };
-		F0CBAA697E4B49DA9FD6626C /* Lexend-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 68A1BBC0CA244A228C509B6B /* Lexend-Regular.ttf */; };
 		D3D8AE9723124B0EA47429A1 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9804E00C3BD4D6D8AFE386A /* BootSplash.storyboard */; };
-		00B36B8E10844EBFB1853B4B /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */; };
+		F0CBAA697E4B49DA9FD6626C /* Lexend-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 68A1BBC0CA244A228C509B6B /* Lexend-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -85,6 +85,7 @@
 		32DF2FC8A8F44C6CA2C87572 /* bootsplash_logo@2x.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "bootsplash_logo@2x.png"; path = "../main/assets/bootsplash_logo@2x.png"; sourceTree = "<group>"; };
 		365F573960E144D8A35F492F /* Lexend-Black.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Black.ttf"; path = "../main/assets/fonts/Lexend-Black.ttf"; sourceTree = "<group>"; };
 		396BC63B295D4F4CB29856F9 /* therr-logo.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "therr-logo.png"; path = "../main/assets/therr-logo.png"; sourceTree = "<group>"; };
+		3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = Therr/Colors.xcassets; sourceTree = "<group>"; };
 		3DA9A00AB9A54236B9758281 /* google-logo.svg */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "google-logo.svg"; path = "../main/assets/google-logo.svg"; sourceTree = "<group>"; };
 		57D55D0B7C5CA0FD4E1AF6F7 /* libPods-Therr-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5AF609D4578E265330DA2521 /* libPods-Therr-TherrTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-TherrTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -121,6 +122,7 @@
 		999CE776FF7F40688242002F /* Lexend-Thin.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Thin.ttf"; path = "../resources/fonts/Lexend-Thin.ttf"; sourceTree = "<group>"; };
 		9D301F8E359543F4A7D37CCA /* Lexend-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Bold.ttf"; path = "../resources/fonts/Lexend-Bold.ttf"; sourceTree = "<group>"; };
 		A6447B3D623142C8801B0AC7 /* bootsplash_logo@3x.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "bootsplash_logo@3x.png"; path = "../main/assets/bootsplash_logo@3x.png"; sourceTree = "<group>"; };
+		A9804E00C3BD4D6D8AFE386A /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = Therr/BootSplash.storyboard; sourceTree = "<group>"; };
 		AA19C8149E274E688B20226A /* apple-logo.jpeg */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "apple-logo.jpeg"; path = "../main/assets/apple-logo.jpeg"; sourceTree = "<group>"; };
 		AC850BEDED1840EE92F5E02B /* Lexend-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Light.ttf"; path = "../resources/fonts/Lexend-Light.ttf"; sourceTree = "<group>"; };
 		B2EA9CA08AD346FF978F89EB /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
@@ -153,8 +155,6 @@
 		F1DD5295B3A84303ABA9A753 /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		FDE6B26EEAF346908CBF0725 /* therr-logo-with-shadow.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "therr-logo-with-shadow.png"; path = "../main/assets/therr-logo-with-shadow.png"; sourceTree = "<group>"; };
 		FDF1087DEAA345039EA6A70E /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
-		A9804E00C3BD4D6D8AFE386A /* BootSplash.storyboard */ = {isa = PBXFileReference; name = "BootSplash.storyboard"; path = "Therr/BootSplash.storyboard"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */ = {isa = PBXFileReference; name = "Colors.xcassets"; path = "Therr/Colors.xcassets"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = folder.assetcatalog; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -261,6 +261,7 @@
 				EB3A45D744634A65B1C6CB50 /* Resources */,
 				71AD19E4265046B100498CBE /* Therr-Bridging-Header.h */,
 				71AD19E5265046B100498CBE /* TherrTests-Bridging-Header.h */,
+				AC10D5C92F1A81B7004DDDA6 /* Recovered References */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -276,6 +277,15 @@
 				2D02E4901E0B4A5D006451C7 /* Therr-tvOSTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AC10D5C92F1A81B7004DDDA6 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				A9804E00C3BD4D6D8AFE386A /* BootSplash.storyboard */,
+				3B0E9B4101CB4B7B9CC34AF6 /* Colors.xcassets */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		B57E316FCBFD99CDED558C61 /* Pods */ = {
@@ -670,7 +680,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = DACA37B7937449C65A25F7C0 /* Pods-Therr-TherrTests.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -702,7 +712,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 02C80B30226A68BB6202F68F /* Pods-Therr-TherrTests.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				COPY_PHASE_STRIP = NO;

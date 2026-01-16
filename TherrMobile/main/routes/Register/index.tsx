@@ -112,6 +112,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         const { isEULAVisible } = this.state;
         const pageTitle = this.translate('pages.register.pageTitle');
         const pageSubtitle = this.translate('pages.register.pageSubtitle');
+        const pageSubtitleMapPreviewLink = this.translate('pages.register.pageSubtitleMapPreviewLink');
         const iPadDynamicStyles: any = (Platform.OS === 'ios' && Platform.isPad)
             ? { paddingHorizontal: '10%' }
             : {};
