@@ -8,6 +8,7 @@ export class RoundInput extends BaseInput {
         super(props);
     }
     render() {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { themeForms, value, ref: _ref, ...restProps } = this.props as any;
 
         return (

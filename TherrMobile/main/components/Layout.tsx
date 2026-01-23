@@ -63,11 +63,11 @@ import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
 import background1 from '../assets/dinner-burgers.webp';
 import background2 from '../assets/dinner-overhead.webp';
 import background3 from '../assets/dinner-overhead-2.webp';
-// import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
+import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
 
-// NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
+NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
 
 const preLoadImageList = [background1, background2, background3];
 

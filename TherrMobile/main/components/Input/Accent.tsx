@@ -8,6 +8,7 @@ export class AccentInput extends BaseInput {
     }
 
     render() {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { themeForms, ref: _ref, ...restProps } = this.props as any;
 
         return (
