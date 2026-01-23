@@ -66,8 +66,7 @@ const BackgroundOverlay = ({
 }) => (
     <View
         style={themeFTUI.styles.landingBackgroundOverlay}
-    >
-    </View>
+    />
 );
 
 const ContentOverlay = ({

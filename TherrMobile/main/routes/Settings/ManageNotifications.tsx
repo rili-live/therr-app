@@ -77,7 +77,7 @@ const NotificationSettingSwitch = ({
                     spacingStyles.marginRtLg,
                 ]}
                 trackColor={{ false: theme.colors.primary2, true: theme.colors.primary4 }}
-                thumbColor={true? theme.colors.primary3 : theme.colorVariations.primary3Fade}
+                thumbColor={true ? theme.colors.primary3 : theme.colorVariations.primary3Fade}
                 ios_backgroundColor={theme.colors.primary4}
                 onValueChange={onChange}
                 value={value}
@@ -87,7 +87,7 @@ const NotificationSettingSwitch = ({
                 style={[
                     themeModal.styles.label,
                     {
-                        fontWeight: true? '800' : '400',
+                        fontWeight: true ? '800' : '400',
                     },
                 ]}
             >

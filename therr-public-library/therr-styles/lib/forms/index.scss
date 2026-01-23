@@ -1,9 +1,10 @@
 @use 'sass:math';
-
-@import '../variables';
-@import './radio-group';
-@import './search-box';
-@import './validations';
+@use '../variables' as *;
+@use '../helpers' as *;
+@use './validations' as validations;
+@forward './radio-group';
+@forward './search-box';
+@forward './validations';
 
 a,
 button {
@@ -81,7 +82,7 @@ textarea {
     padding: 0.5rem 0.75rem;
     transition: border-color 0.15s linear, background 0.15s linear;
     width: 100%;
-    margin-bottom: $validation-container-offset;
+    margin-bottom: validations.$validation-container-offset;
 
     &.with-errors,
     &.ignore-errors {

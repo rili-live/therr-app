@@ -13,7 +13,7 @@ interface ISuperUserStatusIcon {
     isDarkMode: boolean;
     size: number;
     style?: StyleProp<ViewStyle>
-};
+}
 
 const SuperUserStatusIcon = ({
     isSuperUser,

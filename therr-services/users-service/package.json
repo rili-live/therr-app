@@ -13,6 +13,7 @@
     "migrations:create": "dotenv_config_path=../../.env node --require=../../node_modules/dotenv/config ../../node_modules/.bin/knex --knexfile ./src/store/knexfile.js migrate:make $1",
     "migrations:rollback": "dotenv_config_path=../../.env node --require=../../node_modules/dotenv/config ../../node_modules/.bin/knex --knexfile ./src/store/knexfile.js migrate:rollback $1",
     "migrations:run": "dotenv_config_path=../../.env node --require=../../node_modules/dotenv/config ../../node_modules/.bin/knex --knexfile ./src/store/knexfile.js migrate:latest",
+    "seeds:run": "dotenv_config_path=../../.env node --require=../../node_modules/dotenv/config ../../node_modules/.bin/knex --knexfile ./src/store/knexfile.js seed:run",
     "start": "../../node_modules/.bin/nodemon --require=../../node_modules/dotenv/config build/server.js dotenv_config_path=../../.env --withSQLLogs",
     "test": "NODE_ENV=development ../../node_modules/.bin/mocha -r ../../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.js './tests/**/*.test.ts' --exit",
     "test:unit": "NODE_ENV=development ../../node_modules/.bin/mocha -r ../../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.js './tests/unit/**/*.test.ts' --exit",
@@ -29,6 +30,6 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "webpack-cli": "^4.7.2"
+    "webpack-cli": "^6.0.1"
   }
 }

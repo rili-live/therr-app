@@ -251,7 +251,7 @@ export class CreateEditSpaceComponent extends React.Component<ICreateEditSpacePr
         });
     };
 
-    onUpdateSpace = (event: React.MouseEvent<HTMLInputElement>) => {
+    onUpdateSpace = (event: React.MouseEvent<HTMLButtonElement>) => {
         const { files, fetchedSpace } = this.state;
         const {
             location,

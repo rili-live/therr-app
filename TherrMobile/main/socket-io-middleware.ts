@@ -61,7 +61,7 @@ export const updateSocketToken = (user, shouldConnect?: boolean) => {
             locale: user.settings.locale,
             token: user.details.idToken,
             platform: 'mobile',
-            brandVariation: BrandVariations.TEEM,
+            brandVariation: BrandVariations.THERR,
         };
 
         if (shouldConnect) {

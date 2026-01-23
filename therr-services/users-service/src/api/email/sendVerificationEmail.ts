@@ -5,6 +5,7 @@ import { getHostContext } from '../../constants/hostContext';
 
 export interface ISendVerificationEmailConfig {
     charset?: string;
+    subject: string;
     toAddresses: string[];
     agencyDomainName: string;
     brandVariation: string;
@@ -15,25 +16,13 @@ export interface ITemplateParams {
     verificationCodeToken: string;
 }
 
-/**
- * Uses the localhost path in developement or applies the brand context to the various environment
- * paths. Ex.) maintains stage. on stage [stage.<some-host>]
- */
-const getLinkUrl = (verificationCodeToken: string, host: string, isDashboardRegistration: boolean) => {
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    const basePath = isDashboardRegistration
-        ? globalConfig[process.env.NODE_ENV].dashboardHostFull
-        : globalConfig[process.env.NODE_ENV].hostFull;
-    const basePathWithBranding = isDevelopment ? basePath : basePath.replace(/^(stage\.)(.*?)$/, `$1${host}`);
-
-    return `${basePathWithBranding}/verify-account?token=${verificationCodeToken}`;
-};
-
 // TODO: Localize email
 export default (emailParams: ISendVerificationEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
-    const linkUrl = getLinkUrl(templateParams.verificationCodeToken, contextConfig.host, isDashboardRegistration);
+    const linkUrl = isDashboardRegistration
+        ? `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/verify-account?token=${templateParams.verificationCodeToken}`
+        : `${globalConfig[process.env.NODE_ENV].hostFull}/verify-account?token=${templateParams.verificationCodeToken}`;
     const htmlConfig = {
         header: `${contextConfig.brandName}: User Account Verification`,
         dearUser: `Welcome, ${templateParams.name}!`,
@@ -45,6 +34,5 @@ export default (emailParams: ISendVerificationEmailConfig, templateParams: ITemp
 
     return sendEmail({
         ...emailParams,
-        subject: `[Account Verification] ${contextConfig.brandShortName} User Account`,
     }, htmlConfig);
 };

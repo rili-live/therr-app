@@ -107,13 +107,11 @@ class HeaderMenuRight extends React.Component<
             themeForms,
         } = this.props;
 
-        // const currentScreen = this.getCurrentScreen();
-        // let navScreenName = currentScreen === 'Login' ? 'Register' : 'Login';
-        let navScreenName = 'Register';
-        // const buttonTitle = currentScreen === 'Login'
-        //     ? this.translate('components.headerLinkRight.signUp')
-        //     : this.translate('components.headerLinkRight.signIn');
-        const buttonTitle = this.translate('components.headerLinkRight.signUp');
+        const currentScreen = this.getCurrentScreen();
+        let navScreenName = currentScreen === 'Login' ? 'Register' : 'Login';
+        const buttonTitle = currentScreen === 'Login'
+            ? this.translate('components.headerLinkRight.signUp')
+            : this.translate('components.headerLinkRight.signIn');
 
         return (
             <Button

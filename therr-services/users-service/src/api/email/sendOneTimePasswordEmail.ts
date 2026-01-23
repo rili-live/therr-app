@@ -5,6 +5,7 @@ import { getHostContext } from '../../constants/hostContext';
 
 export interface ISendOneTimePasswordConfig {
     charset?: string;
+    subject: string;
     toAddresses: string[];
     agencyDomainName: string;
     brandVariation: string;
@@ -33,6 +34,5 @@ export default (emailParams: ISendOneTimePasswordConfig, templateParams: ITempla
 
     return sendEmail({
         ...emailParams,
-        subject: `[Forgot Password?] ${contextConfig.brandShortName} One-Time Password`,
     }, htmlConfig);
 };

@@ -54,7 +54,7 @@ const ForumMessage = ({
     }
 
     return (
-        // eslint-disable-next-line react-native/no-inline-styles
+
         <View style={[themeChat.styles.messageContainer, containerStyles]}>
             <Pressable
                 onPress={onUserPress}

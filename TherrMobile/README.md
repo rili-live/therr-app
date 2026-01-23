@@ -1,4 +1,4 @@
-# TeemMobile
+# TherrMobile
 
 ## iOS Release Build Tips
 `npm run ios:bundle:release`

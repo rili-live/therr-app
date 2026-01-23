@@ -5,6 +5,7 @@
 		"baseUrl": ".",
 		"rootDir": "./src/",
 		"typeRoots": ["../node_modules/@types"],
+		"types": ["node", "react", "react-dom", "react-router-dom", "jest"],
 		"declaration": false,
 		"removeComments": false,
 		"noLib": false,

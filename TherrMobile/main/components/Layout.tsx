@@ -63,11 +63,11 @@ import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
 import background1 from '../assets/dinner-burgers.webp';
 import background2 from '../assets/dinner-overhead.webp';
 import background3 from '../assets/dinner-overhead-2.webp';
-// import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
+import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
 
-// NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
+NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
 
 const preLoadImageList = [background1, background2, background3];
 
@@ -83,7 +83,7 @@ const getRequestHeaders = (user) => ({
     'x-userid': user?.details?.id,
     'x-localecode':  user?.settings?.locale || 'en-us',
     'x-platform': 'mobile',
-    'x-brand-variation': BrandVariations.TEEM,
+    'x-brand-variation': BrandVariations.THERR,
 });
 
 interface ILayoutDispatchProps {
@@ -802,7 +802,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         let targetRouteView = '';
         let targetRouteParams: any = {};
-        if (data && !Array.isArray(data) && typeof(data) === 'object') {
+        if (data && !Array.isArray(data) && typeof (data) === 'object') {
             if (data.action === PushNotifications.AndroidIntentActions.Therr.ACHIEVEMENT_COMPLETED
                 || data.action === PushNotifications.AndroidIntentActions.Therr.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
                 targetRouteView = 'Achievements';
@@ -860,12 +860,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // DEBUG logging only
             if (user?.details?.id === 'a730f85b-bc3a-46ab-97e9-48b8e5875f83') {
                 MessagesService.sendAppLog({
-                    'notification.id': notification?.id,
-                    'notification.pressAction.id': pressAction?.id,
-                    'notification.isInForeground': isInForeground,
-                    'notification.eventType': type,
-                    'notification.didCauseAppOpen': didCauseAppOpen,
-                    'notification.isUserAuthorized': isUserAuthorized,
+                    'notification.id': notification?.id || '',
+                    'notification.pressAction.id': pressAction?.id || '',
+                    'notification.isInForeground': String(isInForeground),
+                    'notification.eventType': String(type),
+                    'notification.didCauseAppOpen': String(didCauseAppOpen),
+                    'notification.isUserAuthorized': String(isUserAuthorized),
                     platformOS: Platform.OS,
                 }, 'info');
             }

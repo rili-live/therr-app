@@ -756,7 +756,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         titleStyle={this.themeForms.styles.buttonTitle}
                         title={this.translate(
-                            !!imagePreviewPath ? 'forms.editMoment.buttons.replaceImage' : 'forms.editMoment.buttons.addImage'
+                            imagePreviewPath ? 'forms.editMoment.buttons.replaceImage' : 'forms.editMoment.buttons.addImage'
                         )}
                         icon={
                             <TherrIcon

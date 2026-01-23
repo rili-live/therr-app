@@ -9,7 +9,7 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 describe('authenticate middleware', () => {
     let sandbox: sinon.SinonSandbox;
