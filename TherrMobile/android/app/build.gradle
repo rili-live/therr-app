@@ -76,7 +76,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.therr.mobile.Teem"
+    namespace "app.therrmobile"
 
     // compileOptions {
     //     sourceCompatibility JavaVersion.VERSION_1_8
@@ -84,7 +84,7 @@ android {
     // }
 
     defaultConfig {
-        applicationId "com.therr.mobile.Teem"
+        applicationId "app.therrmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 368

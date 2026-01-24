@@ -169,9 +169,37 @@ Making social accountability **MANDATORY, not optional**. This is uncomfortable 
   - [x] Implement regression tests for main functionality of websocket-service
   - [x] Implement regression tests for main functionality of therr-api-gateway-service
   - [x] Implement regression tests for main functionality of TherrMobile React Native codebase
-- [ ] Set up modular feature flag system for TherrMobile (utilizing TherrMobile/env-config.js)
 - [ ] Upgrade dependencies to latest stable versions
+  - [x] Fix peer dependency conflicts (ts-node upgraded to 10.x, react-chartist overrides added)
+  - [x] Update dev dependencies within major versions (babel 7.28, typescript 5.9, eslint plugins, typings)
+  - [x] Update stylelint to 16.x with SCSS config
+  - [x] Resolve linting errors from updated packages
+  - [x] Update React 18.2 to 18.3 (minor, safe to do)
+  - [ ] Evaluate React 19 upgrade (major - requires refactoring, defer until stability)
+  - [ ] Update react-router-dom from 6.3 to 6.x latest (within major version)
+  - [ ] Update Redux Toolkit from 1.9 to 2.x (major - requires migration, plan separately)
+  - [ ] Replace deprecated react-chartist with modern charting library (recharts or react-chartjs-2)
+  - [x] Update webpack from 5.x to latest 5.x (safe within major)
+  - [ ] Audit and address remaining npm vulnerabilities
+- [ ] Set up modular feature flag system for TherrMobile (utilizing TherrMobile/env-config.js)
+  - [ ] Define FeatureFlags enum, types, and brand-specific configs in therr-js-utilities (create `constants/enums/FeatureFlags.ts` with flag names like `ENABLE_MAP`, `ENABLE_PACTS`, `ENABLE_STREAKS`, and `config/featureFlags/` directory with per-brand default configurations for THERR, HABITS, TEEM)
+  - [ ] Centralize brand variation and create FeatureFlagContext (move hardcoded `BrandVariations.TEEM` from Layout.tsx, socket-io-middleware.ts, and interceptors.ts to `TherrMobile/main/config/brandConfig.ts`; create `FeatureFlagContext.tsx` with Provider and `useFeatureFlag` hook)
+  - [ ] Integrate FeatureFlagProvider into TherrMobile App root (wrap app in App.tsx, ensure initialization before Layout renders, support loading flags based on current brand variation)
+  - [ ] Add feature flag support to route configuration and navigation filtering (extend `ExtendedRouteOptions` in routes/index.tsx with `requiredFeatures` array; update Layout.tsx route filtering to hide routes when required features are disabled)
+  - [ ] Create FeatureGate component and update MainButtonMenu (build `<FeatureGate feature={...}>` component for conditional UI rendering with AND/OR logic; update MainButtonMenu.tsx to hide/show nav buttons based on flags)
+  - [ ] Define HABITS-specific feature flag configuration (disable: Map, Location, Moments, Spaces, Events, generic social feed; enable: Pacts, Invites, Streaks, Consequences, Proof uploads, mandatory invite flow)
+  - [ ] Add AsyncStorage persistence for runtime flag overrides (implement flag override storage for A/B testing per Phase 5 requirements; create merge logic in FeatureFlagProvider to combine defaults with overrides)
+  - [ ] Add premium feature flags for HABITS monetization (define `PREMIUM_VIDEO_PROOF`, `PREMIUM_ANALYTICS`, `PREMIUM_CUSTOM_CONSEQUENCES`, `PREMIUM_HEALTH_INTEGRATIONS`, `PREMIUM_UNLIMITED_PACTS`; integrate with user subscription status from Redux)
+  - [ ] Add feature flag developer tools for debug mode (create dev-only Settings screen or modal to toggle flags at runtime when `__DEV__` is true; persist overrides to AsyncStorage for testing)
 - [ ] Document existing Therr features to repurpose
+  - [ ] Document User Authentication & Profiles repurposing (review `users-service/src/handlers/auth.ts`, `users-service/src/handlers/users.ts`, `TherrMobile/main/routes/Login/`, `TherrMobile/main/routes/Register/`; document OAuth flows, profile fields, JWT handling; identify fields to hide/disable for HABITS; deliverable: add HABITS_AUTH_REPURPOSING.md to docs/)
+  - [ ] Document Social Connections repurposing for Pacts (review `users-service/src/handlers/userConnections.ts`, `UserConnectionsStore.ts`, `TherrMobile/main/routes/Connect/`, `TherrMobile/main/routes/Invite/`; document connection request flow, database schema; propose `pacts` table schema extending connections; deliverable: add HABITS_PACTS_SCHEMA.md to docs/)
+  - [ ] Document Rewards/Points system repurposing for Streaks (review `users-service/src/handlers/rewards.ts`, `userAchievements.ts`, `therr-js-utilities/constants/achievements`; document TherrCoin/AchievementTier mechanics; propose streak-based achievements; deliverable: add HABITS_STREAKS_DESIGN.md to docs/)
+  - [ ] Document Check-in mechanism repurposing for Habit Check-ins (review `maps-service/src/handlers/moments.ts`, `MomentsStore.ts`, `reactions-service/src/handlers/momentReactions.ts`; document moments schema and media handling; propose `habit_checkins` table removing geo requirements; deliverable: add HABITS_CHECKINS_DESIGN.md to docs/)
+  - [ ] Document Push Notifications repurposing for Habit Reminders (review `push-notifications-service/src/handlers/`, `TherrMobile/main/utilities/pushNotifications.ts`, `therr-js-utilities/constants/enums/PushNotifications.ts`; document FCM setup and notification types; propose habit-specific notification types; deliverable: add HABITS_NOTIFICATIONS_DESIGN.md to docs/)
+  - [ ] Document Real-time Updates repurposing for Pact Activity Feed (review `websocket-service/src/handlers/`, `TherrMobile/main/socket-io-middleware.ts`, `TherrMobile/main/routes/Activities/`; document Socket.IO rooms and events; propose pact-specific real-time events; deliverable: add HABITS_REALTIME_DESIGN.md to docs/)
+  - [ ] Document Media Upload repurposing for Proof Uploads (review `maps-service/src/handlers/helpers/createMediaUrls.ts`, `MediaStore.ts`, AWS S3 integration; document signed URL flow and media types; propose proof upload requirements; deliverable: add HABITS_MEDIA_DESIGN.md to docs/)
+  - [ ] Document Groups repurposing for Pact Management (review `users-service/src/handlers/userGroups.ts`, `UserGroupsStore.ts`, `TherrMobile/main/routes/Groups/`; document group roles, membership, and notifications; propose pact-specific adaptations; deliverable: add HABITS_GROUPS_DESIGN.md to docs/)
 - [ ] Consider viability and value of implementing React Native Paper to accelerate UI development and maintenance
 
 **Deliverable:** Clean, documented codebase ready for new features

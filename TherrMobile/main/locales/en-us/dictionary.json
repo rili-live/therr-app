@@ -67,7 +67,7 @@
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
     "backgroundLocation": "In order to earn rewards and local discounts, please enable 'Allow all the time' permission",
     "codeSent": "Check your phone for a new verification code.",
-    "coinsReceived": "🎁 You earned {total} TeemCoin(s) 🎁",
+    "coinsReceived": "🎁 You earned {total} TherrCoin(s) 🎁",
     "invalidCode": "Code is invalid or expired. Try again or resend.",
     "invalidRegionCode": "The app is not yet available in this region",
     "backendErrorMessage": "Please try again later.",
@@ -375,8 +375,8 @@
         "email": "Invitee's E-mail"
       },
       "shareLink": {
-        "message": "Join Teem app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 https://www.therr.com/register?invite-code={inviteCode}",
-        "title": "Teem App | Local Community & Rewards App"
+        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 https://www.therr.com/register?invite-code={inviteCode}",
+        "title": "Therr App | Local Community & Rewards App"
       }
     },
     "createProfile": {
@@ -485,8 +485,8 @@
         "rating": "Rating / Review"
       },
       "modal": {
-        "insufficientFundsTitle": "No TeemCoins Available",
-        "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TeemCoin. We have notified them for an update.",
+        "insufficientFundsTitle": "No TherrCoins Available",
+        "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TherrCoin. We have notified them for an update.",
         "insufficientFundsMessage2": "Continue creating content without rewards?"
       },
       "backendSuccessMessage": "Your moment was successfully saved!",
@@ -536,8 +536,8 @@
         "rating": "Rating / Review"
       },
       "modal": {
-        "insufficientFundsTitle": "No TeemCoins Available",
-        "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TeemCoin. We have notified them for an update.",
+        "insufficientFundsTitle": "No TherrCoins Available",
+        "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TherrCoin. We have notified them for an update.",
         "insufficientFundsMessage2": "Continue creating content without rewards?",
         "attendingModal": {
           "title": "Attend this Event?",
@@ -575,7 +575,7 @@
         "makeAPurchase": "Make a Purchase"
       },
       "incentiveRewardKeys": {
-        "coinReward": "TeemCoin Reward",
+        "coinReward": "TherrCoin Reward",
         "currencyDiscount": "Currency Discount",
         "percentageDiscount": "Percent Discount"
       },
@@ -1104,7 +1104,7 @@
       "pageTitle": "Forums"
     },
     "createProfile": {
-      "headerTitle": "Teem",
+      "headerTitle": "Therr",
       "pageHeaderDetails": "Create your profile",
       "pageSubHeaderDetails": "You can change your username at any time",
       "pageHeaderPhone": "Keep it secure",
@@ -1212,7 +1212,7 @@
         "attendingConfirmed": "You have already RSVP'd",
         "editRSVP": "Edit",
         "claimRewards": "Claim Rewards?",
-        "coinReward": "Earn {count} TeemCoin(s)",
+        "coinReward": "Earn {count} TherrCoin(s)",
         "coinRewardDollars": "Earn ~${amount}",
         "claimThisBusiness": "Claim This Business?"
       },
@@ -1263,7 +1263,7 @@
       "successVerifiedMessage": "Your account has been verified. Log in to continue."
     },
     "exchangePointsDisclaimer": {
-      "headerTitle": "Teem Rewards",
+      "headerTitle": "Therr Rewards",
       "pageHeader": "Exchange Coins",
       "pageHeaderHow": "How It Works",
       "pageHeaderYourWallet": "Your Wallet",
@@ -1276,7 +1276,7 @@
         "stepFour": "More reward options coming soon!"
       },
       "labels": {
-        "coinsSuffix": "{total} TeemCoin",
+        "coinsSuffix": "{total} TherrCoin",
         "dollarsPrefix": "~${total}",
         "exchangeRatePrefix": "1 Coin = ${exchangeRate}"
       },
@@ -1302,7 +1302,7 @@
       "background": {
         "shareYourInterests": "Share Your Interests",
         "inviteFriends": "Invite Your Friends",
-        "getMatched": "Match up & meet your new 'Teem'"
+        "getMatched": "Match with people & places for your next hangout"
       },
       "headerTitle": "Welcome",
       "buttons": {
@@ -1321,9 +1321,9 @@
       }
     },
     "login": {
-      "headerTitle": "Teem",
+      "headerTitle": "Therr",
       "pageTitle": "Welcome",
-      "pageSubtitle": "Sign in and meet your Teem",
+      "pageSubtitle": "Sign in to Therr to see what you missed",
       "userAlerts": {
         "registerSuccess": "Registration success! Check your e-mail for verification."
       }
@@ -1402,9 +1402,9 @@
       }
     },
     "register": {
-      "headerTitle": "Teem",
+      "headerTitle": "Therr",
       "pageTitle": "Sign Up",
-      "pageSubtitle": "Create a profile and start building your teem!",
+      "pageSubtitle": "Create a profile and see what you are missing or view the",
       "pageSubtitleMapPreviewLink": "public map",
       "passwordRequirements1": "Contains a mixture of letters and numbers",
       "passwordRequirements2": "At least one capital letter",
@@ -1414,7 +1414,7 @@
     "settings": {
       "headerTitle": "Settings",
       "pageHeaderDisplaySettings": "Display",
-      "pageHeaderRewardsSettings": "Teem Rewards",
+      "pageHeaderRewardsSettings": "Therr Rewards",
       "pageHeaderPrivacySettings": "Privacy Settings",
       "pageHeaderUser": "User Profile",
       "pageHeaderPassword": "Update Password",
@@ -1473,7 +1473,7 @@
         "shareFeedback": "Share Feedback"
       },
       "subtitles": {
-        "createConnection": "Send a connection request or invite someone to join Teem!",
+        "createConnection": "Send a connection request or invite someone to join Therr!",
         "whoInviteDisclaimer": "Choose who and how you would like to invite."
       },
       "labels": {
@@ -1486,9 +1486,9 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
-      "siteDescription1": "Welcome to Teem app. As we gather feedback and develop new features, let us know how we can improve the experience.",
+      "siteDescription1": "Welcome to Therr app. As we gather feedback and develop new features, let us know how we can improve the experience.",
       "siteDescription2": "So how does it work?",
-      "siteDescription3": "Match with friends nearby, schedule hangouts, and create groups/teems to share common interests. Share a moment with your connections on the map to branch out and meet new friends.",
+      "siteDescription3": "Content on the map is proximity activated. Share a moment with your connections on the map. Discover spaces nearby, and claim TherrCoins for actions (posting, reviewing, visiting, etc).",
       "siteDescription4": "Then, check your feed for moments posted by others in the locales you travel to most often. Get to know the local culture by searching content that was shared nearby. Just tap anywhere on the map to start exploring.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
@@ -1543,13 +1543,13 @@
         "shareALink": "Share a Link"
       },
       "shareLink": {
-        "message": "You can find this location on Teem App: https://www.therr.com/spaces/{spaceId}",
-        "messageEvent": "You can find this event on Teem App: https://www.therr.com/events/{eventId}",
-        "messageMoment": "You can find this moment on Teem App: https://www.therr.com/moments/{momentId}",
-        "title": "{spaceTitle} | Teem App",
-        "titleEvent": "{eventTitle} | Teem App",
-        "titleMoment": "{momentTitle} | Teem App",
-        "titleUser": "{userName} | Teem App"
+        "message": "You can find this location on Therr App: https://www.therr.com/spaces/{spaceId}",
+        "messageEvent": "You can find this event on Therr App: https://www.therr.com/events/{eventId}",
+        "messageMoment": "You can find this moment on Therr App: https://www.therr.com/moments/{momentId}",
+        "title": "{spaceTitle} | Therr App",
+        "titleEvent": "{eventTitle} | Therr App",
+        "titleMoment": "{momentTitle} | Therr App",
+        "titleUser": "{userName} | Therr App"
       }
     },
     "deleteAccountModal": {
@@ -1592,7 +1592,7 @@
       "exploreTheWorld2": "Let travel be your algorithm. You decide.",
       "findFriends": "We'll send you invites to curated social activities each week! Wherever you go, get matched with the best hangout spots nearby and the friends with the most common interests.",
       "findFriends2": "Find your vibe! Organize connections by 'close friends', 'family', 'acquaintances', etc.",
-      "matchUp": "Teem app matches you with current friends and potential new friends. We recommend curated social activities based on your interests and nearby restaurants/businesses.",
+      "matchUp": "Therr app matches you with current friends and potential new friends. We recommend curated social activities based on your interests and nearby restaurants/businesses.",
       "matchUp2": "“Can't start a fire without a spark”"
     },
     "touringNavigationModal": {
@@ -1623,8 +1623,8 @@
   },
   "permissions": {
     "accessFineLocation": {
-      "title": "Teem Mobile",
-      "message": "Allow Teem to acces this device's location?",
+      "title": "Therr Mobile",
+      "message": "Allow Therr to acces this device's location?",
       "buttonNeutral": "Only this time",
       "buttonNegative": "Deny",
       "buttonPositive": "While using the app"
@@ -1721,7 +1721,7 @@
         "description": "Activate 100 Events"
       },
       "explorer_1_4_4": {
-        "title": "See You There",
+        "title": "See You Therr",
         "description": "Activate 250 Events"
       },
       "influencer_1_1": {

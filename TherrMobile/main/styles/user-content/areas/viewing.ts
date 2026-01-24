@@ -109,7 +109,6 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             height: areaUserAvatarImgWidth,
             maxHeight: areaUserAvatarImgWidth,
             position: 'relative',
-            boxSizing: 'border-box',
         },
         areaAuthorTextContainer: {
             height: '100%',

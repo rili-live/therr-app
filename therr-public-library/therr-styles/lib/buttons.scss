@@ -1,7 +1,6 @@
 @use 'sass:math';
 @use 'sass:list';
-
-@import './variables';
+@use './variables' as *;
 
 button,
 [type='button'],

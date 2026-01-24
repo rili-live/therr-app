@@ -12,7 +12,7 @@
  * - Run tests: npm run test:integration
  */
 import { expect } from 'chai';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import {
     getTestRedisClient,
     closeTestRedisConnection,

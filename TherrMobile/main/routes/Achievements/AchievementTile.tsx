@@ -33,7 +33,7 @@ const AchievementTile = ({ claimText, completedText, handleClaim, onPressAchieve
                 </View>
                 <View style={{ display: 'flex', flexDirection: 'column', flex: 1, paddingVertical: 6 }}>
                     <Text style={{ textTransform: 'capitalize', fontWeight: '600', fontSize: 18, paddingBottom: 4 }}>
-                        {userAchievement.achievementClass.replace(/([A-Z])/g, " $1")}: <Text style={{ fontWeight: '400' }}>{achievement.title}</Text>
+                        {userAchievement.achievementClass.replace(/([A-Z])/g, ' $1')}: <Text style={{ fontWeight: '400' }}>{achievement.title}</Text>
                     </Text>
                     <Text style={spacingStyles.flexOne}>{achievement.description}</Text>
                     <View style={{ width: '100%', display: 'flex', flexDirection: 'row' }}>

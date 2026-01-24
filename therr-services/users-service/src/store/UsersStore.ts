@@ -16,7 +16,6 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export interface ICreateUserParams {
     accessLevels: string | AccessLevels;
-    brandVariations?: string | undefined;
     email: string;
     billingEmail?: string;
     firstName?: string;

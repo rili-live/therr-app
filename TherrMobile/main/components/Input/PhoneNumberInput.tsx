@@ -1,12 +1,12 @@
 import React from 'react';
-import { GestureResponderEvent, View } from 'react-native';
+import { NativeSyntheticEvent, TextInputSubmitEditingEventData, View } from 'react-native';
 import PhoneInput from 'react-native-phone-input';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import phoneStyles from '../../styles/forms/phoneInput';
 import { ITherrThemeColors } from '../../styles/themes';
 
 interface IPhoneNumberInputProps {
-    onSubmit: ((event: GestureResponderEvent) => void) | undefined;
+    onSubmit?: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => void;
     onChangeText?: (value: string, isValid: boolean) => any;
     placeholder?: string;
     translate: Function;
@@ -81,7 +81,6 @@ class PhoneNumberInput extends React.Component<IPhoneNumberInputProps, IPhoneNum
                     onPressFlag={this.onPressFlag}
                     offset={0}
                     onChangePhoneNumber={this.onPhoneInputChange}
-                    onSubmitEditing={onSubmit}
                     initialCountry={'us'}
                     flagStyle={theme.styles.displayNone}
                     style={themeForms.styles.phoneInput}
@@ -90,16 +89,15 @@ class PhoneNumberInput extends React.Component<IPhoneNumberInputProps, IPhoneNum
                         selectionColor: theme.colors.selectionColor,
                         style: {...themeForms.styles.phoneInputText},
                         placeholderTextColor: theme.colors.placeholderTextColor,
+                        onSubmitEditing: onSubmit,
                     }}
                 />
                 <View style={phoneStyles.countryFlagContainer}>
                     <CountryPicker
-                        closeButtonStyle={phoneStyles.pickerCloseButton}
                         containerButtonStyle={phoneStyles.countryFlag}
                         onSelect={(value)=> this.onCountryCodeSelect(value)}
                         translation="common"
                         countryCode={countryCode}
-                        // onSelect={this.onCountryCodeSelect}
                         visible={isCountryPickerVisible}
                         withAlphaFilter={true}
                     />

@@ -33,6 +33,6 @@
     "defaults"
   ],
   "devDependencies": {
-    "webpack-cli": "^4.7.2"
+    "webpack-cli": "^6.0.1"
   }
 }

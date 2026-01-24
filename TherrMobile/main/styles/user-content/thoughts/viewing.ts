@@ -106,7 +106,6 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             height: thoughtUserAvatarImgWidth,
             maxHeight: thoughtUserAvatarImgWidth,
             position: 'relative',
-            boxSizing: 'border-box',
         },
         thoughtAuthorTextContainer: {
             height: '100%',

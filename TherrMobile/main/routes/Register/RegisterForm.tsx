@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Linking, Platform, View } from 'react-native';
 import { Button, Text } from 'react-native-elements';
+import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
@@ -10,6 +11,10 @@ import PasswordRequirements from '../../components/Input/PasswordRequirements';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 import { ISSOUserDetails } from '../Login/LoginForm';
 import TherrIcon from '../../components/TherrIcon';
+import OrDivider from '../../components/Input/OrDivider';
+import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
+import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
+import spacingStyles from '../../styles/layouts/spacing';
 
 // Regular component props
 interface IRegisterFormProps {
@@ -244,7 +249,7 @@ export class RegisterFormComponent extends React.Component<
     };
 
     openPrivacyPolicy = () => {
-        Linking.openURL('https://teem-social.com/privacy-policy');
+        Linking.openURL('https://www.therr.app/privacy-policy.html');
     };
 
     public render() {
@@ -375,14 +380,14 @@ export class RegisterFormComponent extends React.Component<
                         onPress={this.onSubmit}
                         disabled={this.isRegisterFormDisabled()}
                     />
-                    {/* <OrDivider
+                    <OrDivider
                         translate={this.translate}
                         themeForms={themeForms}
                         containerStyle={spacingStyles.marginVertXLg}
                     />
                     <View style={themeAuthForm.styles.submitButtonContainer}>
                         <GoogleSignInButton
-                            disabled={isSubmitting}
+                            disabled={this.state.isSubmitting}
                             buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitleContinue')}
                             onLoginError={this.onSSOLoginError}
                             onLoginSuccess={this.onSSOLoginSuccess}
@@ -391,10 +396,9 @@ export class RegisterFormComponent extends React.Component<
                     </View>
                     {
                         Platform.OS === 'ios' && appleAuth.isSupported &&
-                        appleAuth.isSupported &&
                         <View style={themeAuthForm.styles.submitButtonContainer}>
                             <AppleSignInButton
-                                disabled={isSubmitting}
+                                disabled={this.state.isSubmitting}
                                 buttonTitle={this.translate('forms.loginForm.sso.appleButtonTitle')}
                                 onLoginError={this.onSSOLoginError}
                                 onLoginSuccess={this.onSSOLoginSuccess}
@@ -402,7 +406,7 @@ export class RegisterFormComponent extends React.Component<
                                 type={AppleButton.Type.CONTINUE}
                             />
                         </View>
-                    } */}
+                    }
                 </View>
             </>
         );

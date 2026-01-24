@@ -1,47 +1,49 @@
 {
   "extends": "@react-native/typescript-config/tsconfig.json",
   "compilerOptions": {
-    "baseUrl": ".",                          /* Base directory to resolve non-absolute module names. */
-    "rootDir": "./main/",
-		"typeRoots": ["../node_modules/@types"],
-    "target": "esnext",                       /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017','ES2018' or 'ESNEXT'. */
-    "module": "commonjs",                     /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
-    "lib": ["esnext"],                           /* Specify library files to be included in the compilation. */
-    "allowJs": true,                          /* Allow javascript files to be compiled. */
+    "baseUrl": ".",
+    "typeRoots": ["../node_modules/@types", "./node_modules/@types"],
+    "types": ["react-native", "jest"],
+    "target": "esnext",
+    "module": "esnext",
+    "lib": ["esnext"],
+    "allowJs": true,
     "jsx": "react-native",
-    "noEmit": true,                           /* Do not emit outputs. */
-    "isolatedModules": true,                  /* Transpile each file as a separate module (similar to 'ts.transpileModule'). */
-
-    "strict": true,                           /* Enable all strict type-checking options. */
-    "moduleResolution": "node",               /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
-    "allowSyntheticDefaultImports": true,     /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
-    "esModuleInterop": true,                   /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
-    
+    "noEmit": true,
+    "isolatedModules": true,
+    "strict": true,
+    "moduleResolution": "bundler",
+    "customConditions": ["react-native"],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "pretty": true,
-		"allowUnreachableCode": false,
-		"allowUnusedLabels": false,
-		"noImplicitAny": false,
-		"noImplicitReturns": false,
-		"noImplicitUseStrict": false,
-		"noFallthroughCasesInSwitch": true
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noImplicitUseStrict": false,
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "shared/react": ["../node_modules/@types/react"],
+      "shared/*": ["../node_modules/*"],
+      "therr-react/*": ["../therr-public-library/therr-react/lib/*"],
+      "therr-styles/*": ["../therr-public-library/therr-styles/lib/*"],
+      "therr-js-utilities/*": ["../therr-public-library/therr-js-utilities/lib/*"]
+    }
   },
   "include": [
     "main/**/*",
-		"main/types"
-, "wdyr.ts"	],
+    "main/types",
+    "wdyr.ts",
+    "index.js"
+  ],
   "exclude": [
     "node_modules",
     "babel.config.js",
     "metro.config.js",
     "jest.config.js"
   ],
-  "paths": {
-    "shared/react": ["../node_modules/@types/react"],
-    "shared/*": ["../node_modules/*"],
-		"therr-react/*": ["../therr-public-library/therr-react/lib/*"],
-    "therr-styles/*": ["../therr-public-library/therr-styles/lib/*"],
-		"therr-js-utilities/*": ["../therr-public-library/therr-js-utilities/lib/*"]
-  },
   "files": [
     "app.d.ts"
   ]

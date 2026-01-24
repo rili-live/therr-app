@@ -1,5 +1,5 @@
 import express from 'express';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 export default (handleHttpError: any) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {

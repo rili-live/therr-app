@@ -31,19 +31,16 @@ class HeaderMenuLeft extends React.Component<
     }
 
     handlePress = () => {
-        // const { isAuthenticated, isEmailVerifed, navigation } = this.props;
-        const { navigation } = this.props;
-        // if (isAuthenticated && isEmailVerifed) {
-        //     navigation.navigate('Map', {
-        //         shouldShowPreview: false,
-        //     });
-        // } else if (isAuthenticated) {
-        //     navigation.navigate('CreateProfile');
-        // } else {
-        //     navigation.navigate('Map');
-        // }
-
-        navigation.navigate('Home');
+        const { isAuthenticated, isEmailVerifed, navigation } = this.props;
+        if (isAuthenticated && isEmailVerifed) {
+            navigation.navigate('Map', {
+                shouldShowPreview: false,
+            });
+        } else if (isAuthenticated) {
+            navigation.navigate('CreateProfile');
+        } else {
+            navigation.navigate('Map');
+        }
     };
 
     render() {
@@ -65,7 +62,7 @@ class HeaderMenuLeft extends React.Component<
                 type="clear"
                 icon={
                     <TherrIcon
-                        name="teem-logo"
+                        name="therr-logo"
                         size={26}
                         style={[
                             logoStyle,

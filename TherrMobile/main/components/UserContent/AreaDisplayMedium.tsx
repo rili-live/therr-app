@@ -243,7 +243,7 @@ export const AreaDisplayContent = ({
                                 height: mediaWidth,
                                 borderRadius: 7,
                             }}
-                            resizeMode='contain'
+                            resizeMode="contain"
                             PlaceholderContent={<ActivityIndicator />}
                         /> :
                         <MissingImagePlaceholder

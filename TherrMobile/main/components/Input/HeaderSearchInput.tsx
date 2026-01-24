@@ -24,7 +24,7 @@ interface IHeaderSearchInputState {
     overlayLeftOffset: number;
     shouldEvaluateClickaway: boolean;
 }
-interface IHeaderSearchInputDispatchProps extends InputProps {
+interface IHeaderSearchInputDispatchProps extends Omit<InputProps, 'ref'> {
     getPlacesSearchAutoComplete: Function;
     setSearchDropdownVisibility: Function;
 }

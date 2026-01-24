@@ -1,4 +1,4 @@
-@import './variables';
+@use './variables' as *;
 
 .inline-svg {
     height: 1.25rem;

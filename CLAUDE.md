@@ -38,7 +38,7 @@ When working on a branch, read the associated project brief early in the convers
 - **React**: 18.x.x (web clients) - Use hooks, functional components
 - **React Native**: 0.74.3 (TherrMobile) - Has its own package.json with isolated deps
 - **TypeScript**: 4.8.x
-- **Node.js**: 18+ required
+- **Node.js**: 24.12.0 required (see `.nvmrc`)
 - **npm**: 11+ required (enforced by `_bin/prep.sh`)
 
 ## Code Patterns

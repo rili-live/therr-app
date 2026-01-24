@@ -13,7 +13,7 @@ import MyDrafts from './Areas/MyDrafts';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
 import Landing from './Landing';
-// import Login from './Login';
+import Login from './Login';
 import Map from './Map';
 import Achievements from './Achievements';
 import AchievementClaim from './Achievements/AchievementClaim';
@@ -96,10 +96,10 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'Register',
-        component: Register,
+        name: 'Login',
+        component: Login,
         options: () => ({
-            title: 'Create Account',
+            title: 'Login',
             access: {
                 type: AccessCheckType.NONE,
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
@@ -107,18 +107,6 @@ const routes: RouteConfig<
             },
         }),
     },
-    // {
-    //     name: 'Login',
-    //     component: Login,
-    //     options: () => ({
-    //         title: 'Login',
-    //         access: {
-    //             type: AccessCheckType.NONE,
-    //             levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-    //             isPublic: true,
-    //         },
-    //     }),
-    // },
     {
         name: 'CreateProfile',
         component: CreateProfile,
@@ -138,7 +126,7 @@ const routes: RouteConfig<
             access: {
                 type: AccessCheckType.NONE,
                 levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                // isPublic: true,
+                isPublic: true,
             },
         }),
     },
@@ -337,6 +325,18 @@ const routes: RouteConfig<
             access: {
                 type: AccessCheckType.NONE,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                isPublic: true,
+            },
+        }),
+    },
+    {
+        name: 'Register',
+        component: Register,
+        options: () => ({
+            title: 'Create Account',
+            access: {
+                type: AccessCheckType.NONE,
+                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
         }),

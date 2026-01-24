@@ -18,6 +18,14 @@ const extraNodeModules = {
         __dirname,
         '/../therr-public-library/therr-js-utilities/lib'
     ),
+    // Force shared libraries to use TherrMobile's React to prevent duplicate React copies
+    react: path.join(__dirname, 'node_modules/react'),
+    'react-dom': path.join(__dirname, 'node_modules/react-dom'),
+    'react-native': path.join(__dirname, 'node_modules/react-native'),
+    // Redux packages must also resolve locally to use the same React instance
+    'react-redux': path.join(__dirname, 'node_modules/react-redux'),
+    redux: path.join(__dirname, 'node_modules/redux'),
+    '@reduxjs/toolkit': path.join(__dirname, 'node_modules/@reduxjs/toolkit'),
 };
 const watchFolders = [
     path.join(__dirname, '/../node_modules'),

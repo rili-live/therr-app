@@ -1,7 +1,7 @@
 /* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import Store from '../../src/store';
 

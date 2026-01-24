@@ -262,7 +262,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             height: 100,
                             borderRadius: 5,
                         }}
-                        resizeMode='contain'
+                        resizeMode="contain"
                         PlaceholderContent={<ActivityIndicator />}
                     />
                 }
@@ -514,7 +514,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                     width: mediaDimensions.width,
                                     height: mediaDimensions.height,
                                 }}
-                                resizeMode='contain'
+                                resizeMode="contain"
                                 PlaceholderContent={<ActivityIndicator />}
                             /> :
                             placeholderMediaType && <MissingImagePlaceholder
