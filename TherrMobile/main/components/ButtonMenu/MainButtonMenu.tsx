@@ -7,17 +7,36 @@ import 'react-native-gesture-handler';
 import {
     AttachStep,
 } from 'react-native-spotlight-tour';
+import { FeatureFlags } from 'therr-js-utilities/constants';
 import TherrIcon from '../../components/TherrIcon';
+import FeatureGate from '../FeatureGate';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
 import { GROUPS_CAROUSEL_TABS, PEOPLE_CAROUSEL_TABS } from '../../constants';
 import { isUserAuthenticated } from '../../utilities/authUtils';
+import getConfig from '../../utilities/getConfig';
 import Toast from 'react-native-toast-message';
 import LottieView from 'lottie-react-native';
 // import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
 const { width: screenWidth } = Dimensions.get('window');
-const buttonWidth = screenWidth / 5;
+
+// Calculate enabled tab count for dynamic width
+const getEnabledTabCount = () => {
+    const config = getConfig();
+    const featureFlags = config.featureFlags || {};
+    const tabFlags = [
+        FeatureFlags.ENABLE_AREAS,
+        FeatureFlags.ENABLE_GROUPS,
+        FeatureFlags.ENABLE_MAP,
+        FeatureFlags.ENABLE_CONNECT,
+    ];
+    const enabledCount = tabFlags.filter(flag => featureFlags[flag] === true).length;
+    return enabledCount + 1; // +1 for Profile tab (always shown)
+};
+
+const enabledTabCount = getEnabledTabCount();
+const buttonWidth = screenWidth / enabledTabCount;
 const discoverContentLoader = require('../../assets/ftui-discover.json');
 const matchUpLoader = require('../../assets/match-up.json');
 
@@ -259,16 +278,53 @@ class MainButtonMenuAlt extends ButtonMenu {
 
         return (
             <ButtonMenu {...this.props}>
-                <AttachStep index={2}>
+                <FeatureGate feature={FeatureFlags.ENABLE_AREAS}>
+                    <AttachStep index={2}>
+                        <Button
+                            title={!isCompact ? translate('menus.main.buttons.list') : null}
+                            buttonStyle={
+                                activeRoute === 'Areas'
+                                    ? themeMenu.styles.buttonsActive
+                                    : themeMenu.styles.buttons
+                            }
+                            containerStyle={[
+                                (activeRoute === 'Areas'
+                                    ? themeMenu.styles.buttonContainerActive
+                                    : themeMenu.styles.buttonContainer),
+                                {
+                                    width: buttonWidth,
+                                },
+                            ]}
+                            titleStyle={
+                                activeRoute === 'Areas'
+                                    ? themeMenu.styles.buttonsTitleActive
+                                    : themeMenu.styles.buttonsTitle
+                            }
+                            icon={
+                                <TherrIcon
+                                    name="nearby"
+                                    size={24}
+                                    style={
+                                        activeRoute === 'Areas'
+                                            ? themeMenu.styles.buttonIconActive
+                                            : themeMenu.styles.buttonIcon
+                                    }
+                                />
+                            }
+                            onPress={() => this.onNavPressDynamic('Areas')}
+                        />
+                    </AttachStep>
+                </FeatureGate>
+                <FeatureGate feature={FeatureFlags.ENABLE_GROUPS}>
                     <Button
-                        title={!isCompact ? translate('menus.main.buttons.list') : null}
+                        title={!isCompact ? translate('menus.main.buttons.groups') : null}
                         buttonStyle={
-                            activeRoute === 'Areas'
+                            ['Groups', 'ActivityScheduler'].includes(activeRoute)
                                 ? themeMenu.styles.buttonsActive
                                 : themeMenu.styles.buttons
                         }
                         containerStyle={[
-                            (activeRoute === 'Areas'
+                            ( ['Groups', 'ActivityScheduler'].includes(activeRoute)
                                 ? themeMenu.styles.buttonContainerActive
                                 : themeMenu.styles.buttonContainer),
                             {
@@ -276,153 +332,104 @@ class MainButtonMenuAlt extends ButtonMenu {
                             },
                         ]}
                         titleStyle={
-                            activeRoute === 'Areas'
+                            ['Groups', 'ActivityScheduler'].includes(activeRoute)
                                 ? themeMenu.styles.buttonsTitleActive
                                 : themeMenu.styles.buttonsTitle
                         }
                         icon={
                             <TherrIcon
-                                name="nearby"
+                                name="group"
                                 size={24}
                                 style={
-                                    activeRoute === 'Areas'
+                                    ['Groups', 'ActivityScheduler'].includes(activeRoute)
                                         ? themeMenu.styles.buttonIconActive
                                         : themeMenu.styles.buttonIcon
                                 }
                             />
                         }
-                        onPress={() => this.onNavPressDynamic('Areas')}
+                        onPress={() => this.handleGroupsPress()}
                     />
-                </AttachStep>
-                <Button
-                    title={!isCompact ? translate('menus.main.buttons.groups') : null}
-                    buttonStyle={
-                        ['Groups', 'ActivityScheduler'].includes(activeRoute)
-                            ? themeMenu.styles.buttonsActive
-                            : themeMenu.styles.buttons
-                    }
-                    containerStyle={[
-                        ( ['Groups', 'ActivityScheduler'].includes(activeRoute)
-                            ? themeMenu.styles.buttonContainerActive
-                            : themeMenu.styles.buttonContainer),
-                        {
-                            width: buttonWidth,
-                        },
-                    ]}
-                    titleStyle={
-                        ['Groups', 'ActivityScheduler'].includes(activeRoute)
-                            ? themeMenu.styles.buttonsTitleActive
-                            : themeMenu.styles.buttonsTitle
-                    }
-                    icon={
-                        <TherrIcon
-                            name="group"
-                            size={24}
-                            style={
-                                ['Groups', 'ActivityScheduler'].includes(activeRoute)
-                                    ? themeMenu.styles.buttonIconActive
-                                    : themeMenu.styles.buttonIcon
+                </FeatureGate>
+                <FeatureGate feature={FeatureFlags.ENABLE_MAP}>
+                    <AttachStep index={6}>
+                        <Button
+                            title={!isCompact ? translate('menus.main.buttons.map') : null}
+                            buttonStyle={
+                                ['Map', 'ActivityGenerator'].includes(activeRoute)
+                                    ? themeMenu.styles.buttonsActive
+                                    : themeMenu.styles.buttons
                             }
+                            containerStyle={[
+                                (['Map', 'ActivityGenerator'].includes(activeRoute)
+                                    ? themeMenu.styles.buttonContainerActive
+                                    : themeMenu.styles.buttonContainer),
+                                {
+                                    width: buttonWidth,
+                                },
+                            ]}
+                            titleStyle={
+                                ['Map', 'ActivityGenerator'].includes(activeRoute)
+                                    ? themeMenu.styles.buttonsTitleActive
+                                    : themeMenu.styles.buttonsTitle
+                            }
+                            icon={
+                                <TherrIcon
+                                    name="map"
+                                    size={22}
+                                    style={
+                                        ['Map', 'ActivityGenerator'].includes(activeRoute)
+                                            ? themeMenu.styles.buttonIconActive
+                                            : themeMenu.styles.buttonIcon
+                                    }
+                                />
+                            }
+                            onPress={() => this.onNavPressDynamic('Map')}
                         />
-                    }
-                    onPress={() => this.handleGroupsPress()}
-                />
-                <AttachStep index={6}>
-                    <Button
-                        title={!isCompact ? translate('menus.main.buttons.map') : null}
-                        buttonStyle={
-                            ['Map', 'ActivityGenerator'].includes(activeRoute)
-                                ? themeMenu.styles.buttonsActive
-                                : themeMenu.styles.buttons
-                        }
-                        containerStyle={[
-                            (['Map', 'ActivityGenerator'].includes(activeRoute)
-                                ? themeMenu.styles.buttonContainerActive
-                                : themeMenu.styles.buttonContainer),
-                            {
-                                width: buttonWidth,
-                            },
-                        ]}
-                        titleStyle={
-                            ['Map', 'ActivityGenerator'].includes(activeRoute)
-                                ? themeMenu.styles.buttonsTitleActive
-                                : themeMenu.styles.buttonsTitle
-                        }
-                        icon={
-                            <TherrIcon
-                                name="map"
-                                size={22}
-                                style={
-                                    ['Map', 'ActivityGenerator'].includes(activeRoute)
-                                        ? themeMenu.styles.buttonIconActive
-                                        : themeMenu.styles.buttonIcon
-                                }
-                            />
-                        }
-                        onPress={() => this.onNavPressDynamic('Map')}
-                    />
-                </AttachStep>
-                <AttachStep index={5}>
-                    <Button
-                        title={!isCompact ? translate('menus.main.buttons.connect') : null}
-                        buttonStyle={
-                            isConnectViewActive
-                                ? themeMenu.styles.buttonsActive
-                                : themeMenu.styles.buttons
-                        }
-                        containerStyle={[
-                            (isConnectViewActive
-                                ? themeMenu.styles.buttonContainerActive
-                                : themeMenu.styles.buttonContainer),
-                            {
-                                width: buttonWidth,
-                            },
-                        ]}
-                        titleStyle={
-                            isConnectViewActive
-                                ? themeMenu.styles.buttonsTitleActive
-                                : themeMenu.styles.buttonsTitle
-                        }
-                        icon={
-                            <TherrIcon
-                                name="key-user"
-                                size={22}
-                                style={
-                                    isConnectViewActive
-                                        ? themeMenu.styles.buttonIconActive
-                                        : themeMenu.styles.buttonIcon
-                                }
-                            />
-                        }
-                        onPress={() => {
-                            this.navTo('Connect', {
-                                activeTab: PEOPLE_CAROUSEL_TABS.PEOPLE,
-                            });
-                            this.onNavPressDynamic('Connect');
-                        }}
-                    />
-                </AttachStep>
-                {/* {
-                    isUserAuthenticated(user) ?
-                        <ViewProfileButton
-                            activeRoute={activeRoute}
-                            goToMyProfile={this.goToMyProfile}
-                            imageStyle={imageStyle}
-                            themeMenu={themeMenu}
-                            translate={translate}
-                            user={user}
-                        /> :
-                        <AttachStep index={4}>
-                            <ViewProfileButton
-                                activeRoute={activeRoute}
-                                goToMyProfile={this.goToMyProfile}
-                                imageStyle={imageStyle}
-                                themeMenu={themeMenu}
-                                translate={translate}
-                                user={user}
-                            />
-                        </AttachStep>
-                } */}
+                    </AttachStep>
+                </FeatureGate>
+                <FeatureGate feature={FeatureFlags.ENABLE_CONNECT}>
+                    <AttachStep index={5}>
+                        <Button
+                            title={!isCompact ? translate('menus.main.buttons.connect') : null}
+                            buttonStyle={
+                                isConnectViewActive
+                                    ? themeMenu.styles.buttonsActive
+                                    : themeMenu.styles.buttons
+                            }
+                            containerStyle={[
+                                (isConnectViewActive
+                                    ? themeMenu.styles.buttonContainerActive
+                                    : themeMenu.styles.buttonContainer),
+                                {
+                                    width: buttonWidth,
+                                },
+                            ]}
+                            titleStyle={
+                                isConnectViewActive
+                                    ? themeMenu.styles.buttonsTitleActive
+                                    : themeMenu.styles.buttonsTitle
+                            }
+                            icon={
+                                <TherrIcon
+                                    name="key-user"
+                                    size={22}
+                                    style={
+                                        isConnectViewActive
+                                            ? themeMenu.styles.buttonIconActive
+                                            : themeMenu.styles.buttonIcon
+                                    }
+                                />
+                            }
+                            onPress={() => {
+                                this.navTo('Connect', {
+                                    activeTab: PEOPLE_CAROUSEL_TABS.PEOPLE,
+                                });
+                                this.onNavPressDynamic('Connect');
+                            }}
+                        />
+                    </AttachStep>
+                </FeatureGate>
+                {/* Profile button is always shown */}
                 <ViewProfileButton
                     activeRoute={activeRoute}
                     goToMyProfile={this.goToMyProfile}
