@@ -134,7 +134,7 @@ jobs:
           command: echo "Hello, Integration Tests"
   deploy:
     docker:
-      - image: cimg/gcp:2024.12
+      - image: cimg/gcp:2025.01
         auth:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASSWORD

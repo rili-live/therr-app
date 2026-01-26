@@ -104,18 +104,89 @@ Runtime theme switching via Redux:
 
 ### Brand Variation Configuration
 
-Currently hardcoded, configuration points for niche apps:
+Brand variation is configured in `main/config/brandConfig.ts`:
 
 ```typescript
-// main/socket-io-middleware.ts
-brandVariation: BrandVariations.THERR
+// main/config/brandConfig.ts
+import { BrandVariations } from 'therr-js-utilities/constants';
 
-// main/interceptors.ts
-axios.defaults.headers['x-brand-variation'] = BrandVariations.THERR;
+// NICHE: Update this value for each niche app variant
+export const CURRENT_BRAND_VARIATION = BrandVariations.THERR;
 
-// main/Layout.tsx
-'x-brand-variation': BrandVariations.THERR,
+export default {
+    brandVariation: CURRENT_BRAND_VARIATION,
+};
 ```
+
+This config is consumed by:
+- `main/socket-io-middleware.ts` - WebSocket handshake
+- `main/interceptors.ts` - HTTP request headers
+- `main/Layout.tsx` - Navigation context
+
+### Brand-Conditional Rendering
+
+Use brand variation for conditional UI:
+
+```typescript
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
+import { BrandVariations } from 'therr-js-utilities/constants';
+
+// Show component only for specific brand
+if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+    return <HabitsFeature />;
+}
+
+// Feature flags per brand
+const BRAND_FEATURES = {
+    [BrandVariations.THERR]: {
+        showLocation: true,
+        showBusinessAccount: true,
+        showTherrCoin: true,
+        showHabits: false,
+    },
+    [BrandVariations.HABITS]: {
+        showLocation: false,
+        showBusinessAccount: false,
+        showTherrCoin: false,
+        showHabits: true,
+    },
+};
+
+const features = BRAND_FEATURES[CURRENT_BRAND_VARIATION];
+```
+
+### Navigation Guards (Niche Apps)
+
+For brand-specific onboarding flows:
+
+```typescript
+// Example: HABITS requires a pact before accessing main app
+const NavigationGuard = ({ children }) => {
+    if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+        const hasPacts = useSelector(state => state.pacts.active.length > 0);
+        if (!hasPacts) {
+            return <CreateFirstPactScreen />;
+        }
+    }
+    return children;
+};
+```
+
+### Files: General Branch vs Niche Branch
+
+**On `general` branch** (shared by all apps):
+- Reusable components in `main/components/`
+- Shared screens that work across brands
+- Redux reducers/actions used by multiple brands
+- API services in therr-react
+- Conditional rendering based on brand config
+
+**On `niche/<TAG>-general` branch** (app-specific):
+- `main/config/brandConfig.ts` - Set CURRENT_BRAND_VARIATION
+- App icons and splash screens in `assets/`
+- Navigation guards specific to the brand
+- Feature toggles that hide/show sections
+- App Store/Play Store metadata
 
 ### Navigation
 
@@ -162,17 +233,20 @@ npm test               # Run Jest tests
 
 When creating a niche app variant (e.g., HABITS):
 
-1. Create branch: `niche/HABITS-general`
+1. Create branch: `git checkout general && git checkout -b niche/HABITS-general`
 2. Run: `npx react-native-rename "NewAppName" -b "com.therr.mobile.NewAppName"`
-3. Update brand variation headers in:
-   - `main/socket-io-middleware.ts`
-   - `main/interceptors.ts`
-   - `main/Layout.tsx`
-   - `index.js`
-4. Update assets (icons, splash screens)
+3. Update `main/config/brandConfig.ts`:
+   ```typescript
+   export const CURRENT_BRAND_VARIATION = BrandVariations.HABITS;
+   ```
+4. Update assets (icons, splash screens) in `assets/`
 5. Update translations in `main/locales/`
+6. Add navigation guards if needed (e.g., mandatory pact creation for HABITS)
+7. Configure feature visibility based on brand
 
-See `docs/NICHE_APP_SETUP_STEPS.md` for full guide.
+See:
+- `docs/NICHE_APP_SETUP_STEPS.md` - Full setup guide
+- `docs/MULTI_BRAND_ARCHITECTURE.md` - Brand variation system overview
 
 ## Important Notes
 

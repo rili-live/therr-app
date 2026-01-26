@@ -102,6 +102,93 @@ export enum BrandVariations {
 }
 ```
 
+See `docs/MULTI_BRAND_ARCHITECTURE.md` for complete brand variation documentation.
+
+### Extending Notification Types
+
+When adding new notification types for a brand feature:
+
+```typescript
+// src/constants/enums/PushNotifications.ts
+export enum PushNotificationTypes {
+    // Existing types...
+    newConnection,
+    directMessage,
+
+    // HABITS-specific types (add in logical groups)
+    pactInvitation,
+    pactAccepted,
+    partnerCheckedIn,
+    streakMilestone,
+    // etc.
+}
+```
+
+**Guidelines:**
+- Group related notifications together with comments
+- Use camelCase for enum values
+- Add corresponding message templates in `push-notifications-service/src/locales/`
+
+### Extending Socket Action Types
+
+When adding real-time events:
+
+```typescript
+// src/constants/enums/SocketClientActionTypes.ts
+export enum SocketClientActionTypes {
+    // Existing events...
+    JOIN_ROOM = 'CLIENT:JOIN_ROOM',
+
+    // Pact-related (HABITS feature)
+    JOIN_PACT = 'CLIENT:JOIN_PACT',
+    LEAVE_PACT = 'CLIENT:LEAVE_PACT',
+    LOG_CHECKIN = 'CLIENT:LOG_CHECKIN',
+}
+
+// src/constants/enums/SocketServerActionTypes.ts
+export enum SocketServerActionTypes {
+    // Existing events...
+    JOINED_ROOM = 'SERVER:JOINED_ROOM',
+
+    // Pact-related (HABITS feature)
+    JOINED_PACT = 'SERVER:JOINED_PACT',
+    PARTNER_CHECKED_IN = 'SERVER:PARTNER_CHECKED_IN',
+}
+```
+
+**Guidelines:**
+- Client actions: `CLIENT:ACTION_NAME`
+- Server actions: `SERVER:ACTION_NAME`
+- Group related events with comments
+- Add corresponding handlers in `websocket-service/src/handlers/`
+
+### Brand-Conditional Achievements
+
+Achievement configs can be loaded conditionally by brand:
+
+```typescript
+// src/config/achievements/index.ts
+import { BrandVariations } from '../../constants';
+
+// Base achievements (all brands)
+import explorer from './explorer';
+import influencer from './influencer';
+
+// HABITS-specific achievements
+import habitBuilder from './habitBuilder';
+import consistency from './consistency';
+
+export const getAchievementsForBrand = (brandVariation: BrandVariations) => {
+    const base = { explorer, influencer };
+
+    if (brandVariation === BrandVariations.HABITS) {
+        return { ...base, habitBuilder, consistency };
+    }
+
+    return base;
+};
+```
+
 ### Database Query Helpers
 
 Use for consistent pagination and filtering:

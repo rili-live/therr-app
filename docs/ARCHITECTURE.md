@@ -327,9 +327,36 @@ The codebase supports multiple "brand variations" from the same source:
 ### Branch Strategy
 
 - `general` branch: Shared code for all niche apps
-- `niche/APP-general`: App-specific customizations (e.g., `niche/TEEM-general`)
+- `niche/APP-general`: App-specific customizations (e.g., `niche/TEEM-general`, `niche/HABITS-general`)
 
-**Documentation**: [docs/NICHE_APP_SETUP_STEPS.md](NICHE_APP_SETUP_STEPS.md)
+### Database Schema Isolation
+
+Brand-specific features use isolated PostgreSQL schemas to prevent breaking changes:
+
+```
+main schema (core features)
+├── users                 # User accounts, profiles
+├── userConnections       # Social connections
+├── notifications         # In-app notifications
+└── ...
+
+habits schema (HABITS app features)
+├── habit_goals           # Habit templates
+├── pacts                 # Accountability partnerships
+├── pact_members          # Membership with stats
+├── habit_checkins        # Daily completions
+├── streaks               # Streak tracking
+├── streak_history        # Event log
+├── proofs                # Media verification
+└── pact_activities       # Activity feed
+```
+
+This pattern allows niche features to be deployed without affecting core app functionality.
+
+**Documentation**:
+- [docs/MULTI_BRAND_ARCHITECTURE.md](MULTI_BRAND_ARCHITECTURE.md) - Brand variation system details
+- [docs/NICHE_APP_DATABASE_GUIDELINES.md](NICHE_APP_DATABASE_GUIDELINES.md) - Schema isolation patterns
+- [docs/NICHE_APP_SETUP_STEPS.md](NICHE_APP_SETUP_STEPS.md) - Setting up a new niche app
 
 ---
 
