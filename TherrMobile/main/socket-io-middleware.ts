@@ -1,11 +1,11 @@
 import io from 'socket.io-client';
 import createSocketIoMiddleware from 'redux-socket.io';
 import {
-    BrandVariations,
     SOCKET_MIDDLEWARE_ACTION,
     SocketClientActionTypes,
     WEB_CLIENT_PREFIX,
 } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from './config/brandConfig';
 import getConfig from './utilities/getConfig';
 
 // TODO: When failing to connect through socket.io, we should have a middle layer to fallback to polling or direct rest requests
@@ -61,7 +61,7 @@ export const updateSocketToken = (user, shouldConnect?: boolean) => {
             locale: user.settings.locale,
             token: user.details.idToken,
             platform: 'mobile',
-            brandVariation: BrandVariations.THERR,
+            brandVariation: CURRENT_BRAND_VARIATION,
         };
 
         if (shouldConnect) {

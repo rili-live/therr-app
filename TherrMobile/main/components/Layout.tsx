@@ -21,7 +21,8 @@ import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { AccessLevels, BrandVariations, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
+import { AccessLevels, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -83,7 +84,7 @@ const getRequestHeaders = (user) => ({
     'x-userid': user?.details?.id,
     'x-localecode':  user?.settings?.locale || 'en-us',
     'x-platform': 'mobile',
-    'x-brand-variation': BrandVariations.THERR,
+    'x-brand-variation': CURRENT_BRAND_VARIATION,
 });
 
 interface ILayoutDispatchProps {
@@ -1551,13 +1552,25 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 >
                     {routes
                         .filter((route: any) => {
-                            if (
-                                !(
-                                    route.options &&
-                                    typeof route.options === 'function' &&
-                                    route.options().access
-                                )
-                            ) {
+                            const routeOptions = route.options && typeof route.options === 'function'
+                                ? route.options()
+                                : {};
+
+                            // Filter by feature flags first
+                            const requiredFeatures: FeatureFlags[] = routeOptions.requiredFeatures || [];
+                            if (requiredFeatures.length > 0) {
+                                const config = getConfig();
+                                const featureFlags = config.featureFlags || {};
+                                const allFeaturesEnabled = requiredFeatures.every(
+                                    (flag: FeatureFlags) => featureFlags[flag] === true
+                                );
+                                if (!allFeaturesEnabled) {
+                                    return false;
+                                }
+                            }
+
+                            // Then filter by access control
+                            if (!routeOptions.access) {
                                 return true;
                             }
 
@@ -1566,7 +1579,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             }
 
                             const isAuthorized = UsersService.isAuthorized(
-                                route.options().access,
+                                routeOptions.access,
                                 user
                             );
 
