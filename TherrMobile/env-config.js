@@ -5,6 +5,32 @@ const hostDev = 'localhost'; // Zacks Macbook
 const hostProd = 'therr.com';
 const googleOAuth2WebClientId = '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com';
 
+// Feature flags for enabling/disabling app features
+// NICHE: Update these values for each niche app variant
+const featureFlags = {
+    // Navigation Tabs
+    ENABLE_AREAS: true,
+    ENABLE_GROUPS: true,
+    ENABLE_MAP: true,
+    ENABLE_CONNECT: true,
+
+    // Content Types
+    ENABLE_MOMENTS: true,
+    ENABLE_SPACES: true,
+    ENABLE_EVENTS: true,
+    ENABLE_THOUGHTS: true,
+
+    // Social Features
+    ENABLE_DIRECT_MESSAGING: true,
+    ENABLE_ACHIEVEMENTS: true,
+    ENABLE_ACTIVITIES: true,
+    ENABLE_NOTIFICATIONS: true,
+
+    // Groups Features
+    ENABLE_FORUMS: true,
+    ENABLE_ACTIVITY_SCHEDULER: true,
+};
+
 // TODO: Find a way to import this from global config
 module.exports = {
     development: {
@@ -24,6 +50,7 @@ module.exports = {
             userSocketSessionExpire: 1000 * 60 * 30,
         },
         superAdminId: '04e65180-3cff-48b1-988f-4b6e0ab25def',
+        featureFlags,
     },
     production: {
         baseApiGatewayRoute: `https://api.${hostProd}/v1`,
@@ -44,5 +71,6 @@ module.exports = {
             userSocketSessionExpire: 1000 * 60 * 30,
         },
         superAdminId: '568bf5d2-8595-4fd6-95da-32cc318618d3',
+        featureFlags,
     },
 };
