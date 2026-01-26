@@ -98,6 +98,8 @@ npm run install:all     # Install deps across all packages
 Read these files when relevant to the task:
 
 - `docs/ARCHITECTURE.md` - System design, service boundaries, data layer patterns
+- `docs/MULTI_BRAND_ARCHITECTURE.md` - Brand variation system, header flow, conditional code patterns
+- `docs/NICHE_APP_DATABASE_GUIDELINES.md` - Schema isolation, migration patterns for niche features
 - `docs/niche-sub-apps/PROJECT_BRIEF.md` - Core Therr App product vision and roadmap
 - `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` - Niche app variant context (see "Project Brief Context" above)
 - `docs/NICHE_APP_SETUP_STEPS.md` - Brand variation setup process
@@ -161,6 +163,7 @@ The codebase supports multiple app variants via the `BrandVariations` enum:
 export enum BrandVariations {
     THERR = 'therr',
     TEEM = 'teem',
+    HABITS = 'habits',
     // Add new variants here
 }
 ```
@@ -169,6 +172,9 @@ Brand variation is passed via HTTP header `x-brand-variation` and used to:
 - Customize push notification content
 - Filter content by brand
 - Apply brand-specific business logic
+- Load brand-specific achievements
+
+For comprehensive documentation, see `docs/MULTI_BRAND_ARCHITECTURE.md`.
 
 ### Adding a New Brand Variation
 
@@ -176,6 +182,42 @@ Brand variation is passed via HTTP header `x-brand-variation` and used to:
 2. Update `getHostContext()` in relevant services
 3. Add Firebase config in `push-notifications-service`
 4. Configure mobile app (see `TherrMobile/CLAUDE.md`)
+5. Create niche branch: `git checkout -b niche/<TAG>-general`
+
+### Brand-Conditional Code Patterns
+
+**Backend (service layer):**
+```typescript
+import { parseHeaders } from 'therr-js-utilities/http';
+import { BrandVariations } from 'therr-js-utilities/constants';
+
+const handler = (req, res) => {
+    const { brandVariation } = parseHeaders(req.headers);
+
+    if (brandVariation === BrandVariations.HABITS) {
+        // HABITS-specific logic
+    }
+    // Default behavior
+};
+```
+
+**Mobile (component layer):**
+```typescript
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
+import { BrandVariations } from 'therr-js-utilities/constants';
+
+if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
+    return <HabitsFeature />;
+}
+```
+
+### Database Schema Isolation
+
+Brand-specific features should use isolated database schemas:
+- Core tables: `main.*` (users, connections, notifications)
+- Habits features: `habits.*` (pacts, checkins, streaks)
+
+See `docs/NICHE_APP_DATABASE_GUIDELINES.md` for migration patterns.
 
 ### Feature Flags (Future)
 
