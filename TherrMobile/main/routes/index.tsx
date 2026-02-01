@@ -45,6 +45,9 @@ import ExchangePointsDisclaimer from './Rewards/ExchangePointsDisclaimer';
 import Invite from './Invite';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
+// HABITS routes
+import { HabitsDashboard, HabitDetail } from './Habits';
+import { PactsList, PactDetail } from './Pacts';
 
 const momentTransitionSpec: any = {
     open: {
@@ -598,6 +601,55 @@ const routes: RouteConfig<
             },
             headerLeft: () => null,
             headerTitleAlign: 'left',
+        }),
+    },
+    // HABITS routes
+    {
+        name: 'HabitsDashboard',
+        component: HabitsDashboard,
+        options: () => ({
+            title: 'My Habits',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'HabitDetail',
+        component: HabitDetail,
+        options: () => ({
+            title: 'Habit Details',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'PactsList',
+        component: PactsList,
+        options: () => ({
+            title: 'My Pacts',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'PactDetail',
+        component: PactDetail,
+        options: () => ({
+            title: 'Pact Details',
+            requiredFeatures: [FeatureFlags.ENABLE_HABITS],
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
         }),
     },
 ];

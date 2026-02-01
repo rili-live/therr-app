@@ -20,6 +20,10 @@ enum FeatureFlags {
     // Groups Features
     ENABLE_FORUMS = 'ENABLE_FORUMS',
     ENABLE_ACTIVITY_SCHEDULER = 'ENABLE_ACTIVITY_SCHEDULER',
+
+    // HABITS App Features
+    ENABLE_HABITS = 'ENABLE_HABITS',
+    ENABLE_PACTS = 'ENABLE_PACTS',
 }
 
 export {

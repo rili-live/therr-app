@@ -946,6 +946,14 @@
         "profile": "Profile"
       }
     },
+    "habits": {
+      "buttons": {
+        "habits": "Habits",
+        "pacts": "Pacts",
+        "partners": "Partners",
+        "profile": "Profile"
+      }
+    },
     "connections": {
       "buttons": {
         "add": "Invite",
@@ -1551,7 +1559,18 @@
       "declineError": "Failed to decline pact. Please try again.",
       "abandonError": "Failed to abandon pact. Please try again.",
       "confirmDecline": "Are you sure you want to decline this pact invitation?",
-      "confirmAbandon": "Are you sure you want to abandon this pact? Your progress will be lost."
+      "confirmAbandon": "Are you sure you want to abandon this pact? Your progress will be lost.",
+      "onboarding": {
+        "title": "Find Your Accountability Partner",
+        "subtitle": "Habits stick better when you have someone to keep you accountable. Create or join a pact to get started.",
+        "createPact": "Create a Pact",
+        "viewInvites": "View {count} Pending Invite(s)",
+        "findPartner": "Find a Partner",
+        "whyPacts": "Why accountability partners work:",
+        "benefit1": "2x more likely to achieve your goals",
+        "benefit2": "Daily check-ins keep you motivated",
+        "benefit3": "Celebrate milestones together"
+      }
     }
   },
   "modals": {
