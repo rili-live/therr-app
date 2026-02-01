@@ -13,6 +13,16 @@ import {
     ForumActionTypes,
 } from './forums';
 import {
+    IHabitGoal,
+    IPact,
+    IPactMember,
+    IHabitCheckin,
+    IStreak,
+    IStreakHistory,
+    IHabitsState,
+    HabitsActionTypes,
+} from './habits';
+import {
     IMapState,
     MapActionTypes,
 } from './maps';
@@ -63,6 +73,16 @@ export {
     IForumsArray,
     IForumsState,
     ForumActionTypes,
+
+    // Habits
+    IHabitGoal,
+    IPact,
+    IPactMember,
+    IHabitCheckin,
+    IStreak,
+    IStreakHistory,
+    IHabitsState,
+    HabitsActionTypes,
 
     // Maps
     IMapState,

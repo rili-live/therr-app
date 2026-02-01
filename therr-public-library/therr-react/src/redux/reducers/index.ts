@@ -5,6 +5,7 @@ import { routerReducer as routing } from 'react-router-redux';
 import campaigns from './campaigns';
 import content from './content';
 import forums from './forums';
+import habits from './habits';
 import messages from './messages';
 import map from './map';
 import notifications from './notifications';
@@ -23,6 +24,7 @@ export default (socketIO, additionalReducers = {}) => combineReducers({
     campaigns,
     content,
     forums,
+    habits,
     messages,
     map,
     notifications,
