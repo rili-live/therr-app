@@ -11,6 +11,7 @@ import {
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import getStore from './getStore';
 import initInterceptors from './interceptors';
+import { FeatureFlagProvider } from './context/FeatureFlagContext';
 import Layout from './components/Layout';
 import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -227,40 +228,42 @@ class App extends React.Component<any, any> {
 
         return (
             <Provider store={this.store}>
-                <GestureHandlerRootView style={spacingStyles.flexOne}>
-                    <SpotlightTourProvider
-                        steps={getTourSteps({
-                            locale: this.store.getState()?.user?.settings?.locale || 'en-us',
-                        })}
-                        onBackdropPress="continue" // In case the tour gets stuck
-                        overlayColor={'gray'}
-                        overlayOpacity={0.4}
-                        // This configurations will apply to all steps
-                        floatingProps={{
-                            placement: 'bottom',
-                        }}
-                        onStop={() => {
-                            return this.store?.dispatch(UsersActions.updateTour({
-                                isTouring: false,
-                                isNavigationTouring: false,
-                            }));
-                        }}
-                    >
-                        {
-                            ({ start, stop }) => (
-                                <SheetProvider>
-                                    <Layout startNavigationTour={start} stopNavigationTour={stop} />
-                                </SheetProvider>
-                            )
-                        }
-                    </SpotlightTourProvider>
-                </GestureHandlerRootView>
-                <Toast
-                    config={toastConfig}
-                    position="bottom"
-                    bottomOffset={buttonMenuHeight + 10}
-                    topOffset={HEADER_HEIGHT_MARGIN + 30}
-                />
+                <FeatureFlagProvider>
+                    <GestureHandlerRootView style={spacingStyles.flexOne}>
+                        <SpotlightTourProvider
+                            steps={getTourSteps({
+                                locale: this.store.getState()?.user?.settings?.locale || 'en-us',
+                            })}
+                            onBackdropPress="continue" // In case the tour gets stuck
+                            overlayColor={'gray'}
+                            overlayOpacity={0.4}
+                            // This configurations will apply to all steps
+                            floatingProps={{
+                                placement: 'bottom',
+                            }}
+                            onStop={() => {
+                                return this.store?.dispatch(UsersActions.updateTour({
+                                    isTouring: false,
+                                    isNavigationTouring: false,
+                                }));
+                            }}
+                        >
+                            {
+                                ({ start, stop }) => (
+                                    <SheetProvider>
+                                        <Layout startNavigationTour={start} stopNavigationTour={stop} />
+                                    </SheetProvider>
+                                )
+                            }
+                        </SpotlightTourProvider>
+                    </GestureHandlerRootView>
+                    <Toast
+                        config={toastConfig}
+                        position="bottom"
+                        bottomOffset={buttonMenuHeight + 10}
+                        topOffset={HEADER_HEIGHT_MARGIN + 30}
+                    />
+                </FeatureFlagProvider>
             </Provider>
         );
     }
