@@ -1,6 +1,7 @@
 import CampaignActions from './Campaigns';
 import ContentActions from './Content';
 import ForumActions from './Forums';
+import HabitActions from './Habits';
 import MapActions from './Maps';
 import MessageActions from './Messages';
 import NotificationActions from './Notifications';
@@ -14,6 +15,7 @@ export {
     CampaignActions,
     ContentActions,
     ForumActions,
+    HabitActions,
     MapActions,
     MessageActions,
     NotificationActions,

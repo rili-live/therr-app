@@ -26,15 +26,21 @@ src/
 │   │   ├── UsersActions.ts
 │   │   ├── ContentActions.ts
 │   │   ├── CampaignActions.ts
+│   │   ├── Habits.ts       # HABITS: Goals, pacts, checkins, streaks
 │   │   └── ...
 │   └── reducers/           # State reducers
 │       ├── user.ts
 │       ├── content.ts
+│       ├── habits.ts       # HABITS: State for habits feature
 │       └── index.ts        # combineReducers
 ├── services/               # API service clients
 │   ├── UsersService.ts
 │   ├── MapsService.ts
 │   ├── MessagesService.ts
+│   ├── HabitGoalsService.ts    # HABITS: Habit templates/goals
+│   ├── PactsService.ts         # HABITS: Accountability pacts
+│   ├── HabitCheckinsService.ts # HABITS: Daily check-ins
+│   ├── StreaksService.ts       # HABITS: Streak tracking
 │   └── ...
 ├── types/                  # TypeScript definitions
 │   └── redux/              # State shape types
@@ -155,6 +161,20 @@ interface IContentState {
 interface IMapState {
     spaces: ISpace[];
     searchResults: ISearchResult[];
+}
+
+interface IHabitsState {
+    habitGoals: IHabitGoal[];
+    templates: IHabitGoal[];
+    pacts: IPact[];
+    activePacts: IPact[];
+    pendingInvites: IPact[];
+    checkins: IHabitCheckin[];
+    todayCheckins: IHabitCheckin[];
+    streaks: IStreak[];
+    activeStreaks: IStreak[];
+    milestones: IStreakHistory[];
+    isLoading: boolean;
 }
 ```
 
