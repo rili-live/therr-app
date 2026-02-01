@@ -1,13 +1,19 @@
-options:
-  formatter: stylish
-files:
-  include: '**/*.s+(a|c)ss'
-extends: 'stylelint-config-standard'
+extends: 'stylelint-config-standard-scss'
 rules:
-  indentation: 4
-  number-leading-zero: 'always'
-  no-descending-specificity:
-  function-no-unknown:
-  at-rule-no-unknown:
-  string-quotes: single
-  no-invalid-position-at-import-rule:
+  no-descending-specificity: null
+  scss/function-no-unknown: null
+  scss/at-rule-no-unknown: null
+  no-invalid-position-at-import-rule: null
+  import-notation: null
+  scss/operator-no-newline-after: null
+  declaration-property-value-no-unknown: null
+  annotation-no-unknown:
+    - true
+    - ignoreAnnotations:
+        - default
+        - global
+  media-feature-range-notation: null
+  scss/dollar-variable-pattern: null
+  at-rule-empty-line-before: null
+  scss/no-global-function-names: null
+  scss/double-slash-comment-empty-line-before: null

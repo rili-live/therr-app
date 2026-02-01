@@ -137,7 +137,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                     return (
                         <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
                             {this.translate('pages.achievements.info.claimTitle', {
-                                achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, " $1"),
+                                achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, ' $1'),
                                 achievementTitle: achievement.title,
                             })}
                         </Text>
@@ -146,7 +146,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                 return (
                     <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
                         {this.translate('pages.achievements.info.claimTitleInProgress', {
-                            achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, " $1"),
+                            achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, ' $1'),
                             achievementTitle: achievement.title,
                         })}
                     </Text>
@@ -157,7 +157,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         return (
             <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
                 {this.translate('pages.achievements.info.claimTitleInProgress', {
-                    achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, " $1"),
+                    achievementClass: userAchievement.achievementClass.replace(/([A-Z])/g, ' $1'),
                     achievementTitle: achievement.title,
                 })}
             </Text>

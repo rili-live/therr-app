@@ -1,4 +1,5 @@
-@import '../variables';
+@use '../variables' as *;
+@use '../helpers' as *;
 
 $validation-container-height-px: 23px;
 $validation-container-margin-top-px: 2px;

@@ -8,6 +8,7 @@ import {
 } from '../../src/handlers/helpers/user';
 import Store from '../../src/store';
 import UsersStore from '../../src/store/UsersStore';
+import UserAchievementsStore from '../../src/store/UserAchievementsStore';
 import VerificationCodesStore from '../../src/store/VerificationCodesStore';
 
 afterEach(() => {
@@ -101,10 +102,20 @@ describe('handlers/helpers/user', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
                 },
             };
+            const mockUserAchievementsStoreConnection = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
             const vCodesStub = sinon.stub(Store, 'verificationCodes')
                 .value(new VerificationCodesStore(mockVerificationCodesStoreConnection));
             const usersStoreStub = sinon.stub(Store, 'users')
                 .value(new UsersStore(mockUserStoreConnection));
+            const userAchievementsStub = sinon.stub(Store, 'userAchievements')
+                .value(new UserAchievementsStore(mockUserAchievementsStoreConnection));
             const awsStub = sinon.stub(awsSES, 'sendEmail').yields(null, {});
 
             createUserHelper(mockHeaders, mockUserDetails, false, undefined, true).then((result) => {
@@ -112,7 +123,7 @@ describe('handlers/helpers/user', () => {
                     .to.be.equal(true);
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
                     .to.be.equal(true);
-                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "brandVariations", "email", "firstName", "hasAgreedToTerms", "isBusinessAccount", "isCreatorAccount", "lastName", "password", "phoneNumber", "settingsEmailBusMarketing", "settingsEmailMarketing", "userName", "verificationCodes") values ('["user.default"]', '{"brand":"therr","details":{}}', 'testuser@gmail.com', 'bob', true, DEFAULT, false, 'smith'`))
+                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "email", "firstName", "hasAgreedToTerms", "isBusinessAccount", "isCreatorAccount", "lastName", "password", "phoneNumber", "settingsEmailBusMarketing", "settingsEmailMarketing", "userName", "verificationCodes") values ('["user.default"]', 'testuser@gmail.com', 'bob', true, DEFAULT, false, 'smith'`))
                     .to.be.equal(true);
                 expect(mockUserStoreConnection.write.query.args[0][0].includes(`', '+13175448348', DEFAULT, DEFAULT, 'testuser', '{"email":{"code":"`))
                     .to.be.equal(true);
@@ -121,6 +132,7 @@ describe('handlers/helpers/user', () => {
                 expect(result.id).to.be.equal('mock-id');
                 vCodesStub.restore();
                 usersStoreStub.restore();
+                userAchievementsStub.restore();
                 awsStub.restore();
                 done();
             }).catch((err) => {
@@ -160,10 +172,20 @@ describe('handlers/helpers/user', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
                 },
             };
+            const mockUserAchievementsStoreConnection = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
             const vCodesStub = sinon.stub(Store, 'verificationCodes')
                 .value(new VerificationCodesStore(mockVerificationCodesStoreConnection));
             const usersStoreStub = sinon.stub(Store, 'users')
                 .value(new UsersStore(mockUserStoreConnection));
+            const userAchievementsStub = sinon.stub(Store, 'userAchievements')
+                .value(new UserAchievementsStore(mockUserAchievementsStoreConnection));
             const awsStub = sinon.stub(awsSES, 'sendEmail').yields(null, {});
 
             createUserHelper(mockHeaders, mockUserDetails, true).then((result) => {
@@ -172,7 +194,7 @@ describe('handlers/helpers/user', () => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
                     .to.be.equal(true);
                 // Create User
-                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "brandVariations", "email", "firstName", "hasAgreedToTerms", "isBusinessAccount", "isCreatorAccount", "lastName", "password", "phoneNumber", "settingsEmailBusMarketing", "settingsEmailMarketing", "userName", "verificationCodes") values ('["user.default","user.verified.email.missing.props"]', '{"brand":"therr","details":{}}', 'testuser@gmail.com', DEFAULT, true, DEFAULT, DEFAULT, DEFAULT, '`))
+                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "email", "firstName", "hasAgreedToTerms", "isBusinessAccount", "isCreatorAccount", "lastName", "password", "phoneNumber", "settingsEmailBusMarketing", "settingsEmailMarketing", "userName", "verificationCodes") values ('["user.default","user.verified.email.missing.props"]', 'testuser@gmail.com', DEFAULT, true, DEFAULT, DEFAULT, DEFAULT, '`))
                     .to.be.equal(true);
                 expect(mockUserStoreConnection.write.query.args[0][0].includes(`', DEFAULT, DEFAULT, DEFAULT, DEFAULT, '{"email":{"code":"`))
                     .to.be.equal(true);
@@ -188,6 +210,7 @@ describe('handlers/helpers/user', () => {
                 expect(result.id).to.be.equal('mock-id');
                 vCodesStub.restore();
                 usersStoreStub.restore();
+                userAchievementsStub.restore();
                 awsStub.restore();
                 done();
             }).catch((err) => {
@@ -232,10 +255,20 @@ describe('handlers/helpers/user', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
                 },
             };
+            const mockUserAchievementsStoreConnection = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({ rows: [] })),
+                },
+            };
             const vCodesStub = sinon.stub(Store, 'verificationCodes')
                 .value(new VerificationCodesStore(mockVerificationCodesStoreConnection));
             const usersStoreStub = sinon.stub(Store, 'users')
                 .value(new UsersStore(mockUserStoreConnection));
+            const userAchievementsStub = sinon.stub(Store, 'userAchievements')
+                .value(new UserAchievementsStore(mockUserAchievementsStoreConnection));
             const awsStub = sinon.stub(awsSES, 'sendEmail').yields(null, {});
 
             createUserHelper(mockHeaders, mockUserDetails, false, mockUserByInviteDetails).then((result) => {
@@ -244,7 +277,7 @@ describe('handlers/helpers/user', () => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
                     .to.be.equal(true);
                 // Create User
-                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "brandVariations", "email", "firstName", "hasAgreedToTerms", "isBusinessAccount", "isCreatorAccount", "lastName", "password", "phoneNumber", "settingsEmailBusMarketing", "settingsEmailMarketing", "userName", "verificationCodes") values ('["user.default"]', '{"brand":"therr","details":{}}', 'test2user@gmail.com', DEFAULT, false, DEFAULT, DEFAULT, DEFAULT, '`))
+                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "email", "firstName", "hasAgreedToTerms", "isBusinessAccount", "isCreatorAccount", "lastName", "password", "phoneNumber", "settingsEmailBusMarketing", "settingsEmailMarketing", "userName", "verificationCodes") values ('["user.default"]', 'test2user@gmail.com', DEFAULT, false, DEFAULT, DEFAULT, DEFAULT, '`))
                     .to.be.equal(true);
                 expect(mockUserStoreConnection.write.query.args[0][0].includes(`', DEFAULT, DEFAULT, DEFAULT, DEFAULT, '{"email":{"code":"`))
                     .to.be.equal(true);
@@ -260,6 +293,7 @@ describe('handlers/helpers/user', () => {
                 expect(result.id).to.be.equal('mock-id');
                 vCodesStub.restore();
                 usersStoreStub.restore();
+                userAchievementsStub.restore();
                 awsStub.restore();
                 done();
             }).catch((err) => {

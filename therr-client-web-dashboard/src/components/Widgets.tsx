@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     FontAwesomeIcon,
 } from '@fortawesome/react-fontawesome';
@@ -44,8 +44,8 @@ export const ProfileCardWidget = () => (
                 alt="Neil Portrait"
                 className="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4"
             />
-            <Card.Title>Neil Sims</Card.Title>
-            <Card.Subtitle className="fw-normal">Senior Software Engineer</Card.Subtitle>
+            <h5 className="card-title">Neil Sims</h5>
+            <h6 className="card-subtitle fw-normal">Senior Software Engineer</h6>
             <Card.Text className="text-gray mb-4">New York, USA</Card.Text>
 
             <Button variant="primary" size="sm" className="me-2">

@@ -39,7 +39,7 @@ class FilesServiceCache {
         });
     }
 
-    public invalidateFile(path: string, areaId: string): Promise<number | null> {
+    public invalidateFile(path: string): Promise<number | null> {
         return this.cache.del(`${FILES_STORE_PREFIX}${path}`).catch((error) => {
             console.error(`Error invalidating path ${path} from cache`, error);
             return null;

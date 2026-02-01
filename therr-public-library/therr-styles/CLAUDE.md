@@ -76,3 +76,13 @@ npm run build  # Compiles SCSS to CSS
 - Mobile app has its own theming system in `TherrMobile/main/styles/themes/`
 - Variables use `!default` flag for override capability
 - Compiled CSS is checked into git (`lib/*.css`)
+
+## Code Quality
+
+Before completing code changes, validate SCSS syntax:
+
+```bash
+npm run build   # Compile SCSS - will fail on syntax errors
+```
+
+See root `CLAUDE.md` for full code quality requirements.

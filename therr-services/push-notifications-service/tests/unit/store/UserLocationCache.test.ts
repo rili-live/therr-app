@@ -21,7 +21,7 @@ describe('UserLocationCache', () => {
             done();
         };
 
-        redisClient.pipeline = sinon.fake(() => ({
+        (redisClient as any).pipeline = sinon.fake(() => ({
             hset: hsetStub,
             expire: expireStub,
             exec: execStub,
@@ -74,7 +74,7 @@ describe('UserLocationCache', () => {
 
         redisClient.sendCommand = georadiusStub;
 
-        redisClient.pipeline = sinon.fake(() => ({
+        (redisClient as any).pipeline = sinon.fake(() => ({
             hset: hsetStub,
             hgetall: hgetallStub,
             georadius: georadiusStub,
@@ -85,7 +85,7 @@ describe('UserLocationCache', () => {
         const userLocationCache = new UserLocationCache(mockUserId);
 
         await userLocationCache.getMomentsWithinDistance({}, 100, {})
-            .then((response) => {
+            .then((response: any) => {
                 expect(response[0]).to.be.deep.equal({
                     id: '6f6589c7-5057-4eea-8053-3d8622f56eb3',
                     fromUserId: '0cbf27f3-b766-4e96-a9a7-0feb880f9366',
@@ -166,7 +166,7 @@ describe('UserLocationCache', () => {
 
         redisClient.sendCommand = georadiusStub;
 
-        redisClient.pipeline = sinon.fake(() => ({
+        (redisClient as any).pipeline = sinon.fake(() => ({
             hset: hsetStub,
             hgetall: hgetallStub,
             georadius: georadiusStub,
@@ -177,7 +177,7 @@ describe('UserLocationCache', () => {
         const userLocationCache = new UserLocationCache(mockUserId);
 
         await userLocationCache.getSpacesWithinDistance({}, 100, {})
-            .then((response) => {
+            .then((response: any) => {
                 expect(response[0]).to.be.deep.equal({
                     id: '6f6589c7-5057-4eea-8053-3d8622f56eb3',
                     fromUserId: '0cbf27f3-b766-4e96-a9a7-0feb880f9366',

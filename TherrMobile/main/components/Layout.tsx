@@ -21,7 +21,8 @@ import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions, UserConnectionsActions } from 'therr-react/redux/actions';
-import { AccessLevels, BrandVariations, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
+import { AccessLevels, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
+import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -63,11 +64,11 @@ import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
 import background1 from '../assets/dinner-burgers.webp';
 import background2 from '../assets/dinner-overhead.webp';
 import background3 from '../assets/dinner-overhead-2.webp';
-// import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
+import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
 
-// NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
+NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
 
 const preLoadImageList = [background1, background2, background3];
 
@@ -83,7 +84,7 @@ const getRequestHeaders = (user) => ({
     'x-userid': user?.details?.id,
     'x-localecode':  user?.settings?.locale || 'en-us',
     'x-platform': 'mobile',
-    'x-brand-variation': BrandVariations.THERR,
+    'x-brand-variation': CURRENT_BRAND_VARIATION,
 });
 
 interface ILayoutDispatchProps {
@@ -802,7 +803,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         let targetRouteView = '';
         let targetRouteParams: any = {};
-        if (data && !Array.isArray(data) && typeof(data) === 'object') {
+        if (data && !Array.isArray(data) && typeof (data) === 'object') {
             if (data.action === PushNotifications.AndroidIntentActions.Therr.ACHIEVEMENT_COMPLETED
                 || data.action === PushNotifications.AndroidIntentActions.Therr.UNCLAIMED_ACHIEVEMENTS_REMINDER) {
                 targetRouteView = 'Achievements';
@@ -860,12 +861,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // DEBUG logging only
             if (user?.details?.id === 'a730f85b-bc3a-46ab-97e9-48b8e5875f83') {
                 MessagesService.sendAppLog({
-                    'notification.id': notification?.id,
-                    'notification.pressAction.id': pressAction?.id,
-                    'notification.isInForeground': isInForeground,
-                    'notification.eventType': type,
-                    'notification.didCauseAppOpen': didCauseAppOpen,
-                    'notification.isUserAuthorized': isUserAuthorized,
+                    'notification.id': notification?.id || '',
+                    'notification.pressAction.id': pressAction?.id || '',
+                    'notification.isInForeground': String(isInForeground),
+                    'notification.eventType': String(type),
+                    'notification.didCauseAppOpen': String(didCauseAppOpen),
+                    'notification.isUserAuthorized': String(isUserAuthorized),
                     platformOS: Platform.OS,
                 }, 'info');
             }
@@ -1551,13 +1552,25 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 >
                     {routes
                         .filter((route: any) => {
-                            if (
-                                !(
-                                    route.options &&
-                                    typeof route.options === 'function' &&
-                                    route.options().access
-                                )
-                            ) {
+                            const routeOptions = route.options && typeof route.options === 'function'
+                                ? route.options()
+                                : {};
+
+                            // Filter by feature flags first
+                            const requiredFeatures: FeatureFlags[] = routeOptions.requiredFeatures || [];
+                            if (requiredFeatures.length > 0) {
+                                const config = getConfig();
+                                const featureFlags = config.featureFlags || {};
+                                const allFeaturesEnabled = requiredFeatures.every(
+                                    (flag: FeatureFlags) => featureFlags[flag] === true
+                                );
+                                if (!allFeaturesEnabled) {
+                                    return false;
+                                }
+                            }
+
+                            // Then filter by access control
+                            if (!routeOptions.access) {
                                 return true;
                             }
 
@@ -1566,7 +1579,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             }
 
                             const isAuthorized = UsersService.isAuthorized(
-                                route.options().access,
+                                routeOptions.access,
                                 user
                             );
 

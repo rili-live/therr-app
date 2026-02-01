@@ -1,4 +1,4 @@
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import handleHttpError from '../utilities/handleHttpError';
 
 const authenticateUnsubscribe = async (req, res, next) => {

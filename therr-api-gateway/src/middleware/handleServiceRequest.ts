@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import opentelemetry from '@opentelemetry/api';
+// import opentelemetry from '@opentelemetry/api';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import handleHttpError from '../utilities/handleHttpError';
 import restRequest from '../utilities/restRequest';

@@ -66,6 +66,27 @@ button.primary:hover:not([disabled]) {
   font-weight: 800;
 }
 
+.validation-errors {
+  color: #c23e37;
+  font-size: 0.8125rem;
+  margin: 0.125rem;
+  margin-bottom: 0;
+  background: rgba(251, 254, 255, 0.7490196078);
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  box-sizing: border-box;
+}
+.validation-errors.phone {
+  margin-bottom: 0.5rem;
+}
+.validation-errors .message-container {
+  position: relative;
+}
+.validation-errors .message-container .message {
+  display: block;
+  margin-left: 1.25rem;
+}
+
 .radio-group .radio-option {
   align-items: center;
   display: flex;
@@ -181,27 +202,6 @@ button.primary:hover:not([disabled]) {
 .search-box.is-active::before, .search-box.is-dirty::before {
   left: -1.25rem;
   opacity: 0;
-}
-
-.validation-errors {
-  color: #c23e37;
-  font-size: 0.8125rem;
-  margin: 0.125rem;
-  margin-bottom: 0;
-  background: rgba(251, 254, 255, 0.7490196078);
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-  box-sizing: border-box;
-}
-.validation-errors.phone {
-  margin-bottom: 0.5rem;
-}
-.validation-errors .message-container {
-  position: relative;
-}
-.validation-errors .message-container .message {
-  display: block;
-  margin-left: 1.25rem;
 }
 
 a,

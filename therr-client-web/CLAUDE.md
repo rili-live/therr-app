@@ -130,3 +130,14 @@ Multiple SCSS theme bundles:
 - SSR requires both `webpack.app.config.js` and `webpack.server.config.js`
 - Socket.IO middleware for real-time messaging and notifications
 - Brand variation: `BrandVariations.THERR`
+
+## Code Quality
+
+Before completing code changes, run linting and fix all errors:
+
+```bash
+npx eslint src/**/*.ts src/**/*.tsx --fix   # Auto-fix issues
+npx eslint src/**/*.ts src/**/*.tsx         # Verify no errors remain
+```
+
+See root `CLAUDE.md` for full code quality requirements.

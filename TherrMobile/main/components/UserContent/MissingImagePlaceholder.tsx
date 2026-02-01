@@ -80,7 +80,7 @@ const MissingImagePlaceholder = ({
         <Image
             source={placeholderMedia}
             style={themeViewArea.styles.cardImage}
-            resizeMode='cover'
+            resizeMode="cover"
             PlaceholderContent={<ActivityIndicator />}
         />
     );

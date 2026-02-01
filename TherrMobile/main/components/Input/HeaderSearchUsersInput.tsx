@@ -18,7 +18,7 @@ const { width: screenWidth } = Dimensions.get('window');
 interface IHeaderSearchUsersInputState {
     inputText: string;
 }
-interface IHeaderSearchUsersInputDispatchProps extends InputProps {
+interface IHeaderSearchUsersInputDispatchProps extends Omit<InputProps, 'ref'> {
     searchUsers: Function;
 }
 

@@ -50,3 +50,14 @@ Key tables: `directMessages`, `forums`, `forumMessages`, `forumCategories`, `cat
 
 - Called by: api-gateway, websocket-service
 - Calls: users-service (for user lookups)
+
+## Code Quality
+
+Before completing code changes, run linting and fix all errors:
+
+```bash
+npx eslint src/**/*.ts --fix   # Auto-fix issues
+npx eslint src/**/*.ts         # Verify no errors remain
+```
+
+See root `CLAUDE.md` for full code quality requirements.

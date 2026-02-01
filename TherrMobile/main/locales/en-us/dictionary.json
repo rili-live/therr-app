@@ -60,7 +60,8 @@
     "requestClaimSent": "Request Sent",
     "updated": "Updated!",
     "exitedGroup": "You have left the group",
-    "joinedGroup": "You joined the group"
+    "joinedGroup": "You joined the group",
+    "waitlistSuccess": "Registration Success!"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
@@ -94,7 +95,8 @@
     "walkCloser": "Walk closer to claim rewards. Check the map for details.",
     "newAreasActivated": "You recently activated {total} new moments/spaces.",
     "draftReminder": "Did you remember to finish your drafted post?",
-    "requestClaimSent": "Check your e-mail for confirmation and next steps"
+    "requestClaimSent": "Check your e-mail for confirmation and next steps",
+    "waitlistSuccess": "Check your e-mail to verify your account"
   },
   "dateTime": {
     "lessThanHours": "< 1h",

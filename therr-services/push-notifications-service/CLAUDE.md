@@ -60,3 +60,14 @@ The `firebaseAdmin.ts` handles multiple app brands:
 
 - Called by: api-gateway, other services needing push delivery
 - Calls: users-service (for user device tokens)
+
+## Code Quality
+
+Before completing code changes, run linting and fix all errors:
+
+```bash
+npx eslint src/**/*.ts --fix   # Auto-fix issues
+npx eslint src/**/*.ts         # Verify no errors remain
+```
+
+See root `CLAUDE.md` for full code quality requirements.

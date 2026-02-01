@@ -871,7 +871,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                         disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         titleStyle={this.themeForms.styles.buttonTitle}
                         title={this.translate(
-                            !!imagePreviewPath ? 'forms.editSpace.buttons.replaceImage' : 'forms.editSpace.buttons.addImage'
+                            imagePreviewPath ? 'forms.editSpace.buttons.replaceImage' : 'forms.editSpace.buttons.addImage'
                         )}
                         icon={
                             <TherrIcon

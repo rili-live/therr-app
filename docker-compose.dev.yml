@@ -45,18 +45,18 @@ services:
     command: >
       sh -c "
         echo '=== Installing root dependencies ===' &&
-        npm ci --legacy-peer-deps &&
+        npm install &&
         echo '=== Building therr-styles ===' &&
         cd therr-public-library/therr-styles &&
-        npm ci --legacy-peer-deps &&
+        npm install &&
         npm run build &&
         echo '=== Building therr-js-utilities ===' &&
         cd ../therr-js-utilities &&
-        npm ci --legacy-peer-deps &&
+        npm install &&
         npm run build &&
         echo '=== Building therr-react ===' &&
         cd ../therr-react &&
-        npm ci --legacy-peer-deps &&
+        npm install &&
         npm run build &&
         echo '=== Libraries built successfully! ==='
       "
@@ -86,19 +86,19 @@ services:
       sh -c "
         echo '=== Running users-service migrations ===' &&
         cd therr-services/users-service &&
-        npm ci --legacy-peer-deps &&
+        npm install &&
         npm run migrations:run &&
         echo '=== Running messages-service migrations ===' &&
         cd ../messages-service &&
-        npm ci --legacy-peer-deps &&
+        npm install &&
         npm run migrations:run &&
         echo '=== Running maps-service migrations ===' &&
         cd ../maps-service &&
-        npm ci --legacy-peer-deps &&
+        npm install &&
         npm run migrations:run &&
         echo '=== Running reactions-service migrations ===' &&
         cd ../reactions-service &&
-        npm ci --legacy-peer-deps &&
+        npm install &&
         npm run migrations:run &&
         echo '=== All migrations completed! ==='
       "
@@ -115,7 +115,7 @@ services:
       - .:/app:delegated
       - node_modules_cache:/app/node_modules
     working_dir: /app/therr-api-gateway
-    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    command: sh -c "npm install && npm run dev"
     ports:
       - "7770:7770"
     env_file:
@@ -138,7 +138,7 @@ services:
       - .:/app:delegated
       - node_modules_cache:/app/node_modules
     working_dir: /app/therr-services/users-service
-    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    command: sh -c "npm install && npm run dev"
     ports:
       - "7771:7771"
     env_file:
@@ -161,7 +161,7 @@ services:
       - .:/app:delegated
       - node_modules_cache:/app/node_modules
     working_dir: /app/therr-services/messages-service
-    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    command: sh -c "npm install && npm run dev"
     ports:
       - "7772:7772"
     env_file:
@@ -184,7 +184,7 @@ services:
       - .:/app:delegated
       - node_modules_cache:/app/node_modules
     working_dir: /app/therr-services/maps-service
-    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    command: sh -c "npm install && npm run dev"
     ports:
       - "7773:7773"
     env_file:
@@ -207,7 +207,7 @@ services:
       - .:/app:delegated
       - node_modules_cache:/app/node_modules
     working_dir: /app/therr-services/reactions-service
-    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    command: sh -c "npm install && npm run dev"
     ports:
       - "7774:7774"
     env_file:
@@ -230,7 +230,7 @@ services:
       - .:/app:delegated
       - node_modules_cache:/app/node_modules
     working_dir: /app/therr-services/push-notifications-service
-    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    command: sh -c "npm install && npm run dev"
     ports:
       - "7775:7775"
     env_file:
@@ -253,7 +253,7 @@ services:
       - .:/app:delegated
       - node_modules_cache:/app/node_modules
     working_dir: /app/therr-services/websocket-service
-    command: sh -c "npm ci --legacy-peer-deps && npm run dev"
+    command: sh -c "npm install && npm run dev"
     ports:
       - "7743:7743"
     env_file:

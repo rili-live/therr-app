@@ -1,19 +1,19 @@
 import * as React from 'react';
 import { Linking, Platform, View } from 'react-native';
 import { Button, Text } from 'react-native-elements';
-import { PasswordRegex } from 'therr-js-utilities/constants';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
+import { PasswordRegex } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
-import OrDivider from '../../components/Input/OrDivider';
-import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
-import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
 import { ISSOUserDetails } from '../Login/LoginForm';
 import TherrIcon from '../../components/TherrIcon';
+import OrDivider from '../../components/Input/OrDivider';
+import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
+import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
 import spacingStyles from '../../styles/layouts/spacing';
 
 // Regular component props
@@ -255,7 +255,6 @@ export class RegisterFormComponent extends React.Component<
     public render() {
         const {
             isPasswordEntryDirty,
-            isSubmitting,
             passwordErrorMessage,
             prevRegisterError,
         } = this.state;
@@ -388,7 +387,7 @@ export class RegisterFormComponent extends React.Component<
                     />
                     <View style={themeAuthForm.styles.submitButtonContainer}>
                         <GoogleSignInButton
-                            disabled={isSubmitting}
+                            disabled={this.state.isSubmitting}
                             buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitleContinue')}
                             onLoginError={this.onSSOLoginError}
                             onLoginSuccess={this.onSSOLoginSuccess}
@@ -397,10 +396,9 @@ export class RegisterFormComponent extends React.Component<
                     </View>
                     {
                         Platform.OS === 'ios' && appleAuth.isSupported &&
-                        appleAuth.isSupported &&
                         <View style={themeAuthForm.styles.submitButtonContainer}>
                             <AppleSignInButton
-                                disabled={isSubmitting}
+                                disabled={this.state.isSubmitting}
                                 buttonTitle={this.translate('forms.loginForm.sso.appleButtonTitle')}
                                 onLoginError={this.onSSOLoginError}
                                 onLoginSuccess={this.onSSOLoginSuccess}

@@ -1,4 +1,4 @@
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import unless from 'express-unless';
 import handleHttpError from '../utilities/handleHttpError';
 

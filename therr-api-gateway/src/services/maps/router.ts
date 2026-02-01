@@ -327,7 +327,7 @@ mapsServiceRouter.post('/spaces/request-approve/:spaceId', validate, authorize(
 mapsServiceRouter.use('/place', createProxyMiddleware({
     target: 'https://maps.googleapis.com',
     // pathRewrite: { '^/v1/maps-service/place': '/maps/api/place' },
-    pathRewrite: (path, req) => `${path.replace('/v1/maps-service/place', '/maps/api/place')}&key=${process.env.GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY}`,
+    pathRewrite: (path) => `${path.replace('/v1/maps-service/place', '/maps/api/place')}&key=${process.env.GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY}`,
     changeOrigin: true,
 }));
 

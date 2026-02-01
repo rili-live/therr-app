@@ -1,0 +1,50 @@
+# Docker Compose for CI Integration Testing
+# This file defines the test infrastructure (PostgreSQL + Redis) for running
+# integration tests in CircleCI.
+#
+# Usage in CI:
+#   docker-compose -f docker-compose.ci.yml up -d
+#   # Wait for services to be healthy
+#   # Run migrations
+#   # Run tests with --network therr-ci-network
+#   docker-compose -f docker-compose.ci.yml down -v
+
+services:
+  postgres-ci:
+    image: postgis/postgis:15-3.4
+    container_name: therr-postgres-ci
+    hostname: postgres-ci
+    environment:
+      POSTGRES_USER: therr
+      POSTGRES_PASSWORD: testpassword
+      # Database initialization is handled by setup-test-db.sh after container starts
+      # This avoids volume mount issues in CircleCI's remote Docker environment
+    networks:
+      therr-ci-network:
+        aliases:
+          - postgres-ci
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U therr"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  redis-ci:
+    image: redis:7-alpine
+    container_name: therr-redis-ci
+    hostname: redis-ci
+    networks:
+      therr-ci-network:
+        aliases:
+          - redis-ci
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+networks:
+  therr-ci-network:
+    name: therr-ci-network
+    driver: bridge

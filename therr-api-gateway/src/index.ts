@@ -16,16 +16,17 @@ tracing.start();
 // Axios defaults
 axios.defaults.timeout = 1000 * 30; // 30 Second Request timeout
 
-const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
-const corsOptions = {
-    origin(origin: any, callback: any) {
-        if (origin === undefined || originWhitelist.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-};
+// NOTE: corsOptions commented out - mobile apps have no concept of CORS
+// const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
+// const corsOptions = {
+//     origin(origin: any, callback: any) {
+//         if (origin === undefined || originWhitelist.indexOf(origin) !== -1) {
+//             callback(null, true);
+//         } else {
+//             callback(new Error('Not allowed by CORS'));
+//         }
+//     },
+// };
 
 const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 

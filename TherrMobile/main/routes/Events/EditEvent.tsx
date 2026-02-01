@@ -1017,7 +1017,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                 style={[this.themeAreas.styles.mediaImageEvent, {
                                     width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
                                 }]}
-                                resizeMode='contain'
+                                resizeMode="contain"
                             />
                         </View>
                     }
@@ -1029,7 +1029,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                         disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         titleStyle={this.themeForms.styles.buttonTitle}
                         title={this.translate(
-                            !!imagePreviewPath ? 'forms.editEvent.buttons.replaceImage' : 'forms.editEvent.buttons.addImage'
+                            imagePreviewPath ? 'forms.editEvent.buttons.replaceImage' : 'forms.editEvent.buttons.addImage'
                         )}
                         icon={
                             <TherrIcon
