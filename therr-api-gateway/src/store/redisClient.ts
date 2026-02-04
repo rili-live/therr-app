@@ -61,7 +61,7 @@ redisEphemeralClient.on('error', (error: any) => {
 /**
  * Connects and reconnects to Redis with custom exponential backoff
  */
-const connectToRedis = (client: Redis.Redis, options, callback) => {
+const connectToRedis = (client: Redis, options, callback) => {
     client.disconnect();
     // We must connect manually since lazyConnect is true
     const redisConnectPromises = [

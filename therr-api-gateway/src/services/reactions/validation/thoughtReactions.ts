@@ -3,7 +3,7 @@ import {
     header,
     query,
     param,
-} from 'express-validator/check'; // eslint-disable-line import/extensions
+} from 'express-validator';
 
 export const searchActiveThoughtsValidation = [
     header('authorization').exists(),

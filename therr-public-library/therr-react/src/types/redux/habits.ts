@@ -126,16 +126,16 @@ export interface IStreakHistory {
 
 // State Interface
 export interface IHabitsState extends Immutable.ImmutableObject<any> {
-    habitGoals: IHabitGoal[];
-    templates: IHabitGoal[];
-    pacts: IPact[];
-    activePacts: IPact[];
-    pendingInvites: IPact[];
-    checkins: IHabitCheckin[];
-    todayCheckins: IHabitCheckin[];
-    streaks: IStreak[];
-    activeStreaks: IStreak[];
-    milestones: IStreakHistory[];
+    habitGoals: Immutable.ImmutableArray<IHabitGoal>;
+    templates: Immutable.ImmutableArray<IHabitGoal>;
+    pacts: Immutable.ImmutableArray<IPact>;
+    activePacts: Immutable.ImmutableArray<IPact>;
+    pendingInvites: Immutable.ImmutableArray<IPact>;
+    checkins: Immutable.ImmutableArray<IHabitCheckin>;
+    todayCheckins: Immutable.ImmutableArray<IHabitCheckin>;
+    streaks: Immutable.ImmutableArray<IStreak>;
+    activeStreaks: Immutable.ImmutableArray<IStreak>;
+    milestones: Immutable.ImmutableArray<IStreakHistory>;
     isLoading: boolean;
 }
 

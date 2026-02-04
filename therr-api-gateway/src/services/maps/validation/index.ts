@@ -1,7 +1,7 @@
 import {
     body,
     query,
-} from 'express-validator/check'; // eslint-disable-line import/extensions
+} from 'express-validator';
 import { MetricNames } from 'therr-js-utilities/constants';
 
 export const getSignedUrlValidation = [
