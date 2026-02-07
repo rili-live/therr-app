@@ -17,6 +17,7 @@
 - **Payments**: Stripe integration, subscriptions
 - **Campaigns**: Marketing campaign management
 - **Social Sync**: Social media integrations
+- **Habits** (HABITS app): Habit goals, pacts, check-ins, streaks
 
 ## Directory Structure
 
@@ -52,9 +53,18 @@ Email sending is in `src/api/email/`:
 - Twilio for SMS (`src/api/twilio.ts`)
 - OAuth providers (`src/api/oauth2.ts`)
 
-## Database Tables (main schema)
+## Database Tables
 
+### main schema
 Key tables: `users`, `userConnections`, `userGroups`, `notifications`, `userAchievements`, `subscribers`, `campaigns`
+
+### habits schema (HABITS app)
+- `habit_goals` - Habit templates and user-created goals
+- `pacts` - Accountability partnerships
+- `pact_members` - Membership with per-user stats
+- `habit_checkins` - Daily completion records
+- `streaks` - Streak state per user/habit
+- `streak_history` - Event log for analytics
 
 ## Related Services
 

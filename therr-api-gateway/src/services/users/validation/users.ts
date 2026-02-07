@@ -2,7 +2,7 @@ import {
     body,
     oneOf,
     param,
-} from 'express-validator/check'; // eslint-disable-line import/extensions
+} from 'express-validator';
 
 export const createUserValidation = [
     body('phoneNumber').optional().isMobilePhone('any'),

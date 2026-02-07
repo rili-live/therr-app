@@ -17,6 +17,11 @@ import userConnectionsRouter from './userConnectionsRouter';
 import userInterestsRouter from './userInterestsRouter';
 import userMetricsRouter from './userMetricsRouter';
 import userOrganizationsRouter from './userOrganizationsRouter';
+// HABITS routers
+import habitGoalsRouter from './habitGoalsRouter';
+import pactsRouter from './pactsRouter';
+import habitCheckinsRouter from './habitCheckinsRouter';
+import streaksRouter from './streaksRouter';
 
 const router = express.Router();
 
@@ -38,5 +43,11 @@ router.use('/users/organizations', userOrganizationsRouter);
 router.use('/users-locations', userLocationsRouter);
 router.use('/users', usersRouter);
 router.use('/users-groups', userGroupsRouter);
+
+// HABITS routes
+router.use('/habits/goals', habitGoalsRouter);
+router.use('/habits/pacts', pactsRouter);
+router.use('/habits/checkins', habitCheckinsRouter);
+router.use('/habits/streaks', streaksRouter);
 
 export default router;

@@ -40,7 +40,7 @@
     "troubleshoot:android:clean": "npm run android:clean"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^1.9.1",
+    "@reduxjs/toolkit": "^2.5.0",
     "@callstack/react-theme-provider": "^3.0.9",
     "@gorhom/bottom-sheet": "^4.6.4",
     "@invertase/react-native-apple-authentication": "^2.5.0",
@@ -105,8 +105,8 @@
     "react-native-webview": "^11.26.1",
     "react-native-youtube-iframe": "^1.4.0",
     "react-test-renderer": "18.3.1",
-    "react-redux": "^8.0.2",
-    "redux": "^4.2.0",
+    "react-redux": "^9.2.0",
+    "redux": "^5.0.1",
     "redux-logger": "^3.0.6",
     "rn-placeholder": "^3.0.3"
   },

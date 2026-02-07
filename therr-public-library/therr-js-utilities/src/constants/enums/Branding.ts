@@ -5,6 +5,7 @@ enum BrandVariations {
     THERR = 'therr',
     DASHBOARD_THERR = 'dashboard-therr',
     OTAKU = 'otaku',
+    HABITS = 'habits',
 }
 
 export {

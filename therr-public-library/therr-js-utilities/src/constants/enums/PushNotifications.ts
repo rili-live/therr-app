@@ -24,6 +24,29 @@ export enum Types {
     latestPostViewcountStats = 'latest-post-viewcount-stats',
     unreadNotificationsReminder = 'unread-notifications-reminder',
     unclaimedAchievementsReminder = 'unclaimed-achievements-reminder',
+
+    // HABITS: Pact Lifecycle
+    pactInvitation = 'pact-invitation',
+    pactAccepted = 'pact-accepted',
+    pactDeclined = 'pact-declined',
+    pactCompleted = 'pact-completed',
+    pactExpiring = 'pact-expiring',
+
+    // HABITS: Partner Activity
+    partnerCheckedIn = 'partner-checked-in',
+    partnerMissedDay = 'partner-missed-day',
+    partnerCelebrated = 'partner-celebrated',
+
+    // HABITS: Streaks
+    streakMilestone = 'streak-milestone',
+    streakAtRisk = 'streak-at-risk',
+    streakBroken = 'streak-broken',
+    newPersonalRecord = 'new-personal-record',
+
+    // HABITS: Reminders
+    dailyHabitReminder = 'daily-habit-reminder',
+    morningMotivation = 'morning-motivation',
+    eveningCheckIn = 'evening-check-in',
 }
 
 export enum PressActionIds {
@@ -41,7 +64,12 @@ export enum PressActionIds {
     thoughtView = 'view-thought',
     spaceView = 'view-space',
     userView = 'view-user',
-    userAcceptConnectionRequest = 'accept-user-connection-request'
+    userAcceptConnectionRequest = 'accept-user-connection-request',
+    // HABITS
+    pactView = 'view-pact',
+    pactAccept = 'accept-pact',
+    checkinView = 'view-checkin',
+    streakView = 'view-streak',
 }
 
 export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
@@ -61,7 +89,15 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'NEW_THOUGHT_REPLY_RECEIVED'
 | 'NEW_SUPER_LIKE_RECEIVED'
 | 'UNREAD_NOTIFICATIONS_REMINDER'
-| 'UNCLAIMED_ACHIEVEMENTS_REMINDER';
+| 'UNCLAIMED_ACHIEVEMENTS_REMINDER'
+// HABITS
+| 'PACT_INVITATION'
+| 'PACT_ACCEPTED'
+| 'PACT_COMPLETED'
+| 'PARTNER_CHECKED_IN'
+| 'STREAK_MILESTONE'
+| 'STREAK_AT_RISK'
+| 'DAILY_HABIT_REMINDER';
 
 enum TeemAndroidIntentActions {
     ACHIEVEMENT_COMPLETED = 'com.therr.mobile.ACHIEVEMENT_COMPLETED',
@@ -105,6 +141,35 @@ enum TherrAndroidIntentActions {
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
 }
 
+enum HabitsAndroidIntentActions {
+    ACHIEVEMENT_COMPLETED = 'com.therr.mobile.habits.ACHIEVEMENT_COMPLETED',
+    CREATE_YOUR_PROFILE_REMINDER = 'com.therr.mobile.habits.CREATE_YOUR_PROFILE_REMINDER',
+    CREATE_A_MOMENT_REMINDER = 'com.therr.mobile.habits.CREATE_A_MOMENT_REMINDER',
+    LATEST_POST_LIKES_STATS = 'com.therr.mobile.habits.LATEST_POST_LIKES_STATS',
+    LATEST_POST_VIEWCOUNT_STATS = 'com.therr.mobile.habits.LATEST_POST_VIEWCOUNT_STATS',
+    NEW_AREAS_ACTIVATED = 'com.therr.mobile.habits.NEW_AREAS_ACTIVATED',
+    NUDGE_SPACE_ENGAGEMENT = 'com.therr.mobile.habits.NUDGE_SPACE_ENGAGEMENT',
+    NEW_CONNECTION = 'com.therr.mobile.habits.NEW_CONNECTION',
+    NEW_CONNECTION_REQUEST = 'com.therr.mobile.habits.NEW_CONNECTION_REQUEST',
+    NEW_DIRECT_MESSAGE = 'com.therr.mobile.habits.NEW_DIRECT_MESSAGE',
+    NEW_GROUP_MESSAGE = 'com.therr.mobile.habits.NEW_GROUP_MESSAGE',
+    NEW_GROUP_INVITE = 'com.therr.mobile.habits.NEW_GROUP_INVITE',
+    NEW_GROUP_MEMBERS = 'com.therr.mobile.habits.NEW_GROUP_MEMBERS',
+    NEW_LIKE_RECEIVED = 'com.therr.mobile.habits.NEW_LIKE_RECEIVED',
+    NEW_THOUGHT_REPLY_RECEIVED = 'com.therr.mobile.habits.NEW_THOUGHT_REPLY_RECEIVED',
+    NEW_SUPER_LIKE_RECEIVED = 'com.therr.mobile.habits.NEW_SUPER_LIKE_RECEIVED',
+    UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.habits.UNREAD_NOTIFICATIONS_REMINDER',
+    UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.habits.UNCLAIMED_ACHIEVEMENTS_REMINDER',
+    // HABITS-specific
+    PACT_INVITATION = 'com.therr.mobile.habits.PACT_INVITATION',
+    PACT_ACCEPTED = 'com.therr.mobile.habits.PACT_ACCEPTED',
+    PACT_COMPLETED = 'com.therr.mobile.habits.PACT_COMPLETED',
+    PARTNER_CHECKED_IN = 'com.therr.mobile.habits.PARTNER_CHECKED_IN',
+    STREAK_MILESTONE = 'com.therr.mobile.habits.STREAK_MILESTONE',
+    STREAK_AT_RISK = 'com.therr.mobile.habits.STREAK_AT_RISK',
+    DAILY_HABIT_REMINDER = 'com.therr.mobile.habits.DAILY_HABIT_REMINDER',
+}
+
 export interface INotificationData {
     associationId?: string;
     areasActivated?: { spaceId?: string }[];
@@ -132,4 +197,5 @@ export interface INotificationData {
 export const AndroidIntentActions = {
     Teem: TeemAndroidIntentActions,
     Therr: TherrAndroidIntentActions,
+    Habits: HabitsAndroidIntentActions,
 };

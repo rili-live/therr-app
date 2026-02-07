@@ -21,6 +21,12 @@ import UserOrganizationsStore from './UserOrganizationsStore';
 import UserGroupsStore from './UserGroupsStore';
 import UsersStore from './UsersStore';
 import VerificationCodesStore from './VerificationCodesStore';
+// HABITS stores
+import HabitGoalsStore from './HabitGoalsStore';
+import PactsStore from './PactsStore';
+import PactMembersStore from './PactMembersStore';
+import HabitCheckinsStore from './HabitCheckinsStore';
+import StreaksStore from './StreaksStore';
 
 class Store {
     db: IConnection;
@@ -69,6 +75,17 @@ class Store {
 
     verificationCodes: VerificationCodesStore;
 
+    // HABITS stores
+    habitGoals: HabitGoalsStore;
+
+    pacts: PactsStore;
+
+    pactMembers: PactMembersStore;
+
+    habitCheckins: HabitCheckinsStore;
+
+    streaks: StreaksStore;
+
     constructor(dbConnection) {
         this.db = dbConnection;
 
@@ -94,6 +111,13 @@ class Store {
         this.notifications = new NotificationsStore(this.db);
         this.organizations = new OrganizationsStore(this.db);
         this.verificationCodes = new VerificationCodesStore(this.db);
+
+        // HABITS stores
+        this.habitGoals = new HabitGoalsStore(this.db);
+        this.pacts = new PactsStore(this.db);
+        this.pactMembers = new PactMembersStore(this.db);
+        this.habitCheckins = new HabitCheckinsStore(this.db);
+        this.streaks = new StreaksStore(this.db);
     }
 }
 

@@ -1,9 +1,6 @@
-import { createAdapter } from 'socket.io-redis';
+import { createAdapter } from '@socket.io/redis-adapter';
 import { redisPub, redisSub } from './redisClient';
 
-const redisAdapter = createAdapter({
-    pubClient: redisPub,
-    subClient: redisSub,
-});
+const redisAdapter = createAdapter(redisPub, redisSub);
 
 export default redisAdapter;

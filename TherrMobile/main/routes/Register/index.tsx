@@ -86,14 +86,14 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
     }
 
     onSuccess = () => {
-        // this.props.navigation.navigate('Login', {
-        //     userMessage: this.translate('pages.login.userAlerts.registerSuccess'),
-        // });
         Toast.show({
             type: 'successBig',
             text1: this.translate('alertTitles.waitlistSuccess'),
             text2: this.translate('alertMessages.waitlistSuccess'),
             visibilityTime: 5000,
+        });
+        this.props.navigation.navigate('Login', {
+            userMessage: this.translate('pages.login.userAlerts.registerSuccess'),
         });
     };
 

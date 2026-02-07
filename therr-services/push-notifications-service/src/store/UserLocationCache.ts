@@ -55,7 +55,7 @@ export default class UserLocationCache {
         });
     }
 
-    clearCache = (): Promise<[Error | null, any][]> => {
+    clearCache = (): Promise<[Error | null, any][] | null> => {
         const pipeline = redisClient.pipeline();
 
         pipeline.expire(this.momentsKeyPrefix, 0);

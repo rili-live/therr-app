@@ -1,4 +1,3 @@
-import * as Redis from 'ioredis';
 import * as globalConfig from '../../../../global-config';
 import redisHelper, { IUserSocketSession, RedisHelper } from '../utilities/redisHelper';
 import { UserStatus } from '../constants';
@@ -51,11 +50,11 @@ class RedisSessions {
         return this.redisHelper.updateUserStatus(user, newStatus, ttl);
     }
 
-    public remove(socketId: Redis.KeyType) {
+    public remove(socketId: string) {
         return this.redisHelper.removeUser(socketId);
     }
 
-    public getUserBySocketId(socketId: Redis.KeyType): any {
+    public getUserBySocketId(socketId: string): any {
         return this.redisHelper.getUserBySocketId(socketId);
     }
 

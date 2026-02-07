@@ -1,6 +1,6 @@
 import {
     validationResult,
-} from 'express-validator/check'; // eslint-disable-line import/extensions
+} from 'express-validator';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 
