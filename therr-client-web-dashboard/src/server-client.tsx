@@ -75,7 +75,7 @@ routeConfig.forEach((config) => {
         description = description.replace('Therr for Business', brandName); // See views/index.hbs
         const promises: any = [];
         const staticContext: any = {};
-        const initialState = {
+        const initialState: any = {
             user: {
                 details: {},
             },
