@@ -21,5 +21,5 @@ spec:
         - 'therr.com'
         - '*.therr.com'
         # Whitelabel
-        - 'adsly.app'
-        - '*.adsly.app'
+        # - 'adsly.app'
+        # - '*.adsly.app'
