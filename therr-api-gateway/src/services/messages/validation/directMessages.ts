@@ -1,6 +1,6 @@
 import {
     body,
-} from 'express-validator/check'; // eslint-disable-line import/extensions
+} from 'express-validator';
 
 export const createDirectMessageValidation = [
     body('toUserId').isString().exists(),

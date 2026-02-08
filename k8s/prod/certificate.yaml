@@ -18,7 +18,7 @@ spec:
     - 'websocket-service.therr.com'
     - 'www.websocket-service.therr.com'
     # Whitelabel
-    - 'adsly.app'
-    - 'www.adsly.app'
+    # - 'adsly.app'
+    # - 'www.adsly.app'
   duration: 4320h # 180d
   renewBefore: 720h # 30d

@@ -1454,6 +1454,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             || currentScreen === 'ForgotPassword'
                             || currentScreen === 'Nearby'
                             || currentScreen === 'EmailVerification'
+                            || currentScreen === 'CreateProfile'
                             || currentScreen === 'Register';
                         const isAccentPage = currentScreen === 'EditMoment'
                             || currentScreen === 'EditSpace'

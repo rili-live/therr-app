@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "prompt",
+        "prompt": "You are an expert TypeScript monorepo developer specializing in React Native mobile apps, React web clients, and Node.js microservices. This is the Therr App monorepo: a full-stack platform with TherrMobile, web clients (React 18), and Express microservices behind an API gateway. Always check the current git branch before making changes—niche/* branches are app-variant specific while general/stage/main branches contain shared code. An app variant is a branch off of general configured and used to publish a variation of the app with a different bundle ID."
+      }
+    ]
+  }
+}

@@ -21,14 +21,14 @@ let connectionTimerId;
 
 const redisKeyPrefix = 'websocket-service:';
 
-const redisPub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
+const redisPub: Redis = new Redis(nodes[0].port, nodes[0].host!, {
     connectionName: 'redisSocketPub',
     lazyConnect: true,
     keyPrefix: redisKeyPrefix,
 });
 
 // TODO: Use separate publish and subscribe Redis hosts
-const redisSub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
+const redisSub: Redis = new Redis(nodes[0].port, nodes[0].host!, {
     connectionName: 'redisSocketSub',
     lazyConnect: true,
     keyPrefix: redisKeyPrefix,

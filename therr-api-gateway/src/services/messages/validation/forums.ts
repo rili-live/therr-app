@@ -1,7 +1,7 @@
 import {
     body,
     param,
-} from 'express-validator/check'; // eslint-disable-line import/extensions
+} from 'express-validator';
 
 export const createForumValidation = [
     body('administratorIds').exists().isString(),

@@ -39,9 +39,9 @@ spec:
       - api.therr.com
       - www.api.therr.com
       - websocket-service.therr.com
-      - www.websocket-service.therr.com
-      - adsly.app
-      - www.adsly.app
+      # - www.websocket-service.therr.com
+      # - adsly.app
+      # - www.adsly.app
     secretName: therr-network-secret
   rules:
   - host: therr.com
@@ -126,24 +126,24 @@ spec:
         pathType: ImplementationSpecific
         
   # Whitelabel
-  - host: adsly.app
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: client-cluster-ip-service
-            port:
-              number: 7071
-        pathType: ImplementationSpecific
-  - host: www.adsly.app
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: client-cluster-ip-service
-            port:
-              number: 7071
-        pathType: ImplementationSpecific
+  # - host: adsly.app
+  #   http:
+  #     paths:
+  #     - path: /?(.*)
+  #       backend:
+  #         service:
+  #           name: client-cluster-ip-service
+  #           port:
+  #             number: 7071
+  #       pathType: ImplementationSpecific
+  # - host: www.adsly.app
+  #   http:
+  #     paths:
+  #     - path: /?(.*)
+  #       backend:
+  #         service:
+  #           name: client-cluster-ip-service
+  #           port:
+  #             number: 7071
+  #       pathType: ImplementationSpecific
           
