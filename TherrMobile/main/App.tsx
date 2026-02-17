@@ -3,7 +3,6 @@ import { Provider } from 'react-redux';
 import LogRocket from '@logrocket/react-native';
 import analytics from '@react-native-firebase/analytics';
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
-import { enableLatestRenderer } from 'react-native-maps';
 import { SheetProvider } from 'react-native-actions-sheet';
 import {
     SpotlightTourProvider,
@@ -23,8 +22,6 @@ import './components/ActionSheet';
 
 // Disable in development
 analytics().setAnalyticsCollectionEnabled(!__DEV__);
-
-enableLatestRenderer();
 
 // import { buildStyles } from './styles';
 

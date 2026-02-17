@@ -8,8 +8,22 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
  */
 const path = require('path');
 
+// Block React packages from root node_modules to prevent version conflicts
+const rootNodeModules = path.join(__dirname, '/../node_modules');
+// Escape special regex characters in path
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
+const escapedRoot = escapeRegex(rootNodeModules);
+const blockList = [
+    new RegExp(`${escapedRoot}[\\/]react[\\/].*`),
+    new RegExp(`${escapedRoot}[\\/]react-dom[\\/].*`),
+    new RegExp(`${escapedRoot}[\\/]react-native[\\/].*`),
+    new RegExp(`${escapedRoot}[\\/]react-redux[\\/].*`),
+    new RegExp(`${escapedRoot}[\\/]redux[\\/].*`),
+    new RegExp(`${escapedRoot}[\\/]@reduxjs[\\/]toolkit[\\/].*`),
+];
+
 const extraNodeModules = {
-    shared: path.join(__dirname, '/../node_modules'),
+    shared: rootNodeModules,
     'therr-react': path.join(
         __dirname,
         '/../therr-public-library/therr-react/lib'
@@ -28,13 +42,14 @@ const extraNodeModules = {
     '@reduxjs/toolkit': path.join(__dirname, 'node_modules/@reduxjs/toolkit'),
 };
 const watchFolders = [
-    path.join(__dirname, '/../node_modules'),
+    rootNodeModules,
     path.join(__dirname, '/../therr-public-library/therr-react/lib'),
     path.join(__dirname, '/../therr-public-library/therr-js-utilities/lib'),
 ];
 
 const config = {
     resolver: {
+        blockList,
         extraNodeModules: new Proxy(extraNodeModules, {
             get: (target, name) =>
                 //redirects dependencies referenced from shared/ to local node_modules

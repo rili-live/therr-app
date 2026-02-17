@@ -40,7 +40,6 @@ jest.mock('@logrocket/react-native', () => ({
 
 // Mock react-native-maps
 jest.mock('react-native-maps', () => ({
-    enableLatestRenderer: jest.fn(),
     default: 'MapView',
     Marker: 'Marker',
     Polyline: 'Polyline',

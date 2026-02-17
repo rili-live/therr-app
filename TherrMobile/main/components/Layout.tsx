@@ -68,7 +68,7 @@ import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/Native
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
 
-NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
+// NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
 
 const preLoadImageList = [background1, background2, background3];
 

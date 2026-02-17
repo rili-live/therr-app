@@ -1,4 +1,4 @@
-import './wdyr'; // <--- first import, dev only
+// import './wdyr'; // <--- disabled: not compatible with React 19
 import React from 'react';
 import 'react-native-gesture-handler';
 import messaging from '@react-native-firebase/messaging';
