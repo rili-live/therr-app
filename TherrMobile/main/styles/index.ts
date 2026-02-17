@@ -1,4 +1,4 @@
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { Theme } from '@react-navigation/native';
 import DeviceInfo from 'react-native-device-info';
@@ -66,20 +66,6 @@ const addMargins = (marginStyles) => {
     return marginStyles;
 };
 
-/**
- * These devices have a punchout camera so the header needs an offset
- * @returns boolean
- */
-const hasCutoutCamera = (): boolean => {
-    const model = DeviceInfo.getModel();
-
-    if (model?.includes('Pixel 6') || model?.includes('Pixel 7') || model?.includes('Pixel 8') || model?.includes('Pixel 9')) {
-        return true;
-    }
-
-    return false;
-};
-
 const getHeaderHeight = () => {
     const model = DeviceInfo.getModel();
     if (model === 'iPhone SE') {
@@ -89,11 +75,10 @@ const getHeaderHeight = () => {
         return (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT);
     }
 
-    if (DeviceInfo.hasNotch() || hasCutoutCamera()) {
-        return (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + ANDROID_TOP_GAP + 20);
-    }
-
-    return (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20);
+    // Use the system-reported status bar height to account for notches,
+    // camera cutouts, and varying status bar sizes across all Android devices
+    const statusBarHeight = StatusBar.currentHeight || ANDROID_TOP_GAP;
+    return HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + statusBarHeight;
 };
 
 const getHeaderStyles = (theme: ITherrTheme) => ({
