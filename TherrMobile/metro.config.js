@@ -40,6 +40,7 @@ const extraNodeModules = {
     'react-redux': path.join(__dirname, 'node_modules/react-redux'),
     redux: path.join(__dirname, 'node_modules/redux'),
     '@reduxjs/toolkit': path.join(__dirname, 'node_modules/@reduxjs/toolkit'),
+    axios: path.join(rootNodeModules, 'axios'),
 };
 const watchFolders = [
     rootNodeModules,
@@ -47,9 +48,23 @@ const watchFolders = [
     path.join(__dirname, '/../therr-public-library/therr-js-utilities/lib'),
 ];
 
+// Force all axios imports (CJS require + ESM import) to a single file.
+// axios package.json "exports" maps require→dist/browser/axios.cjs and
+// default→dist/esm/axios.js, creating two singletons in the Metro bundle.
+const axiosCjsPath = path.resolve(rootNodeModules, 'axios/dist/browser/axios.cjs');
+
 const config = {
     resolver: {
         blockList,
+        resolveRequest: (context, moduleName, platform) => {
+            if (moduleName === 'axios') {
+                return {
+                    type: 'sourceFile',
+                    filePath: axiosCjsPath,
+                };
+            }
+            return context.resolveRequest(context, moduleName, platform);
+        },
         extraNodeModules: new Proxy(extraNodeModules, {
             get: (target, name) =>
                 //redirects dependencies referenced from shared/ to local node_modules

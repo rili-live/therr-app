@@ -175,7 +175,7 @@ export default class PactMembersStore {
             updates.currentStreak = newStreak;
         }
 
-        queryString = queryString
+        queryString = (queryString as any)
             .update(updates)
             .returning('*');
 

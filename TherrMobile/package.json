@@ -131,7 +131,8 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "eslint-plugin-jest": "^28.14.0",
     "patch-package": "^6.5.1",
-    "react-devtools": "^6.1.1"
+    "react-devtools": "^6.1.1",
+    "reactotron-react-native": "^5.1.18"
   },
   "engines": {
     "node": ">=24.12.0"
