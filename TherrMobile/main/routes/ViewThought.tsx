@@ -16,7 +16,7 @@ import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 // import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
@@ -318,7 +318,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                         successMsg: this.translate('forms.editThought.backendSuccessMessage'),
                     });
 
-                    analytics().logEvent('thought_reply_create', {
+                    logEvent(getAnalytics(),'thought_reply_create', {
                         parentId,
                         category,
                         fromUserId: user.details.id,

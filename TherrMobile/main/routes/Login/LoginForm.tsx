@@ -160,7 +160,12 @@ export class LoginFormComponent extends React.Component<
             .login(loginArgs, {
                 googleSSOIdToken: ssoUserDetails?.idToken,
             })
+            .then((response) => {
+                console.log(response)
+                return response;
+            })
             .catch((error: any) => {
+                console.log(error)
                 if (
                     error.statusCode === 400 ||
                     error.statusCode === 401 ||

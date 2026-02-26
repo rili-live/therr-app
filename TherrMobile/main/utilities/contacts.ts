@@ -1,5 +1,5 @@
 import Contacts from 'react-native-contacts';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { UserConnectionsService } from 'therr-react/services';
 import { requestOSContactsPermissions } from './requestOSPermissions';
 
@@ -11,7 +11,7 @@ const synceMobileContacts = ({
         return response[key] !== 'granted';
     });
     if (!permissionsDenied) {
-        analytics().logEvent('phone_contacts_perm_granted', {
+        logEvent(getAnalytics(),'phone_contacts_perm_granted', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
         return Contacts.getAllWithoutPhotos().then(contacts => {
@@ -43,7 +43,7 @@ const synceMobileContacts = ({
             return contacts;
         });
     } else {
-        analytics().logEvent('phone_contacts_perm_denied', {
+        logEvent(getAnalytics(),'phone_contacts_perm_denied', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
 

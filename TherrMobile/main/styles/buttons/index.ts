@@ -98,22 +98,22 @@ const buttonGroupStyles: any = {
     paddingVertical: 4,
 };
 
-const getQuickFiltersButtonTiny = (theme: ITherrTheme): any => ({
-    backgroundColor: theme.colors.brandingWhite,
-    // borderColor: therrTheme.colors.primary3,
+const quickFiltersButtonTinyBase: any = {
     display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
     height: 28,
     paddingVertical: 2,
-});
-const getQuickFiltersButtonTitle = (theme: ITherrTheme): any => ({
+    paddingHorizontal: 8,
+};
+const quickFiltersButtonTitleBase: any = {
     fontWeight: '500',
     fontFamily: therrFontFamily,
-    color: theme.colors.primary3,
-    paddingLeft: 4,
+    paddingHorizontal: 4,
     fontSize: 14,
-});
+};
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
@@ -206,17 +206,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             lineHeight: 18,
         },
         quickFiltersButtonTiny: {
-            ...getQuickFiltersButtonTiny(therrTheme),
+            ...quickFiltersButtonTinyBase,
+            backgroundColor: therrTheme.colors.brandingWhite,
         },
         quickFiltersButtonTinyActive: {
-            ...getQuickFiltersButtonTiny(therrTheme),
+            ...quickFiltersButtonTinyBase,
             backgroundColor: therrTheme.colors.primary3,
         },
         quickFiltersButtonTitle: {
-            ...getQuickFiltersButtonTitle(therrTheme),
+            ...quickFiltersButtonTitleBase,
+            color: therrTheme.colors.primary3,
         },
         quickFiltersButtonTitleActive: {
-            ...getQuickFiltersButtonTitle(therrTheme),
+            ...quickFiltersButtonTitleBase,
             color: therrTheme.colors.brandingWhite,
         },
         quickFiltersButtonIcon: {

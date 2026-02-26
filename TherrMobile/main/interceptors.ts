@@ -20,6 +20,9 @@ const initInterceptors = (
     timeout = _timeout
 ) => {
     // Global axios config
+    // Use fetch adapter instead of xhr — RN 0.80's XMLHttpRequest polyfill
+    // is incompatible with axios 1.x's xhr adapter
+    axios.defaults.adapter = 'fetch';
     axios.defaults.baseURL = baseUrl;
     axios.defaults.headers['x-platform'] = 'mobile';
     // NICHE - Brand variation is now set via config/brandConfig.ts

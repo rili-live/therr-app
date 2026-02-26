@@ -8,7 +8,7 @@ import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import LottieView from 'lottie-react-native';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
@@ -110,7 +110,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         this.props.navigation.setOptions({
             title: this.translate('pages.createProfile.headerTitle'),
         });
-        analytics().logEvent('profile_create_start', {
+        logEvent(getAnalytics(),'profile_create_start', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
 
@@ -262,7 +262,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                 .updateUser(user.details.id, updateArgs)
                 .then(() => {
                     if (phoneNumber) {
-                        analytics().logEvent('profile_create_update_phone', {
+                        logEvent(getAnalytics(),'profile_create_update_phone', {
                             userId: user.details.id,
                         }).catch((err) => console.log(err));
                     }
