@@ -35,7 +35,7 @@ module.exports = {
         // }],
         'import/prefer-default-export': 'off',
         'semi': 'error',
-        'comma-dangle': 'error',
+        'comma-dangle': ['error', 'always-multiline'],
         'no-trailing-spaces': 'error',
     },
     settings: {

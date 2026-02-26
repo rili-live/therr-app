@@ -15,7 +15,7 @@ import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import Toast from 'react-native-toast-message';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
@@ -464,7 +464,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 text2: this.translate('alertMessages.spaceUpdatedSuccess'),
                                 visibilityTime: 3500,
                             });
-                            analytics().logEvent('space_create', {
+                            logEvent(getAnalytics(),'space_create', {
                                 userId: user.details.id,
                                 momentLongitude: longitude,
                                 momentLatitude: latitude,
@@ -479,7 +479,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 text2: this.translate('alertMessages.spaceRequestSuccess'),
                                 visibilityTime: 3500,
                             });
-                            analytics().logEvent('space_request', {
+                            logEvent(getAnalytics(),'space_request', {
                                 userId: user.details.id,
                                 momentLongitude: longitude,
                                 momentLatitude: latitude,

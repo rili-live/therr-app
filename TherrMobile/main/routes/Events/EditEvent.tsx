@@ -17,7 +17,7 @@ import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import LottieView from 'lottie-react-native';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import DropDown from '../../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../../services/translator';
@@ -548,7 +548,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             }, getAndroidChannel(AndroidChannelIds.reminders, true));
                         }
 
-                        analytics().logEvent('event_create', {
+                        logEvent(getAnalytics(),'event_create', {
                             userId: user.details.id,
                             eventLongitude: longitude,
                             eventLatitude: latitude,
@@ -848,7 +848,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                         .then((cameraResponse) => this.handleImageSelect(cameraResponse));
                 }
             } else {
-                analytics().logEvent('permissions_denied_issue', {
+                logEvent(getAnalytics(),'permissions_denied_issue', {
                     platform: Platform.OS,
                     userId: user?.details?.id,
                 }).catch((err) => console.log(err));
@@ -860,7 +860,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                 throw new Error('permissions denied');
             }
         }).catch((e) => {
-            analytics().logEvent('camera_permissions_error', {
+            logEvent(getAnalytics(),'camera_permissions_error', {
                 platform: Platform.OS,
                 userId: user?.details?.id,
             }).catch((err) => console.log(err));

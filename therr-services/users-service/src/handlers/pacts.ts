@@ -17,6 +17,7 @@ const createPact: RequestHandler = async (req: any, res: any) => {
     const {
         locale,
         userId,
+        userName,
         authorization,
         whiteLabelOrigin,
         brandVariation,
@@ -44,7 +45,7 @@ const createPact: RequestHandler = async (req: any, res: any) => {
     if (!validation.valid) {
         return handleHttpError({
             res,
-            message: validation.error,
+            message: validation.error || 'Invalid pact parameters',
             statusCode: 400,
         });
     }
@@ -90,7 +91,7 @@ const createPact: RequestHandler = async (req: any, res: any) => {
                 // Send push notification to partner
                 sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                     authorization,
-                    fromUser: { id: userId },
+                    fromUser: { id: userId, userName },
                     locale,
                     toUserId: partnerUserId,
                     type: PushNotifications.Types.pactInvitation,
@@ -181,6 +182,7 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
     const {
         locale,
         userId,
+        userName,
         authorization,
         whiteLabelOrigin,
         brandVariation,
@@ -238,7 +240,7 @@ const acceptPact: RequestHandler = async (req: any, res: any) => {
             // Notify creator
             sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                 authorization,
-                fromUser: { id: userId },
+                fromUser: { id: userId, userName },
                 locale,
                 toUserId: pact.creatorUserId,
                 type: PushNotifications.Types.pactAccepted,
@@ -262,6 +264,7 @@ const declinePact: RequestHandler = async (req: any, res: any) => {
     const {
         locale,
         userId,
+        userName,
         authorization,
         whiteLabelOrigin,
         brandVariation,
@@ -298,7 +301,7 @@ const declinePact: RequestHandler = async (req: any, res: any) => {
             // Notify creator
             sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                 authorization,
-                fromUser: { id: userId },
+                fromUser: { id: userId, userName },
                 locale,
                 toUserId: pact.creatorUserId,
                 type: PushNotifications.Types.pactDeclined,
@@ -322,6 +325,7 @@ const abandonPact: RequestHandler = async (req: any, res: any) => {
     const {
         locale,
         userId,
+        userName,
         authorization,
         whiteLabelOrigin,
         brandVariation,
@@ -369,7 +373,7 @@ const abandonPact: RequestHandler = async (req: any, res: any) => {
             if (partnerId) {
                 sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                     authorization,
-                    fromUser: { id: userId },
+                    fromUser: { id: userId, userName },
                     locale,
                     toUserId: partnerId,
                     type: PushNotifications.Types.pactDeclined, // Reuse declined type for abandoned

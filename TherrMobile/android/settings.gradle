@@ -1,17 +1,34 @@
+pluginManagement {
+    includeBuild("../node_modules/@react-native/gradle-plugin")
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id("com.facebook.react.settings")
+}
+
+extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+    ex.autolinkLibrariesFromCommand()
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://developer.huawei.com/repo/' }
+        maven { url "https://www.jitpack.io" }
+        maven { url "https://storage.googleapis.com/logrocket-maven/" }
+        // Notifee
+        maven { url "$rootDir/../node_modules/@notifee/react-native/android/libs" }
+        // Transistorsoft (background-geolocation)
+        maven { url "$rootDir/../node_modules/react-native-background-geolocation/android/libs" }
+    }
+}
+
 rootProject.name = 'Therr'
-apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
-include ':@react-native-async-storage_async-storage'
-project(':@react-native-async-storage_async-storage').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-async-storage/async-storage/android')
-include ':@react-native-picker_picker'
-project(':@react-native-picker_picker').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-picker/picker/android')
-include ':react-native-gps-state'
-project(':react-native-gps-state').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-gps-state/android')
-include ':react-native-android-location-services-dialog-box'
-project(':react-native-android-location-services-dialog-box').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-android-location-services-dialog-box/android')
-include ':@react-native-community_geolocation'
-project(':@react-native-community_geolocation').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-community/geolocation/android')
-include ':react-native-maps'
-project(':react-native-maps').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-maps/lib/android')
-apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'
-includeBuild('../node_modules/@react-native/gradle-plugin')
