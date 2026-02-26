@@ -14,7 +14,7 @@ import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
@@ -432,7 +432,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             }, getAndroidChannel(AndroidChannelIds.reminders, true));
                         }
 
-                        analytics().logEvent(areaId ? 'moment_update' : 'moment_create', {
+                        logEvent(getAnalytics(),areaId ? 'moment_update' : 'moment_create', {
                             userId: user.details.id,
                             momentLongitude: longitude,
                             momentLatitude: latitude,
@@ -601,7 +601,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         .then((cameraResponse) => this.handleImageSelect(cameraResponse));
                 }
             } else {
-                analytics().logEvent('permissions_denied_issue', {
+                logEvent(getAnalytics(),'permissions_denied_issue', {
                     platform: Platform.OS,
                     userId: user?.details?.id,
                 }).catch((err) => console.log(err));
@@ -613,7 +613,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 throw new Error('permissions denied');
             }
         }).catch((e) => {
-            analytics().logEvent('camera_permissions_error', {
+            logEvent(getAnalytics(),'camera_permissions_error', {
                 platform: Platform.OS,
                 userId: user?.details?.id,
             }).catch((err) => console.log(err));

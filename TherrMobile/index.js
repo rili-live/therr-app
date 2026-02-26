@@ -1,7 +1,7 @@
 // import './wdyr'; // <--- disabled: not compatible with React 19
 import React from 'react';
 import 'react-native-gesture-handler';
-import messaging from '@react-native-firebase/messaging';
+import { getMessaging, setBackgroundMessageHandler } from '@react-native-firebase/messaging';
 import { AppRegistry } from 'react-native';
 import { PushNotifications } from 'therr-js-utilities/constants';
 import App from './main/App';
@@ -15,7 +15,7 @@ import { getAndroidChannelFromClickActionId } from './main/constants';
 // Step 3.) Remove navigation logic for clickId in Layout.tsx
 // Step 4.) Update handleNotifeeNotificationEvent in Layout to handle the press action IDs
 /** Register background push notification handler */
-messaging().setBackgroundMessageHandler(async remoteMessage => {
+setBackgroundMessageHandler(getMessaging(), async remoteMessage => {
     await wrapOnMessageReceived(false, remoteMessage);
 
     // Handle data-only notifications which will be converted to Notifee notifications with press actions

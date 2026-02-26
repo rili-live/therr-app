@@ -11,9 +11,16 @@ import {
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
-import analytics from '@react-native-firebase/analytics';
-import crashlytics from '@react-native-firebase/crashlytics';
-import messaging from '@react-native-firebase/messaging';
+import { getAnalytics, logEvent, logScreenView } from '@react-native-firebase/analytics';
+import { getCrashlytics, setUserId as setCrashlyticsUserId } from '@react-native-firebase/crashlytics';
+import {
+    getMessaging,
+    getToken,
+    onMessage,
+    registerDeviceForRemoteMessages,
+    requestPermission,
+    AuthorizationStatus,
+} from '@react-native-firebase/messaging';
 import LogRocket from '@logrocket/react-native';
 import SplashScreen from 'react-native-bootsplash';
 import notifee, { Event, EventType } from '@notifee/react-native';
@@ -226,11 +233,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         });
 
         this.subscriptions.push(BackgroundGeolocation.onLocation((/* location */) => {
-            analytics().logEvent('background_location_on_location', {
+            logEvent(getAnalytics(),'background_location_on_location', {
                 userId: this.props.user?.details?.id,
             }).catch((err) => console.log(err));
         }, (error) => {
-            analytics().logEvent('background_location_error', {
+            logEvent(getAnalytics(),'background_location_error', {
                 userId: this.props.user?.details?.id,
             }).catch((err) => console.log(err));
             console.log('BackgroundGeolocation-[onLocation] ERROR:', error);
@@ -276,7 +283,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 }
 
                 if (user.details?.id) {
-                    crashlytics().setUserId(user.details?.id?.toString());
+                    setCrashlyticsUserId(getCrashlytics(), user.details?.id?.toString());
                     if (!__DEV__) {
                         LogRocket.identify(user.details?.id, {
                             name: `${user.details?.firstName} ${user.details?.lastName}`,
@@ -334,18 +341,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
                 this.getIosNotificationPermissions()
                     .then(() => {
-                        return messaging().registerDeviceForRemoteMessages();
+                        return registerDeviceForRemoteMessages(getMessaging());
                     })
                     .then(() => {
                         // Get the token
-                        return messaging().getToken();
+                        return getToken(getMessaging());
                     })
                     .then((token) => {
                         axios.defaults.headers['x-user-device-token'] = token;
                         if (user.details.deviceMobileFirebaseToken !== token) {
                             updateUser(user.details.id, { deviceMobileFirebaseToken: token });
                         }
-                        this.unsubscribePushNotifications = messaging().onMessage(async remoteMessage => {
+                        this.unsubscribePushNotifications = onMessage(getMessaging(), async remoteMessage => {
                             await wrapOnMessageReceived(true, remoteMessage);
 
                             if (remoteMessage?.data?.areasActivated) {
@@ -473,7 +480,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
             /// 2. ready the plugin.
             BackgroundGeolocation.ready(backgroundConfig).then((state) => {
-                analytics().logEvent('background_location_ready', {
+                logEvent(getAnalytics(),'background_location_ready', {
                     isEnabled: state.enabled,
                     userId: this.props.user?.details?.id,
                 }).catch((err) => console.log(err));
@@ -1348,11 +1355,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 if (permissions?.authorizationStatus !== 1) {
                     console.log('Notifee authorization status:', permissions);
                 }
-                return messaging().requestPermission();
+                return requestPermission(getMessaging());
             })
             .then((authStatus) => {
-                const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED
-                    || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+                const enabled = authStatus === AuthorizationStatus.AUTHORIZED
+                    || authStatus === AuthorizationStatus.PROVISIONAL;
                 if (!enabled) {
                     console.log('Notifications authorization status:', authStatus);
                 }
@@ -1391,7 +1398,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.subscriptions.forEach((subscription) => subscription.remove());
         BackgroundGeolocation.stop().catch((err) => {
             console.error(`Failed to stop background location after logout: ${err}`);
-            analytics().logEvent('background_location_stop_error', {
+            logEvent(getAnalytics(),'background_location_stop_error', {
                 userId: this.props.user?.details?.id,
             }).catch((err) => console.log(err));
         });
@@ -1430,7 +1437,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     }
 
                     if (previousRouteName !== currentRouteName) {
-                        await analytics().logScreenView({
+                        await logScreenView(getAnalytics(), {
                             screen_name: currentRouteName,
                             screen_class: currentRouteName,
                             is_authenticated: this.isUserAuthenticated() ? 'yes' : 'no',

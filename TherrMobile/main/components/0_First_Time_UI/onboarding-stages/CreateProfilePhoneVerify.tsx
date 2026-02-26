@@ -4,7 +4,7 @@ import { Button }  from 'react-native-elements';
 import { ApiService } from 'therr-react/services';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import Toast from 'react-native-toast-message';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import Alert from '../../Alert';
 import SquareInput from '../../Input/Square';
 import PhoneNumberInput from '../../Input/PhoneNumberInput';
@@ -77,7 +77,7 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
         });
         ApiService.verifyPhone(phoneNumber)
             .then(() => {
-                analytics().logEvent('phone_verify_success', {
+                logEvent(getAnalytics(),'phone_verify_success', {
                     userId: user?.details?.id,
                     phoneNumber,
                     platform: 'mobile',
@@ -94,7 +94,7 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
             })
             .catch((error) => {
                 if (error?.errorCode === ErrorCodes.USER_EXISTS) {
-                    analytics().logEvent('phone_verify_error_already_exists', {
+                    logEvent(getAnalytics(),'phone_verify_error_already_exists', {
                         userId: user?.details?.id,
                         phoneNumber,
                     }).catch((err) => console.log(err));
@@ -110,7 +110,7 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
                         text2: translate('alertMessages.invalidRegionCode'),
                     });
                 } else {
-                    analytics().logEvent('phone_verify_error', {
+                    logEvent(getAnalytics(),'phone_verify_error', {
                         userId: user?.details?.id,
                         phoneNumber,
                     }).catch((err) => console.log(err));
@@ -136,7 +136,7 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
         });
         ApiService.validateCode(verificationCode)
             .then(() => {
-                analytics().logEvent('phone_verify_code_success', {
+                logEvent(getAnalytics(),'phone_verify_code_success', {
                     userId: user?.details?.id,
                     platform: 'mobile',
                 }).catch((err) => console.log(err));

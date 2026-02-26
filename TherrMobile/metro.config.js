@@ -53,6 +53,11 @@ const watchFolders = [
 // default→dist/esm/axios.js, creating two singletons in the Metro bundle.
 const axiosCjsPath = path.resolve(rootNodeModules, 'axios/dist/browser/axios.cjs');
 
+// Force all use-latest-callback imports to the root v0.2.6 copy.
+// react-native-tab-view nests v0.1.11 which has incompatible CJS/ESM exports,
+// causing "useLatestCallback.default is not a function" at runtime.
+const useLatestCallbackPath = path.resolve(__dirname, 'node_modules/use-latest-callback/lib/src/index.js');
+
 const config = {
     resolver: {
         blockList,
@@ -61,6 +66,12 @@ const config = {
                 return {
                     type: 'sourceFile',
                     filePath: axiosCjsPath,
+                };
+            }
+            if (moduleName === 'use-latest-callback') {
+                return {
+                    type: 'sourceFile',
+                    filePath: useLatestCallbackPath,
                 };
             }
             return context.resolveRequest(context, moduleName, platform);

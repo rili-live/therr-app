@@ -5,7 +5,7 @@ import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { FlatList } from 'react-native-gesture-handler';
@@ -242,7 +242,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
 
         createUserConnection(reqBody, user.details)
             .then(() => {
-                analytics().logEvent('connection_invites_sent', {
+                logEvent(getAnalytics(),'connection_invites_sent', {
                     userId: user.details.id,
                 }).catch((err) => console.log(err));
                 this.setState({

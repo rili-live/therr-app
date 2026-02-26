@@ -8,7 +8,7 @@ import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
 import Toast from 'react-native-toast-message';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { ForumActions } from 'therr-react/redux/actions';
 import { Content, ErrorCodes, FilePaths } from 'therr-js-utilities/constants';
 import { IContentState, IForumsState, IUserState } from 'therr-react/types';
@@ -237,7 +237,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             text2: this.translate('forms.editGroup.backendSuccessMessage'),
                             visibilityTime: 2500,
                         });
-                        analytics().logEvent(groupId ? 'group_update' : 'group_create', {
+                        logEvent(getAnalytics(),groupId ? 'group_update' : 'group_create', {
                             userId: user.details.id,
                             isPublic,
                         }).catch((err) => console.log(err));

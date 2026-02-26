@@ -11,7 +11,7 @@ import { Categories, Content, FilePaths } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import UsersActions from '../redux/actions/UsersActions';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
@@ -252,7 +252,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                         successMsg: this.translate('forms.editThought.backendSuccessMessage'),
                     });
 
-                    analytics().logEvent('thought_create', {
+                    logEvent(getAnalytics(),'thought_create', {
                         userId: user.details.id,
                         isDraft,
                         isPublic,
