@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { Button } from 'react-native-elements';
-import { FlatList } from 'react-native';
+import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 import spacingStyles from '../styles/layouts/spacing';
 import TherrIcon from './TherrIcon';
 
@@ -15,6 +14,7 @@ interface IQuickFiltersListProps {
     onSelect: any;
     translate: Function;
     themeButtons: {
+        colors: any;
         styles: any;
     };
 }
@@ -22,30 +22,34 @@ interface IQuickFiltersListProps {
 const renderFilterButton = (item, props) => {
     const { activeButtonId, onSelect, themeButtons } = props;
 
-    let onPress = () => onSelect(item.index);
-    const buttonStyle = activeButtonId === item.index ? themeButtons.styles.quickFiltersButtonTinyActive : themeButtons.styles.quickFiltersButtonTiny;
-    const buttonTitleStyle = activeButtonId === item.index ? themeButtons.styles.quickFiltersButtonTitleActive : themeButtons.styles.quickFiltersButtonTitle;
-    const buttonIconStyle = activeButtonId === item.index ? themeButtons.styles.quickFiltersButtonIconActive : themeButtons.styles.quickFiltersButtonIcon;
+    const onPress = () => onSelect(item.index);
+    const isActive = activeButtonId === item.index;
+    const bgColor = isActive ? themeButtons.colors.primary3 : themeButtons.colors.brandingWhite;
+    const textColor = isActive ? themeButtons.colors.brandingWhite : themeButtons.colors.primary3;
 
     return (
-        <Button
-            containerStyle={[spacingStyles.marginVertSm, spacingStyles.marginHorizSm, {
-                height: themeButtons.styles.quickFiltersButtonTiny.height,
-            }]}
-            buttonStyle={buttonStyle}
-            // disabledTitleStyle={themeButtons.styles.buttonTitleDisabled}
-            titleStyle={buttonTitleStyle}
-            title={item.title}
+        <TouchableOpacity
             onPress={onPress}
-            raised={false}
-            icon={
-                item.icon && <TherrIcon
+            activeOpacity={0.7}
+            style={[spacingStyles.marginVertSm, spacingStyles.marginHorizSm]}
+        >
+            <View style={[
+                themeButtons.styles.quickFiltersButtonTiny,
+                { backgroundColor: bgColor },
+            ]}>
+                {!!item.icon && <TherrIcon
                     name={item.icon}
                     size={11}
-                    style={buttonIconStyle}
-                />
-            }
-        />
+                    color={textColor}
+                />}
+                <Text style={[
+                    themeButtons.styles.quickFiltersButtonTitle,
+                    { color: textColor },
+                ]}>
+                    {item.title}
+                </Text>
+            </View>
+        </TouchableOpacity>
     );
 };
 
@@ -59,6 +63,7 @@ const QuickFiltersList = ({
         <FlatList
             horizontal
             data={filterButtons}
+            extraData={activeButtonId}
             renderItem={({ item }) => renderFilterButton(item, {
                 activeButtonId,
                 onSelect,
