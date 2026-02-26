@@ -88,7 +88,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...getCategoryButtonTitleStyle(therrTheme),
         },
         categoryButtonTitleActive: {
-            ...getCategoryButtonTitleStyle(therrTheme),
+            color: therrTheme.colors.brandingWhite,
         },
         categoryButton: {
             ...categoryButtonStyle,
@@ -97,7 +97,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         categoryButtonActive: {
             ...categoryButtonStyle,
-            backgroundColor: therrTheme.colors.primary,
+            backgroundColor: therrTheme.colors.primary3,
             borderWidth: 1,
             borderColor: therrTheme.colors.primary3,
         },

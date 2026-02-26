@@ -15,13 +15,14 @@ const TherrIcon = createIconSetFromIcoMoon(
 
 const keyExtractor = (item) => item.iconId;
 
-const renderCategoryIcon = (category, theme, themeButtons) => {
+const renderCategoryIcon = (category, theme, themeButtons, themeCategory) => {
+    const activeIconColor = themeCategory.styles.categoryIconActive.color;
     const style = {
         ...category.isActive ? themeButtons.styles.quickFiltersButtonIconActive : themeButtons.styles.quickFiltersButtonIcon,
-        color: category.isActive ? themeButtons.styles.quickFiltersButtonIconActive.color : category.iconColor,
+        color: category.isActive ? activeIconColor : category.iconColor,
     };
     const props = {
-        color: category.isActive ? category.iconColor : category.iconColor,
+        color: category.isActive ? activeIconColor : category.iconColor,
         name: category.iconId,
         size: 14,
         style,
@@ -43,15 +44,19 @@ const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategor
     return ({
         item: category,
     }) => {
-        const buttonStyle = category.isActive ? themeButtons.styles.quickFiltersButtonTinyActive : themeButtons.styles.quickFiltersButtonTiny;
+        const buttonStyle = category.isActive
+            ? [themeButtons.styles.quickFiltersButtonTinyActive, themeCategory.styles.categoryButtonActive]
+            : themeButtons.styles.quickFiltersButtonTiny;
         const containerStyle = category.isActive ? themeCategory.styles.categoryButtonContainerActive : themeCategory.styles.categoryButtonContainer;
-        const titleStyle = category.isActive ? themeButtons.styles.quickFiltersButtonTitleActive : themeButtons.styles.quickFiltersButtonTitle;
+        const titleStyle = category.isActive
+            ? [themeButtons.styles.quickFiltersButtonTitleActive, themeCategory.styles.categoryButtonTitleActive]
+            : themeButtons.styles.quickFiltersButtonTitle;
         const titleCapped = category.name.charAt(0).toUpperCase() + category.name.slice(1);
 
         return (
             <Button
                 title={titleCapped}
-                icon={renderCategoryIcon(category, theme, themeButtons)}
+                icon={renderCategoryIcon(category, theme, themeButtons, themeCategory)}
                 iconContainerStyle={{
                     marginRight: 0,
                     paddingRight: 0,

@@ -3,14 +3,16 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 // background-geolocation
-Project background_geolocation = project(':react-native-background-geolocation')
-apply from: "${background_geolocation.projectDir}/app.gradle"
+def background_geolocation_path = "$rootDir/../node_modules/react-native-background-geolocation/android"
+apply from: "${background_geolocation_path}/app.gradle"
 
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
 react {
+    /* Autolinking */
+    autolinkLibrariesWithApp()
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '..'
     // root = file("../")
@@ -120,7 +122,7 @@ android {
             shrinkResources false
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             // background_geolocation requires custom Proguard Rules
-            proguardFiles "${background_geolocation.projectDir}/proguard-rules.pro"
+            proguardFiles "${background_geolocation_path}/proguard-rules.pro"
         }
     }
 }
@@ -129,7 +131,7 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
-    implementation platform('com.google.firebase:firebase-bom:26.8.0')
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-messaging'
@@ -142,8 +144,6 @@ dependencies {
         implementation jscFlavor
     }
 }
-
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
 
 // Font Icons
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

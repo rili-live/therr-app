@@ -6,25 +6,20 @@ require Pod::Executable.execute_command('node', ['-p',
   )', __dir__]).strip
 
 # IOS_VERSION = min_ios_version_supported
-IOS_VERSION = '13.4'
+IOS_VERSION = '15.1'
 
 platform :ios, IOS_VERSION
 prepare_react_native_project!
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
+# Firebase v10+ uses Swift modules, requiring frameworks for proper header generation
+use_frameworks! :linkage => :static
+$RNFirebaseAsStaticFramework = true
 
 target 'Therr' do
   project 'Therr', 'Therr_Debug' => :debug, 'Debug' => :debug, 'Therr_Release' => :release, 'Release' => :release
-  # React Native Maps dependencies
-  # The following line is only needed if building on an Apple silicon Mac without rosetta.
-  # pod 'Google-Maps-iOS-Utils', :git => 'https://github.com/Simon-TechForm/google-maps-ios-utils.git', :branch => 'feat/support-apple-silicon'
+  # React Native Maps with Google Maps support
   rn_maps_path = '../node_modules/react-native-maps'
-  pod 'react-native-google-maps', :path => rn_maps_path
-  pod 'GoogleMaps'
+  pod 'react-native-maps', :path => rn_maps_path, :subspecs => ['Google']
 
   # Google SSO
   pod 'GoogleSignIn', '~> 7.0'
@@ -48,43 +43,25 @@ target 'Therr' do
   pod 'Permission-Notifications', :path => "#{permissions_path}/Notifications"
   pod 'Permission-PhotoLibrary', :path => "#{permissions_path}/PhotoLibrary"
 
-  # Pods for Therr
-  pod 'BVLinearGradient', :path => '../node_modules/react-native-linear-gradient'
-  pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
-  pod 'RCTTypeSafety', :path => "../node_modules/react-native/Libraries/TypeSafety"
-  pod 'React', :path => '../node_modules/react-native/'
-  pod 'React-Core', :path => '../node_modules/react-native/'
-  pod 'React-CoreModules', :path => '../node_modules/react-native/React/CoreModules'
-  pod 'React-Core/DevSupport', :path => '../node_modules/react-native/'
-  pod 'React-RCTActionSheet', :path => '../node_modules/react-native/Libraries/ActionSheetIOS'
-  pod 'React-RCTAnimation', :path => '../node_modules/react-native/Libraries/NativeAnimation'
-  pod 'React-RCTBlob', :path => '../node_modules/react-native/Libraries/Blob'
-  pod 'React-RCTImage', :path => '../node_modules/react-native/Libraries/Image'
-  pod 'React-RCTLinking', :path => '../node_modules/react-native/Libraries/LinkingIOS'
-  pod 'React-RCTNetwork', :path => '../node_modules/react-native/Libraries/Network'
-  pod 'React-RCTSettings', :path => '../node_modules/react-native/Libraries/Settings'
-  pod 'React-RCTText', :path => '../node_modules/react-native/Libraries/Text'
-  pod 'React-RCTVibration', :path => '../node_modules/react-native/Libraries/Vibration'
-  pod 'React-Core/RCTWebSocket', :path => '../node_modules/react-native/'
-  pod 'React-cxxreact', :path => '../node_modules/react-native/ReactCommon/cxxreact'
-  pod 'React-jsi', :path => '../node_modules/react-native/ReactCommon/jsi'
-  pod 'React-jsiexecutor', :path => '../node_modules/react-native/ReactCommon/jsiexecutor'
-  # pod 'React-jsinspector', :path => '../node_modules/react-native/ReactCommon/jsinspector'
-  # pod 'ReactCommon/callinvoker', :path => "../node_modules/react-native/ReactCommon"
-  pod 'ReactCommon/turbomodule/core', :path => "../node_modules/react-native/ReactCommon"
-  pod 'Yoga', :path => '../node_modules/react-native/ReactCommon/yoga', :modular_headers => true
-  pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
-  pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
-  pod 'react-native-blob-util', :path => '../node_modules/react-native-blob-util'
+  # Third-party pods (BVLinearGradient and react-native-blob-util are autolinked)
+  # Firebase pods with modular headers for Swift compatibility
+  pod 'Firebase', :modular_headers => true
   pod 'Firebase/Analytics', :modular_headers => true
   pod 'Firebase/Auth', :modular_headers => true
-  pod 'nanopb', :modular_headers => true
-  pod 'Firebase', :modular_headers => true
-  pod 'GoogleDataTransport', :modular_headers => true
-  pod 'FirebaseInstallations', :modular_headers => true
+  pod 'FirebaseAuth', :modular_headers => true
   pod 'FirebaseCore', :modular_headers => true
   pod 'FirebaseCoreExtension', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
+  pod 'FirebaseInstallations', :modular_headers => true
+  pod 'FirebaseAuthInterop', :modular_headers => true
+  pod 'FirebaseAppCheckInterop', :modular_headers => true
+  pod 'FirebaseCrashlytics', :modular_headers => true
+  pod 'FirebaseMessaging', :modular_headers => true
+  pod 'FirebaseSessions', :modular_headers => true
+  pod 'RecaptchaInterop', :modular_headers => true
+  pod 'GoogleDataTransport', :modular_headers => true
   pod 'GoogleUtilities', :modular_headers => true
+  pod 'nanopb', :modular_headers => true
   
 
   target 'TherrTests' do

@@ -5,7 +5,7 @@
         <item name="android:statusBarColor">@color/therr_blue</item>
     </style>
 
-    <style name="DatePickerTheme" parent="DatePickerBaseTheme">
+    <style name="DatePickerTheme" parent="Theme.AppCompat.Light.Dialog">
         <item name="android:colorControlNormal">@color/therr_blue</item>
         <item name="colorAccent">@color/therr_blue</item>
     </style>

@@ -17,6 +17,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
     const {
         locale,
         userId,
+        userName,
         authorization,
         whiteLabelOrigin,
         brandVariation,
@@ -117,7 +118,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     // Send milestone notification
                     sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                         authorization,
-                        fromUser: { id: userId },
+                        fromUser: { id: userId, userName },
                         locale,
                         toUserId: userId,
                         type: PushNotifications.Types.streakMilestone,
@@ -150,7 +151,7 @@ const createCheckin: RequestHandler = async (req: any, res: any) => {
                     if (partnerId) {
                         sendEmailAndOrPushNotification(Store.users.findUser, req.headers, {
                             authorization,
-                            fromUser: { id: userId },
+                            fromUser: { id: userId, userName },
                             locale,
                             toUserId: partnerId,
                             type: PushNotifications.Types.partnerCheckedIn,

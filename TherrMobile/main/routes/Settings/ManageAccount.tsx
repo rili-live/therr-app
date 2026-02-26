@@ -6,7 +6,7 @@ import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import Toast from 'react-native-toast-message';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
@@ -101,13 +101,13 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
     onDeleteAccountConfirm = () => {
         const { logout, user } = this.props;
 
-        analytics().logEvent('account_delete_start', {
+        logEvent(getAnalytics(),'account_delete_start', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
 
         // TODO: Add are you sure modal and test
         UsersService.delete(user.details.id).then(() => {
-            analytics().logEvent('account_delete_success', {
+            logEvent(getAnalytics(),'account_delete_success', {
                 userId: user.details.id,
             }).catch((err) => console.log(err));
 
@@ -121,7 +121,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                 },
             });
         }).catch((error) => {
-            analytics().logEvent('account_delete_failed', {
+            logEvent(getAnalytics(),'account_delete_failed', {
                 userId: user.details.id,
                 error: error?.message,
             }).catch((err) => console.log(err));

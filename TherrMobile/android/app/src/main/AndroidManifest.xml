@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest
+  xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools">
   <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
   <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
@@ -28,8 +29,6 @@
     android:usesCleartextTraffic="true"
     android:allowBackup="false"
     android:theme="@style/AppTheme">
-
-    <!-- react-native-background-geolocation licence -->
     <meta-data
       android:name="com.transistorsoft.locationmanager.license"
       android:value="7ae51b9238254e95b67105b91d62ee57189cd534ad26a47c73efb2e2cd257b48" />
@@ -47,13 +46,19 @@
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
-      <intent-filter android:autoVerify="true" android:label="@string/filter_view_https_therr">
+      <intent-filter
+        android:autoVerify="true"
+        android:label="@string/filter_view_https_therr">
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
-        <!-- Accepts URIs that begin with "https://www.therr.com" or "https://therr.com" -->
-        <data android:scheme="https" android:host="www.therr.com" />
-        <data android:scheme="https" android:host="therr.com" />
+
+        <data
+          android:scheme="https"
+          android:host="www.therr.com" />
+        <data
+          android:scheme="https"
+          android:host="therr.com" />
       </intent-filter>
       <intent-filter>
         <action android:name="app.therrmobile.ACHIEVEMENT_COMPLETED" />

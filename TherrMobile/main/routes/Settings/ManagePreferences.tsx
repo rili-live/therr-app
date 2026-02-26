@@ -6,7 +6,7 @@ import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
 import Toast from 'react-native-toast-message';
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
@@ -140,7 +140,7 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
             interests,
         })
             .then(() => {
-                analytics().logEvent('account_update_interests', {
+                logEvent(getAnalytics(),'account_update_interests', {
                     userId: this.props.user.details.id,
                 }).catch((err) => console.log(err));
                 Toast.show({
