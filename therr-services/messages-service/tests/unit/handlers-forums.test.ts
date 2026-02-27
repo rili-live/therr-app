@@ -196,10 +196,10 @@ describe('Forums Handler', () => {
                     order: 'desc',
                 },
                 [],
-                { usersInvitedForumIds: [1, 2, 3] },
+                { usersInvitedForumIds: ['1', '2', '3'] },
             );
 
-            expect(searchForumsStub.args[0][2].usersInvitedForumIds).to.deep.equal([1, 2, 3]);
+            expect(searchForumsStub.args[0][2].usersInvitedForumIds).to.deep.equal(['1', '2', '3']);
         });
 
         it('should filter by category tags', async () => {

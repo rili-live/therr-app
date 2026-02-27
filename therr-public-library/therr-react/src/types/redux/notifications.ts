@@ -1,5 +1,3 @@
-import * as Immutable from 'seamless-immutable';
-
 export interface INotification {
   id: number;
   userId: number;
@@ -11,7 +9,7 @@ export interface INotification {
   userConnection?: any;
 }
 
-export interface INotificationsState extends Immutable.ImmutableObject<any> {
+export interface INotificationsState {
   messages: any;
 }
 

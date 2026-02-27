@@ -53,9 +53,9 @@ export interface IUpdateForumParams {
 }
 
 export interface ISearchForumOptions {
-    usersInvitedForumIds?: number[];
+    usersInvitedForumIds?: string[];
     categoryTags?: string[];
-    forumIds?: number[];
+    forumIds?: string[];
 }
 
 export default class ForumsStore {

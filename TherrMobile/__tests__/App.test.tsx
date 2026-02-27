@@ -25,7 +25,8 @@ jest.mock('@react-native-firebase/app', () => ({
 }));
 
 // Mock Firebase analytics
-jest.mock('@react-native-firebase/analytics', () => () => ({
+jest.mock('@react-native-firebase/analytics', () => ({
+    getAnalytics: jest.fn(() => ({})),
     setAnalyticsCollectionEnabled: jest.fn(),
     logEvent: jest.fn(),
     setUserId: jest.fn(),
@@ -162,7 +163,6 @@ describe('App', () => {
         let component: renderer.ReactTestRenderer;
 
         await act(async () => {
-            // @ts-expect-error - React type mismatch between test-renderer and App component
             component = renderer.create(<App />);
         });
 

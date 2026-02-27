@@ -1,7 +1,7 @@
-import Immutable from 'seamless-immutable';
+import { produce } from 'immer';
 import { IUIState, UIActionTypes } from '../../types/redux/ui';
 
-const initialState: IUIState = Immutable.from({
+const initialState: IUIState = {
     prefetch: {
         isLoadingActiveEvents: false,
         isLoadingActiveMoments: false,
@@ -12,34 +12,25 @@ const initialState: IUIState = Immutable.from({
         isLoadingGroups: false,
         isLoadingNotifications: false,
     },
-});
+};
 
-const locations = (state: IUIState = initialState, action: any) => {
-    // If state is initialized by server-side rendering, it may not be a proper immutable object yet
-    if (!state.setIn) {
-        state = state ? Immutable.from(state) : initialState;
-    }
-
+const locations = produce((draft: IUIState, action: any) => {
     switch (action.type) {
         case UIActionTypes.PREFETCH_LOADING:
-            return state.setIn(
-                ['prefetch'],
-                {
-                    ...state.prefetch,
-                    ...action.data,
-                }
-            );
+            draft.prefetch = {
+                ...draft.prefetch,
+                ...action.data,
+            };
+            break;
         case UIActionTypes.PREFETCH_COMPLETE:
-            return state.setIn(
-                ['prefetch'],
-                {
-                    ...state.prefetch,
-                    ...action.data,
-                }
-            );
+            draft.prefetch = {
+                ...draft.prefetch,
+                ...action.data,
+            };
+            break;
         default:
-            return state;
+            break;
     }
-};
+}, initialState);
 
 export default locations;
