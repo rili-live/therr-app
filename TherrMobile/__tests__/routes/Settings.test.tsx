@@ -93,8 +93,11 @@ const defaultProps = {
 describe('Settings', () => {
     describe('Initial State', () => {
         it('should initialize with user details from props', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
             expect(instance.state.inputs.email).toBe('test@example.com');
             expect(instance.state.inputs.firstName).toBe('Test');
@@ -110,22 +113,31 @@ describe('Settings', () => {
                 settings: { ...mockUser.settings, mobileThemeName: 'retro' },
             };
             const props = { ...defaultProps, user: retroUser };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
             expect(instance.state.isNightMode).toBe(true);
         });
 
         it('should initialize ad opt-in from user settings', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
             expect(instance.state.isOptedInToAds).toBe(true);
         });
 
         it('should initialize profile visibility from user settings', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
             expect(instance.state.isProfilePublic).toBe(true);
         });
@@ -133,57 +145,75 @@ describe('Settings', () => {
 
     describe('Form Validation', () => {
         it('should disable form when userName is empty', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('userName', '');
+            act(() => { instance.onInputChange('userName', ''); });
 
             expect(instance.isFormDisabled()).toBe(true);
         });
 
         it('should disable form when firstName is empty', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('firstName', '');
+            act(() => { instance.onInputChange('firstName', ''); });
 
             expect(instance.isFormDisabled()).toBe(true);
         });
 
         it('should disable form when lastName is empty', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('lastName', '');
+            act(() => { instance.onInputChange('lastName', ''); });
 
             expect(instance.isFormDisabled()).toBe(true);
         });
 
         it('should disable form when passwords do not match', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('oldPassword', 'currentpassword');
-            instance.onInputChange('password', 'newpassword123');
-            instance.onInputChange('repeatPassword', 'differentpassword123');
+            act(() => { instance.onInputChange('oldPassword', 'currentpassword'); });
+            act(() => { instance.onInputChange('password', 'newpassword123'); });
+            act(() => { instance.onInputChange('repeatPassword', 'differentpassword123'); });
 
             expect(instance.isFormDisabled()).toBe(true);
         });
 
         it('should enable form when all required fields are filled', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
             expect(instance.isFormDisabled()).toBe(false);
         });
 
         it('should enable form when passwords match', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('oldPassword', 'currentpassword');
-            instance.onInputChange('password', 'NewPassword123!');
-            instance.onInputChange('repeatPassword', 'NewPassword123!');
+            act(() => { instance.onInputChange('oldPassword', 'currentpassword'); });
+            act(() => { instance.onInputChange('password', 'NewPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'NewPassword123!'); });
 
             expect(instance.isFormDisabled()).toBe(false);
         });
@@ -191,45 +221,57 @@ describe('Settings', () => {
 
     describe('Input Handling', () => {
         it('should update state when input changes', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('firstName', 'NewFirstName');
-            instance.onInputChange('lastName', 'NewLastName');
+            act(() => { instance.onInputChange('firstName', 'NewFirstName'); });
+            act(() => { instance.onInputChange('lastName', 'NewLastName'); });
 
             expect(instance.state.inputs.firstName).toBe('NewFirstName');
             expect(instance.state.inputs.lastName).toBe('NewLastName');
         });
 
         it('should sanitize username input', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
             // sanitizeUserName should remove invalid characters
-            instance.onInputChange('userName', 'Test User Name');
+            act(() => { instance.onInputChange('userName', 'Test User Name'); });
 
             // The sanitizer should have been applied
             expect(instance.state.inputs.userName).toBeDefined();
         });
 
         it('should show password error when passwords do not match', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('oldPassword', 'currentpassword');
-            instance.onInputChange('password', 'newpassword');
-            instance.onInputChange('repeatPassword', 'differentpassword');
+            act(() => { instance.onInputChange('oldPassword', 'currentpassword'); });
+            act(() => { instance.onInputChange('password', 'newpassword'); });
+            act(() => { instance.onInputChange('repeatPassword', 'differentpassword'); });
 
             expect(instance.state.passwordErrorMessage).toBeTruthy();
         });
 
         it('should clear password error when passwords match', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('oldPassword', 'currentpassword');
-            instance.onInputChange('password', 'newpassword');
-            instance.onInputChange('repeatPassword', 'newpassword');
+            act(() => { instance.onInputChange('oldPassword', 'currentpassword'); });
+            act(() => { instance.onInputChange('password', 'newpassword'); });
+            act(() => { instance.onInputChange('repeatPassword', 'newpassword'); });
 
             expect(instance.state.passwordErrorMessage).toBe('');
         });
@@ -237,14 +279,17 @@ describe('Settings', () => {
 
     describe('Theme Switching', () => {
         it('should update isNightMode when theme changes', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onThemeChange(true);
+            act(() => { instance.onThemeChange(true); });
 
             expect(instance.state.isNightMode).toBe(true);
 
-            instance.onThemeChange(false);
+            act(() => { instance.onThemeChange(false); });
 
             expect(instance.state.isNightMode).toBe(false);
         });
@@ -252,14 +297,17 @@ describe('Settings', () => {
 
     describe('Privacy Settings', () => {
         it('should update profile visibility setting', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onProfileVisibilitySettingsChange(false);
+            act(() => { instance.onProfileVisibilitySettingsChange(false); });
 
             expect(instance.state.isProfilePublic).toBe(false);
 
-            instance.onProfileVisibilitySettingsChange(true);
+            act(() => { instance.onProfileVisibilitySettingsChange(true); });
 
             expect(instance.state.isProfilePublic).toBe(true);
         });
@@ -267,14 +315,17 @@ describe('Settings', () => {
 
     describe('Reward Settings', () => {
         it('should update ad opt-in setting', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onRewardSettingsChange(false);
+            act(() => { instance.onRewardSettingsChange(false); });
 
             expect(instance.state.isOptedInToAds).toBe(false);
 
-            instance.onRewardSettingsChange(true);
+            act(() => { instance.onRewardSettingsChange(true); });
 
             expect(instance.state.isOptedInToAds).toBe(true);
         });
@@ -284,8 +335,11 @@ describe('Settings', () => {
         it('should call updateUser with correct arguments', async () => {
             const mockUpdateUser = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, updateUser: mockUpdateUser };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
             await act(async () => {
                 instance.onSubmit();
@@ -306,10 +360,13 @@ describe('Settings', () => {
         it('should include theme setting in update', async () => {
             const mockUpdateUser = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, updateUser: mockUpdateUser };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onThemeChange(true);
+            act(() => { instance.onThemeChange(true); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -327,10 +384,13 @@ describe('Settings', () => {
         it('should include privacy settings in update', async () => {
             const mockUpdateUser = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, updateUser: mockUpdateUser };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onProfileVisibilitySettingsChange(false);
+            act(() => { instance.onProfileVisibilitySettingsChange(false); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -348,12 +408,15 @@ describe('Settings', () => {
         it('should include password update when old and new passwords are provided', async () => {
             const mockUpdateUser = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, updateUser: mockUpdateUser };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('oldPassword', 'currentPassword123');
-            instance.onInputChange('password', 'NewPassword123!');
-            instance.onInputChange('repeatPassword', 'NewPassword123!');
+            act(() => { instance.onInputChange('oldPassword', 'currentPassword123'); });
+            act(() => { instance.onInputChange('password', 'NewPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'NewPassword123!'); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -372,11 +435,14 @@ describe('Settings', () => {
         it('should not include password when old password is not provided', async () => {
             const mockUpdateUser = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, updateUser: mockUpdateUser };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('password', 'NewPassword123!');
-            instance.onInputChange('repeatPassword', 'NewPassword123!');
+            act(() => { instance.onInputChange('password', 'NewPassword123!'); });
+            act(() => { instance.onInputChange('repeatPassword', 'NewPassword123!'); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -395,10 +461,13 @@ describe('Settings', () => {
         it('should set isSubmitting during submission', async () => {
             const mockUpdateUser = jest.fn().mockImplementation(() => new Promise(() => {}));
             const props = { ...defaultProps, updateUser: mockUpdateUser };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onSubmit();
+            act(() => { instance.onSubmit(); });
 
             expect(instance.state.isSubmitting).toBe(true);
         });
@@ -406,26 +475,32 @@ describe('Settings', () => {
         it('should not submit when form is disabled', () => {
             const mockUpdateUser = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, updateUser: mockUpdateUser };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('userName', ''); // Make form invalid
+            act(() => { instance.onInputChange('userName', ''); }); // Make form invalid
 
-            instance.onSubmit();
+            act(() => { instance.onSubmit(); });
 
             expect(mockUpdateUser).not.toHaveBeenCalled();
         });
 
         it('should show error toast for insecure password', () => {
             const Toast = require('react-native-toast-message').default;
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('oldPassword', 'currentpassword');
-            instance.onInputChange('password', 'weak'); // Too weak
-            instance.onInputChange('repeatPassword', 'weak');
+            act(() => { instance.onInputChange('oldPassword', 'currentpassword'); });
+            act(() => { instance.onInputChange('password', 'weak'); }); // Too weak
+            act(() => { instance.onInputChange('repeatPassword', 'weak'); });
 
-            instance.onSubmit();
+            act(() => { instance.onSubmit(); });
 
             expect(Toast.show).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -443,8 +518,11 @@ describe('Settings', () => {
                 message: 'Username already taken',
             });
             const props = { ...defaultProps, updateUser: mockUpdateUser };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
             await act(async () => {
                 instance.onSubmit();
@@ -462,8 +540,11 @@ describe('Settings', () => {
             const Toast = require('react-native-toast-message').default;
             const mockUpdateUser = jest.fn().mockRejectedValue({ statusCode: 500 });
             const props = { ...defaultProps, updateUser: mockUpdateUser };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
             await act(async () => {
                 instance.onSubmit();
@@ -481,8 +562,11 @@ describe('Settings', () => {
             const Toast = require('react-native-toast-message').default;
             const mockUpdateUser = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, updateUser: mockUpdateUser };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
             await act(async () => {
                 instance.onSubmit();
@@ -505,7 +589,9 @@ describe('Settings', () => {
                 navigation: { ...defaultProps.navigation, setOptions: mockSetOptions },
             };
 
-            renderer.create(<Settings {...props} />);
+            act(() => {
+                renderer.create(<Settings {...props} />);
+            });
 
             expect(mockSetOptions).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -520,10 +606,13 @@ describe('Settings', () => {
                 ...defaultProps,
                 navigation: { ...defaultProps.navigation, push: mockPush },
             };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.goToManageAccount();
+            act(() => { instance.goToManageAccount(); });
 
             expect(mockPush).toHaveBeenCalledWith('ManageAccount');
         });
@@ -534,10 +623,13 @@ describe('Settings', () => {
                 ...defaultProps,
                 navigation: { ...defaultProps.navigation, push: mockPush },
             };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.goToManageNotifications();
+            act(() => { instance.goToManageNotifications(); });
 
             expect(mockPush).toHaveBeenCalledWith('ManageNotifications');
         });
@@ -548,10 +640,13 @@ describe('Settings', () => {
                 ...defaultProps,
                 navigation: { ...defaultProps.navigation, push: mockPush },
             };
-            const component = renderer.create(<Settings {...props} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...props} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.gotToManagePreferences();
+            act(() => { instance.gotToManagePreferences(); });
 
             expect(mockPush).toHaveBeenCalledWith('ManagePreferences');
         });
@@ -559,10 +654,13 @@ describe('Settings', () => {
 
     describe('Content Settings', () => {
         it('should update shouldHideMatureContent setting', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('shouldHideMatureContent', 'false');
+            act(() => { instance.onInputChange('shouldHideMatureContent', 'false'); });
 
             expect(instance.state.inputs.shouldHideMatureContent).toBe('false');
         });
@@ -570,10 +668,13 @@ describe('Settings', () => {
 
     describe('Bio', () => {
         it('should update bio input', () => {
-            const component = renderer.create(<Settings {...defaultProps} />);
-            const instance = component.getInstance() as Settings;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<Settings {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as Settings;
 
-            instance.onInputChange('settingsBio', 'My updated bio');
+            act(() => { instance.onInputChange('settingsBio', 'My updated bio'); });
 
             expect(instance.state.inputs.settingsBio).toBe('My updated bio');
         });

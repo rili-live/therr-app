@@ -248,7 +248,7 @@ export default new NewFeatureService();
 ## Important Notes
 
 - **Platform agnostic**: Components must work in both React (web) and React Native contexts, or have platform variants
-- **Seamless Immutable**: Redux state uses `seamless-immutable` library
+- **Immer**: Redux reducers use `immer` (curried `produce`) for immutable state updates
 - **Storage abstraction**: Supports localStorage (web) and AsyncStorage (mobile)
 - Changes require rebuilding consuming packages (web, dashboard, mobile)
 

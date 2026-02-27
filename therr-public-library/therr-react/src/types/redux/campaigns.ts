@@ -1,7 +1,6 @@
-import * as Immutable from 'seamless-immutable';
-
-export interface ICampaignsState extends Immutable.ImmutableObject<any> {
+export interface ICampaignsState {
     campaigns: any;
+    searchResults?: any;
 }
 
 export enum CampaignActionTypes {

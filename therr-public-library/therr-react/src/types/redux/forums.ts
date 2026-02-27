@@ -1,14 +1,12 @@
-import * as Immutable from 'seamless-immutable';
-
 export interface IForum {
     roomKey: string;
     sockets: any;
     length: number;
 }
 
-export type IForumsArray = Immutable.ImmutableArray<IForum>;
+export type IForumsArray = IForum[];
 
-export interface IForumsState extends Immutable.ImmutableObject<any> {
+export interface IForumsState {
     activeForums: any;
     forumCategories: any;
     myForumsSearchResults: any;

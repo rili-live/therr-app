@@ -226,19 +226,11 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
         const { isLoading, shouldShowMoreSpaces } = this.state;
         const pageHeaderUser = this.translate('pages.activityGenerator.headers.socialRecommendations');
         // const currentUserImageUri = getUserImageUri(user, 200);
-        // Convert from seamless-immutable arrays to regular arrays before rendering JSX.
-        // seamless-immutable wraps .map()/.slice() results in Immutable(), and React 19's
-        // $$typeof (react.transitional.element) is not recognized by seamless-immutable's
-        // isReactElement check, causing it to try to deeply freeze React fiber nodes.
-        const topConnectionsRaw = map?.activityGeneration?.topConnections;
-        const topConnections = topConnectionsRaw
-            ? Array.from(topConnectionsRaw).map((connection: any) => ({
-                ...connection,
-                isActive: userConnections?.activeConnections?.find((activeC) => activeC.id === connection.user.id),
-            }))
-            : [];
-        const topSpacesRaw = map?.activityGeneration?.topSpaces;
-        const topSpaces: any[] = topSpacesRaw ? Array.from(topSpacesRaw) : [];
+        const topConnections = (map?.activityGeneration?.topConnections || []).map((connection: any) => ({
+            ...connection,
+            isActive: userConnections?.activeConnections?.find((activeC) => activeC.id === connection.user.id),
+        }));
+        const topSpaces: any[] = map?.activityGeneration?.topSpaces || [];
         const topSpacesInView = shouldShowMoreSpaces
             ? topSpaces
             : topSpaces.slice(0, DEFAULT_SPACES_LIST_SIZE);

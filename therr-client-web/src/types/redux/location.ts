@@ -1,6 +1,5 @@
-import Immutable from 'seamless-immutable';
-
-export interface ILocationState extends Immutable.ImmutableObject<any> {
+// eslint-disable-next-line no-shadow
+export interface ILocationState {
     permissions: any;
     settings: any;
     user: any;

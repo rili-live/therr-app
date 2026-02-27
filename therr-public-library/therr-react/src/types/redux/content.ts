@@ -1,6 +1,4 @@
-import * as Immutable from 'seamless-immutable';
-
-export interface IContentState extends Immutable.ImmutableObject<any> {
+export interface IContentState {
     activeEvents: any;
     activeEventsPagination: any;
     bookmarkedEvents: any;
