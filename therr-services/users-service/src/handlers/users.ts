@@ -1022,7 +1022,6 @@ const createOneTimePassword = (req, res) => {
                     email,
                 }))
                 .then(() => sendOneTimePasswordEmail({
-                    subject: '[Forgot Password?] Therr One-Time Password',
                     toAddresses: [email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
@@ -1171,7 +1170,6 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
                     redactUserCreds(user);
 
                     return sendVerificationEmail({
-                        subject: '[Account Verification] Therr User Account',
                         toAddresses: [req.body.email],
                         agencyDomainName: whiteLabelOrigin,
                         brandVariation,

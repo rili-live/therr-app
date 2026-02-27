@@ -5,7 +5,6 @@ import { getHostContext } from '../../constants/hostContext';
 
 export interface ISendSSONewUserConfig {
     charset?: string;
-    subject: string;
     toAddresses: string[];
     agencyDomainName: string;
     brandVariation: string;
@@ -36,5 +35,6 @@ export default (emailParams: ISendSSONewUserConfig, templateParams: ITemplatePar
 
     return sendEmail({
         ...emailParams,
+        subject: `[Account Created] ${contextConfig.brandShortName} One-Time Password`,
     }, htmlConfig);
 };

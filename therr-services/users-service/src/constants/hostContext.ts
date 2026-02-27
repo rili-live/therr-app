@@ -1,13 +1,17 @@
 /**
  * See ../getHostContext.ts in therr-client-web-dashboard for similar logic
  */
+import { BrandVariations } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
+
+const isBrandValid = (brand: string) => Object.values(BrandVariations).includes(brand as BrandVariations);
 
 interface IBrandConfig {
     host: string;
 
     // Branding
     brandName: string;
+    brandShortName: string;
     brandGreeting: string;
     brandGoLinkText: string;
     websiteName: string;
@@ -52,6 +56,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Therr App',
+        brandShortName: 'Therr',
         brandGreeting: 'Hey Therr',
         brandGoLinkText: 'Go Therr',
         websiteName: 'Therr App',
@@ -88,6 +93,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Teem App',
+        brandShortName: 'Teem',
         brandGreeting: 'Hey Teem',
         brandGoLinkText: 'Teem up!',
         websiteName: 'Teem App',
@@ -108,7 +114,7 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#9748FF',
             brandBackgroundLight: '#ffffff',
-            fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@teem-social.com',
+            fromEmail: 'info@teem-social.com',
             fromEmailTitle: 'Teem App',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].hostFull,
             logoRelativePath: 'assets/images/teem-splash-logo-200.png',
@@ -124,6 +130,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Therr for Business',
+        brandShortName: 'Therr for Biz',
         brandGreeting: 'Hey Therr',
         brandGoLinkText: 'Go Therr',
         websiteName: 'Therr for Business',
@@ -159,6 +166,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'Adsly Marketing',
+        brandShortName: 'Adsly,',
         brandGreeting: 'Hello',
         brandGoLinkText: 'Go Adsly',
         websiteName: 'Adsly Marketing',
@@ -194,6 +202,7 @@ const hostContext: IBrandConfigs = {
 
         // Branding
         brandName: 'AppyMeal',
+        brandShortName: 'AppyMeal',
         brandGreeting: 'Hey',
         brandGoLinkText: 'Get Appy',
         websiteName: 'AppyMeal Marketing',
@@ -227,7 +236,13 @@ const hostContext: IBrandConfigs = {
 };
 
 export const getHostContext = (host: string, brandVariation?: string) => {
+    // Mobile or local development
     if (!host) {
+        if (brandVariation && isBrandValid(brandVariation)) {
+            if (brandVariation === BrandVariations.TEEM) {
+                return hostContext['teem-social.com'];
+            }
+        }
         return hostContext['therr.com'];
     }
 
