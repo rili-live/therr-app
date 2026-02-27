@@ -83,7 +83,6 @@ const updatePassword = ({
                         id: userId,
                     })
                     .then(() => sendPasswordChangeEmail({
-                        subject: '[Password Changed] Therr Account Settings',
                         toAddresses: [emailArgs.email],
                         agencyDomainName: whiteLabelOrigin,
                         brandVariation,
