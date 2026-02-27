@@ -47,7 +47,53 @@ import getRoutes, { IRoute } from './routes'; // eslint-disable-line
 const app = express();
 
 if (process.env.NODE_ENV !== 'development') {
-    app.use(helmet());
+    app.use(helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                connectSrc: [
+                    "'self'",
+                    'https://*.therr.com',
+                    'wss://*.therr.com',
+                    // LogRocket
+                    'https://*.lr-in-prod.com',
+                    'https://*.lr-ingest.com',
+                    'https://*.logrocket.io',
+                    'https://*.logrocket.com',
+                    // Google Analytics
+                    'https://*.google-analytics.com',
+                    'https://*.analytics.google.com',
+                    'https://*.googletagmanager.com',
+                ],
+                scriptSrc: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    'https://*.googletagmanager.com',
+                    'https://*.google-analytics.com',
+                    'https://cdn.lr-in-prod.com',
+                    'https://cdn.lr-ingest.com',
+                ],
+                styleSrc: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    'https://fonts.googleapis.com',
+                ],
+                fontSrc: [
+                    "'self'",
+                    'https://fonts.gstatic.com',
+                ],
+                imgSrc: [
+                    "'self'",
+                    'data:',
+                    'https://*.therr.com',
+                    'https://ik.imagekit.io',
+                    'https://*.google-analytics.com',
+                    'https://*.googletagmanager.com',
+                ],
+                workerSrc: ["'self'", 'blob:'],
+            },
+        },
+    }));
 }
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
