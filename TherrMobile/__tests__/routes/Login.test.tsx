@@ -85,49 +85,64 @@ const defaultProps = {
 describe('LoginForm', () => {
     describe('Form Validation', () => {
         it('should disable login button when form is empty', () => {
-            const component = renderer.create(<LoginForm {...defaultProps} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
             expect(instance.isLoginFormDisabled()).toBe(true);
         });
 
         it('should disable login button when only username is provided', () => {
-            const component = renderer.create(<LoginForm {...defaultProps} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
-            instance.onInputChange('userName', 'testuser');
+            act(() => { instance.onInputChange('userName', 'testuser'); });
 
             expect(instance.isLoginFormDisabled()).toBe(true);
         });
 
         it('should disable login button when only password is provided', () => {
-            const component = renderer.create(<LoginForm {...defaultProps} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
-            instance.onInputChange('password', 'testpassword');
+            act(() => { instance.onInputChange('password', 'testpassword'); });
 
             expect(instance.isLoginFormDisabled()).toBe(true);
         });
 
         it('should enable login button when both username and password are provided', () => {
-            const component = renderer.create(<LoginForm {...defaultProps} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
-            instance.onInputChange('userName', 'testuser');
-            instance.onInputChange('password', 'testpassword');
+            act(() => { instance.onInputChange('userName', 'testuser'); });
+            act(() => { instance.onInputChange('password', 'testpassword'); });
 
             expect(instance.isLoginFormDisabled()).toBe(false);
         });
 
         it('should disable login button when submitting', () => {
-            const component = renderer.create(<LoginForm {...defaultProps} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
-            instance.onInputChange('userName', 'testuser');
-            instance.onInputChange('password', 'testpassword');
+            act(() => { instance.onInputChange('userName', 'testuser'); });
+            act(() => { instance.onInputChange('password', 'testpassword'); });
 
             // Simulate submitting state
-            instance.setState({ isSubmitting: true });
+            act(() => { instance.setState({ isSubmitting: true }); });
 
             expect(instance.isLoginFormDisabled()).toBe(true);
         });
@@ -135,25 +150,31 @@ describe('LoginForm', () => {
 
     describe('Input Handling', () => {
         it('should update state when input changes', () => {
-            const component = renderer.create(<LoginForm {...defaultProps} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
-            instance.onInputChange('userName', 'newuser');
-            instance.onInputChange('password', 'newpassword');
+            act(() => { instance.onInputChange('userName', 'newuser'); });
+            act(() => { instance.onInputChange('password', 'newpassword'); });
 
             expect(instance.state.inputs.userName).toBe('newuser');
             expect(instance.state.inputs.password).toBe('newpassword');
         });
 
         it('should clear previous login error when input changes', () => {
-            const component = renderer.create(<LoginForm {...defaultProps} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
             // Set a previous error
-            instance.setState({ prevLoginError: 'Previous error' });
+            act(() => { instance.setState({ prevLoginError: 'Previous error' }); });
 
             // Change input should clear error
-            instance.onInputChange('userName', 'newuser');
+            act(() => { instance.onInputChange('userName', 'newuser'); });
 
             expect(instance.state.prevLoginError).toBe('');
         });
@@ -163,11 +184,14 @@ describe('LoginForm', () => {
         it('should call login with trimmed and lowercased username', async () => {
             const mockLogin = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, login: mockLogin };
-            const component = renderer.create(<LoginForm {...props} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...props} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
-            instance.onInputChange('userName', '  TestUser@Email.COM  ');
-            instance.onInputChange('password', 'password123');
+            act(() => { instance.onInputChange('userName', '  TestUser@Email.COM  '); });
+            act(() => { instance.onInputChange('password', 'password123'); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -185,13 +209,18 @@ describe('LoginForm', () => {
         it('should set isSubmitting to true during submission', async () => {
             const mockLogin = jest.fn().mockImplementation(() => new Promise(() => {})); // Never resolves
             const props = { ...defaultProps, login: mockLogin };
-            const component = renderer.create(<LoginForm {...props} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...props} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
-            instance.onInputChange('userName', 'testuser');
-            instance.onInputChange('password', 'password123');
+            act(() => {
+                instance.onInputChange('userName', 'testuser');
+                instance.onInputChange('password', 'password123');
+            });
 
-            instance.onSubmit();
+            act(() => { instance.onSubmit(); });
 
             expect(instance.state.isSubmitting).toBe(true);
         });
@@ -199,11 +228,16 @@ describe('LoginForm', () => {
         it('should handle 400/401/404 error with invalid credentials message', async () => {
             const mockLogin = jest.fn().mockRejectedValue({ statusCode: 401 });
             const props = { ...defaultProps, login: mockLogin };
-            const component = renderer.create(<LoginForm {...props} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...props} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
-            instance.onInputChange('userName', 'testuser');
-            instance.onInputChange('password', 'wrongpassword');
+            act(() => {
+                instance.onInputChange('userName', 'testuser');
+                instance.onInputChange('password', 'wrongpassword');
+            });
 
             await act(async () => {
                 instance.onSubmit();
@@ -217,11 +251,16 @@ describe('LoginForm', () => {
         it('should handle 500+ server errors', async () => {
             const mockLogin = jest.fn().mockRejectedValue({ statusCode: 500 });
             const props = { ...defaultProps, login: mockLogin };
-            const component = renderer.create(<LoginForm {...props} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...props} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
-            instance.onInputChange('userName', 'testuser');
-            instance.onInputChange('password', 'password123');
+            act(() => {
+                instance.onInputChange('userName', 'testuser');
+                instance.onInputChange('password', 'password123');
+            });
 
             await act(async () => {
                 instance.onSubmit();
@@ -237,8 +276,11 @@ describe('LoginForm', () => {
         it('should handle successful SSO login with verified email', () => {
             const mockLogin = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, login: mockLogin };
-            const component = renderer.create(<LoginForm {...props} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...props} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
             const mockUser = {
                 emailVerified: true,
@@ -252,7 +294,9 @@ describe('LoginForm', () => {
                 profile: { nonce: 'test-nonce' },
             };
 
-            instance.onSSOLoginSuccess('mock-id-token', mockUser, mockAdditionalUserInfo, 'google');
+            act(() => {
+                instance.onSSOLoginSuccess('mock-id-token', mockUser, mockAdditionalUserInfo, 'google');
+            });
 
             expect(mockLogin).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -268,8 +312,11 @@ describe('LoginForm', () => {
         it('should not call login when SSO email is not verified', () => {
             const mockLogin = jest.fn().mockResolvedValue({});
             const props = { ...defaultProps, login: mockLogin };
-            const component = renderer.create(<LoginForm {...props} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...props} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
             const mockUser = {
@@ -277,18 +324,23 @@ describe('LoginForm', () => {
                 email: 'test@example.com',
             };
 
-            instance.onSSOLoginSuccess('mock-id-token', mockUser, {}, 'google');
+            act(() => {
+                instance.onSSOLoginSuccess('mock-id-token', mockUser, {}, 'google');
+            });
 
             expect(mockLogin).not.toHaveBeenCalled();
             consoleSpy.mockRestore();
         });
 
         it('should handle user cancelled SSO gracefully', () => {
-            const component = renderer.create(<LoginForm {...defaultProps} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
             const error = { message: 'The user canceled the sign in request' };
-            instance.onSSOLoginError(error);
+            act(() => { instance.onSSOLoginError(error); });
 
             // Should not show error toast for cancelled requests
             expect(instance.state.isSubmitting).toBe(false);
@@ -296,11 +348,14 @@ describe('LoginForm', () => {
 
         it('should show Apple SSO error toast', () => {
             const Toast = require('react-native-toast-message').default;
-            const component = renderer.create(<LoginForm {...defaultProps} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
             const error = { message: 'com.apple.AuthenticationServices.AuthorizationError' };
-            instance.onSSOLoginError(error);
+            act(() => { instance.onSSOLoginError(error); });
 
             expect(Toast.show).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -311,11 +366,14 @@ describe('LoginForm', () => {
 
         it('should show Google SSO error toast', () => {
             const Toast = require('react-native-toast-message').default;
-            const component = renderer.create(<LoginForm {...defaultProps} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
             const error = { message: 'RNGoogleSignInError: Something went wrong' };
-            instance.onSSOLoginError(error);
+            act(() => { instance.onSSOLoginError(error); });
 
             expect(Toast.show).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -329,8 +387,11 @@ describe('LoginForm', () => {
         it('should navigate to Register when sign up is pressed', () => {
             const mockNavigate = jest.fn();
             const props = { ...defaultProps, navigation: { navigate: mockNavigate } };
-            const component = renderer.create(<LoginForm {...props} />);
-            const tree = component.toJSON();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...props} />);
+            });
+            const tree = component!.toJSON();
 
             // Verify component renders (navigation is handled by button press)
             expect(tree).toBeDefined();
@@ -339,8 +400,11 @@ describe('LoginForm', () => {
         it('should navigate to ForgotPassword when forgot password is pressed', () => {
             const mockNavigate = jest.fn();
             const props = { ...defaultProps, navigation: { navigate: mockNavigate } };
-            const component = renderer.create(<LoginForm {...props} />);
-            const tree = component.toJSON();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...props} />);
+            });
+            const tree = component!.toJSON();
 
             expect(tree).toBeDefined();
         });
@@ -349,19 +413,25 @@ describe('LoginForm', () => {
     describe('Alert Display', () => {
         it('should display user message when provided', () => {
             const props = { ...defaultProps, userMessage: 'Registration successful!' };
-            const component = renderer.create(<LoginForm {...props} />);
-            const tree = component.toJSON();
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...props} />);
+            });
+            const tree = component!.toJSON();
 
             expect(tree).toBeDefined();
         });
 
         it('should display previous login error when set', () => {
-            const component = renderer.create(<LoginForm {...defaultProps} />);
-            const instance = component.getInstance() as LoginForm;
+            let component: renderer.ReactTestRenderer;
+            act(() => {
+                component = renderer.create(<LoginForm {...defaultProps} />);
+            });
+            const instance = component!.getInstance() as LoginForm;
 
-            instance.setState({ prevLoginError: 'Invalid credentials' });
+            act(() => { instance.setState({ prevLoginError: 'Invalid credentials' }); });
 
-            const tree = component.toJSON();
+            const tree = component!.toJSON();
             expect(tree).toBeDefined();
         });
     });
