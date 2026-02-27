@@ -1,12 +1,10 @@
-import * as Immutable from 'seamless-immutable';
-
 export interface IUserConnection {
   id: string;
   phoneNumber: string;
   userName: string;
 }
 
-export interface IUserConnectionsState extends Immutable.ImmutableObject<any> {
+export interface IUserConnectionsState {
   activeConnections: any;
   connections: any;
 }

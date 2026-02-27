@@ -1,5 +1,3 @@
-import * as Immutable from 'seamless-immutable';
-
 export interface IDirectMsg {
     key: number | string;
     fromUserName: string;
@@ -18,15 +16,16 @@ export interface IForumMsg {
     isAnnouncement?: boolean;
 }
 
-export type IForumMsgList = Immutable.ImmutableArray<IForumMsg>;
-export type IForumMsgs = Immutable.ImmutableObject<{[index: string]: IForumMsgList}>;
+export type IForumMsgList = IForumMsg[];
+export type IForumMsgs = {[index: string]: IForumMsgList};
 
-export interface IMessagesState extends Immutable.ImmutableObject<any> {
-    forums: Immutable.ImmutableArray<any>;
+export interface IMessagesState {
+    forums: any[];
     dms: {
         [key: string]: IDirectMsg;
     } | {};
     myDMs: any;
+    myDMsPagination?: any;
     forumMsgs: {
         [key: string]: IForumMsg;
     } | {};

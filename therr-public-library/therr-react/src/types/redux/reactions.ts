@@ -1,6 +1,4 @@
-import * as Immutable from 'seamless-immutable';
-
-export interface IReactionsState extends Immutable.ImmutableObject<any> {
+export interface IReactionsState {
     myEventReactions: any;
     myMomentReactions: any;
     mySpaceReactions: any;
