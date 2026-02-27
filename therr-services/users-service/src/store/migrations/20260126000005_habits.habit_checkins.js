@@ -4,13 +4,16 @@ exports.up = (knex) => knex.schema.withSchema('habits').createTable('habit_check
     // References
     table.uuid('userId').notNullable()
         .references('id').inTable('main.users')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('pactId')
         .references('id').inTable('habits.pacts')
-        .onUpdate('CASCADE').onDelete('SET NULL');
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL');
     table.uuid('habitGoalId').notNullable()
         .references('id').inTable('habits.habit_goals')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
 
     // Scheduling
     table.date('scheduledDate').notNullable(); // The date this checkin is for

@@ -11,7 +11,6 @@ const router = express.Router();
 // For dev testing only
 // router.get('/', (req, res) => {
 //     sendVerificationEmail({
-//         subject: '[Account Verification] Therr User Account',
 //         toAddresses: ['ughxyihcuvcyc@gmail.com'],
 //         agencyDomainName: 'therr.com',
 //     }, {
