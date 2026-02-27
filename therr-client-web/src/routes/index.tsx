@@ -26,12 +26,12 @@ import ViewUser from './ViewUser';
 import EmailPreferences from './EmailPreferences';
 import AppFeedback from './AppFeedback';
 
-export interface IRoute extends RouteObject {
+export type IRoute = RouteObject & {
     access?: IAccess;
     fetchData?: (dispatch: any, params?: { [key: string]: any }) => Promise<any>;
     // Overriding this property allows us to add custom paramaters to React components
     redirectPath?: string;
-}
+};
 
 export interface IRoutePropsConfig {
     onInitMessaging?: any;

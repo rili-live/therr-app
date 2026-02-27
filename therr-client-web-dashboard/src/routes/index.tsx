@@ -27,12 +27,12 @@ import PaymentComplete from './PaymentComplete';
 import CampaignPerformance from './Campaigns/CampaignPerformance';
 import EmailPreferences from './EmailPreferences';
 
-export interface IRoute extends RouteObject {
+export type IRoute = RouteObject & {
     access?: IAccess;
     fetchData?: Function;
     // Overriding this property allows us to add custom paramaters to React components
     redirectPath?: string;
-}
+};
 
 export interface IRoutePropsConfig {
     onInitMessaging?: any;
