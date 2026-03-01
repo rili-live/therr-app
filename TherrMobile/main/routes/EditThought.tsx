@@ -9,7 +9,6 @@ import RNFB from 'react-native-blob-util';
 import { IUserState } from 'therr-react/types';
 import { Categories, Content, FilePaths } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
-import OctIcon from 'react-native-vector-icons/Octicons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import UsersActions from '../redux/actions/UsersActions';
@@ -21,7 +20,6 @@ import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
-import { buildStyles as buildModalStyles } from '../styles/modal';
 import spacingStyles from '../styles/layouts/spacing';
 import {
     youtubeLinkRegex,
@@ -37,7 +35,7 @@ import BaseStatusBar from '../components/BaseStatusBar';
 import { getImagePreviewPath } from '../utilities/areaUtils';
 import { signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
-import BottomSheet from '../components/BottomSheet/BottomSheet';
+import { SheetManager } from 'react-native-actions-sheet';
 import TherrIcon from '../components/TherrIcon';
 
 const { width: viewportWidth } = Dimensions.get('window');
@@ -66,8 +64,6 @@ interface IEditThoughtState {
     errorMsg: string;
     successMsg: string;
     hashtags: string[];
-    isImageBottomSheetVisible: boolean;
-    isVisibilityBottomSheetVisible: boolean;
     inputs: any;
     isSubmitting: boolean;
     previewLinkId?: string;
@@ -93,7 +89,6 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
     private theme = buildStyles();
     private themeAlerts = buildAlertStyles();
     private themeAccentLayout = buildAccentStyles();
-    private themeModal = buildModalStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
 
@@ -117,8 +112,6 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                 hashTags: area?.hashtags || '',
                 maxViews: area?.maxViews,
             },
-            isImageBottomSheetVisible: false,
-            isVisibilityBottomSheetVisible: false,
             isSubmitting: false,
             previewStyleState: {},
             selectedImage: imageDetails || {},
@@ -128,7 +121,6 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
-        this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -345,22 +337,8 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
             this.setState({
                 selectedImage: imageResponse,
                 imagePreviewPath: getImagePreviewPath(imageResponse?.path),
-            }, () => this.toggleImageBottomSheet());
+            });
         }
-    };
-
-    toggleImageBottomSheet = () => {
-        const { isImageBottomSheetVisible } = this.state;
-        this.setState({
-            isImageBottomSheetVisible: !isImageBottomSheetVisible,
-        });
-    };
-
-    toggleVisibilityBottomSheet = () => {
-        const { isVisibilityBottomSheetVisible } = this.state;
-        this.setState({
-            isVisibilityBottomSheetVisible: !isVisibilityBottomSheetVisible,
-        });
     };
 
     onAddImage = (action: string) => {
@@ -391,7 +369,6 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                 throw new Error('permissions denied');
             }
         }).catch((e) => {
-            this.toggleImageBottomSheet();
             // TODO: Handle Permissions denied
             if (e?.message.toLowerCase().includes('cancel')) {
                 console.log('canceled');
@@ -406,8 +383,6 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                 isPublic,
             },
         });
-
-        this.toggleVisibilityBottomSheet();
     };
 
     onSliderChange = (name, value) => {
@@ -456,8 +431,6 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
             successMsg,
             hashtags,
             inputs,
-            isImageBottomSheetVisible,
-            isVisibilityBottomSheetVisible,
         } = this.state;
 
         return (
@@ -519,7 +492,14 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                                     ? this.translate('forms.editThought.buttons.visibilityPublic')
                                     : this.translate('forms.editThought.buttons.visibilityPrivate')}
                                 type="outline"
-                                onPress={this.toggleVisibilityBottomSheet}
+                                onPress={() => SheetManager.show('visibility-picker-sheet', {
+                                    payload: {
+                                        publicText: this.translate('forms.editThought.buttons.visibilityPublic'),
+                                        privateText: this.translate('forms.editThought.buttons.visibilityPrivate'),
+                                        themeForms: this.themeForms,
+                                        onSelect: (isPublic) => this.onSetVisibility(isPublic),
+                                    },
+                                })}
                                 raised={false}
                             />
                             <View style={[this.themeForms.styles.input, spacingStyles.flexRow, spacingStyles.alignCenter]}>
@@ -609,98 +589,6 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                             disabled={this.isFormDisabled()}
                         />
                     </View>
-                    <BottomSheet
-                        isVisible={isVisibilityBottomSheetVisible}
-                        onRequestClose={this.toggleVisibilityBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={[spacingStyles.marginBotMd, spacingStyles.fullWidth]}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editThought.buttons.visibilityPublic'
-                            )}
-                            onPress={() => this.onSetVisibility(true)}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="globe"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editThought.buttons.visibilityPrivate'
-                            )}
-                            onPress={() => this.onSetVisibility(false)}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="people"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
-                    <BottomSheet
-                        isVisible={isImageBottomSheetVisible}
-                        onRequestClose={this.toggleImageBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={[spacingStyles.marginBotMd, spacingStyles.fullWidth]}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editThought.buttons.selectExisting'
-                            )}
-                            onPress={() => this.onAddImage('upload')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="plus"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editThought.buttons.captureNew'
-                            )}
-                            onPress={() => this.onAddImage('camera')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="device-camera"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
                 </SafeAreaView>
             </>
         );

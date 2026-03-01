@@ -11,7 +11,7 @@ import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import RNFB from 'react-native-blob-util';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
@@ -161,8 +161,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { user } = this.props;
 
         if (password && !PasswordRegex.test(password)) {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('pages.settings.alertTitles.insecurePassword'),
                 text2: this.translate(
                     'forms.settings.errorMessages.passwordInsecure'
@@ -206,11 +205,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     requestUserUpdate = (user, updateArgs) => this.props
         .updateUser(user.details.id, updateArgs)
         .then(() => {
-            Toast.show({
-                type: 'success',
+            showToast.success({
                 text1: this.translate('pages.settings.alertTitles.accountUpdated'),
                 text2: this.translate('pages.settings.alertMessages.accountUpdated'),
-                visibilityTime: 2000,
+                duration: 2000,
                 onHide: () => {
                     console.log('TODO: LOGOUT');
                 },
@@ -223,8 +221,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 error.statusCode === 401 ||
                 error.statusCode === 404
             ) {
-                Toast.show({
-                    type: 'errorBig',
+                showToast.error({
                     text1: this.translate('forms.settings.alertTitles.backendErrorMessage'),
                     text2: `${error.message}${
                         error.parameters
@@ -233,8 +230,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                     }`,
                 });
             } else if (error.statusCode >= 500) {
-                Toast.show({
-                    type: 'errorBig',
+                showToast.error({
                     text1: this.translate('forms.settings.alertTitles.backendErrorMessage'),
                     text2: this.translate('forms.settings.backendErrorMessage'),
                 });
@@ -726,13 +722,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 </SafeAreaView>
                 <View style={this.themeMenu.styles.submitButtonContainerFloat}>
                     <Button
-                        buttonStyle={this.themeForms.styles.button}
+                        buttonStyle={this.themeForms.styles.buttonPrimary}
+                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                        titleStyle={this.themeForms.styles.buttonTitle}
+                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         title={this.translate(
                             'forms.settings.buttons.submit'
                         )}
                         onPress={this.onSubmit}
                         disabled={this.isFormDisabled()}
-                        raised={true}
                     />
                 </View>
                 <MainButtonMenu

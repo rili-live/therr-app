@@ -5,7 +5,7 @@ import { bindActionCreators } from 'redux';
 import { Button, Slider, Image } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../utilities/toasts';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState, IContentState } from 'therr-react/types';
 import { ReactionActions, MapActions } from 'therr-react/redux/actions';
@@ -25,7 +25,6 @@ import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmM
 import { buildStyles as buildButtonStyles } from '../styles/buttons';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
-import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
 import userContentStyles from '../styles/user-content';
 import spacingStyles from '../styles/layouts/spacing';
@@ -48,7 +47,7 @@ import { getImagePreviewPath } from '../utilities/areaUtils';
 import { getUserContentUri, signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
 import { sendForegroundNotification, sendTriggerNotification } from '../utilities/pushNotifications';
-import BottomSheet from '../components/BottomSheet/BottomSheet';
+import { SheetManager } from 'react-native-actions-sheet';
 import TherrIcon from '../components/TherrIcon';
 import ConfirmModal from '../components/Modals/ConfirmModal';
 import SpaceRating from '../components/Input/SpaceRating';
@@ -81,9 +80,7 @@ interface IEditMomentState {
     areaId?: string;
     errorMsg: string;
     hashtags: string[];
-    isImageBottomSheetVisible: boolean;
     isInsufficientFundsModalVisible: boolean;
-    isVisibilityBottomSheetVisible: boolean;
     inputs: any;
     isEditingNearbySpaces: boolean;
     isSubmitting: boolean;
@@ -117,7 +114,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildButtonStyles();
     private themeMoments = buildMomentStyles();
-    private themeModal = buildModalStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
 
@@ -153,9 +149,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 spaceId: area?.spaceId && nearbySpaces.find(s => s.id === area?.spaceId) ? area?.spaceId : undefined,
             },
             isEditingNearbySpaces: false,
-            isImageBottomSheetVisible: false,
             isInsufficientFundsModalVisible: false,
-            isVisibilityBottomSheetVisible: false,
             isSubmitting: false,
             nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
             previewStyleState: {},
@@ -168,7 +162,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
-        this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
@@ -365,16 +358,13 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 createOrUpdatePromise
                     .then((response) => {
                         if (!shouldSkipDraftToast) {
-                            Toast.show({
-                                type: 'successBig',
+                            showToast.success({
                                 text1: isDraft
                                     ? this.translate('alertTitles.momentDraftSuccess')
                                     : this.translate('alertTitles.momentCreatedSuccess'),
                                 text2: isDraft
                                     ? this.translate('alertMessages.momentDraftSuccess')
                                     : this.translate('alertMessages.momentCreatedSuccess'),
-                                visibilityTime: 2500,
-                                position: 'top',
                                 onHide: () => {
                                     if (response?.therrCoinRewarded && response?.therrCoinRewarded > 0) {
                                         // TODO: Only send toast if push notifications are disabled
@@ -394,21 +384,17 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                                 ],
                                             },
                                         }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
-                                        Toast.show({
-                                            type: 'success',
+                                        showToast.success({
                                             text1: this.translate('alertTitles.coinsReceived'),
                                             text2: this.translate('alertMessages.coinsReceived', {
                                                 total: response.therrCoinRewarded,
                                             }),
-                                            visibilityTime: 3500,
                                         });
-                                        Toast.show({
-                                            type: 'success',
+                                        showToast.success({
                                             text1: this.translate('alertTitles.coinsReceived'),
                                             text2: this.translate('alertMessages.coinsReceived', {
                                                 total: response.therrCoinRewarded,
                                             }),
-                                            visibilityTime: 3500,
                                         });
                                     }
                                 },
@@ -557,22 +543,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             this.setState({
                 selectedImage: imageResponse,
                 imagePreviewPath: getImagePreviewPath(imageResponse?.path),
-            }, () => this.toggleImageBottomSheet());
+            });
         }
-    };
-
-    toggleImageBottomSheet = () => {
-        const { isImageBottomSheetVisible } = this.state;
-        this.setState({
-            isImageBottomSheetVisible: !isImageBottomSheetVisible,
-        });
-    };
-
-    toggleVisibilityBottomSheet = () => {
-        const { isVisibilityBottomSheetVisible } = this.state;
-        this.setState({
-            isVisibilityBottomSheetVisible: !isVisibilityBottomSheetVisible,
-        });
     };
 
     onAddImage = (action: string) => {
@@ -605,8 +577,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     platform: Platform.OS,
                     userId: user?.details?.id,
                 }).catch((err) => console.log(err));
-                Toast.show({
-                    type: 'errorBig',
+                showToast.error({
                     text1: this.translate('alertTitles.permissionsDenied'),
                     text2: this.translate('alertMessages.cameraOrFilePermissionsDenied'),
                 });
@@ -617,7 +588,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 platform: Platform.OS,
                 userId: user?.details?.id,
             }).catch((err) => console.log(err));
-            this.toggleImageBottomSheet();
             // TODO: Handle Permissions denied
             if (e?.message.toLowerCase().includes('cancel')) {
                 console.log('canceled');
@@ -632,8 +602,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 isPublic,
             },
         });
-
-        this.toggleVisibilityBottomSheet();
     };
 
     onSliderChange = (name, value) => {
@@ -765,7 +733,14 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 style={{ color: this.theme.colors.primary, paddingRight: 8 }}
                             />
                         }
-                        onPress={() => this.toggleImageBottomSheet()}
+                        onPress={() => SheetManager.show('image-picker-sheet', {
+                            payload: {
+                                galleryText: this.translate('forms.editMoment.buttons.selectExisting'),
+                                cameraText: this.translate('forms.editMoment.buttons.captureNew'),
+                                themeForms: this.themeForms,
+                                onSelect: (source) => this.onAddImage(source),
+                            },
+                        })}
                         raised={false}
                     />
                     <Text style={this.theme.styles.sectionDescriptionNote}>
@@ -840,7 +815,14 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             ? this.translate('forms.editMoment.buttons.visibilityPublic')
                             : this.translate('forms.editMoment.buttons.visibilityPrivate')}
                         type="outline"
-                        onPress={this.toggleVisibilityBottomSheet}
+                        onPress={() => SheetManager.show('visibility-picker-sheet', {
+                            payload: {
+                                publicText: this.translate('forms.editMoment.buttons.visibilityPublic'),
+                                privateText: this.translate('forms.editMoment.buttons.visibilityPrivate'),
+                                themeForms: this.themeForms,
+                                onSelect: (isPublic) => this.onSetVisibility(isPublic),
+                            },
+                        })}
                         raised={false}
                         icon={
                             <OctIcon
@@ -973,9 +955,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             previewLinkId,
             previewStyleState,
             isEditingNearbySpaces,
-            isImageBottomSheetVisible,
             isInsufficientFundsModalVisible,
-            isVisibilityBottomSheetVisible,
         } = this.state;
         const continueButtonConfig = this.getContinueButtonConfig();
         const iPadDynamicStyles: any = (Platform.OS === 'ios' && Platform.isPad)
@@ -1078,98 +1058,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             disabled={this.isFormDisabled()}
                         />
                     </View>
-                    <BottomSheet
-                        isVisible={isVisibilityBottomSheetVisible}
-                        onRequestClose={this.toggleVisibilityBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editMoment.buttons.visibilityPublic'
-                            )}
-                            onPress={() => this.onSetVisibility(true)}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="globe"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editMoment.buttons.visibilityPrivate'
-                            )}
-                            onPress={() => this.onSetVisibility(false)}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="people"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
-                    <BottomSheet
-                        isVisible={isImageBottomSheetVisible}
-                        onRequestClose={this.toggleImageBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editMoment.buttons.selectExisting'
-                            )}
-                            onPress={() => this.onAddImage('upload')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="plus"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editMoment.buttons.captureNew'
-                            )}
-                            onPress={() => this.onAddImage('camera')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="device-camera"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
                 </SafeAreaView>
                 <ConfirmModal
                     isVisible={isInsufficientFundsModalVisible}

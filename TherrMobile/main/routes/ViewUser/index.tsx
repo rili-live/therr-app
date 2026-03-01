@@ -26,7 +26,7 @@ import {
 } from 'therr-react/types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TabBar, TabView } from 'react-native-tab-view';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -36,8 +36,6 @@ import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confi
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import { buildStyles as buildModalStyles } from '../../styles/modal';
-import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
 import { buildStyles as buildUserStyles } from '../../styles/user-content/user-display';
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -47,8 +45,8 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 import LazyPlaceholder from './components/LazyPlaceholder';
 import AreaCarousel from '../Areas/AreaCarousel';
 import { isMyContent } from '../../utilities/content';
-import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
-import ThoughtOptionsModal from '../../components/Modals/ThoughtOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
 import { handleAreaReaction, handleThoughtReaction, navToViewContent } from '../../utilities/postViewHelpers';
 import ListEmpty from '../../components/ListEmpty';
 import TherrIcon from '../../components/TherrIcon';
@@ -90,8 +88,6 @@ export interface IViewUserProps extends IStoreProps {
 }
 
 interface IViewUserState {
-    areAreaOptionsVisible: boolean;
-    areThoughtOptionsVisible: boolean;
     confirmModalText: string;
     activeConfirmModal: '' | 'report-user' | 'block-user' | 'remove-connection-request' | 'send-connection-request';
     activeTabIndex: number;
@@ -99,8 +95,6 @@ interface IViewUserState {
     isRefreshingUserMedia: boolean;
     isRefreshingUserMoments: boolean;
     isRefreshingUserThoughts: boolean;
-    selectedArea: any;
-    selectedThought: any;
     tabRoutes: { key: string; title: string }[];
     userInViewsMoments: any[];
     userInViewsThoughts: any[];
@@ -141,8 +135,6 @@ class ViewUser extends React.Component<
     private themeForms = buildFormStyles();
     private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
-    private themeModal = buildModalStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
     private themeUser = buildUserStyles();
 
     constructor(props) {
@@ -165,8 +157,6 @@ class ViewUser extends React.Component<
         }
 
         this.state = {
-            areAreaOptionsVisible: false,
-            areThoughtOptionsVisible: false,
             activeTabIndex,
             confirmModalText: '',
             activeConfirmModal: '',
@@ -174,8 +164,6 @@ class ViewUser extends React.Component<
             isRefreshingUserMedia: false,
             isRefreshingUserMoments: false,
             isRefreshingUserThoughts: false,
-            selectedArea: {},
-            selectedThought: {},
             tabRoutes,
             userInViewsMoments: [],
             userInViewsThoughts: [],
@@ -188,9 +176,6 @@ class ViewUser extends React.Component<
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
-        this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
-        (props.user.settings?.mobileThemeName);
         this.themeUser = buildUserStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
@@ -300,21 +285,27 @@ class ViewUser extends React.Component<
         this.flatListRef?.scrollToOffset({ animated: true, offset: 0 });
     };
 
-    toggleAreaOptions = (area) => {
-        const { areAreaOptionsVisible } = this.state;
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            areThoughtOptionsVisible: false,
-            selectedArea: areAreaOptionsVisible ? {} : area,
-            selectedThought: {},
+    toggleAreaOptions = (displayArea) => {
+        const area = displayArea || {};
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onAreaOptionSelect(type, area),
+            },
         });
     };
 
-    toggleThoughtOptions = (thought) => {
-        const { areThoughtOptionsVisible } = this.state;
-        this.setState({
-            areThoughtOptionsVisible: !areThoughtOptionsVisible,
-            selectedThought: areThoughtOptionsVisible ? {} : thought,
+    toggleThoughtOptions = (displayThought) => {
+        const thought = displayThought || {};
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'thought',
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onThoughtOptionSelect(type, thought),
+            },
         });
     };
 
@@ -457,18 +448,17 @@ class ViewUser extends React.Component<
         navigation.navigate('EditThought', {});
     };
 
-    onAreaOptionSelect = (type: ISelectionType) => {
-        const { selectedArea } = this.state;
+    onAreaOptionSelect = (type: IContentSelectionType, area: any) => {
         const { createOrUpdateEventReaction, createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
 
         if (type === 'getDirections') {
             getDirections({
-                latitude: selectedArea.latitude,
-                longitude: selectedArea.longitude,
-                title: selectedArea.notificationMsg,
+                latitude: area.latitude,
+                longitude: area.longitude,
+                title: area.notificationMsg,
             });
         } else {
-            handleAreaReaction(selectedArea, type, {
+            handleAreaReaction(area, type, {
                 user,
                 createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
@@ -478,11 +468,10 @@ class ViewUser extends React.Component<
         }
     };
 
-    onThoughtOptionSelect = (type: ISelectionType) => {
-        const { selectedThought } = this.state;
+    onThoughtOptionSelect = (type: IContentSelectionType, thought: any) => {
         const { createOrUpdateThoughtReaction, user } = this.props;
 
-        handleThoughtReaction(selectedThought, type, {
+        handleThoughtReaction(thought, type, {
             user,
             createOrUpdateThoughtReaction,
             toggleThoughtOptions: this.toggleThoughtOptions,
@@ -566,10 +555,8 @@ class ViewUser extends React.Component<
                     isPendingConnection: true,
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
         } else if (activeConfirmModal === 'remove-connection-request') {
@@ -740,12 +727,8 @@ class ViewUser extends React.Component<
         const {
             activeTabIndex,
             activeConfirmModal,
-            areThoughtOptionsVisible,
-            areAreaOptionsVisible,
             confirmModalText,
             isLoading,
-            selectedArea,
-            selectedThought,
             tabRoutes,
         } = this.state;
 
@@ -767,7 +750,6 @@ class ViewUser extends React.Component<
                                     onMessageUser={this.onMessageUser}
                                     onReportUser={this.onReportUser}
                                     themeForms={this.themeForms}
-                                    themeModal={this.themeModal}
                                     themeUser={this.themeUser}
                                     translate={this.translate}
                                     user={user}
@@ -817,22 +799,6 @@ class ViewUser extends React.Component<
                             onPress={this.handleEditThought}
                         />
                 }
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={() => this.toggleAreaOptions(selectedArea)}
-                    translate={this.translate}
-                    onSelect={this.onAreaOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                />
-                <ThoughtOptionsModal
-                    isVisible={areThoughtOptionsVisible}
-                    onRequestClose={() => this.toggleThoughtOptions(selectedThought)}
-                    translate={this.translate}
-                    onSelect={this.onThoughtOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                />
                 <ConfirmModal
                     isVisible={!!activeConfirmModal}
                     onCancel={this.onCancelConfirmModal}

@@ -15,7 +15,7 @@ import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { MapsService } from 'therr-react/services';
@@ -323,11 +323,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     claimSpace = () => {
         const { area, translate } = this.props;
         MapsService.claimSpace(area.id).then(() => {
-            Toast.show({
-                type: 'success',
+            showToast.success({
                 text1: translate('alertTitles.requestClaimSent'),
                 text2: translate('alertMessages.requestClaimSent'),
-                visibilityTime: 3500,
             });
         });
     };

@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -111,11 +111,9 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                 userId: user.details.id,
             }).catch((err) => console.log(err));
 
-            Toast.show({
-                type: 'successBig',
+            showToast.success({
                 text1: this.translate('pages.advancedSettings.alertTitles.accountDeleted'),
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeleted'),
-                visibilityTime: 2000,
                 onHide: () => {
                     logout();
                 },
@@ -165,20 +163,16 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
     requestUserUpdate = (user, updateArgs) => this.props
         .updateUser(user.details.id, updateArgs)
         .then(() => {
-            Toast.show({
-                type: 'success',
+            showToast.success({
                 text1: this.translate('pages.advancedSettings.alertTitles.accountDeactived'),
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeactived'),
-                visibilityTime: 3000,
             });
         })
         .catch((error: any) => {
             console.log(error);
-            Toast.show({
-                type: 'error',
+            showToast.error({
                 text1: this.translate('pages.advancedSettings.alertTitles.accountError'),
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeactivedError'),
-                visibilityTime: 3000,
             });
         })
         .finally(() => {

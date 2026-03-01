@@ -20,12 +20,10 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
-import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
 import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
-import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import { buildStyles as buildEventStyles } from '../styles/user-content/areas/viewing';
 import spacingStyles from '../styles/layouts/spacing';
 import userContentStyles from '../styles/user-content';
@@ -34,7 +32,8 @@ import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyContent as checkIsMyEvent, getUserContentUri } from '../utilities/content';
-import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../components/ActionSheet/ContentOptionsSheet';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
 import TherrIcon from '../components/TherrIcon';
@@ -63,7 +62,6 @@ export interface IViewEventProps extends IStoreProps {
 }
 
 interface IViewEventState {
-    areAreaOptionsVisible: boolean;
     errorMsg: string;
     guestCount: string;
     successMsg: string;
@@ -74,7 +72,6 @@ interface IViewEventState {
     fetchedEvent: any;
     previewLinkId?: string;
     previewStyleState: any;
-    selectedEvent: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -97,9 +94,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
     private unsubscribeNavListener;
     private theme = buildStyles();
     private themeAccentLayout = buildAccentStyles();
-    private themeButtons = buildButtonsStyles();
     private themeArea = buildEventStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
     private themeModal = buildModalStyles();
@@ -113,7 +108,6 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         const youtubeMatches = (event.message || '').match(youtubeLinkRegex);
 
         this.state = {
-            areAreaOptionsVisible: false,
             errorMsg: '',
             guestCount: '',
             successMsg: '',
@@ -124,14 +118,11 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
             fetchedEvent: {},
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
-            selectedEvent: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
         this.themeArea = buildEventStyles(props.user.settings?.mobileThemeName, true);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
@@ -282,23 +273,21 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         }
     };
 
-    onEventOptionSelect = (type: ISelectionType) => {
-        const { selectedEvent } = this.state;
-
+    onEventOptionSelect = (type: IContentSelectionType, event: any) => {
         if (type === 'getDirections') {
             getDirections({
-                latitude: selectedEvent.latitude,
-                longitude: selectedEvent.longitude,
-                title: selectedEvent.notificationMsg,
+                latitude: event.latitude,
+                longitude: event.longitude,
+                title: event.notificationMsg,
             });
         } else if (type === 'shareALink') {
             Share.share({
                 message: this.translate('modals.contentOptions.shareLink.messageEvent', {
-                    eventId: selectedEvent.id,
+                    eventId: event.id,
                 }),
-                url: `https://www.therr.com/events/${selectedEvent.id}`,
+                url: `https://www.therr.com/events/${event.id}`,
                 title: this.translate('modals.contentOptions.shareLink.titleEvent', {
-                    eventTitle: selectedEvent.notificationMsg,
+                    eventTitle: event.notificationMsg,
                 }),
             }).then((response) => {
                 if (response.action === Share.sharedAction) {
@@ -316,9 +305,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         } else {
             const requestArgs: any = getReactionUpdateArgs(type);
 
-            this.onUpdateEventReaction(selectedEvent.id, requestArgs).finally(() => {
-                this.toggleAreaOptions();
-            });
+            this.onUpdateEventReaction(event.id, requestArgs);
         }
     };
 
@@ -388,16 +375,21 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
     };
 
     toggleAreaOptions = (displayArea?: any) => {
-        const { areAreaOptionsVisible, fetchedEvent } = this.state;
+        const { fetchedEvent } = this.state;
         const { event } = this.props.route.params;
-        const area = {
+        const area = displayArea || {
             ...event,
             ...fetchedEvent,
         };
 
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedEvent: areAreaOptionsVisible ? {} : (area || displayArea),
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                shouldIncludeShareButton: true,
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onEventOptionSelect(type, area),
+            },
         });
     };
 
@@ -471,7 +463,6 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
 
     render() {
         const {
-            areAreaOptionsVisible,
             fetchedEvent,
             guestCount,
             isAttendingModalVisible,
@@ -647,15 +638,6 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                         </View>
                     }
                 </SafeAreaView>
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={this.toggleAreaOptions}
-                    translate={this.translate}
-                    onSelect={this.onEventOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                    shouldIncludeShareButton={true}
-                />
                 <WrapperModal
                     isVisible={isAttendingModalVisible}
                     onRequestClose={this.onCloseAttendingModal}

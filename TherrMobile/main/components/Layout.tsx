@@ -34,7 +34,7 @@ import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../utilities/toasts';
 import BackgroundGeolocation, {
     Config,
     Subscription,
@@ -682,19 +682,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const route = RootNavigation.getCurrentRoute();
         if (route?.name === 'ViewGroup') {
             this.props.archiveForum(group.id).then(() => {
-                Toast.show({
-                    type: 'info',
+                showToast.info({
                     text1: this.translate('forms.editGroup.archiveSuccess'),
-                    visibilityTime: 2500,
                 });
                 RootNavigation.navigate('Groups', {
                     activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                 });
             }).catch(() =>{
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('forms.editGroup.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
         }
@@ -718,16 +714,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const route = RootNavigation.getCurrentRoute();
         if (route?.name === 'ViewGroup') {
             deleteUserGroup(group.id).then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('alertTitles.exitedGroup'),
-                    visibilityTime: 2500,
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('forms.editGroup.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
             RootNavigation.navigate('Groups', {
@@ -745,16 +737,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             createUserGroup({
                 groupId: group.id,
             }).then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('alertTitles.joinedGroup'),
-                    visibilityTime: 2500,
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('forms.editGroup.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
             RootNavigation.navigate('Groups', {
@@ -780,16 +768,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const route = RootNavigation.getCurrentRoute();
         if (route?.name === 'ViewUser') {
             updateUserConnectionType(userId, type).then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('alertTitles.updated'),
-                    visibilityTime: 2500,
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
         }
@@ -1097,16 +1081,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         },
                         user: user.details,
                     }).then(() => {
-                        Toast.show({
-                            type: 'success',
+                        showToast.success({
                             text1: this.translate('alertTitles.connectionAccepted'),
-                            visibilityTime: 2500,
                         });
                     }).catch(() => {
-                        Toast.show({
-                            type: 'error',
+                        showToast.error({
                             text1: this.translate('alertTitles.backendErrorMessage'),
-                            visibilityTime: 2500,
                         });
                     }).finally(() => {
                         RootNavigation.navigate('ViewUser', routeParams);

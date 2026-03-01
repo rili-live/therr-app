@@ -22,12 +22,13 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locationDisclosure';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 // import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import LocationActions from '../../redux/actions/LocationActions';
@@ -38,7 +39,6 @@ import { SELECT_ALL } from '../../utilities/categories';
 import LazyPlaceholder from './components/LazyPlaceholder';
 import AreaCarousel from './AreaCarousel';
 import { Text } from 'react-native-elements';
-import ThoughtOptionsModal from '../../components/Modals/ThoughtOptionsModal';
 import TherrIcon from '../../components/TherrIcon';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 import { isLocationPermissionGranted } from '../../utilities/requestOSPermissions';
@@ -111,10 +111,6 @@ interface IAreasState {
     isLoadingEvents: boolean;
     isLocationUseDisclosureModalVisible: boolean;
     locationDisclosureAreaType: IAreaType;
-    areAreaOptionsVisible: boolean;
-    areThoughtOptionsVisible: boolean;
-    selectedArea: any;
-    selectedThought: any;
     tabRoutes: { key: string; title: string }[]
 }
 
@@ -172,8 +168,8 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
     private themeButtons = buildButtonsStyles();
     private themeLoader = buildLoaderStyles();
     private themeDisclosure = buildDisclosureStyles();
+    private themeForms = buildFormStyles();
     private themeMenu = buildMenuStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
 
     constructor(props) {
         super(props);
@@ -190,10 +186,6 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             isLoadingEvents: false,
             isLocationUseDisclosureModalVisible: false,
             locationDisclosureAreaType: 'moments',
-            areAreaOptionsVisible: false,
-            areThoughtOptionsVisible: false,
-            selectedArea: {},
-            selectedThought: {},
             tabRoutes: [
                 { key: CAROUSEL_TABS.DISCOVERIES, title: this.translate('menus.headerTabs.discoveries') },
                 { key: CAROUSEL_TABS.EVENTS, title: this.translate('menus.headerTabs.events') },
@@ -207,8 +199,8 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeDisclosure = buildDisclosureStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.loaderId = getRandomLoaderId();
     }
 
@@ -511,18 +503,17 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         });
     };
 
-    onAreaOptionSelect = (type: ISelectionType) => {
-        const { selectedArea } = this.state;
+    onAreaOptionSelect = (type: IContentSelectionType, area: any) => {
         const { createOrUpdateEventReaction, createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
 
         if (type === 'getDirections') {
             getDirections({
-                latitude: selectedArea.latitude,
-                longitude: selectedArea.longitude,
-                title: selectedArea.notificationMsg,
+                latitude: area.latitude,
+                longitude: area.longitude,
+                title: area.notificationMsg,
             });
         } else {
-            handleAreaReaction(selectedArea, type, {
+            handleAreaReaction(area, type, {
                 user,
                 createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
@@ -532,11 +523,10 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         }
     };
 
-    onThoughtOptionSelect = (type: ISelectionType) => {
-        const { selectedThought } = this.state;
+    onThoughtOptionSelect = (type: IContentSelectionType, thought: any) => {
         const { createOrUpdateThoughtReaction, user } = this.props;
 
-        handleThoughtReaction(selectedThought, type, {
+        handleThoughtReaction(thought, type, {
             user,
             createOrUpdateThoughtReaction,
             toggleThoughtOptions: this.toggleThoughtOptions,
@@ -569,23 +559,28 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         }
     };
 
-    toggleAreaOptions = (area) => {
-        const { areAreaOptionsVisible } = this.state;
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            areThoughtOptionsVisible: false,
-            selectedArea: areAreaOptionsVisible ? {} : area,
-            selectedThought: {},
+    toggleAreaOptions = (displayArea) => {
+        const area = displayArea || {};
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                shouldIncludeShareButton: true,
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onAreaOptionSelect(type, area),
+            },
         });
     };
 
-    toggleThoughtOptions = (thought) => {
-        const { areThoughtOptionsVisible } = this.state;
-        this.setState({
-            areAreaOptionsVisible: false,
-            areThoughtOptionsVisible: !areThoughtOptionsVisible,
-            selectedArea: {},
-            selectedThought: areThoughtOptionsVisible ? {} : thought,
+    toggleThoughtOptions = (displayThought) => {
+        const thought = displayThought || {};
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'thought',
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onThoughtOptionSelect(type, thought),
+            },
         });
     };
 
@@ -805,12 +800,8 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         const {
             areCreateActionsVisible,
             activeTabIndex,
-            areAreaOptionsVisible,
-            areThoughtOptionsVisible,
             isLocationUseDisclosureModalVisible,
             locationDisclosureAreaType,
-            selectedThought,
-            selectedArea,
             tabRoutes,
         } = this.state;
         const { navigation, user } = this.props;
@@ -931,22 +922,6 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                         onPress={this.handleCreateMoment}
                     />
                 }
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={() => this.toggleAreaOptions(selectedArea)}
-                    translate={this.translate}
-                    onSelect={this.onAreaOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                />
-                <ThoughtOptionsModal
-                    isVisible={areThoughtOptionsVisible}
-                    onRequestClose={() => this.toggleThoughtOptions(selectedThought)}
-                    translate={this.translate}
-                    onSelect={this.onThoughtOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                />
                 <LocationUseDisclosureModal
                     isVisible={isLocationUseDisclosureModalVisible}
                     translate={this.translate}

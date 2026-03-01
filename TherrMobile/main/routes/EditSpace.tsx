@@ -12,11 +12,10 @@ import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { Categories, Content, FilePaths, IncentiveRewardKeys, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
-import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../utilities/toasts';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
@@ -25,7 +24,6 @@ import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
-import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
 import { buildStyles as buildSearchStyles } from '../styles/modal/typeAhead';
 import userContentStyles from '../styles/user-content';
@@ -48,7 +46,7 @@ import BaseStatusBar from '../components/BaseStatusBar';
 import { addAddressParams, getImagePreviewPath } from '../utilities/areaUtils';
 import { getUserContentUri, signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
-import BottomSheet from '../components/BottomSheet/BottomSheet';
+import { SheetManager } from 'react-native-actions-sheet';
 import TherrIcon from '../components/TherrIcon';
 import SearchTypeAheadResults from '../components/SearchTypeAheadResults';
 
@@ -83,7 +81,6 @@ interface IEditSpaceState {
     errorMsg: string;
     hashtags: string[];
     isAddressDropdownVisible: boolean;
-    isBottomSheetVisible: boolean;
     isEditingIncentives: boolean;
     inputs: any;
     isBusinessAccount: boolean;
@@ -126,7 +123,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     private theme;
     private themeAlerts = buildAlertStyles();
     private themeAccentLayout = buildAccentStyles();
-    private themeModal = buildModalStyles();
     private themeMoments = buildMomentStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
@@ -154,7 +150,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             errorMsg: '',
             hashtags: area?.hashTags ? area?.hashTags?.split(',') : [],
             isAddressDropdownVisible: false,
-            isBottomSheetVisible: false,
             isBusinessAccount,
             isCreatorAccount,
             isEditingIncentives: false,
@@ -184,7 +179,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
-        this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
@@ -458,11 +452,9 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 createOrUpdatePromise
                     .then(() => {
                         if (isBusinessAccount) {
-                            Toast.show({
-                                type: 'success',
+                            showToast.success({
                                 text1: areaId ? this.translate('alertTitles.areaUpdatedSuccess') : this.translate('alertTitles.spaceCreatedSuccess'),
                                 text2: this.translate('alertMessages.spaceUpdatedSuccess'),
-                                visibilityTime: 3500,
                             });
                             logEvent(getAnalytics(),'space_create', {
                                 userId: user.details.id,
@@ -473,11 +465,9 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 category,
                             }).catch((err) => console.log(err));
                         } else {
-                            Toast.show({
-                                type: 'success',
+                            showToast.success({
                                 text1: this.translate('alertTitles.spaceRequestSuccess'),
                                 text2: this.translate('alertMessages.spaceRequestSuccess'),
-                                visibilityTime: 3500,
                             });
                             logEvent(getAnalytics(),'space_request', {
                                 userId: user.details.id,
@@ -718,15 +708,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             this.setState({
                 selectedImage: imageResponse,
                 imagePreviewPath: getImagePreviewPath(imageResponse?.path),
-            }, () => this.toggleBottomSheet());
+            });
         }
-    };
-
-    toggleBottomSheet = () => {
-        const { isBottomSheetVisible } = this.state;
-        this.setState({
-            isBottomSheetVisible: !isBottomSheetVisible,
-        });
     };
 
     onAddImage = (action: string) => {
@@ -757,7 +740,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 throw new Error('permissions denied');
             }
         }).catch((e) => {
-            this.toggleBottomSheet();
             // TODO: Handle Permissions denied
             if (e?.message.toLowerCase().includes('cancel')) {
                 console.log('canceled');
@@ -880,7 +862,14 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 style={{ color: this.theme.colors.primary, paddingRight: 8 }}
                             />
                         }
-                        onPress={() => this.toggleBottomSheet()}
+                        onPress={() => SheetManager.show('image-picker-sheet', {
+                            payload: {
+                                galleryText: this.translate('forms.editSpace.buttons.selectExisting'),
+                                cameraText: this.translate('forms.editSpace.buttons.captureNew'),
+                                themeForms: this.themeForms,
+                                onSelect: (source) => this.onAddImage(source),
+                            },
+                        })}
                         raised={false}
                     />
                     <Text style={this.theme.styles.sectionDescriptionNote}>
@@ -1183,7 +1172,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     render() {
         const { navigation } = this.props;
         const {
-            isBottomSheetVisible,
             isEditingIncentives,
         } = this.state;
         const continueButtonConfig = this.getContinueButtonConfig();
@@ -1241,52 +1229,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             disabled={this.isFormDisabled()}
                         />
                     </View>
-                    <BottomSheet
-                        isVisible={isBottomSheetVisible}
-                        onRequestClose={this.toggleBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editSpace.buttons.selectExisting'
-                            )}
-                            onPress={() => this.onAddImage('upload')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="plus"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editSpace.buttons.captureNew'
-                            )}
-                            onPress={() => this.onAddImage('camera')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="device-camera"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
                 </SafeAreaView>
             </>
         );

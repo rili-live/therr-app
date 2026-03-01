@@ -4,7 +4,7 @@ import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -94,20 +94,17 @@ export class LoginFormComponent extends React.Component<
             // Google SSO User Canceled
             return;
         } else if (err?.message?.includes('com.apple.AuthenticationServices.AuthorizationError')) {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('alertTitles.errorWithAppleSSO'),
                 text2: this.translate('alertMessages.errorWithAppleSSO'),
             });
         } else if (err?.message?.includes('RNGoogleSignInError')) {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('alertTitles.errorWithGoogleSSO'),
                 text2: this.translate('alertMessages.errorWithGoogleSSO'),
             });
         } else {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('alertTitles.backendErrorMessage'),
                 text2: this.translate('alertMessages.backendErrorMessage'),
             });

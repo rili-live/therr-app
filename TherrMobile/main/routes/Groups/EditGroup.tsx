@@ -6,7 +6,7 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { ForumActions } from 'therr-react/redux/actions';
@@ -231,11 +231,9 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                 // TODO: Move success/error alert to group chat page and remove settimeout
                 createOrUpdatePromise
                     .then(() => {
-                        Toast.show({
-                            type: 'successBig',
+                        showToast.success({
                             text1: this.translate('forms.editGroup.backendSuccessHeader'),
                             text2: this.translate('forms.editGroup.backendSuccessMessage'),
-                            visibilityTime: 2500,
                         });
                         logEvent(getAnalytics(),groupId ? 'group_update' : 'group_create', {
                             userId: user.details.id,
@@ -263,14 +261,12 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                         : ''
                                 }`;
                             }
-                            Toast.show({
-                                type: 'errorBig',
+                            showToast.error({
                                 text1: this.translate('alertTitles.backendErrorMessage'),
                                 text2: errorMessage,
                             });
                         } else if (error.statusCode >= 500) {
-                            Toast.show({
-                                type: 'errorBig',
+                            showToast.error({
                                 text1: this.translate('alertTitles.backendErrorMessage'),
                                 text2: this.translate('forms.editGroup.backendErrorMessage'),
                             });

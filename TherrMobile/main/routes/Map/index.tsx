@@ -5,6 +5,7 @@ import MapView from 'react-native-map-clustering';
 import AnimatedOverlay from 'react-native-modal-overlay';
 import { bindActionCreators } from 'redux';
 import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
@@ -761,13 +762,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                     ],
                                 },
                             }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
-                            Toast.show({
-                                type: 'success',
+                            showToast.success({
                                 text1: this.translate('alertTitles.coinsReceived'),
                                 text2: this.translate('alertMessages.coinsReceived', {
                                     total: response?.therrCoinRewarded || '2',
                                 }),
-                                visibilityTime: 2500,
                             });
                         } else {
                             const alertMsg = response?.isMySpace

@@ -19,11 +19,9 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
-import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
-import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/viewing';
 import userContentStyles from '../styles/user-content';
 import { youtubeLinkRegex } from '../constants';
@@ -31,7 +29,8 @@ import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyContent as checkIsMyMoment, getUserContentUri } from '../utilities/content';
-import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../components/ActionSheet/ContentOptionsSheet';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
 import TherrIcon from '../components/TherrIcon';
@@ -57,7 +56,6 @@ export interface IViewMomentProps extends IStoreProps {
 }
 
 interface IViewMomentState {
-    areAreaOptionsVisible: boolean;
     errorMsg: string;
     successMsg: string;
     isDeleting: boolean;
@@ -65,7 +63,6 @@ interface IViewMomentState {
     fetchedMoment: any;
     previewLinkId?: string;
     previewStyleState: any;
-    selectedMoment: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -88,9 +85,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     private unsubscribeNavListener;
     private theme = buildStyles();
     private themeAccentLayout = buildAccentStyles();
-    private themeButtons = buildButtonsStyles();
     private themeArea = buildMomentStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
 
@@ -103,7 +98,6 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         const youtubeMatches = (moment.message || '').match(youtubeLinkRegex);
 
         this.state = {
-            areAreaOptionsVisible: false,
             errorMsg: '',
             successMsg: '',
             isDeleting: false,
@@ -111,14 +105,11 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
             fetchedMoment: {},
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
-            selectedMoment: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
         this.themeArea = buildMomentStyles(props.user.settings?.mobileThemeName, true);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -231,23 +222,21 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         }
     };
 
-    onMomentOptionSelect = (type: ISelectionType) => {
-        const { selectedMoment } = this.state;
-
+    onMomentOptionSelect = (type: IContentSelectionType, moment: any) => {
         if (type === 'getDirections') {
             getDirections({
-                latitude: selectedMoment.latitude,
-                longitude: selectedMoment.longitude,
-                title: selectedMoment.notificationMsg,
+                latitude: moment.latitude,
+                longitude: moment.longitude,
+                title: moment.notificationMsg,
             });
         } else if (type === 'shareALink') {
             Share.share({
                 message: this.translate('modals.contentOptions.shareLink.messageMoment', {
-                    momentId: selectedMoment.id,
+                    momentId: moment.id,
                 }),
-                url: `https://www.therr.com/moments/${selectedMoment.id}`,
+                url: `https://www.therr.com/moments/${moment.id}`,
                 title: this.translate('modals.contentOptions.shareLink.titleMoment', {
-                    momentTitle: selectedMoment.notificationMsg,
+                    momentTitle: moment.notificationMsg,
                 }),
             }).then((response) => {
                 if (response.action === Share.sharedAction) {
@@ -265,9 +254,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         } else {
             const requestArgs: any = getReactionUpdateArgs(type);
 
-            this.onUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
-                this.toggleAreaOptions();
-            });
+            this.onUpdateMomentReaction(moment.id, requestArgs);
         }
     };
 
@@ -337,22 +324,26 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     };
 
     toggleAreaOptions = (displayArea?: any) => {
-        const { areAreaOptionsVisible, fetchedMoment } = this.state;
+        const { fetchedMoment } = this.state;
         const { moment } = this.props.route.params;
-        const area = {
+        const area = displayArea || {
             ...moment,
             ...fetchedMoment,
         };
 
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedMoment: areAreaOptionsVisible ? {} : (area || displayArea),
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                shouldIncludeShareButton: true,
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onMomentOptionSelect(type, area),
+            },
         });
     };
 
     render() {
         const {
-            areAreaOptionsVisible,
             fetchedMoment,
             isDeleting,
             isVerifyingDelete,
@@ -502,15 +493,6 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                         </View>
                     }
                 </SafeAreaView>
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={this.toggleAreaOptions}
-                    translate={this.translate}
-                    onSelect={this.onMomentOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                    shouldIncludeShareButton={true}
-                />
             </>
         );
     }

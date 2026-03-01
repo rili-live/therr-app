@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
 // import { achievementsByClass } from 'therr-js-utilities/config';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -95,13 +95,11 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         const { claimMyAchievement } = this.props;
 
         claimMyAchievement(userAchievement.id, userAchievement.unclaimedRewardPts).then(() => {
-            Toast.show({
-                type: 'success',
+            showToast.success({
                 text1: this.translate('alertTitles.coinsReceived'),
                 text2: this.translate('alertMessages.coinsReceived', {
                     total: userAchievement.unclaimedRewardPts,
                 }),
-                visibilityTime: 2000,
             });
             this.onPressAchievement(userAchievement, true);
         });

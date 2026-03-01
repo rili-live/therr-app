@@ -21,18 +21,17 @@ import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
-import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
-import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import { buildStyles as buildThoughtStyles } from '../styles/user-content/thoughts/viewing';
 // import userContentStyles from '../styles/user-content';
 // import { youtubeLinkRegex } from '../constants';
 import ThoughtDisplay from '../components/UserContent/ThoughtDisplay';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyContent as checkIsMyContent } from '../utilities/content';
-import ThoughtOptionsModal, { ISelectionType } from '../components/Modals/ThoughtOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../components/ActionSheet/ContentOptionsSheet';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import TherrIcon from '../components/TherrIcon';
 import RoundTextInput from '../components/Input/TextInput/Round';
@@ -65,7 +64,6 @@ export interface IViewThoughtProps extends IStoreProps {
 }
 
 interface IViewThoughtState {
-    areThoughtOptionsVisible: boolean;
     errorMsg: string;
     successMsg: string;
     replies: any[],
@@ -76,7 +74,6 @@ interface IViewThoughtState {
     fetchedThought: any;
     // previewLinkId?: string;
     // previewStyleState: any;
-    selectedThought: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -100,9 +97,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
     private replyInput;
     private theme = buildStyles();
     private themeAccentLayout = buildAccentStyles();
-    private themeButtons = buildButtonsStyles();
     private themeThought = buildThoughtStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
 
@@ -115,7 +110,6 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         // const youtubeMatches = (thought.message || '').match(youtubeLinkRegex);
 
         this.state = {
-            areThoughtOptionsVisible: false,
             errorMsg: '',
             replies: [],
             successMsg: '',
@@ -128,14 +122,11 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
             fetchedThought: {},
             // previewStyleState: {},
             // previewLinkId: youtubeMatches && youtubeMatches[1],
-            selectedThought: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
         this.themeThought = buildThoughtStyles(props.user.settings?.mobileThemeName, true);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -244,14 +235,10 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         }
     };
 
-    onThoughtOptionSelect = (type: ISelectionType) => {
-        const { selectedThought } = this.state;
-
+    onThoughtOptionSelect = (type: IContentSelectionType, thought: any) => {
         const requestArgs: any = getReactionUpdateArgs(type);
 
-        this.onUpdateThoughtReaction(selectedThought.id, requestArgs).finally(() => {
-            this.toggleThoughtOptions(selectedThought);
-        });
+        this.onUpdateThoughtReaction(thought.id, requestArgs);
     };
 
     onInputChange = (name: string, value: string) => {
@@ -423,18 +410,21 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         return createOrUpdateThoughtReaction(thoughtId, data, thought.fromUserId, user.details.userName);
     };
 
-    toggleThoughtOptions = (area) => {
-        const { areThoughtOptionsVisible } = this.state;
+    toggleThoughtOptions = (thought: any) => {
+        const selectedThought = thought || {};
 
-        this.setState({
-            areThoughtOptionsVisible: !areThoughtOptionsVisible,
-            selectedThought: areThoughtOptionsVisible ? {} : area,
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'thought',
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onThoughtOptionSelect(type, selectedThought),
+            },
         });
     };
 
     render() {
         const {
-            areThoughtOptionsVisible,
             inputs,
             isDeleting,
             isSubmitting,
@@ -443,7 +433,6 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
             fetchedThought,
             // previewLinkId,
             // previewStyleState,
-            selectedThought,
         } = this.state;
         const { route, user } = this.props;
         const { thought, isMyContent } = route.params;
@@ -633,14 +622,6 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                         </View>
                     }
                 </SafeAreaView>
-                <ThoughtOptionsModal
-                    isVisible={areThoughtOptionsVisible}
-                    onRequestClose={() => this.toggleThoughtOptions(selectedThought)}
-                    translate={this.translate}
-                    onSelect={this.onThoughtOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                />
             </>
         );
     }

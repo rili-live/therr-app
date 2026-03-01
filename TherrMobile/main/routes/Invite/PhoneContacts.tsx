@@ -7,7 +7,7 @@ import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UserConnectionsService } from 'therr-react/services';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
@@ -142,11 +142,9 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
             requestingUserLastName: user.details.lastName,
             inviteList: selectedContacts,
         }).then(() => {
-            Toast.show({
-                type: 'successBig',
+            showToast.success({
                 text1: this.translate('pages.phoneContacts.alertTitles.contactInvitesSent'),
                 text2: this.translate('pages.phoneContacts.alertMessages.contactInvitesSent'),
-                visibilityTime: 3000,
             });
         }).finally(() => {
             navigation.goBack();

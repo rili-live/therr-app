@@ -1,4 +1,4 @@
-import { ISelectionType } from '../components/Modals/AreaOptionsModal';
+import { IContentSelectionType as ISelectionType } from '../components/ActionSheet/ContentOptionsSheet';
 import { isMyContent } from './content';
 import { getReactionUpdateArgs } from './reactions';
 

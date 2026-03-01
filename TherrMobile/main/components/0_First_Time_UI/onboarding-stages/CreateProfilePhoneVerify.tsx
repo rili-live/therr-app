@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { Button }  from 'react-native-elements';
 import { ApiService } from 'therr-react/services';
 import { ErrorCodes } from 'therr-js-utilities/constants';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../../utilities/toasts';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import Alert from '../../Alert';
 import SquareInput from '../../Input/Square';
@@ -85,11 +85,9 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
                 this.setState({
                     isVerifying: true,
                 });
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: translate('alertTitles.codeSent'),
                     text2: translate('alertMessages.codeSent'),
-                    visibilityTime: 2000,
                 });
             })
             .catch((error) => {
@@ -98,14 +96,12 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
                         userId: user?.details?.id,
                         phoneNumber,
                     }).catch((err) => console.log(err));
-                    Toast.show({
-                        type: 'errorBig',
+                    showToast.error({
                         text1: translate('alertTitles.phoneNumberAlreadyInUse'),
                         text2: translate('alertMessages.phoneNumberAlreadyInUse'),
                     });
                 } else if (error?.errorCode === ErrorCodes.INVALID_REGION) {
-                    Toast.show({
-                        type: 'errorBig',
+                    showToast.error({
                         text1: translate('alertTitles.invalidRegionCode'),
                         text2: translate('alertMessages.invalidRegionCode'),
                     });
@@ -114,8 +110,7 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
                         userId: user?.details?.id,
                         phoneNumber,
                     }).catch((err) => console.log(err));
-                    Toast.show({
-                        type: 'errorBig',
+                    showToast.error({
                         text1: translate('alertTitles.backendErrorMessage'),
                         text2: translate('alertMessages.backendErrorMessage'),
                     });
@@ -141,24 +136,20 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
                     platform: 'mobile',
                 }).catch((err) => console.log(err));
                 onSubmit && onSubmit();
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: translate('alertTitles.phoneVerifiedSuccess'),
-                    visibilityTime: 2000,
                 });
             })
             .catch((error) => {
                 if (
                     error.statusCode === 400
                 ) {
-                    Toast.show({
-                        type: 'errorBig',
+                    showToast.error({
                         text1: translate('alertTitles.invalidCode'),
                         text2: translate('alertMessages.invalidCode'),
                     });
                 } else {
-                    Toast.show({
-                        type: 'errorBig',
+                    showToast.error({
                         text1: translate('alertTitles.backendErrorMessage'),
                         text2: translate('alertMessages.backendErrorMessage'),
                     });

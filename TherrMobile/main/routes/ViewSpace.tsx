@@ -11,7 +11,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../utilities/toasts';
 // import { Button }  from 'react-native-elements';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
@@ -32,7 +32,6 @@ import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEdit
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
 import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/viewing';
-import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
 import userContentStyles from '../styles/user-content';
 import spacingStyles from '../styles/layouts/spacing';
 import { youtubeLinkRegex } from '../constants';
@@ -40,7 +39,8 @@ import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyContent as checkIsMySpace, getUserContentUri } from '../utilities/content';
-import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../components/ActionSheet/ContentOptionsSheet';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
 import { MAX_DISTANCE_TO_NEARBY_SPACE } from '../constants';
@@ -76,7 +76,6 @@ export interface IViewSpaceProps extends IStoreProps {
 }
 
 interface IViewSpaceState {
-    areAreaOptionsVisible: boolean;
     errorMsg: string;
     successMsg: string;
     isDeleting: boolean;
@@ -87,7 +86,6 @@ interface IViewSpaceState {
     fetchedSpace: any;
     previewLinkId?: string;
     previewStyleState: any;
-    selectedSpace: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -118,7 +116,6 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     private themeAccentLayout = buildAccentStyles();
     private themeButtons = buildButtonsStyles();
     private themeArea = buildMomentStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
 
@@ -131,7 +128,6 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         const youtubeMatches = (space.message || '').match(youtubeLinkRegex);
 
         this.state = {
-            areAreaOptionsVisible: false,
             errorMsg: '',
             successMsg: '',
             isDeleting: false,
@@ -142,14 +138,12 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             fetchedSpace: {},
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
-            selectedSpace: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeArea = buildMomentStyles(props.user.settings?.mobileThemeName, true);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -308,23 +302,21 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         }
     };
 
-    onSpaceOptionSelect = (type: ISelectionType) => {
-        const { selectedSpace } = this.state;
-
+    onSpaceOptionSelect = (type: IContentSelectionType, space: any) => {
         if (type === 'getDirections') {
             getDirections({
-                latitude: selectedSpace.latitude,
-                longitude: selectedSpace.longitude,
-                title: selectedSpace.notificationMsg,
+                latitude: space.latitude,
+                longitude: space.longitude,
+                title: space.notificationMsg,
             });
         } else if (type === 'shareALink') {
             Share.share({
                 message: this.translate('modals.contentOptions.shareLink.message', {
-                    spaceId: selectedSpace.id,
+                    spaceId: space.id,
                 }),
-                url: `https://www.therr.com/spaces/${selectedSpace.id}`,
+                url: `https://www.therr.com/spaces/${space.id}`,
                 title: this.translate('modals.contentOptions.shareLink.title', {
-                    spaceTitle: selectedSpace.notificationMsg,
+                    spaceTitle: space.notificationMsg,
                 }),
             }).then((response) => {
                 if (response.action === Share.sharedAction) {
@@ -342,9 +334,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         } else {
             const requestArgs: any = getReactionUpdateArgs(type);
 
-            this.onUpdateSpaceReaction(selectedSpace.id, requestArgs).finally(() => {
-                this.toggleAreaOptions();
-            });
+            this.onUpdateSpaceReaction(space.id, requestArgs);
         }
     };
 
@@ -466,16 +456,21 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     };
 
     toggleAreaOptions = (displayArea?: any) => {
-        const { areAreaOptionsVisible, fetchedSpace } = this.state;
+        const { fetchedSpace } = this.state;
         const { space } = this.props.route.params;
-        const area = {
+        const area = displayArea || {
             ...space,
             ...fetchedSpace,
         };
 
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedSpace: areAreaOptionsVisible ? {} : (area || displayArea),
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                shouldIncludeShareButton: true,
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onSpaceOptionSelect(type, area),
+            },
         });
     };
 
@@ -534,8 +529,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                         },
                     });
                 } else {
-                    Toast.show({
-                        type: 'warnBig',
+                    showToast.warn({
                         text1: this.translate('alertTitles.walkCloser'),
                         text2: this.translate('alertMessages.walkCloser'),
                     });
@@ -691,7 +685,6 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
 
     render() {
         const {
-            areAreaOptionsVisible,
             isDeleting,
             isVerifyingDelete,
             isViewingIncentives,
@@ -881,15 +874,6 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                         </View>
                     }
                 </SafeAreaView>
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={this.toggleAreaOptions}
-                    translate={this.translate}
-                    onSelect={this.onSpaceOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                    shouldIncludeShareButton={true}
-                />
             </>
         );
     }
