@@ -4,6 +4,7 @@ import ActionSheet, { SheetProps } from 'react-native-actions-sheet';
 import { Button } from 'react-native-elements';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import spacingStyles from '../../styles/layouts/spacing';
+import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 import TherrIcon from '../TherrIcon';
 
 const GroupSheet = (props: SheetProps<'group-sheet'>) => {
@@ -14,6 +15,7 @@ const GroupSheet = (props: SheetProps<'group-sheet'>) => {
                 spacingStyles.alignStart,
                 spacingStyles.marginTopMd,
                 spacingStyles.marginBotLg,
+                { paddingBottom: bottomSafeAreaInset },
             ]}>
                 <Text numberOfLines={1} style={[
                     spacingStyles.fullWidth,

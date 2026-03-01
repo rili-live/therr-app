@@ -4,6 +4,7 @@ import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-shee
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import spacingStyles from '../../styles/layouts/spacing';
+import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 
 export interface IUserProfileAction {
     id: string;
@@ -23,6 +24,7 @@ const UserProfileSheet = (props: SheetProps<'user-profile-sheet'>) => {
                 spacingStyles.alignStart,
                 spacingStyles.marginTopMd,
                 spacingStyles.marginBotLg,
+                { paddingBottom: bottomSafeAreaInset },
             ]}>
                 {actions.map((item) => (
                     <Button

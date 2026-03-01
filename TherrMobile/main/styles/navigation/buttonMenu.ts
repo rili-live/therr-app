@@ -1,10 +1,13 @@
 import { Platform, StyleSheet } from 'react-native';
+import { initialWindowMetrics } from 'react-native-safe-area-context';
 import { IMobileThemeName } from 'therr-react/types';
 import { therrFontFamily } from '../font';
 import { getTheme, ITherrTheme } from '../themes';
 
-export const buttonMenuHeight = Platform.OS === 'ios' ? 80 : 60;
-export const buttonMenuHeightCompact = 48;
+export const bottomSafeAreaInset = initialWindowMetrics?.insets.bottom || 0;
+const buttonMenuContentHeight = Platform.OS === 'ios' ? 80 : 60;
+export const buttonMenuHeight = buttonMenuContentHeight + bottomSafeAreaInset;
+export const buttonMenuHeightCompact = 48 + bottomSafeAreaInset;
 
 const buttonStyle: any = {
     backgroundColor: 'transparent',
@@ -112,6 +115,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             width: '100%',
             alignSelf: 'flex-end',
             flexDirection: 'row',
+            paddingBottom: bottomSafeAreaInset,
             marginTop: 100,
             backgroundColor: therrTheme.colors.primary,
             // backgroundColor: therrTheme.colorVariations.backgroundCreamLighten,

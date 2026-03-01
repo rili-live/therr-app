@@ -4,6 +4,7 @@ import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-shee
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import spacingStyles from '../../styles/layouts/spacing';
+import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 
 export type IContentSelectionType = 'getDirections' | 'shareALink' | 'like' | 'superLike' | 'dislike' | 'superDislike' | 'report' | 'delete';
 
@@ -35,6 +36,7 @@ const ContentOptionsSheet = (props: SheetProps<'content-options-sheet'>) => {
                 spacingStyles.alignStart,
                 spacingStyles.marginTopMd,
                 spacingStyles.marginBotLg,
+                { paddingBottom: bottomSafeAreaInset },
             ]}>
                 {options.map((option) => (
                     <Button

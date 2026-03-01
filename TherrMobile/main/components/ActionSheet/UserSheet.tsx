@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import ActionSheet, { SheetProps } from 'react-native-actions-sheet';
 import { Button } from 'react-native-elements';
 import spacingStyles from '../../styles/layouts/spacing';
+import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 import TherrIcon from '../TherrIcon';
 
 const UserSheet = (props: SheetProps<'user-sheet'>) => {
@@ -13,6 +14,7 @@ const UserSheet = (props: SheetProps<'user-sheet'>) => {
                 spacingStyles.alignStart,
                 spacingStyles.marginTopMd,
                 spacingStyles.marginBotLg,
+                { paddingBottom: bottomSafeAreaInset },
             ]}>
                 <Text numberOfLines={1} style={[
                     spacingStyles.fullWidth,

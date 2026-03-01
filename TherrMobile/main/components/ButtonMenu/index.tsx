@@ -3,7 +3,6 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { View } from 'react-native';
 import 'react-native-gesture-handler';
-import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { INotificationsState } from 'therr-react/types';
 import LocationActions from '../../redux/actions/LocationActions';
 import { ILocationState } from '../../types/redux/location';
@@ -96,18 +95,11 @@ export class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuSta
         const containerHeight = isCompact ? buttonMenuHeightCompact : buttonMenuHeight;
 
         return (
-            <SafeAreaInsetsContext.Consumer>
-                {(insets) => {
-                    const bottomInset = insets?.bottom || 0;
-                    return (
-                        <View style={[themeMenu.styles.container, overrideStyles, { height: containerHeight + bottomInset, paddingBottom: bottomInset }]}>
-                            <View style={themeMenu.styles.containerInner}>
-                                {this.props.children}
-                            </View>
-                        </View>
-                    );
-                }}
-            </SafeAreaInsetsContext.Consumer>
+            <View style={[themeMenu.styles.container, overrideStyles, { height: containerHeight }]}>
+                <View style={themeMenu.styles.containerInner}>
+                    {this.props.children}
+                </View>
+            </View>
         );
     }
 }

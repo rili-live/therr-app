@@ -4,6 +4,7 @@ import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-shee
 import { Button } from 'react-native-elements';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import spacingStyles from '../../styles/layouts/spacing';
+import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 
 const VisibilityPickerSheet = (props: SheetProps<'visibility-picker-sheet'>) => {
     const { payload } = props;
@@ -16,6 +17,7 @@ const VisibilityPickerSheet = (props: SheetProps<'visibility-picker-sheet'>) => 
                 spacingStyles.marginTopMd,
                 spacingStyles.marginBotLg,
                 spacingStyles.padHorizMd,
+                { paddingBottom: bottomSafeAreaInset },
             ]}>
                 <Button
                     containerStyle={{ marginBottom: 10, width: '100%' }}

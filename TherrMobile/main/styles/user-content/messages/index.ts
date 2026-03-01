@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { bottomSafeAreaInset } from '../../navigation/buttonMenu';
 import { getTheme, ITherrTheme } from '../../themes';
 
 const containerStyles: any = {
@@ -73,8 +74,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             width: '100%',
             alignItems: 'center',
             justifyContent: 'center',
-            paddingVertical: 12,
-            height: 80,
+            paddingTop: 12,
+            paddingBottom: 12 + bottomSafeAreaInset,
+            height: 80 + bottomSafeAreaInset,
         },
         userImage: {
             // color: therrTheme.colors.primary3,
