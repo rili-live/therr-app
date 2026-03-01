@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Avatar, Button, ListItem } from 'react-native-elements';
+import { Button } from '../../../components/BaseButton';
+import { Avatar, ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
 import { getUserImageUri } from '../../../utilities/content';

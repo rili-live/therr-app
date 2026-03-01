@@ -1,6 +1,6 @@
 import React from 'react';
 import { Platform, Share, View, KeyboardAvoidingView, Text } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../../components/BaseButton';
 // import { Picker as ReactPicker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';

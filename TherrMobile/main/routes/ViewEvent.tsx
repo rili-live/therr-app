@@ -3,13 +3,13 @@ import {
     Dimensions,
     SafeAreaView,
     Share,
+    Text,
     View,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Text } from 'react-native-elements';
+import { Button } from '../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import { Button }  from 'react-native-elements';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
@@ -38,7 +38,7 @@ import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
 import TherrIcon from '../components/TherrIcon';
 import WrapperModal from '../components/Modals/WrapperModal';
-import { Switch } from 'react-native';
+import { Switch } from 'react-native-paper';
 import RoundInput from '../components/Input/Round';
 // import AccentInput from '../components/Input/Accent';
 
@@ -672,9 +672,7 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                                     spacingStyles.marginLtLg,
                                     spacingStyles.marginRtLg,
                                 ]}
-                                trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
-                                thumbColor={myReaction?.attendingCount > 0 ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
-                                ios_backgroundColor={this.theme.colors.primary4}
+                                color={this.theme.colors.primary3}
                                 onValueChange={this.onAttendingChange}
                                 value={myReaction?.attendingCount > 0}
                             />

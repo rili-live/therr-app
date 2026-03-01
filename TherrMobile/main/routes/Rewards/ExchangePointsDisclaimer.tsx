@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView, View, Text } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';

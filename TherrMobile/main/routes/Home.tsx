@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button } from '../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';

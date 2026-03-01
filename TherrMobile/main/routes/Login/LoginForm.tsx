@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Platform, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';

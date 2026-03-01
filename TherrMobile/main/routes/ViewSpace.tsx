@@ -9,10 +9,9 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button } from '../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { showToast } from '../utilities/toasts';
-// import { Button }  from 'react-native-elements';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, Text, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';

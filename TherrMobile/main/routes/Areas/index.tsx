@@ -1,6 +1,6 @@
 import React from 'react';
-import { Dimensions, Platform, SafeAreaView, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Dimensions, Platform, SafeAreaView, Text, View } from 'react-native';
+import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -38,7 +38,6 @@ import getDirections from '../../utilities/getDirections';
 import { SELECT_ALL } from '../../utilities/categories';
 import LazyPlaceholder from './components/LazyPlaceholder';
 import AreaCarousel from './AreaCarousel';
-import { Text } from 'react-native-elements';
 import TherrIcon from '../../components/TherrIcon';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 import { isLocationPermissionGranted } from '../../utilities/requestOSPermissions';

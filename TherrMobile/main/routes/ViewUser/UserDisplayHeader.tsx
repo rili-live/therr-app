@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Text, View, Pressable, Share, Platform } from 'react-native';
-import { Button, Image } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
+import { Image } from 'react-native-elements';
 import { SheetManager } from 'react-native-actions-sheet';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';

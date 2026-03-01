@@ -2,7 +2,7 @@ import React from 'react';
 import { Dimensions, Pressable, SafeAreaView, Keyboard, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button } from '../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';

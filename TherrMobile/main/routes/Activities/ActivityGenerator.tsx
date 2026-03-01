@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text, Pressable, Dimensions } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import { ContentActions, MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import {

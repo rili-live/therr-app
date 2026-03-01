@@ -2,7 +2,7 @@ import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';
 import { CAROUSEL_TABS } from '../../constants';
 import { ITherrThemeColors } from '../../styles/themes';

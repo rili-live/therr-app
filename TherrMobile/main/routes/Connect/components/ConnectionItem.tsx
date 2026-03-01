@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Avatar, Badge, ListItem } from 'react-native-elements';
+import { Avatar, ListItem } from 'react-native-elements';
+import { Badge } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { getUserImageUri } from '../../../utilities/content';
 import { ITherrThemeColors } from '../../../styles/themes';
@@ -53,10 +54,12 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
             {
                 isActive ?
                     <Badge
-                        badgeStyle={{ backgroundColor: theme.colors.accentLime }}
+                        size={12}
+                        style={{ backgroundColor: theme.colors.accentLime }}
                     /> :
                     <Badge
-                        badgeStyle={{ backgroundColor: theme.colors.accentDivider }}
+                        size={12}
+                        style={{ backgroundColor: theme.colors.accentDivider }}
                     />
             }
         </ListItem>

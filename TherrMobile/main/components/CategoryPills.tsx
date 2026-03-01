@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Badge } from 'react-native-elements';
+import { Chip } from 'react-native-paper';
 import { ITherrThemeColors } from '../styles/themes';
 import spacingStyles from '../styles/layouts/spacing';
 
@@ -24,34 +24,39 @@ const CategoryPills = ({ filters, onPillPress, themeForms }: ICategoryPills) => 
             <View style={{ width: '100%', marginBottom: 10 }}>
                 {
                     [filters.filtersCategory[0]].map((category) => (
-                        <Badge
+                        <Chip
                             key={category.name}
-                            value={category.title}
+                            mode={category.isChecked ? 'flat' : 'outlined'}
                             textStyle={[(category.isChecked ? themeForms.styles.buttonPillTitleInvert : themeForms.styles.buttonPillTitle), { fontSize: 15 }]}
-                            badgeStyle={[
+                            style={[
                                 (category.isChecked ? themeForms.styles.buttonPillInvert : themeForms.styles.buttonPill),
-                                { height: 25, width: '100%' },
+                                themeForms.styles.buttonPillContainer,
+                                spacingStyles.fullWidth,
+                                { height: 25 },
                             ]}
-                            containerStyle={[themeForms.styles.buttonPillContainer, spacingStyles.fullWidth]}
                             onPress={() => onPillPress('categoryFilters', 0, true)}
-                        />
+                        >
+                            {category.title}
+                        </Chip>
                     ))
                 }
             </View>
             <View style={{ width: '100%', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly' }}>
                 {
                     filters.filtersCategory.slice(1, filters.filtersCategory.length).map((category, index) => (
-                        <Badge
+                        <Chip
                             key={category.name}
-                            value={category.title}
+                            mode={category.isChecked ? 'flat' : 'outlined'}
                             textStyle={[(category.isChecked ? themeForms.styles.buttonPillTitleInvert : themeForms.styles.buttonPillTitle), { fontSize: 14 }]}
-                            badgeStyle={[
+                            style={[
                                 (category.isChecked ? themeForms.styles.buttonPillInvert : themeForms.styles.buttonPill),
-                                { height: 25, width: '100%' },
+                                themeForms.styles.buttonPillContainer,
+                                { height: 25 },
                             ]}
-                            containerStyle={themeForms.styles.buttonPillContainer}
                             onPress={() => onPillPress('categoryFilters', index + 1, false)}
-                        />
+                        >
+                            {category.title}
+                        </Chip>
                     ))
                 }
             </View>

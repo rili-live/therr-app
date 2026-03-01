@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
-import { Button, Text } from 'react-native-elements';
+import { Text, View } from 'react-native';
+import { Button } from '../../../components/BaseButton';
 import LottieView from 'lottie-react-native';
 import UserSearchItem from './UserSearchItem';
 import spacingStyles from '../../../styles/layouts/spacing';

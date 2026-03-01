@@ -1,8 +1,7 @@
 import React from 'react';
-import { Dimensions, Platform } from 'react-native';
+import { Dimensions, Platform, TextInputProps } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { InputProps } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { IMapState as IMapReduxState } from 'therr-react/types';
 import DeviceInfo from 'react-native-device-info';
@@ -18,7 +17,7 @@ const { width: screenWidth } = Dimensions.get('window');
 interface IHeaderSearchUsersInputState {
     inputText: string;
 }
-interface IHeaderSearchUsersInputDispatchProps extends Omit<InputProps, 'ref'> {
+interface IHeaderSearchUsersInputDispatchProps extends Omit<TextInputProps, 'ref'> {
     searchUsers: Function;
 }
 

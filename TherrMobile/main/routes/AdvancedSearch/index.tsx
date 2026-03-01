@@ -13,7 +13,7 @@ import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import CategoryPills from '../../components/CategoryPills';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import TherrIcon from '../../components/TherrIcon';
 import { getInitialCategoryFilters } from '../../utilities/getInitialFilters';
 

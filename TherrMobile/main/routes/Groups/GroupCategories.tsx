@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, FlatList } from 'react-native';
-import  { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';

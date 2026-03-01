@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../../components/BaseButton';
 import 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import LottieView from 'lottie-react-native';

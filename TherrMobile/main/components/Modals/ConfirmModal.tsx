@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, Modal, Pressable, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../BaseButton';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView } from 'react-native-gesture-handler';
 import { ITherrThemeColors } from '../../styles/themes';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from 'react-native-elements';
+import { Button } from '../BaseButton';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import spacingStyles from '../../styles/layouts/spacing';
 

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
-import { Button, Text } from 'react-native-elements';
+import { Pressable, Text, View } from 'react-native';
+import { Button } from '../../BaseButton';
 import { ITherrThemeColors } from '../../../styles/themes';
 import spacingStyles from '../../../styles/layouts/spacing';
 import searchLoading from '../../../assets/search-loading.json';

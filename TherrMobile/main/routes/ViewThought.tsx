@@ -7,9 +7,8 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button } from '../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import { Button }  from 'react-native-elements';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions } from 'therr-react/redux/actions';

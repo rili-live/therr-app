@@ -1,6 +1,8 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Avatar, Badge, Button, ListItem } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
+import { Avatar, ListItem } from 'react-native-elements';
+import { Badge } from 'react-native-paper';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -98,9 +100,10 @@ export default ({
             {
                 isUserInGroup && unreadMsgCount > 0 &&
                     <Badge
-                        badgeStyle={{ backgroundColor: theme.colors.brandingRed }}
-                        value={unreadMsgCount}
-                    />
+                        style={{ backgroundColor: theme.colors.brandingRed }}
+                    >
+                        {unreadMsgCount}
+                    </Badge>
             }
             <View>
                 {

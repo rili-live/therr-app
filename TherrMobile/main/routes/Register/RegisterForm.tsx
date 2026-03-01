@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Linking, Platform, View } from 'react-native';
-import { Button, Text } from 'react-native-elements';
+import { Linking, Platform, Text, View } from 'react-native';
+import { Button } from '../../components/BaseButton';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';

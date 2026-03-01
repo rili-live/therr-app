@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlatList, SafeAreaView } from 'react-native';
 import 'react-native-gesture-handler';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';

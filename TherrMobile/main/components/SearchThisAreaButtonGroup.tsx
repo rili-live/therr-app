@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from './BaseButton';
 import searchLoading from '../assets/search-loading.json';
 import LottieView from 'lottie-react-native';
 

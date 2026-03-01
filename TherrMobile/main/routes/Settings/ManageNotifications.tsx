@@ -1,6 +1,7 @@
 import React from 'react';
-import { SafeAreaView, View, Text, Switch } from 'react-native';
-import { Button } from 'react-native-elements';
+import { SafeAreaView, View, Text } from 'react-native';
+import { Switch } from 'react-native-paper';
+import { Button } from '../../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -76,9 +77,7 @@ const NotificationSettingSwitch = ({
                     spacingStyles.marginLtLg,
                     spacingStyles.marginRtLg,
                 ]}
-                trackColor={{ false: theme.colors.primary2, true: theme.colors.primary4 }}
-                thumbColor={true ? theme.colors.primary3 : theme.colorVariations.primary3Fade}
-                ios_backgroundColor={theme.colors.primary4}
+                color={theme.colors.primary3}
                 onValueChange={onChange}
                 value={value}
                 disabled={disabled}

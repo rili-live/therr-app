@@ -1,7 +1,8 @@
 import React from 'react';
-import { SafeAreaView, Switch, View, Text } from 'react-native';
+import { SafeAreaView, View, Text } from 'react-native';
+import { Switch } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Button }  from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
@@ -393,9 +394,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     >
                                         <Switch
                                             style={this.themeForms.styles.switchButton}
-                                            trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
-                                            thumbColor={isProfilePublic ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
-                                            ios_backgroundColor={this.theme.colors.primary4}
+                                            color={this.theme.colors.primary3}
                                             onValueChange={this.onProfileVisibilitySettingsChange}
                                             value={isProfilePublic}
                                         />
@@ -424,9 +423,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     >
                                         <Switch
                                             style={this.themeForms.styles.switchButton}
-                                            trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
-                                            thumbColor={isOptedInToAds ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
-                                            ios_backgroundColor={this.theme.colors.primary4}
+                                            color={this.theme.colors.primary3}
                                             onValueChange={this.onRewardSettingsChange}
                                             value={isOptedInToAds}
                                         />
@@ -455,9 +452,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     >
                                         <Switch
                                             style={this.themeForms.styles.switchButton}
-                                            trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
-                                            thumbColor={isNightMode ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
-                                            ios_backgroundColor={this.theme.colors.primary4}
+                                            color={this.theme.colors.primary3}
                                             onValueChange={this.onThemeChange}
                                             value={isNightMode}
                                         />

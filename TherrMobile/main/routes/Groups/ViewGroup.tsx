@@ -9,10 +9,9 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Avatar, Button } from 'react-native-elements';
+import { Avatar } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import { TabBar, TabView } from 'react-native-tab-view';
-// import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';

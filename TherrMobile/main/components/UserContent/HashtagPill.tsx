@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from 'react-native-elements';
+import { Button } from '../BaseButton';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 
 const renderIcon = (hasIcon, styles) => {

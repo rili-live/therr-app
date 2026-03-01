@@ -1,8 +1,9 @@
 import React from 'react';
-import { Dimensions, Platform } from 'react-native';
+import { Dimensions, Platform, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Badge, InputProps } from 'react-native-elements';
+import { Badge } from 'react-native-paper';
+import { TextInputProps } from 'react-native';
 import 'react-native-gesture-handler';
 import { MapActions } from 'therr-react/redux/actions';
 import { IMapState as IMapReduxState } from 'therr-react/types';
@@ -24,7 +25,7 @@ interface IHeaderSearchInputState {
     overlayLeftOffset: number;
     shouldEvaluateClickaway: boolean;
 }
-interface IHeaderSearchInputDispatchProps extends Omit<InputProps, 'ref'> {
+interface IHeaderSearchInputDispatchProps extends Omit<TextInputProps, 'ref'> {
     getPlacesSearchAutoComplete: Function;
     setSearchDropdownVisibility: Function;
 }
@@ -176,11 +177,11 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 />
                 {
                     isAdvancedSearch && filterCount > 0 &&
-                    <Badge
-                        value={filterCount}
-                        badgeStyle={themeForms.styles.headerInputBadge}
-                        containerStyle={themeForms.styles.headerInputBadgeContainer}
-                    />
+                    <View style={themeForms.styles.headerInputBadgeContainer}>
+                        <Badge style={themeForms.styles.headerInputBadge}>
+                            {filterCount}
+                        </Badge>
+                    </View>
                 }
             </>
         );

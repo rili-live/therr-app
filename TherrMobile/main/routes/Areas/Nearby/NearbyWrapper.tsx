@@ -1,6 +1,5 @@
 import React from 'react';
 import { PermissionsAndroid, Platform, Text, View } from 'react-native';
-// import { Slider } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';

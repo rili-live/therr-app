@@ -1,7 +1,7 @@
 import React from 'react';
 import { Linking, SafeAreaView, View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Button }  from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import uuid from 'react-native-uuid';

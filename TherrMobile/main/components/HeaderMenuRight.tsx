@@ -1,8 +1,9 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Image, Text } from 'react-native-elements';
+import { Button } from './BaseButton';
+import { Image } from 'react-native-elements';
 import Overlay from 'react-native-modal-overlay';
 import { CommonActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';

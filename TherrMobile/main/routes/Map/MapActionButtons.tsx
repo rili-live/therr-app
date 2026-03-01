@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
-import { Badge, Button } from 'react-native-elements';
+import { Pressable, View } from 'react-native';
+import { Button } from '../../components/BaseButton';
+import { Badge } from 'react-native-paper';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { IUserState } from 'therr-react/types';
@@ -249,12 +250,11 @@ export default ({
                         title={filterCount.toString()}
                         onPress={handleOpenMapFilters}
                     /> */}
-                    <Badge
-                        value={filterCount}
-                        badgeStyle={themeButtons.styles.mapFiltersBadge}
-                        containerStyle={themeButtons.styles.mapFiltersBadgeContainer}
-                        onPress={handleOpenMapFilters}
-                    />
+                    <Pressable onPress={handleOpenMapFilters} style={themeButtons.styles.mapFiltersBadgeContainer}>
+                        <Badge style={themeButtons.styles.mapFiltersBadge}>
+                            {filterCount}
+                        </Badge>
+                    </Pressable>
                 </View>
             }
             <View style={themeButtons.styles.addAMoment}>
@@ -281,12 +281,11 @@ export default ({
                 shouldFeatureCheckIn
                     ? <>
                         <View style={themeButtons.styles.addACheckInBadgeFeatured}>
-                            <Badge
-                                value={`$${checkinValue}`}
-                                badgeStyle={themeButtons.styles.checkInRewardsBadge}
-                                containerStyle={themeButtons.styles.checkInRewardsBadgeContainer}
-                                onPress={onShowCheckInModal}
-                            />
+                            <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.checkInRewardsBadgeContainer}>
+                                <Badge style={themeButtons.styles.checkInRewardsBadge}>
+                                    {`$${checkinValue}`}
+                                </Badge>
+                            </Pressable>
                         </View>
                         <View style={themeButtons.styles.addACheckInFeatured}>
                             <Button
@@ -310,12 +309,11 @@ export default ({
                         {
                             validRewardMoments?.length > 0 && !shouldShowCreateActions &&
                             <View style={themeButtons.styles.uploadMomentBadgeFeatured}>
-                                <Badge
-                                    value={`$${momentRewardValue}`}
-                                    badgeStyle={themeButtons.styles.momentRewardsBadge}
-                                    containerStyle={themeButtons.styles.momentRewardsBadgeContainer}
-                                    onPress={onShowCheckInModal}
-                                />
+                                <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.momentRewardsBadgeContainer}>
+                                    <Badge style={themeButtons.styles.momentRewardsBadge}>
+                                        {`$${momentRewardValue}`}
+                                    </Badge>
+                                </Pressable>
                             </View>
                         }
                         <View style={themeButtons.styles.uploadMomentFeatured}>
@@ -342,12 +340,11 @@ export default ({
                     {
                         hasValidCheckinSpaces &&
                         <View style={themeButtons.styles.addACheckInBadge}>
-                            <Badge
-                                value={`$${checkinValue}`}
-                                badgeStyle={themeButtons.styles.checkInRewardsBadge}
-                                containerStyle={themeButtons.styles.checkInRewardsBadgeContainer}
-                                onPress={onShowCheckInModal}
-                            />
+                            <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.checkInRewardsBadgeContainer}>
+                                <Badge style={themeButtons.styles.checkInRewardsBadge}>
+                                    {`$${checkinValue}`}
+                                </Badge>
+                            </Pressable>
                         </View>
                     }
                     <View style={themeButtons.styles.addACheckIn}>
@@ -420,12 +417,11 @@ export default ({
                     {
                         validRewardMoments?.length > 0 && !shouldShowCreateActions &&
                         <View style={themeButtons.styles.uploadMomentBadge}>
-                            <Badge
-                                value={`$${momentRewardValue}`}
-                                badgeStyle={themeButtons.styles.momentRewardsBadge}
-                                containerStyle={themeButtons.styles.momentRewardsBadgeContainer}
-                                onPress={onShowCheckInModal}
-                            />
+                            <Pressable onPress={onShowCheckInModal} style={themeButtons.styles.momentRewardsBadgeContainer}>
+                                <Badge style={themeButtons.styles.momentRewardsBadge}>
+                                    {`$${momentRewardValue}`}
+                                </Badge>
+                            </Pressable>
                         </View>
                     }
                     <View style={themeButtons.styles.uploadMoment}>

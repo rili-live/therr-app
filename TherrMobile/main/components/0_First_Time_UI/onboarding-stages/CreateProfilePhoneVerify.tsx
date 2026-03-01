@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Button }  from 'react-native-elements';
+import { Button } from '../../BaseButton';
 import { ApiService } from 'therr-react/services';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import { showToast } from '../../../utilities/toasts';

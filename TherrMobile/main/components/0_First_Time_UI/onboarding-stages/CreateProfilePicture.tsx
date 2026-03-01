@@ -1,6 +1,6 @@
 import React from 'react';
 import { GestureResponderEvent, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../BaseButton';
 import RNFB from 'react-native-blob-util';
 import { FilePaths } from 'therr-js-utilities/constants';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../../styles/themes';

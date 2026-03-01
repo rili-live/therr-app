@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
-import { Button } from 'react-native-elements';
+import { Button } from '../BaseButton';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import spacingStyles from '../../styles/layouts/spacing';
 import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';

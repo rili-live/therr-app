@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, Modal, Pressable } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../BaseButton';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { IAreaType } from 'therr-react/types';
 import spacingStyles from '../../styles/layouts/spacing';

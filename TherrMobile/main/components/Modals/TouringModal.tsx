@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Text, Modal, Pressable, View, GestureResponderEvent } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../BaseButton';
 import AnimatedLottieView from 'lottie-react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
