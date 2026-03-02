@@ -87,11 +87,11 @@ export const Button = ({
             <TouchableRipple
                 onPress={onPress}
                 disabled={disabled}
-                style={[{ alignItems: 'center', justifyContent: 'center' } as ViewStyle, buttonStyle as StyleProp<ViewStyle>, disabled && disabledStyle]}
+                style={[buttonStyle as StyleProp<ViewStyle>, disabled && disabledStyle]}
                 accessibilityLabel={accessibilityLabel}
                 testID={testID}
             >
-                <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
                     {icon}
                     {title != null && (
                         <Text style={[
@@ -119,7 +119,7 @@ export const Button = ({
             <TouchableRipple
                 onPress={onPress}
                 disabled={disabled}
-                style={[{ alignItems: 'center', justifyContent: 'center' } as ViewStyle, buttonStyle as StyleProp<ViewStyle>, disabled && disabledStyle]}
+                style={[buttonStyle as StyleProp<ViewStyle>, disabled && disabledStyle]}
                 accessibilityLabel={accessibilityLabel}
                 testID={testID}
             >
@@ -127,6 +127,7 @@ export const Button = ({
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: title ? 'space-between' : 'center',
+                    flex: 1,
                 }}>
                     {title ? (
                         <Text style={[
@@ -155,11 +156,11 @@ export const Button = ({
             <TouchableRipple
                 onPress={onPress}
                 disabled={disabled}
-                style={[{ alignItems: 'center', justifyContent: 'center' } as ViewStyle, buttonStyle as StyleProp<ViewStyle>, disabled && disabledStyle]}
+                style={[buttonStyle as StyleProp<ViewStyle>, disabled && disabledStyle]}
                 accessibilityLabel={accessibilityLabel}
                 testID={testID}
             >
-                <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
                     {icon}
                 </View>
             </TouchableRipple>
