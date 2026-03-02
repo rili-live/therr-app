@@ -164,6 +164,9 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                     onFocus={() => this.handlePress('onfocus')}
                     placeholder={this.translate('components.header.searchInput.placeholder')}
                     placeholderTextColor={theme.colorVariations.textGrayFade}
+                    underlineColor="transparent"
+                    activeUnderlineColor="transparent"
+                    dense
                     rightIcon={
                         <TherrIcon
                             name={isAdvancedSearch ? 'filters' : 'search'}

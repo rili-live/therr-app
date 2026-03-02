@@ -199,19 +199,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         logoIcon: {
             color: therrTheme.colors.accentLogo,
-            marginLeft: 2,
+            marginLeft: 10,
         },
         logoIconDark: {
             ...logoStyles,
             color: therrTheme.colorVariations.primary2Darken,
-            marginLeft: 2,
+            marginLeft: 10,
             height: 32,
             width: 32,
         },
         logoIconBlack: {
             ...logoStyles,
             color: therrTheme.colors.accentTextBlack,
-            marginLeft: 2,
+            marginLeft: 10,
             height: 32,
             width: 32,
         },
@@ -362,10 +362,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginBottom: (Platform.OS === 'ios' && Platform.isPad) ? HEADER_PADDING_BOTTOM : HEADER_PADDING_BOTTOM / 2,
         },
         headerSearchInputContainer: {
-            height: HEADER_HEIGHT - HEADER_PADDING_BOTTOM,
+            height: 36,
             margin: 0,
             padding: 0,
-            borderRadius: 8,
+            paddingVertical: 0,
+            borderRadius: 18,
+            borderBottomWidth: 0,
         },
         highlight: {
             fontWeight: '700',

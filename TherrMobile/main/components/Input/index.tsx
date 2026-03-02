@@ -24,8 +24,11 @@ export interface IBaseInputProps extends TextInputProps {
     errorStyle?: any;
     disabled?: boolean;
     renderErrorMessage?: boolean;
-    // Paper-specific escape hatch
+    // Paper-specific escape hatches
     paperMode?: 'flat' | 'outlined';
+    underlineColor?: string;
+    activeUnderlineColor?: string;
+    dense?: boolean;
 }
 
 // Adapter that maps the react-native-elements Input API to react-native-paper TextInput.
@@ -54,6 +57,8 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
             disabled,
             renderErrorMessage,
             paperMode,
+            underlineColor: underlineColorProp,
+            activeUnderlineColor: activeUnderlineColorProp,
             style,
             // Separate TextInput-native props
             ...textInputProps
@@ -66,17 +71,30 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
         const right = rightIcon ? <View>{rightIcon}</View> : undefined;
         const left = leftIcon ? <View>{leftIcon}</View> : undefined;
 
+        // Underline colors match the existing bottom-border styling.
+        // Transparent background preserves the pre-migration appearance
+        // where inputs had no filled background.
+        const underlineColor = underlineColorProp || themeForms.colors.textDarkGray || 'gray';
+        const activeColor = activeUnderlineColorProp || themeForms.colors.primary3 || '#1C7F8A';
+
         return (
             <View style={containerStyle}>
                 <PaperTextInput
                     mode={mode}
                     label={label}
                     selectionColor={themeForms.colors.selectionColor as string}
+                    underlineColor={underlineColor as string}
+                    activeUnderlineColor={activeColor as string}
                     disabled={disabled}
                     error={!!errorMessage}
                     right={right}
                     left={left}
-                    style={[inputContainerStyle, inputStyle || themeForms.styles.input, style]}
+                    style={[
+                        { backgroundColor: 'transparent' },
+                        inputContainerStyle,
+                        inputStyle || themeForms.styles.input,
+                        style,
+                    ]}
                     contentStyle={inputStyle}
                     {...textInputProps}
                 />

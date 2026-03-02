@@ -630,6 +630,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                                 ? themeMenu.styles.buttonsActive
                                                                 : themeMenu.styles.buttons
                                                         }
+                                                        containerStyle={spacingStyles.fullWidth}
                                                         titleStyle={
                                                             currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.MESSAGES}`
                                                                 ? themeMenu.styles.buttonsTitleActive
@@ -658,6 +659,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                                 ? themeMenu.styles.buttonsActive
                                                                 : themeMenu.styles.buttons
                                                         }
+                                                        containerStyle={spacingStyles.fullWidth}
                                                         titleStyle={
                                                             currentScreen === `Groups-${GROUPS_CAROUSEL_TABS.GROUPS}`
                                                                 ? themeMenu.styles.buttonsTitleActive
@@ -686,6 +688,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                                 ? themeMenu.styles.buttonsActive
                                                                 : themeMenu.styles.buttons
                                                         }
+                                                        containerStyle={spacingStyles.fullWidth}
                                                         titleStyle={
                                                             currentScreen === 'Invite'
                                                                 ? themeMenu.styles.buttonsTitleActive
@@ -764,6 +767,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                                 ? themeMenu.styles.buttonsActive
                                                                 : themeMenu.styles.buttons
                                                         }
+                                                        containerStyle={spacingStyles.fullWidth}
                                                         titleStyle={
                                                             currentScreen === 'Settings'
                                                                 ? themeMenu.styles.buttonsTitleActive
@@ -790,6 +794,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                                 ? themeMenu.styles.buttonsActive
                                                                 : themeMenu.styles.buttons
                                                         }
+                                                        containerStyle={spacingStyles.fullWidth}
                                                         titleStyle={
                                                             currentScreen === 'ExchangePointsDisclaimer'
                                                                 ? themeMenu.styles.buttonsTitleActive
@@ -843,6 +848,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                                 ? themeMenu.styles.buttonsActive
                                                                 : themeMenu.styles.buttons
                                                         }
+                                                        containerStyle={spacingStyles.fullWidth}
                                                         titleStyle={
                                                             currentScreen === 'Home'
                                                                 ? themeMenu.styles.buttonsTitleActive
@@ -886,7 +892,6 @@ class HeaderMenuRight extends React.PureComponent<
                                                 titleStyle={themeMenu.styles.buttonsTitle}
                                                 buttonStyle={[themeMenu.styles.buttons, { justifyContent: 'center' }]}
                                                 title={this.translate('components.headerMenuRight.menuItems.logout')}
-                                                iconRight
                                                 icon={
                                                     <TherrIcon
                                                         style={themeMenu.styles.iconStyle}

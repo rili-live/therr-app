@@ -550,6 +550,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingRight: 6,
             fontFamily: therrFontFamily,
             fontSize: 15,
+            color: therrTheme.colors.ternary,
         },
         btnClear: {
             ...btnStyles,

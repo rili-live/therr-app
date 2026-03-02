@@ -63,6 +63,8 @@ const ViewProfileButton = ({
         },
     ]}>
         <Button
+            type="clear"
+            iconTop
             buttonStyle={themeMenu.styles.buttons}
             containerStyle={themeMenu.styles.buttonContainerUserProfile}
             titleStyle={themeMenu.styles.buttonsTitle}
@@ -81,7 +83,6 @@ const ViewProfileButton = ({
             }
             onPress={goToMyProfile}
             title={translate('menus.main.buttons.profile')}
-            type="clear"
         />
         {/* {
             hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
@@ -283,6 +284,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                     <AttachStep index={2}>
                         <Button
                             title={!isCompact ? translate('menus.main.buttons.list') : null}
+                            type="clear"
+                            iconTop
                             buttonStyle={
                                 activeRoute === 'Areas'
                                     ? themeMenu.styles.buttonsActive
@@ -319,6 +322,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                 <FeatureGate feature={FeatureFlags.ENABLE_GROUPS}>
                     <Button
                         title={!isCompact ? translate('menus.main.buttons.groups') : null}
+                        type="clear"
+                        iconTop
                         buttonStyle={
                             ['Groups', 'ActivityScheduler'].includes(activeRoute)
                                 ? themeMenu.styles.buttonsActive
@@ -355,6 +360,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                     <AttachStep index={6}>
                         <Button
                             title={!isCompact ? translate('menus.main.buttons.map') : null}
+                            type="clear"
+                            iconTop
                             buttonStyle={
                                 ['Map', 'ActivityGenerator'].includes(activeRoute)
                                     ? themeMenu.styles.buttonsActive
@@ -392,6 +399,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                     <AttachStep index={5}>
                         <Button
                             title={!isCompact ? translate('menus.main.buttons.connect') : null}
+                            type="clear"
+                            iconTop
                             buttonStyle={
                                 isConnectViewActive
                                     ? themeMenu.styles.buttonsActive

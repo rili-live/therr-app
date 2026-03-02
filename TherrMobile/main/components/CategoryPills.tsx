@@ -26,13 +26,14 @@ const CategoryPills = ({ filters, onPillPress, themeForms }: ICategoryPills) => 
                     [filters.filtersCategory[0]].map((category) => (
                         <Chip
                             key={category.name}
+                            compact
                             mode={category.isChecked ? 'flat' : 'outlined'}
                             textStyle={[(category.isChecked ? themeForms.styles.buttonPillTitleInvert : themeForms.styles.buttonPillTitle), { fontSize: 15 }]}
                             style={[
                                 (category.isChecked ? themeForms.styles.buttonPillInvert : themeForms.styles.buttonPill),
                                 themeForms.styles.buttonPillContainer,
                                 spacingStyles.fullWidth,
-                                { height: 25 },
+                                { height: undefined },
                             ]}
                             onPress={() => onPillPress('categoryFilters', 0, true)}
                         >
@@ -46,12 +47,13 @@ const CategoryPills = ({ filters, onPillPress, themeForms }: ICategoryPills) => 
                     filters.filtersCategory.slice(1, filters.filtersCategory.length).map((category, index) => (
                         <Chip
                             key={category.name}
+                            compact
                             mode={category.isChecked ? 'flat' : 'outlined'}
                             textStyle={[(category.isChecked ? themeForms.styles.buttonPillTitleInvert : themeForms.styles.buttonPillTitle), { fontSize: 14 }]}
                             style={[
                                 (category.isChecked ? themeForms.styles.buttonPillInvert : themeForms.styles.buttonPill),
                                 themeForms.styles.buttonPillContainer,
-                                { height: 25 },
+                                { height: undefined },
                             ]}
                             onPress={() => onPillPress('categoryFilters', index + 1, false)}
                         >

@@ -6,6 +6,7 @@ import { getTheme } from '../themes';
 
 const userProfileButtonContainerStyles: any = {
     margin: 0,
+    marginRight: 6,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'flex-end',

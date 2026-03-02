@@ -1527,7 +1527,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 color: headerTitleColor,
                                 textShadowOffset: { width: 0, height: 0 },
                                 textShadowRadius: 0,
-                                maxWidth: 250,
                             },
                             headerTitleAlign: 'center',
                             headerStyle,
