@@ -3,7 +3,7 @@ import { Dimensions, Platform, Pressable, SafeAreaView, Keyboard, Text, View } f
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../../components/BaseButton';
-import { Image } from 'react-native-elements';
+import { Image } from '../../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
 import { showToast } from '../../utilities/toasts';

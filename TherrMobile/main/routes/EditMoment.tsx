@@ -3,7 +3,8 @@ import { Dimensions, Platform, Pressable, SafeAreaView, Keyboard, Text, View } f
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../components/BaseButton';
-import { Slider, Image } from 'react-native-elements';
+import Slider from '@react-native-community/slider';
+import { Image } from '../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
 import { showToast } from '../utilities/toasts';
@@ -840,8 +841,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             maximumValue={MAX_RADIUS_PRIVATE}
                             minimumValue={MIN_RADIUS_PRIVATE}
                             step={1}
-                            thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
-                            thumbTouchSize={{ width: 30, height: 30 }}
+                            thumbTintColor={this.theme.colors.accentBlue}
                             minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
                             maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
                             onSlidingStart={Keyboard.dismiss}

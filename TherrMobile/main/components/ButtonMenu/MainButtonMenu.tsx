@@ -2,7 +2,7 @@ import React from 'react';
 import { ActivityIndicator, Dimensions, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Button } from '../BaseButton';
-import { Image } from 'react-native-elements';
+import { Image } from '../BaseImage';
 import 'react-native-gesture-handler';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {

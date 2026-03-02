@@ -5,7 +5,7 @@ import {
     StyleProp,
     View,
 } from 'react-native';
-import { Image } from 'react-native-elements';
+import { Image } from '../BaseImage';
 import LottieView from 'lottie-react-native';
 import missingImageDeals from '../../assets/missing-image-deals.json';
 import missingImageEvents from '../../assets/missing-image-events.json';

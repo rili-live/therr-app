@@ -9,7 +9,7 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Avatar } from 'react-native-elements';
+import { Avatar } from '../../components/BaseAvatar';
 import { Button } from '../../components/BaseButton';
 import { TabBar, TabView } from 'react-native-tab-view';
 import 'react-native-gesture-handler';

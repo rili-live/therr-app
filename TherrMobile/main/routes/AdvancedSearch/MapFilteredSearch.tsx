@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IMapState, IUserState } from 'therr-react/types';
-import { ListItem } from 'react-native-elements';
+import { ListItem } from '../../components/BaseListItem';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';

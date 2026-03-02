@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../BaseButton';
-import { Image } from 'react-native-elements';
+import { Image } from '../BaseImage';
 import auth from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 

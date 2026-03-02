@@ -12,7 +12,7 @@ import {
     View,
 } from 'react-native';
 import { Button } from '../BaseButton';
-import { Image } from 'react-native-elements';
+import { Image } from '../BaseImage';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';

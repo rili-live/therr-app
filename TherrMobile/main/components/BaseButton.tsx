@@ -83,6 +83,7 @@ export const Button = ({
     // internal marginRight that offsets icons in column layout) and use
     // TouchableRipple with manual layout for precise centering.
     if (iconTop) {
+        // TODO: User react-native-paper IconButton
         const content = (
             <TouchableRipple
                 onPress={onPress}

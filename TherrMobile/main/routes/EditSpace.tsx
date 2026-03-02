@@ -3,7 +3,8 @@ import { Dimensions, Pressable, SafeAreaView, Keyboard, Text, View, Platform } f
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../components/BaseButton';
-import { Slider, Image } from 'react-native-elements';
+import Slider from '@react-native-community/slider';
+import { Image } from '../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
@@ -984,8 +985,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 maximumValue={MAX_RADIUS_PUBLIC}
                                 minimumValue={MIN_RADIUS_PUBLIC}
                                 step={1}
-                                thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
-                                thumbTouchSize={{ width: 30, height: 30 }}
+                                thumbTintColor={this.theme.colors.accentBlue}
                                 minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
                                 maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
                                 onSlidingStart={Keyboard.dismiss}

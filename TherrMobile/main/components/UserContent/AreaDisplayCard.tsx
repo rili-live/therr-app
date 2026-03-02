@@ -7,7 +7,7 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Image } from 'react-native-elements';
+import { Image } from '../BaseImage';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { ITherrThemeColors } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';

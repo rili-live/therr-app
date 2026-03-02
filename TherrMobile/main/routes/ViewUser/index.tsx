@@ -8,7 +8,7 @@ import {
     View,
 } from 'react-native';
 import { Button } from '../../components/BaseButton';
-import { Image } from 'react-native-elements';
+import { Image } from '../../components/BaseImage';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';

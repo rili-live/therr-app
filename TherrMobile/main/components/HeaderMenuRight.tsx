@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from './BaseButton';
-import { Image } from 'react-native-elements';
+import { Image } from './BaseImage';
 import Overlay from 'react-native-modal-overlay';
 import { CommonActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';

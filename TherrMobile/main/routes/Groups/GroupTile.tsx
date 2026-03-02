@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { Button } from '../../components/BaseButton';
-import { Avatar, ListItem } from 'react-native-elements';
+import { Avatar } from '../../components/BaseAvatar';
+import { ListItem } from '../../components/BaseListItem';
 import { Badge } from 'react-native-paper';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Avatar, ListItem } from 'react-native-elements';
+import { Avatar } from '../../../components/BaseAvatar';
+import { ListItem } from '../../../components/BaseListItem';
 import { Badge } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { getUserImageUri } from '../../../utilities/content';
