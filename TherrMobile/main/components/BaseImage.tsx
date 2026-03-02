@@ -14,9 +14,7 @@ import {
 import { ITherrThemeColors } from '../styles/themes';
 
 // ---------------------------------------------------------------------------
-// Named export: drop-in replacement for react-native-elements Image.
-// Matches the RNE API surface used throughout the app: source, style,
-// PlaceholderContent, height, width, containerStyle, resizeMode, transition.
+// Named Image export with PlaceholderContent overlay support.
 // ---------------------------------------------------------------------------
 
 interface IImageProps {

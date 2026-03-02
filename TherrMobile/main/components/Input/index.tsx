@@ -4,8 +4,7 @@ import { TextInput as PaperTextInput, HelperText } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { ITherrThemeColors } from '../../styles/themes';
 
-// Extended props interface that preserves the react-native-elements Input API
-// for backwards compatibility with existing consumers.
+// Props interface for the BaseInput component.
 export interface IBaseInputProps extends TextInputProps {
     themeForms: {
         colors: ITherrThemeColors;
@@ -31,9 +30,7 @@ export interface IBaseInputProps extends TextInputProps {
     dense?: boolean;
 }
 
-// Adapter that maps the react-native-elements Input API to react-native-paper TextInput.
-// Preserves the same prop interface so RoundInput, SquareInput, and AccentInput
-// work without changes to their consumers.
+// BaseInput wrapping react-native-paper TextInput.
 export class BaseInput extends React.Component<IBaseInputProps, any> {
     constructor(props) {
         super(props);

@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Avatar as PaperAvatar } from 'react-native-paper';
 
-// Adapter that maps the react-native-elements Avatar API to Paper's
-// Avatar.Image / Avatar.Text. Preserves the same prop interface so
-// consumers work without changes beyond swapping the import.
+// Avatar component using Paper's Avatar.Image / Avatar.Text.
 
 const SIZE_MAP: Record<string, number> = {
     small: 34,

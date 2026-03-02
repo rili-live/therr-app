@@ -2,9 +2,7 @@ import React from 'react';
 import { Pressable, View, Text, ViewStyle, TextStyle, StyleProp } from 'react-native';
 import { Checkbox } from 'react-native-paper';
 
-// Adapter that maps the react-native-elements ListItem compound-component API
-// to plain RN primitives + Paper Checkbox. Preserves the same JSX structure
-// so consumers work without changes beyond swapping the import.
+// ListItem compound component using plain RN primitives + Paper Checkbox.
 
 interface IListItemProps {
     onPress?: () => void;

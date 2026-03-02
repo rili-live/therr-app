@@ -2,10 +2,6 @@ import React from 'react';
 import { GestureResponderEvent, StyleProp, Text, View, ViewStyle, TextStyle } from 'react-native';
 import { Button as PaperButton, TouchableRipple } from 'react-native-paper';
 
-// Adapter that maps the react-native-elements Button API to react-native-paper's Button.
-// This allows a mass migration of imports without restructuring every Button's JSX.
-// In Phase 6 (polish), consumers can be migrated directly to Paper's API and this file removed.
-//
 // Key difference: RNE had one container (buttonStyle), Paper has two layers
 // (style -> outer, contentStyle -> inner with its own padding). We zero out
 // Paper's inner padding so buttonStyle dimensions match the old RNE behavior.
@@ -69,7 +65,7 @@ export const Button = ({
     const iconProp = icon ? () => <>{icon}</> : undefined;
 
     // Zero out Paper's inner padding layers so that buttonStyle is the sole
-    // source of sizing — matching react-native-elements' single-container model.
+    // source of sizing — matching the legacy single-container model.
     const contentStyle: ViewStyle = {
         minHeight: 0,
         paddingHorizontal: 0,
