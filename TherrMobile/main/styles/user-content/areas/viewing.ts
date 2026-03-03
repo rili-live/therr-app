@@ -99,6 +99,8 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         },
         areaCard: {
             marginBottom: 4,
+            width: '100%',
+            overflow: 'hidden',
         },
         areaAuthorContainer: {
             display: 'flex',

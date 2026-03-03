@@ -3,6 +3,7 @@ import React from 'react';
 import {
     ActivityIndicator,
     StyleProp,
+    StyleSheet,
     View,
 } from 'react-native';
 import { Image } from '../BaseImage';
@@ -37,32 +38,35 @@ const MissingImagePlaceholder = ({
 }: IMissingImagePlaceholder) => {
     if (area?.category) {
         let lottieStyle: StyleProp<ViewStyle> = {position: 'absolute', width: '100%', height: '100%' };
-        let missingImage: any = missingImageFood;
-        if (area?.category?.includes('food') || area?.category?.includes('menu')) {
+        let missingImage: any = missingImageStorefront;
+        const cat = area.category;
+        if (cat.includes('food') || cat.includes('menu') || cat.includes('restaurant') || cat.includes('cafe')) {
             missingImage = missingImageFood;
         }
-        if (area?.category?.includes('deals') || area?.category?.includes('discount') || area?.category?.includes('coupon')) {
+        if (cat.includes('deals') || cat.includes('discount') || cat.includes('coupon')) {
             missingImage = missingImageDeals;
         }
-        if (area?.category?.includes('storefront') || area?.category?.includes('artwork')) {
+        if (cat.includes('storefront') || cat.includes('artwork') || cat.includes('shop') || cat.includes('retail')) {
             missingImage = missingImageStorefront;
         }
-        if (area?.category?.includes('idea')) {
+        if (cat.includes('idea')) {
             missingImage = missingImageIdea;
         }
-        if (area?.category?.includes('music')) {
+        if (cat.includes('music')) {
             missingImage = missingImageMusic;
         }
-        if (area?.category?.includes('nature')) {
+        if (cat.includes('nature') || cat.includes('outdoor') || cat.includes('park')
+            || cat.includes('fitness') || cat.includes('wellness') || cat.includes('yoga')
+            || cat.includes('health') || cat.includes('sport')) {
             missingImage = missingImageNature;
         }
-        if (area?.category?.includes('event') || area?.areaType === 'events') {
+        if (cat.includes('event') || area?.areaType === 'events') {
             missingImage = missingImageEvents;
             lottieStyle = {position: 'absolute', width: '90%', height: '90%', margin: '5%' };
         }
 
         return (
-            <View style={[themeViewArea.styles.cardImage, dimensions ? dimensions : {}]}>
+            <View style={[themeViewArea.styles.cardImage, dimensions ? dimensions : {}, localStyles.container]}>
                 <LottieView
                     source={missingImage}
                     resizeMode="contain"
@@ -85,5 +89,11 @@ const MissingImagePlaceholder = ({
         />
     );
 };
+
+const localStyles = StyleSheet.create({
+    container: {
+        overflow: 'hidden',
+    },
+});
 
 export default MissingImagePlaceholder;

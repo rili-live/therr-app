@@ -7,6 +7,7 @@ import {
     Linking,
     Pressable,
     Share,
+    StyleSheet,
     Text,
     TouchableWithoutFeedbackComponent,
     View,
@@ -258,11 +259,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         source={{
                             uri: getUserContentUri(moment.medias[0], 100, 100),
                         }}
-                        style={{
-                            width: 100,
-                            height: 100,
-                            borderRadius: 5,
-                        }}
+                        style={localStyles.momentThumbnail}
                         resizeMode="contain"
                         PlaceholderContent={<ActivityIndicator />}
                     />
@@ -305,7 +302,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 containerStyle={[spacingStyles.marginVertSm, spacingStyles.marginHorizSm]}
                 buttonStyle={[themeForms.styles.buttonRoundAltSmall, spacingStyles.heightMd]}
                 // disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
-                titleStyle={[themeForms.styles.buttonTitleAlt, { fontSize: 12 }]}
+                titleStyle={[themeForms.styles.buttonTitleAlt, localStyles.actionLinkTitle]}
                 title={item.title}
                 type="outline"
                 onPress={onPress}
@@ -370,7 +367,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         const isMoment = !isEvent && !isSpace;
         const mediaDimensions = {
             width: viewportWidth - (mediaPadding * 2),
-            height: isEvent ? ((viewportWidth - (mediaPadding * 2)) * (3 / 4)) : viewportWidth - (mediaPadding * 2),
+            height: (isEvent || isSpace)
+                ? ((viewportWidth - (mediaPadding * 2)) * (3 / 4))
+                : viewportWidth - (mediaPadding * 2),
         };
         const actionLinks = !isSpace ? [] : [
             {
@@ -413,9 +412,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             <View style={themeViewArea.styles.areaCard}>
                 <View style={themeViewArea.styles.areaAuthorContainer}>
                     {
-                        // (isSpace && areaUserDetails?.userName === translate('alertTitles.nameUnknown'))
-                        isSpace
-                            ? <View style={{ flex: 1 }} />
+                        isSpace && !isExpanded
+                            ? <View style={localStyles.spacerFlex} />
                             : <>
                                 <Pressable
                                     onPress={() => goToViewUser(area.fromUserId)}
@@ -489,7 +487,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         data={actionLinks}
                         renderItem={this.renderActionLink}
                         keyExtractor={item => item.url}
-                        style={{ width: '100%' }}
+                        style={localStyles.fullWidth}
                         showsHorizontalScrollIndicator={false}
                     />
                 }
@@ -522,8 +520,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 themeViewArea={themeViewArea}
                                 placeholderMediaType={placeholderMediaType}
                                 dimensions={{
-                                    height: mediaDimensions.width,
-                                    width: mediaDimensions.height,
+                                    height: Math.min(mediaDimensions.height, 160),
+                                    width: mediaDimensions.width,
                                 }}
                             />
                     }
@@ -716,12 +714,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 spacingStyles.alignCenter,
                                 spacingStyles.flexRow,
                             ]}>
-                                <Text style={[
-                                    spacingStyles.padRtTiny,
-                                    {
-                                        fontWeight: '300',
-                                    },
-                                ]}>{area.rating?.avgRating}</Text>
+                                <Text style={[spacingStyles.padRtTiny, localStyles.ratingText]}>
+                                    {area.rating?.avgRating}
+                                </Text>
                                 <SpaceRating
                                     themeForms={themeForms}
                                     initialRating={area.rating?.avgRating}
@@ -729,17 +724,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                     style={[
                                         spacingStyles.alignCenter,
                                         spacingStyles.justifyStart,
-                                        {
-                                            width: 'auto',
-                                        },
+                                        localStyles.ratingStars,
                                     ]}
                                 />
-                                <Text style={[
-                                    spacingStyles.padLtTiny,
-                                    {
-                                        fontWeight: '300',
-                                    },
-                                ]}>
+                                <Text style={[spacingStyles.padLtTiny, localStyles.ratingText]}>
                                     ({area.rating.totalRatings})
                                 </Text>
                             </View>
@@ -747,12 +735,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     </View>
                     {
                         area.distance != null &&
-                        <Text style={[
-                            themeViewArea.styles.areaDistanceRight,
-                            {
-                                width: 'auto',
-                            },
-                        ]}>{`${area.distance}`}</Text>
+                        <Text style={[themeViewArea.styles.areaDistanceRight, localStyles.distanceText]}>
+                            {`${area.distance}`}
+                        </Text>
                     }
                 </View>
                 <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
@@ -961,3 +946,29 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    momentThumbnail: {
+        width: 100,
+        height: 100,
+        borderRadius: 5,
+    },
+    actionLinkTitle: {
+        fontSize: 12,
+    },
+    spacerFlex: {
+        flex: 1,
+    },
+    fullWidth: {
+        width: '100%',
+    },
+    ratingText: {
+        fontWeight: '300',
+    },
+    ratingStars: {
+        width: 'auto',
+    },
+    distanceText: {
+        width: 'auto',
+    },
+});
