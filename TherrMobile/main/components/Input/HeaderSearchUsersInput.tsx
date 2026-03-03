@@ -123,6 +123,8 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
                     onChangeText={this.onInputChange}
                     placeholder={this.translate('components.header.searchUsersInput.placeholder')}
                     placeholderTextColor={theme.colorVariations.textGrayFade}
+                    underlineColor="transparent"
+                    activeUnderlineColor="transparent"
                     rightIcon={
                         <TherrIcon
                             name={'search'}

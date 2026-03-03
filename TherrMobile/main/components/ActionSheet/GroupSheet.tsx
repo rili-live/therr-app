@@ -1,18 +1,20 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import ActionSheet, { SheetProps } from 'react-native-actions-sheet';
-import { Button } from '../BaseButton';
+import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
+import { List } from 'react-native-paper';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import spacingStyles from '../../styles/layouts/spacing';
 import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
 import TherrIcon from '../TherrIcon';
 
 const GroupSheet = (props: SheetProps<'group-sheet'>) => {
+    const { payload } = props;
+    const iconColor = payload?.themeForms.colors.primary3;
+
     return (
         <ActionSheet id={props.sheetId}>
             <View style={[
                 spacingStyles.fullWidth,
-                spacingStyles.alignStart,
                 spacingStyles.marginTopMd,
                 spacingStyles.marginBotLg,
                 { paddingBottom: bottomSafeAreaInset },
@@ -24,109 +26,104 @@ const GroupSheet = (props: SheetProps<'group-sheet'>) => {
                     spacingStyles.marginBotSm,
                     spacingStyles.textCenter,
                     {
-                        color: props.payload?.themeForms.colors.brandingWhite,
-                        backgroundColor: props.payload?.themeForms.colors.brandingBlueGreen,
+                        color: payload?.themeForms.colors.brandingWhite,
+                        backgroundColor: payload?.themeForms.colors.brandingBlueGreen,
                     },
                 ]}>
-                    {props.payload?.translate('actionSheets.group.header', {
-                        groupName: props.payload?.group.title,
+                    {payload?.translate('actionSheets.group.header', {
+                        groupName: payload?.group.title,
                     })}
                 </Text>
-                <Button
-                    type="clear"
-                    buttonStyle={spacingStyles.justifyStart}
-                    containerStyle={[spacingStyles.fullWidth]}
-                    titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
-                    title={props.payload?.translate(
-                        'actionSheets.group.buttons.share'
-                    )}
-                    onPress={() => props.payload?.onPressShareGroup(props.payload?.group)}
-                    icon={
+                <List.Item
+                    title={payload?.translate('actionSheets.group.buttons.share')}
+                    titleStyle={{ color: iconColor }}
+                    left={(listProps) => (
                         <TherrIcon
-                            style={spacingStyles.marginRtMd}
                             name="share"
                             size={22}
-                            color={props.payload?.themeForms.colors.primary3}
-                        />}
+                            color={iconColor}
+                            style={listProps.style}
+                        />
+                    )}
+                    onPress={() => {
+                        SheetManager.hide('group-sheet');
+                        payload?.onPressShareGroup(payload?.group);
+                    }}
                 />
                 {
-                    props.payload?.hasGroupEditAccess &&
-                    <Button
-                        type="clear"
-                        buttonStyle={spacingStyles.justifyStart}
-                        containerStyle={[spacingStyles.fullWidth]}
-                        titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
-                        title={props.payload?.translate(
-                            'actionSheets.group.buttons.edit'
-                        )}
-                        onPress={() => props.payload?.onPressEditGroup(props.payload?.group)}
-                        icon={
+                    payload?.hasGroupEditAccess &&
+                    <List.Item
+                        title={payload?.translate('actionSheets.group.buttons.edit')}
+                        titleStyle={{ color: iconColor }}
+                        left={(listProps) => (
                             <TherrIcon
-                                style={spacingStyles.marginRtMd}
                                 name="edit"
                                 size={22}
-                                color={props.payload?.themeForms.colors.primary3}
-                            />}
+                                color={iconColor}
+                                style={listProps.style}
+                            />
+                        )}
+                        onPress={() => {
+                            SheetManager.hide('group-sheet');
+                            payload?.onPressEditGroup(payload?.group);
+                        }}
                     />
                 }
                 {
-                    props.payload?.isGroupMember &&
-                    <Button
-                        type="clear"
-                        buttonStyle={spacingStyles.justifyStart}
-                        containerStyle={[spacingStyles.fullWidth]}
-                        titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
-                        title={props.payload?.translate(
-                            'actionSheets.group.buttons.leave'
-                        )}
-                        onPress={() => props.payload?.onPressLeaveGroup(props.payload?.group)}
-                        icon={
+                    payload?.isGroupMember &&
+                    <List.Item
+                        title={payload?.translate('actionSheets.group.buttons.leave')}
+                        titleStyle={{ color: iconColor }}
+                        left={(listProps) => (
                             <TherrIcon
-                                style={spacingStyles.marginRtMd}
                                 name="door-open"
                                 size={22}
-                                color={props.payload?.themeForms.colors.primary3}
-                            />}
+                                color={iconColor}
+                                style={listProps.style}
+                            />
+                        )}
+                        onPress={() => {
+                            SheetManager.hide('group-sheet');
+                            payload?.onPressLeaveGroup(payload?.group);
+                        }}
                     />
                 }
                 {
-                    props.payload?.canJoinGroup &&
-                    <Button
-                        type="clear"
-                        buttonStyle={spacingStyles.justifyStart}
-                        containerStyle={[spacingStyles.fullWidth]}
-                        titleStyle={[props.payload?.themeForms.styles.buttonLink, { color: props.payload?.themeForms.colors.primary3 }]}
-                        title={props.payload?.translate(
-                            'actionSheets.group.buttons.join'
-                        )}
-                        onPress={() => props.payload?.onPressJoinGroup(props.payload?.group)}
-                        icon={
+                    payload?.canJoinGroup &&
+                    <List.Item
+                        title={payload?.translate('actionSheets.group.buttons.join')}
+                        titleStyle={{ color: iconColor }}
+                        left={(listProps) => (
                             <TherrIcon
-                                style={spacingStyles.marginRtMd}
                                 name="plus"
                                 size={22}
-                                color={props.payload?.themeForms.colors.primary3}
-                            />}
+                                color={iconColor}
+                                style={listProps.style}
+                            />
+                        )}
+                        onPress={() => {
+                            SheetManager.hide('group-sheet');
+                            payload?.onPressJoinGroup(payload?.group);
+                        }}
                     />
                 }
                 {
-                    props.payload?.hasGroupArchiveAccess &&
-                    <Button
-                        type="clear"
-                        buttonStyle={spacingStyles.justifyStart}
-                        containerStyle={[spacingStyles.fullWidth]}
-                        titleStyle={props.payload?.themeForms.styles.buttonLinkAlert}
-                        title={props.payload?.translate(
-                            'actionSheets.group.buttons.archive'
-                        )}
-                        onPress={() => props.payload?.onPressArchiveGroup(props.payload?.group)}
-                        icon={
+                    payload?.hasGroupArchiveAccess &&
+                    <List.Item
+                        title={payload?.translate('actionSheets.group.buttons.archive')}
+                        titleStyle={{ color: payload?.themeForms.colors.alertError }}
+                        left={(listProps) => (
                             <FontAwesome5Icon
-                                style={spacingStyles.marginRtMd}
                                 name="trash-alt"
                                 size={22}
-                                color={props.payload?.themeForms.colors.alertError}
-                            />}
+                                color={payload?.themeForms.colors.alertError}
+                                style={listProps.style}
+                            />
+                        )}
+                        onPress={() => {
+                            SheetManager.hide('group-sheet');
+                            payload?.onPressArchiveGroup(payload?.group);
+                        }}
                     />
                 }
             </View>

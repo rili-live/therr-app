@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
-import { Button } from '../BaseButton';
+import { List } from 'react-native-paper';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import spacingStyles from '../../styles/layouts/spacing';
 import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
@@ -16,36 +16,33 @@ export interface IUserProfileAction {
 const UserProfileSheet = (props: SheetProps<'user-profile-sheet'>) => {
     const { payload } = props;
     const actions = payload?.actions || [];
+    const iconColor = payload?.themeForms.colors.primary3;
 
     return (
         <ActionSheet id={props.sheetId}>
             <View style={[
                 spacingStyles.fullWidth,
-                spacingStyles.alignStart,
                 spacingStyles.marginTopMd,
                 spacingStyles.marginBotLg,
                 { paddingBottom: bottomSafeAreaInset },
             ]}>
                 {actions.map((item) => (
-                    <Button
+                    <List.Item
                         key={item.id}
-                        type="clear"
-                        buttonStyle={spacingStyles.justifyStart}
-                        containerStyle={[spacingStyles.fullWidth]}
-                        titleStyle={[payload?.themeForms.styles.buttonLink, { color: payload?.themeForms.colors.primary3 }]}
                         title={payload?.translate(item.title)}
+                        titleStyle={{ color: iconColor }}
+                        left={(listProps) => (
+                            <MaterialIcon
+                                name={item.icon}
+                                size={22}
+                                color={iconColor}
+                                style={listProps.style}
+                            />
+                        )}
                         onPress={() => {
                             SheetManager.hide('user-profile-sheet');
                             payload?.onAction(item);
                         }}
-                        icon={
-                            <MaterialIcon
-                                style={spacingStyles.marginRtMd}
-                                name={item.icon}
-                                size={22}
-                                color={payload?.themeForms.colors.primary3}
-                            />
-                        }
                     />
                 ))}
             </View>

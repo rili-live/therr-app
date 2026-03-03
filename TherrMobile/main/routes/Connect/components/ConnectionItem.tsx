@@ -56,11 +56,11 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
                 isActive ?
                     <Badge
                         size={12}
-                        style={{ backgroundColor: theme.colors.accentLime }}
+                        style={{ backgroundColor: theme.colors.accentLime, alignSelf: 'center' }}
                     /> :
                     <Badge
                         size={12}
-                        style={{ backgroundColor: theme.colors.accentDivider }}
+                        style={{ backgroundColor: theme.colors.accentDivider, alignSelf: 'center' }}
                     />
             }
         </ListItem>

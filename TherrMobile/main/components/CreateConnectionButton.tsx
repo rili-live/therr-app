@@ -10,6 +10,7 @@ export default ({
         <FAB
             icon="plus"
             label={title}
+            variant="secondary"
             onPress={onPress}
             style={themeButtons.styles.buttonFloatBottomRightContainer}
         />

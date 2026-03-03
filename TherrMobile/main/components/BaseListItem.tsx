@@ -20,6 +20,7 @@ const ListItemBase = ({ onPress, bottomDivider, containerStyle, children }: ILis
                 {
                     flexDirection: 'row',
                     alignItems: 'center',
+                    gap: 12,
                     paddingHorizontal: 10,
                     paddingVertical: 8,
                 } as ViewStyle,

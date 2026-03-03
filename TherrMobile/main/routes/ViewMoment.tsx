@@ -3,38 +3,35 @@ import {
     Dimensions,
     SafeAreaView,
     Share,
+    StyleSheet,
     View,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from '../components/BaseButton';
+import { Button as PaperButton } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { Content } from 'therr-js-utilities/constants';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
-// import Alert from '../components/Alert';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
 import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/viewing';
+import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
+import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import userContentStyles from '../styles/user-content';
 import { youtubeLinkRegex } from '../constants';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
+import ConfirmModal from '../components/Modals/ConfirmModal';
 import { isMyContent as checkIsMyMoment, getUserContentUri } from '../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
 import { IContentSelectionType } from '../components/ActionSheet/ContentOptionsSheet';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
-import TherrIcon from '../components/TherrIcon';
-// import AccentInput from '../components/Input/Accent';
-
 const { width: screenWidth } = Dimensions.get('window');
 
 interface IViewMomentDispatchProps {
@@ -55,10 +52,8 @@ export interface IViewMomentProps extends IStoreProps {
 }
 
 interface IViewMomentState {
-    errorMsg: string;
-    successMsg: string;
     isDeleting: boolean;
-    isVerifyingDelete: boolean;
+    isDeleteDialogVisible: boolean;
     fetchedMoment: any;
     previewLinkId?: string;
     previewStyleState: any;
@@ -86,7 +81,8 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     private themeAccentLayout = buildAccentStyles();
     private themeArea = buildMomentStyles();
     private themeForms = buildFormStyles();
-    private themeAccentForms = buildAccentFormStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
+    private themeButtons = buildButtonsStyles();
 
     constructor(props) {
         super(props);
@@ -97,10 +93,8 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         const youtubeMatches = (moment.message || '').match(youtubeLinkRegex);
 
         this.state = {
-            errorMsg: '',
-            successMsg: '',
             isDeleting: false,
-            isVerifyingDelete: false,
+            isDeleteDialogVisible: false,
             fetchedMoment: {},
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
@@ -110,7 +104,8 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
         this.themeArea = buildMomentStyles(props.user.settings?.mobileThemeName, true);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         this.notificationMsg = (moment.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
@@ -159,18 +154,6 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         this.unsubscribeNavListener();
     }
 
-    renderHashtagPill = (tag, key) => {
-        return (
-            <Button
-                key={key}
-                buttonStyle={this.themeForms.styles.buttonPill}
-                containerStyle={this.themeForms.styles.buttonPillContainer}
-                titleStyle={this.themeForms.styles.buttonPillTitle}
-                title={`#${tag}`}
-            />
-        );
-    };
-
     handlePreviewFullScreen = (isFullScreen) => {
         const previewStyleState = isFullScreen ? {
             top: 0,
@@ -182,18 +165,6 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         } : {};
         this.setState({
             previewStyleState,
-        });
-    };
-
-    onDelete = () => {
-        this.setState({
-            isVerifyingDelete: true,
-        });
-    };
-
-    onDeleteCancel = () => {
-        this.setState({
-            isVerifyingDelete: false,
         });
     };
 
@@ -214,10 +185,15 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 .catch((err) => {
                     console.log('Error deleting moment', err);
                     this.setState({
-                        isDeleting: true,
-                        isVerifyingDelete: false,
+                        isDeleting: false,
+                        isDeleteDialogVisible: false,
                     });
                 });
+        } else {
+            this.setState({
+                isDeleting: false,
+                isDeleteDialogVisible: false,
+            });
         }
     };
 
@@ -345,7 +321,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         const {
             fetchedMoment,
             isDeleting,
-            isVerifyingDelete,
+            isDeleteDialogVisible,
             previewLinkId,
             previewStyleState,
         } = this.state;
@@ -415,86 +391,60 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                             </View>
                         }
                     </KeyboardAwareScrollView>
-                    {
-                        <View style={[this.themeAccentLayout.styles.footer, this.themeArea.styles.footer]}>
-                            <Button
-                                containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                                buttonStyle={this.themeAccentForms.styles.backButton}
-                                onPress={() => this.goBack()}
-                                icon={
-                                    <TherrIcon
-                                        name="go-back"
-                                        size={25}
-                                        color={'black'}
-                                    />
-                                }
-                                type="clear"
-                            />
-                            {
-                                isMyContent &&
-                                <>
-                                    {
-                                        !isVerifyingDelete &&
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitDeleteButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editMoment.buttons.delete'
-                                                )}
-                                                icon={
-                                                    <FontAwesome5Icon
-                                                        name="trash-alt"
-                                                        size={22}
-                                                        color={'black'}
-                                                        style={this.themeAccentForms.styles.submitButtonIcon}
-                                                    />
-                                                }
-                                                onPress={this.onDelete}
-                                                raised={true}
-                                            />
-                                    }
-                                    {
-                                        isVerifyingDelete &&
-                                        <View style={this.themeAccentForms.styles.submitConfirmContainer}>
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitCancelButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={this.themeAccentForms.styles.submitCancelButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editMoment.buttons.cancel'
-                                                )}
-                                                onPress={this.onDeleteCancel}
-                                                disabled={isDeleting}
-                                                raised={true}
-                                            />
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitConfirmButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitleLight}
-                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editMoment.buttons.confirm'
-                                                )}
-                                                onPress={this.onDeleteConfirm}
-                                                disabled={isDeleting}
-                                                raised={true}
-                                            />
-                                        </View>
-                                    }
-                                </>
-                            }
-                        </View>
-                    }
+                    {/* Footer */}
+                    <View style={[this.themeAccentLayout.styles.footer, localStyles.footer]}>
+                        <PaperButton
+                            mode="outlined"
+                            onPress={() => this.goBack()}
+                            icon="arrow-left"
+                            textColor={this.theme.colors.brandingBlueGreen}
+                            style={localStyles.footerButton}
+                        >
+                            {this.translate('forms.editMoment.buttons.back')}
+                        </PaperButton>
+                        {isMyContent && (
+                            <PaperButton
+                                mode="contained"
+                                onPress={() => this.setState({ isDeleteDialogVisible: true })}
+                                icon="trash-can-outline"
+                                buttonColor={this.theme.colors.accentRed}
+                                textColor={this.theme.colors.brandingWhite}
+                                style={localStyles.footerButton}
+                                disabled={isDeleting}
+                            >
+                                {this.translate('forms.editMoment.buttons.delete')}
+                            </PaperButton>
+                        )}
+                    </View>
                 </SafeAreaView>
+
+                {/* Delete confirmation modal */}
+                <ConfirmModal
+                    isVisible={isDeleteDialogVisible}
+                    onCancel={() => this.setState({ isDeleteDialogVisible: false })}
+                    onConfirm={this.onDeleteConfirm}
+                    text={this.translate('forms.editMoment.deleteConfirmation')}
+                    textConfirm={this.translate('forms.editMoment.buttons.confirm')}
+                    textCancel={this.translate('forms.editMoment.buttons.cancel')}
+                    translate={this.translate}
+                    theme={this.theme}
+                    themeModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
+                />
             </>
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    footer: {
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+    },
+    footerButton: {
+        flex: 1,
+        marginHorizontal: 4,
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(ViewMoment);

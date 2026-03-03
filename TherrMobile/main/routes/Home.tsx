@@ -177,8 +177,10 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 />
                                 <View style={this.theme.styles.sectionContainer}>
                                     <Button
-                                        buttonStyle={this.themeForms.styles.button}
-                                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                                        buttonStyle={this.themeForms.styles.buttonPrimary}
+                                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                        titleStyle={this.themeForms.styles.buttonTitle}
+                                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                         title={this.translate(
                                             'pages.userProfile.buttons.send'
                                         )}
