@@ -1454,6 +1454,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         let headerTitleColor = themeName === 'light'
                             ? this.theme.colors.primary3
                             : this.theme.colors.textWhite;
+                        const advancedSearchPlaceholderText = currentScreen === 'Areas'
+                            ? this.translate('components.header.searchContentInput.placeholder')
+                            : this.translate('components.header.searchInput.placeholder');
                         if (isMoment) {
                             headerStyleName = 'accent';
                             headerTitleColor = this.theme.colors.accentLogo;
@@ -1470,6 +1473,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
+                                placeholderText={advancedSearchPlaceholderText}
                             />;
                         }
                         if (isMap) {
@@ -1477,6 +1481,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
+                                placeholderText={advancedSearchPlaceholderText}
                             />;
                         }
                         if (isConnect) {

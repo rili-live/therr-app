@@ -35,38 +35,12 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
     const therrTheme = getTheme(themeName);
 
     const styles = StyleSheet.create({
-        buttons: {
-            backgroundColor: 'transparent',
-            height: 50,
-        },
-        buttonsActive: {
-            backgroundColor: 'transparent',
-            height: 50,
-        },
-        buttonsTitle: {
-            backgroundColor: 'transparent',
-            color: therrTheme.colors.secondary,
-            paddingRight: 10,
-            paddingLeft: 10,
-        },
-        buttonsTitleActive: {
-            backgroundColor: 'transparent',
-            color: therrTheme.colors.secondary,
-            paddingRight: 10,
-            paddingLeft: 10,
-        },
-        iconStyle: {
-            color: therrTheme.colors.secondary,
-            // position: 'absolute',
-            // left: 20
-        },
         inspectThoughtContainer: {
             justifyContent: 'flex-start',
-            alignItems: 'center',
+            alignItems: 'stretch',
             padding: 0,
             paddingHorizontal: 0,
             marginTop: 0,
-            // marginBottom: 32,
         },
         thoughtCard: {
             marginBottom: 4,
@@ -182,46 +156,34 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             textAlign: 'left',
         },
         footer: {
-            paddingRight: 20,
-        },
-        toggleIcon: {
-            color: therrTheme.colors.textWhite,
-        },
-        sendBtnIcon: {
-            color: therrTheme.colors.brandingWhite,
-            padding: 0,
-            margin: 0,
-        },
-        sendBtn: {
-            borderRadius: 25,
-            backgroundColor: therrTheme.colors.primary3,
-        },
-        sendBtnContainer: {
-            margin: 0,
-            marginHorizontal: 4,
-            alignSelf: 'center',
-        },
-        sendBtnInput: {
-            flex: 1,
-            margin: 0,
-            marginBottom: 10,
-            marginVertical: 10,
-            fontSize: 18,
-            lineHeight: 20,
-            paddingTop: 18,
-            paddingBottom: 18,
-        },
-        sendInputsContainer: {
-            display: 'flex',
             flexDirection: 'row',
-            width: '100%',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            justifyContent: 'center',
-            paddingBottom: 0,
-            marginBottom: 0,
-
-            borderBottomWidth: 1,
-            borderColor: isDarkMode ? therrTheme.colors.accentDivider : therrTheme.colors.tertiary,
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            paddingBottom: 24,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: isDarkMode ? therrTheme.colors.accentDivider : therrTheme.colors.tertiary,
+            backgroundColor: therrTheme.colors.primary,
+        },
+        replyInputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: isDarkMode ? therrTheme.colors.accentDivider : therrTheme.colors.tertiary,
+            backgroundColor: therrTheme.colors.accent1,
+        },
+        repliesDivider: {
+            width: '100%',
+            marginVertical: 12,
+        },
+        repliesHeader: {
+            width: '100%',
+            paddingHorizontal: 4,
+            paddingBottom: 8,
+            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
         },
     });
 

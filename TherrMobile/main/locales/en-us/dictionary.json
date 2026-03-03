@@ -282,6 +282,9 @@
       "searchInput": {
         "placeholder": "Search a location..."
       },
+      "searchContentInput": {
+        "placeholder": "Search content..."
+      },
       "searchUsersInput": {
         "placeholder": "Search users..."
       }
@@ -615,6 +618,7 @@
         "delete": "Delete?",
         "confirm": "Delete",
         "cancel": "Cancel",
+        "back": "Back",
         "visibilityPublic": "Visibility: Public",
         "visibilityPrivate": "Visibility: Friends Only"
       },
@@ -629,6 +633,7 @@
         "expiresAt": "Countdown",
         "radius": "Radius: {meters} meters"
       },
+      "deleteConfirmation": "Are you sure you want to delete this thought?",
       "backendSuccessMessage": "You have shared a thought!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
@@ -1504,7 +1509,9 @@
       "headerTitle": "View User"
     },
     "viewThought": {
-      "headerTitle": "Thoughts"
+      "headerTitle": "Thoughts",
+      "reply": "Reply",
+      "replies": "Replies"
     }
   },
   "modals": {

@@ -1,9 +1,9 @@
-import React from 'react';
-import { SafeAreaView, ScrollView, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { bindActionCreators } from 'redux';
+import { Button, Chip, Divider, SegmentedButtons, Text } from 'react-native-paper';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState as IMapReduxState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { buildStyles } from '../../styles';
@@ -12,12 +12,7 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import CategoryPills from '../../components/CategoryPills';
-import { Button } from '../../components/BaseButton';
-import TherrIcon from '../../components/TherrIcon';
 import { getInitialCategoryFilters } from '../../utilities/getInitialFilters';
-
-// const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 interface IAdvancedSearchDispatchProps {
     setActiveMomentsFilters: Function;
@@ -32,16 +27,11 @@ interface IStoreProps extends IAdvancedSearchDispatchProps {
     userConnections: IUserConnectionsState;
 }
 
-// Regular component props
 export interface IAdvancedSearchProps extends IStoreProps {
     navigation: any;
 }
 
-interface IAdvancedSearchState {
-    categoryFilters: { title: string; name: string; isChecked?: boolean }[],
-    isLoading: boolean;
-    hasChanges: boolean;
-}
+type CategoryFilter = { title: string; name: string; isChecked?: boolean };
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
@@ -60,223 +50,274 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSearchState> {
-    private carouselRef;
-    private initialCategoryFilters;
-    private translate: (key: string, params?: any) => string;
-    private unsubscribeNavListener;
-    private theme = buildStyles();
-    private themeForms = buildFormStyles();
-    private themeMenu = buildMenuStyles();
+const AdvancedSearch = ({
+    content,
+    map,
+    navigation,
+    user,
+    setActiveMomentsFilters,
+    setMapFilters,
+    updateActiveMomentsStream,
+}: IAdvancedSearchProps) => {
+    const translate = useCallback(
+        (key: string, params?: any) => translator('en-us', key, params),
+        []
+    );
 
-    constructor(props) {
-        super(props);
+    const initialCategoryFilters = useRef(getInitialCategoryFilters(translate, true));
+    const theme = buildStyles(user.settings?.mobileThemeName);
+    const themeForms = buildFormStyles(user.settings?.mobileThemeName);
+    const themeMenu = buildMenuStyles(user.settings?.mobileThemeName);
+    const isFirstRender = useRef(true);
+    const activeAreasFiltersRef = useRef(content.activeAreasFilters);
 
-        this.translate = (key: string, params?: any) =>
-            translator('en-us', key, params);
-        this.initialCategoryFilters = getInitialCategoryFilters(this.translate, true);
+    const [categoryFilters, setCategoryFilters] = useState<CategoryFilter[]>(() =>
+        map.filtersCategory?.length
+            ? JSON.parse(JSON.stringify(map.filtersCategory))
+            : initialCategoryFilters.current.map((x: CategoryFilter) => ({ ...x, isChecked: true }))
+    );
 
-        const filtersArePopulated = props.map.filtersCategory?.length;
+    // Keep ref up to date so the nav listener always reads the latest value
+    useEffect(() => {
+        activeAreasFiltersRef.current = content.activeAreasFilters;
+    }, [content.activeAreasFilters]);
 
-        this.state = {
-            categoryFilters: filtersArePopulated
-                ? JSON.parse(JSON.stringify(props.map.filtersCategory))
-                : this.initialCategoryFilters.map(x => ({ ...x, isChecked: true})),
-            isLoading: true,
-            hasChanges: false,
-        };
-
-        this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
-    }
-
-    componentDidMount() {
-        const { content, navigation, updateActiveMomentsStream } = this.props;
-
+    useEffect(() => {
         navigation.setOptions({
-            title: this.translate('pages.advancedSearch.headerTitle'),
+            title: translate('pages.advancedSearch.headerTitle'),
         });
 
-        if (!content?.activeAdvancedSearch?.length || content.activeAdvancedSearch.length < 21) {
-            Promise.resolve().finally(() => {
-                this.setState({
-                    isLoading: false,
-                });
-            });
-        }
-
-        this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
+        const unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
             updateActiveMomentsStream({
                 withMedia: true,
                 withUser: true,
                 offset: 0,
-                ...this.props.content.activeAreasFilters,
+                ...activeAreasFiltersRef.current,
             });
         });
-    }
 
-    componentWillUnmount() {
-        this.unsubscribeNavListener();
-    }
-
-    handleApplyFilters = () => {
-        const { categoryFilters } = this.state;
-        const { setMapFilters } = this.props;
-
-        setMapFilters({
-            filtersCategory: categoryFilters,
-        });
-    };
-
-    handleResetFilters = () => {
-        this.setState({
-            categoryFilters: this.initialCategoryFilters.map(x => ({ ...x, isChecked: true})),
-        }, this.handleApplyFilters);
-    };
-
-    handleFilterBadgePress = (filterGroup: 'categoryFilters', index, isSelectAll: boolean = false) => {
-        let modifiedGroup = this.state[filterGroup];
-        modifiedGroup[index].isChecked = !modifiedGroup[index].isChecked;
-        if (isSelectAll) {
-            modifiedGroup = modifiedGroup.map(x => ({ ...x, isChecked: modifiedGroup[index].isChecked}));
-        } else {
-            // Select All box
-            modifiedGroup[0].isChecked = modifiedGroup.every((item, i) => {
-                if (i === 0) { return true; }
-                return item.isChecked;
-            });
-        }
-
-        if (modifiedGroup[0].isChecked) {
-            modifiedGroup[0].title = this.translate('pages.mapFilteredSearch.labels.unSelectAll');
-        } else {
-            modifiedGroup[0].title = this.translate('pages.mapFilteredSearch.labels.selectAll');
-        }
-
-        // Apply filters immediately on press
-        this.setState({
-            [filterGroup]: modifiedGroup,
-        } as any, this.handleApplyFilters);
-    };
-
-    goBack = () => {
-        const { navigation } = this.props;
-        navigation.goBack();
-    };
-
-    onRefresh = () => {
-        // TODO: Reset Filters
-        console.log('Refresh');
-        this.handleResetFilters();
-    };
-
-    onFiltersChanged = () => {
-        this.setState({
-            hasChanges: true,
-        });
-    };
-
-    onSearchOrderSelect = (searchOrder) => {
-        const { setActiveMomentsFilters } = this.props;
-
-        this.onFiltersChanged();
-        setActiveMomentsFilters({
-            order: searchOrder,
-        });
-    };
-
-    render() {
-        const { content, map, navigation, user } = this.props;
-        const { categoryFilters } = this.state;
-        const mapFilters = {
-            filtersAuthor: map.filtersAuthor,
-            filtersCategory: categoryFilters,
-            filtersVisibility: map.filtersVisibility,
+        return () => {
+            unsubscribeNavListener();
         };
+    }, [navigation, translate, updateActiveMomentsStream]);
 
-        return (
-            <>
-                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
-                    <ScrollView
-                        contentInsetAdjustmentBehavior="automatic"
-                        style={this.theme.styles.scrollViewFull}
-                    >
-                        <View style={this.theme.styles.body}>
-                            <View style={this.theme.styles.sectionContainer}>
-                                <Text style={this.theme.styles.sectionTitle}>
-                                    {this.translate('pages.advancedSearch.labels.searchOrder')}
-                                </Text>
-                                <View style={this.theme.styles.sectionForm}>
-                                    <ReactPicker
-                                        selectedValue={content.activeAreasFilters.order}
-                                        style={this.themeForms.styles.picker}
-                                        itemStyle={this.themeForms.styles.pickerItem}
-                                        onValueChange={this.onSearchOrderSelect}>
-                                        <ReactPicker.Item label={this.translate(
-                                            'pages.advancedSearch.labels.desc'
-                                        )} value="DESC" />
-                                        <ReactPicker.Item label={this.translate(
-                                            'pages.advancedSearch.labels.asc'
-                                        )} value="ASC" />
-                                    </ReactPicker>
-                                </View>
-                            </View>
-                            <View style={this.theme.styles.sectionContainer}>
-                                <Text style={this.theme.styles.sectionTitle}>
-                                    {this.translate('pages.advancedSearch.labels.categories')}
-                                </Text>
-                                <View style={this.theme.styles.sectionForm}>
-                                    <CategoryPills
-                                        filters={mapFilters}
-                                        onPillPress={this.handleFilterBadgePress}
-                                        themeForms={this.themeForms}
-                                        translate={this.translate}
-                                    />
-                                </View>
-                            </View>
-                        </View>
-                    </ScrollView>
-                    <View style={[this.theme.styles.footer, this.theme.styles.footer]}>
-                        <Button
-                            containerStyle={this.themeForms.styles.leftButtonContainer}
-                            buttonStyle={this.themeForms.styles.backButton}
-                            onPress={() => this.goBack()}
-                            icon={
-                                <TherrIcon
-                                    name="go-back"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                        <Button
-                            containerStyle={this.themeForms.styles.rightButtonContainer}
-                            buttonStyle={this.themeForms.styles.backButton}
-                            onPress={() => this.onRefresh()}
-                            icon={
-                                <TherrIcon
-                                    name="refresh"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                    </View>
-                </SafeAreaView>
-                <MainButtonMenu
-                    navigation={navigation}
-                    onActionButtonPress={this.onRefresh}
-                    translate={this.translate}
-                    user={user}
-                    themeMenu={this.themeMenu}
-                />
-            </>
+    // Sync category filter changes to Redux after state updates
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        setMapFilters({ filtersCategory: categoryFilters });
+    }, [categoryFilters, setMapFilters]);
+
+    const handleResetFilters = useCallback(() => {
+        setCategoryFilters(
+            initialCategoryFilters.current.map((x: CategoryFilter) => ({ ...x, isChecked: true }))
         );
-    }
-}
+    }, []);
+
+    const handleCategoryChipPress = useCallback((index: number, isSelectAll: boolean = false) => {
+        setCategoryFilters((prev: CategoryFilter[]) => {
+            const updated = prev.map((x: CategoryFilter) => ({ ...x }));
+            updated[index] = { ...updated[index], isChecked: !updated[index].isChecked };
+
+            if (isSelectAll) {
+                const newChecked = updated[index].isChecked;
+                return updated.map((x: CategoryFilter) => ({ ...x, isChecked: newChecked }));
+            }
+
+            const allChecked = updated.slice(1).every((item: CategoryFilter) => item.isChecked);
+            updated[0] = {
+                ...updated[0],
+                isChecked: allChecked,
+                title: allChecked
+                    ? translate('pages.mapFilteredSearch.labels.unSelectAll')
+                    : translate('pages.mapFilteredSearch.labels.selectAll'),
+            };
+            return updated;
+        });
+    }, [translate]);
+
+    const onSearchOrderSelect = useCallback((value: string) => {
+        setActiveMomentsFilters({ order: value });
+    }, [setActiveMomentsFilters]);
+
+    const brandColor = theme.colors.brandingBlueGreen;
+    const selectAllFilter = categoryFilters[0];
+    const individualFilters = categoryFilters.slice(1);
+
+    return (
+        <>
+            <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
+            <SafeAreaView style={theme.styles.safeAreaView}>
+                <ScrollView
+                    contentInsetAdjustmentBehavior="automatic"
+                    style={theme.styles.scrollViewFull}
+                >
+                    <View style={[theme.styles.body, styles.container]}>
+                        {/* Sort Order */}
+                        <Text
+                            variant="titleMedium"
+                            style={[theme.styles.sectionTitle, styles.sectionHeader]}
+                        >
+                            {translate('pages.advancedSearch.labels.searchOrder')}
+                        </Text>
+                        <SegmentedButtons
+                            value={content.activeAreasFilters?.order || 'DESC'}
+                            onValueChange={onSearchOrderSelect}
+                            buttons={[
+                                {
+                                    value: 'DESC',
+                                    label: translate('pages.advancedSearch.labels.desc'),
+                                    icon: 'sort-descending',
+                                },
+                                {
+                                    value: 'ASC',
+                                    label: translate('pages.advancedSearch.labels.asc'),
+                                    icon: 'sort-ascending',
+                                },
+                            ]}
+                            style={styles.segmentedButtons}
+                        />
+
+                        <Divider style={styles.divider} />
+
+                        {/* Category Filters */}
+                        <Text
+                            variant="titleMedium"
+                            style={[theme.styles.sectionTitle, styles.sectionHeader]}
+                        >
+                            {translate('pages.advancedSearch.labels.categories')}
+                        </Text>
+
+                        {/* Select All / Deselect All */}
+                        {selectAllFilter && (
+                            <Chip
+                                mode={selectAllFilter.isChecked ? 'flat' : 'outlined'}
+                                selected={selectAllFilter.isChecked}
+                                style={[
+                                    styles.selectAllChip,
+                                    selectAllFilter.isChecked
+                                        ? { backgroundColor: brandColor }
+                                        : { backgroundColor: theme.colors.backgroundWhite },
+                                ]}
+                                textStyle={[
+                                    selectAllFilter.isChecked
+                                        ? themeForms.styles.buttonPillTitleInvert
+                                        : themeForms.styles.buttonPillTitle,
+                                    styles.selectAllChipText,
+                                ]}
+                                selectedColor={theme.colors.brandingWhite}
+                                onPress={() => handleCategoryChipPress(0, true)}
+                            >
+                                {selectAllFilter.title}
+                            </Chip>
+                        )}
+
+                        {/* Individual category chips */}
+                        <View style={styles.chipsContainer}>
+                            {individualFilters.map((category: CategoryFilter, index: number) => (
+                                <Chip
+                                    key={category.name}
+                                    compact
+                                    mode={category.isChecked ? 'flat' : 'outlined'}
+                                    selected={category.isChecked}
+                                    selectedColor={theme.colors.brandingWhite}
+                                    style={[
+                                        styles.chip,
+                                        category.isChecked
+                                            ? { backgroundColor: brandColor }
+                                            : { backgroundColor: theme.colors.backgroundWhite },
+                                    ]}
+                                    textStyle={
+                                        category.isChecked
+                                            ? themeForms.styles.buttonPillTitleInvert
+                                            : themeForms.styles.buttonPillTitle
+                                    }
+                                    onPress={() => handleCategoryChipPress(index + 1, false)}
+                                >
+                                    {category.title}
+                                </Chip>
+                            ))}
+                        </View>
+                    </View>
+                </ScrollView>
+
+                {/* Footer */}
+                <View style={[styles.footer, { backgroundColor: theme.colors.primary, borderTopColor: theme.colors.accentDivider }]}>
+                    <Button
+                        mode="outlined"
+                        onPress={() => navigation.goBack()}
+                        icon="arrow-left"
+                        textColor={brandColor}
+                        style={styles.footerButton}
+                    >
+                        Back
+                    </Button>
+                    <Button
+                        mode="outlined"
+                        onPress={handleResetFilters}
+                        icon="refresh"
+                        textColor={brandColor}
+                        style={styles.footerButton}
+                    >
+                        Reset
+                    </Button>
+                </View>
+            </SafeAreaView>
+            <MainButtonMenu
+                navigation={navigation}
+                onActionButtonPress={handleResetFilters}
+                translate={translate}
+                user={user}
+                themeMenu={themeMenu}
+            />
+        </>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        padding: 16,
+        paddingBottom: 120,
+    },
+    sectionHeader: {
+        marginBottom: 12,
+    },
+    segmentedButtons: {
+        marginBottom: 24,
+    },
+    divider: {
+        marginBottom: 20,
+    },
+    selectAllChip: {
+        borderRadius: 20,
+        marginBottom: 16,
+        justifyContent: 'center',
+    },
+    selectAllChipText: {
+        fontSize: 15,
+    },
+    chipsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    chip: {
+        borderRadius: 20,
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    footerButton: {
+        flex: 1,
+        marginHorizontal: 6,
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(AdvancedSearch);

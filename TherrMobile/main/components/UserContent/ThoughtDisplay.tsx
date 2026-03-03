@@ -354,8 +354,8 @@ const ThoughtContent = ({
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
                             <Button
-                                containerStyle={themeViewContent.styles.areaReactionButtonContainer}
-                                buttonStyle={themeViewContent.styles.areaReactionButton}
+                                containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                buttonStyle={themeViewContent.styles.thoughtReactionButton}
                                 icon={
                                     <TherrIcon
                                         name={ isLiked ? 'heart-filled' : 'heart' }

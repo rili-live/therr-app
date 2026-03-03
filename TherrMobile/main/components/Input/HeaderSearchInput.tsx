@@ -41,6 +41,7 @@ interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
         colors: ITherrThemeColors;
         styles: any;
     };
+    placeholderText: string;
 }
 
 interface IHeaderSearchInputProps extends IHeaderSearchInputStoreProps {
@@ -126,7 +127,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
     // TODO: Display red dot to show filters enabled
     render() {
         const { inputText } = this.state;
-        const { isAdvancedSearch, map, theme, themeForms } = this.props;
+        const { isAdvancedSearch, map, theme, themeForms, placeholderText } = this.props;
         const textStyle = !inputText?.length
             ? [themeForms.styles.placeholderText, { fontSize: 16 }]
             : [themeForms.styles.inputText, { fontSize: 16 }];
@@ -162,7 +163,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                     inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
                     onChangeText={this.onInputChange}
                     onFocus={() => this.handlePress('onfocus')}
-                    placeholder={this.translate('components.header.searchInput.placeholder')}
+                    placeholder={placeholderText}
                     placeholderTextColor={theme.colorVariations.textGrayFade}
                     underlineColor="transparent"
                     activeUnderlineColor="transparent"
