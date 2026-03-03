@@ -7,7 +7,7 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Button } from '../../components/BaseButton';
+import { FAB } from 'react-native-paper';
 import { Image } from '../../components/BaseImage';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -56,6 +56,10 @@ import { PEOPLE_CAROUSEL_TABS, PROFILE_CAROUSEL_TABS } from '../../constants';
 
 const { width: viewportWidth } = Dimensions.get('window');
 const imageWidth = viewportWidth / 3;
+
+const renderIdeaIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="idea" size={props.size} color={props.color} />
+);
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
     const selected = Math.floor(Math.random() * options.length);
@@ -786,17 +790,11 @@ class ViewUser extends React.Component<
                 </SafeAreaView>
                 {
                     user.userInView?.id === user.details.id &&
-                        <Button
-                            containerStyle={this.themeButtons.styles.addAThought}
-                            buttonStyle={this.themeButtons.styles.btnLarge}
-                            icon={
-                                <TherrIcon
-                                    name={'idea'}
-                                    size={27}
-                                    style={this.themeButtons.styles.btnIcon}
-                                />
-                            }
-                            raised={true}
+                        <FAB
+                            icon={renderIdeaIcon}
+                            style={this.themeButtons.styles.addAThought}
+                            variant="secondary"
+                            size="small"
                             onPress={this.handleEditThought}
                         />
                 }

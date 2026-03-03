@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dimensions, Platform, SafeAreaView, Text, View } from 'react-native';
-import { Button } from '../../components/BaseButton';
+import { FAB } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -46,6 +46,19 @@ import { isUserAuthenticated } from '../../utilities/authUtils';
 import UsersActions from '../../redux/actions/UsersActions';
 
 const { width: viewportWidth } = Dimensions.get('window');
+
+const renderIdeaIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="idea" size={props.size} color={props.color} />
+);
+const renderPlusIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="plus" size={props.size} color={props.color} />
+);
+const renderMinusIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="minus" size={props.size} color={props.color} />
+);
+const renderMapMarkerPlusIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="map-marker-plus" size={props.size} color={props.color} />
+);
 
 const tabMap = {
     0: CAROUSEL_TABS.DISCOVERIES,
@@ -837,87 +850,53 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                 </SafeAreaView>
                 {
                     tabName === CAROUSEL_TABS.THOUGHTS
-                    && <Button
-                        containerStyle={this.themeButtons.styles.addAThought}
-                        buttonStyle={this.themeButtons.styles.btnLarge}
-                        icon={
-                            <TherrIcon
-                                name={'idea'}
-                                size={27}
-                                style={this.themeButtons.styles.btnIcon}
-                            />
-                        }
-                        raised={true}
+                    && <FAB
+                        icon={renderIdeaIcon}
+                        style={this.themeButtons.styles.addAThought}
+                        variant="secondary"
+                        size="small"
                         onPress={this.handleEditThought}
                     />
                 }
                 {
                     tabName === CAROUSEL_TABS.EVENTS
-                    && <Button
-                        containerStyle={this.themeButtons.styles.addAThought}
-                        buttonStyle={this.themeButtons.styles.btnLarge}
-                        icon={
-                            <TherrIcon
-                                name={'plus'}
-                                size={27}
-                                style={this.themeButtons.styles.btnIcon}
-                            />
-                        }
-                        raised={true}
+                    && <FAB
+                        icon={renderPlusIcon}
+                        style={this.themeButtons.styles.addAThought}
+                        variant="secondary"
+                        size="small"
                         onPress={this.handleCreateEvent}
                     />
                 }
                 {
                     tabName === CAROUSEL_TABS.DISCOVERIES
-                    && <Button
-                        containerStyle={this.themeButtons.styles.addAThought}
-                        buttonStyle={this.themeButtons.styles.btnLarge}
-                        icon={
-                            <TherrIcon
-                                name={areCreateActionsVisible ? 'minus' : 'plus'}
-                                size={27}
-                                style={this.themeButtons.styles.btnIcon}
-                            />
-                        }
-                        raised={true}
+                    && <FAB
+                        icon={areCreateActionsVisible ? renderMinusIcon : renderPlusIcon}
+                        style={this.themeButtons.styles.addAThought}
+                        variant="secondary"
+                        size="small"
                         onPress={this.handleCreate}
                     />
                 }
                 {
                     tabName === CAROUSEL_TABS.DISCOVERIES && areCreateActionsVisible
-                    && <Button
-                        containerStyle={this.themeButtons.styles.addAThoughtDiscovered}
-                        buttonStyle={this.themeButtons.styles.btnLargeWithText}
-                        title={this.translate('menus.mapActions.shareAThought')}
-                        titleStyle={this.themeButtons.styles.btnLargeTitleLeft}
-                        iconRight
-                        icon={
-                            <TherrIcon
-                                name={'idea'}
-                                size={27}
-                                style={this.themeButtons.styles.btnIcon}
-                            />
-                        }
-                        raised={true}
+                    && <FAB
+                        icon={renderIdeaIcon}
+                        label={this.translate('menus.mapActions.shareAThought')}
+                        style={this.themeButtons.styles.addAThoughtDiscovered}
+                        variant="secondary"
+                        size="small"
                         onPress={this.handleEditThought}
                     />
                 }
                 {
                     tabName === CAROUSEL_TABS.DISCOVERIES && areCreateActionsVisible
-                    && <Button
-                        containerStyle={this.themeButtons.styles.addAMomentDiscovered}
-                        buttonStyle={this.themeButtons.styles.btnLargeWithText}
-                        title={this.translate('menus.mapActions.uploadAMoment')}
-                        titleStyle={this.themeButtons.styles.btnLargeTitleLeft}
-                        iconRight
-                        icon={
-                            <TherrIcon
-                                name={'map-marker-plus'}
-                                size={27}
-                                style={this.themeButtons.styles.btnIcon}
-                            />
-                        }
-                        raised={true}
+                    && <FAB
+                        icon={renderMapMarkerPlusIcon}
+                        label={this.translate('menus.mapActions.uploadAMoment')}
+                        style={this.themeButtons.styles.addAMomentDiscovered}
+                        variant="secondary"
+                        size="small"
                         onPress={this.handleCreateMoment}
                     />
                 }
