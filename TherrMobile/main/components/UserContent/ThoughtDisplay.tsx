@@ -145,7 +145,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
 
         return (
-            <>
+            <View style={themeViewContent.styles.thoughtCard}>
                 <View style={[themeViewContent.styles.thoughtContainer]}>
                     <View style={themeViewContent.styles.thoughtLeftContainer}>
                         <Pressable
@@ -203,7 +203,6 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                 }
                                 onPress={() => toggleThoughtOptions(thought)}
                                 type="clear"
-                                TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
                         </View>
                         {
@@ -231,26 +230,28 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                 </View>
                 {
                     isExpanded &&
-                        <ThoughtContent
-                            hashtags={hashtags}
-                            isBookmarked={isBookmarked}
-                            isExpanded={isExpanded}
-                            isDarkMode={isDarkMode}
-                            isLiked={isLiked}
-                            isRepliable={isRepliable}
-                            likeColor={likeColor}
-                            likeCount={likeCount}
-                            inspectThought={inspectThought}
-                            onBookmarkPress={this.onBookmarkPress}
-                            onCommentPress={this.onCommentPress}
-                            onLikePress={this.onLikePress}
-                            theme={theme}
-                            themeForms={themeForms}
-                            themeViewContent={themeViewContent}
-                            thought={thought}
-                        />
+                        <View>
+                            <ThoughtContent
+                                hashtags={hashtags}
+                                isBookmarked={isBookmarked}
+                                isExpanded={isExpanded}
+                                isDarkMode={isDarkMode}
+                                isLiked={isLiked}
+                                isRepliable={isRepliable}
+                                likeColor={likeColor}
+                                likeCount={likeCount}
+                                inspectThought={inspectThought}
+                                onBookmarkPress={this.onBookmarkPress}
+                                onCommentPress={this.onCommentPress}
+                                onLikePress={this.onLikePress}
+                                theme={theme}
+                                themeForms={themeForms}
+                                themeViewContent={themeViewContent}
+                                thought={thought}
+                            />
+                        </View>
                 }
-            </>
+            </View>
         );
     }
 }

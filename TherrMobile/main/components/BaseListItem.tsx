@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, View, Text, ViewStyle, TextStyle, StyleProp } from 'react-native';
-import { Checkbox } from 'react-native-paper';
+import { Checkbox, useTheme } from 'react-native-paper';
 
 // ListItem compound component using plain RN primitives + Paper Checkbox.
 
@@ -11,23 +11,26 @@ interface IListItemProps {
     children: React.ReactNode;
 }
 
-const ListItemBase = ({ onPress, bottomDivider, containerStyle, children }: IListItemProps) => (
-    <Pressable
-        onPress={onPress}
-        style={[
-            {
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 10,
-                paddingVertical: 8,
-            } as ViewStyle,
-            containerStyle,
-            bottomDivider ? { borderBottomWidth: 1, borderBottomColor: '#e1e8ee' } as ViewStyle : undefined,
-        ]}
-    >
-        {children}
-    </Pressable>
-);
+const ListItemBase = ({ onPress, bottomDivider, containerStyle, children }: IListItemProps) => {
+    const theme = useTheme();
+    return (
+        <Pressable
+            onPress={onPress}
+            style={[
+                {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 10,
+                    paddingVertical: 8,
+                } as ViewStyle,
+                containerStyle,
+                bottomDivider ? { borderBottomWidth: 1, borderBottomColor: theme.colors.outlineVariant } as ViewStyle : undefined,
+            ]}
+        >
+            {children}
+        </Pressable>
+    );
+};
 
 interface ITextProps {
     children: React.ReactNode;
@@ -35,17 +38,23 @@ interface ITextProps {
     numberOfLines?: number;
 }
 
-const Title = ({ children, style, numberOfLines }: ITextProps) => (
-    <Text style={[{ fontSize: 16, fontWeight: '500' } as TextStyle, style]} numberOfLines={numberOfLines}>
-        {children}
-    </Text>
-);
+const Title = ({ children, style, numberOfLines }: ITextProps) => {
+    const theme = useTheme();
+    return (
+        <Text style={[{ fontSize: 16, fontWeight: '500', color: theme.colors.onSurface } as TextStyle, style]} numberOfLines={numberOfLines}>
+            {children}
+        </Text>
+    );
+};
 
-const Subtitle = ({ children, style, numberOfLines }: ITextProps) => (
-    <Text style={[{ fontSize: 14, color: '#86939e' } as TextStyle, style]} numberOfLines={numberOfLines}>
-        {children}
-    </Text>
-);
+const Subtitle = ({ children, style, numberOfLines }: ITextProps) => {
+    const theme = useTheme();
+    return (
+        <Text style={[{ fontSize: 14, color: theme.colors.onSurfaceVariant } as TextStyle, style]} numberOfLines={numberOfLines}>
+            {children}
+        </Text>
+    );
+};
 
 const Content = ({ children }: { children: React.ReactNode }) => (
     <View style={{ flex: 1 }}>{children}</View>

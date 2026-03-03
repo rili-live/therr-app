@@ -8,6 +8,7 @@ import {
     TouchableWithoutFeedbackComponent,
     View,
 } from 'react-native';
+import { Card } from 'react-native-paper';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import Autolink from 'react-native-autolink';
@@ -130,7 +131,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         const toggleOptions = () => toggleAreaOptions(area);
 
         return (
-            <>
+            <Card mode="elevated" style={{ marginBottom: 4 }}>
                 <View style={themeViewArea.styles.areaAuthorContainer}>
                     <Pressable
                         onPress={() => goToViewUser(area.fromUserId)}
@@ -174,27 +175,28 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         }
                         onPress={toggleOptions}
                         type="clear"
-                        TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
-                <AreaDisplayContent
-                    hashtags={hashtags}
-                    isDarkMode={isDarkMode}
-                    area={area}
-                    areaMedia={areaMedia}
-                    inspectContent={inspectContent}
-                    onDoubleTap={() => this.onLikePress(area)}
-                    onBookmarkPress={() => this.onBookmarkPress(area)}
-                    theme={theme}
-                    themeForms={themeForms}
-                    themeViewArea={themeViewArea}
-                    translate={this.props.translate}
-                />
+                <Card.Content style={{ padding: 0 }}>
+                    <AreaDisplayContent
+                        hashtags={hashtags}
+                        isDarkMode={isDarkMode}
+                        area={area}
+                        areaMedia={areaMedia}
+                        inspectContent={inspectContent}
+                        onDoubleTap={() => this.onLikePress(area)}
+                        onBookmarkPress={() => this.onBookmarkPress(area)}
+                        theme={theme}
+                        themeForms={themeForms}
+                        themeViewArea={themeViewArea}
+                        translate={this.props.translate}
+                    />
+                </Card.Content>
                 {
                     area.distance != null &&
-                    <Text  style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
+                    <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
                 }
-            </>
+            </Card>
         );
     }
 }

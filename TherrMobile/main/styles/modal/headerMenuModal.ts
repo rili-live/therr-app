@@ -13,7 +13,7 @@ const userProfileButtonContainerStyles: any = {
     alignItems: 'center',
 };
 
-const getNotificationCircleStyles = (theme): any => ({
+const getNotificationCircleStyles = (theme: ReturnType<typeof getTheme>): any => ({
     position: 'absolute',
     top: 7,
     right: 14,
@@ -79,10 +79,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingRight: 10,
         },
         notificationsItemContainer: {
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
+            position: 'relative',
+        },
+        notificationBadge: {
+            position: 'absolute',
+            top: 14,
+            right: 8,
         },
         notificationCircle: {
             ...getNotificationCircleStyles(therrTheme),
@@ -108,7 +110,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '500',
         },
         overlayContainer: {
-            // backgroundColor: therrTheme.colors.textWhite,
+            backgroundColor: therrTheme.colors.backgroundWhite,
             display: 'flex',
             height: '100%',
             width: '75%',
@@ -188,6 +190,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         footer: {
             paddingBottom: 8,
+        },
+        footerButtonCenter: {
+            justifyContent: 'center',
+        },
+        footerButtonMargin: {
+            marginBottom: 10,
         },
         toggleIcon: {
             height: 30,

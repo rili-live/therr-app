@@ -10,6 +10,8 @@
         <item name="colorAccent">@color/therr_blue</item>
     </style>
 
+    <style name="UCropTheme" parent="Theme.AppCompat.Light.NoActionBar" />
+
     <style name="BootTheme" parent="Theme.BootSplash">
         <item name="bootSplashBackground">@color/bootsplash_background</item>
         <item name="bootSplashLogo">@drawable/bootsplash_logo</item>

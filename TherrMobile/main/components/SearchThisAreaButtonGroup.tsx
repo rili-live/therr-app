@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View } from 'react-native';
-import { Button } from './BaseButton';
+import { FAB } from 'react-native-paper';
 import searchLoading from '../assets/search-loading.json';
 import LottieView from 'lottie-react-native';
 
@@ -26,20 +26,19 @@ const SearchThisAreaButtonGroup = ({
                 isSearchLoading ?
                     <LottieView
                         source={searchLoading}
-                        // resizeMode="cover"
                         resizeMode="contain"
                         speed={1}
                         autoPlay
                         loop
                         style={[{position: 'absolute', top: 0, width: '100%', height: 65}]}
                     /> :
-                    <Button
+                    <FAB
+                        icon="magnify"
+                        label={translate('menus.searchThisArea.title')}
                         onPress={() => handleSearchLocation()}
-                        buttonStyle={themeButtons.styles.searchThisAreaButton}
-                        containerStyle={themeButtons.styles.btnContainer}
-                        titleStyle={themeButtons.styles.searchThisAreaTitle}
-                        title={translate('menus.searchThisArea.title')}
-                        raised
+                        style={themeButtons.styles.searchThisAreaButton}
+                        variant="secondary"
+                        size="small"
                     />
             }
         </View>

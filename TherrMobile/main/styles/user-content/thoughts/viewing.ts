@@ -68,6 +68,9 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             marginTop: 0,
             // marginBottom: 32,
         },
+        thoughtCard: {
+            marginBottom: 4,
+        },
         thoughtContainer: {
             display: 'flex',
             flexDirection: 'row',

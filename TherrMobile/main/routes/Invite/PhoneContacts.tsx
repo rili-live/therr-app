@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlatList, SafeAreaView } from 'react-native';
 import 'react-native-gesture-handler';
-import { Button } from '../../components/BaseButton';
+import { FAB } from 'react-native-paper';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
@@ -202,20 +202,11 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                         // onContentSizeChange={() => contactList.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
                     />
                 </SafeAreaView>
-                <Button
-                    containerStyle={this.themeButtons.styles.buttonFloatBottomRightContainer}
-                    buttonStyle={this.themeButtons.styles.btnLargeWithText}
-                    titleStyle={this.themeButtons.styles.btnMediumTitleRight}
-                    icon={
-                        <FontAwesomeIcon
-                            name="paper-plane"
-                            size={22}
-                            style={[this.themeButtons.styles.btnIcon]}
-                        />
-                    }
-                    raised={true}
-                    title={this.translate('menus.connections.buttons.invite')}
+                <FAB
+                    icon="send"
+                    label={this.translate('menus.connections.buttons.invite')}
                     onPress={this.onSubmit}
+                    style={this.themeButtons.styles.buttonFloatBottomRightContainer}
                 />
                 <MainButtonMenu
                     navigation={navigation}

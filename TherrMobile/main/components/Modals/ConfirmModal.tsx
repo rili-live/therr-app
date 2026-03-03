@@ -1,10 +1,9 @@
 import React from 'react';
-import { Text, Modal, Pressable, View } from 'react-native';
-import { Button } from '../BaseButton';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { Text } from 'react-native';
+import { Dialog, Portal } from 'react-native-paper';
 import { ScrollView } from 'react-native-gesture-handler';
 import { ITherrThemeColors } from '../../styles/themes';
-import spacingStyles from '../../styles/layouts/spacing';
+import ModalButton from './ModalButton';
 
 interface IConfirmModal {
     headerText?: string;
@@ -32,29 +31,6 @@ interface IConfirmModal {
     };
 }
 
-const ModalButton = ({ title, hasBorderRight, iconName, onPress, themeButtons, themeModal }) => {
-    const extraStyles = hasBorderRight ? { borderRightWidth: 1 } : {};
-
-    return (
-        <Button
-            containerStyle={[themeModal.styles.buttonContainer, extraStyles]}
-            buttonStyle={[themeButtons.styles.btnClear, spacingStyles.padMd]}
-            titleStyle={themeButtons.styles.btnTitleBlack}
-            icon={
-                <MaterialIcon
-                    name={iconName}
-                    size={20}
-                    style={[themeButtons.styles.btnIconBlack, { paddingRight: 7 }]}
-                />
-            }
-            raised={true}
-            type="clear"
-            onPress={onPress}
-            title={title}
-        />
-    );
-};
-
 export default ({
     headerText,
     isVisible,
@@ -73,56 +49,49 @@ export default ({
     const extraStyles = width ? { width: width } : {};
 
     return (
-        <Modal
-            animationType="fade"
-            visible={isVisible}
-            onRequestClose={onCancel}
-            transparent={true}
-        >
-            <Pressable
-                onPress={onCancel}
-                style={themeModal.styles.overlay}>
-                <Pressable style={[themeModal.styles.container, extraStyles]}>
-                    {
-                        renderImage && renderImage()
-                    }
-                    {
-                        headerText ?
-                            <>
-                                <View style={themeModal.styles.header}>
-                                    <Text style={themeModal.styles.headerText}>{headerText}</Text>
-                                </View>
-                                <ScrollView style={themeModal.styles.body} contentContainerStyle={themeModal.styles.bodyContent}>
-                                    <View onStartShouldSetResponder={() => true}>
-                                        <Text style={themeModal.styles.bodyText}>{text}</Text>
-                                        {
-                                            text2 && <Text style={themeModal.styles.bodyText}>{text2}</Text>
-                                        }
-                                    </View>
+        <Portal>
+            <Dialog
+                visible={isVisible}
+                onDismiss={onCancel}
+                style={[themeModal.styles.container, extraStyles]}
+            >
+                {
+                    renderImage && renderImage()
+                }
+                {
+                    headerText ?
+                        <>
+                            <Dialog.Title style={themeModal.styles.headerText}>{headerText}</Dialog.Title>
+                            <Dialog.ScrollArea style={themeModal.styles.body}>
+                                <ScrollView>
+                                    <Text style={themeModal.styles.bodyText}>{text}</Text>
+                                    {
+                                        text2 && <Text style={themeModal.styles.bodyText}>{text2}</Text>
+                                    }
                                 </ScrollView>
-                            </> :
+                            </Dialog.ScrollArea>
+                        </> :
+                        <Dialog.Content>
                             <Text style={themeModal.styles.bodyTextBold}>{text}</Text>
-                    }
-                    <View style={themeModal.styles.buttonsContainer}>
-                        <ModalButton
-                            iconName="close"
-                            title={textCancel || translate('modals.confirmModal.cancel')}
-                            onPress={onCancel}
-                            hasBorderRight={true}
-                            themeModal={themeModal}
-                            themeButtons={themeButtons}
-                        />
-                        <ModalButton
-                            iconName="check"
-                            title={textConfirm || translate('modals.confirmModal.confirm')}
-                            onPress={onConfirm}
-                            hasBorderRight={false}
-                            themeModal={themeModal}
-                            themeButtons={themeButtons}
-                        />
-                    </View>
-                </Pressable>
-            </Pressable>
-        </Modal>
+                        </Dialog.Content>
+                }
+                <Dialog.Actions style={themeModal.styles.buttonsContainer}>
+                    <ModalButton
+                        iconName="close"
+                        title={textCancel || translate('modals.confirmModal.cancel')}
+                        onPress={onCancel}
+                        iconRight={false}
+                        themeButtons={themeButtons}
+                    />
+                    <ModalButton
+                        iconName="check"
+                        title={textConfirm || translate('modals.confirmModal.confirm')}
+                        onPress={onConfirm}
+                        iconRight={false}
+                        themeButtons={themeButtons}
+                    />
+                </Dialog.Actions>
+            </Dialog>
+        </Portal>
     );
 };

@@ -1,31 +1,21 @@
 import React from 'react';
-import { Button } from '../BaseButton';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-
-const renderIcon = (hasIcon, styles) => {
-    if (hasIcon) {
-        return (
-            <FontAwesome5Icon
-                name="times"
-                size={14}
-                style={styles.buttonPillIcon}
-            />
-        );
-    }
-
-    return false;
-};
+import { Chip } from 'react-native-paper';
 
 export default ({ tag, onPress, hasIcon = true, styles }) => {
     return (
-        <Button
-            buttonStyle={styles.buttonPill}
-            containerStyle={styles.buttonPillContainer}
-            titleStyle={styles.buttonPillTitle}
-            title={`#${tag}`}
-            icon={renderIcon(hasIcon, styles)}
-            iconRight={true}
+        <Chip
+            compact
+            mode="outlined"
+            textStyle={[styles.buttonPillTitle, { fontSize: 13 }]}
+            style={[
+                styles.buttonPill,
+                styles.buttonPillContainer,
+                { height: undefined },
+            ]}
             onPress={() => onPress(tag)}
-        />
+            onClose={hasIcon ? () => onPress(tag) : undefined}
+        >
+            {`#${tag}`}
+        </Chip>
     );
 };

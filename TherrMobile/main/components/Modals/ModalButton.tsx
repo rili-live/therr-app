@@ -1,7 +1,5 @@
 import React from 'react';
-import { Button } from '../BaseButton';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import spacingStyles from '../../styles/layouts/spacing';
+import { Button } from 'react-native-paper';
 
 interface IModalButtonProps {
     color?: string;
@@ -14,26 +12,20 @@ interface IModalButtonProps {
 }
 
 const ModalButton = ({ color, disabled, title, iconName, onPress, iconRight, themeButtons }: IModalButtonProps) => {
-    const iconStyle = iconRight ? { paddingLeft: 7 } : { paddingRight: 7 };
+    const textColor = color === 'red' ? (themeButtons.styles.btnTitleRed?.color || 'red') : undefined;
+
     return (
         <Button
-            containerStyle={spacingStyles.flexOne}
-            buttonStyle={[themeButtons.styles.btnClear, spacingStyles.padMd]}
-            titleStyle={color ? themeButtons.styles.btnTitleRed : themeButtons.styles.btnTitleBlack}
-            icon={
-                <MaterialIcon
-                    name={iconName}
-                    size={20}
-                    style={[color ? themeButtons.styles.btnTitleRed : themeButtons.styles.btnIconBlack, iconStyle]}
-                />
-            }
-            iconRight={iconRight}
-            raised={true}
-            type="clear"
+            mode="text"
             onPress={onPress}
-            title={title}
             disabled={disabled}
-        />
+            icon={iconName}
+            textColor={textColor}
+            contentStyle={iconRight ? { flexDirection: 'row-reverse' } : undefined}
+            style={{ flex: 1 }}
+        >
+            {title}
+        </Button>
     );
 };
 

@@ -409,7 +409,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         }
 
         return (
-            <>
+            <View style={{ marginBottom: 4 }}>
                 <View style={themeViewArea.styles.areaAuthorContainer}>
                     {
                         // (isSpace && areaUserDetails?.userName === translate('alertTitles.nameUnknown'))
@@ -896,7 +896,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         />
                     </View>
                 }
-            </>
+            </View>
         );
     }
 }

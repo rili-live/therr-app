@@ -25,6 +25,7 @@ interface IButtonProps {
     testID?: string;
     // Silently ignored RNE props to avoid TS errors in consumers
     iconContainerStyle?: any;
+    TouchableComponent?: any;
 }
 
 const mapMode = (type?: string, raised?: boolean): 'text' | 'contained' | 'outlined' | 'elevated' => {
@@ -67,10 +68,10 @@ export const Button = ({
     // Zero out Paper's inner padding layers so that buttonStyle is the sole
     // source of sizing — matching the legacy single-container model.
     const contentStyle: ViewStyle = {
+        flex: 1,
         minHeight: 0,
         paddingHorizontal: 0,
         paddingVertical: 0,
-        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
     };
