@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
-import { Button } from '../BaseButton';
+import { List } from 'react-native-paper';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import spacingStyles from '../../styles/layouts/spacing';
 import { bottomSafeAreaInset } from '../../styles/navigation/buttonMenu';
@@ -28,36 +28,33 @@ const ContentOptionsSheet = (props: SheetProps<'content-options-sheet'>) => {
     ];
 
     const options = allOptions.filter(Boolean) as IContentOption[];
+    const iconColor = payload?.themeForms.colors.primary3;
 
     return (
         <ActionSheet id={props.sheetId}>
             <View style={[
                 spacingStyles.fullWidth,
-                spacingStyles.alignStart,
                 spacingStyles.marginTopMd,
                 spacingStyles.marginBotLg,
                 { paddingBottom: bottomSafeAreaInset },
             ]}>
                 {options.map((option) => (
-                    <Button
+                    <List.Item
                         key={option.type}
-                        type="clear"
-                        buttonStyle={spacingStyles.justifyStart}
-                        containerStyle={[spacingStyles.fullWidth]}
-                        titleStyle={[payload?.themeForms.styles.buttonLink, { color: payload?.themeForms.colors.primary3 }]}
                         title={payload?.translate(`modals.contentOptions.buttons.${option.title}`)}
+                        titleStyle={{ color: iconColor }}
+                        left={(listProps) => (
+                            <MaterialIcon
+                                name={option.icon}
+                                size={22}
+                                color={iconColor}
+                                style={listProps.style}
+                            />
+                        )}
                         onPress={() => {
                             SheetManager.hide('content-options-sheet');
                             payload?.onSelect(option.type);
                         }}
-                        icon={
-                            <MaterialIcon
-                                style={spacingStyles.marginRtMd}
-                                name={option.icon}
-                                size={22}
-                                color={payload?.themeForms.colors.primary3}
-                            />
-                        }
                     />
                 ))}
             </View>

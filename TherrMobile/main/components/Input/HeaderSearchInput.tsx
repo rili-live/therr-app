@@ -161,6 +161,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                         ]
                     }
                     inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
+                    roundness={18}
                     onChangeText={this.onInputChange}
                     onFocus={() => this.handlePress('onfocus')}
                     placeholder={placeholderText}

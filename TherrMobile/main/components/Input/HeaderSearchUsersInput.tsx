@@ -119,6 +119,7 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
                         ]
                     }
                     inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
+                    roundness={18}
                     onChangeText={this.onInputChange}
                     placeholder={this.translate('components.header.searchUsersInput.placeholder')}
                     placeholderTextColor={theme.colorVariations.textGrayFade}

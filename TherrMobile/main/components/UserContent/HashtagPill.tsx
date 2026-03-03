@@ -6,6 +6,7 @@ export default ({ tag, onPress, hasIcon = true, styles }) => {
         <Chip
             compact
             mode="outlined"
+            theme={{ roundness: 10 }}
             textStyle={[styles.buttonPillTitle, { fontSize: 13 }]}
             style={[
                 styles.buttonPill,

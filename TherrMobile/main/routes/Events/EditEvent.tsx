@@ -3,6 +3,7 @@ import { Dimensions, Platform, Pressable, SafeAreaView, Keyboard, Text, View } f
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../../components/BaseButton';
+import EditFormFooter from '../../components/EditFormFooter';
 import { Image } from '../../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
@@ -1082,7 +1083,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             themeForms={this.themeForms}
                         />
                         <RoundInput
-                            containerStyle={{ marginBottom: !hashtags?.length ? 10 : 0 }}
+                            containerStyle={{ marginBottom: 12 }}
                             autoCorrect={false}
                             errorStyle={this.theme.styles.displayNone}
                             placeholder={this.translate(
@@ -1371,64 +1372,28 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             </View>
                         }
                     </KeyboardAwareScrollView>
-                    <View style={this.themeAccentLayout.styles.footer}>
-                        <Button
-                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                            buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.goBack()}
-                            icon={
-                                <TherrIcon
-                                    name="go-back"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                        {/* <Button
-                            buttonStyle={this.themeAccentForms.styles.draftButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={[this.themeAccentForms.styles.submitButtonContainer, { marginRight: 20 }]}
-                            title={this.translate(
-                                'forms.editEvent.buttons.draft'
-                            )}
-                            icon={
-                                <TherrIcon
-                                    name="edit"
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={this.themeAccentForms.styles.submitButtonIcon}
-                                />
-                            }
-                            onPress={() => this.onSubmit({
-                                isDraft: true,
-                                shouldSkipRewards: true,
-                                shouldSkipNavigate: true,
-                            })}
-                            disabled={this.isFormDisabled()}
-                        /> */}
-                        <Button
-                            buttonStyle={this.themeAccentForms.styles.submitButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                            title={continueButtonConfig.title}
-                            icon={
-                                <TherrIcon
-                                    name={continueButtonConfig.icon}
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={continueButtonConfig.iconStyle}
-                                />
-                            }
-                            iconRight={continueButtonConfig.iconRight}
-                            onPress={continueButtonConfig.onPress}
-                            disabled={this.isFormDisabled()}
-                        />
-                    </View>
+                    <EditFormFooter
+                        isDarkMode={this.props.user.settings?.mobileThemeName === 'retro'}
+                        theme={this.theme}
+                        buttons={[
+                            {
+                                title: this.translate('forms.editEvent.buttons.back'),
+                                onPress: () => navigation.goBack(),
+                                mode: 'outlined',
+                                icon: 'arrow-left',
+                                textColor: this.theme.colors.brandingBlueGreen,
+                            },
+                            {
+                                title: continueButtonConfig.title,
+                                onPress: continueButtonConfig.onPress,
+                                mode: 'contained',
+                                icon: continueButtonConfig.iconRight ? 'chevron-right' : 'send',
+                                disabled: this.isFormDisabled(),
+                                buttonColor: this.theme.colors.accentTeal,
+                                textColor: this.theme.colors.brandingBlack,
+                            },
+                        ]}
+                    />
                 </SafeAreaView>
                 <ConfirmModal
                     isVisible={isInsufficientFundsModalVisible}

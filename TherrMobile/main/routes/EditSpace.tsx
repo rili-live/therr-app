@@ -3,6 +3,7 @@ import { Dimensions, Pressable, SafeAreaView, Keyboard, Text, View, Platform } f
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../components/BaseButton';
+import EditFormFooter from '../components/EditFormFooter';
 import Slider from '@react-native-community/slider';
 import { Image } from '../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -87,6 +88,7 @@ interface IEditSpaceState {
     inputs: any;
     isBusinessAccount: boolean;
     isCreatorAccount?: boolean;
+    isSliderActive: boolean;
     isSubmitting: boolean;
     previewLinkId?: string;
     previewStyleState: any;
@@ -172,6 +174,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 featuredIncentiveRewardValue: area?.featuredIncentiveRewardValue?.toString() || undefined,
                 featuredIncentiveCurrencyId: area?.featuredIncentiveCurrencyId?.toString() || undefined,
             },
+            isSliderActive: false,
             isSubmitting: false,
             previewStyleState: {},
             selectedImage: imageDetails || {},
@@ -921,6 +924,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             </>
                         }
                         <RoundInput
+                            containerStyle={{ marginBottom: 12 }}
                             autoFocus={isBusinessAccount}
                             maxLength={100}
                             placeholder={this.translate(
@@ -959,6 +963,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             themeForms={this.themeForms}
                         />
                         <RoundInput
+                            containerStyle={{ marginBottom: 12 }}
                             autoCorrect={false}
                             errorStyle={this.theme.styles.displayNone}
                             placeholder={this.translate(
@@ -978,7 +983,9 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                         />
                     </View>
                     {
-                        isBusinessAccount && <View style={this.themeForms.styles.inputSliderContainer}>
+                        isBusinessAccount && <View
+                            style={this.themeForms.styles.inputSliderContainer}
+                        >
                             <Slider
                                 value={inputs.radius}
                                 onValueChange={(value) => this.onSliderChange('radius', value)}
@@ -988,7 +995,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 thumbTintColor={this.theme.colors.accentBlue}
                                 minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
                                 maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
-                                onSlidingStart={Keyboard.dismiss}
+                                onSlidingStart={() => { Keyboard.dismiss(); this.setState({ isSliderActive: true }); }}
+                                onSlidingComplete={() => this.setState({ isSliderActive: false })}
                             />
                             <Text style={this.themeForms.styles.inputLabelDark}>
                                 {`${this.translate('forms.editSpace.labels.radius', { meters: inputs.radius })}`}
@@ -1184,6 +1192,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
+                        scrollEnabled={!this.state.isSliderActive}
                         ref={(component) => (this.scrollViewRef = component)}
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit, this.theme.styles.scrollView]}
                         contentContainerStyle={[
@@ -1196,40 +1205,28 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             isEditingIncentives ? this.renderEditingIncentives() : this.renderEditingForm()
                         }
                     </KeyboardAwareScrollView>
-                    <View style={this.themeAccentLayout.styles.footer}>
-                        <Button
-                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                            buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.goBack()}
-                            icon={
-                                <TherrIcon
-                                    name="go-back"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                        <Button
-                            buttonStyle={this.themeAccentForms.styles.submitButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                            title={continueButtonConfig.title}
-                            icon={
-                                <TherrIcon
-                                    name={continueButtonConfig.icon}
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={continueButtonConfig.iconStyle}
-                                />
-                            }
-                            iconRight={continueButtonConfig.iconRight}
-                            onPress={continueButtonConfig.onPress}
-                            disabled={this.isFormDisabled()}
-                        />
-                    </View>
+                    <EditFormFooter
+                        isDarkMode={this.props.user.settings?.mobileThemeName === 'retro'}
+                        theme={this.theme}
+                        buttons={[
+                            {
+                                title: this.translate('forms.editSpace.buttons.back'),
+                                onPress: () => navigation.goBack(),
+                                mode: 'outlined',
+                                icon: 'arrow-left',
+                                textColor: this.theme.colors.brandingBlueGreen,
+                            },
+                            {
+                                title: continueButtonConfig.title,
+                                onPress: continueButtonConfig.onPress,
+                                mode: 'contained',
+                                icon: continueButtonConfig.iconRight ? 'chevron-right' : 'send',
+                                disabled: this.isFormDisabled(),
+                                buttonColor: this.theme.colors.accentTeal,
+                                textColor: this.theme.colors.brandingBlack,
+                            },
+                        ]}
+                    />
                 </SafeAreaView>
             </>
         );

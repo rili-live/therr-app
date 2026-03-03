@@ -1,10 +1,10 @@
 import React from 'react';
-import { GestureResponderEvent, StyleProp, Text, View, ViewStyle, TextStyle } from 'react-native';
-import { Button as PaperButton, TouchableRipple } from 'react-native-paper';
+import { ActivityIndicator, GestureResponderEvent, StyleProp, StyleSheet, Text, View, ViewStyle, TextStyle } from 'react-native';
+import { TouchableRipple } from 'react-native-paper';
 
-// Key difference: RNE had one container (buttonStyle), Paper has two layers
-// (style -> outer, contentStyle -> inner with its own padding). We zero out
-// Paper's inner padding so buttonStyle dimensions match the old RNE behavior.
+// Uses a View (visual container) → TouchableRipple (fills container) → View
+// (content layout) structure so the ripple and press target always cover the
+// full button area regardless of buttonStyle dimensions.
 
 interface IButtonProps {
     title?: React.ReactNode;
@@ -28,19 +28,47 @@ interface IButtonProps {
     TouchableComponent?: any;
 }
 
-const mapMode = (type?: string, raised?: boolean): 'text' | 'contained' | 'outlined' | 'elevated' => {
-    if (raised) {
-        return 'elevated';
-    }
-    switch (type) {
-        case 'clear':
-            return 'text';
-        case 'outline':
-            return 'outlined';
-        default:
-            return 'contained';
-    }
-};
+const styles = StyleSheet.create({
+    elevated: {
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.23,
+        shadowRadius: 2.62,
+    },
+    container: {
+        overflow: 'hidden',
+        alignItems: 'stretch',
+    },
+    ripple: {
+        flex: 1,
+    },
+    content: {
+        flex: 1,
+    },
+    contentColumn: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    contentRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    contentRowSpaced: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    titleReset: {
+        marginVertical: 0,
+        marginHorizontal: 0,
+    },
+    titleSolid: {
+        color: '#fff',
+    },
+});
 
 export const Button = ({
     title,
@@ -60,136 +88,58 @@ export const Button = ({
     accessibilityLabel,
     testID,
 }: IButtonProps) => {
-    const mode = mapMode(type, raised);
+    // PaperButton auto-set white text for contained mode; replicate that
+    // default for solid buttons so consumers don't need an explicit color.
+    const isSolid = type !== 'clear' && type !== 'outline';
 
-    // Paper icon prop accepts a render function or icon name string
-    const iconProp = icon ? () => <>{icon}</> : undefined;
+    const contentLayout = iconTop
+        ? styles.contentColumn
+        : (iconRight && title) ? styles.contentRowSpaced : styles.contentRow;
 
-    // Zero out Paper's inner padding layers so that buttonStyle is the sole
-    // source of sizing — matching the legacy single-container model.
-    const contentStyle: ViewStyle = {
-        flex: 1,
-        minHeight: 0,
-        paddingHorizontal: 0,
-        paddingVertical: 0,
-        alignItems: 'center',
-        justifyContent: 'center',
-    };
-
-    // For iconTop layout, bypass PaperButton's icon wrapper (which adds
-    // internal marginRight that offsets icons in column layout) and use
-    // TouchableRipple with manual layout for precise centering.
-    if (iconTop) {
-        // TODO: User react-native-paper IconButton
-        const content = (
-            <TouchableRipple
-                onPress={onPress}
-                disabled={disabled}
-                style={[buttonStyle as StyleProp<ViewStyle>, disabled && disabledStyle]}
-                accessibilityLabel={accessibilityLabel}
-                testID={testID}
-            >
-                <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-                    {icon}
-                    {title != null && (
-                        <Text style={[
-                            { marginVertical: 0, marginHorizontal: 0 } as TextStyle,
-                            titleStyle as StyleProp<TextStyle>,
-                            disabled && disabledTitleStyle,
-                        ]}>
-                            {title}
-                        </Text>
-                    )}
-                </View>
-            </TouchableRipple>
-        );
-
-        if (containerStyle) {
-            return <View style={containerStyle}>{content}</View>;
+    const renderContent = () => {
+        if (loading) {
+            return <ActivityIndicator />;
         }
-        return content;
-    }
 
-    // For iconRight layout, bypass PaperButton and use TouchableRipple
-    // with manual row layout so text aligns left and icon aligns right.
-    if (iconRight) {
-        const content = (
-            <TouchableRipple
-                onPress={onPress}
-                disabled={disabled}
-                style={[buttonStyle as StyleProp<ViewStyle>, disabled && disabledStyle]}
-                accessibilityLabel={accessibilityLabel}
-                testID={testID}
-            >
-                <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: title ? 'space-between' : 'center',
-                    flex: 1,
-                }}>
-                    {title ? (
-                        <Text style={[
-                            { marginVertical: 0, marginHorizontal: 0 } as TextStyle,
-                            titleStyle as StyleProp<TextStyle>,
-                            disabled && disabledTitleStyle,
-                        ]}>
-                            {title}
-                        </Text>
-                    ) : null}
-                    {icon}
-                </View>
-            </TouchableRipple>
-        );
-
-        if (containerStyle) {
-            return <View style={containerStyle}>{content}</View>;
-        }
-        return content;
-    }
-
-    // For icon-only buttons (no title), bypass PaperButton to avoid its
-    // internal icon marginRight that offsets icons from center.
-    if (icon && !title) {
-        const content = (
-            <TouchableRipple
-                onPress={onPress}
-                disabled={disabled}
-                style={[buttonStyle as StyleProp<ViewStyle>, disabled && disabledStyle]}
-                accessibilityLabel={accessibilityLabel}
-                testID={testID}
-            >
-                <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-                    {icon}
-                </View>
-            </TouchableRipple>
-        );
-
-        if (containerStyle) {
-            return <View style={containerStyle}>{content}</View>;
-        }
-        return content;
-    }
-
-    const button = (
-        <PaperButton
-            mode={mode}
-            compact
-            onPress={onPress}
-            loading={loading}
-            disabled={disabled}
-            icon={iconProp}
-            style={[buttonStyle as StyleProp<ViewStyle>, disabled && disabledStyle]}
-            labelStyle={[
-                { marginVertical: 0, marginHorizontal: 0 } as TextStyle,
+        const titleElement = title != null ? (
+            <Text style={[
+                styles.titleReset,
+                isSolid && styles.titleSolid,
                 titleStyle as StyleProp<TextStyle>,
                 disabled && disabledTitleStyle,
-            ]}
-            contentStyle={contentStyle}
-            accessibilityLabel={accessibilityLabel}
-            testID={testID}
-        >
-            {title}
-        </PaperButton>
+            ]}>
+                {title}
+            </Text>
+        ) : null;
+
+        if (iconRight) {
+            return <>{titleElement}{icon}</>;
+        }
+
+        return <>{icon}{titleElement}</>;
+    };
+
+    const button = (
+        <View style={[
+            raised && styles.elevated,
+            buttonStyle as StyleProp<ViewStyle>,
+            disabled && disabledStyle,
+            // Clips ripple to border radius and stretches TouchableRipple
+            // to fill the full width (overriding any alignItems from buttonStyle).
+            styles.container,
+        ]}>
+            <TouchableRipple
+                onPress={onPress}
+                disabled={disabled}
+                style={styles.ripple}
+                accessibilityLabel={accessibilityLabel}
+                testID={testID}
+            >
+                <View style={[styles.content, contentLayout]}>
+                    {renderContent()}
+                </View>
+            </TouchableRipple>
+        </View>
     );
 
     if (containerStyle) {

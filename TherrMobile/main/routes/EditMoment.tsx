@@ -3,6 +3,7 @@ import { Dimensions, Platform, Pressable, SafeAreaView, Keyboard, Text, View } f
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../components/BaseButton';
+import EditFormFooter from '../components/EditFormFooter';
 import Slider from '@react-native-community/slider';
 import { Image } from '../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -85,6 +86,7 @@ interface IEditMomentState {
     isInsufficientFundsModalVisible: boolean;
     inputs: any;
     isEditingNearbySpaces: boolean;
+    isSliderActive: boolean;
     isSubmitting: boolean;
     nearbySpaces: { id: string, title: string }[];
     previewLinkId?: string;
@@ -152,6 +154,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             },
             isEditingNearbySpaces: false,
             isInsufficientFundsModalVisible: false,
+            isSliderActive: false,
             isSubmitting: false,
             nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
             previewStyleState: {},
@@ -749,6 +752,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         {this.translate('forms.editMoment.labels.addImageNote')}
                     </Text>
                     <RoundInput
+                        containerStyle={{ marginBottom: 12 }}
                         autoFocus
                         maxLength={100}
                         placeholder={this.translate(
@@ -773,7 +777,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         themeForms={this.themeForms}
                     />
                     <RoundInput
-                        containerStyle={{ marginBottom: !hashtags?.length ? 10 : 0 }}
+                        containerStyle={{ marginBottom: 12 }}
                         autoCorrect={false}
                         errorStyle={this.theme.styles.displayNone}
                         placeholder={this.translate(
@@ -834,7 +838,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             />
                         }
                     />
-                    <View style={[this.themeForms.styles.inputSliderContainer, { paddingBottom: 20 }]}>
+                    <View
+                        style={[this.themeForms.styles.inputSliderContainer, { paddingBottom: 20 }]}
+                    >
                         <Slider
                             value={inputs.radius}
                             onValueChange={(value) => this.onSliderChange('radius', value)}
@@ -844,7 +850,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             thumbTintColor={this.theme.colors.accentBlue}
                             minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
                             maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
-                            onSlidingStart={Keyboard.dismiss}
+                            onSlidingStart={() => { Keyboard.dismiss(); this.setState({ isSliderActive: true }); }}
+                            onSlidingComplete={() => this.setState({ isSliderActive: false })}
                         />
                         <Text style={this.themeForms.styles.inputLabelDark}>
                             {`${this.translate('forms.editMoment.labels.radius', { meters: inputs.radius })}`}
@@ -975,6 +982,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
+                        scrollEnabled={!this.state.isSliderActive}
                         ref={(component) => (this.scrollViewRef = component)}
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
                         contentContainerStyle={[
@@ -1001,64 +1009,40 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             </View>
                         }
                     </KeyboardAwareScrollView>
-                    <View style={this.themeAccentLayout.styles.footer}>
-                        <Button
-                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                            buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.goBack()}
-                            icon={
-                                <TherrIcon
-                                    name="go-back"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                        <Button
-                            buttonStyle={this.themeAccentForms.styles.draftButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={[this.themeAccentForms.styles.submitButtonContainer, spacingStyles.marginRtXLg]}
-                            title={this.translate(
-                                'forms.editMoment.buttons.draft'
-                            )}
-                            icon={
-                                <TherrIcon
-                                    name="edit"
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={this.themeAccentForms.styles.submitButtonIcon}
-                                />
-                            }
-                            onPress={() => this.onSubmit({
-                                isDraft: true,
-                                shouldSkipRewards: true,
-                                shouldSkipNavigate: true,
-                            })}
-                            disabled={this.isFormDisabled()}
-                        />
-                        <Button
-                            buttonStyle={this.themeAccentForms.styles.submitButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                            title={continueButtonConfig.title}
-                            icon={
-                                <TherrIcon
-                                    name={continueButtonConfig.icon}
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={continueButtonConfig.iconStyle}
-                                />
-                            }
-                            iconRight={continueButtonConfig.iconRight}
-                            onPress={continueButtonConfig.onPress}
-                            disabled={this.isFormDisabled()}
-                        />
-                    </View>
+                    <EditFormFooter
+                        isDarkMode={this.props.user.settings?.mobileThemeName === 'retro'}
+                        theme={this.theme}
+                        buttons={[
+                            {
+                                title: this.translate('forms.editMoment.buttons.back'),
+                                onPress: () => navigation.goBack(),
+                                mode: 'outlined',
+                                icon: 'arrow-left',
+                                textColor: this.theme.colors.brandingBlueGreen,
+                            },
+                            {
+                                title: this.translate('forms.editMoment.buttons.draft'),
+                                onPress: () => this.onSubmit({
+                                    isDraft: true,
+                                    shouldSkipRewards: true,
+                                    shouldSkipNavigate: true,
+                                }),
+                                mode: 'outlined',
+                                icon: 'file-edit-outline',
+                                disabled: this.isFormDisabled(),
+                                textColor: this.theme.colors.brandingBlueGreen,
+                            },
+                            {
+                                title: continueButtonConfig.title,
+                                onPress: continueButtonConfig.onPress,
+                                mode: 'contained',
+                                icon: continueButtonConfig.iconRight ? 'chevron-right' : 'send',
+                                disabled: this.isFormDisabled(),
+                                buttonColor: this.theme.colors.accentTeal,
+                                textColor: this.theme.colors.brandingBlack,
+                            },
+                        ]}
+                    />
                 </SafeAreaView>
                 <ConfirmModal
                     isVisible={isInsufficientFundsModalVisible}

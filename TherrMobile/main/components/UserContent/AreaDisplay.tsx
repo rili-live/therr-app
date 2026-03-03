@@ -367,6 +367,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         const toggleOptions = () => toggleAreaOptions(area);
         const isEvent = area.areaType === 'events';
         const isSpace = area.areaType === 'spaces';
+        const isMoment = !isEvent && !isSpace;
         const mediaDimensions = {
             width: viewportWidth - (mediaPadding * 2),
             height: isEvent ? ((viewportWidth - (mediaPadding * 2)) * (3 / 4)) : viewportWidth - (mediaPadding * 2),
@@ -551,7 +552,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         />
                     }
                     {
-                        !area.isDraft &&
+                        !area.isDraft && !isMoment &&
                         <>
                             {
                                 area?.viewCount != null &&
@@ -847,6 +848,66 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         styles={themeForms.styles}
                     />
                 </View>
+                {
+                    isMoment && !area.isDraft &&
+                    <View style={themeViewArea.styles.areaReactionsContainer}>
+                        {
+                            area?.viewCount != null &&
+                            <Button
+                                containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                                buttonStyle={themeViewArea.styles.areaReactionButton}
+                                icon={
+                                    <TherrIcon
+                                        name="bar-chart"
+                                        size={22}
+                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                    />
+                                }
+                                onPress={() => {}}
+                                type="clear"
+                                title={area?.viewCount}
+                                titleStyle={[
+                                    themeViewArea.styles.areaReactionButtonTitle,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                ]}
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
+                        }
+                        <Button
+                            containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                            buttonStyle={themeViewArea.styles.areaReactionButton}
+                            icon={
+                                <Icon
+                                    name={isBookmarked ? 'bookmark' : 'bookmark-border'}
+                                    size={24}
+                                    color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                />
+                            }
+                            onPress={() => this.onBookmarkPress(area)}
+                            type="clear"
+                            TouchableComponent={TouchableWithoutFeedbackComponent}
+                        />
+                        <Button
+                            containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                            buttonStyle={themeViewArea.styles.areaReactionButton}
+                            icon={
+                                <TherrIcon
+                                    name={isLiked ? 'heart-filled' : 'heart'}
+                                    size={22}
+                                    color={likeColor}
+                                />
+                            }
+                            onPress={() => this.onLikePress(area)}
+                            type="clear"
+                            title={(likeCount && likeCount > 0) ? likeCount.toString() : ''}
+                            titleStyle={[
+                                themeViewArea.styles.areaReactionButtonTitle,
+                                { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                            ]}
+                            TouchableComponent={TouchableWithoutFeedbackComponent}
+                        />
+                    </View>
+                }
                 {
                     isSpace && isExpanded && area.events?.length > 0
                     && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>

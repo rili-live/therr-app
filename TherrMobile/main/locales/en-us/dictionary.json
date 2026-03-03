@@ -442,6 +442,7 @@
         "submit": "Send",
         "delete": "Delete?",
         "confirm": "Delete",
+        "back": "Back",
         "cancel": "Cancel"
       },
       "placeholders": {
@@ -463,6 +464,7 @@
         "replaceImage": "Replace Image",
         "captureNew": "Capture a New Photo",
         "selectExisting": "Select an Existing Photo",
+        "back": "Back",
         "draft": "Draft",
         "next": "Next",
         "continue": "Continue",
@@ -504,6 +506,7 @@
         "draft": "Draft",
         "goToGroups": "Go to Groups Listing",
         "next": "Next",
+        "back": "Back",
         "continue": "Continue",
         "submit": "Publish",
         "update": "Update",
@@ -565,6 +568,7 @@
         "replaceImage": "Replace Image",
         "captureNew": "Capture a New Photo",
         "next": "Next",
+        "back": "Back",
         "selectExisting": "Select an Existing Photo",
         "submit": "Send",
         "edit": "Edit?",

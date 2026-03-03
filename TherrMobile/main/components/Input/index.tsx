@@ -27,12 +27,14 @@ export interface IBaseInputProps extends TextInputProps {
     paperMode?: 'flat' | 'outlined';
     underlineColor?: string;
     activeUnderlineColor?: string;
+    underlineStyle?: any;
     dense?: boolean;
+    roundness?: number;
 }
 
 // BaseInput wrapping react-native-paper TextInput.
 export class BaseInput extends React.Component<IBaseInputProps, any> {
-    constructor(props) {
+    constructor(props: IBaseInputProps) {
         super(props);
     }
 
@@ -56,6 +58,8 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
             paperMode,
             underlineColor: underlineColorProp,
             activeUnderlineColor: activeUnderlineColorProp,
+            underlineStyle,
+            roundness,
             style,
             // Separate TextInput-native props
             ...textInputProps
@@ -74,18 +78,26 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
         const underlineColor = underlineColorProp || themeForms.colors.textDarkGray || 'gray';
         const activeColor = activeUnderlineColorProp || themeForms.colors.primary3 || '#1C7F8A';
 
+        // Paper's flat TextInput internally applies borderTopLeftRadius and
+        // borderTopRightRadius from theme.roundness (default ~4). Without
+        // overriding this, the top corners appear less curved than the bottom
+        // corners when a custom borderRadius (e.g. 15) is set in inputContainerStyle.
+        const paperTheme = roundness != null ? { roundness } : undefined;
+
         return (
             <View style={containerStyle}>
                 <PaperTextInput
                     mode={mode}
                     label={label}
-                    selectionColor={themeForms.colors.selectionColor as string}
+                    selectionColor={themeForms.colors.selectionColor as unknown as string}
                     underlineColor={underlineColor as string}
                     activeUnderlineColor={activeColor as string}
+                    underlineStyle={underlineStyle}
                     disabled={disabled}
                     error={!!errorMessage}
                     right={right}
                     left={left}
+                    theme={paperTheme}
                     style={[
                         { backgroundColor: 'transparent' },
                         inputContainerStyle,

@@ -3,6 +3,7 @@ import { Dimensions, Pressable, SafeAreaView, Keyboard, View } from 'react-nativ
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from '../components/BaseButton';
+import EditFormFooter from '../components/EditFormFooter';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
@@ -36,7 +37,6 @@ import { getImagePreviewPath } from '../utilities/areaUtils';
 import { signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
 import { SheetManager } from 'react-native-actions-sheet';
-import TherrIcon from '../components/TherrIcon';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -464,6 +464,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                                 themeForms={this.themeForms}
                             />
                             <RoundInput
+                                containerStyle={{ marginBottom: 12 }}
                                 autoCorrect={false}
                                 errorStyle={this.theme.styles.displayNone}
                                 placeholder={this.translate(
@@ -554,41 +555,28 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                             </View>
                         } */}
                     </KeyboardAwareScrollView>
-                    <View style={this.themeAccentLayout.styles.footer}>
-                        <Button
-                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                            buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.goBack()}
-                            icon={
-                                <TherrIcon
-                                    name="go-back"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                        <Button
-                            buttonStyle={this.themeAccentForms.styles.submitButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                            title={this.translate(
-                                'forms.editThought.buttons.submit'
-                            )}
-                            icon={
-                                <TherrIcon
-                                    name="send"
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={this.themeAccentForms.styles.submitButtonIcon}
-                                />
-                            }
-                            onPress={(e) => this.onSubmit(e)}
-                            disabled={this.isFormDisabled()}
-                        />
-                    </View>
+                    <EditFormFooter
+                        isDarkMode={this.props.user.settings?.mobileThemeName === 'retro'}
+                        theme={this.theme}
+                        buttons={[
+                            {
+                                title: this.translate('forms.editThought.buttons.back'),
+                                onPress: () => navigation.goBack(),
+                                mode: 'outlined',
+                                icon: 'arrow-left',
+                                textColor: this.theme.colors.brandingBlueGreen,
+                            },
+                            {
+                                title: this.translate('forms.editThought.buttons.submit'),
+                                onPress: (e) => this.onSubmit(e),
+                                mode: 'contained',
+                                icon: 'send',
+                                disabled: this.isFormDisabled(),
+                                buttonColor: this.theme.colors.accentTeal,
+                                textColor: this.theme.colors.brandingBlack,
+                            },
+                        ]}
+                    />
                 </SafeAreaView>
             </>
         );
