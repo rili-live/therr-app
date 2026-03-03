@@ -234,7 +234,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
                         height={themeViewArea.styles.areaUserAvatarImg.height}
                         width={themeViewArea.styles.areaUserAvatarImg.width}
-                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen} />}
                         transition={false}
                     />
                 </Pressable>
@@ -409,7 +409,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         }
 
         return (
-            <View style={{ marginBottom: 4 }}>
+            <View style={themeViewArea.styles.areaCard}>
                 <View style={themeViewArea.styles.areaAuthorContainer}>
                     {
                         // (isSpace && areaUserDetails?.userName === translate('alertTitles.nameUnknown'))
@@ -433,7 +433,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                         containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
                                         height={themeViewArea.styles.areaUserAvatarImg.height}
                                         width={themeViewArea.styles.areaUserAvatarImg.width}
-                                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen} />}
                                         transition={false}
                                     />
                                 </Pressable>

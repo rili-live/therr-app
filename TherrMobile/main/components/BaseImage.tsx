@@ -41,6 +41,7 @@ export const Image = ({
     onPress,
 }: IImageProps) => {
     const [loading, setLoading] = useState(true);
+    const [hasError, setHasError] = useState(false);
 
     const sizeStyle: ImageStyle = {};
     if (height != null) { sizeStyle.height = height; }
@@ -52,10 +53,11 @@ export const Image = ({
                 source={source}
                 style={[sizeStyle, style]}
                 resizeMode={resizeMode}
-                onLoadStart={() => setLoading(true)}
+                onLoadStart={() => { setLoading(true); setHasError(false); }}
                 onLoadEnd={() => setLoading(false)}
+                onError={(e) => { console.warn('[BaseImage] failed to load:', (source as any)?.uri, e.nativeEvent); setHasError(true); }}
             />
-            {loading && PlaceholderContent && (
+            {(loading || hasError) && PlaceholderContent && (
                 <View style={styles.placeholder}>
                     {PlaceholderContent}
                 </View>
@@ -95,7 +97,7 @@ interface IBaseImageProps {
 }
 
 const BaseImage = ({ height, width, source, loaderColor, loaderSize, style, theme }: IBaseImageProps) => {
-    const lColor = loaderColor || theme.colors.primary;
+    const lColor = loaderColor || theme.colors.brandingBlueGreen;
     const lSize = loaderSize || 'small';
 
     return (

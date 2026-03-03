@@ -244,7 +244,7 @@ const UserDisplayHeader = ({
                         height={themeUser.styles.profileImage.height}
                         width={themeUser.styles.profileImage.width}
                         containerStyle={{}}
-                        PlaceholderContent={<ActivityIndicator size="large" color={themeUser.colors.primary}/>}
+                        PlaceholderContent={<ActivityIndicator size="large" color={themeUser.colors.brandingBlueGreen}/>}
                         transition={false}
                     />
                 </Pressable>

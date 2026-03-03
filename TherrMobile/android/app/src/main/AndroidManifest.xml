@@ -29,10 +29,6 @@
     android:usesCleartextTraffic="true"
     android:allowBackup="false"
     android:theme="@style/AppTheme">
-    <activity
-      android:name="com.yalantis.ucrop.UCropActivity"
-      android:theme="@style/UCropTheme"
-      tools:replace="android:theme" />
     <meta-data
       android:name="com.transistorsoft.locationmanager.license"
       android:value="7ae51b9238254e95b67105b91d62ee57189cd534ad26a47c73efb2e2cd257b48" />

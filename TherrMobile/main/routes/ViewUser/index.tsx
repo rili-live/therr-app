@@ -707,7 +707,7 @@ class ViewUser extends React.Component<
                                                 // width={imageWidth}
                                                 // height={imageWidth}
                                                 containerStyle={{}}
-                                                PlaceholderContent={<ActivityIndicator size="large" color={this.themeUser.colors.primary}/>}
+                                                PlaceholderContent={<ActivityIndicator size="large" color={this.themeUser.colors.brandingBlueGreen}/>}
                                                 transition={false}
                                             />
                                         );

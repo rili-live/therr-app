@@ -97,6 +97,9 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             borderRadius: areaUserAvatarImgRadius,
             margin: areaUserAvatarImgPadding,
         },
+        areaCard: {
+            marginBottom: 4,
+        },
         areaAuthorContainer: {
             display: 'flex',
             flex: 1,

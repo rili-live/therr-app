@@ -157,7 +157,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                 }, 52) }}
                                 style={themeViewContent.styles.thoughtUserAvatarImg}
                                 containerStyle={themeViewContent.styles.thoughtUserAvatarImgContainer}
-                                PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
+                                PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen}/>}
                                 transition={false}
                             />
                         </Pressable>

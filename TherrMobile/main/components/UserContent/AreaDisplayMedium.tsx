@@ -8,7 +8,6 @@ import {
     TouchableWithoutFeedbackComponent,
     View,
 } from 'react-native';
-import { Card } from 'react-native-paper';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
 import Autolink from 'react-native-autolink';
@@ -131,7 +130,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         const toggleOptions = () => toggleAreaOptions(area);
 
         return (
-            <Card mode="elevated" style={{ marginBottom: 4 }}>
+            <View style={themeViewArea.styles.areaCard}>
                 <View style={themeViewArea.styles.areaAuthorContainer}>
                     <Pressable
                         onPress={() => goToViewUser(area.fromUserId)}
@@ -148,7 +147,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                             containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
                             height={themeViewArea.styles.areaUserAvatarImg.height}
                             width={themeViewArea.styles.areaUserAvatarImg.width}
-                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
+                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen}/>}
                             transition={false}
                         />
                     </Pressable>
@@ -177,7 +176,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         type="clear"
                     />
                 </View>
-                <Card.Content style={{ padding: 0 }}>
+                <View>
                     <AreaDisplayContent
                         hashtags={hashtags}
                         isDarkMode={isDarkMode}
@@ -191,12 +190,12 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         themeViewArea={themeViewArea}
                         translate={this.props.translate}
                     />
-                </Card.Content>
+                </View>
                 {
                     area.distance != null &&
                     <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
                 }
-            </Card>
+            </View>
         );
     }
 }

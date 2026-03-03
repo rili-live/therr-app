@@ -73,7 +73,7 @@ const ViewProfileButton = ({
                     <Image
                         source={{ uri: getUserImageUri(user, 50) }}
                         style={imageStyle}
-                        PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
+                        PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.brandingBlueGreen} />}
                     /> :
                     <TherrIcon
                         name="user-star"
