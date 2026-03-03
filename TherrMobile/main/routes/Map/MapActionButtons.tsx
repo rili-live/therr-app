@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { Button } from '../../components/BaseButton';
-import { Badge } from 'react-native-paper';
+import { FAB, Badge } from 'react-native-paper';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { IUserState } from 'therr-react/types';
@@ -67,6 +66,45 @@ interface MapActionButtonsProps {
     };
     user: IUserState
 }
+
+const renderCompassIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="compass" size={props.size} color={props.color} />
+);
+const renderWalkingIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="walking" size={props.size} color={props.color} />
+);
+const renderMapFollowFilledIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="map-follow-filled" size={props.size} color={props.color} />
+);
+const renderGpsOffIcon = (props: { size: number; color: string }) => (
+    <MaterialIcon name="gps-off" size={props.size} color={props.color} />
+);
+const renderFiltersIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="filters" size={props.size} color={props.color} />
+);
+const renderBonfireIcon = (props: { size: number; color: string }) => (
+    <Ionicons name="bonfire" size={props.size} color={props.color} />
+);
+const renderMinusIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="minus" size={props.size} color={props.color} />
+);
+const renderPlusIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="plus" size={props.size} color={props.color} />
+);
+const renderMapMarkerClockIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="map-marker-clock" size={props.size} color={props.color} />
+);
+const renderCalendarIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="calendar" size={props.size} color={props.color} />
+);
+const renderRoadMapIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="road-map" size={props.size} color={props.color} />
+);
+const renderMapMarkerPlusIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="map-marker-plus" size={props.size} color={props.color} />
+);
+
+const fabStyle = { borderRadius: 100 };
 
 export default ({
     exchangeRate,
@@ -165,80 +203,45 @@ export default ({
         <>
             {
                 isGpsEnabled && <View style={themeButtons.styles.toggleFollow}>
-                    <Button
-                        containerStyle={themeButtons.styles.btnContainer}
-                        buttonStyle={themeButtons.styles.btnMediumSecondary}
-                        icon={
-                            <TherrIcon
-                                name={isFollowEnabled ? 'compass' : 'walking'}
-                                size={22}
-                                style={themeButtons.styles.btnIcon}
-                            />
-                        }
-                        raised={true}
+                    <FAB
+                        icon={isFollowEnabled ? renderCompassIcon : renderWalkingIcon}
+                        style={fabStyle}
+                        variant="secondary"
+                        size="small"
                         onPress={toggleFollow}
                     />
                 </View>
             }
             <View style={themeButtons.styles.locationEnable}>
                 <AttachStep index={1}>
-                    <Button
-                        containerStyle={themeButtons.styles.btnContainer}
-                        buttonStyle={themeButtons.styles.btnLarge}
-                        icon={
-                            isGpsEnabled ?
-                                <TherrIcon
-                                    name={'map-follow-filled'}
-                                    size={28}
-                                    style={themeButtons.styles.btnIcon}
-                                /> :
-                                <MaterialIcon
-                                    name={ isGpsEnabled ? 'gps-fixed' : 'gps-off' }
-                                    size={28}
-                                    style={themeButtons.styles.btnIcon}
-                                />
-                        }
-                        raised={true}
+                    <FAB
+                        icon={isGpsEnabled ? renderMapFollowFilledIcon : renderGpsOffIcon}
+                        style={fabStyle}
+                        variant="secondary"
+                        size="small"
                         onPress={handleGpsRecenter}
                     />
                 </AttachStep>
             </View>
             <View style={themeButtons.styles.mapFilters}>
-                <Button
-                    containerStyle={themeButtons.styles.btnContainer}
-                    buttonStyle={themeButtons.styles.btnLarge}
-                    icon={
-                        <TherrIcon
-                            name="filters"
-                            size={28}
-                            style={themeButtons.styles.btnIcon}
-                        />
-                    }
-                    raised={true}
+                <FAB
+                    icon={renderFiltersIcon}
+                    variant="secondary"
+                    size="small"
+                    style={fabStyle}
                     onPress={handleOpenMapFilters}
                 />
             </View>
             <View style={themeButtons.styles.matchUp}>
-                <Button
-                    containerStyle={themeButtons.styles.btnContainer}
-                    buttonStyle={themeButtons.styles.btnXLarge}
-                    icon={
-                        <AttachStep index={0}>
-                            <Ionicons
-                                name="bonfire"
-                                size={34}
-                                style={[
-                                    themeButtons.styles.btnIcon,
-                                    {
-                                        marginTop: 5,
-                                    },
-                                ]}
-                            />
-                        </AttachStep>
-                    }
-                    raised={true}
-                    onPress={handleMatchUp}
-                />
+                <AttachStep index={0}>
+                    <FAB
+                        icon={renderBonfireIcon}
+                        style={fabStyle}
+                        variant="secondary"
+                        size="medium"
+                        onPress={handleMatchUp}
+                    />
+                </AttachStep>
             </View>
             {
                 filterCount > 0 &&
@@ -259,20 +262,11 @@ export default ({
             }
             <View style={themeButtons.styles.addAMoment}>
                 <AttachStep index={3}>
-                    <Button
-                        containerStyle={themeButtons.styles.btnContainer}
-                        buttonStyle={themeButtons.styles.btnLarge}
-                        icon={
-                            <TherrIcon
-                                name={shouldShowCreateActions ? 'minus' : 'plus'}
-                                size={22}
-                                style={themeButtons.styles.btnIcon}
-                            />
-                        }
-                        iconRight
-                        // title={shouldShowCreateActions ? null : translate('menus.mapActions.create')}
-                        // titleStyle={themeButtons.styles.btnLargeTitleLeft}
-                        raised={true}
+                    <FAB
+                        icon={shouldShowCreateActions ? renderMinusIcon : renderPlusIcon}
+                        style={fabStyle}
+                        variant="secondary"
+                        size="small"
                         onPress={() => toggleCreateActions()}
                     />
                 </AttachStep>
@@ -288,19 +282,10 @@ export default ({
                             </Pressable>
                         </View>
                         <View style={themeButtons.styles.addACheckInFeatured}>
-                            <Button
-                                containerStyle={themeButtons.styles.btnContainer}
-                                buttonStyle={themeButtons.styles.btnLarge}
-                                icon={
-                                    <TherrIcon
-                                        // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
-                                        name="map-marker-clock"
-                                        size={22}
-                                        style={themeButtons.styles.btnIcon}
-                                    />
-                                }
-                                iconRight
-                                raised
+                            <FAB
+                                icon={renderMapMarkerClockIcon}
+                                variant="secondary"
+                                size="small"
                                 onPress={onShowCheckInModal}
                             />
                         </View>
@@ -317,18 +302,11 @@ export default ({
                             </View>
                         }
                         <View style={themeButtons.styles.uploadMomentFeatured}>
-                            <Button
-                                containerStyle={themeButtons.styles.btnContainer}
-                                buttonStyle={themeButtons.styles.btnLarge}
-                                icon={
-                                    <TherrIcon
-                                        name="map-marker-plus"
-                                        size={22}
-                                        style={themeButtons.styles.btnIcon}
-                                    />
-                                }
-                                iconRight
-                                raised
+                            <FAB
+                                icon={renderMapMarkerPlusIcon}
+                                variant="secondary"
+                                size="small"
+                                style={fabStyle}
                                 onPress={() => handleCreate('moment')}
                             />
                         </View>
@@ -348,21 +326,12 @@ export default ({
                         </View>
                     }
                     <View style={themeButtons.styles.addACheckIn}>
-                        <Button
-                            containerStyle={themeButtons.styles.btnContainer}
-                            buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
-                            icon={
-                                <TherrIcon
-                                    // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
-                                    name="map-marker-clock"
-                                    size={22}
-                                    style={themeButtons.styles.btnIcon}
-                                />
-                            }
-                            iconRight
-                            raised
-                            title={shouldShowCreateActions && translate('menus.mapActions.addACheckIn')}
-                            titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                        <FAB
+                            icon={renderMapMarkerClockIcon}
+                            label={shouldShowCreateActions ? translate('menus.mapActions.addACheckIn') : undefined}
+                            variant="secondary"
+                            size="small"
+                            style={fabStyle}
                             onPress={onShowCheckInModal}
                         />
                     </View>
@@ -371,42 +340,26 @@ export default ({
             <View style={[
                 themeButtons.styles.createEvent,
             ]}>
-                <Button
-                    containerStyle={themeButtons.styles.btnContainer}
-                    buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
-                    icon={
-                        <TherrIcon
-                            // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
-                            name="calendar"
-                            size={22}
-                            style={themeButtons.styles.btnIcon}
-                        />
-                    }
-                    iconRight
-                    raised
-                    title={shouldShowCreateActions && translate('menus.mapActions.createEvent')}
-                    titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                <FAB
+                    icon={renderCalendarIcon}
+                    label={shouldShowCreateActions ? translate('menus.mapActions.createEvent') : undefined}
+                    variant="secondary"
+                    size="small"
+                    style={fabStyle}
                     onPress={() => handleCreate('event')}
                 />
             </View>
             {
                 shouldShowCreateActions &&
                 <View style={themeButtons.styles.claimASpace}>
-                    <Button
-                        containerStyle={themeButtons.styles.btnContainer}
-                        buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
-                        icon={
-                            <TherrIcon
-                                // name={isBusinessAccount ? 'road-map' : 'pin-distance'}
-                                name="road-map"
-                                size={22}
-                                style={themeButtons.styles.btnIcon}
-                            />
-                        }
-                        iconRight
-                        raised
-                        title={shouldShowCreateActions && translate(isBusinessAccount ? 'menus.mapActions.claimASpace' : 'menus.mapActions.requestASpace')}
-                        titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                    <FAB
+                        icon={renderRoadMapIcon}
+                        label={shouldShowCreateActions
+                            ? translate(isBusinessAccount ? 'menus.mapActions.claimASpace' : 'menus.mapActions.requestASpace')
+                            : undefined}
+                        style={fabStyle}
+                        variant="secondary"
+                        size="small"
                         onPress={onShowModal}
                     />
                 </View>
@@ -425,20 +378,12 @@ export default ({
                         </View>
                     }
                     <View style={themeButtons.styles.uploadMoment}>
-                        <Button
-                            containerStyle={themeButtons.styles.btnContainer}
-                            buttonStyle={shouldShowCreateActions ? themeButtons.styles.btnLargeWithText : themeButtons.styles.btnLarge}
-                            icon={
-                                <TherrIcon
-                                    name="map-marker-plus"
-                                    size={22}
-                                    style={themeButtons.styles.btnIcon}
-                                />
-                            }
-                            iconRight
-                            raised
-                            title={shouldShowCreateActions && translate('menus.mapActions.uploadAMoment')}
-                            titleStyle={themeButtons.styles.btnLargeTitleLeft}
+                        <FAB
+                            icon={renderMapMarkerPlusIcon}
+                            label={shouldShowCreateActions ? translate('menus.mapActions.uploadAMoment') : undefined}
+                            variant="secondary"
+                            size="small"
+                            style={fabStyle}
                             onPress={() => handleCreate('moment')}
                         />
                     </View>
