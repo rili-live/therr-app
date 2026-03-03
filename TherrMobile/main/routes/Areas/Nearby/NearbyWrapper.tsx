@@ -1,5 +1,6 @@
 import React from 'react';
-import { PermissionsAndroid, Platform, Text, View } from 'react-native';
+import { PermissionsAndroid, Platform, View } from 'react-native';
+import { Text as PaperText } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -592,9 +593,9 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
         return (
             <>
                 <View style={[this.theme.styles.sectionContainerBottomSheet, { backgroundColor: this.theme.colors.brandingWhite }]}>
-                    <Text style={this.theme.styles.sectionTitleBottomSheet}>
+                    <PaperText variant="titleMedium" style={this.theme.styles.sectionTitleBottomSheet}>
                         {this.translate('components.nearbyBottomSheet.title')}
-                    </Text>
+                    </PaperText>
                 </View>
                 {/* <View style={[this.themeMoments.styles.areaCarouselHeaderSliders, { backgroundColor: this.theme.colors.backgroundWhite }]}>
                     <View style={this.themeForms.styles.inputSliderContainerTight}>
@@ -738,7 +739,6 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
                     !shouldRenderAreaFeed && <GpsEnableButtonDialog
                         handleEnableLocationPress={this.handleEnableLocationPress}
                         theme={this.theme}
-                        themeForms={this.themeForms}
                         translate={this.translate}
                     />
                 }

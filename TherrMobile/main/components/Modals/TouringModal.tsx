@@ -1,25 +1,19 @@
 import React, { useState } from 'react';
 import { Text, Modal, Pressable, View, GestureResponderEvent } from 'react-native';
-import { Button } from '../BaseButton';
+import { Button as PaperButton } from 'react-native-paper';
 import AnimatedLottieView from 'lottie-react-native';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { IUserState } from 'therr-react/types';
 import claimASpace from '../../assets/claim-a-space.json';
 import shareAMoment from '../../assets/share-a-moment.json';
 import discover from '../../assets/discover.json';
 import matchUp from '../../assets/match-up.json';
-import ModalButton from './ModalButton';
-import spacingStyles from '../../styles/layouts/spacing';
 
 interface ITouringModal {
     isVisible: boolean;
     onFindFriends: any;
     onRequestClose: any;
     translate: Function;
-    themeButtons: {
-        styles: any;
-    };
     themeTour: {
         styles: any;
     };
@@ -30,7 +24,6 @@ const TouringModal = ({
     isVisible,
     onRequestClose,
     onFindFriends,
-    themeButtons,
     themeTour,
     translate,
     user,
@@ -68,9 +61,6 @@ const TouringModal = ({
             visible={isVisible}
             onRequestClose={onClose}
             transparent={true}
-            // style={{
-            //     zIndex: 1000,
-            // }}
         >
             <Pressable
                 onPress={onClose}
@@ -80,62 +70,60 @@ const TouringModal = ({
                     <Pressable style={themeTour.styles.container}>
                         <Text style={themeTour.styles.header}>{translate('modals.touringModal.header5')}</Text>
                         <Text style={themeTour.styles.text}>{translate('modals.touringModal.matchUp')}</Text>
-                        {/* <Ionicons
-                            name="bonfire"
-                            size={75}
-                            style={themeButtons.styles.btnIcon}
-                        /> */}
                         <AnimatedLottieView
                             source={matchUp}
-                            // resizeMode="cover"
                             resizeMode="contain"
                             speed={0.5}
                             autoPlay={true}
                             loop
                             style={themeTour.styles.graphic}
                         />
-                        <Text style={[themeTour.styles.text, spacingStyles.marginBotMd]}>{translate('modals.touringModal.matchUp2')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.matchUp2')}</Text>
                         <View style={themeTour.styles.actionsContainer}>
-                            <ModalButton
-                                iconName="arrow-forward"
-                                title={translate('modals.touringModal.next')}
+                            <PaperButton
+                                mode="contained"
                                 onPress={() => setTab(1)}
-                                iconRight
-                                themeButtons={themeButtons}
-                            />
+                                icon="arrow-right"
+                                contentStyle={themeTour.styles.actionButtonContentRight}
+                                style={themeTour.styles.actionButton}
+                            >
+                                {translate('modals.touringModal.next')}
+                            </PaperButton>
                         </View>
                     </Pressable>
                 }
                 {
-                    (tab == 1) &&
+                    (tab === 1) &&
                     <Pressable style={themeTour.styles.container}>
                         <Text style={themeTour.styles.header}>{translate('modals.touringModal.header3')}</Text>
                         <Text style={themeTour.styles.text}>{translate('modals.touringModal.exploreTheWorld')}</Text>
                         <AnimatedLottieView
                             source={claimASpace}
-                            // resizeMode="cover"
                             resizeMode="contain"
                             speed={1}
                             autoPlay={false}
                             loop
                             style={themeTour.styles.graphic}
                         />
-                        <Text style={[themeTour.styles.text, spacingStyles.marginBotMd]}>{translate('modals.touringModal.exploreTheWorld2')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.exploreTheWorld2')}</Text>
                         <View style={themeTour.styles.actionsContainer}>
-                            <ModalButton
-                                iconName="arrow-back"
-                                title={translate('modals.touringModal.back')}
+                            <PaperButton
+                                mode="outlined"
                                 onPress={() => setTab(0)}
-                                iconRight={false}
-                                themeButtons={themeButtons}
-                            />
-                            <ModalButton
-                                iconName="arrow-forward"
-                                title={translate('modals.touringModal.next')}
+                                icon="arrow-left"
+                                style={themeTour.styles.actionButton}
+                            >
+                                {translate('modals.touringModal.back')}
+                            </PaperButton>
+                            <PaperButton
+                                mode="contained"
                                 onPress={() => setTab(2)}
-                                iconRight
-                                themeButtons={themeButtons}
-                            />
+                                icon="arrow-right"
+                                contentStyle={themeTour.styles.actionButtonContentRight}
+                                style={themeTour.styles.actionButton}
+                            >
+                                {translate('modals.touringModal.next')}
+                            </PaperButton>
                         </View>
                     </Pressable>
                 }
@@ -146,29 +134,31 @@ const TouringModal = ({
                         <Text style={themeTour.styles.text}>{translate('modals.touringModal.createAMoment')}</Text>
                         <AnimatedLottieView
                             source={shareAMoment}
-                            // resizeMode="cover"
                             resizeMode="contain"
                             speed={1}
                             autoPlay={false}
                             loop
                             style={themeTour.styles.graphic}
                         />
-                        <Text style={[themeTour.styles.text, spacingStyles.marginBotMd]}>{translate('modals.touringModal.createAMoment2')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.createAMoment2')}</Text>
                         <View style={themeTour.styles.actionsContainer}>
-                            <ModalButton
-                                iconName="arrow-back"
-                                title={translate('modals.touringModal.back')}
+                            <PaperButton
+                                mode="outlined"
                                 onPress={() => setTab(1)}
-                                iconRight={false}
-                                themeButtons={themeButtons}
-                            />
-                            <ModalButton
-                                iconName="arrow-forward"
-                                title={translate('modals.touringModal.next')}
+                                icon="arrow-left"
+                                style={themeTour.styles.actionButton}
+                            >
+                                {translate('modals.touringModal.back')}
+                            </PaperButton>
+                            <PaperButton
+                                mode="contained"
                                 onPress={() => setTab(3)}
-                                iconRight
-                                themeButtons={themeButtons}
-                            />
+                                icon="arrow-right"
+                                contentStyle={themeTour.styles.actionButtonContentRight}
+                                style={themeTour.styles.actionButton}
+                            >
+                                {translate('modals.touringModal.next')}
+                            </PaperButton>
                         </View>
                     </Pressable>
                 }
@@ -179,29 +169,31 @@ const TouringModal = ({
                         <Text style={themeTour.styles.text}>{translate('modals.touringModal.claimYourSpaces')}</Text>
                         <AnimatedLottieView
                             source={discover}
-                            // resizeMode="cover"
                             resizeMode="contain"
                             speed={1}
                             autoPlay={false}
                             loop
                             style={themeTour.styles.graphic}
                         />
-                        <Text style={[themeTour.styles.text, spacingStyles.marginBotMd]}>{translate('modals.touringModal.claimYourSpaces2')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.claimYourSpaces2')}</Text>
                         <View style={themeTour.styles.actionsContainer}>
-                            <ModalButton
-                                iconName="arrow-back"
-                                title={translate('modals.touringModal.back')}
+                            <PaperButton
+                                mode="outlined"
                                 onPress={() => setTab(2)}
-                                iconRight={false}
-                                themeButtons={themeButtons}
-                            />
-                            <ModalButton
-                                iconName="arrow-forward"
-                                title={translate('modals.touringModal.next')}
+                                icon="arrow-left"
+                                style={themeTour.styles.actionButton}
+                            >
+                                {translate('modals.touringModal.back')}
+                            </PaperButton>
+                            <PaperButton
+                                mode="contained"
                                 onPress={() => setTab(4)}
-                                iconRight
-                                themeButtons={themeButtons}
-                            />
+                                icon="arrow-right"
+                                contentStyle={themeTour.styles.actionButtonContentRight}
+                                style={themeTour.styles.actionButton}
+                            >
+                                {translate('modals.touringModal.next')}
+                            </PaperButton>
                         </View>
                     </Pressable>
                 }
@@ -211,41 +203,36 @@ const TouringModal = ({
                         <Text style={themeTour.styles.header}>{translate('modals.touringModal.header4')}</Text>
                         <Text style={themeTour.styles.text}>{translate('modals.touringModal.findFriends')}</Text>
                         <View style={themeTour.styles.buttonContainer}>
-                            <Button
-                                buttonStyle={themeTour.styles.buttonPrimary}
-                                titleStyle={themeTour.styles.buttonTitle}
-                                title={translate(
-                                    'forms.createConnection.buttons.findFriends'
-                                )}
+                            <PaperButton
+                                mode="contained"
                                 onPress={onFindFriendsPress}
-                                raised={false}
-                                icon={
-                                    <MaterialIcon
-                                        style={themeTour.styles.buttonIconStyle}
-                                        name="people"
-                                        size={24}
-                                    />
-                                }
-                                iconRight
-                            />
+                                icon="account-multiple"
+                                contentStyle={themeTour.styles.actionButtonContentRight}
+                                style={themeTour.styles.buttonPrimary}
+                            >
+                                {translate('forms.createConnection.buttons.findFriends')}
+                            </PaperButton>
                         </View>
-                        <Text style={[themeTour.styles.text, spacingStyles.marginBotMd]}>{translate('modals.touringModal.findFriends2')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.findFriends2')}</Text>
                         <View style={themeTour.styles.actionsContainer}>
-                            <ModalButton
-                                iconName="arrow-back"
-                                title={translate('modals.touringModal.back')}
+                            <PaperButton
+                                mode="outlined"
                                 onPress={() => setTab(3)}
-                                iconRight={false}
-                                themeButtons={themeButtons}
-                            />
-                            <ModalButton
-                                iconName="check"
-                                title={translate('modals.touringModal.done')}
+                                icon="arrow-left"
+                                style={themeTour.styles.actionButton}
+                            >
+                                {translate('modals.touringModal.back')}
+                            </PaperButton>
+                            <PaperButton
+                                mode="contained"
                                 onPress={onClose}
-                                iconRight
-                                themeButtons={themeButtons}
+                                icon="check"
+                                contentStyle={themeTour.styles.actionButtonContentRight}
+                                style={themeTour.styles.actionButton}
                                 disabled={isDoneDisabled}
-                            />
+                            >
+                                {translate('modals.touringModal.done')}
+                            </PaperButton>
                         </View>
                     </Pressable>
                 }

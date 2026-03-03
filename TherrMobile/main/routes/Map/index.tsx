@@ -1988,7 +1988,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     isVisible={isTouring}
                     translate={this.translate}
                     onRequestClose={this.handleStopTouring}
-                    themeButtons={this.themeButtons}
                     themeTour={this.themeTour}
                     onFindFriends={this.onPressFindFriends}
                     user={user}

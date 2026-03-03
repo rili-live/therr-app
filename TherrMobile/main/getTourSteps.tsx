@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Text } from 'react-native';
-import { Button } from './components/BaseButton';
+import { Button as PaperButton } from 'react-native-paper';
 import {
     flip,
     offset,
@@ -9,57 +9,37 @@ import {
     useSpotlightTour,
     TourStep,
 } from 'react-native-spotlight-tour';
-import { buildStyles as buildButtonStyles } from './styles/buttons';
-import { buildStyles as buildConfirmModalStyles } from './styles/modal/confirmModal';
 import { buildStyles as buildTourStyles, MINIMUM_HORIZONTAL_PADDING } from './styles/navigation/tour';
-import spacingStyles from './styles/layouts/spacing';
 import translator from './services/translator';
 
-const themeButtons = buildButtonStyles('light');
-const themeModal = buildConfirmModalStyles('light');
 const themeTour = buildTourStyles('light');
-
-const ModalButton = ({ title, hasBorderRight, onPress, themeButtons, themeModal }) => {
-    const extraStyles = hasBorderRight ? { borderRightWidth: 1 } : {};
-
-    return (
-        <Button
-            containerStyle={[themeModal.styles.buttonContainer, extraStyles]}
-            buttonStyle={[themeButtons.styles.btnClear, spacingStyles.padMd]}
-            titleStyle={themeButtons.styles.btnTitleBlack}
-            raised={true}
-            type="clear"
-            onPress={onPress}
-            title={title}
-        />
-    );
-};
 
 const StepMatchUp = ({
     translate,
 }) => {
-    // You can also use the hook inside the step component!
     const { next, stop } = useSpotlightTour();
 
     return (
         <View style={themeTour.styles.tooltipContainer}>
             <Text style={themeTour.styles.header}>{translate('modals.touringNavigationModal.headers.matchUp')}</Text>
             <Text style={themeTour.styles.text}>{translate('modals.touringNavigationModal.tips.matchUp')}</Text>
-            <View style={themeModal.styles.buttonsContainer}>
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.exit')}
+            <View style={themeTour.styles.actionsContainer}>
+                <PaperButton
+                    mode="outlined"
                     onPress={stop}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.next')}
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.exit')}
+                </PaperButton>
+                <PaperButton
+                    mode="contained"
                     onPress={next}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
+                    icon="arrow-right"
+                    contentStyle={themeTour.styles.actionButtonContentRight}
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.next')}
+                </PaperButton>
             </View>
         </View>
     );
@@ -68,28 +48,30 @@ const StepMatchUp = ({
 const StepGps = ({
     translate,
 }) => {
-    // You can also use the hook inside the step component!
     const { previous, next } = useSpotlightTour();
 
     return (
         <View style={themeTour.styles.tooltipContainer}>
             <Text style={themeTour.styles.header}>{translate('modals.touringNavigationModal.headers.gps')}</Text>
             <Text style={themeTour.styles.text}>{translate('modals.touringNavigationModal.tips.gps')}</Text>
-            <View style={themeModal.styles.buttonsContainer}>
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.previous')}
+            <View style={themeTour.styles.actionsContainer}>
+                <PaperButton
+                    mode="outlined"
                     onPress={previous}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.next')}
+                    icon="arrow-left"
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.previous')}
+                </PaperButton>
+                <PaperButton
+                    mode="contained"
                     onPress={next}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
+                    icon="arrow-right"
+                    contentStyle={themeTour.styles.actionButtonContentRight}
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.next')}
+                </PaperButton>
             </View>
         </View>
     );
@@ -98,28 +80,30 @@ const StepGps = ({
 const StepDiscovered = ({
     translate,
 }) => {
-    // You can also use the hook inside the step component!
     const { previous, next } = useSpotlightTour();
 
     return (
         <View style={themeTour.styles.tooltipContainer}>
             <Text style={themeTour.styles.header}>{translate('modals.touringNavigationModal.headers.discovered')}</Text>
             <Text style={themeTour.styles.text}>{translate('modals.touringNavigationModal.tips.discovered')}</Text>
-            <View style={themeModal.styles.buttonsContainer}>
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.previous')}
+            <View style={themeTour.styles.actionsContainer}>
+                <PaperButton
+                    mode="outlined"
                     onPress={previous}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.next')}
+                    icon="arrow-left"
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.previous')}
+                </PaperButton>
+                <PaperButton
+                    mode="contained"
                     onPress={next}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
+                    icon="arrow-right"
+                    contentStyle={themeTour.styles.actionButtonContentRight}
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.next')}
+                </PaperButton>
             </View>
         </View>
     );
@@ -128,7 +112,6 @@ const StepDiscovered = ({
 const StepCreate = ({
     translate,
 }) => {
-    // You can also use the hook inside the step component!
     const { next, previous } = useSpotlightTour();
 
     return (
@@ -136,21 +119,24 @@ const StepCreate = ({
             <Text style={themeTour.styles.header}>{translate('modals.touringNavigationModal.headers.create')}</Text>
             <Text style={themeTour.styles.text}>{translate('modals.touringNavigationModal.tips.create1')}</Text>
             <Text style={themeTour.styles.text}>{translate('modals.touringNavigationModal.tips.create2')}</Text>
-            <View style={themeModal.styles.buttonsContainer}>
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.previous')}
+            <View style={themeTour.styles.actionsContainer}>
+                <PaperButton
+                    mode="outlined"
                     onPress={previous}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.next')}
+                    icon="arrow-left"
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.previous')}
+                </PaperButton>
+                <PaperButton
+                    mode="contained"
                     onPress={next}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
+                    icon="arrow-right"
+                    contentStyle={themeTour.styles.actionButtonContentRight}
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.next')}
+                </PaperButton>
             </View>
         </View>
     );
@@ -159,28 +145,30 @@ const StepCreate = ({
 const StepMenu = ({
     translate,
 }) => {
-    // You can also use the hook inside the step component!
     const { next, previous } = useSpotlightTour();
 
     return (
         <View style={themeTour.styles.tooltipContainer}>
             <Text style={themeTour.styles.header}>{translate('modals.touringNavigationModal.headers.menu')}</Text>
             <Text style={themeTour.styles.text}>{translate('modals.touringNavigationModal.tips.menu')}</Text>
-            <View style={themeModal.styles.buttonsContainer}>
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.previous')}
+            <View style={themeTour.styles.actionsContainer}>
+                <PaperButton
+                    mode="outlined"
                     onPress={previous}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.next')}
+                    icon="arrow-left"
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.previous')}
+                </PaperButton>
+                <PaperButton
+                    mode="contained"
                     onPress={next}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
+                    icon="arrow-right"
+                    contentStyle={themeTour.styles.actionButtonContentRight}
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.next')}
+                </PaperButton>
             </View>
         </View>
     );
@@ -189,28 +177,30 @@ const StepMenu = ({
 const StepConnect = ({
     translate,
 }) => {
-    // You can also use the hook inside the step component!
     const { next, previous } = useSpotlightTour();
 
     return (
         <View style={themeTour.styles.tooltipContainer}>
             <Text style={themeTour.styles.header}>{translate('modals.touringNavigationModal.headers.connect')}</Text>
             <Text style={themeTour.styles.text}>{translate('modals.touringNavigationModal.tips.connect')}</Text>
-            <View style={themeModal.styles.buttonsContainer}>
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.previous')}
+            <View style={themeTour.styles.actionsContainer}>
+                <PaperButton
+                    mode="outlined"
                     onPress={previous}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.next')}
+                    icon="arrow-left"
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.previous')}
+                </PaperButton>
+                <PaperButton
+                    mode="contained"
                     onPress={next}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
+                    icon="arrow-right"
+                    contentStyle={themeTour.styles.actionButtonContentRight}
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.next')}
+                </PaperButton>
             </View>
         </View>
     );
@@ -219,28 +209,30 @@ const StepConnect = ({
 const StepMap = ({
     translate,
 }) => {
-    // You can also use the hook inside the step component!
     const { stop, previous } = useSpotlightTour();
 
     return (
         <View style={themeTour.styles.tooltipContainer}>
             <Text style={themeTour.styles.header}>{translate('modals.touringNavigationModal.headers.map')}</Text>
             <Text style={themeTour.styles.text}>{translate('modals.touringNavigationModal.tips.map')}</Text>
-            <View style={themeModal.styles.buttonsContainer}>
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.previous')}
+            <View style={themeTour.styles.actionsContainer}>
+                <PaperButton
+                    mode="outlined"
                     onPress={previous}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
-                <ModalButton
-                    title={translate('modals.touringNavigationModal.done')}
+                    icon="arrow-left"
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.previous')}
+                </PaperButton>
+                <PaperButton
+                    mode="contained"
                     onPress={stop}
-                    hasBorderRight={false}
-                    themeModal={themeModal}
-                    themeButtons={themeButtons}
-                />
+                    icon="check"
+                    contentStyle={themeTour.styles.actionButtonContentRight}
+                    style={themeTour.styles.actionButton}
+                >
+                    {translate('modals.touringNavigationModal.done')}
+                </PaperButton>
             </View>
         </View>
     );
@@ -270,7 +262,6 @@ const getTourSteps: (args: IGetTourStepsArgs) => TourStep[] = ({ locale }) => {
             floatingProps: {
                 middleware: [flip(), shift(), offset({
                     mainAxis: 10,
-                    // alignmentAxis: -20,
                     crossAxis: (MINIMUM_HORIZONTAL_PADDING / 2),
                 })],
                 placement: 'top',
@@ -281,7 +272,6 @@ const getTourSteps: (args: IGetTourStepsArgs) => TourStep[] = ({ locale }) => {
             floatingProps: {
                 middleware: [flip(), shift(), offset({
                     mainAxis: 10,
-                    // alignmentAxis: -20,
                     crossAxis: (MINIMUM_HORIZONTAL_PADDING / 2),
                 })],
                 placement: 'top',
