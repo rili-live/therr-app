@@ -1581,6 +1581,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         })
                         .map((route: any) => {
                             route.name = this.translate(route.name);
+                            delete route.key;
                             return <Stack.Screen key={route.name} {...route} />;
                         })}
                 </Stack.Navigator>

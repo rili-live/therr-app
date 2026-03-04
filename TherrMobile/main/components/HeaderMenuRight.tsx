@@ -577,7 +577,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                 icon={() => (
                                                     <TherrIcon
                                                         style={
-                                                            currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.MESSAGES}`
+                                                            currentScreen === `Connect`
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
@@ -585,7 +585,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                         size={24}
                                                     />
                                                 )}
-                                                active={currentScreen === `Connect-${PEOPLE_CAROUSEL_TABS.MESSAGES}`}
+                                                active={currentScreen === `Connect`}
                                                 onPress={() => this.navTo('Connect', {
                                                     activeTab: PEOPLE_CAROUSEL_TABS.MESSAGES,
                                                 })}
@@ -603,7 +603,7 @@ class HeaderMenuRight extends React.PureComponent<
                                                         size={24}
                                                     />
                                                 )}
-                                                active={currentScreen === `Groups-${GROUPS_CAROUSEL_TABS.GROUPS}`}
+                                                active={currentScreen === `Groups`}
                                                 onPress={() => this.navTo('Groups', {
                                                     activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                                                 })}

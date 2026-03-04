@@ -46,7 +46,7 @@ const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategor
     }) => {
         const buttonStyle = category.isActive
             ? [themeButtons.styles.quickFiltersButtonTinyActive, themeCategory.styles.categoryButtonActive]
-            : themeButtons.styles.quickFiltersButtonTiny;
+            : [themeButtons.styles.quickFiltersButtonTiny, themeCategory.styles.categoryButton];
         const containerStyle = category.isActive ? themeCategory.styles.categoryButtonContainerActive : themeCategory.styles.categoryButtonContainer;
         const titleStyle = category.isActive
             ? [themeButtons.styles.quickFiltersButtonTitleActive, themeCategory.styles.categoryButtonTitleActive]
