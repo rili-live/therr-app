@@ -411,6 +411,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 textColor={this.theme.colors.brandingWhite}
                                 style={localStyles.footerButton}
                                 disabled={isDeleting}
+                                loading={isDeleting}
                             >
                                 {this.translate('forms.editMoment.buttons.delete')}
                             </PaperButton>
@@ -420,6 +421,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
                 {/* Delete confirmation modal */}
                 <ConfirmModal
+                    isConfirming={isDeleting}
                     isVisible={isDeleteDialogVisible}
                     onCancel={() => this.setState({ isDeleteDialogVisible: false })}
                     onConfirm={this.onDeleteConfirm}

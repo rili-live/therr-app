@@ -96,6 +96,7 @@ interface IViewUserState {
     confirmModalText: string;
     activeConfirmModal: '' | 'report-user' | 'block-user' | 'remove-connection-request' | 'send-connection-request';
     activeTabIndex: number;
+    isConfirmProcessing: boolean;
     isLoading: boolean;
     isRefreshingUserMedia: boolean;
     isRefreshingUserMoments: boolean;
@@ -165,6 +166,7 @@ class ViewUser extends React.Component<
             activeTabIndex,
             confirmModalText: '',
             activeConfirmModal: '',
+            isConfirmProcessing: false,
             isLoading: true,
             isRefreshingUserMedia: false,
             isRefreshingUserMoments: false,
@@ -536,13 +538,21 @@ class ViewUser extends React.Component<
         const { activeConfirmModal } = this.state;
         const { blockUser, navigation, updateUserConnection, createUserConnection, user, updateUserInView } = this.props;
 
+        this.setState({ isConfirmProcessing: true });
+
+        const resetProcessing = () => {
+            this.setState({ isConfirmProcessing: false, activeConfirmModal: '' });
+        };
+
         if (activeConfirmModal === 'report-user') {
             UsersService.report(user?.userInView.id);
             // TODO: Add success toast
+            resetProcessing();
         } else if (activeConfirmModal === 'block-user') {
             // TODO: Add success toast
             // TODO: RMOBILE-35: ...
             blockUser(user.userInView?.id, user.details.blockedUsers);
+            resetProcessing();
             navigation.navigate('Areas');
         } else if (activeConfirmModal === 'send-connection-request') {
             createUserConnection({
@@ -563,6 +573,8 @@ class ViewUser extends React.Component<
                 showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
                 });
+            }).finally(() => {
+                resetProcessing();
             });
         } else if (activeConfirmModal === 'remove-connection-request') {
             // TODO: Add success toast
@@ -573,12 +585,11 @@ class ViewUser extends React.Component<
                 },
                 user: user.details,
             });
+            resetProcessing();
             navigation.navigate('Areas');
+        } else {
+            resetProcessing();
         }
-
-        this.setState({
-            activeConfirmModal: '',
-        });
     };
 
     onTabSelect = (index: number) => {
@@ -733,6 +744,7 @@ class ViewUser extends React.Component<
             activeTabIndex,
             activeConfirmModal,
             confirmModalText,
+            isConfirmProcessing,
             isLoading,
             tabRoutes,
         } = this.state;
@@ -799,6 +811,7 @@ class ViewUser extends React.Component<
                         />
                 }
                 <ConfirmModal
+                    isConfirming={isConfirmProcessing}
                     isVisible={!!activeConfirmModal}
                     onCancel={this.onCancelConfirmModal}
                     onConfirm={this.onAcceptConfirmModal}

@@ -2022,6 +2022,17 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                         user={user}
                     />
                 }
+                {
+                    isMapReady && isMinLoadTimeComplete && this.isUserAuthenticated() &&
+                    route.params?.shouldStartNavigationTour &&
+                    <MapTourRenderer
+                        getCurrentScreen={this.getCurrentScreen}
+                        immediate
+                        navigation={navigation}
+                        updateTour={updateTour}
+                        user={user}
+                    />
+                }
                 <MainButtonMenu
                     activeRoute="Map"
                     navigation={navigation}

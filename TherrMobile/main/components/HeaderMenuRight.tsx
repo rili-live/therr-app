@@ -249,12 +249,14 @@ class HeaderMenuRight extends React.PureComponent<
         }, user.details.id);
 
         if (this.getCurrentScreen() !== 'Map') {
+            // Navigate to Map with param so Map can start the tour after mounting
             navigation.navigate('Map', {
                 shouldShowPreview: false,
+                shouldStartNavigationTour: true,
             });
+        } else {
+            this.props.startNavigationTour();
         }
-
-        this.props.startNavigationTour();
     };
 
     getCurrentScreen = () => {
@@ -277,6 +279,11 @@ class HeaderMenuRight extends React.PureComponent<
 
     togglePointsInfoModal = () => {
         const { isPointsInfoModalVisible } = this.state;
+
+        if (!isPointsInfoModalVisible) {
+            // Close the menu first so the modal is not hidden behind it
+            this.toggleOverlay(true);
+        }
 
         this.setState({
             isPointsInfoModalVisible: !isPointsInfoModalVisible,
@@ -736,17 +743,17 @@ class HeaderMenuRight extends React.PureComponent<
                                             onPress={() => this.handleLogout(() => this.toggleOverlay(true))}
                                         />
                                     </View>
-                                    <InfoModal
-                                        isVisible={isPointsInfoModalVisible}
-                                        translate={this.translate}
-                                        onRequestClose={this.togglePointsInfoModal}
-                                        themeButtons={themeButtons}
-                                        themeModal={themeInfoModal}
-                                    />
                                 </Pressable>
                             </Animated.View>
                         </Pressable>
                     </Modal>
+                    <InfoModal
+                        isVisible={isPointsInfoModalVisible}
+                        translate={this.translate}
+                        onRequestClose={this.togglePointsInfoModal}
+                        themeButtons={themeButtons}
+                        themeModal={themeInfoModal}
+                    />
                 </>
             );
         }

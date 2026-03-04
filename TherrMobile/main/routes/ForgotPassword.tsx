@@ -123,6 +123,9 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                             errorMsg: this.translate('forms.forgotPassword.backendErrorMessage'),
                         });
                     }
+                })
+                .finally(() => {
+                    this.setState({ isSubmitting: false });
                 });
         }
     };
@@ -200,6 +203,7 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                                 )}
                                 onPress={this.onSubmit}
                                 disabled={this.isFormDisabled()}
+                                loading={this.state.isSubmitting}
                             />
                         </View>
                     </ScrollView>

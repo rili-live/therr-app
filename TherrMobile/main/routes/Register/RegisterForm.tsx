@@ -379,6 +379,7 @@ export class RegisterFormComponent extends React.Component<
                         )}
                         onPress={this.onSubmit}
                         disabled={this.isRegisterFormDisabled()}
+                        loading={this.state.isSubmitting}
                     />
                     <OrDivider
                         translate={this.translate}

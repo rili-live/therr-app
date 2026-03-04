@@ -1222,6 +1222,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 mode: 'contained',
                                 icon: continueButtonConfig.iconRight ? 'chevron-right' : 'send',
                                 disabled: this.isFormDisabled(),
+                                loading: this.state.isSubmitting,
                                 buttonColor: this.theme.colors.accentTeal,
                                 textColor: this.theme.colors.brandingBlack,
                             },

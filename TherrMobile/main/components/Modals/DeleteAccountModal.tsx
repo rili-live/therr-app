@@ -4,6 +4,7 @@ import { Dialog, Portal } from 'react-native-paper';
 import ModalButton from './ModalButton';
 
 interface IDeleteAccountModal {
+    isDeleting?: boolean;
     isVisible: boolean;
     onRequestClose: any;
     translate: Function;
@@ -16,6 +17,7 @@ interface IDeleteAccountModal {
 }
 
 export default ({
+    isDeleting,
     isVisible,
     onRequestClose,
     themeButtons,
@@ -44,6 +46,7 @@ export default ({
                             iconName="arrow-back"
                             title={translate('modals.deleteAccountModal.cancel')}
                             onPress={onClose}
+                            disabled={isDeleting}
                             iconRight={false}
                             themeButtons={themeButtons}
                         />
@@ -51,6 +54,8 @@ export default ({
                             iconName="check"
                             title={translate('modals.deleteAccountModal.confirm')}
                             onPress={(e) => onClose(e, 'delete')}
+                            loading={isDeleting}
+                            disabled={isDeleting}
                             iconRight
                             themeButtons={themeButtons}
                         />

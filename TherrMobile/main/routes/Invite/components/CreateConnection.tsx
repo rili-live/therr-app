@@ -240,6 +240,8 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
             reqBody.acceptingUserPhoneNumber = inputs.phoneNumber;
         }
 
+        this.setState({ isSubmitting: true });
+
         createUserConnection(reqBody, user.details)
             .then(() => {
                 logEvent(getAnalytics(),'connection_invites_sent', {
@@ -259,6 +261,9 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                         prevConnReqError: error.message,
                     });
                 }
+            })
+            .finally(() => {
+                this.setState({ isSubmitting: false });
             });
     };
 
@@ -330,6 +335,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
             connectionContext,
             emailErrorMessage,
             inputs,
+            isSubmitting,
             prevConnReqError,
             prevConnReqSuccess,
         } = this.state;
@@ -448,7 +454,8 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                                             'forms.createConnection.buttons.submit'
                                         )}
                                         onPress={this.onSubmit}
-                                        disabled={this.isConnReqFormDisabled()}
+                                        disabled={this.isConnReqFormDisabled() || isSubmitting}
+                                        loading={isSubmitting}
                                         raised={false}
                                     />
                                     <Alert

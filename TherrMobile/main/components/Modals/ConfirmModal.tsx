@@ -7,6 +7,7 @@ import ModalButton from './ModalButton';
 
 interface IConfirmModal {
     headerText?: string;
+    isConfirming?: boolean;
     isVisible: boolean;
     onCancel: any;
     onConfirm: any;
@@ -33,6 +34,7 @@ interface IConfirmModal {
 
 export default ({
     headerText,
+    isConfirming,
     isVisible,
     onCancel,
     onConfirm,
@@ -80,6 +82,7 @@ export default ({
                         iconName="close"
                         title={textCancel || translate('modals.confirmModal.cancel')}
                         onPress={onCancel}
+                        disabled={isConfirming}
                         iconRight={false}
                         themeButtons={themeButtons}
                     />
@@ -87,6 +90,8 @@ export default ({
                         iconName="check"
                         title={textConfirm || translate('modals.confirmModal.confirm')}
                         onPress={onConfirm}
+                        loading={isConfirming}
+                        disabled={isConfirming}
                         iconRight={false}
                         themeButtons={themeButtons}
                     />

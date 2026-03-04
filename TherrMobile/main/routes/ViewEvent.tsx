@@ -385,6 +385,7 @@ const ViewEvent = ({
                                 textColor={theme.colors.brandingWhite}
                                 style={localStyles.footerButton}
                                 disabled={isDeleting}
+                                loading={isDeleting}
                             >
                                 {translate('forms.editEvent.buttons.delete')}
                             </PaperButton>
@@ -457,6 +458,7 @@ const ViewEvent = ({
 
             {/* Delete confirmation modal */}
             <ConfirmModal
+                isConfirming={isDeleting}
                 isVisible={isDeleteDialogVisible}
                 onCancel={() => setIsDeleteDialogVisible(false)}
                 onConfirm={handleDeleteConfirm}

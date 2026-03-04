@@ -8,6 +8,7 @@ export interface IFooterButtonConfig {
     mode: 'outlined' | 'contained';
     icon?: string;
     disabled?: boolean;
+    loading?: boolean;
     buttonColor?: string;
     textColor?: string;
 }
@@ -39,6 +40,7 @@ const EditFormFooter = ({ buttons, isDarkMode, theme }: IEditFormFooterProps) =>
                         mode={button.mode}
                         icon={button.icon}
                         disabled={button.disabled}
+                        loading={button.loading}
                         buttonColor={button.buttonColor}
                         textColor={button.textColor}
                         style={styles.footerButton}

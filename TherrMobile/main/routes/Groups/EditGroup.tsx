@@ -1,13 +1,11 @@
 import React from 'react';
 import { Keyboard, SafeAreaView, View } from 'react-native';
-import { Button } from '../../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import RNFB from 'react-native-blob-util';
 import { showToast } from '../../utilities/toasts';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import { ForumActions } from 'therr-react/redux/actions';
 import { Content, ErrorCodes, FilePaths } from 'therr-js-utilities/constants';
@@ -16,14 +14,13 @@ import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
-import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import formatHashtags from '../../utilities/formatHashtags';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
+import EditFormFooter from '../../components/EditFormFooter';
 import GroupCategories from './GroupCategories';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import TherrIcon from '../../components/TherrIcon';
 import RoundInput from '../../components/Input/Round';
 import RoundTextInput from '../../components/Input/TextInput/Round';
 import { GROUPS_CAROUSEL_TABS } from '../../constants';
@@ -84,7 +81,6 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
     private translate: Function;
     private theme = buildStyles();
     private themeAccentLayout = buildAccentStyles();
-    private themeAccentForms = buildAccentFormStyles();
     private themeButtons = buildButtonStyles();
     private themeCategory = buildCategoryStyles();
     private themeForms = buildFormStyles();
@@ -133,7 +129,6 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.themeCategory = buildCategoryStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
@@ -230,7 +225,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
 
                 // TODO: Move success/error alert to group chat page and remove settimeout
                 createOrUpdatePromise
-                    .then(() => {
+                    .then((result) => {
                         showToast.success({
                             text1: this.translate('forms.editGroup.backendSuccessHeader'),
                             text2: this.translate('forms.editGroup.backendSuccessMessage'),
@@ -240,9 +235,21 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             isPublic,
                         }).catch((err) => console.log(err));
                         setTimeout(() => {
-                            this.props.navigation.navigate('Groups', {
-                                activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
-                            });
+                            if (!groupId && result?.id) {
+                                // Navigate to the new group chat so the creator can send a welcome message
+                                this.props.navigation.navigate('ViewGroup', {
+                                    id: result.id,
+                                    title: result.title || title,
+                                    subtitle: result.subtitle || subtitle || title,
+                                    description: result.description || description,
+                                    hashTags: hashtags.join(','),
+                                    isNewlyCreated: true,
+                                });
+                            } else {
+                                this.props.navigation.navigate('Groups', {
+                                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                                });
+                            }
                         }, 200);
                     })
                     .catch((error: any) => {
@@ -436,6 +443,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 value={inputs.title}
                             />
                             <RoundInput
+                                containerStyle={{ marginTop: 14 }}
                                 placeholder={this.translate(
                                     'forms.editGroup.placeholders.subtitle'
                                 )}
@@ -446,6 +454,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 themeForms={this.themeForms}
                             />
                             <RoundTextInput
+                                containerStyle={{ marginTop: 14 }}
                                 placeholder={this.translate(
                                     'forms.editGroup.placeholders.description'
                                 )}
@@ -458,7 +467,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 themeForms={this.themeForms}
                             />
                             <RoundInput
-                                containerStyle={{ marginBottom: !hashtags?.length ? 10 : 0 }}
+                                containerStyle={{ marginTop: 14, marginBottom: !hashtags?.length ? 10 : 0 }}
                                 autoCorrect={false}
                                 errorStyle={this.theme.styles.displayNone}
                                 placeholder={this.translate(
@@ -478,43 +487,31 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             />
                         </View>
                     </KeyboardAwareScrollView>
-                    <View style={this.themeAccentLayout.styles.footer}>
-                        <Button
-                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                            buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.navigate('Groups', {
-                                activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
-                            })}
-                            icon={
-                                <TherrIcon
-                                    name="go-back"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                        <Button
-                            buttonStyle={this.themeAccentForms.styles.submitButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                            title={this.translate(
-                                'forms.editMoment.buttons.submit'
-                            )}
-                            icon={
-                                <FontAwesome5Icon
-                                    name="paper-plane"
-                                    size={25}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={this.themeAccentForms.styles.submitButtonIcon}
-                                />
-                            }
-                            onPress={this.onSubmit}
-                            disabled={this.isFormDisabled()}
-                        />
-                    </View>
+                    <EditFormFooter
+                        isDarkMode={this.props.user.settings?.mobileThemeName === 'retro'}
+                        theme={this.theme}
+                        buttons={[
+                            {
+                                title: this.translate('forms.editGroup.buttons.back'),
+                                onPress: () => navigation.navigate('Groups', {
+                                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                                }),
+                                mode: 'outlined',
+                                icon: 'arrow-left',
+                                textColor: this.theme.colors.brandingBlueGreen,
+                            },
+                            {
+                                title: this.translate('forms.editGroup.buttons.submit'),
+                                onPress: this.onSubmit,
+                                mode: 'contained',
+                                icon: 'send',
+                                disabled: this.isFormDisabled(),
+                                loading: this.state.isSubmitting,
+                                buttonColor: this.theme.colors.accentTeal,
+                                textColor: this.theme.colors.brandingBlack,
+                            },
+                        ]}
+                    />
                 </SafeAreaView>
             </>
         );

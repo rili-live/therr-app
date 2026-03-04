@@ -596,6 +596,7 @@ const ViewSpace = ({
                                 textColor={theme.colors.brandingWhite}
                                 style={localStyles.footerButton}
                                 disabled={isDeleting}
+                                loading={isDeleting}
                             >
                                 {translate('forms.editSpace.buttons.delete')}
                             </PaperButton>
@@ -606,6 +607,7 @@ const ViewSpace = ({
 
             {/* Delete confirmation modal */}
             <ConfirmModal
+                isConfirming={isDeleting}
                 isVisible={isDeleteDialogVisible}
                 onCancel={() => setIsDeleteDialogVisible(false)}
                 onConfirm={handleDeleteConfirm}

@@ -48,7 +48,7 @@ const StepMatchUp = ({
 const StepGps = ({
     translate,
 }) => {
-    const { previous, next } = useSpotlightTour();
+    const { previous, next, stop } = useSpotlightTour();
 
     return (
         <View style={themeTour.styles.tooltipContainer}>
@@ -73,6 +73,14 @@ const StepGps = ({
                     {translate('modals.touringNavigationModal.next')}
                 </PaperButton>
             </View>
+            <PaperButton
+                mode="text"
+                onPress={stop}
+                style={themeTour.styles.skipButton}
+                labelStyle={themeTour.styles.skipButtonLabel}
+            >
+                {translate('modals.touringNavigationModal.skip')}
+            </PaperButton>
         </View>
     );
 };
@@ -80,7 +88,7 @@ const StepGps = ({
 const StepDiscovered = ({
     translate,
 }) => {
-    const { previous, next } = useSpotlightTour();
+    const { previous, next, stop } = useSpotlightTour();
 
     return (
         <View style={themeTour.styles.tooltipContainer}>
@@ -105,6 +113,14 @@ const StepDiscovered = ({
                     {translate('modals.touringNavigationModal.next')}
                 </PaperButton>
             </View>
+            <PaperButton
+                mode="text"
+                onPress={stop}
+                style={themeTour.styles.skipButton}
+                labelStyle={themeTour.styles.skipButtonLabel}
+            >
+                {translate('modals.touringNavigationModal.skip')}
+            </PaperButton>
         </View>
     );
 };
@@ -112,7 +128,7 @@ const StepDiscovered = ({
 const StepCreate = ({
     translate,
 }) => {
-    const { next, previous } = useSpotlightTour();
+    const { next, previous, stop } = useSpotlightTour();
 
     return (
         <View style={themeTour.styles.tooltipContainer}>
@@ -138,6 +154,14 @@ const StepCreate = ({
                     {translate('modals.touringNavigationModal.next')}
                 </PaperButton>
             </View>
+            <PaperButton
+                mode="text"
+                onPress={stop}
+                style={themeTour.styles.skipButton}
+                labelStyle={themeTour.styles.skipButtonLabel}
+            >
+                {translate('modals.touringNavigationModal.skip')}
+            </PaperButton>
         </View>
     );
 };
@@ -145,7 +169,7 @@ const StepCreate = ({
 const StepMenu = ({
     translate,
 }) => {
-    const { next, previous } = useSpotlightTour();
+    const { next, previous, stop } = useSpotlightTour();
 
     return (
         <View style={themeTour.styles.tooltipContainer}>
@@ -170,6 +194,14 @@ const StepMenu = ({
                     {translate('modals.touringNavigationModal.next')}
                 </PaperButton>
             </View>
+            <PaperButton
+                mode="text"
+                onPress={stop}
+                style={themeTour.styles.skipButton}
+                labelStyle={themeTour.styles.skipButtonLabel}
+            >
+                {translate('modals.touringNavigationModal.skip')}
+            </PaperButton>
         </View>
     );
 };
@@ -177,7 +209,7 @@ const StepMenu = ({
 const StepConnect = ({
     translate,
 }) => {
-    const { next, previous } = useSpotlightTour();
+    const { next, previous, stop } = useSpotlightTour();
 
     return (
         <View style={themeTour.styles.tooltipContainer}>
@@ -202,6 +234,14 @@ const StepConnect = ({
                     {translate('modals.touringNavigationModal.next')}
                 </PaperButton>
             </View>
+            <PaperButton
+                mode="text"
+                onPress={stop}
+                style={themeTour.styles.skipButton}
+                labelStyle={themeTour.styles.skipButtonLabel}
+            >
+                {translate('modals.touringNavigationModal.skip')}
+            </PaperButton>
         </View>
     );
 };
@@ -249,7 +289,7 @@ const getTourSteps: (args: IGetTourStepsArgs) => TourStep[] = ({ locale }) => {
         // ...setup the steps
         {
             floatingProps: {
-                middleware: [offset({
+                middleware: [flip(), shift(), offset({
                     alignmentAxis: 0,
                     crossAxis: 0,
                     mainAxis: 10,

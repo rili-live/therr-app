@@ -20,7 +20,6 @@ const TherrIcon = createIconSetFromIcoMoon(
 
 const renderChatIcon = (item, style = {}) => {
     const props = {
-        key: item.tag,
         color: item.iconColor,
         name: item.iconId,
         size: 14,
@@ -34,14 +33,14 @@ const renderChatIcon = (item, style = {}) => {
     };
 
     if (item.iconGroup === 'font-awesome-5') {
-        return (<FontAwesome5Icon {...props} />);
+        return (<FontAwesome5Icon key={item.tag} {...props} />);
     }
 
     if (item.iconGroup === 'therr') {
-        return (<TherrIcon {...props} />);
+        return (<TherrIcon key={item.tag} {...props} />);
     }
 
-    return (<MaterialIcon {...props} />);
+    return (<MaterialIcon key={item.tag} {...props} />);
 };
 
 export default ({

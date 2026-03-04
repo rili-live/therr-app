@@ -40,6 +40,7 @@ interface IManageAccountState {
     inputs: any;
     isCropping: boolean;
     isDeleteAccountModalVisible: boolean;
+    isDeleting: boolean;
     isNightMode: boolean;
     isSubmitting: boolean;
     passwordErrorMessage: string;
@@ -83,6 +84,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
             isCropping: false,
             isNightMode: props.user.settings.mobileThemeName === 'retro',
             isDeleteAccountModalVisible: false,
+            isDeleting: false,
             isSubmitting: false,
             passwordErrorMessage: '',
         };
@@ -100,6 +102,8 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
 
     onDeleteAccountConfirm = () => {
         const { logout, user } = this.props;
+
+        this.setState({ isDeleting: true });
 
         logEvent(getAnalytics(),'account_delete_start', {
             userId: user.details.id,
@@ -123,6 +127,8 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                 userId: user.details.id,
                 error: error?.message,
             }).catch((err) => console.log(err));
+        }).finally(() => {
+            this.setState({ isDeleting: false });
         });
     };
 
@@ -209,7 +215,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
 
     render() {
         const { navigation, user } = this.props;
-        const  { isDeleteAccountModalVisible } = this.state;
+        const  { isDeleteAccountModalVisible, isDeleting } = this.state;
         const pageHeaderAdvancedSettings = this.translate('pages.advancedSettings.pageHeaderAccountActions');
 
         return (
@@ -245,6 +251,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                     themeMenu={this.themeMenu}
                 />
                 <DeleteAccountModal
+                    isDeleting={isDeleting}
                     isVisible={isDeleteAccountModalVisible}
                     translate={this.translate}
                     onRequestClose={(action) => this.onDeleteAccountModalClose(action)}

@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { bottomSafeAreaInset } from '../../navigation/buttonMenu';
 import { getTheme } from '../../themes';
 
 const buildStyles = (themeName?: IMobileThemeName) => {
@@ -7,10 +8,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
     const styles = StyleSheet.create({
         container: {
             marginTop: 0,
-            marginBottom: 80,
+            flex: 1,
         },
         sendBtnContainer: {
-            marginHorizontal: 0,
+            marginHorizontal: 4,
         },
         messageContainer: {
             display: 'flex',
@@ -48,7 +49,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flex: 1,
         },
         footer: {
+            flexDirection: 'row',
+            alignItems: 'center',
             paddingHorizontal: 10,
+            paddingTop: 8,
+            paddingBottom: 8 + bottomSafeAreaInset,
+            backgroundColor: therrTheme.colors.brandingWhite,
+            borderTopWidth: 1,
+            borderTopColor: therrTheme.colors.accentDivider,
         },
     });
 

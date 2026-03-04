@@ -1030,6 +1030,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 mode: 'outlined',
                                 icon: 'file-edit-outline',
                                 disabled: this.isFormDisabled(),
+                                loading: this.state.isSubmitting,
                                 textColor: this.theme.colors.brandingBlueGreen,
                             },
                             {
@@ -1038,6 +1039,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 mode: 'contained',
                                 icon: continueButtonConfig.iconRight ? 'chevron-right' : 'send',
                                 disabled: this.isFormDisabled(),
+                                loading: this.state.isSubmitting,
                                 buttonColor: this.theme.colors.accentTeal,
                                 textColor: this.theme.colors.brandingBlack,
                             },

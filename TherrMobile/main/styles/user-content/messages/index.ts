@@ -95,12 +95,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flex: 1,
         },
         sendBtn: {
-            borderRadius: 25,
+            borderRadius: 22,
             backgroundColor: therrTheme.colors.primary3,
+            width: 44,
+            height: 44,
         },
         sendBtnContainer: {
             margin: 0,
-            marginHorizontal: 4,
+            marginLeft: 8,
+            borderRadius: 22,
         },
     });
 

@@ -1197,6 +1197,9 @@
     },
     "viewGroup": {
       "noChatsFound": "No messages found",
+      "welcomeDialogTitle": "Welcome to Your New Group!",
+      "welcomeDialogMessage": "Write a welcome message to get the conversation started and let members know what this group is about.",
+      "welcomeDialogDismiss": "Maybe Later",
       "noEventsFound": "No current or upcoming events found. This group has not posted any events. Ask a moderator to nominate you as an event host.",
       "noMembersFound": "No group members found",
       "membershipStatuses": {
@@ -1583,7 +1586,7 @@
     },
     "infoModalPoints": {
       "header": "What are coins?",
-      "description": "Click 'Exchange' from the main menu to exchange coins for gift cards. In a future iteration of the app, coins will be exchangable for cash or cryptocurrency. Opt in to nearby notifications, and start earning coins through various activities like sharing a 'moment' at a participating business, inviting friends, and earning achievements. Or, opt out and enjoy the app ad-free!",
+      "description": "Earn coins by sharing moments, checking in at local spots, inviting friends, and unlocking achievements. Redeem your coins for gift cards right from the main menu — with more reward options coming soon! Turn on nearby notifications to never miss a chance to earn. Prefer a quieter experience? Opt out anytime and enjoy the app ad-free.",
       "done": "close"
     },
     "touringModal": {
@@ -1613,6 +1616,7 @@
       "exit": "Exit",
       "next": "Next",
       "previous": "Previous",
+      "skip": "Skip Tour",
       "headers": {
         "create": "Create 🎨",
         "connect": "Connect 🌐",
@@ -1623,14 +1627,14 @@
         "menu": "Menu 💬"
       },
       "tips": {
-        "create1": "Click to toggle 'create actions'. These content types require geo-location to encourage local-first engagement.",
-        "create2": "A 'space' is a business such as a restaurant, and a 'moment' is for user generated content.",
-        "connect": "Invite friends, create or join groups, and view your connections list.",
-        "discovered": "Activated 'moments' show up in the discovered list along with global 'thoughts' and local events. Go here to post a thought or schedule events.",
-        "gps": "Press to enable location. This allows you to start activating local content. Discover local food, fun, and upcoming events.",
-        "map": "Tap anywhere on the map for a list of nearby spaces. Some spaces offer rewards for check-ins, posting a moment, leaving a review, etc.",
-        "matchUp": "Press the 'match up' button to generate social outings. We match you with nearby friends and suggest local spaces.",
-        "menu": "Open the menu to track your achievements and exchange points for cash rewards. Find other quicklinks like messages, drafts, and account settings."
+        "create1": "Tap here to share what's happening around you! Create local content that others nearby can discover.",
+        "create2": "Post a 'moment' to share your experience, or claim a 'space' to put your favorite spots on the map.",
+        "connect": "Invite friends, join groups, and grow your local network. See who's nearby and stay connected.",
+        "discovered": "Moments and local events appear here as you explore. The more you move, the more you discover!",
+        "gps": "Turn on location to unlock the full experience. Find nearby food, fun, events, and exclusive local rewards.",
+        "map": "Tap anywhere on the map to explore nearby spaces. Check in, share moments, and earn rewards at participating locations!",
+        "matchUp": "Ready for something new? \"Match Up\" pairs you with nearby friends and suggests great local spots for your next outing.",
+        "menu": "Track your achievements, redeem points for real rewards, and access messages, drafts, and account settings."
       }
     }
   },

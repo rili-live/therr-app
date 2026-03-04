@@ -9,9 +9,10 @@ interface IModalButtonProps {
     iconRight: any;
     themeButtons: any;
     disabled?: boolean;
+    loading?: boolean;
 }
 
-const ModalButton = ({ color, disabled, title, iconName, onPress, iconRight, themeButtons }: IModalButtonProps) => {
+const ModalButton = ({ color, disabled, loading, title, iconName, onPress, iconRight, themeButtons }: IModalButtonProps) => {
     const textColor = color === 'red' ? (themeButtons.styles.btnTitleRed?.color || 'red') : undefined;
 
     return (
@@ -19,6 +20,7 @@ const ModalButton = ({ color, disabled, title, iconName, onPress, iconRight, the
             mode="text"
             onPress={onPress}
             disabled={disabled}
+            loading={loading}
             icon={iconName}
             textColor={textColor}
             contentStyle={iconRight ? { flexDirection: 'row-reverse' } : undefined}

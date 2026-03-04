@@ -48,6 +48,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         actionButtonContentRight: {
             flexDirection: 'row-reverse',
         },
+        skipButton: {
+            alignSelf: 'center',
+            marginTop: 4,
+        },
+        skipButtonLabel: {
+            fontSize: 13,
+            color: therrTheme.colors.textGray,
+        },
     });
 
     return ({

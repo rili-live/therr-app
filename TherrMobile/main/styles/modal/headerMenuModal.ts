@@ -160,6 +160,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: HEADER_HEIGHT - HEADER_EXTRA_HEIGHT,
             backgroundColor: therrTheme.colors.brandingBlueGreen,
             alignItems: 'center',
+            paddingHorizontal: 8,
+            paddingVertical: 4,
         },
         subheaderTitle: {
             display: 'flex',
@@ -176,6 +178,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         subheaderLinkText: {
             textDecorationLine: 'underline',
             color: therrTheme.colors.brandingWhite,
+            paddingHorizontal: 6,
         },
         subheaderTitleIcon: {
             color: therrTheme.colors.brandingWhite,
