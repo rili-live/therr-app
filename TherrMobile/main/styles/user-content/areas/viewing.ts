@@ -27,6 +27,8 @@ const getAreaDistanceStyle = (therrTheme: ITherrTheme, isDarkMode = true): any =
     textAlign: 'left',
 });
 
+const cardBorderRadius = 5;
+
 const getCardStyles = (therrTheme: ITherrTheme): any => ({
     display: 'flex',
     flexDirection: 'column',
@@ -34,7 +36,7 @@ const getCardStyles = (therrTheme: ITherrTheme): any => ({
     padding: 0,
     elevation: 2,
     backgroundColor: therrTheme.colors.backgroundWhite,
-    borderRadius: 5,
+    borderRadius: cardBorderRadius,
     paddingBottom: 5,
     marginHorizontal: 7,
     shadowRadius: 5,
@@ -43,7 +45,11 @@ const getCardStyles = (therrTheme: ITherrTheme): any => ({
         width: 2,
         height: -2,
     },
-    overflow: 'hidden',
+    // NOTE: overflow:'hidden' was removed here intentionally.
+    // On Android, combining overflow:'hidden' + elevation + borderRadius on the
+    // same view causes a native compositing bug where children intermittently
+    // render as blank/white during horizontal scrolling. The clipping is moved
+    // to cardImageContainer instead.
     marginBottom: 3,
 });
 
@@ -298,6 +304,9 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         cardImageContainer: {
             flex: 1,
             width: '100%',
+            borderTopLeftRadius: cardBorderRadius,
+            borderTopRightRadius: cardBorderRadius,
+            overflow: 'hidden',
         },
         cardImage: {
             height: '100%',

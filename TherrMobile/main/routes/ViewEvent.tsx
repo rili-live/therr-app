@@ -180,7 +180,7 @@ const ViewEvent = ({
                 navigation.navigate('Notifications');
             }
         } else {
-            navigation.navigate('Map', { shouldShowPreview: false });
+            navigation.navigate('Map', { shouldShowPreview: true });
         }
     }, [previousView, navigation]);
 
