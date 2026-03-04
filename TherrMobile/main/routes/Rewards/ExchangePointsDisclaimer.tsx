@@ -67,6 +67,9 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
             },
         };
 
+        this.theme = buildStyles(props.user?.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user?.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user?.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }

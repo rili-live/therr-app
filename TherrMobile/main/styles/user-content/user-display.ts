@@ -134,7 +134,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginHorizontal: 4,
         },
         actionMenuItemText: {
-            color: therrTheme.colors.accentTextBlack,
+            color: therrTheme.colors.textWhite,
             fontSize: 16,
             flex: 1,
             paddingRight: 10,
@@ -170,6 +170,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 20,
             paddingHorizontal: 24,
             textAlign: 'center',
+            color: therrTheme.colors.textGray,
         },
     });
 

@@ -14,7 +14,7 @@ const containerStyles: any = {
 };
 
 const getMessageStyles = (theme: ITherrTheme, themeName: string) => ({
-    color: themeName === 'light' ? theme.colors.accentTextBlack : theme.colors.accentTextBlack,
+    color: themeName === 'light' ? theme.colors.accentTextBlack : theme.colors.textWhite,
     fontSize: 16,
 });
 
@@ -48,11 +48,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         messageTextLeft: {
             ...getMessageStyles(therrTheme, themeName),
-            color: themeName === 'light' ? therrTheme.colors.textWhite : therrTheme.colors.accentTextBlack,
+            color: themeName === 'light' ? therrTheme.colors.textWhite : therrTheme.colors.textWhite,
         },
         messageTextRight: {
             ...getMessageStyles(therrTheme, themeName),
-            color: themeName === 'light' ? therrTheme.colors.textBlack : therrTheme.colors.accentTextBlack,
+            color: themeName === 'light' ? therrTheme.colors.textBlack : therrTheme.colors.brandingBlack,
         },
         messageDateLeft: {
             ...getMessageDateStyles(therrTheme, themeName),

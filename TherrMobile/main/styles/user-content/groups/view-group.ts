@@ -35,16 +35,17 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingBottom: 3,
         },
         senderTitleText: {
-            color: therrTheme.colors.accentTextBlack,
+            color: therrTheme.colors.textWhite,
             fontSize: 15,
             fontWeight: 'bold',
             paddingRight: 4,
         },
         messageTime: {
             fontSize: 12,
+            color: therrTheme.colors.textGray,
         },
         messageText: {
-            color: therrTheme.colors.accentTextBlack,
+            color: therrTheme.colors.textWhite,
             fontSize: 15,
             flex: 1,
         },

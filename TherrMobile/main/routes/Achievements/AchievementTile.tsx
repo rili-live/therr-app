@@ -32,16 +32,16 @@ const AchievementTile = ({ claimText, completedText, handleClaim, onPressAchieve
                     </View>
                 </View>
                 <View style={{ display: 'flex', flexDirection: 'column', flex: 1, paddingVertical: 6 }}>
-                    <Text style={{ textTransform: 'capitalize', fontWeight: '600', fontSize: 18, paddingBottom: 4 }}>
+                    <Text style={{ textTransform: 'capitalize', fontWeight: '600', fontSize: 18, paddingBottom: 4, color: themeAchievements.colors.textWhite }}>
                         {userAchievement.achievementClass.replace(/([A-Z])/g, ' $1')}: <Text style={{ fontWeight: '400' }}>{achievement.title}</Text>
                     </Text>
-                    <Text style={spacingStyles.flexOne}>{achievement.description}</Text>
+                    <Text style={[spacingStyles.flexOne, { color: themeAchievements.colors.textGray }]}>{achievement.description}</Text>
                     <View style={{ width: '100%', display: 'flex', flexDirection: 'row' }}>
                         <View style={{ position: 'relative', flex: 1 }}>
                             <View style={themeAchievements.styles.progressBarBackground} />
                             <View style={[themeAchievements.styles.progressBar, { width: progressPercent }]} />
                         </View>
-                        <Text style={{ fontSize: 14, fontWeight: '600', paddingLeft: 8 }}>
+                        <Text style={{ fontSize: 14, fontWeight: '600', paddingLeft: 8, color: themeAchievements.colors.textWhite }}>
                             {userAchievement.completedAt ? '✓' : progressText}
                         </Text>
                     </View>

@@ -9,15 +9,15 @@ const colors: ITherrThemeColors = {
     primary4: '#22A5B4',
     primary5: '#17657D',
     secondary: '#E37107',
-    ternary: '#1E1E1E',
+    ternary: '#E0E0E0',
     ternary2: '#ffc269',
     tertiary: '#104B52',
 
     // Text
     textBlack: '#E0E0E0',
     textDark: '#B0B0B0',
-    textGray: 'rgba(255,255,255,.60)',
-    textDarkGray: '#728f94',
+    textGray: 'rgba(255,255,255,.70)',
+    textDarkGray: '#90B0B6',
     textWhite: '#F5F5F5',
     selectionColor: '#E37107',
 
@@ -41,7 +41,7 @@ const colors: ITherrThemeColors = {
 
     borderLight: '#404040',
     placeholderTextColor: '#78909b',
-    placeholderTextColorAlt: 'rgba(255,255,255,.45)',
+    placeholderTextColorAlt: 'rgba(255,255,255,.60)',
 
     hyperlink: '#64B5F6',
     controlButtons: '#1C7F8A',
@@ -50,12 +50,12 @@ const colors: ITherrThemeColors = {
     alertError: '#CF6679',
 
     // Accents - Alternate color scheme to add variety and reduce blandness
-    accent1: '#1E1E1E',
+    accent1: '#2A2A2A',
     accent1Fade: '#97c5bb',
     accent2: '#22A5B4',
     accent3: '#218a35',
     accentAlt: '#449885',
-    accentTextBlack: '#1C7F8A',
+    accentTextBlack: '#4DD8E8',
     accentTextWhite: '#F5F5F5',
     accentRed: '#fe0156',
     accentYellow: '#fed61e',
