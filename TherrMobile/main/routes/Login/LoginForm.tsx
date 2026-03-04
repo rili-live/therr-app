@@ -240,6 +240,7 @@ export class LoginFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                     testID="login-username"
                     inputStyle={{ fontSize: 17 }}
                 />
@@ -269,7 +270,7 @@ export class LoginFormComponent extends React.Component<
                 />
                 <View style={themeAuthForm.styles.submitButtonContainer}>
                     <Button
-                        buttonStyle={themeForms.styles.buttonPrimary}
+                        buttonStyle={[themeForms.styles.buttonPrimary, { paddingHorizontal: 20 }]}
                         titleStyle={themeForms.styles.buttonTitle}
                         disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                         disabledStyle={themeForms.styles.buttonDisabled}
@@ -277,8 +278,8 @@ export class LoginFormComponent extends React.Component<
                             'forms.loginForm.buttons.login'
                         )}
                         onPress={() => this.onSubmit()}
+                        disabled={this.isLoginFormDisabled()}
                         loading={isSubmitting}
-                        // raised={true}
                         icon={
                             <FontAwesomeIcon
                                 name="sign-in-alt"

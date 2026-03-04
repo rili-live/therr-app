@@ -197,7 +197,10 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                         </View>
                         <View style={this.themeAuthForm.styles.submitButtonContainer}>
                             <Button
-                                buttonStyle={this.themeAuthForm.styles.button}
+                                buttonStyle={this.themeForms.styles.buttonPrimary}
+                                titleStyle={this.themeForms.styles.buttonTitle}
+                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                disabledStyle={this.themeForms.styles.buttonDisabled}
                                 title={this.translate(
                                     'forms.forgotPassword.buttons.submit'
                                 )}

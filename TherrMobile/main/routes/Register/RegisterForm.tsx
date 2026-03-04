@@ -281,6 +281,7 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                 />
                 <RoundInput
                     autoCapitalize="none"
@@ -301,6 +302,7 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                 />
                 {
                     isPasswordEntryDirty &&
@@ -326,6 +328,7 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                 />
                 <RoundInput
                     autoCapitalize="none"
