@@ -64,7 +64,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginLeft: 5,
         },
         actionButtonText: {
-            color: 'black',
+            color: therrTheme.colors.textWhite,
             paddingLeft: 5,
         },
         messageContainerUnread: {

@@ -207,7 +207,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         quickFiltersButtonTiny: {
             ...quickFiltersButtonTinyBase,
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.backgroundWhite,
         },
         quickFiltersButtonTinyActive: {
             ...quickFiltersButtonTinyBase,

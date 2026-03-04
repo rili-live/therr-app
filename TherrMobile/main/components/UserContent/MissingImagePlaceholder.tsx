@@ -1,12 +1,12 @@
 
 import React from 'react';
 import {
-    ActivityIndicator,
+    Image as RNImage,
     StyleProp,
     StyleSheet,
     View,
+    ViewStyle,
 } from 'react-native';
-import { Image } from '../BaseImage';
 import LottieView from 'lottie-react-native';
 import missingImageDeals from '../../assets/missing-image-deals.json';
 import missingImageEvents from '../../assets/missing-image-events.json';
@@ -15,7 +15,6 @@ import missingImageStorefront from '../../assets/missing-image-storefront.json';
 import missingImageIdea from '../../assets/missing-image-idea.json';
 import missingImageMusic from '../../assets/missing-image-music.json';
 import missingImageNature from '../../assets/missing-image-nature.json';
-import { ViewStyle } from 'react-native';
 
 const placeholderMedia = require('../../assets/placeholder-content-media.png');
 
@@ -37,7 +36,7 @@ const MissingImagePlaceholder = ({
     dimensions,
 }: IMissingImagePlaceholder) => {
     if (area?.category) {
-        let lottieStyle: StyleProp<ViewStyle> = {position: 'absolute', width: '100%', height: '100%' };
+        let lottieStyle: StyleProp<ViewStyle> = localStyles.lottie;
         let missingImage: any = missingImageStorefront;
         const cat = area.category;
         if (cat.includes('food') || cat.includes('menu') || cat.includes('restaurant') || cat.includes('cafe')) {
@@ -62,7 +61,7 @@ const MissingImagePlaceholder = ({
         }
         if (cat.includes('event') || area?.areaType === 'events') {
             missingImage = missingImageEvents;
-            lottieStyle = {position: 'absolute', width: '90%', height: '90%', margin: '5%' };
+            lottieStyle = localStyles.lottieEvent;
         }
 
         return (
@@ -70,29 +69,41 @@ const MissingImagePlaceholder = ({
                 <LottieView
                     source={missingImage}
                     resizeMode="contain"
-                    speed={1}
-                    progress={placeholderMediaType === 'autoplay' ? 0 : 1}
-                    autoPlay={placeholderMediaType === 'autoplay'}
+                    speed={placeholderMediaType === 'autoplay' ? 1 : 3}
+                    autoPlay
                     loop={false}
-                    style={[lottieStyle]}
+                    style={lottieStyle}
                 />
             </View>
         );
     }
 
     return (
-        <Image
-            source={placeholderMedia}
-            style={themeViewArea.styles.cardImage}
-            resizeMode="cover"
-            PlaceholderContent={<ActivityIndicator />}
-        />
+        <View style={[themeViewArea.styles.cardImage, dimensions ? dimensions : {}, localStyles.container]}>
+            <RNImage
+                source={placeholderMedia}
+                style={localStyles.fallbackImage}
+                resizeMode="cover"
+            />
+        </View>
     );
 };
 
 const localStyles = StyleSheet.create({
     container: {
         overflow: 'hidden',
+        backgroundColor: '#f0f0f0',
+    },
+    lottie: {
+        flex: 1,
+    },
+    lottieEvent: {
+        flex: 1,
+        margin: '5%',
+    },
+    fallbackImage: {
+        flex: 1,
+        width: '100%',
     },
 });
 

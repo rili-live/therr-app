@@ -3,7 +3,7 @@ import { IMobileThemeName } from 'therr-react/types';
 import { Theme } from '@react-navigation/native';
 import DeviceInfo from 'react-native-device-info';
 import { buttonMenuHeight } from './navigation/buttonMenu';
-import { getTheme, ITherrTheme } from './themes';
+import { getTheme, isDarkTheme, ITherrTheme } from './themes';
 import { therrFontFamily } from './font';
 
 
@@ -106,9 +106,9 @@ const getAreaContainerButtonStyles = (): any => ({
 });
 
 
-const buildNavTheme = (theme: ITherrTheme): Theme => {
+const buildNavTheme = (theme: ITherrTheme, themeName?: IMobileThemeName): Theme => {
     return ({
-        dark: true,
+        dark: isDarkTheme(themeName),
         colors: {
             primary: theme.colors.primary,
             background: theme.colors.primary,

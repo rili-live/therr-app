@@ -31,6 +31,7 @@ import { showToast } from '../../utilities/toasts';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import { isDarkTheme } from '../../styles/themes';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
@@ -760,7 +761,7 @@ class ViewUser extends React.Component<
                                 <UserDisplayHeader
                                     goToConnections={this.goToConnections}
                                     navigation={navigation}
-                                    isDarkMode={user.settings?.mobileThemeName === 'retro'}
+                                    isDarkMode={isDarkTheme(user.settings?.mobileThemeName)}
                                     onProfilePicturePress={this.onProfilePicturePress}
                                     onBlockUser={this.onBlockUser}
                                     onConnectionRequest={this.onConnectionRequest}

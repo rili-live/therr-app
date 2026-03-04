@@ -11,6 +11,7 @@ import { ForumActions } from 'therr-react/redux/actions';
 import { Content, ErrorCodes, FilePaths } from 'therr-js-utilities/constants';
 import { IContentState, IForumsState, IUserState } from 'therr-react/types';
 import translator from '../../services/translator';
+import { isDarkTheme } from '../../styles/themes';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/groups/categories';
 import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
@@ -235,13 +236,14 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             isPublic,
                         }).catch((err) => console.log(err));
                         setTimeout(() => {
-                            if (!groupId && result?.id) {
+                            const createdForum = result?.forum || result;
+                            if (!groupId && createdForum?.id) {
                                 // Navigate to the new group chat so the creator can send a welcome message
                                 this.props.navigation.navigate('ViewGroup', {
-                                    id: result.id,
-                                    title: result.title || title,
-                                    subtitle: result.subtitle || subtitle || title,
-                                    description: result.description || description,
+                                    id: createdForum.id,
+                                    title: createdForum.title || title,
+                                    subtitle: createdForum.subtitle || subtitle || title,
+                                    description: createdForum.description || description,
                                     hashTags: hashtags.join(','),
                                     isNewlyCreated: true,
                                 });
@@ -488,7 +490,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         </View>
                     </KeyboardAwareScrollView>
                     <EditFormFooter
-                        isDarkMode={this.props.user.settings?.mobileThemeName === 'retro'}
+                        isDarkMode={isDarkTheme(this.props.user.settings?.mobileThemeName)}
                         theme={this.theme}
                         buttons={[
                             {

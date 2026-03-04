@@ -15,6 +15,7 @@ import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { Content } from 'therr-js-utilities/constants';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import translator from '../services/translator';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles } from '../styles';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
@@ -358,7 +359,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 translate={this.translate}
                                 toggleAreaOptions={this.toggleAreaOptions}
                                 hashtags={this.hashtags}
-                                isDarkMode={user.settings?.mobileThemeName === 'retro'}
+                                isDarkMode={isDarkTheme(user.settings?.mobileThemeName)}
                                 isExpanded={true}
                                 inspectContent={() => null}
                                 area={momentInView}

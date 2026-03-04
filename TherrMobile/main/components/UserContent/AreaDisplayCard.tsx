@@ -3,10 +3,11 @@ import React from 'react';
 import {
     ActivityIndicator,
     Dimensions,
+    Pressable,
+    StyleSheet,
     Text,
     View,
 } from 'react-native';
-import { Card } from 'react-native-paper';
 import { Image } from '../BaseImage';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { ITherrThemeColors } from '../../styles/themes';
@@ -82,13 +83,12 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                 height: cardHeight,
                 width: cardWidth,
             }]}>
-                <Card
+                <Pressable
                     onPress={() => onPress(area)}
                     style={[
                         isFocused ? themeViewArea.styles.cardFocused : themeViewArea.styles.card,
                         featuredStyle,
                     ]}
-                    mode="elevated"
                 >
                     <View style={[themeViewArea.styles.cardImageContainer]}>
                         {
@@ -97,6 +97,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                                     source={{
                                         uri: areaMedia,
                                     }}
+                                    containerStyle={localStyles.imageContainer}
                                     style={[themeViewArea.styles.cardImage]}
                                     resizeMode="cover"
                                     PlaceholderContent={<ActivityIndicator />}
@@ -107,7 +108,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                                 />
                         }
                     </View>
-                    <Card.Content style={[{ padding: 0 }, themeViewArea.styles.textContent]}>
+                    <View style={[localStyles.textContent, themeViewArea.styles.textContent]}>
                         <Text numberOfLines={2} style={themeViewArea.styles.cardTitle}>
                             {area.notificationMsg}
                         </Text>
@@ -135,9 +136,18 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                             area.distance != null &&
                             <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
                         }
-                    </Card.Content>
-                </Card>
+                    </View>
+                </Pressable>
             </View>
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    imageContainer: {
+        flex: 1,
+    },
+    textContent: {
+        padding: 0,
+    },
+});

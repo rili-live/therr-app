@@ -11,7 +11,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
     const styles = StyleSheet.create({
         tooltipContainer: {
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.backgroundWhite,
             borderRadius: 12,
             padding: 16,
             maxWidth: screenWidth - MINIMUM_HORIZONTAL_PADDING,

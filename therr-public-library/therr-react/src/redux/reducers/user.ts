@@ -8,7 +8,7 @@ const initialState: IUserState = {
     details: null,
     settings: {
         locale: 'en-us',
-        mobileThemeName: 'retro',
+        mobileThemeName: 'light',
     },
     socketDetails: {},
     isAuthenticated: false,

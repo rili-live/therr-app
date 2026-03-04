@@ -14,7 +14,7 @@ const buildStyles = ({
     const styles = StyleSheet.create({
         container: {
             position: 'absolute',
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.backgroundWhite,
             zIndex: 1000,
             width: '100%',
             top: 0,

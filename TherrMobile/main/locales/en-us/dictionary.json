@@ -1437,6 +1437,9 @@
       "pageHeaderNotificationSettings": "Emails & Alert Settings",
       "labels": {
         "nightMode": "Night Mode?",
+        "themeLight": "Light",
+        "themeDark": "Dark",
+        "themeRetro": "Retro",
         "enableRewards": "Opt-In?",
         "isPublic": "Public Profile?"
       },

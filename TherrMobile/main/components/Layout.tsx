@@ -446,7 +446,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 startOnBoot: true,        // <-- Auto start tracking when device is powered-up.
                 triggerActivities: 'on_foot, walking, running',
                 notification: {
-                    color: '#0f7b82',
+                    color: this.theme.colors.primary3,
                     smallIcon: 'drawable/ic_notification_icon',
                     text: this.translate('alertTitles.backgroundLocationNotification'),
                     channelName: this.translate('alertTitles.backgroundLocationNotificationChannel'),
@@ -1396,7 +1396,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         return (
             <NavigationContainer
-                theme={buildNavTheme(this.theme)}
+                theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
                 ref={navigationRef}
                 onReady={() => {
                     this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;

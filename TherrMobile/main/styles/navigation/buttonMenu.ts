@@ -107,6 +107,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flexDirection: 'row',
             zIndex: 10,
             backgroundColor: 'transparent',
+            overflow: 'visible',
             bottom: 0,
         },
         containerInner: {
@@ -116,7 +117,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             alignSelf: 'flex-end',
             flexDirection: 'row',
             paddingBottom: bottomSafeAreaInset,
-            marginTop: 100,
             backgroundColor: therrTheme.colors.primary,
             // backgroundColor: therrTheme.colorVariations.backgroundCreamLighten,
             borderTopWidth: 1,

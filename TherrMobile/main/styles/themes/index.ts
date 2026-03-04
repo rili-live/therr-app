@@ -6,6 +6,8 @@ import retroTheme from './retro';
 import { getPaperTheme } from './paper';
 
 
+export const isDarkTheme = (name?: IMobileThemeName) => name !== 'light';
+
 export const getTheme = (name?: IMobileThemeName) => {
     switch (name) {
         case 'light':

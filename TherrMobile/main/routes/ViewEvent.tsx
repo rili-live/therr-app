@@ -16,6 +16,7 @@ import { ReactionsService } from 'therr-react/services';
 import { Content } from 'therr-js-utilities/constants';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import translator from '../services/translator';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles } from '../styles';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
@@ -95,7 +96,7 @@ const ViewEvent = ({
     const themeForms = buildFormStyles(user.settings?.mobileThemeName);
     const themeConfirmModal = buildConfirmModalStyles(user.settings?.mobileThemeName);
     const themeButtons = buildButtonsStyles(user.settings?.mobileThemeName);
-    const isDarkMode = user.settings?.mobileThemeName === 'retro';
+    const isDarkMode = isDarkTheme(user.settings?.mobileThemeName);
     const brandColor = theme.colors.brandingBlueGreen;
 
     // Derived values
@@ -314,7 +315,7 @@ const ViewEvent = ({
                     contentInsetAdjustmentBehavior="automatic"
                     ref={scrollViewRef}
                     style={[theme.styles.bodyFlex, themeAccentLayout.styles.bodyView]}
-                    contentContainerStyle={[theme.styles.bodyScroll, themeAccentLayout.styles.bodyViewScroll, localStyles.scrollContent]}
+                    contentContainerStyle={[theme.styles.bodyScroll, themeAccentLayout.styles.bodyViewScroll]}
                 >
                     <View style={[themeAccentLayout.styles.container, themeArea.styles.areaContainer]}>
                         <AreaDisplay
@@ -356,7 +357,7 @@ const ViewEvent = ({
                 </KeyboardAwareScrollView>
 
                 {/* Footer */}
-                <View style={localStyles.footer}>
+                <View style={[themeAccentLayout.styles.footer, localStyles.footer]}>
                     <PaperButton
                         mode="outlined"
                         onPress={handleGoBack}
@@ -475,16 +476,9 @@ const ViewEvent = ({
 };
 
 const localStyles = StyleSheet.create({
-    scrollContent: {
-        paddingBottom: 20,
-    },
     footer: {
-        flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
         paddingHorizontal: 10,
-        paddingTop: 12,
-        paddingBottom: 24,
     },
     footerButton: {
         flex: 1,

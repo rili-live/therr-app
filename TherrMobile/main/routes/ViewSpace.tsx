@@ -23,6 +23,7 @@ import TherrIcon from '../components/TherrIcon';
 import { ILocationState } from '../types/redux/location';
 import LocationActions from '../redux/actions/LocationActions';
 import translator from '../services/translator';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles } from '../styles';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
@@ -124,7 +125,7 @@ const ViewSpace = ({
     const themeForms = buildFormStyles(user.settings?.mobileThemeName);
     const themeConfirmModal = buildConfirmModalStyles(user.settings?.mobileThemeName);
     const themeButtons = buildButtonsStyles(user.settings?.mobileThemeName);
-    const isDarkMode = user.settings?.mobileThemeName === 'retro';
+    const isDarkMode = isDarkTheme(user.settings?.mobileThemeName);
     const brandColor = theme.colors.brandingBlueGreen;
 
     // Derived values
@@ -437,7 +438,7 @@ const ViewSpace = ({
                     <View style={themeArea.styles.bannerTitle}>
                         <TherrIcon
                             name="gift"
-                            size={28}
+                            size={20}
                             style={themeArea.styles.bannerTitleIcon}
                         />
                         <Text numberOfLines={1} style={[themeArea.styles.bannerTitleTextCenter, spacingStyles.flexOne]}>
@@ -446,11 +447,6 @@ const ViewSpace = ({
                             })}
                         </Text>
                     </View>
-                    <TherrIcon
-                        name="hand-coin"
-                        size={28}
-                        color={theme.colors.accentYellow}
-                    />
                 </View>
                 {spaceInView.featuredIncentiveKey === IncentiveRequirementKeys.SHARE_A_MOMENT && (
                     <View style={theme.styles.sectionContainer}>

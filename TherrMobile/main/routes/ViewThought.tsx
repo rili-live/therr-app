@@ -16,6 +16,7 @@ import UsersActions from '../redux/actions/UsersActions';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import translator from '../services/translator';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles } from '../styles';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
@@ -104,7 +105,7 @@ const ViewThought = ({
     const themeForms = buildFormStyles(user.settings?.mobileThemeName);
     const themeConfirmModal = buildConfirmModalStyles(user.settings?.mobileThemeName);
     const themeButtons = buildButtonsStyles(user.settings?.mobileThemeName);
-    const isDarkMode = user.settings?.mobileThemeName === 'retro';
+    const isDarkMode = isDarkTheme(user.settings?.mobileThemeName);
 
     // Derived values
     const { thought, isMyContent, previousView } = route.params;

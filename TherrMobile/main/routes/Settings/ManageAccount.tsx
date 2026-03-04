@@ -41,7 +41,6 @@ interface IManageAccountState {
     isCropping: boolean;
     isDeleteAccountModalVisible: boolean;
     isDeleting: boolean;
-    isNightMode: boolean;
     isSubmitting: boolean;
     passwordErrorMessage: string;
 }
@@ -82,7 +81,6 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                 shouldHideMatureContent: props.user.details.shouldHideMatureContent,
             },
             isCropping: false,
-            isNightMode: props.user.settings.mobileThemeName === 'retro',
             isDeleteAccountModalVisible: false,
             isDeleting: false,
             isSubmitting: false,
@@ -184,12 +182,6 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
         .finally(() => {
             this.scrollViewRef?.scrollToPosition(0, 0);
         });
-
-    onThemeChange = (isNightMode: boolean) => {
-        this.setState({
-            isNightMode,
-        });
-    };
 
     toggleDeleteAccountModal = (shouldOpen: boolean) => {
         this.setState({

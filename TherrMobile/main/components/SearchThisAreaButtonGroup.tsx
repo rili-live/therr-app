@@ -10,6 +10,7 @@ interface ISearchThisAreaButtonGroupProps {
     translate: Function;
     themeButtons: {
         styles: any;
+        colors: any;
     };
 }
 
@@ -37,7 +38,7 @@ const SearchThisAreaButtonGroup = ({
                         label={translate('menus.searchThisArea.title')}
                         onPress={() => handleSearchLocation()}
                         style={themeButtons.styles.searchThisAreaButton}
-                        variant="secondary"
+                        color={themeButtons.colors.brandingWhite}
                         size="small"
                     />
             }

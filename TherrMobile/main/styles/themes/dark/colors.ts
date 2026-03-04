@@ -31,7 +31,7 @@ const colors: ITherrThemeColors = {
     brandingLightBlue: '#d8f0f2',
 
     // Background
-    backgroundCream: '#2C2C2C',
+    backgroundCream: '#9E9E9E',
     backgroundWhite: '#1E1E1E',
     backgroundGray: '#2A2A2A',
     backgroundNeutral: '#333333',
@@ -50,7 +50,7 @@ const colors: ITherrThemeColors = {
     alertError: '#CF6679',
 
     // Accents - Alternate color scheme to add variety and reduce blandness
-    accent1: '#1C7F8A',
+    accent1: '#1E1E1E',
     accent1Fade: '#97c5bb',
     accent2: '#22A5B4',
     accent3: '#218a35',

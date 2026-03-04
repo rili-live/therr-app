@@ -614,15 +614,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     isEvent &&
                     <View style={themeViewArea.styles.banner}>
                         <View style={themeViewArea.styles.bannerTitle}>
-                            <Button
-                                type="clear"
-                                icon={
-                                    <TherrIcon
-                                        name="calendar"
-                                        size={26}
-                                        style={themeViewArea.styles.bannerTitleIcon}
-                                    />
-                                }
+                            <TherrIcon
+                                name="calendar"
+                                size={20}
+                                style={themeViewArea.styles.bannerTitleIcon}
                             />
                             <Text numberOfLines={1} style={themeViewArea.styles.bannerTitleText}>
                                 {/* eslint-disable-next-line max-len */}
@@ -635,16 +630,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     shouldDisplayRewardsBanner &&
                     <Pressable style={themeViewArea.styles.banner} onPress={this.onClaimRewardPress}>
                         <View style={themeViewArea.styles.bannerTitle}>
-                            <Button
-                                type="clear"
-                                icon={
-                                    <TherrIcon
-                                        name="gift"
-                                        size={28}
-                                        style={themeViewArea.styles.bannerTitleIcon}
-                                    />
-                                }
-                                onPress={this.onClaimRewardPress}
+                            <TherrIcon
+                                name="gift"
+                                size={20}
+                                style={themeViewArea.styles.bannerTitleIcon}
                             />
                             <Text numberOfLines={1} style={themeViewArea.styles.bannerTitleText}>
                                 {translate('pages.viewSpace.buttons.coinReward', {
@@ -652,39 +641,21 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 })}
                             </Text>
                         </View>
-                        <Pressable onPress={this.onClaimRewardPress}>
+                        <Pressable onPress={this.onClaimRewardPress} style={spacingStyles.marginRtMd}>
                             <Text style={themeViewArea.styles.bannerLinkText}>
                                 {translate('pages.viewSpace.buttons.claimRewards')}
                             </Text>
                         </Pressable>
-                        <Button
-                            icon={
-                                <TherrIcon
-                                    name="hand-coin"
-                                    size={28}
-                                    color={theme.colors.accentYellow}
-                                />
-                            }
-                            iconRight
-                            onPress={this.onClaimRewardPress}
-                            type="clear"
-                        />
                     </Pressable>
                 }
                 {
                     shouldDisplayRelatedSpaceBanner &&
                     <Pressable style={themeViewArea.styles.banner} onPress={this.onGoToSpace}>
                         <View style={themeViewArea.styles.bannerTitle}>
-                            <Button
-                                type="clear"
-                                icon={
-                                    <TherrIcon
-                                        name="road-map"
-                                        size={26}
-                                        style={themeViewArea.styles.bannerTitleIcon}
-                                    />
-                                }
-                                onPress={this.onGoToSpace}
+                            <TherrIcon
+                                name="road-map"
+                                size={20}
+                                style={themeViewArea.styles.bannerTitleIcon}
                             />
                             {
                                 area.space &&

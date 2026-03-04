@@ -32,7 +32,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             // left: 20
         },
         containerHeader: {
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.accent1,
             width: '100%',
             borderBottomColor: therrTheme.colors.accentDivider,
             borderBottomWidth: 1,

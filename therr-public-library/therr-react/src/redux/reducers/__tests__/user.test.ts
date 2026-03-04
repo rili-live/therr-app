@@ -146,7 +146,7 @@ describe('user reducer', () => {
         expect(result.details.id).toBe('u1');
         expect(result.details.firstName).toBe('John');
         expect(result.settings.locale).toBe('es');
-        expect(result.settings.mobileThemeName).toBe('retro'); // preserved
+        expect(result.settings.mobileThemeName).toBe('light'); // preserved
     });
 
     it('handles RESET_USER_SETTINGS', () => {

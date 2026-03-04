@@ -16,6 +16,7 @@ import OctIcon from 'react-native-vector-icons/Octicons';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
+import { isDarkTheme } from '../../styles/themes';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/viewing';
@@ -379,6 +380,9 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                             this.props.navigation.navigate('ViewGroup', {
                                 id: response.data?.group?.id,
                                 title: response.data?.group?.title,
+                                subtitle: response.data?.group?.subtitle,
+                                description: response.data?.group?.description,
+                                isNewlyCreated: true,
                             });
                         } else {
                             this.props.navigation.navigate('Groups', {
@@ -645,7 +649,7 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                                 />
                                 <EventStartEndFormGroup
                                     themeForms={this.themeForms}
-                                    isNightMode={user.settings?.mobileThemeName === 'dark' || user.settings?.mobileThemeName === 'retro'}
+                                    isNightMode={isDarkTheme(user.settings?.mobileThemeName)}
                                     onConfirm={this.onConfirmDatePicker}
                                     translate={this.translate}
                                     startsAtValue={inputs.scheduleStartAt}

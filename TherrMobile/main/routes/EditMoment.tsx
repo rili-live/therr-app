@@ -21,6 +21,7 @@ import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
@@ -1010,7 +1011,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         }
                     </KeyboardAwareScrollView>
                     <EditFormFooter
-                        isDarkMode={this.props.user.settings?.mobileThemeName === 'retro'}
+                        isDarkMode={isDarkTheme(this.props.user.settings?.mobileThemeName)}
                         theme={this.theme}
                         buttons={[
                             {

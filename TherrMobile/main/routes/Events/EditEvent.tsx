@@ -23,6 +23,7 @@ import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import DropDown from '../../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../../services/translator';
+import { isDarkTheme } from '../../styles/themes';
 import { buildStyles, addMargins } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
@@ -1064,7 +1065,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                         />
                         <EventStartEndFormGroup
                             themeForms={this.themeForms}
-                            isNightMode={user.settings?.mobileThemeName === 'dark' || user.settings?.mobileThemeName === 'retro'}
+                            isNightMode={isDarkTheme(user.settings?.mobileThemeName)}
                             onConfirm={this.onConfirmDatePicker}
                             translate={this.translate}
                             startsAtValue={inputs.scheduleStartAt}
@@ -1373,7 +1374,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                         }
                     </KeyboardAwareScrollView>
                     <EditFormFooter
-                        isDarkMode={this.props.user.settings?.mobileThemeName === 'retro'}
+                        isDarkMode={isDarkTheme(this.props.user.settings?.mobileThemeName)}
                         theme={this.theme}
                         buttons={[
                             {
