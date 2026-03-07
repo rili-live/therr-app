@@ -25,8 +25,12 @@ async function onGoogleButtonPress({
     // Get the users ID token
     let idToken;
     try {
-        const { idToken: token } = await GoogleSignin.signIn();
-        idToken = token;
+        const response = await GoogleSignin.signIn();
+        if (response.type === 'cancelled') {
+            setDisabled(false);
+            return;
+        }
+        idToken = response.data.idToken;
     } catch (error) {
         onLoginError(error);
         setDisabled(false);

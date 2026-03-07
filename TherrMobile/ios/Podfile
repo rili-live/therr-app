@@ -19,10 +19,12 @@ target 'Therr' do
   project 'Therr', 'Therr_Debug' => :debug, 'Debug' => :debug, 'Therr_Release' => :release, 'Release' => :release
   # React Native Maps with Google Maps support
   rn_maps_path = '../node_modules/react-native-maps'
-  pod 'react-native-maps', :path => rn_maps_path, :subspecs => ['Google']
+  pod 'react-native-maps', :path => rn_maps_path
+  pod 'Google-Maps-iOS-Utils', '~> 6.0'
+  pod 'GoogleMaps', '~> 9.0'
 
   # Google SSO
-  pod 'GoogleSignIn', '~> 7.0'
+  pod 'GoogleSignIn', '~> 9.0'
 
   config = use_native_modules!
 

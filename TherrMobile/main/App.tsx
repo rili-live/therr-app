@@ -5,6 +5,7 @@ import LogRocket from '@logrocket/react-native';
 import { getAnalytics, setAnalyticsCollectionEnabled } from '@react-native-firebase/analytics';
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
 import { SheetProvider } from 'react-native-actions-sheet';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import {
     SpotlightTourProvider,
 } from 'react-native-spotlight-tour';
@@ -236,10 +237,11 @@ class App extends React.Component<any, any> {
         }
 
         return (
-            <Provider store={this.store}>
-                <FeatureFlagProvider>
-                    <GestureHandlerRootView style={spacingStyles.flexOne}>
-                        <ThemedPaperProvider>
+            <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+                <Provider store={this.store}>
+                    <FeatureFlagProvider>
+                        <GestureHandlerRootView style={spacingStyles.flexOne}>
+                            <ThemedPaperProvider>
                             <SpotlightTourProvider
                                 steps={getTourSteps({
                                     locale: this.store.getState()?.user?.settings?.locale || 'en-us',
@@ -266,16 +268,17 @@ class App extends React.Component<any, any> {
                                     )
                                 }
                             </SpotlightTourProvider>
-                        </ThemedPaperProvider>
-                    </GestureHandlerRootView>
-                    <Toast
-                        config={toastConfig}
-                        position="bottom"
-                        bottomOffset={buttonMenuHeight + 10}
-                        topOffset={HEADER_HEIGHT_MARGIN + 30}
-                    />
-                </FeatureFlagProvider>
-            </Provider>
+                            </ThemedPaperProvider>
+                        </GestureHandlerRootView>
+                        <Toast
+                            config={toastConfig}
+                            position="bottom"
+                            bottomOffset={buttonMenuHeight + 10}
+                            topOffset={HEADER_HEIGHT_MARGIN + 30}
+                        />
+                    </FeatureFlagProvider>
+                </Provider>
+            </SafeAreaProvider>
         );
     }
 }

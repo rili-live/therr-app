@@ -2,6 +2,7 @@ import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { Theme } from '@react-navigation/native';
 import DeviceInfo from 'react-native-device-info';
+import { initialWindowMetrics } from 'react-native-safe-area-context';
 import { buttonMenuHeight } from './navigation/buttonMenu';
 import { getTheme, isDarkTheme, ITherrTheme } from './themes';
 import { therrFontFamily } from './font';
@@ -75,9 +76,10 @@ const getHeaderHeight = () => {
         return (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT);
     }
 
-    // Use the system-reported status bar height to account for notches,
-    // camera cutouts, and varying status bar sizes across all Android devices
-    const statusBarHeight = StatusBar.currentHeight || ANDROID_TOP_GAP;
+    // Use safe area insets for accurate cutout/notch handling across all Android devices,
+    // falling back to StatusBar.currentHeight or a default gap
+    const safeAreaTop = initialWindowMetrics?.insets?.top;
+    const statusBarHeight = safeAreaTop || StatusBar.currentHeight || ANDROID_TOP_GAP;
     return HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + statusBarHeight;
 };
 
