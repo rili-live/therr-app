@@ -17,6 +17,9 @@ export class RoundInput extends BaseInput {
                 style={ !value?.length ? themeForms.styles.placeholderText : themeForms.styles.inputText }
                 placeholderTextColor={themeForms.styles.placeholderText.color}
                 inputContainerStyle={themeForms.styles.inputContainerRound}
+                underlineStyle={{ display: 'none' }}
+                roundness={15}
+                value={value}
                 {...restProps}
                 themeForms={themeForms}
                 inputStyle={[(Platform.OS !== 'ios' ? themeForms.styles.input : themeForms.styles.inputAlt), this.props.inputStyle]}

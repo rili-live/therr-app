@@ -3,11 +3,14 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import classnames from 'classnames';
 import randomColor from 'randomcolor';
+import {
+    Card, Container, Flex, Group, Stack, Text, Title,
+} from '@mantine/core';
 import { SocketActions } from 'therr-react/redux/actions';
 import {
-    Input,
-    ButtonPrimary,
-} from 'therr-react/components';
+    MantineButton,
+    MantineInput,
+} from 'therr-react/components/mantine';
 import scrollTo from 'therr-js-utilities/scroll-to';
 import {
     IForumMsg,
@@ -148,7 +151,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
     private messageInputRef: any;
 
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     // private sessionToken: string;
 
@@ -168,7 +171,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     componentDidMount() {
         const { isFirstLoad } = this.state;
         document.title = `Therr | ${this.translate('pages.chatForum.pageTitle')}`;
-        this.messageInputRef.current.inputEl.focus();
+        this.messageInputRef.current?.focus();
         // if (isFirstLoad) {
         //     verifyAndJoinForum(this.props);
         // }
@@ -233,45 +236,58 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         const { location, messages, user } = this.props;
         const forumMessages = messages.forumMsgs[user.socketDetails.currentRoom];
 
+        const roomName = (location.state as any)?.roomName || user.socketDetails.currentRoom;
+
         return (
             <div id="page_chat_forum">
-                <div className="form-field-wrapper inline message-input">
-                    <Input
-                        ref={this.messageInputRef}
-                        autoComplete="off"
-                        type="text"
-                        id="message"
-                        name="message"
-                        value={this.state.inputs.message}
-                        onChange={this.onInputChange}
-                        onEnter={this.onButtonClick}
-                        placeholder={this.translate('pages.chatForum.inputPlaceholder')}
-                        translate={this.translate}
-                    />
-                    <div className="form-field">
-                        <ButtonPrimary
-                            id="enter_message"
-                            text="Send"
-                            onClick={this.onButtonClick}
-                            disabled={this.shouldDisableInput('sendForumMessage')}
-                        />
-                    </div>
-                </div>
+                <Container size="md">
+                    <Stack gap="md" style={{ minHeight: 'calc(100vh - 200px)' }}>
+                        <Card shadow="sm" padding="lg" radius="md" withBorder>
+                            <Title order={2} id="forumTitle">
+                                {this.translate('pages.chatForum.pageTitle')}: {roomName}
+                            </Title>
+                        </Card>
 
-                <h1 id="forumTitle">{this.translate('pages.chatForum.pageTitle')}: {(location.state as any)?.roomName || user.socketDetails.currentRoom}</h1>
-                {
-                    <div id="forums_list">
-                        {
-                            forumMessages && forumMessages.length > 0
-                                ? <div className="message-list">
-                                    {
-                                        forumMessages.map((message: IForumMsg, index) => renderMessage(message, index, user))
-                                    }
+                        <Card shadow="sm" padding="md" radius="md" withBorder style={{ flex: 1 }}>
+                            <div id="forums_list">
+                                {
+                                    forumMessages && forumMessages.length > 0
+                                        ? <div className="message-list">
+                                            {
+                                                forumMessages.map((msg: IForumMsg, index) => renderMessage(msg, index, user))
+                                            }
+                                        </div>
+                                        : <Text c="dimmed">{this.translate('pages.chatForum.welcome')}</Text>
+                                }
+                            </div>
+                        </Card>
+
+                        <Card shadow="sm" padding="md" radius="md" withBorder>
+                            <Flex gap="sm" align="center">
+                                <div style={{ flex: 1 }}>
+                                    <MantineInput
+                                        ref={this.messageInputRef}
+                                        autoComplete="off"
+                                        type="text"
+                                        id="message"
+                                        name="message"
+                                        value={this.state.inputs.message}
+                                        onChange={this.onInputChange}
+                                        onEnter={this.onButtonClick}
+                                        placeholder={this.translate('pages.chatForum.inputPlaceholder')}
+                                        translateFn={this.translate}
+                                    />
                                 </div>
-                                : <div>{this.translate('pages.chatForum.welcome')}</div>
-                        }
-                    </div>
-                }
+                                <MantineButton
+                                    id="enter_message"
+                                    text="Send"
+                                    onClick={this.onButtonClick}
+                                    disabled={this.shouldDisableInput('sendForumMessage')}
+                                />
+                            </Flex>
+                        </Card>
+                    </Stack>
+                </Container>
             </div>
         );
     }

@@ -1,12 +1,12 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, Text, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { FAB } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IMapState, IUserState } from 'therr-react/types';
-import { ListItem } from 'react-native-elements';
+import { ListItem } from '../../components/BaseListItem';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
@@ -23,6 +23,16 @@ import {
 
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+
+const fabStyle = { borderRadius: 100 };
+
+const renderRedoIcon = (props: { size: number; color: string }) => (
+    <FontAwesome5Icon name="redo-alt" size={props.size} color={props.color} />
+);
+
+const renderCheckIcon = (props: { size: number; color: string }) => (
+    <FontAwesome5Icon name="check" size={props.size} color={props.color} />
+);
 
 interface IMapFilteredSearchDispatchProps {
     setMapFilters: Function;
@@ -277,37 +287,22 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
                     </ScrollView>
                 </SafeAreaView>
                 <View style={this.themeButtons.styles.resetFilters}>
-                    <Button
-                        containerStyle={this.themeButtons.styles.btnContainer}
-                        buttonStyle={this.themeButtons.styles.btnLargeWithText}
-                        icon={
-                            <FontAwesome5Icon
-                                name="redo-alt"
-                                size={24}
-                                style={this.themeButtons.styles.btnIcon}
-                            />
-                        }
-                        raised
-                        title={this.translate('menus.filterActions.resetFilters')}
-                        titleStyle={this.themeButtons.styles.btnMediumTitleRight}
+                    <FAB
+                        icon={renderRedoIcon}
+                        style={fabStyle}
+                        variant="secondary"
+                        size="small"
+                        label={this.translate('menus.filterActions.resetFilters')}
                         onPress={() => this.handleResetFilters(true)}
                     />
                 </View>
                 <View style={this.themeButtons.styles.applyFilters}>
-                    <Button
-                        containerStyle={this.themeButtons.styles.btnContainer}
-                        buttonStyle={this.themeButtons.styles.btnLargeWithText}
-                        icon={
-                            <FontAwesome5Icon
-                                name="check"
-                                size={24}
-                                style={this.themeButtons.styles.btnIcon}
-                            />
-                        }
-                        // iconRight
-                        raised
-                        title={this.translate('menus.filterActions.applyFilters')}
-                        titleStyle={this.themeButtons.styles.btnMediumTitleRight}
+                    <FAB
+                        icon={renderCheckIcon}
+                        style={fabStyle}
+                        variant="secondary"
+                        size="small"
+                        label={this.translate('menus.filterActions.applyFilters')}
                         onPress={() => this.handleApplyFilters(true)}
                     />
                 </View>

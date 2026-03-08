@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { Stack } from '@mantine/core';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import flags from 'react-phone-number-input/flags'; // eslint-disable-line import/extensions
 import {
-    ButtonPrimary,
-    Input,
-} from 'therr-react/components';
+    MantineButton,
+    MantineInput,
+} from 'therr-react/components/mantine';
 import translator from '../../services/translator';
 
 // Regular component props
@@ -24,7 +24,7 @@ interface ICreateProfileFormState {
  * CreateProfileForm
  */
 export class CreateProfileFormComponent extends React.Component<ICreateProfileFormProps, ICreateProfileFormState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: ICreateProfileFormProps) {
         super(props);
@@ -89,77 +89,83 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
         return (
             <div className="register-container">
                 <div className="flex fill">
-                    <h1 className="text-center">{this.props.title}</h1>
+                    <Stack gap="sm">
+                        <h1 className="text-center">{this.props.title}</h1>
 
-                    <label className="required" htmlFor="user_name">{this.translate('components.createProfileForm.labels.userName')}:</label>
-                    <Input
-                        type="text"
-                        id="user_name"
-                        name="userName"
-                        value={this.state.inputs.userName}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        validations={['isRequired']}
-                    />
+                        <MantineInput
+                            type="text"
+                            id="user_name"
+                            name="userName"
+                            value={this.state.inputs.userName}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translateFn={this.translate}
+                            validations={['isRequired']}
+                            label={this.translate('components.createProfileForm.labels.userName')}
+                        />
 
-                    <label className="required" htmlFor="first_name">{this.translate('components.createProfileForm.labels.firstName')}:</label>
-                    <Input
-                        type="text"
-                        id="first_name"
-                        name="firstName"
-                        value={this.state.inputs.firstName}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        validations={['isRequired']}
-                    />
+                        <MantineInput
+                            type="text"
+                            id="first_name"
+                            name="firstName"
+                            value={this.state.inputs.firstName}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translateFn={this.translate}
+                            validations={['isRequired']}
+                            label={this.translate('components.createProfileForm.labels.firstName')}
+                        />
 
-                    <label className="required" htmlFor="last_name">{this.translate('components.createProfileForm.labels.lastName')}:</label>
-                    <Input
-                        type="text"
-                        id="last_name"
-                        name="lastName"
-                        value={this.state.inputs.lastName}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        validations={['isRequired']}
-                    />
+                        <MantineInput
+                            type="text"
+                            id="last_name"
+                            name="lastName"
+                            value={this.state.inputs.lastName}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translateFn={this.translate}
+                            validations={['isRequired']}
+                            label={this.translate('components.createProfileForm.labels.lastName')}
+                        />
 
-                    <label className="required" htmlFor="phone_number">{this.translate('components.createProfileForm.labels.mobilePhone')}:</label>
-                    <div className="form-field">
-                        <PhoneInput
-                            defaultCountry="US"
-                            country="US"
-                            international={true}
-                            flags={flags}
-                            value={this.state.inputs.phoneNumber}
-                            onChange={this.onPhoneInputChange} />
-                        {
-                            !isPhoneNumberValid
-                            && <div className="validation-errors">
-                                <div className="message-container icon-small attention-alert">
-                                    <em className="message">
-                                        {this.translate('components.createProfileForm.validationErrors.phoneNumber')}
-                                    </em>
+                        <label className="required" htmlFor="phone_number">{this.translate('components.createProfileForm.labels.mobilePhone')}:</label>
+                        <div className="form-field">
+                            <PhoneInput
+                                defaultCountry="US"
+                                country="US"
+                                international={true}
+                                flags={flags}
+                                value={this.state.inputs.phoneNumber}
+                                onChange={this.onPhoneInputChange} />
+                            {
+                                !isPhoneNumberValid
+                                && <div className="validation-errors">
+                                    <div className="message-container icon-small attention-alert">
+                                        <em className="message">
+                                            {this.translate('components.createProfileForm.validationErrors.phoneNumber')}
+                                        </em>
+                                    </div>
                                 </div>
-                            </div>
-                        }
-                    </div>
+                            }
+                        </div>
 
-                    <div className="form-field text-right">
-                        <ButtonPrimary
-                            id="register"
-                            text={this.translate('components.createProfileForm.buttons.submit')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
-                    </div>
+                        <div className="form-field text-right">
+                            <MantineButton
+                                id="register"
+                                text={this.translate('components.createProfileForm.buttons.submit')}
+                                onClick={this.onSubmit}
+                                disabled={this.isFormDisabled()}
+                                fullWidth
+                            />
+                        </div>
 
-                    <div className="form-field">
-                        <h2 className="text-title-medium text-center no-bot-margin fill">
-                            {this.translate('pages.createProfile.infoTitle')}
-                        </h2>
-                        <p className="info-text text-center fill">{this.translate('pages.createProfile.info')}</p>
-                    </div>
+                        <div className="form-field">
+                            <h2 className="text-title-medium text-center no-bot-margin fill">
+                                {this.translate('pages.createProfile.infoTitle')}
+                            </h2>
+                            <p className="info-text text-center fill">{this.translate('pages.createProfile.info')}</p>
+                        </div>
+                    </Stack>
                 </div>
             </div>
         );

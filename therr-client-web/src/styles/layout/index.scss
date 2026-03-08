@@ -7,12 +7,12 @@
 @import '../components';
 
 html {
-    background: $therr-background;
+    background: var(--therr-background, $therr-background);
 }
 
 html,
 body {
-    color: $therr-text-a;
+    color: var(--therr-text-a, $therr-text-a);
     font-family: sans-serif;
     font-size: 16px;
     margin: 0;
@@ -39,13 +39,13 @@ h4 {
 
 #login_button {
     width: 100%;
-    height: rem-calc(52px);
+    height: 3.25rem;
     font-weight: 600;
-    font-size: rem-calc(16px);
+    font-size: 1rem;
 }
 
 .content-container {
-    background: $therr-background-black;
+    background: var(--therr-background-black, $therr-background-black);
     border: none;
     border-radius: 0;
     // border-left: rem-calc(4px) double $therr-primary-2;
@@ -59,11 +59,9 @@ h4 {
 
 .content-container-home {
     display: flex;
-    background: $therr-background-black;
+    background: var(--therr-background-black, $therr-background-black);
     border: none;
     border-radius: 0;
-    // border-left: rem-calc(4px) double $therr-primary-2;
-    // border-right: rem-calc(4px) double $therr-primary-2;
     margin: $header-height-small 0;
     padding: 1.5rem 1rem;
     box-shadow: none;
@@ -71,7 +69,7 @@ h4 {
     box-sizing: border-box;
     flex-direction: column;
 
-    div {
+    > * {
         flex: 1;
     }
 }

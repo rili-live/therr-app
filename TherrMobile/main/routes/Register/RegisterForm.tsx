@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Linking, Platform, View } from 'react-native';
-import { Button, Text } from 'react-native-elements';
+import { Linking, Platform, Text, View } from 'react-native';
+import { Button } from '../../components/BaseButton';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import translator from '../../services/translator';
@@ -281,6 +281,7 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                 />
                 <RoundInput
                     autoCapitalize="none"
@@ -301,6 +302,7 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                 />
                 {
                     isPasswordEntryDirty &&
@@ -326,6 +328,7 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                 />
                 <RoundInput
                     autoCapitalize="none"
@@ -379,6 +382,7 @@ export class RegisterFormComponent extends React.Component<
                         )}
                         onPress={this.onSubmit}
                         disabled={this.isRegisterFormDisabled()}
+                        loading={this.state.isSubmitting}
                     />
                     <OrDivider
                         translate={this.translate}

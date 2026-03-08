@@ -1,6 +1,6 @@
 import React from 'react';
-import { Platform, View } from 'react-native';
-import { Button, Text }  from 'react-native-elements';
+import { Platform, Text, View } from 'react-native';
+import { Button } from '../../BaseButton';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import Alert from '../../Alert';

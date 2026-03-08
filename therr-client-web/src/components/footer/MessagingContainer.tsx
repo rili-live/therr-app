@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import {
-    Input,
-    SvgButton,
-} from 'therr-react/components';
+import { SvgButton } from 'therr-react/components';
+import { MantineInput } from 'therr-react/components/mantine';
 import { SocketActions } from 'therr-react/redux/actions';
 import scrollTo from 'therr-js-utilities/scroll-to';
 import { bindActionCreators } from 'redux';
@@ -73,7 +71,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
 
     private messageInputRef: any;
 
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props) {
         super(props);
@@ -105,7 +103,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
         };
 
         if (this.shouldShowMessagingCtnr()) {
-            this.messageInputRef.current.inputEl.focus();
+            this.messageInputRef.current?.focus();
             scrollDown();
         } else if (dms && dms.length > 3 && dms.length > prevMessages.length) {
             scrollDown();
@@ -241,18 +239,17 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                         </span>
                     }
                     <div className="form-field-wrapper inline dms-input">
-                        <Input
+                        <MantineInput
                             id="messaging_input"
                             ref={this.messageInputRef}
                             autoComplete="off"
                             type="text"
                             name="message"
                             value={this.state.inputs.message}
-                            neverValidations={true}
                             onChange={this.onInputChange}
                             onEnter={this.onSendMessage}
                             placeholder={this.translate('components.messagingContainer.inputPlaceholder')}
-                            translate={this.translate}
+                            translateFn={this.translate}
                         />
                         <div className="form-field">
                             <SvgButton

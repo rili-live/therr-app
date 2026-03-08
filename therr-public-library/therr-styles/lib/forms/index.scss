@@ -26,7 +26,7 @@ h1 {
 }
 
 label {
-    color: $therr-white;
+    color: $therr-label-color;
     font-weight: 700;
     font-size: rem-calc(15px);
     line-height: 2.5rem;
@@ -68,12 +68,12 @@ input[type='week'],
 select,
 .select-box,
 textarea {
-    background-color: $therr-white;
-    border: 1px solid #cdcdcd;
+    background-color: $therr-input-bg-color;
+    border: 1px solid $therr-input-border-color;
     border-radius: rem-calc(16px);
     box-shadow: none;
     box-sizing: border-box;
-    color: #262626;
+    color: $therr-input-text-color;
     display: block;
     font-family: inherit;
     font-size: 1rem;
@@ -90,7 +90,7 @@ textarea {
     }
 
     &:focus {
-        background-color: $therr-white;
+        background-color: $therr-input-bg-color;
         border-color: $therr-input-focus-color;
         box-shadow: $therr-input-shadow;
         outline: none !important;
@@ -134,12 +134,12 @@ textarea {
 
 select,
 .select-box {
-    background-color: $therr-white;
+    background-color: $therr-input-bg-color;
     background-position: 95%;
     background-repeat: no-repeat;
     background-size: 0.75rem;
-    border: 1px solid #cdcdcd;
-    color: #262626;
+    border: 1px solid $therr-input-border-color;
+    color: $therr-input-text-color;
     font-family: inherit;
     height: 2.3125rem;
     line-height: normal;
@@ -171,8 +171,8 @@ select,
     }
 
     .options-list {
-        background: $therr-white;
-        border: 1px solid #ccc;
+        background: $therr-input-bg-color;
+        border: 1px solid $therr-input-border-color;
         border-radius: 0.125rem;
         box-shadow: 0 0 0 0.25rem rgb(38 38 38 / 7.5%);
         left: -0.125rem;

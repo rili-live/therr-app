@@ -2,7 +2,10 @@ import React from 'react';
 import { Dimensions, Pressable, SafeAreaView, Keyboard, Text, View, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Slider, Image } from 'react-native-elements';
+import { Button } from '../components/BaseButton';
+import EditFormFooter from '../components/EditFormFooter';
+import Slider from '@react-native-community/slider';
+import { Image } from '../components/BaseImage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'react-native-blob-util';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
@@ -12,20 +15,19 @@ import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { Categories, Content, FilePaths, IncentiveRewardKeys, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
-import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../utilities/toasts';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
-import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
 import { buildStyles as buildSearchStyles } from '../styles/modal/typeAhead';
 import userContentStyles from '../styles/user-content';
@@ -48,7 +50,7 @@ import BaseStatusBar from '../components/BaseStatusBar';
 import { addAddressParams, getImagePreviewPath } from '../utilities/areaUtils';
 import { getUserContentUri, signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
-import BottomSheet from '../components/BottomSheet/BottomSheet';
+import { SheetManager } from 'react-native-actions-sheet';
 import TherrIcon from '../components/TherrIcon';
 import SearchTypeAheadResults from '../components/SearchTypeAheadResults';
 
@@ -83,11 +85,11 @@ interface IEditSpaceState {
     errorMsg: string;
     hashtags: string[];
     isAddressDropdownVisible: boolean;
-    isBottomSheetVisible: boolean;
     isEditingIncentives: boolean;
     inputs: any;
     isBusinessAccount: boolean;
     isCreatorAccount?: boolean;
+    isSliderActive: boolean;
     isSubmitting: boolean;
     previewLinkId?: string;
     previewStyleState: any;
@@ -126,7 +128,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     private theme;
     private themeAlerts = buildAlertStyles();
     private themeAccentLayout = buildAccentStyles();
-    private themeModal = buildModalStyles();
     private themeMoments = buildMomentStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
@@ -154,7 +155,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             errorMsg: '',
             hashtags: area?.hashTags ? area?.hashTags?.split(',') : [],
             isAddressDropdownVisible: false,
-            isBottomSheetVisible: false,
             isBusinessAccount,
             isCreatorAccount,
             isEditingIncentives: false,
@@ -175,6 +175,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 featuredIncentiveRewardValue: area?.featuredIncentiveRewardValue?.toString() || undefined,
                 featuredIncentiveCurrencyId: area?.featuredIncentiveCurrencyId?.toString() || undefined,
             },
+            isSliderActive: false,
             isSubmitting: false,
             previewStyleState: {},
             selectedImage: imageDetails || {},
@@ -184,7 +185,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
-        this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
@@ -458,11 +458,9 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 createOrUpdatePromise
                     .then(() => {
                         if (isBusinessAccount) {
-                            Toast.show({
-                                type: 'success',
+                            showToast.success({
                                 text1: areaId ? this.translate('alertTitles.areaUpdatedSuccess') : this.translate('alertTitles.spaceCreatedSuccess'),
                                 text2: this.translate('alertMessages.spaceUpdatedSuccess'),
-                                visibilityTime: 3500,
                             });
                             logEvent(getAnalytics(),'space_create', {
                                 userId: user.details.id,
@@ -473,11 +471,9 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 category,
                             }).catch((err) => console.log(err));
                         } else {
-                            Toast.show({
-                                type: 'success',
+                            showToast.success({
                                 text1: this.translate('alertTitles.spaceRequestSuccess'),
                                 text2: this.translate('alertMessages.spaceRequestSuccess'),
-                                visibilityTime: 3500,
                             });
                             logEvent(getAnalytics(),'space_request', {
                                 userId: user.details.id,
@@ -718,15 +714,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             this.setState({
                 selectedImage: imageResponse,
                 imagePreviewPath: getImagePreviewPath(imageResponse?.path),
-            }, () => this.toggleBottomSheet());
+            });
         }
-    };
-
-    toggleBottomSheet = () => {
-        const { isBottomSheetVisible } = this.state;
-        this.setState({
-            isBottomSheetVisible: !isBottomSheetVisible,
-        });
     };
 
     onAddImage = (action: string) => {
@@ -757,7 +746,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                 throw new Error('permissions denied');
             }
         }).catch((e) => {
-            this.toggleBottomSheet();
             // TODO: Handle Permissions denied
             if (e?.message.toLowerCase().includes('cancel')) {
                 console.log('canceled');
@@ -880,7 +868,14 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                                 style={{ color: this.theme.colors.primary, paddingRight: 8 }}
                             />
                         }
-                        onPress={() => this.toggleBottomSheet()}
+                        onPress={() => SheetManager.show('image-picker-sheet', {
+                            payload: {
+                                galleryText: this.translate('forms.editSpace.buttons.selectExisting'),
+                                cameraText: this.translate('forms.editSpace.buttons.captureNew'),
+                                themeForms: this.themeForms,
+                                onSelect: (source) => this.onAddImage(source),
+                            },
+                        })}
                         raised={false}
                     />
                     <Text style={this.theme.styles.sectionDescriptionNote}>
@@ -930,6 +925,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             </>
                         }
                         <RoundInput
+                            containerStyle={{ marginBottom: 12 }}
                             autoFocus={isBusinessAccount}
                             maxLength={100}
                             placeholder={this.translate(
@@ -968,6 +964,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             themeForms={this.themeForms}
                         />
                         <RoundInput
+                            containerStyle={{ marginBottom: 12 }}
                             autoCorrect={false}
                             errorStyle={this.theme.styles.displayNone}
                             placeholder={this.translate(
@@ -987,18 +984,20 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                         />
                     </View>
                     {
-                        isBusinessAccount && <View style={this.themeForms.styles.inputSliderContainer}>
+                        isBusinessAccount && <View
+                            style={this.themeForms.styles.inputSliderContainer}
+                        >
                             <Slider
                                 value={inputs.radius}
                                 onValueChange={(value) => this.onSliderChange('radius', value)}
                                 maximumValue={MAX_RADIUS_PUBLIC}
                                 minimumValue={MIN_RADIUS_PUBLIC}
                                 step={1}
-                                thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
-                                thumbTouchSize={{ width: 30, height: 30 }}
+                                thumbTintColor={this.theme.colors.accentBlue}
                                 minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
                                 maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
-                                onSlidingStart={Keyboard.dismiss}
+                                onSlidingStart={() => { Keyboard.dismiss(); this.setState({ isSliderActive: true }); }}
+                                onSlidingComplete={() => this.setState({ isSliderActive: false })}
                             />
                             <Text style={this.themeForms.styles.inputLabelDark}>
                                 {`${this.translate('forms.editSpace.labels.radius', { meters: inputs.radius })}`}
@@ -1183,7 +1182,6 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
     render() {
         const { navigation } = this.props;
         const {
-            isBottomSheetVisible,
             isEditingIncentives,
         } = this.state;
         const continueButtonConfig = this.getContinueButtonConfig();
@@ -1195,6 +1193,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
+                        scrollEnabled={!this.state.isSliderActive}
                         ref={(component) => (this.scrollViewRef = component)}
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit, this.theme.styles.scrollView]}
                         contentContainerStyle={[
@@ -1207,86 +1206,29 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             isEditingIncentives ? this.renderEditingIncentives() : this.renderEditingForm()
                         }
                     </KeyboardAwareScrollView>
-                    <View style={this.themeAccentLayout.styles.footer}>
-                        <Button
-                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                            buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.goBack()}
-                            icon={
-                                <TherrIcon
-                                    name="go-back"
-                                    size={25}
-                                    color={'black'}
-                                />
-                            }
-                            type="clear"
-                        />
-                        <Button
-                            buttonStyle={this.themeAccentForms.styles.submitButton}
-                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                            title={continueButtonConfig.title}
-                            icon={
-                                <TherrIcon
-                                    name={continueButtonConfig.icon}
-                                    size={20}
-                                    color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={continueButtonConfig.iconStyle}
-                                />
-                            }
-                            iconRight={continueButtonConfig.iconRight}
-                            onPress={continueButtonConfig.onPress}
-                            disabled={this.isFormDisabled()}
-                        />
-                    </View>
-                    <BottomSheet
-                        isVisible={isBottomSheetVisible}
-                        onRequestClose={this.toggleBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editSpace.buttons.selectExisting'
-                            )}
-                            onPress={() => this.onAddImage('upload')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="plus"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editSpace.buttons.captureNew'
-                            )}
-                            onPress={() => this.onAddImage('camera')}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="device-camera"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
+                    <EditFormFooter
+                        isDarkMode={isDarkTheme(this.props.user.settings?.mobileThemeName)}
+                        theme={this.theme}
+                        buttons={[
+                            {
+                                title: this.translate('forms.editSpace.buttons.back'),
+                                onPress: () => navigation.goBack(),
+                                mode: 'outlined',
+                                icon: 'arrow-left',
+                                textColor: this.theme.colors.brandingBlueGreen,
+                            },
+                            {
+                                title: continueButtonConfig.title,
+                                onPress: continueButtonConfig.onPress,
+                                mode: 'contained',
+                                icon: continueButtonConfig.iconRight ? 'chevron-right' : 'send',
+                                disabled: this.isFormDisabled(),
+                                loading: this.state.isSubmitting,
+                                buttonColor: this.theme.colors.accentTeal,
+                                textColor: this.theme.colors.brandingBlack,
+                            },
+                        ]}
+                    />
                 </SafeAreaView>
             </>
         );

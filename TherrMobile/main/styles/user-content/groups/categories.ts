@@ -92,8 +92,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         categoryButton: {
             ...categoryButtonStyle,
-            backgroundColor: therrTheme.colors.brandingWhite,
-            borderColor: 'transparent',
+            backgroundColor: therrTheme.colors.backgroundWhite,
+            borderWidth: 1,
+            borderColor: therrTheme.colors.primary3,
         },
         categoryButtonActive: {
             ...categoryButtonStyle,

@@ -1,6 +1,9 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Avatar, Badge, Button, ListItem } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
+import { Avatar } from '../../components/BaseAvatar';
+import { ListItem } from '../../components/BaseListItem';
+import { Badge } from 'react-native-paper';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -17,7 +20,6 @@ const TherrIcon = createIconSetFromIcoMoon(
 
 const renderChatIcon = (item, style = {}) => {
     const props = {
-        key: item.tag,
         color: item.iconColor,
         name: item.iconId,
         size: 14,
@@ -31,14 +33,14 @@ const renderChatIcon = (item, style = {}) => {
     };
 
     if (item.iconGroup === 'font-awesome-5') {
-        return (<FontAwesome5Icon {...props} />);
+        return (<FontAwesome5Icon key={item.tag} {...props} />);
     }
 
     if (item.iconGroup === 'therr') {
-        return (<TherrIcon {...props} />);
+        return (<TherrIcon key={item.tag} {...props} />);
     }
 
-    return (<MaterialIcon {...props} />);
+    return (<MaterialIcon key={item.tag} {...props} />);
 };
 
 export default ({
@@ -98,9 +100,10 @@ export default ({
             {
                 isUserInGroup && unreadMsgCount > 0 &&
                     <Badge
-                        badgeStyle={{ backgroundColor: theme.colors.brandingRed }}
-                        value={unreadMsgCount}
-                    />
+                        style={{ backgroundColor: theme.colors.brandingRed }}
+                    >
+                        {unreadMsgCount}
+                    </Badge>
             }
             <View>
                 {

@@ -1,23 +1,103 @@
-import * as React from 'react';
-import { ActivityIndicator } from 'react-native';
-import { Image } from 'react-native-elements';
+import React, { useState } from 'react';
+import {
+    ActivityIndicator,
+    Image as RNImage,
+    ImageResizeMode,
+    ImageSourcePropType,
+    ImageStyle,
+    Pressable,
+    StyleProp,
+    StyleSheet,
+    View,
+    ViewStyle,
+} from 'react-native';
 import { ITherrThemeColors } from '../styles/themes';
+
+// ---------------------------------------------------------------------------
+// Named Image export with PlaceholderContent overlay support.
+// ---------------------------------------------------------------------------
+
+interface IImageProps {
+    source: ImageSourcePropType;
+    style?: StyleProp<ImageStyle>;
+    containerStyle?: StyleProp<ViewStyle>;
+    height?: number;
+    width?: number;
+    resizeMode?: ImageResizeMode;
+    PlaceholderContent?: React.ReactElement;
+    onPress?: () => void;
+    // Accepted for compat but ignored
+    transition?: boolean;
+}
+
+export const Image = ({
+    source,
+    style,
+    containerStyle,
+    height,
+    width,
+    resizeMode,
+    PlaceholderContent,
+    onPress,
+}: IImageProps) => {
+    const [loading, setLoading] = useState(true);
+    const [hasError, setHasError] = useState(false);
+
+    const sizeStyle: ImageStyle = {};
+    if (height != null) { sizeStyle.height = height; }
+    if (width != null) { sizeStyle.width = width; }
+
+    const imageElement = (
+        <View style={containerStyle}>
+            <RNImage
+                source={source}
+                style={[sizeStyle, style]}
+                resizeMode={resizeMode}
+                onLoadStart={() => { setLoading(true); setHasError(false); }}
+                onLoadEnd={() => setLoading(false)}
+                onError={(e) => { console.warn('[BaseImage] failed to load:', (source as any)?.uri, e.nativeEvent); setHasError(true); }}
+            />
+            {(loading || hasError) && PlaceholderContent && (
+                <View style={styles.placeholder}>
+                    {PlaceholderContent}
+                </View>
+            )}
+        </View>
+    );
+
+    if (onPress) {
+        return <Pressable onPress={onPress}>{imageElement}</Pressable>;
+    }
+    return imageElement;
+};
+
+const styles = StyleSheet.create({
+    placeholder: {
+        ...StyleSheet.absoluteFillObject,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+});
+
+// ---------------------------------------------------------------------------
+// Default export: themed BaseImage used by Login, UserImage, etc.
+// ---------------------------------------------------------------------------
 
 interface IBaseImageProps {
     height?: number;
     width?: number;
-    source: any;
+    source: ImageSourcePropType;
     loaderColor?: string;
     loaderSize?: number | 'small' | 'large';
-    style?: any;
+    style?: StyleProp<ImageStyle>;
     theme: {
         colors: ITherrThemeColors;
         styles: any;
     };
 }
 
-export default ({ height, width, source, loaderColor, loaderSize, style, theme }: IBaseImageProps) => {
-    const lColor = loaderColor || theme.colors.primary;
+const BaseImage = ({ height, width, source, loaderColor, loaderSize, style, theme }: IBaseImageProps) => {
+    const lColor = loaderColor || theme.colors.brandingBlueGreen;
     const lSize = loaderSize || 'small';
 
     return (
@@ -30,3 +110,5 @@ export default ({ height, width, source, loaderColor, loaderSize, style, theme }
         />
     );
 };
+
+export default BaseImage;

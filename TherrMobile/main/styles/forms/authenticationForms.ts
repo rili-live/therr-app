@@ -38,6 +38,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         submitButtonContainer: {
             ...containerNoHorizontalStyles,
+            marginTop: 14,
         },
         registerButtonContainer: {
             ...containerNoHorizontalStyles,

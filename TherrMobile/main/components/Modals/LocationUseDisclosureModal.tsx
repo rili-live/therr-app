@@ -1,9 +1,7 @@
 import React from 'react';
-import { Text, Modal, Pressable } from 'react-native';
-import { Button } from 'react-native-elements';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { Text } from 'react-native';
+import { Button, Dialog, Portal } from 'react-native-paper';
 import { IAreaType } from 'therr-react/types';
-import spacingStyles from '../../styles/layouts/spacing';
 
 export type IAcknowledgementType = 'accept' | 'deny' | 'close';
 
@@ -21,61 +19,38 @@ interface ILocationUseDisclosureModal {
     }
 }
 
-const ModalButton = ({ title, iconName, onPress, themeButtons }) => (
-    <Button
-        containerStyle={spacingStyles.fullWidth}
-        buttonStyle={[themeButtons.styles.btnClear, spacingStyles.padMd]}
-        titleStyle={themeButtons.styles.btnTitleBlack}
-        icon={
-            <MaterialIcon
-                name={iconName}
-                size={20}
-                style={[themeButtons.styles.btnIconBlack, { paddingRight: 7 }]}
-            />
-        }
-        raised={true}
-        type="clear"
-        onPress={onPress}
-        title={title}
-    />
-);
-
 export default ({
     areaType,
     isVisible,
     onRequestClose,
     translate,
     onSelect,
-    themeButtons,
     themeDisclosure,
 }: ILocationUseDisclosureModal) => {
     return (
-        <Modal
-            animationType="slide"
-            visible={isVisible}
-            onRequestClose={onRequestClose}
-            transparent={true}
-        >
-            <Pressable
-                onPress={onRequestClose}
-                style={themeDisclosure.styles.overlay}>
-                <Pressable style={themeDisclosure.styles.container}>
-                    <Text style={themeDisclosure.styles.header}>{translate('permissions.locationGps.header')}</Text>
+        <Portal>
+            <Dialog
+                visible={isVisible}
+                onDismiss={onRequestClose}
+                style={themeDisclosure.styles.container}
+            >
+                <Dialog.Title style={themeDisclosure.styles.header}>
+                    {translate('permissions.locationGps.header')}
+                </Dialog.Title>
+                <Dialog.Content>
                     <Text style={themeDisclosure.styles.text}>{translate('permissions.locationGps.description1')}</Text>
                     <Text style={themeDisclosure.styles.text}>{translate('permissions.locationGps.description2')}</Text>
-                    {/* <ModalButton
-                        iconName="check"
-                        title={translate('permissions.locationGps.yes')}
-                        onPress={() => onSelect('accept')}
-                    /> */}
-                    <ModalButton
-                        iconName="close"
-                        title={translate('permissions.locationGps.close')}
+                </Dialog.Content>
+                <Dialog.Actions>
+                    <Button
+                        mode="text"
+                        icon="close"
                         onPress={() => onSelect('close', areaType)}
-                        themeButtons={themeButtons}
-                    />
-                </Pressable>
-            </Pressable>
-        </Modal>
+                    >
+                        {translate('permissions.locationGps.close')}
+                    </Button>
+                </Dialog.Actions>
+            </Dialog>
+        </Portal>
     );
 };

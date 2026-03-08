@@ -1,6 +1,6 @@
 type IAccessLevel = Array<string>;
 
-export type IMobileThemeName = 'retro';
+export type IMobileThemeName = 'light' | 'dark' | 'retro';
 
 export interface IUser {
   accessLevels: IAccessLevel;

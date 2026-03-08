@@ -1,13 +1,13 @@
 import React from 'react';
 import { FlatList, SafeAreaView } from 'react-native';
 import 'react-native-gesture-handler';
-import { Button } from 'react-native-elements';
+import { FAB } from 'react-native-paper';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UserConnectionsService } from 'therr-react/services';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
@@ -142,11 +142,9 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
             requestingUserLastName: user.details.lastName,
             inviteList: selectedContacts,
         }).then(() => {
-            Toast.show({
-                type: 'successBig',
+            showToast.success({
                 text1: this.translate('pages.phoneContacts.alertTitles.contactInvitesSent'),
                 text2: this.translate('pages.phoneContacts.alertMessages.contactInvitesSent'),
-                visibilityTime: 3000,
             });
         }).finally(() => {
             navigation.goBack();
@@ -204,20 +202,11 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                         // onContentSizeChange={() => contactList.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
                     />
                 </SafeAreaView>
-                <Button
-                    containerStyle={this.themeButtons.styles.buttonFloatBottomRightContainer}
-                    buttonStyle={this.themeButtons.styles.btnLargeWithText}
-                    titleStyle={this.themeButtons.styles.btnMediumTitleRight}
-                    icon={
-                        <FontAwesomeIcon
-                            name="paper-plane"
-                            size={22}
-                            style={[this.themeButtons.styles.btnIcon]}
-                        />
-                    }
-                    raised={true}
-                    title={this.translate('menus.connections.buttons.invite')}
+                <FAB
+                    icon="send"
+                    label={this.translate('menus.connections.buttons.invite')}
                     onPress={this.onSubmit}
+                    style={this.themeButtons.styles.buttonFloatBottomRightContainer}
                 />
                 <MainButtonMenu
                     navigation={navigation}

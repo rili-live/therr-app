@@ -1,47 +1,38 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Dimensions,
     SafeAreaView,
     Share,
+    StyleSheet,
     View,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Text } from 'react-native-elements';
+import { Button as PaperButton, Dialog, Portal, Switch, Text as PaperText, TextInput as PaperTextInput } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import { Button }  from 'react-native-elements';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { ReactionsService } from 'therr-react/services';
 import { Content } from 'therr-js-utilities/constants';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
-// import Alert from '../components/Alert';
 import translator from '../services/translator';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles } from '../styles';
-import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
 import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
-import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
+import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/viewing';
+import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
 import { buildStyles as buildButtonsStyles } from '../styles/buttons';
-import { buildStyles as buildEventStyles } from '../styles/user-content/areas/viewing';
-import spacingStyles from '../styles/layouts/spacing';
 import userContentStyles from '../styles/user-content';
 import { youtubeLinkRegex } from '../constants';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
-import formatDate from '../utilities/formatDate';
+import ConfirmModal from '../components/Modals/ConfirmModal';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyContent as checkIsMyEvent, getUserContentUri } from '../utilities/content';
-import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../components/ActionSheet/ContentOptionsSheet';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
-import TherrIcon from '../components/TherrIcon';
-import WrapperModal from '../components/Modals/WrapperModal';
-import { Switch } from 'react-native';
-import RoundInput from '../components/Input/Round';
-// import AccentInput from '../components/Input/Accent';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -56,25 +47,9 @@ interface IStoreProps extends IViewEventDispatchProps {
     user: IUserState;
 }
 
-// Regular component props
 export interface IViewEventProps extends IStoreProps {
     navigation: any;
     route: any;
-}
-
-interface IViewEventState {
-    areAreaOptionsVisible: boolean;
-    errorMsg: string;
-    guestCount: string;
-    successMsg: string;
-    isDeleting: boolean;
-    isAttendingModalVisible: boolean;
-    isVerifyingDelete: boolean;
-    myReaction: any;
-    fetchedEvent: any;
-    previewLinkId?: string;
-    previewStyleState: any;
-    selectedEvent: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -88,86 +63,89 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
 }, dispatch);
 
-export class ViewEvent extends React.Component<IViewEventProps, IViewEventState> {
-    private date;
-    private notificationMsg;
-    private hashtags;
-    private scrollViewRef;
-    private translate: Function;
-    private unsubscribeNavListener;
-    private theme = buildStyles();
-    private themeAccentLayout = buildAccentStyles();
-    private themeButtons = buildButtonsStyles();
-    private themeArea = buildEventStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
-    private themeForms = buildFormStyles();
-    private themeAccentForms = buildAccentFormStyles();
-    private themeModal = buildModalStyles();
+const ViewEvent = ({
+    content,
+    user,
+    navigation,
+    route,
+    getEventDetails,
+    deleteEvent,
+    createOrUpdateEventReaction,
+}: IViewEventProps) => {
+    const translate = useCallback(
+        (key: string, params?: any) => translator('en-us', key, params),
+        []
+    );
 
-    constructor(props) {
-        super(props);
+    // State
+    const [guestCount, setGuestCount] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isAttendingModalVisible, setIsAttendingModalVisible] = useState(false);
+    const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
+    const [myReaction, setMyReaction] = useState<any>({});
+    const [fetchedEvent, setFetchedEvent] = useState<any>({});
+    const [previewStyleState, setPreviewStyleState] = useState<any>({});
 
-        const { route } = props;
-        const { event } = route.params;
+    // Refs
+    const scrollViewRef = useRef<any>(null);
 
+    // Themes
+    const theme = buildStyles(user.settings?.mobileThemeName);
+    const themeAccentLayout = buildAccentStyles(user.settings?.mobileThemeName);
+    const themeArea = buildMomentStyles(user.settings?.mobileThemeName, true);
+    const themeForms = buildFormStyles(user.settings?.mobileThemeName);
+    const themeConfirmModal = buildConfirmModalStyles(user.settings?.mobileThemeName);
+    const themeButtons = buildButtonsStyles(user.settings?.mobileThemeName);
+    const isDarkMode = isDarkTheme(user.settings?.mobileThemeName);
+    const brandColor = theme.colors.brandingBlueGreen;
+
+    // Derived values
+    const { event, isMyContent, previousView } = route.params;
+    const eventInView = useMemo(() => ({
+        ...event,
+        ...fetchedEvent,
+    }), [event, fetchedEvent]);
+
+    const hashtags = useMemo(
+        () => (event.hashTags ? event.hashTags.split(',') : []),
+        [event.hashTags]
+    );
+
+    const notificationMsg = useMemo(
+        () => (event.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' '),
+        [event.notificationMsg]
+    );
+
+    const previewLinkId = useMemo(() => {
         const youtubeMatches = (event.message || '').match(youtubeLinkRegex);
+        return youtubeMatches && youtubeMatches[1];
+    }, [event.message]);
 
-        this.state = {
-            areAreaOptionsVisible: false,
-            errorMsg: '',
-            guestCount: '',
-            successMsg: '',
-            isDeleting: false,
-            isAttendingModalVisible: false,
-            isVerifyingDelete: false,
-            myReaction: {},
-            fetchedEvent: {},
-            previewStyleState: {},
-            previewLinkId: youtubeMatches && youtubeMatches[1],
-            selectedEvent: {},
-        };
+    const eventUserName = isMyContent ? user.details.userName : eventInView.fromUserName;
+    const eventUserMedia = isMyContent ? user.details.media : (eventInView.fromUserMedia || {});
+    const eventUserIsSuperUser = isMyContent ? user.details.isSuperUser : (eventInView.fromUserIsSuperUser || {});
 
-        this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
-        this.themeArea = buildEventStyles(props.user.settings?.mobileThemeName, true);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
-        this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+    const mediaPath = eventInView.medias?.[0]?.path;
+    const mediaType = eventInView.medias?.[0]?.type;
+    const eventMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+        ? getUserContentUri(eventInView.medias?.[0], screenWidth, screenWidth)
+        : content?.media[mediaPath];
 
-        this.notificationMsg = (event.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
-        this.hashtags = event.hashTags ? event.hashTags.split(',') : [];
-
-        const dateTime = formatDate(event.updatedAt);
-        this.date = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
-
-        // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
-    }
-
-    componentDidMount() {
-        const { content, getEventDetails, navigation, route } = this.props;
-        const { event } = route.params;
-
+    useEffect(() => {
         const shouldFetchUser = !event?.fromUserMedia || !event.fromUserName;
-        const mediaPath = event.medias?.[0]?.path;
-        const eventMedia = content?.media[mediaPath];
+        const mPath = event.medias?.[0]?.path;
+        const eMedia = content?.media[mPath];
 
-        // Move event details out of route params and into redux
         getEventDetails(event.id, {
-            withMedia: !eventMedia,
+            withMedia: !eMedia,
             withUser: shouldFetchUser,
         }).then((data) => {
             if (data?.event?.notificationMsg) {
-                this.notificationMsg = (data?.event?.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
                 navigation.setOptions({
-                    title: this.notificationMsg,
+                    title: (data.event.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' '),
                 });
             }
-            this.setState({
-                fetchedEvent: data?.event,
-            });
+            setFetchedEvent(data?.event || {});
         });
 
         ReactionsService.getEventReactions({
@@ -178,153 +156,23 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                 ...response.data,
                 attendingCount,
             };
-            this.setState({
-                myReaction: reaction,
-                guestCount: (attendingCount < 1)
-                    ? '0'
-                    : `${attendingCount - 1}`,
-            });
+            setMyReaction(reaction);
+            setGuestCount((attendingCount < 1) ? '0' : `${attendingCount - 1}`);
         });
 
-        navigation.setOptions({
-            title: this.notificationMsg,
+        navigation.setOptions({ title: notificationMsg });
+
+        const unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
+            // placeholder
         });
 
-        this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
-            // changeNavigationBarColor(therrTheme.colors.primary, false, true);
-        });
-    }
-
-    componentWillUnmount() {
-        this.unsubscribeNavListener();
-    }
-
-    renderHashtagPill = (tag, key) => {
-        return (
-            <Button
-                key={key}
-                buttonStyle={this.themeForms.styles.buttonPill}
-                containerStyle={this.themeForms.styles.buttonPillContainer}
-                titleStyle={this.themeForms.styles.buttonPillTitle}
-                title={`#${tag}`}
-            />
-        );
-    };
-
-    handlePreviewFullScreen = (isFullScreen) => {
-        const previewStyleState = isFullScreen ? {
-            top: 0,
-            left: 0,
-            padding: 0,
-            margin: 0,
-            position: 'absolute',
-            zIndex: 20,
-        } : {};
-        this.setState({
-            previewStyleState,
-        });
-    };
-
-    onCloseAttendingModal = () => {
-        this.setState({
-            isAttendingModalVisible: false,
-        });
-    };
-
-    onEdit = () => {
-        const { navigation, route } = this.props;
-        const { event } = route.params;
-        const { fetchedEvent } = this.state;
-        const eventInView = {
-            ...event,
-            ...fetchedEvent,
+        return () => {
+            unsubscribeNavListener();
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-        navigation.navigate('EditEvent', {
-            area: eventInView,
-            imageDetails: {},
-        });
-    };
-
-    onDelete = () => {
-        this.setState({
-            isVerifyingDelete: true,
-        });
-    };
-
-    onDeleteCancel = () => {
-        this.setState({
-            isVerifyingDelete: false,
-        });
-    };
-
-    onDeleteConfirm = () => {
-        const { deleteEvent, navigation, route, user } = this.props;
-        const { event } = route.params;
-
-        this.setState({
-            isDeleting: true,
-        });
-        if (checkIsMyEvent(event, user)) {
-            deleteEvent({ ids: [event.id] })
-                .then(() => {
-                    navigation.navigate('Map', {
-                        shouldShowPreview: false,
-                    });
-                })
-                .catch((err) => {
-                    console.log('Error deleting event', err);
-                    this.setState({
-                        isDeleting: true,
-                        isVerifyingDelete: false,
-                    });
-                });
-        }
-    };
-
-    onEventOptionSelect = (type: ISelectionType) => {
-        const { selectedEvent } = this.state;
-
-        if (type === 'getDirections') {
-            getDirections({
-                latitude: selectedEvent.latitude,
-                longitude: selectedEvent.longitude,
-                title: selectedEvent.notificationMsg,
-            });
-        } else if (type === 'shareALink') {
-            Share.share({
-                message: this.translate('modals.contentOptions.shareLink.messageEvent', {
-                    eventId: selectedEvent.id,
-                }),
-                url: `https://www.therr.com/events/${selectedEvent.id}`,
-                title: this.translate('modals.contentOptions.shareLink.titleEvent', {
-                    eventTitle: selectedEvent.notificationMsg,
-                }),
-            }).then((response) => {
-                if (response.action === Share.sharedAction) {
-                    if (response.activityType) {
-                        // shared with activity type of response.activityType
-                    } else {
-                        // shared
-                    }
-                } else if (response.action === Share.dismissedAction) {
-                    // dismissed
-                }
-            }).catch((err) => {
-                console.error(err);
-            });
-        } else {
-            const requestArgs: any = getReactionUpdateArgs(type);
-
-            this.onUpdateEventReaction(selectedEvent.id, requestArgs).finally(() => {
-                this.toggleAreaOptions();
-            });
-        }
-    };
-
-    goBack = () => {
-        const { navigation, route } = this.props;
-        const { previousView } = route.params;
+    const handleGoBack = useCallback(() => {
         if (previousView && (previousView === 'Areas' || previousView === 'Notifications')) {
             if (previousView === 'Areas') {
                 navigation.goBack();
@@ -332,103 +180,116 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
                 navigation.navigate('Notifications');
             }
         } else {
-            navigation.navigate('Map', {
-                shouldShowPreview: false,
-            });
+            navigation.navigate('Map', { shouldShowPreview: true });
         }
-    };
+    }, [previousView, navigation]);
 
-    goToViewMap = (lat, long) => {
-        const { navigation } = this.props;
+    const handleGoToViewMap = useCallback((lat, long) => {
+        navigation.replace('Map', { latitude: lat, longitude: long });
+    }, [navigation]);
 
-        navigation.replace('Map', {
-            latitude: lat,
-            longitude: long,
-        });
-    };
-
-    goToViewSpace = (event) => {
-        const { navigation, user } = this.props;
-
-        if (event.spaceId) {
+    const handleGoToViewSpace = useCallback((evt) => {
+        if (evt.spaceId) {
             navigation.navigate('ViewSpace', {
-                isMyContent: event.space?.fromUserId === user.details.id,
+                isMyContent: evt.space?.fromUserId === user.details.id,
                 previousView: 'Areas',
-                space: {
-                    id: event.spaceId,
-                },
+                space: { id: evt.spaceId },
                 spaceDetails: {},
             });
         }
-    };
+    }, [navigation, user.details.id]);
 
-    goToViewUser = (userId) => {
-        const { navigation } = this.props;
+    const handleGoToViewUser = useCallback((userId) => {
+        navigation.navigate('ViewUser', { userInView: { id: userId } });
+    }, [navigation]);
 
-        navigation.navigate('ViewUser', {
-            userInView: {
-                id: userId,
-            },
-        });
-    };
-
-    onUpdateEventReaction = (eventId, data) => {
-        const { createOrUpdateEventReaction, navigation, route, user } = this.props;
-        const { event } = route.params;
+    const handleUpdateEventReaction = useCallback((eventId, data) => {
         navigation.setParams({
             event: {
                 ...event,
-                reaction: {
-                    ...event.reaction,
-                    ...data,
-                },
+                reaction: { ...event.reaction, ...data },
             },
         });
         return createOrUpdateEventReaction(eventId, data, event.fromUserId, user.details.userName);
-    };
+    }, [event, navigation, createOrUpdateEventReaction, user.details.userName]);
 
-    toggleAreaOptions = (displayArea?: any) => {
-        const { areAreaOptionsVisible, fetchedEvent } = this.state;
-        const { event } = this.props.route.params;
-        const area = {
-            ...event,
-            ...fetchedEvent,
-        };
+    const handleToggleAreaOptions = useCallback((displayArea?: any) => {
+        const area = displayArea || { ...event, ...fetchedEvent };
 
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedEvent: areAreaOptionsVisible ? {} : (area || displayArea),
-        });
-    };
-
-    onAttendingChange = (isAttending: boolean) => {
-        const { guestCount } = this.state;
-        const attendingCount = isAttending ? 1 : 0;
-
-        this.setState({
-            guestCount: !isAttending ? '0' : guestCount,
-            myReaction: {
-                ...this.state.myReaction,
-                attendingCount,
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                shouldIncludeShareButton: true,
+                translate,
+                themeForms,
+                onSelect: (type: IContentSelectionType) => {
+                    if (type === 'getDirections') {
+                        getDirections({
+                            latitude: area.latitude,
+                            longitude: area.longitude,
+                            title: area.notificationMsg,
+                        });
+                    } else if (type === 'shareALink') {
+                        Share.share({
+                            message: translate('modals.contentOptions.shareLink.messageEvent', { eventId: area.id }),
+                            url: `https://www.therr.com/events/${area.id}`,
+                            title: translate('modals.contentOptions.shareLink.titleEvent', { eventTitle: area.notificationMsg }),
+                        }).catch((err) => console.error(err));
+                    } else {
+                        const requestArgs: any = getReactionUpdateArgs(type);
+                        handleUpdateEventReaction(area.id, requestArgs);
+                    }
+                },
             },
         });
-    };
+    }, [event, fetchedEvent, translate, themeForms, handleUpdateEventReaction]);
 
-    onAttendingGuestsInputChange = (count: string) => {
-        const { myReaction } = this.state;
-        const currentAttendingCount = myReaction.attendingCount;
-        if (!count || count === '0' || count[0] === '0') {
-            this.setState({
-                guestCount: '',
-            });
-            if (currentAttendingCount > 1) {
-                this.setState({
-                    myReaction: {
-                        ...this.state.myReaction,
-                        attendingCount: 1,
-                    },
+    const handleEdit = useCallback(() => {
+        navigation.navigate('EditEvent', {
+            area: eventInView,
+            imageDetails: {},
+        });
+    }, [navigation, eventInView]);
+
+    const handleDeleteConfirm = useCallback(() => {
+        setIsDeleting(true);
+        if (checkIsMyEvent(event, user)) {
+            deleteEvent({ ids: [event.id] })
+                .then(() => {
+                    navigation.navigate('Map', { shouldShowPreview: false });
+                })
+                .catch((err) => {
+                    console.log('Error deleting event', err);
+                    setIsDeleting(false);
+                    setIsDeleteDialogVisible(false);
                 });
-            }
+        }
+    }, [event, user, deleteEvent, navigation]);
+
+    const handlePreviewFullScreen = useCallback((isFullScreen) => {
+        setPreviewStyleState(isFullScreen ? {
+            top: 0,
+            left: 0,
+            padding: 0,
+            margin: 0,
+            position: 'absolute',
+            zIndex: 20,
+        } : {});
+    }, []);
+
+    const handleAttendingChange = useCallback((isAttending: boolean) => {
+        const attendingCount = isAttending ? 1 : 0;
+        setGuestCount(!isAttending ? '0' : guestCount);
+        setMyReaction((prev) => ({ ...prev, attendingCount }));
+    }, [guestCount]);
+
+    const handleAttendingGuestsInputChange = useCallback((count: string) => {
+        if (!count || count === '0' || count[0] === '0') {
+            setGuestCount('');
+            setMyReaction((prev) => ({
+                ...prev,
+                attendingCount: prev.attendingCount > 1 ? 1 : prev.attendingCount,
+            }));
             return;
         }
         if (!/^\d+$/.test(count)) {
@@ -436,319 +297,217 @@ export class ViewEvent extends React.Component<IViewEventProps, IViewEventState>
         }
         const guests = parseInt(count, 10);
         const sanitizedGuests = guests > 20 ? 20 : guests;
-        this.setState({
-            guestCount: sanitizedGuests.toString(),
-            myReaction: {
-                ...this.state.myReaction,
-                attendingCount: 1 + sanitizedGuests,
-            },
-        });
-    };
+        setGuestCount(sanitizedGuests.toString());
+        setMyReaction((prev) => ({ ...prev, attendingCount: 1 + sanitizedGuests }));
+    }, []);
 
-    onAttendingSave = () => {
-        const { fetchedEvent, myReaction } = this.state;
-        const { event } = this.props.route.params;
-        const area = {
-            ...event,
-            ...fetchedEvent,
-        };
-        const attendingCount = myReaction.attendingCount;
-        this.onUpdateEventReaction(area.id, {
-            attendingCount,
-        });
-        this.setState({
-            isAttendingModalVisible: false,
-        });
-    };
+    const handleAttendingSave = useCallback(() => {
+        const area = { ...event, ...fetchedEvent };
+        handleUpdateEventReaction(area.id, { attendingCount: myReaction.attendingCount });
+        setIsAttendingModalVisible(false);
+    }, [event, fetchedEvent, myReaction, handleUpdateEventReaction]);
 
-    toggleAttendingModal = () => {
-        const { isAttendingModalVisible } = this.state;
-
-        this.setState({
-            isAttendingModalVisible: !isAttendingModalVisible,
-        });
-    };
-
-    render() {
-        const {
-            areAreaOptionsVisible,
-            fetchedEvent,
-            guestCount,
-            isAttendingModalVisible,
-            isDeleting,
-            isVerifyingDelete,
-            myReaction,
-            previewLinkId,
-            previewStyleState,
-        } = this.state;
-        const { content, route, user } = this.props;
-        const { event, isMyContent } = route.params;
-        const eventInView = {
-            ...event,
-            ...fetchedEvent,
-        };
-        const eventUserName = isMyContent ? user.details.userName : eventInView.fromUserName;
-        const eventUserMedia = isMyContent ? user.details.media : (eventInView.fromUserMedia || {});
-        const eventUserIsSuperUser = isMyContent ? user.details.isSuperUser : (eventInView.fromUserIsSuperUser || {});
-        // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = eventInView.medias?.[0]?.path;
-        const mediaType = eventInView.medias?.[0]?.type;
-        const eventMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri(eventInView.medias?.[0], screenWidth, screenWidth)
-            : content?.media[mediaPath];
-
-        return (
-            <>
-                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
-                    <KeyboardAwareScrollView
-                        contentInsetAdjustmentBehavior="automatic"
-                        ref={(component) => (this.scrollViewRef = component)}
-                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyView]}
-                        contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyViewScroll]}
-                    >
-                        <View style={[this.themeAccentLayout.styles.container, this.themeArea.styles.areaContainer]}>
-                            <AreaDisplay
-                                translate={this.translate}
-                                toggleAreaOptions={this.toggleAreaOptions}
-                                toggleAttendingModal={this.toggleAttendingModal}
-                                hashtags={this.hashtags}
-                                isDarkMode={user.settings?.mobileThemeName === 'retro'}
-                                isExpanded={true}
-                                inspectContent={() => null}
-                                myReaction={myReaction}
-                                area={eventInView}
-                                goToViewMap={this.goToViewMap}
-                                goToViewSpace={this.goToViewSpace}
-                                goToViewUser={this.goToViewUser}
-                                updateAreaReaction={this.onUpdateEventReaction}
-                                // TODO: User Username from response
-                                user={user}
-                                areaUserDetails={{
-                                    media: eventUserMedia,
-                                    userName: eventUserName || this.translate('alertTitles.nameUnknown') || '',
-                                    isSuperUser: eventUserIsSuperUser,
-                                }}
-                                areaMedia={eventMedia}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                                themeViewArea={this.themeArea}
-                            />
-                        </View>
-                        {
-                            previewLinkId
-                            && <View style={[userContentStyles.preview, previewStyleState]}>
-                                <YoutubePlayer
-                                    height={260}
-                                    play={false}
-                                    videoId={previewLinkId}
-                                    onFullScreenChange={this.handlePreviewFullScreen}
-                                />
-                            </View>
-                        }
-                    </KeyboardAwareScrollView>
-                    {
-                        <View style={[this.themeAccentLayout.styles.footer, this.themeArea.styles.footer]}>
-                            <Button
-                                containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                                buttonStyle={this.themeAccentForms.styles.backButton}
-                                onPress={() => this.goBack()}
-                                icon={
-                                    <TherrIcon
-                                        name="go-back"
-                                        size={25}
-                                        color={'black'}
-                                    />
-                                }
-                                type="clear"
-                            />
-                            {
-                                isMyContent &&
-                                <>
-                                    {
-                                        !isVerifyingDelete &&
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.draftButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={[this.themeAccentForms.styles.submitButtonContainer, spacingStyles.marginRtXLg]}
-                                                title={this.translate(
-                                                    'forms.editEvent.buttons.edit'
-                                                )}
-                                                icon={
-                                                    <TherrIcon
-                                                        name="edit"
-                                                        size={22}
-                                                        color={'black'}
-                                                        style={this.themeAccentForms.styles.submitButtonIcon}
-                                                    />
-                                                }
-                                                onPress={this.onEdit}
-                                                raised={true}
-                                            />
-                                    }
-                                    {
-                                        !isVerifyingDelete &&
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitDeleteButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editEvent.buttons.delete'
-                                                )}
-                                                icon={
-                                                    <FontAwesome5Icon
-                                                        name="trash-alt"
-                                                        size={22}
-                                                        color={'black'}
-                                                        style={this.themeAccentForms.styles.submitButtonIcon}
-                                                    />
-                                                }
-                                                onPress={this.onDelete}
-                                                raised={true}
-                                            />
-                                    }
-                                    {
-                                        isVerifyingDelete &&
-                                        <View style={this.themeAccentForms.styles.submitConfirmContainer}>
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitCancelButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={this.themeAccentForms.styles.submitCancelButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editEvent.buttons.cancel'
-                                                )}
-                                                onPress={this.onDeleteCancel}
-                                                disabled={isDeleting}
-                                                raised={true}
-                                            />
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitConfirmButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitleLight}
-                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editEvent.buttons.confirm'
-                                                )}
-                                                onPress={this.onDeleteConfirm}
-                                                disabled={isDeleting}
-                                                raised={true}
-                                            />
-                                        </View>
-                                    }
-                                </>
-                            }
-                        </View>
-                    }
-                </SafeAreaView>
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={this.toggleAreaOptions}
-                    translate={this.translate}
-                    onSelect={this.onEventOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                    shouldIncludeShareButton={true}
-                />
-                <WrapperModal
-                    isVisible={isAttendingModalVisible}
-                    onRequestClose={this.onCloseAttendingModal}
-                    themeModal={this.themeModal}
+    return (
+        <>
+            <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
+            <SafeAreaView style={theme.styles.safeAreaView}>
+                <KeyboardAwareScrollView
+                    contentInsetAdjustmentBehavior="automatic"
+                    ref={scrollViewRef}
+                    style={[theme.styles.bodyFlex, themeAccentLayout.styles.bodyView]}
+                    contentContainerStyle={[theme.styles.bodyScroll, themeAccentLayout.styles.bodyViewScroll]}
                 >
-                    <View style={this.themeModal.styles.header}>
-                        <Text style={this.themeModal.styles.headerText}>{this.translate('forms.editEvent.modal.attendingModal.title')}</Text>
+                    <View style={[themeAccentLayout.styles.container, themeArea.styles.areaContainer]}>
+                        <AreaDisplay
+                            translate={translate}
+                            toggleAreaOptions={handleToggleAreaOptions}
+                            toggleAttendingModal={() => setIsAttendingModalVisible(true)}
+                            hashtags={hashtags}
+                            isDarkMode={isDarkMode}
+                            isExpanded={true}
+                            inspectContent={() => null}
+                            myReaction={myReaction}
+                            area={eventInView}
+                            goToViewMap={handleGoToViewMap}
+                            goToViewSpace={handleGoToViewSpace}
+                            goToViewUser={handleGoToViewUser}
+                            updateAreaReaction={handleUpdateEventReaction}
+                            user={user}
+                            areaUserDetails={{
+                                media: eventUserMedia,
+                                userName: eventUserName || translate('alertTitles.nameUnknown') || '',
+                                isSuperUser: eventUserIsSuperUser,
+                            }}
+                            areaMedia={eventMedia}
+                            theme={theme}
+                            themeForms={themeForms}
+                            themeViewArea={themeArea}
+                        />
                     </View>
-                    <View style={this.themeModal.styles.buttonsWrapper}>
-                        <View
-                            style={[
-                                this.themeForms.styles.switchSubContainer,
-                                spacingStyles.fullWidth,
-                                spacingStyles.flex,
-                                spacingStyles.justifyCenter,
-                                spacingStyles.padBotXlg,
-                            ]}
-                        >
-                            <Text
-                                style={[
-                                    this.themeModal.styles.label,
-                                    {
-                                        fontWeight: myReaction?.attendingCount < 1 ? '800' : '400',
-                                    },
-                                ]}
+                    {previewLinkId && (
+                        <View style={[userContentStyles.preview, previewStyleState]}>
+                            <YoutubePlayer
+                                height={260}
+                                play={false}
+                                videoId={previewLinkId}
+                                onFullScreenChange={handlePreviewFullScreen}
+                            />
+                        </View>
+                    )}
+                </KeyboardAwareScrollView>
+
+                {/* Footer */}
+                <View style={[themeAccentLayout.styles.footer, localStyles.footer]}>
+                    <PaperButton
+                        mode="outlined"
+                        onPress={handleGoBack}
+                        icon="arrow-left"
+                        textColor={brandColor}
+                        style={localStyles.footerButton}
+                    >
+                        {translate('forms.editEvent.buttons.back')}
+                    </PaperButton>
+                    {isMyContent && (
+                        <>
+                            <PaperButton
+                                mode="outlined"
+                                onPress={handleEdit}
+                                icon="pencil"
+                                textColor={brandColor}
+                                style={localStyles.footerButton}
                             >
-                                {this.translate('forms.editEvent.modal.attendingModal.labels.no')}
-                            </Text>
+                                {translate('forms.editEvent.buttons.edit')}
+                            </PaperButton>
+                            <PaperButton
+                                mode="contained"
+                                onPress={() => setIsDeleteDialogVisible(true)}
+                                icon="trash-can-outline"
+                                buttonColor={theme.colors.accentRed}
+                                textColor={theme.colors.brandingWhite}
+                                style={localStyles.footerButton}
+                                disabled={isDeleting}
+                                loading={isDeleting}
+                            >
+                                {translate('forms.editEvent.buttons.delete')}
+                            </PaperButton>
+                        </>
+                    )}
+                </View>
+            </SafeAreaView>
+
+            {/* RSVP Modal */}
+            <Portal>
+                <Dialog
+                    visible={isAttendingModalVisible}
+                    onDismiss={() => setIsAttendingModalVisible(false)}
+                    style={localStyles.rsvpDialog}
+                >
+                    <Dialog.Title>
+                        {translate('forms.editEvent.modal.attendingModal.title')}
+                    </Dialog.Title>
+                    <Dialog.Content>
+                        <View style={localStyles.switchRow}>
+                            <PaperText
+                                style={myReaction?.attendingCount < 1 ? localStyles.switchLabelActive : localStyles.switchLabel}
+                            >
+                                {translate('forms.editEvent.modal.attendingModal.labels.no')}
+                            </PaperText>
                             <Switch
-                                style={[
-                                    this.themeForms.styles.switchButton,
-                                    spacingStyles.marginLtLg,
-                                    spacingStyles.marginRtLg,
-                                ]}
-                                trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
-                                thumbColor={myReaction?.attendingCount > 0 ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
-                                ios_backgroundColor={this.theme.colors.primary4}
-                                onValueChange={this.onAttendingChange}
+                                style={localStyles.switchControl}
+                                color={theme.colors.primary3}
+                                onValueChange={handleAttendingChange}
                                 value={myReaction?.attendingCount > 0}
                             />
-                            <Text
-                                style={[
-                                    this.themeModal.styles.label,
-                                    {
-                                        fontWeight: myReaction?.attendingCount > 0 ? '800' : '400',
-                                    },
-                                ]}
+                            <PaperText
+                                style={myReaction?.attendingCount > 0 ? localStyles.switchLabelActive : localStyles.switchLabel}
                             >
-                                {this.translate('forms.editEvent.modal.attendingModal.labels.yes')}
-                            </Text>
+                                {translate('forms.editEvent.modal.attendingModal.labels.yes')}
+                            </PaperText>
                         </View>
-                        <Text
-                            style={[
-                                this.themeModal.styles.label,
-                                spacingStyles.padBotMd,
-                            ]}
-                        >
-                            {this.translate('forms.editEvent.modal.attendingModal.labels.bringingGuests')}
-                        </Text>
-                        <RoundInput
-                            maxLength={100}
-                            placeholder={this.translate(
-                                'forms.editEvent.modal.attendingModal.labels.guests'
-                            )}
+                        <PaperText style={localStyles.guestLabel}>
+                            {translate('forms.editEvent.modal.attendingModal.labels.bringingGuests')}
+                        </PaperText>
+                        <PaperTextInput
+                            mode="outlined"
+                            keyboardType="numeric"
+                            maxLength={2}
+                            placeholder={translate('forms.editEvent.modal.attendingModal.labels.guests')}
                             value={guestCount}
-                            onChangeText={this.onAttendingGuestsInputChange}
-                            themeForms={this.themeForms}
+                            onChangeText={handleAttendingGuestsInputChange}
+                            outlineColor={theme.colors.primary3}
+                            activeOutlineColor={theme.colors.primary3}
                         />
-                        <Button
-                            containerStyle={[this.themeForms.styles.buttonContainer, spacingStyles.fullWidth]}
-                            buttonStyle={[
-                                this.themeForms.styles.button,
-                                {
-                                    backgroundColor: this.themeForms.colors.accent3,
-                                },
-                            ]}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editEvent.modal.attendingModal.buttons.save'
-                            )}
-                            // icon={<FontAwesome5Icon
-                            //     name="check"
-                            //     size={22}
-                            //     style={this.themeForms.styles.buttonIcon}
-                            // />}
-                            onPress={this.onAttendingSave}
-                            raised={true}
-                        />
-                    </View>
-                </WrapperModal>
-            </>
-        );
-    }
-}
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <PaperButton
+                            onPress={() => setIsAttendingModalVisible(false)}
+                            textColor={theme.colors.textGray}
+                        >
+                            {translate('forms.editEvent.buttons.cancel')}
+                        </PaperButton>
+                        <PaperButton
+                            mode="contained"
+                            onPress={handleAttendingSave}
+                            buttonColor={brandColor}
+                            textColor={theme.colors.brandingWhite}
+                        >
+                            {translate('forms.editEvent.modal.attendingModal.buttons.save')}
+                        </PaperButton>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
+
+            {/* Delete confirmation modal */}
+            <ConfirmModal
+                isConfirming={isDeleting}
+                isVisible={isDeleteDialogVisible}
+                onCancel={() => setIsDeleteDialogVisible(false)}
+                onConfirm={handleDeleteConfirm}
+                text={translate('forms.editEvent.deleteConfirmation')}
+                textConfirm={translate('forms.editEvent.buttons.confirm')}
+                textCancel={translate('forms.editEvent.buttons.cancel')}
+                translate={translate}
+                theme={theme}
+                themeModal={themeConfirmModal}
+                themeButtons={themeButtons}
+            />
+        </>
+    );
+};
+
+const localStyles = StyleSheet.create({
+    footer: {
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+    },
+    footerButton: {
+        flex: 1,
+        marginHorizontal: 4,
+    },
+    rsvpDialog: {
+        borderRadius: 12,
+    },
+    switchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingBottom: 16,
+        paddingTop: 4,
+    },
+    switchControl: {
+        marginHorizontal: 12,
+    },
+    switchLabel: {
+        fontSize: 16,
+        fontWeight: '400',
+    },
+    switchLabelActive: {
+        fontSize: 16,
+        fontWeight: '800',
+    },
+    guestLabel: {
+        marginBottom: 8,
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(ViewEvent);

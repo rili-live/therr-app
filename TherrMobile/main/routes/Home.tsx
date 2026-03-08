@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button } from '../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
@@ -177,8 +177,10 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 />
                                 <View style={this.theme.styles.sectionContainer}>
                                     <Button
-                                        buttonStyle={this.themeForms.styles.button}
-                                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                                        buttonStyle={this.themeForms.styles.buttonPrimary}
+                                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                        titleStyle={this.themeForms.styles.buttonTitle}
+                                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                         title={this.translate(
                                             'pages.userProfile.buttons.send'
                                         )}

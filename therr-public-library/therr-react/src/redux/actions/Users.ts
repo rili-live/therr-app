@@ -96,7 +96,7 @@ class UsersActions {
             userName, // Included because userSettings persists even after logout. This helps prevent cross-user contamination
             locale: 'en-us',
             integrations,
-            mobileThemeName: settingsThemeName || 'retro',
+            mobileThemeName: settingsThemeName || 'light',
             rememberMe,
             settingsBio,
             settingsTherrCoinTotal,
@@ -457,7 +457,7 @@ class UsersActions {
             ...localUserSettings,
             ...sessionUserSettings,
             locale: 'en-us',
-            mobileThemeName: settingsThemeName || 'retro',
+            mobileThemeName: settingsThemeName || 'light',
             settingsBio,
             settingsTherrCoinTotal,
             settingsAreaCoinTotal,

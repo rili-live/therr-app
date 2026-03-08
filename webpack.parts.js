@@ -1,6 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
+const postcssPresetMantine = require('postcss-preset-mantine');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
@@ -123,6 +124,7 @@ exports.loadCSS = (paths, env, dontHash) => {
                             options: {
                                 postcssOptions: {
                                     plugins: [
+                                        postcssPresetMantine(),
                                         autoprefixer(),
                                     ],
                                 },

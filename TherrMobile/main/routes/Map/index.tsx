@@ -5,6 +5,7 @@ import MapView from 'react-native-map-clustering';
 import AnimatedOverlay from 'react-native-modal-overlay';
 import { bindActionCreators } from 'redux';
 import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
@@ -761,13 +762,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                     ],
                                 },
                             }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
-                            Toast.show({
-                                type: 'success',
+                            showToast.success({
                                 text1: this.translate('alertTitles.coinsReceived'),
                                 text2: this.translate('alertMessages.coinsReceived', {
                                     total: response?.therrCoinRewarded || '2',
                                 }),
-                                visibilityTime: 2500,
                             });
                         } else {
                             const alertMsg = response?.isMySpace
@@ -1989,7 +1988,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     isVisible={isTouring}
                     translate={this.translate}
                     onRequestClose={this.handleStopTouring}
-                    themeButtons={this.themeButtons}
                     themeTour={this.themeTour}
                     onFindFriends={this.onPressFindFriends}
                     user={user}
@@ -2020,6 +2018,17 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     (!user?.settings?.navigationTourCount || user?.settings?.navigationTourCount < 1) &&
                     <MapTourRenderer
                         getCurrentScreen={this.getCurrentScreen}
+                        updateTour={updateTour}
+                        user={user}
+                    />
+                }
+                {
+                    isMapReady && isMinLoadTimeComplete && this.isUserAuthenticated() &&
+                    route.params?.shouldStartNavigationTour &&
+                    <MapTourRenderer
+                        getCurrentScreen={this.getCurrentScreen}
+                        immediate
+                        navigation={navigation}
                         updateTour={updateTour}
                         user={user}
                     />

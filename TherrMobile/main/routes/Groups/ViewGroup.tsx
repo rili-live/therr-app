@@ -9,14 +9,13 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Avatar, Button } from 'react-native-elements';
+import { Avatar } from '../../components/BaseAvatar';
+import { Button } from '../../components/BaseButton';
 import { TabBar, TabView } from 'react-native-tab-view';
-// import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import { Dialog, Portal, Button as PaperButton, Text as PaperText } from 'react-native-paper';
 import { ContentActions, MessageActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { IContentState, IForumsState, IMessageState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { ForumsService, UsersService } from 'therr-react/services';
@@ -33,7 +32,6 @@ import { buildStyles as buildChatStyles } from '../../styles/user-content/groups
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildMessageStyles } from '../../styles/user-content/messages';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
-import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
@@ -100,6 +98,8 @@ interface IViewGroupState {
     activeTabIndex: number;
     groupEvents: any[];
     groupMembers: any[];
+    isSending: boolean;
+    isWelcomeDialogVisible: boolean;
     msgInputVal: string;
     isLoading: boolean;
     pageNumber: number;
@@ -143,7 +143,6 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
     private themeMenu = buildMenuStyles();
     private themeMessage = buildMessageStyles();
     private themeForms = buildFormStyles();
-    private themeAccentForms = buildAccentFormStyles();
 
     constructor(props) {
         super(props);
@@ -162,6 +161,8 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
             title: title || '',
             groupMembers: [],
             groupEvents: [],
+            isSending: false,
+            isWelcomeDialogVisible: !!route.params?.isNewlyCreated,
             msgInputVal: '',
             isLoading: false,
             pageNumber: 1,
@@ -180,7 +181,6 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeMessage = buildMessageStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
     }
 
     componentDidMount() {
@@ -339,10 +339,12 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
 
     handleSend = (e) => {
         e.preventDefault();
-        const { msgInputVal } = this.state;
+        const { isSending, msgInputVal } = this.state;
 
-        if (msgInputVal) {
+        if (msgInputVal && !isSending) {
             const { sendForumMessage, user } = this.props;
+
+            this.setState({ isSending: true });
 
             sendForumMessage({
                 roomId: user.socketDetails.currentRoom,
@@ -355,6 +357,11 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
             this.setState({
                 msgInputVal: '',
             });
+
+            // Brief cooldown to prevent double-tap
+            setTimeout(() => {
+                this.setState({ isSending: false });
+            }, 500);
         }
 
         this.onTabSelect(0);
@@ -461,6 +468,10 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         navigation.setParams({
             activeTab: tabMap[index],
         });
+    };
+
+    handleWelcomeDialogDismiss = () => {
+        this.setState({ isWelcomeDialogVisible: false });
     };
 
     renderSceneMap = ({ route }) => {
@@ -640,8 +651,8 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
     };
 
     render() {
-        const { activeTabIndex, tabRoutes, msgInputVal } = this.state;
-        const { navigation, route, forums } = this.props;
+        const { activeTabIndex, isSending, isWelcomeDialogVisible, tabRoutes, msgInputVal } = this.state;
+        const { route, forums } = this.props;
         const { description, subtitle, id: forumId } = route.params;
         const group = forums?.searchResults?.find((g) => g.id === forumId) || {};
 
@@ -721,28 +732,10 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                         </View>
                     </View>
                     <KeyboardAvoidingView
-                        behavior="position"
-                        keyboardVerticalOffset={this.themeAccentLayout.styles.footer.height - 8}
-                        enabled={Platform.OS === 'ios'}
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
                     >
-                        <View
-                            style={[this.themeAccentLayout.styles.footer, this.themeChat.styles.footer]}
-                        >
-                            <Button
-                                containerStyle={this.themeAccentForms.styles.backButtonContainerFixed}
-                                buttonStyle={this.themeAccentForms.styles.backButton}
-                                onPress={() => navigation.navigate('Groups', {
-                                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
-                                })}
-                                icon={
-                                    <FontAwesome5Icon
-                                        name="arrow-left"
-                                        size={25}
-                                        color={'black'}
-                                    />
-                                }
-                                type="clear"
-                            />
+                        <View style={this.themeChat.styles.footer}>
                             <RoundInput
                                 value={msgInputVal}
                                 onChangeText={this.handleInputChange}
@@ -759,12 +752,34 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 buttonStyle={this.themeMessage.styles.sendBtn}
                                 containerStyle={[this.themeMessage.styles.sendBtnContainer, this.themeChat.styles.sendBtnContainer]}
                                 onPress={this.handleSend}
+                                disabled={isSending || !msgInputVal}
                             />
                         </View>
                     </KeyboardAvoidingView>
                 </SafeAreaView>
-                {/* <ViewGroupButtonMenu navigation={navigation} translate={this.translate} user={user} /> */}
-                {/* Create Chat button */}
+                {/* <ViewGroupButtonMenu navigation={this.props.navigation} translate={this.translate} user={user} /> */}
+                <Portal>
+                    <Dialog
+                        visible={isWelcomeDialogVisible}
+                        onDismiss={this.handleWelcomeDialogDismiss}
+                        style={{ borderRadius: 12 }}
+                    >
+                        <Dialog.Icon icon="chat-outline" />
+                        <Dialog.Title style={{ textAlign: 'center' }}>
+                            {this.translate('pages.viewGroup.welcomeDialogTitle')}
+                        </Dialog.Title>
+                        <Dialog.Content>
+                            <PaperText style={{ textAlign: 'center' }}>
+                                {this.translate('pages.viewGroup.welcomeDialogMessage')}
+                            </PaperText>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <PaperButton onPress={this.handleWelcomeDialogDismiss}>
+                                {this.translate('pages.viewGroup.welcomeDialogDismiss')}
+                            </PaperButton>
+                        </Dialog.Actions>
+                    </Dialog>
+                </Portal>
             </>
         );
     }

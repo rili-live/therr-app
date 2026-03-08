@@ -1,6 +1,6 @@
 import { ITherrThemeColors } from '../../../styles/themes';
 import React from 'react';
-import { ListItem } from 'react-native-elements';
+import { ListItem } from '../../../components/BaseListItem';
 import 'react-native-gesture-handler';
 
 interface IPhoneContactItemProps {

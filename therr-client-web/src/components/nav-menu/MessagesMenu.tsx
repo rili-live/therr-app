@@ -2,10 +2,10 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import {
-    ButtonPrimary,
     InlineSvg,
     SvgButton,
 } from 'therr-react/components';
+import { MantineButton } from 'therr-react/components/mantine';
 import { ForumActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import {
     IForumsState,
@@ -135,16 +135,17 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                         ? <div className="realtime-connections-list">
                             {
                                 userConnections.activeConnections.map((activeUser) => (
-                                    <ButtonPrimary
+                                    <MantineButton
                                         id="nav_menu_connection_link"
                                         key={activeUser.id}
                                         className={`connection-link-item right-icon ${activeUser.status === 'active' ? 'active' : 'away'}`}
-                                        name={activeUser.id}
                                         onClick={(e) => onInitMessaging(e, activeUser, 'messages-menu')}
-                                        buttonType="primary">
+                                        variant="subtle"
+                                        fullWidth
+                                    >
                                         {`${activeUser.firstName} ${activeUser.lastName}`}
                                         <InlineSvg name="messages" />
-                                    </ButtonPrimary>
+                                    </MantineButton>
                                 ))
                             }
                         </div>
@@ -171,34 +172,36 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
             <>
                 <h2>{this.translate('components.messagesMenu.h2.forums')}</h2>
                 <div className="forums-menu">
-                    <ButtonPrimary
+                    <MantineButton
                         id="nav_menu_join_forum"
                         className="menu-item left-icon"
-                        name="Join Forum"
-                        onClick={this.navigate('create-forum')} buttonType="primary"
+                        onClick={this.navigate('create-forum')}
+                        variant="subtle"
+                        fullWidth
                     >
                         <InlineSvg name="add-circle" />
                         {this.translate('components.messagesMenu.buttons.createForum')}
-                    </ButtonPrimary>
+                    </MantineButton>
                     {
                         forums && forums.searchResults.length > 0
                         && <div className="search-forums-list">
                             {
                                 forums.searchResults.map((forum) => (
-                                    <ButtonPrimary
+                                    <MantineButton
                                         id="nav_menu_forum_link"
                                         key={forum.id}
                                         className={this.getForumItemClass(forum)}
-                                        name={forum.title}
                                         onClick={this.navigate('forums', {
                                             roomKey: forum.id,
                                         }, {
                                             roomName: forum.title,
                                         })}
-                                        buttonType="primary">
+                                        variant="subtle"
+                                        fullWidth
+                                    >
                                         {forum.title}
                                         <InlineSvg name="door" />
-                                    </ButtonPrimary>
+                                    </MantineButton>
                                 ))
                             }
                         </div>

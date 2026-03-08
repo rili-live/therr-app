@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -40,7 +40,7 @@ interface IManageAccountState {
     inputs: any;
     isCropping: boolean;
     isDeleteAccountModalVisible: boolean;
-    isNightMode: boolean;
+    isDeleting: boolean;
     isSubmitting: boolean;
     passwordErrorMessage: string;
 }
@@ -81,8 +81,8 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                 shouldHideMatureContent: props.user.details.shouldHideMatureContent,
             },
             isCropping: false,
-            isNightMode: props.user.settings.mobileThemeName === 'retro',
             isDeleteAccountModalVisible: false,
+            isDeleting: false,
             isSubmitting: false,
             passwordErrorMessage: '',
         };
@@ -101,6 +101,8 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
     onDeleteAccountConfirm = () => {
         const { logout, user } = this.props;
 
+        this.setState({ isDeleting: true });
+
         logEvent(getAnalytics(),'account_delete_start', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
@@ -111,11 +113,9 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                 userId: user.details.id,
             }).catch((err) => console.log(err));
 
-            Toast.show({
-                type: 'successBig',
+            showToast.success({
                 text1: this.translate('pages.advancedSettings.alertTitles.accountDeleted'),
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeleted'),
-                visibilityTime: 2000,
                 onHide: () => {
                     logout();
                 },
@@ -125,6 +125,8 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                 userId: user.details.id,
                 error: error?.message,
             }).catch((err) => console.log(err));
+        }).finally(() => {
+            this.setState({ isDeleting: false });
         });
     };
 
@@ -165,31 +167,21 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
     requestUserUpdate = (user, updateArgs) => this.props
         .updateUser(user.details.id, updateArgs)
         .then(() => {
-            Toast.show({
-                type: 'success',
+            showToast.success({
                 text1: this.translate('pages.advancedSettings.alertTitles.accountDeactived'),
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeactived'),
-                visibilityTime: 3000,
             });
         })
         .catch((error: any) => {
             console.log(error);
-            Toast.show({
-                type: 'error',
+            showToast.error({
                 text1: this.translate('pages.advancedSettings.alertTitles.accountError'),
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeactivedError'),
-                visibilityTime: 3000,
             });
         })
         .finally(() => {
             this.scrollViewRef?.scrollToPosition(0, 0);
         });
-
-    onThemeChange = (isNightMode: boolean) => {
-        this.setState({
-            isNightMode,
-        });
-    };
 
     toggleDeleteAccountModal = (shouldOpen: boolean) => {
         this.setState({
@@ -215,7 +207,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
 
     render() {
         const { navigation, user } = this.props;
-        const  { isDeleteAccountModalVisible } = this.state;
+        const  { isDeleteAccountModalVisible, isDeleting } = this.state;
         const pageHeaderAdvancedSettings = this.translate('pages.advancedSettings.pageHeaderAccountActions');
 
         return (
@@ -251,6 +243,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                     themeMenu={this.themeMenu}
                 />
                 <DeleteAccountModal
+                    isDeleting={isDeleting}
                     isVisible={isDeleteAccountModalVisible}
                     translate={this.translate}
                     onRequestClose={(action) => this.onDeleteAccountModalClose(action)}

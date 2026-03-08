@@ -3,26 +3,25 @@ import { SafeAreaView, View, Text, Pressable, Dimensions } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
-import Toast from 'react-native-toast-message';
+import { Button } from '../../components/BaseButton';
+import { showToast } from '../../utilities/toasts';
 import { ContentActions, MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { ForumsService } from 'therr-react/services';
 import { IContentState, IForumsState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import {
     Content,
 } from 'therr-js-utilities/constants';
-// import Toast from 'react-native-toast-message';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
+import { isDarkTheme } from '../../styles/themes';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/viewing';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
-import { buildStyles as buildModalStyles } from '../../styles/modal';
 import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/settingsForm';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -36,7 +35,7 @@ import InputEventName from '../Events/InputEventName';
 import InputGroupName from '../Groups/InputGroupName';
 import EventStartEndFormGroup from '../Events/EventStartEndFormGroup';
 import { DEFAULT_RADIUS, GROUPS_CAROUSEL_TABS } from '../../constants';
-import BottomSheet from '../../components/BottomSheet/BottomSheet';
+import { SheetManager } from 'react-native-actions-sheet';
 import LottieView from 'lottie-react-native';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -70,7 +69,6 @@ interface IActivitySchedulerState {
     inputs: any;
     isLoading: boolean;
     isSubmitting: boolean;
-    isVisibilityBottomSheetVisible: boolean;
     shouldShowMoreSpaces: boolean;
     selectedSpace?: any;
     spaceListSize: number;
@@ -99,7 +97,6 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
     private themeViewArea = buildAreaStyles();
     private themeButtons = buildButtonStyles();
     private themeMenu = buildMenuStyles();
-    private themeModal = buildModalStyles();
     private themeForms = buildFormStyles();
     private themeSettingsForm = buildSettingsFormStyles();
 
@@ -134,7 +131,6 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
             },
             isLoading: false,
             isSubmitting: false,
-            isVisibilityBottomSheetVisible: false,
             shouldShowMoreSpaces: false,
             spaceListSize: DEFAULT_SPACES_LIST_SIZE,
         };
@@ -227,7 +223,6 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
         this.themeViewArea = buildAreaStyles();
         this.themeButtons = buildButtonStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
-        this.themeModal = buildModalStyles(themeName);
         this.themeForms = buildFormStyles(themeName);
         this.themeSettingsForm = buildSettingsFormStyles(themeName);
     };
@@ -294,20 +289,11 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                 isPublic,
             },
         });
-
-        this.onToggleVisibilityBottomSheet();
     };
 
     onToggleShowMore = () => {
         this.setState({
             shouldShowMoreSpaces: !this.state.shouldShowMoreSpaces,
-        });
-    };
-
-    onToggleVisibilityBottomSheet = () => {
-        const { isVisibilityBottomSheetVisible } = this.state;
-        this.setState({
-            isVisibilityBottomSheetVisible: !isVisibilityBottomSheetVisible,
         });
     };
 
@@ -336,11 +322,9 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
         } = this.state.inputs;
 
         if (scheduleStopAt - scheduleStartAt <= 0) {
-            Toast.show({
-                type: 'error',
+            showToast.error({
                 text1: this.translate('alertTitles.startDateAfterEndDate'),
                 text2: this.translate('alertMessages.startDateAfterEndDate'),
-                visibilityTime: 3500,
             });
 
             return;
@@ -385,14 +369,9 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
 
         ForumsService.createActivity(requestBody)
             .then((response) => {
-                Toast.show({
-                    type: 'successBig',
+                showToast.success({
                     text1: this.translate('alertTitles.activityCreated'),
                     text2: this.translate('alertMessages.activityCreated'),
-                    visibilityTime: 3000,
-                    onPress: () => {
-                        Toast.hide();
-                    },
                     onHide: () => {
                         this.setState({
                             isSubmitting: false,
@@ -401,6 +380,9 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                             this.props.navigation.navigate('ViewGroup', {
                                 id: response.data?.group?.id,
                                 title: response.data?.group?.title,
+                                subtitle: response.data?.group?.subtitle,
+                                description: response.data?.group?.description,
+                                isNewlyCreated: true,
                             });
                         } else {
                             this.props.navigation.navigate('Groups', {
@@ -408,7 +390,6 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                             });
                         }
                     },
-                    position: 'bottom',
                     props: {
                         extraStyle: { minHeight: 90, marginBottom: 10 },
                         renderTrailingIcon: () => (
@@ -428,18 +409,16 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                 this.setState({
                     isSubmitting: false,
                 });
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
                     text2: this.translate('alertMessages.backendErrorMessage'),
-                    visibilityTime: 3500,
                 });
             });
     };
 
     render() {
         const { content, map, navigation, user, userConnections } = this.props;
-        const { inputs, isLoading, isVisibilityBottomSheetVisible, shouldShowMoreSpaces, spaceListSize, selectedSpace } = this.state;
+        const { inputs, isLoading, shouldShowMoreSpaces, spaceListSize, selectedSpace } = this.state;
         // const currentUserImageUri = getUserImageUri(user, 200);
         const topConnections = [...map?.activityGeneration?.topConnections]?.map((connection) => ({
             ...connection,
@@ -502,7 +481,14 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                                         ? this.translate('forms.editEvent.buttons.visibilityPublic')
                                         : this.translate('forms.editEvent.buttons.visibilityPrivate')}
                                     type="outline"
-                                    onPress={this.onToggleVisibilityBottomSheet}
+                                    onPress={() => SheetManager.show('visibility-picker-sheet', {
+                                        payload: {
+                                            publicText: this.translate('forms.editEvent.buttons.visibilityPublic'),
+                                            privateText: this.translate('forms.editEvent.buttons.visibilityPrivate'),
+                                            themeForms: this.themeForms,
+                                            onSelect: (isPublic) => this.onSetVisibility(isPublic),
+                                        },
+                                    })}
                                     raised={false}
                                     icon={
                                         <OctIcon
@@ -663,7 +649,7 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                                 />
                                 <EventStartEndFormGroup
                                     themeForms={this.themeForms}
-                                    isNightMode={user.settings?.mobileThemeName === 'dark' || user.settings?.mobileThemeName === 'retro'}
+                                    isNightMode={isDarkTheme(user.settings?.mobileThemeName)}
                                     onConfirm={this.onConfirmDatePicker}
                                     translate={this.translate}
                                     startsAtValue={inputs.scheduleStartAt}
@@ -672,56 +658,13 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                             </View>
                         </View>
                     </KeyboardAwareScrollView>
-                    <BottomSheet
-                        isVisible={isVisibilityBottomSheetVisible}
-                        onRequestClose={this.onToggleVisibilityBottomSheet}
-                        themeModal={this.themeModal}
-                    >
-                        <Button
-                            containerStyle={{ marginBottom: 10, width: '100%' }}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editEvent.buttons.visibilityPublic'
-                            )}
-                            onPress={() => this.onSetVisibility(true)}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="globe"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                        <Button
-                            containerStyle={spacingStyles.fullWidth}
-                            buttonStyle={this.themeForms.styles.buttonRound}
-                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                            titleStyle={this.themeForms.styles.buttonTitle}
-                            title={this.translate(
-                                'forms.editEvent.buttons.visibilityPrivate'
-                            )}
-                            onPress={() => this.onSetVisibility(false)}
-                            raised={false}
-                            icon={
-                                <OctIcon
-                                    name="people"
-                                    size={22}
-                                    style={this.themeForms.styles.buttonIcon}
-                                />
-                            }
-                        />
-                    </BottomSheet>
                 </SafeAreaView>
                 <View style={this.themeMenu.styles.submitButtonContainerFloat}>
                     <Button
-                        buttonStyle={this.themeForms.styles.button}
+                        buttonStyle={this.themeForms.styles.buttonPrimary}
+                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                        titleStyle={this.themeForms.styles.buttonTitle}
+                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         title={this.translate(
                             'pages.activityScheduler.buttons.createAndSend'
                         )}
@@ -736,7 +679,6 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                         }
                         onPress={this.onSubmit}
                         disabled={this.isFormDisabled()}
-                        raised={true}
                     />
                 </View>
                 <MainButtonMenu

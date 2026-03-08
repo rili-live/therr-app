@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { Platform, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -94,20 +94,17 @@ export class LoginFormComponent extends React.Component<
             // Google SSO User Canceled
             return;
         } else if (err?.message?.includes('com.apple.AuthenticationServices.AuthorizationError')) {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('alertTitles.errorWithAppleSSO'),
                 text2: this.translate('alertMessages.errorWithAppleSSO'),
             });
         } else if (err?.message?.includes('RNGoogleSignInError')) {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('alertTitles.errorWithGoogleSSO'),
                 text2: this.translate('alertMessages.errorWithGoogleSSO'),
             });
         } else {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('alertTitles.backendErrorMessage'),
                 text2: this.translate('alertMessages.backendErrorMessage'),
             });
@@ -160,12 +157,7 @@ export class LoginFormComponent extends React.Component<
             .login(loginArgs, {
                 googleSSOIdToken: ssoUserDetails?.idToken,
             })
-            .then((response) => {
-                console.log(response)
-                return response;
-            })
             .catch((error: any) => {
-                console.log(error)
                 if (
                     error.statusCode === 400 ||
                     error.statusCode === 401 ||
@@ -243,6 +235,7 @@ export class LoginFormComponent extends React.Component<
                         />
                     }
                     themeForms={themeForms}
+                    containerStyle={{ marginBottom: 14 }}
                     testID="login-username"
                     inputStyle={{ fontSize: 17 }}
                 />
@@ -272,7 +265,7 @@ export class LoginFormComponent extends React.Component<
                 />
                 <View style={themeAuthForm.styles.submitButtonContainer}>
                     <Button
-                        buttonStyle={themeForms.styles.buttonPrimary}
+                        buttonStyle={[themeForms.styles.buttonPrimary, { paddingHorizontal: 20 }]}
                         titleStyle={themeForms.styles.buttonTitle}
                         disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                         disabledStyle={themeForms.styles.buttonDisabled}
@@ -280,8 +273,8 @@ export class LoginFormComponent extends React.Component<
                             'forms.loginForm.buttons.login'
                         )}
                         onPress={() => this.onSubmit()}
+                        disabled={this.isLoginFormDisabled()}
                         loading={isSubmitting}
-                        // raised={true}
                         icon={
                             <FontAwesomeIcon
                                 name="sign-in-alt"

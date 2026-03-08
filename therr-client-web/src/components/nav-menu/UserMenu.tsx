@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { NavigateFunction } from 'react-router-dom';
-import {
-    ButtonPrimary,
-    SvgButton,
-} from 'therr-react/components';
+import { SvgButton } from 'therr-react/components';
+import { MantineButton } from 'therr-react/components/mantine';
 import {
     NotificationActions,
     UserConnectionsActions,
@@ -93,7 +91,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             requestStatus: isAccepted ? UserConnectionTypes.COMPLETE : UserConnectionTypes.DENIED,
         };
 
-        this.markNotificationAsRead(e, notification, updatedUserConnection);
+        this.toggleNotificationRead(e, notification, updatedUserConnection);
 
         updateUserConnection({
             connection: {
@@ -103,23 +101,38 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         });
     };
 
-    markNotificationAsRead = (event, notification, userConnection?: any) => {
-        if (notification.isUnread || userConnection) {
-            const { updateNotification, user } = this.props;
+    toggleNotificationRead = (event, notification, userConnection?: any) => {
+        const { updateNotification, user } = this.props;
 
-            const message = {
+        const message = {
+            notification: {
+                ...notification,
+                isUnread: !notification.isUnread,
+            },
+            userName: user.details.userName,
+        };
+
+        if (userConnection) {
+            message.notification.isUnread = false;
+            message.notification.userConnection = userConnection;
+        }
+
+        updateNotification(message);
+    };
+
+    markAllNotificationsAsRead = () => {
+        const { notifications, updateNotification, user } = this.props;
+        const unreadNotifications = notifications.messages.filter((n) => n.isUnread);
+
+        unreadNotifications.forEach((notification) => {
+            updateNotification({
                 notification: {
                     ...notification,
                     isUnread: false,
                 },
                 userName: user.details.userName,
-            };
-
-            if (userConnection) {
-                message.notification.userConnection = userConnection;
-            }
-            updateNotification(message);
-        }
+            });
+        });
     };
 
     navigate = (destination) => (e) => {
@@ -132,6 +145,8 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 return this.props.navigation.navigate('/user/profile');
             case 'edit-profile':
                 return this.props.navigation.navigate('/user/profile');
+            case 'discovered':
+                return this.props.navigation.navigate('/discovered');
             default:
         }
     };
@@ -140,32 +155,59 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         <>
             <h2>{this.translate('components.userMenu.h2.profileSettings')}</h2>
             <div className="profile-settings-menu">
-                <ButtonPrimary
+                <MantineButton
                     id="nav_menu_view_profile"
                     className="menu-item"
-                    name={this.translate('components.userMenu.buttons.viewProfile')}
-                    text={this.translate('components.userMenu.buttons.viewProfile')} onClick={this.navigate('view-profile')} buttonType="primary" />
-                <ButtonPrimary
+                    text={this.translate('components.userMenu.buttons.viewProfile')}
+                    onClick={this.navigate('view-profile')}
+                    variant="subtle"
+                    fullWidth
+                />
+                <MantineButton
                     id="nav_menu_edit_profile"
                     className="menu-item"
-                    name={this.translate('components.userMenu.buttons.editProfile')}
-                    text={this.translate('components.userMenu.buttons.editProfile')} onClick={this.navigate('edit-profile')} buttonType="primary" />
+                    text={this.translate('components.userMenu.buttons.editProfile')}
+                    onClick={this.navigate('edit-profile')}
+                    variant="subtle"
+                    fullWidth
+                />
+                <MantineButton
+                    id="nav_menu_discovered"
+                    className="menu-item"
+                    text={this.translate('components.userMenu.buttons.discovered')}
+                    onClick={this.navigate('discovered')}
+                    variant="subtle"
+                    fullWidth
+                />
             </div>
         </>
     );
 
     renderNotificationsContent = () => {
         const { notifications } = this.props;
+        const hasUnread = notifications.messages.some((n) => n.isUnread);
 
         return (
             <>
-                <h2>{this.translate('components.userMenu.h2.notifications')}</h2>
+                <div className="notifications-header">
+                    <h2>{this.translate('components.userMenu.h2.notifications')}</h2>
+                    {hasUnread && (
+                        <MantineButton
+                            id="mark_all_read"
+                            className="mark-all-read-button"
+                            text={this.translate('components.userMenu.buttons.markAllRead')}
+                            onClick={this.markAllNotificationsAsRead}
+                            variant="subtle"
+                            size="xs"
+                        />
+                    )}
+                </div>
                 <div className="notifications">
                     {
                         notifications.messages.map((n: INotification) => (
                             <Notification
                                 key={n.id}
-                                handleSetRead={this.markNotificationAsRead}
+                                handleSetRead={this.toggleNotificationRead}
                                 handleConnectionRequestAction={this.handleConnectionRequestAction}
                                 notification={n}
                             />
@@ -180,11 +222,14 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         <>
             <h2>{this.translate('components.userMenu.h2.accountSettings')}</h2>
             <div className="account-settings-menu">
-                <ButtonPrimary
+                <MantineButton
                     id="nav_menu_change_password"
                     className="menu-item"
-                    name={this.translate('components.userMenu.buttons.changePassword')}
-                    text={this.translate('components.userMenu.buttons.changePassword')} onClick={this.navigate('change-password')} buttonType="primary" />
+                    text={this.translate('components.userMenu.buttons.changePassword')}
+                    onClick={this.navigate('change-password')}
+                    variant="subtle"
+                    fullWidth
+                />
             </div>
         </>
     );

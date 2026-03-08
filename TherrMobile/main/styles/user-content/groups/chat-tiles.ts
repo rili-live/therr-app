@@ -45,7 +45,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flex: 1,
             fontWeight: '800',
             fontSize: 16,
-            color: therrTheme.colors.accentTextBlack,
+            color: therrTheme.colors.textWhite,
             overflow: 'hidden',
         },
         body: {
@@ -56,7 +56,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         bodyText: {
             maxHeight: 30,
             fontSize: 12,
-            color: therrTheme.colors.accentTextBlack,
+            color: therrTheme.colors.textGray,
             overflow: 'hidden',
         },
         footer: {

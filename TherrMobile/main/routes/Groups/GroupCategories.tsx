@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, FlatList } from 'react-native';
-import  { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -46,7 +46,7 @@ const renderCategoryButton = (onCategoryPress, theme, themeButtons, themeCategor
     }) => {
         const buttonStyle = category.isActive
             ? [themeButtons.styles.quickFiltersButtonTinyActive, themeCategory.styles.categoryButtonActive]
-            : themeButtons.styles.quickFiltersButtonTiny;
+            : [themeButtons.styles.quickFiltersButtonTiny, themeCategory.styles.categoryButton];
         const containerStyle = category.isActive ? themeCategory.styles.categoryButtonContainerActive : themeCategory.styles.categoryButtonContainer;
         const titleStyle = category.isActive
             ? [themeButtons.styles.quickFiltersButtonTitleActive, themeCategory.styles.categoryButtonTitleActive]

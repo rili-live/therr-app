@@ -1,7 +1,7 @@
 import { Platform, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { containerStyles, containerTightStyles, inputStyle, getTextInputStyle } from './base';
-import { getTheme, ITherrTheme } from '../themes';
+import { getTheme, isDarkTheme, ITherrTheme } from '../themes';
 import { therrFontFamily } from '../font';
 
 const getInputContainerBaseStyles = (theme: ITherrTheme): any => ({
@@ -11,10 +11,10 @@ const getInputContainerBaseStyles = (theme: ITherrTheme): any => ({
 
 const getPlatformSpecificInputStyles =  (theme: ITherrTheme): any => Platform.OS !== 'ios' ? {
     backgroundColor: theme.colors.inputBackgroundAndroid, // colors.teriary with 70% opacity
-    color: 'black',
+    color: theme.colors.textWhite,
 } : {
     backgroundColor: theme.colors.inputBackgroundIOS, // colors.teriary with 70% opacity
-    color: 'black',
+    color: theme.colors.textWhite,
 };
 
 const inputLabelStyles: any = {
@@ -44,6 +44,7 @@ const backButtonDimension = 42;
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
+    const isDark = isDarkTheme(themeName);
 
     const styles = StyleSheet.create({
         input: {
@@ -263,17 +264,17 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: 42,
         },
         buttonLink: {
-            color: themeName === 'retro' ? therrTheme.colors.textWhite : therrTheme.colors.primary4,
+            color: isDark ? therrTheme.colors.textWhite : therrTheme.colors.primary4,
             fontFamily: therrFontFamily,
-            borderColor: themeName === 'retro' ? therrTheme.colors.primary : therrTheme.colors.textWhite,
+            borderColor: isDark ? therrTheme.colors.primary : therrTheme.colors.textWhite,
         },
         buttonLinkAlert: {
-            color: themeName === 'retro' ? therrTheme.colors.alertError : therrTheme.colors.alertError,
+            color: isDark ? therrTheme.colors.alertError : therrTheme.colors.alertError,
             fontFamily: therrFontFamily,
-            borderColor: themeName === 'retro' ? therrTheme.colors.primary : therrTheme.colors.textWhite,
+            borderColor: isDark ? therrTheme.colors.primary : therrTheme.colors.textWhite,
         },
         buttonLinkHeader: {
-            color: themeName === 'retro' ? therrTheme.colors.textWhite : therrTheme.colors.primary3,
+            color: isDark ? therrTheme.colors.textWhite : therrTheme.colors.primary3,
             fontFamily: therrFontFamily,
             fontSize: 14,
             fontWeight: '600',
@@ -368,7 +369,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         buttonPill: {
             ...buttonPillStyles,
             borderColor: therrTheme.colors.brandingBlueGreen,
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.backgroundWhite,
         },
         buttonPillInvert: {
             ...buttonPillStyles,
@@ -457,24 +458,21 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '500',
         },
         googleButtonIcon: {
-            height: 26,
-            width: 26,
-            padding: 8,
+            height: 36,
+            width: 36,
             marginLeft: 12,
         },
         appleButtonContainer: {
             width: '100%', // You must specify a width
-            borderWidth: themeName === 'retro' ? 0 : 2,
-            borderRadius: themeName === 'retro' ? 0 : 15,
             height: 52,
             elevation: 3,
         },
         appleTitleStyle: {
         },
         appleButtonIcon: {
-            height: 22,
-            width: 18,
-            padding: 8,
+            height: 32,
+            width: 26,
+            marginLeft: 12,
         },
         headerInputBadgeContainer: {
             position: 'absolute',

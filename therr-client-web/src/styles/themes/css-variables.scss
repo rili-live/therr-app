@@ -1,0 +1,133 @@
+// CSS Custom Property Bridge
+// Maps SCSS theme tokens to CSS custom properties for runtime dark/light switching.
+// Light theme values are the defaults; dark overrides via [data-mantine-color-scheme="dark"].
+
+:root {
+  // Common colors
+  --therr-background-black: #ffffff;
+  --therr-black: #021010;
+  --therr-white: #fcfeff;
+  --therr-off-white: #fafbfb;
+  --therr-background: #f3f4f6;
+  --therr-text-a: #1f2937;
+  --therr-text-b: #1f2937;
+
+  // Form colors
+  --therr-input-text-color: #1f2937;
+  --therr-input-border-color: #d1d5db;
+  --therr-input-bg-color: #ffffff;
+  --therr-input-focus-color: #1C7F8A;
+  --therr-input-focus-shadow: rgba(28, 127, 138, .15);
+  --therr-input-valid-shadow: rgba(3, 72, 20, .15);
+  --therr-label-color: #374151;
+
+  // Primary colors
+  --therr-primary-1: #1C7F8A;
+  --therr-primary-2: #104B52;
+  --therr-primary-3: #1C7F8A;
+  --therr-primary-4: #104B52;
+
+  // Secondary colors
+  --therr-secondary-1: #1C7F8A;
+  --therr-secondary-2: #C85E00;
+  --therr-secondary-3: #1a7029;
+  --therr-secondary-4: #1f9665;
+
+  // Alert palette
+  --therr-alert-success: #16a34a;
+  --therr-alert-neutral: #058279;
+  --therr-alert-warning: #d97706;
+  --therr-alert-error: #b91c3c;
+
+  // Shades of grey
+  --therr-bg-grey: #f9fafb;
+  --therr-hover-grey: #f3f4f6;
+  --therr-light-grey: #e5e7eb;
+  --therr-divider-grey: #d1d5db;
+  --therr-ghost-grey: #6b7280;
+  --therr-middle-grey: #4b5563;
+  --therr-dark-grey: #374151;
+  --therr-very-dark-grey: #1f2937;
+
+  // Anchor colors
+  --therr-link-1: #0e01b3;
+  --therr-link-blue-2: #0f5a6e;
+  --therr-link-hover: #104B52;
+
+  // Shadows
+  --therr-box-shadow-1: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px;
+  --therr-box-shadow-tile: 0px 1px 3px 0px rgba(0, 0, 0, 0.1), 0px 1px 2px -1px rgba(0, 0, 0, 0.1);
+
+  // Header/footer bar colors
+  --therr-header-bg: #1C7F8A;
+  --therr-footer-bg: #1C7F8A;
+
+  // Mantine component overrides
+  --mantine-color-body: #ffffff;
+  --mantine-color-text: #1f2937;
+}
+
+[data-mantine-color-scheme="dark"] {
+  // Common colors
+  --therr-background-black: #1E1E1E;
+  --therr-black: #121212;
+  --therr-white: #E0E0E0;
+  --therr-off-white: #B0B0B0;
+  --therr-background: #121212;
+  --therr-text-a: #E0E0E0;
+  --therr-text-b: #F5F5F5;
+
+  // Form colors
+  --therr-input-text-color: #E0E0E0;
+  --therr-input-border-color: #404040;
+  --therr-input-bg-color: #2A2A2A;
+  --therr-input-focus-color: #22A5B4;
+  --therr-input-focus-shadow: rgba(34, 165, 180, .2);
+  --therr-input-valid-shadow: rgba(76, 175, 80, .2);
+  --therr-label-color: #B0B0B0;
+
+  // Primary colors
+  --therr-primary-1: #1C7F8A;
+  --therr-primary-2: #22A5B4;
+  --therr-primary-3: #1C7F8A;
+  --therr-primary-4: #22A5B4;
+
+  // Secondary colors
+  --therr-secondary-1: #1C7F8A;
+  --therr-secondary-2: #E37107;
+  --therr-secondary-3: #2ecc71;
+  --therr-secondary-4: #26B379;
+
+  // Alert palette
+  --therr-alert-success: #4caf50;
+  --therr-alert-neutral: #26a69a;
+  --therr-alert-warning: #ffb74d;
+  --therr-alert-error: #CF6679;
+
+  // Shades of grey
+  --therr-bg-grey: #2A2A2A;
+  --therr-hover-grey: #333333;
+  --therr-light-grey: #404040;
+  --therr-divider-grey: #4a4a4a;
+  --therr-ghost-grey: #9E9E9E;
+  --therr-middle-grey: #B0B0B0;
+  --therr-dark-grey: #BDBDBD;
+  --therr-very-dark-grey: #E0E0E0;
+
+  // Anchor colors
+  --therr-link-1: #90CAF9;
+  --therr-link-blue-2: #64B5F6;
+  --therr-link-hover: #BBDEFB;
+
+  // Shadows
+  --therr-box-shadow-1: rgba(0, 0, 0, 0.4) 0px 1px 3px 0px, rgba(0, 0, 0, 0.3) 0px 1px 2px 0px;
+  --therr-box-shadow-tile: 0px 2px 4px -1px rgba(0, 0, 0, 0.4), 0px 4px 5px 0px rgba(0, 0, 0, 0.3), 0px 1px 10px 0px rgba(0, 0, 0, 0.24);
+
+  // Header/footer bar colors (dark surfaces)
+  --therr-header-bg: #1E1E1E;
+  --therr-footer-bg: #1E1E1E;
+
+  // Mantine component overrides
+  --mantine-color-body: #1E1E1E;
+  --mantine-color-text: #E0E0E0;
+}

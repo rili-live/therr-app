@@ -13,12 +13,13 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildMomentStyles } from '../../styles/user-content/areas';
-import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 import AreaCarousel from './AreaCarousel';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { isMyContent as checkIsMyMoment } from '../../utilities/content';
 import { CAROUSEL_TABS } from '../../constants';
-import AreaOptionsModal, { ISelectionType, ModalButton } from '../../components/Modals/AreaOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getDirections from '../../utilities/getDirections';
 
@@ -50,8 +51,6 @@ export interface IMyDraftsProps extends IStoreProps {
 interface IMyDraftsState {
     activeTab: string;
     isLoading: boolean;
-    areAreaOptionsVisible: boolean;
-    selectedArea: any;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -78,10 +77,10 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
     private translate: Function;
     private theme = buildStyles();
     private themeButtons = buildButtonsStyles();
+    private themeForms = buildFormStyles();
     private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
     private themeMoments = buildMomentStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
     private unsubscribeFocusListener;
 
     constructor(props) {
@@ -90,16 +89,14 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         this.state = {
             activeTab: CAROUSEL_TABS.DISCOVERIES,
             isLoading: true,
-            areAreaOptionsVisible: false,
-            selectedArea: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
         this.loaderId = getRandomLoaderId();
@@ -188,11 +185,15 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         });
     };
 
-    toggleAreaOptions = (area) => {
-        const { areAreaOptionsVisible } = this.state;
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedArea: areAreaOptionsVisible ? {} : area,
+    toggleAreaOptions = (displayArea) => {
+        const area = displayArea || {};
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onAreaOptionSelect(type, area),
+            },
         });
     };
 
@@ -207,35 +208,31 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         // });
     };
 
-    onAreaOptionSelect = (type: ISelectionType) => {
-        const { selectedArea } = this.state;
+    onAreaOptionSelect = (type: IContentSelectionType, area: any) => {
         const { deleteDraft, user } = this.props;
 
         if (type === 'delete') {
             // TODO: Remove from redux
-            if (checkIsMyMoment(selectedArea, user)) {
-                deleteDraft(selectedArea.id)
+            if (checkIsMyMoment(area, user)) {
+                deleteDraft(area.id)
                     .then(() => {
                         console.log('Moment deleted');
                     })
                     .catch((err) => {
                         console.log('Error deleting moment', err);
-                    })
-                    .finally(() => {
-                        this.toggleAreaOptions(selectedArea);
                     });
             }
         } else if (type === 'getDirections') {
             getDirections({
-                latitude: selectedArea.latitude,
-                longitude: selectedArea.longitude,
-                title: selectedArea.notificationMsg,
+                latitude: area.latitude,
+                longitude: area.longitude,
+                title: area.notificationMsg,
             });
         }
     };
 
     render() {
-        const { activeTab, areAreaOptionsVisible, isLoading, selectedArea } = this.state;
+        const { activeTab, isLoading } = this.state;
         const {
             createOrUpdateEventReaction,
             createOrUpdateMomentReaction,
@@ -287,27 +284,6 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
                         // viewportWidth={viewportWidth}
                     />
                 </SafeAreaView>
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={() => this.toggleAreaOptions(selectedArea)}
-                    translate={this.translate}
-                    onSelect={this.onAreaOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                >
-                    <ModalButton
-                        iconName="directions"
-                        title={this.translate('modals.contentOptions.buttons.getDirections')}
-                        onPress={() => this.onAreaOptionSelect('getDirections')}
-                        themeButtons={this.themeButtons}
-                    />
-                    <ModalButton
-                        iconName="delete"
-                        title={this.translate('modals.contentOptions.buttons.delete')}
-                        onPress={() => this.onAreaOptionSelect('delete')}
-                        themeButtons={this.themeButtons}
-                    />
-                </AreaOptionsModal>
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}

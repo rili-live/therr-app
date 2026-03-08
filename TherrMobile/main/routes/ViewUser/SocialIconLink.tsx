@@ -33,7 +33,7 @@ export default ({
         return isMe && navigation.navigate('SocialSync', userInView);
     };
 
-    let iconColor = themeUser.colors.brandingBlack;
+    let iconColor = themeUser.colors.textGray;
     const extraStyle1: any = {};
     const extraStyle2: any = {};
     const extraStyle3: any = {};

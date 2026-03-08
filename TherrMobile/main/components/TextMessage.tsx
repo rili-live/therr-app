@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ActivityIndicator, View, Text, Pressable } from 'react-native';
-import { Image } from 'react-native-elements';
+import { Image } from './BaseImage';
 import Autolink from 'react-native-autolink';
 import { getUserImageUri } from '../utilities/content';
 

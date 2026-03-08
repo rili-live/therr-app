@@ -18,6 +18,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             display: 'flex',
             justifyContent: 'flex-start',
             alignItems: 'center',
+            alignSelf: 'center',
             maxHeight: '60%',
             width: '75%',
             backgroundColor: therrTheme.colors.backgroundGray,
@@ -36,6 +37,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '800',
             textAlign: 'center',
             fontFamily: therrFontFamily,
+            color: therrTheme.colors.textWhite,
         },
         body: {
             height: '100%',
@@ -65,6 +67,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: therrFontFamily,
             padding: 10,
             textAlign: 'center',
+            color: therrTheme.colors.textWhite,
         },
         bodyTextBold: {
             fontSize: 20,
@@ -74,6 +77,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingTop: 15,
             paddingBottom: 20,
             textAlign: 'center',
+            color: therrTheme.colors.textWhite,
         },
         graphic: {
             height: 150,

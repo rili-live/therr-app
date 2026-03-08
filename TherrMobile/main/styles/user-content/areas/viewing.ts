@@ -27,6 +27,8 @@ const getAreaDistanceStyle = (therrTheme: ITherrTheme, isDarkMode = true): any =
     textAlign: 'left',
 });
 
+const cardBorderRadius = 5;
+
 const getCardStyles = (therrTheme: ITherrTheme): any => ({
     display: 'flex',
     flexDirection: 'column',
@@ -34,7 +36,7 @@ const getCardStyles = (therrTheme: ITherrTheme): any => ({
     padding: 0,
     elevation: 2,
     backgroundColor: therrTheme.colors.backgroundWhite,
-    borderRadius: 5,
+    borderRadius: cardBorderRadius,
     paddingBottom: 5,
     marginHorizontal: 7,
     shadowRadius: 5,
@@ -43,7 +45,11 @@ const getCardStyles = (therrTheme: ITherrTheme): any => ({
         width: 2,
         height: -2,
     },
-    overflow: 'hidden',
+    // NOTE: overflow:'hidden' was removed here intentionally.
+    // On Android, combining overflow:'hidden' + elevation + borderRadius on the
+    // same view causes a native compositing bug where children intermittently
+    // render as blank/white during horizontal scrolling. The clipping is moved
+    // to cardImageContainer instead.
     marginBottom: 3,
 });
 
@@ -97,6 +103,11 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             borderRadius: areaUserAvatarImgRadius,
             margin: areaUserAvatarImgPadding,
         },
+        areaCard: {
+            marginBottom: 4,
+            width: '100%',
+            overflow: 'hidden',
+        },
         areaAuthorContainer: {
             display: 'flex',
             flex: 1,
@@ -146,6 +157,17 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         areaReactionButtonTitle: {
             fontSize: 14,
             paddingLeft: 2,
+        },
+        areaReactionsContainer: {
+            display: 'flex',
+            flex: 1,
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            paddingBottom: 0,
+            paddingHorizontal: 2,
+            maxHeight: contentTitleContainerHeight,
         },
         areaContentTitleContainer: {
             display: 'flex',
@@ -214,51 +236,52 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             color: therrTheme.colors.textWhite,
         },
         banner: {
-            marginBottom: 10,
+            marginBottom: 2,
             display: 'flex',
             flexDirection: 'row',
-            color: therrTheme.colors.accent3,
-            borderBottomWidth: 2,
+            borderBottomWidth: 1,
             borderBottomColor: therrTheme.colors.accentDivider,
-            backgroundColor: therrTheme.colors.brandingBlueGreen,
+            backgroundColor: 'transparent',
             alignItems: 'center',
+            paddingVertical: 6,
+            paddingHorizontal: 10,
         },
         bannerTitle: {
             display: 'flex',
             flexDirection: 'row',
             flex: 1,
             alignItems: 'center',
-            marginLeft: 2,
         },
         bannerTitleText: {
-            color: therrTheme.colors.brandingWhite,
-            fontSize: 15,
+            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
+            fontSize: 14,
             fontFamily: therrFontFamily,
             paddingRight: 8,
             flex: 1,
         },
         bannerTitleTextSmall: {
-            color: therrTheme.colors.brandingWhite,
+            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
             fontSize: 11,
             fontFamily: therrFontFamily,
             paddingLeft: 3,
             flex: 1,
         },
         bannerTitleTextCenter: {
-            color: therrTheme.colors.brandingWhite,
-            fontSize: 15,
+            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
+            fontSize: 14,
             fontFamily: therrFontFamily,
             textAlign: 'center',
         },
         bannerLinkText: {
             textDecorationLine: 'underline',
-            color: therrTheme.colors.brandingWhite,
+            color: therrTheme.colors.brandingBlueGreen,
+            fontSize: 13,
         },
         bannerTitleIcon: {
-            color: therrTheme.colors.accentYellow,
-            marginRight: 5,
-            height: 28,
-            width: 28,
+            color: therrTheme.colors.brandingBlueGreen,
+            marginRight: 8,
+            height: 22,
+            width: 22,
         },
         // This container is important to keep the snap at the left side of each card
         cardContainer: {
@@ -281,6 +304,9 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         cardImageContainer: {
             flex: 1,
             width: '100%',
+            borderTopLeftRadius: cardBorderRadius,
+            borderTopRightRadius: cardBorderRadius,
+            overflow: 'hidden',
         },
         cardImage: {
             height: '100%',

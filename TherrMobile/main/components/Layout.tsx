@@ -34,7 +34,7 @@ import { SheetManager, Sheets } from 'react-native-actions-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../utilities/toasts';
 import BackgroundGeolocation, {
     Config,
     Subscription,
@@ -446,7 +446,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 startOnBoot: true,        // <-- Auto start tracking when device is powered-up.
                 triggerActivities: 'on_foot, walking, running',
                 notification: {
-                    color: '#0f7b82',
+                    color: this.theme.colors.primary3,
                     smallIcon: 'drawable/ic_notification_icon',
                     text: this.translate('alertTitles.backgroundLocationNotification'),
                     channelName: this.translate('alertTitles.backgroundLocationNotificationChannel'),
@@ -682,19 +682,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const route = RootNavigation.getCurrentRoute();
         if (route?.name === 'ViewGroup') {
             this.props.archiveForum(group.id).then(() => {
-                Toast.show({
-                    type: 'info',
+                showToast.info({
                     text1: this.translate('forms.editGroup.archiveSuccess'),
-                    visibilityTime: 2500,
                 });
                 RootNavigation.navigate('Groups', {
                     activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
                 });
             }).catch(() =>{
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('forms.editGroup.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
         }
@@ -718,16 +714,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const route = RootNavigation.getCurrentRoute();
         if (route?.name === 'ViewGroup') {
             deleteUserGroup(group.id).then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('alertTitles.exitedGroup'),
-                    visibilityTime: 2500,
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('forms.editGroup.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
             RootNavigation.navigate('Groups', {
@@ -745,16 +737,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             createUserGroup({
                 groupId: group.id,
             }).then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('alertTitles.joinedGroup'),
-                    visibilityTime: 2500,
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('forms.editGroup.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
             RootNavigation.navigate('Groups', {
@@ -780,16 +768,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const route = RootNavigation.getCurrentRoute();
         if (route?.name === 'ViewUser') {
             updateUserConnectionType(userId, type).then(() => {
-                Toast.show({
-                    type: 'success',
+                showToast.success({
                     text1: this.translate('alertTitles.updated'),
-                    visibilityTime: 2500,
                 });
             }).catch(() => {
-                Toast.show({
-                    type: 'error',
+                showToast.error({
                     text1: this.translate('alertTitles.backendErrorMessage'),
-                    visibilityTime: 2500,
                 });
             });
         }
@@ -1097,16 +1081,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         },
                         user: user.details,
                     }).then(() => {
-                        Toast.show({
-                            type: 'success',
+                        showToast.success({
                             text1: this.translate('alertTitles.connectionAccepted'),
-                            visibilityTime: 2500,
                         });
                     }).catch(() => {
-                        Toast.show({
-                            type: 'error',
+                        showToast.error({
                             text1: this.translate('alertTitles.backendErrorMessage'),
-                            visibilityTime: 2500,
                         });
                     }).finally(() => {
                         RootNavigation.navigate('ViewUser', routeParams);
@@ -1416,7 +1396,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         return (
             <NavigationContainer
-                theme={buildNavTheme(this.theme)}
+                theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
                 ref={navigationRef}
                 onReady={() => {
                     this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
@@ -1474,6 +1454,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         let headerTitleColor = themeName === 'light'
                             ? this.theme.colors.primary3
                             : this.theme.colors.textWhite;
+                        const advancedSearchPlaceholderText = currentScreen === 'Areas'
+                            ? this.translate('components.header.searchContentInput.placeholder')
+                            : this.translate('components.header.searchInput.placeholder');
                         if (isMoment) {
                             headerStyleName = 'accent';
                             headerTitleColor = this.theme.colors.accentLogo;
@@ -1490,6 +1473,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
+                                placeholderText={advancedSearchPlaceholderText}
                             />;
                         }
                         if (isMap) {
@@ -1497,6 +1481,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
+                                placeholderText={advancedSearchPlaceholderText}
                             />;
                         }
                         if (isConnect) {
@@ -1547,7 +1532,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 color: headerTitleColor,
                                 textShadowOffset: { width: 0, height: 0 },
                                 textShadowRadius: 0,
-                                maxWidth: 250,
                             },
                             headerTitleAlign: 'center',
                             headerStyle,
@@ -1597,6 +1581,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         })
                         .map((route: any) => {
                             route.name = this.translate(route.name);
+                            delete route.key;
                             return <Stack.Screen key={route.name} {...route} />;
                         })}
                 </Stack.Navigator>

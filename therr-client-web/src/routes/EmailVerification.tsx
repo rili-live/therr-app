@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { Link, NavigateFunction } from 'react-router-dom';
+import { Alert, Stack } from '@mantine/core';
 import {
-    ButtonPrimary,
-    Input,
-} from 'therr-react/components';
+    MantineButton,
+    MantineInput,
+} from 'therr-react/components/mantine';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 import VerificationCodesService from '../services/VerificationCodesService';
@@ -34,7 +35,7 @@ const envVars = globalConfig[process.env.NODE_ENV];
  * EmailVerification
  */
 export class EmailVerificationComponent extends React.Component<IEmailVerificationProps, IEmailVerificationState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: IEmailVerificationProps & IEmailVerificationDispatchProps) {
         super(props);
@@ -119,59 +120,60 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
             <div id="page_email_verification" className="flex-box space-evenly center row wrap-reverse">
                 <div className="register-container">
                     <div className="flex fill max-wide-20">
-                        <h1>{this.translate('pages.emailVerification.pageTitle')}</h1>
+                        <Stack gap="sm">
+                            <h1>{this.translate('pages.emailVerification.pageTitle')}</h1>
 
-                        <div className="form-field">
                             {
                                 verificationStatus === 'pending'
                                 && <p>...</p>
                             }
                             {
                                 verificationStatus === 'success'
-                                && <p className="alert-success">{this.translate('pages.emailVerification.successMessage')}</p>
+                                && <Alert color="green" variant="light">{this.translate('pages.emailVerification.successMessage')}</Alert>
                             }
                             {
                                 verificationStatus === 'failed' && errorReason === 'TokenExpired'
-                                && <p className="alert-error">{this.translate('pages.emailVerification.failedMessageExpired')}</p>
+                                && <Alert color="red" variant="light">{this.translate('pages.emailVerification.failedMessageExpired')}</Alert>
                             }
                             {
                                 verificationStatus === 'failed' && errorReason === 'UserNotFound'
-                                && <p className="alert-error">{this.translate('pages.emailVerification.failedMessageUserNotFound')}</p>
+                                && <Alert color="red" variant="light">{this.translate('pages.emailVerification.failedMessageUserNotFound')}</Alert>
                             }
                             {
                                 verificationStatus === 'failed' && errorReason !== 'TokenExpired' && errorReason !== 'UserNotFound'
-                                && <p className="alert-error">{this.translate('pages.emailVerification.failedMessage')}</p>
+                                && <Alert color="red" variant="light">{this.translate('pages.emailVerification.failedMessage')}</Alert>
                             }
                             <div className="text-center">
                                 <Link to="/login">{this.translate('pages.emailVerification.returnToLogin')}</Link>
                             </div>
-                        </div>
 
-                        {
-                            verificationStatus === 'failed'
-                            && <div className="form-field">
-                                <label htmlFor="email">{this.translate('pages.emailVerification.labels.email')}:</label>
-                                <Input
-                                    type="text"
-                                    id="email"
-                                    name="email"
-                                    value={this.state.email}
-                                    onChange={this.onInputChange}
-                                    onEnter={this.onSubmit}
-                                    translate={this.translate}
-                                    validations={['isRequired', 'email']}
-                                />
-
-                                <div className="form-field text-right">
-                                    <ButtonPrimary
+                            {
+                                verificationStatus === 'failed'
+                                && <>
+                                    <MantineInput
+                                        type="text"
                                         id="email"
-                                        text={this.translate('pages.emailVerification.buttons.send')}
-                                        onClick={this.onSubmit}
-                                        disabled={!this.state.email}
+                                        name="email"
+                                        value={this.state.email}
+                                        onChange={this.onInputChange}
+                                        onEnter={this.onSubmit}
+                                        translateFn={this.translate}
+                                        validations={['isRequired', 'email']}
+                                        label={this.translate('pages.emailVerification.labels.email')}
                                     />
-                                </div>
-                            </div>
-                        }
+
+                                    <div className="form-field text-right">
+                                        <MantineButton
+                                            id="email"
+                                            text={this.translate('pages.emailVerification.buttons.send')}
+                                            onClick={this.onSubmit}
+                                            disabled={!this.state.email}
+                                            fullWidth
+                                        />
+                                    </div>
+                                </>
+                            }
+                        </Stack>
                     </div>
                 </div>
             </div>

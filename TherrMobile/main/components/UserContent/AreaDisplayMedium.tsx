@@ -8,7 +8,8 @@ import {
     TouchableWithoutFeedbackComponent,
     View,
 } from 'react-native';
-import { Button, Image } from 'react-native-elements';
+import { Button } from '../BaseButton';
+import { Image } from '../BaseImage';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
@@ -129,7 +130,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         const toggleOptions = () => toggleAreaOptions(area);
 
         return (
-            <>
+            <View style={themeViewArea.styles.areaCard}>
                 <View style={themeViewArea.styles.areaAuthorContainer}>
                     <Pressable
                         onPress={() => goToViewUser(area.fromUserId)}
@@ -146,7 +147,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                             containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
                             height={themeViewArea.styles.areaUserAvatarImg.height}
                             width={themeViewArea.styles.areaUserAvatarImg.width}
-                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
+                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen}/>}
                             transition={false}
                         />
                     </Pressable>
@@ -173,27 +174,28 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         }
                         onPress={toggleOptions}
                         type="clear"
-                        TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
-                <AreaDisplayContent
-                    hashtags={hashtags}
-                    isDarkMode={isDarkMode}
-                    area={area}
-                    areaMedia={areaMedia}
-                    inspectContent={inspectContent}
-                    onDoubleTap={() => this.onLikePress(area)}
-                    onBookmarkPress={() => this.onBookmarkPress(area)}
-                    theme={theme}
-                    themeForms={themeForms}
-                    themeViewArea={themeViewArea}
-                    translate={this.props.translate}
-                />
+                <View>
+                    <AreaDisplayContent
+                        hashtags={hashtags}
+                        isDarkMode={isDarkMode}
+                        area={area}
+                        areaMedia={areaMedia}
+                        inspectContent={inspectContent}
+                        onDoubleTap={() => this.onLikePress(area)}
+                        onBookmarkPress={() => this.onBookmarkPress(area)}
+                        theme={theme}
+                        themeForms={themeForms}
+                        themeViewArea={themeViewArea}
+                        translate={this.props.translate}
+                    />
+                </View>
                 {
                     area.distance != null &&
-                    <Text  style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
+                    <Text style={themeViewArea.styles.areaDistanceRight}>{`${area.distance}`}</Text>
                 }
-            </>
+            </View>
         );
     }
 }

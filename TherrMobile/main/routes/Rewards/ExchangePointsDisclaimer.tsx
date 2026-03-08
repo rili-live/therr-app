@@ -1,13 +1,13 @@
 import React from 'react';
 import { SafeAreaView, View, Text } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import { UsersService } from 'therr-react/services';
 import { IUserState } from 'therr-react/types';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -67,6 +67,9 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
             },
         };
 
+        this.theme = buildStyles(props.user?.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user?.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user?.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -106,18 +109,14 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
 
         // TODO: Allow user to specify an amount
         UsersService.requestRewardsExchange(coinTotal, inputs.giftCardProvider).then(() => {
-            Toast.show({
-                type: 'successBig',
+            showToast.success({
                 text1: this.translate('pages.exchangePointsDisclaimer.alertTitles.requestSent'),
                 text2: this.translate('pages.exchangePointsDisclaimer.alertMessages.requestSent'),
-                visibilityTime: 3000,
             });
         }).catch(() => {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('pages.exchangePointsDisclaimer.alertTitles.requestFailed'),
                 text2: this.translate('pages.exchangePointsDisclaimer.alertMessages.requestFailed'),
-                visibilityTime: 3000,
             });
         }).finally(() => {
             this.setState({
@@ -300,18 +299,22 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                 </SafeAreaView>
                 <View style={this.themeMenu.styles.submitButtonContainerFloat}>
                     <Button
-                        buttonStyle={this.themeForms.styles.button}
+                        buttonStyle={this.themeForms.styles.buttonPrimary}
+                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                        titleStyle={this.themeForms.styles.buttonTitle}
+                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         title={this.translate(
                             'forms.rewards.buttons.submit'
                         )}
                         onPress={this.onSubmit}
                         disabled={this.isFormDisabled()}
-                        raised={true}
                         icon={
                             <FontAwesomeIcon
                                 name="exchange"
                                 size={23}
-                                style={this.themeForms.styles.buttonIcon}
+                                style={this.isFormDisabled()
+                                    ? this.themeForms.styles.buttonIconDisabled
+                                    : this.themeForms.styles.buttonIcon}
                             />
                         }
                     />

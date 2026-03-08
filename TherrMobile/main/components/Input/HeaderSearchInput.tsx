@@ -1,8 +1,9 @@
 import React from 'react';
-import { Dimensions, Platform } from 'react-native';
+import { Dimensions, Platform, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Badge, InputProps } from 'react-native-elements';
+import { Badge } from 'react-native-paper';
+import { TextInputProps } from 'react-native';
 import 'react-native-gesture-handler';
 import { MapActions } from 'therr-react/redux/actions';
 import { IMapState as IMapReduxState } from 'therr-react/types';
@@ -24,7 +25,7 @@ interface IHeaderSearchInputState {
     overlayLeftOffset: number;
     shouldEvaluateClickaway: boolean;
 }
-interface IHeaderSearchInputDispatchProps extends Omit<InputProps, 'ref'> {
+interface IHeaderSearchInputDispatchProps extends Omit<TextInputProps, 'ref'> {
     getPlacesSearchAutoComplete: Function;
     setSearchDropdownVisibility: Function;
 }
@@ -40,6 +41,7 @@ interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
         colors: ITherrThemeColors;
         styles: any;
     };
+    placeholderText: string;
 }
 
 interface IHeaderSearchInputProps extends IHeaderSearchInputStoreProps {
@@ -125,7 +127,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
     // TODO: Display red dot to show filters enabled
     render() {
         const { inputText } = this.state;
-        const { isAdvancedSearch, map, theme, themeForms } = this.props;
+        const { isAdvancedSearch, map, theme, themeForms, placeholderText } = this.props;
         const textStyle = !inputText?.length
             ? [themeForms.styles.placeholderText, { fontSize: 16 }]
             : [themeForms.styles.inputText, { fontSize: 16 }];
@@ -159,10 +161,14 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                         ]
                     }
                     inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
+                    roundness={18}
                     onChangeText={this.onInputChange}
                     onFocus={() => this.handlePress('onfocus')}
-                    placeholder={this.translate('components.header.searchInput.placeholder')}
+                    placeholder={placeholderText}
                     placeholderTextColor={theme.colorVariations.textGrayFade}
+                    underlineColor="transparent"
+                    activeUnderlineColor="transparent"
+                    dense
                     rightIcon={
                         <TherrIcon
                             name={isAdvancedSearch ? 'filters' : 'search'}
@@ -176,11 +182,11 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 />
                 {
                     isAdvancedSearch && filterCount > 0 &&
-                    <Badge
-                        value={filterCount}
-                        badgeStyle={themeForms.styles.headerInputBadge}
-                        containerStyle={themeForms.styles.headerInputBadgeContainer}
-                    />
+                    <View style={themeForms.styles.headerInputBadgeContainer}>
+                        <Badge style={themeForms.styles.headerInputBadge}>
+                            {filterCount}
+                        </Badge>
+                    </View>
                 }
             </>
         );

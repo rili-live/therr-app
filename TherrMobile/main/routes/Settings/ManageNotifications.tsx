@@ -1,12 +1,13 @@
 import React from 'react';
-import { SafeAreaView, View, Text, Switch } from 'react-native';
-import { Button } from 'react-native-elements';
+import { SafeAreaView, View, Text } from 'react-native';
+import { Switch } from 'react-native-paper';
+import { Button } from '../../components/BaseButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -76,9 +77,7 @@ const NotificationSettingSwitch = ({
                     spacingStyles.marginLtLg,
                     spacingStyles.marginRtLg,
                 ]}
-                trackColor={{ false: theme.colors.primary2, true: theme.colors.primary4 }}
-                thumbColor={true ? theme.colors.primary3 : theme.colorVariations.primary3Fade}
-                ios_backgroundColor={theme.colors.primary4}
+                color={theme.colors.primary3}
                 onValueChange={onChange}
                 value={value}
                 disabled={disabled}
@@ -159,11 +158,9 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
                 userId: user.details.id,
             }).catch((err) => console.log(err));
 
-            Toast.show({
-                type: 'successBig',
+            showToast.success({
                 text1: this.translate('pages.advancedSettings.alertTitles.accountDeleted'),
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeleted'),
-                visibilityTime: 2000,
                 onHide: () => {
                     logout();
                 },
@@ -214,19 +211,15 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
     requestUserUpdate = (user, updateArgs) => this.props
         .updateUser(user.details.id, updateArgs)
         .then(() => {
-            Toast.show({
-                type: 'successBig',
+            showToast.success({
                 text1: this.translate('pages.manageNotifications.alertTitles.notificationSettingsUpdated'),
                 text2: this.translate('pages.manageNotifications.alertMessages.notificationSettingsUpdated'),
-                visibilityTime: 3000,
             });
         })
         .catch(() => {
-            Toast.show({
-                type: 'errorBig',
+            showToast.error({
                 text1: this.translate('pages.manageNotifications.alertTitles.accountError'),
                 text2: this.translate('pages.manageNotifications.alertMessages.notificationSettingsUpdatedError'),
-                visibilityTime: 3000,
             });
         })
         .finally(() => {
@@ -353,13 +346,15 @@ export class ManageNotifications extends React.Component<IManageNotificationsPro
                 </SafeAreaView>
                 <View style={this.themeMenu.styles.submitButtonContainerFloat}>
                     <Button
-                        buttonStyle={this.themeForms.styles.button}
+                        buttonStyle={this.themeForms.styles.buttonPrimary}
+                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                        titleStyle={this.themeForms.styles.buttonTitle}
+                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         title={this.translate(
                             'forms.settings.buttons.submit'
                         )}
                         onPress={this.onSubmit}
                         disabled={this.isFormDisabled()}
-                        raised={true}
                     />
                 </View>
                 <MainButtonMenu

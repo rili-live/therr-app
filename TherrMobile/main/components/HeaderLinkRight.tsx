@@ -1,7 +1,8 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Text } from 'react-native-elements';
+import { Button } from './BaseButton';
 import 'react-native-gesture-handler';
 import {
     AttachStep,
