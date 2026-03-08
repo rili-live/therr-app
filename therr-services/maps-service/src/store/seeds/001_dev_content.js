@@ -11,12 +11,13 @@
  * Uses ON CONFLICT (id) DO NOTHING for idempotency.
  */
 
-const DEV_USER_ID = '00000000-0000-0000-0000-000000000001';
-const DEV_GROUP_ID = '00000000-0000-0000-0000-000000000002';
+const seed = require('../../../../seed-constants'); // eslint-disable-line @typescript-eslint/no-var-requires
+
+const {
+    DEV_USER_ID, DEV_GROUP_ID, LOCALE, REGION,
+} = seed;
 const SPACE_RADIUS_METERS = 50;
 const MOMENT_RADIUS = 100.0;
-const LOCALE = 'en-us';
-const REGION = 'us-east-1';
 
 const moments = [
     {

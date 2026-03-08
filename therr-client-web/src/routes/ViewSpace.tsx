@@ -4,12 +4,13 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
 import { MapActions } from 'therr-react/redux/actions';
+import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
 import { Content } from 'therr-js-utilities/constants';
 import {
     Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs,
-    SimpleGrid, Rating as MantineRating,
+    SimpleGrid, Rating as MantineRating, Paper, Avatar,
 } from '@mantine/core';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
@@ -57,6 +58,8 @@ interface IViewSpaceProps extends IViewSpaceRouterProps, IStoreProps {
 
 interface IViewSpaceState {
     spaceId: string;
+    spaceMoments: any[];
+    isMomentsLoading: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -88,6 +91,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
         this.state = {
             spaceId: props.routeParams.spaceId,
+            spaceMoments: [],
+            isMomentsLoading: false,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -105,13 +110,31 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 withRatings: true,
             }).then(({ space: fetchedSpace }) => {
                 document.title = `${fetchedSpace?.notificationMsg} | Therr App`;
+                this.fetchSpaceMoments(spaceId);
             }).catch(() => {
                 this.props.navigation.navigate('/');
             });
         } else {
             document.title = `${space.notificationMsg} | Therr App`;
+            this.fetchSpaceMoments(spaceId);
         }
     }
+
+    fetchSpaceMoments = (spaceId: string) => {
+        this.setState({ isMomentsLoading: true });
+        MapsService.getSpaceMoments(
+            { itemsPerPage: 20, pageNumber: 1 },
+            [spaceId],
+            true,
+        ).then((response: any) => {
+            this.setState({
+                spaceMoments: response?.data?.results || [],
+                isMomentsLoading: false,
+            });
+        }).catch(() => {
+            this.setState({ isMomentsLoading: false });
+        });
+    };
 
     login = (credentials: any) => this.props.login(credentials);
 
@@ -265,6 +288,100 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         );
     }
 
+    renderMomentCard(moment: any): JSX.Element {
+        const authorName = moment.fromUserFirstName && moment.fromUserLastName
+            ? `${moment.fromUserFirstName} ${moment.fromUserLastName}`
+            : moment.fromUserName || 'Anonymous';
+
+        const dateStr = moment.createdAt
+            ? new Date(moment.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+            : '';
+
+        // Get moment media
+        const { content } = this.props;
+        const mediaPath = moment.medias?.[0]?.path;
+        const mediaType = moment.medias?.[0]?.type;
+        let momentMedia;
+        if (mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC) {
+            momentMedia = getUserContentUri(moment.medias[0], 200, 200, true);
+        } else if (mediaPath) {
+            momentMedia = content?.media?.[mediaPath];
+        }
+
+        return (
+            <Paper key={moment.id} withBorder p="md" radius="md" className="space-review-card">
+                <Group gap="sm" mb="xs" wrap="nowrap">
+                    <Avatar size={36} radius="xl" color="teal">
+                        {authorName.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Stack gap={0} style={{ flex: 1 }}>
+                        <Group gap="xs">
+                            {moment.fromUserId ? (
+                                <Anchor href={`/users/${moment.fromUserId}`} size="sm" fw={600}>{authorName}</Anchor>
+                            ) : (
+                                <Text size="sm" fw={600}>{authorName}</Text>
+                            )}
+                        </Group>
+                        {dateStr && <Text size="xs" c="dimmed">{dateStr}</Text>}
+                    </Stack>
+                </Group>
+                {moment.notificationMsg && (
+                    <Text fw={500} mb={4}>{moment.notificationMsg}</Text>
+                )}
+                {moment.message && (
+                    <Text size="sm" lineClamp={4} style={{ whiteSpace: 'pre-wrap' }}>{moment.message}</Text>
+                )}
+                {momentMedia && (
+                    <Image
+                        src={momentMedia}
+                        alt={moment.notificationMsg || 'Review image'}
+                        mt="sm"
+                        radius="sm"
+                        mah={200}
+                        fit="cover"
+                    />
+                )}
+                {moment.hashTags && (
+                    <Group gap="xs" mt="xs" wrap="wrap">
+                        {moment.hashTags.split(',').map((t: string) => t.trim()).filter(Boolean).map((tag: string) => (
+                            <Badge key={tag} variant="light" size="xs">#{tag}</Badge>
+                        ))}
+                    </Group>
+                )}
+                <Anchor href={`/moments/${moment.id}`} size="xs" mt="xs" display="inline-block">
+                    Read more
+                </Anchor>
+            </Paper>
+        );
+    }
+
+    renderCommunityPosts(): JSX.Element | null {
+        const { spaceMoments, isMomentsLoading } = this.state;
+
+        if (isMomentsLoading) {
+            return (
+                <>
+                    <Title order={2} size="h3" mt="xl">What People Are Saying</Title>
+                    <Stack gap="md" mt="sm">
+                        <Skeleton height={120} radius="md" />
+                        <Skeleton height={120} radius="md" />
+                    </Stack>
+                </>
+            );
+        }
+
+        if (!spaceMoments.length) return null;
+
+        return (
+            <>
+                <Title order={2} size="h3" mt="xl">What People Are Saying ({spaceMoments.length})</Title>
+                <Stack gap="md" mt="sm">
+                    {spaceMoments.map((moment: any) => this.renderMomentCard(moment))}
+                </Stack>
+            </>
+        );
+    }
+
     public render(): JSX.Element {
         const { content, map } = this.props;
         const { spaceId } = this.state;
@@ -350,6 +467,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
                     {/* Events */}
                     {this.renderEvents(space)}
+
+                    {/* Community Posts (Moments) */}
+                    {this.renderCommunityPosts()}
                 </Stack>
             </Container>
         );

@@ -28,4 +28,16 @@ $profileImgWidth: rem-calc(100px);
     .moment-description {
         line-height: 1.6;
     }
+
+    .moment-space-link {
+        display: block;
+
+        .moment-space-card {
+            transition: box-shadow 0.15s;
+
+            &:hover {
+                box-shadow: var(--mantine-shadow-sm);
+            }
+        }
+    }
 }

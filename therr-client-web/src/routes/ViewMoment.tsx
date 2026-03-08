@@ -8,7 +8,7 @@ import { IContentState, IMapState, IUserState } from 'therr-react/types';
 import { Content } from 'therr-js-utilities/constants';
 import {
     Container, Stack, Group, Title, Text, Badge, Anchor,
-    Divider, Image, Skeleton, Breadcrumbs,
+    Divider, Image, Skeleton, Breadcrumbs, Paper,
 } from '@mantine/core';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
@@ -165,16 +165,48 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         );
     }
 
-    renderLocationLink(moment: any): JSX.Element | null {
+    renderSpaceCard(moment: any): JSX.Element | null {
         if (!moment.spaceId) return null;
 
+        const space = moment.space;
+        const spaceName = space?.notificationMsg || moment.areaTitle || 'View Location';
+        const spaceAddress = space?.addressReadable || '';
+
+        // Get space media if available
+        const { content } = this.props;
+        let spaceMediaUri;
+        if (space?.medias?.[0]) {
+            const mediaPath = space.medias[0].path;
+            const mediaType = space.medias[0].type;
+            spaceMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+                ? getUserContentUri(space.medias[0], 120, 120, true)
+                : content?.media?.[mediaPath];
+        }
+
         return (
-            <Group gap="xs" mt="xs">
-                <Text size="sm" c="dimmed">at</Text>
-                <Anchor href={`/spaces/${moment.spaceId}`} size="sm">
-                    {moment.areaTitle || 'View Location'}
-                </Anchor>
-            </Group>
+            <Anchor href={`/spaces/${moment.spaceId}`} underline="never" className="moment-space-link">
+                <Paper withBorder p="md" radius="md" className="moment-space-card">
+                    <Group gap="md" wrap="nowrap">
+                        {spaceMediaUri && (
+                            <Image
+                                src={spaceMediaUri}
+                                alt={spaceName}
+                                w={80}
+                                h={80}
+                                radius="sm"
+                                fit="cover"
+                            />
+                        )}
+                        <Stack gap={4}>
+                            <Text fw={600}>{spaceName}</Text>
+                            {spaceAddress && <Text size="sm" c="dimmed">{spaceAddress}</Text>}
+                            {space?.category && (
+                                <Badge variant="light" size="xs">{formatCategoryLabel(space.category)}</Badge>
+                            )}
+                        </Stack>
+                    </Group>
+                </Paper>
+            </Anchor>
         );
     }
 
@@ -227,10 +259,10 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
 
                         {/* Author */}
                         {this.renderAuthorInfo(moment)}
-
-                        {/* Location link */}
-                        {this.renderLocationLink(moment)}
                     </div>
+
+                    {/* Space Card */}
+                    {this.renderSpaceCard(moment)}
 
                     <Divider />
 

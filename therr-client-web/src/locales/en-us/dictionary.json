@@ -246,6 +246,11 @@
     "spaces": {
       "pageTitle": "Business Locations",
       "header1": "Local Business Directory",
+      "searchPlaceholder": "Search spaces by name...",
+      "noResults": "No spaces found. Try a different search term.",
+      "public": "Public",
+      "private": "Private",
+      "yours": "Yours",
       "previousPage": "Back To Page {pageNumber}",
       "nextPage": "To Page {pageNumber}"
     },

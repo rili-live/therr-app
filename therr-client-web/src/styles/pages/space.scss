@@ -68,6 +68,14 @@ $profileImgWidth: rem-calc(100px);
         line-height: 1.6;
     }
 
+    .space-review-card {
+        transition: box-shadow 0.15s;
+
+        &:hover {
+            box-shadow: var(--mantine-shadow-sm);
+        }
+    }
+
     .space-event-card {
         display: block;
         padding: 1rem;
@@ -87,5 +95,10 @@ $profileImgWidth: rem-calc(100px);
         flex-direction: row;
         justify-content: space-around;
         flex-wrap: wrap;
+    }
+
+    .spaces-list-scroll {
+        max-height: 60vh;
+        overflow-y: auto;
     }
 }
