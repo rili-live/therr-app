@@ -27,9 +27,6 @@ interface IChangePasswordState {
 }
 
 interface IChangePasswordProps extends IStoreProps {
-    inputs: any;
-    errorReason: string;
-    isSuccess: boolean;
 }
 
 // Environment Variables
@@ -46,7 +43,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * ChangePassword
  */
 export class ChangePasswordComponent extends React.Component<IChangePasswordProps & IChangePasswordDispatchProps, IChangePasswordState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: IChangePasswordProps & IChangePasswordDispatchProps) {
         super(props);
@@ -149,7 +146,7 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                         onEnter={this.onSubmit}
                         translateFn={this.translate}
                         validations={['isRequired']}
-                        placeholder={this.translate('pages.changePassword.labels.oldPassword')}
+                        label={this.translate('pages.changePassword.labels.oldPassword')}
                     />
                     <MantineInput
                         type="password"
@@ -160,7 +157,7 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                         onEnter={this.onSubmit}
                         translateFn={this.translate}
                         validations={['isRequired']}
-                        placeholder={this.translate('pages.changePassword.labels.newPassword')}
+                        label={this.translate('pages.changePassword.labels.newPassword')}
                     />
                     <MantineInput
                         type="password"
@@ -171,7 +168,7 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                         onEnter={this.onSubmit}
                         translateFn={this.translate}
                         validations={['isRequired']}
-                        placeholder={this.translate('pages.changePassword.labels.newPasswordRepeat')}
+                        label={this.translate('pages.changePassword.labels.newPasswordRepeat')}
                     />
 
                     <div className="form-field text-right">

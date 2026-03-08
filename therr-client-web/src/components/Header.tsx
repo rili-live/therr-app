@@ -111,28 +111,30 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                         aria-label="Therr logo text home link"
                     />
                 </div>
-                <ColorSchemeToggle />
-                <AccessControl isAuthorized={isAuthorized} publicOnly>
-                    <div className="login-link flex-box row center align-center">
+                <div className="header-right">
+                    <ColorSchemeToggle />
+                    <AccessControl isAuthorized={isAuthorized} publicOnly>
+                        <div className="login-link">
+                            <SvgButton
+                                id="header_login_icon"
+                                name="account"
+                                onClick={() => goTo('/login')}
+                                buttonType="primary"
+                                aria-label="Sign in to Therr web app"
+                            />
+                            <Link to="/login">{this.translate('components.header.buttons.login')}</Link>
+                        </div>
+                    </AccessControl>
+                    <AccessControl isAuthorized={isAuthorized}>
                         <SvgButton
-                            id="header_login_icon"
+                            id="header_account_button"
                             name="account"
-                            onClick={() => goTo('/login')}
+                            className={`account-button ${hasUnreadNotifications ? 'has-notifications' : ''}`}
+                            onClick={(e) => toggleNavMenu(e, INavMenuContext.HEADER_PROFILE)}
                             buttonType="primary"
-                            aria-label="Sign in to Therr web app"
                         />
-                        <Link to="/login">{this.translate('components.header.buttons.login')}</Link>
-                    </div>
-                </AccessControl>
-                <AccessControl isAuthorized={isAuthorized}>
-                    <SvgButton
-                        id="header_account_button"
-                        name="account"
-                        className={`account-button ${hasUnreadNotifications ? 'has-notifications' : ''}`}
-                        onClick={(e) => toggleNavMenu(e, INavMenuContext.HEADER_PROFILE)}
-                        buttonType="primary"
-                    />
-                </AccessControl>
+                    </AccessControl>
+                </div>
             </header>
         );
     }

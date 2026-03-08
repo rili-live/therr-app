@@ -71,7 +71,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
 
     private messageInputRef: any;
 
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props) {
         super(props);

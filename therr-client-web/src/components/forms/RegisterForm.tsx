@@ -21,7 +21,6 @@ interface IRegisterFormProps {
 
 interface IRegisterFormState {
     inputs: any;
-    isPhoneNumberValid: boolean;
 }
 
 /**
@@ -30,7 +29,7 @@ interface IRegisterFormState {
 export class RegisterFormComponent extends React.Component<
     IRegisterFormProps, IRegisterFormState
 > {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: IRegisterFormProps) {
         super(props);
@@ -39,7 +38,6 @@ export class RegisterFormComponent extends React.Component<
             inputs: {
                 settingsEmailMarketing: true,
             },
-            isPhoneNumberValid: false,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -128,7 +126,7 @@ export class RegisterFormComponent extends React.Component<
                             onEnter={this.onSubmit}
                             translateFn={this.translate}
                             validations={['isRequired', 'email']}
-                            placeholder={this.translate(
+                            label={this.translate(
                                 'components.registerForm.labels.email',
                             )}
                         />
@@ -142,26 +140,22 @@ export class RegisterFormComponent extends React.Component<
                             onEnter={this.onSubmit}
                             translateFn={this.translate}
                             validations={['isRequired', 'password']}
-                            placeholder={this.translate(
+                            label={this.translate(
                                 'components.registerForm.labels.password',
                             )}
                         />
 
                         {/* Honeypot field */}
-                        <MantineInput
+                        <input
                             autoComplete="off"
-                            type="hidden"
+                            type="text"
                             id="sweety_pie"
                             name="website"
-                            value={this.state.inputs.website}
-                            onChange={this.onInputChange}
-                            onEnter={this.onSubmit}
-                            translateFn={this.translate}
-                            placeholder={this.translate(
-                                'components.registerForm.labels.mySweet',
-                            )}
+                            value={this.state.inputs.website || ''}
+                            onChange={(e) => this.onInputChange('website', e.target.value)}
                             tabIndex={-1}
-                            style={{ display: 'none' }}
+                            style={{ position: 'absolute', left: '-9999px' }}
+                            aria-hidden="true"
                         />
 
                         <MantineInput
@@ -173,7 +167,7 @@ export class RegisterFormComponent extends React.Component<
                             onEnter={this.onSubmit}
                             translateFn={this.translate}
                             validations={['isRequired']}
-                            placeholder={this.translate(
+                            label={this.translate(
                                 'components.registerForm.labels.repeatPassword',
                             )}
                         />

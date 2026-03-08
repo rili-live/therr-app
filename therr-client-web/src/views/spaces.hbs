@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <title>{{title}} | Therr App</title>
     <link rel="canonical" href="https://www.therr.com{{requestPath}}" />
-    
+
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
 
@@ -13,11 +13,23 @@
     <meta name="description" content="{{description}}">
     <meta name="author" content="Therr">
     <meta name="keywords" content="therr, therr app, therr social network, social platform, small businesses, local businesses, mobile, therr startup, startup, geo-social, freelance, freelancer, meet people, communities,  app, social network, chat, therr chat, therr mobile, therr web, hosted chat, geofencing app, social, influencer marketing, create content, brick and mortar, local events, local first social network, TherrCoin, set group of people, geo targeting, geotargeting">
-    
+
+    {{#if spaceLatitude}}
+    <meta name="geo.position" content="{{spaceLatitude}};{{spaceLongitude}}">
+    {{/if}}
+    {{#if spaceAddressReadable}}
+    <meta name="geo.placename" content="{{spaceAddressReadable}}">
+    {{/if}}
+
     <meta property="og:site_name" content="Therr" />
+    <meta property="og:type" content="place" />
     <meta property="og:title" content="{{title}} | Therr App" />
     <meta property="og:image" content="{{#if metaImgUrl}}{{metaImgUrl}}{{else}}https://therr.com/assets/images/meta-image-logo.png{{/if}}" />
     <meta property="og:description" content="{{description}}" />
+    {{#if spaceLatitude}}
+    <meta property="place:location:latitude" content="{{spaceLatitude}}" />
+    <meta property="place:location:longitude" content="{{spaceLongitude}}" />
+    {{/if}}
     <meta name="twitter:image" content="{{#if metaImgUrl}}{{metaImgUrl}}{{else}}https://therr.com/assets/images/meta-image-logo.png{{/if}}" />
     <meta name="twitter:title" content="{{title}} | Therr App" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -32,6 +44,7 @@
     <script>document.documentElement.setAttribute('data-mantine-color-scheme', (document.cookie.match(/therr-color-scheme=(light|dark)/)||[])[1]||'light');</script>
 
     <script type="application/ld+json">{{{spaceSchema}}}</script>
+    <script type="application/ld+json">{{{breadcrumbSchema}}}</script>
 </head>
 
 <body>
@@ -40,7 +53,7 @@
         window.__PRELOADED_STATE__ = "{{state}}"
     </script>
     <!-- Stylesheet -->
-    <link rel="stylesheet" type="text/css" href="/app.28d66081a0183b61e24b.css">
+    <link rel="stylesheet" type="text/css" href="/app.css">
     <script defer src="/app.js"></script>
 </body>
 

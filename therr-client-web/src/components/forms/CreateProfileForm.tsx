@@ -24,7 +24,7 @@ interface ICreateProfileFormState {
  * CreateProfileForm
  */
 export class CreateProfileFormComponent extends React.Component<ICreateProfileFormProps, ICreateProfileFormState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: ICreateProfileFormProps) {
         super(props);
@@ -101,7 +101,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             onEnter={this.onSubmit}
                             translateFn={this.translate}
                             validations={['isRequired']}
-                            placeholder={this.translate('components.createProfileForm.labels.userName')}
+                            label={this.translate('components.createProfileForm.labels.userName')}
                         />
 
                         <MantineInput
@@ -113,7 +113,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             onEnter={this.onSubmit}
                             translateFn={this.translate}
                             validations={['isRequired']}
-                            placeholder={this.translate('components.createProfileForm.labels.firstName')}
+                            label={this.translate('components.createProfileForm.labels.firstName')}
                         />
 
                         <MantineInput
@@ -125,7 +125,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             onEnter={this.onSubmit}
                             translateFn={this.translate}
                             validations={['isRequired']}
-                            placeholder={this.translate('components.createProfileForm.labels.lastName')}
+                            label={this.translate('components.createProfileForm.labels.lastName')}
                         />
 
                         <label className="required" htmlFor="phone_number">{this.translate('components.createProfileForm.labels.mobilePhone')}:</label>

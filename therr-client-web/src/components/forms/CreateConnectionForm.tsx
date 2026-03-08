@@ -24,7 +24,7 @@ interface ICreateConnectionFormProps {
 }
 
 class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, ICreateConnectionFormState> {
-    private translate;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: ICreateConnectionFormProps) {
         super(props);
@@ -85,8 +85,8 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
         });
     };
 
-    onValidateInput = (validations: any) => {
-        const hasValidationErrors = !!Object.keys(validations).filter((key) => validations[key].length).length;
+    onValidateInput = (validations: Record<string, string>) => {
+        const hasValidationErrors = Object.values(validations).some((msg) => !!msg);
         this.setState({
             hasValidationErrors,
         });
@@ -198,7 +198,7 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                         translateFn={this.translate}
                         validations={['isRequired', 'email']}
                         onValidate={this.onValidateInput}
-                        placeholder={this.translate('pages.userProfile.labels.email')}
+                        label={this.translate('pages.userProfile.labels.email')}
                     />
                 }
                 {
@@ -212,7 +212,7 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                 <div className="form-field text-right">
                     <MantineButton
                         id="send_request"
-                        text={this.translate('pages.userProfile.buttons.send') || 'Send'}
+                        text={this.translate('pages.userProfile.buttons.sendRequest')}
                         onClick={this.onSubmit}
                         disabled={!this.isFormValid()}
                         fullWidth

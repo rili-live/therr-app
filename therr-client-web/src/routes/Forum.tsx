@@ -148,7 +148,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
     private messageInputRef: any;
 
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     // private sessionToken: string;
 

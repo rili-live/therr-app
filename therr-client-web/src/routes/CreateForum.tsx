@@ -64,7 +64,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * CreateForum
  */
 export class CreateForumComponent extends React.Component<ICreateForumProps, ICreateForumState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     static getDerivedStateFromProps(nextProps: ICreateForumProps, nextState: ICreateForumState) {
         if (!nextState.categories || !nextState.categories.length) {

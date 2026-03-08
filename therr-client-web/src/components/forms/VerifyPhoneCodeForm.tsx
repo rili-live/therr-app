@@ -22,7 +22,7 @@ interface IVerifyPhoneCodeFormState {
  * VerifyPhoneCodeForm
  */
 export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCodeFormProps, IVerifyPhoneCodeFormState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: IVerifyPhoneCodeFormProps) {
         super(props);
@@ -84,7 +84,7 @@ export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCo
                             onEnter={this.onSubmit}
                             translateFn={this.translate}
                             validations={['isRequired']}
-                            placeholder={this.translate('components.createProfileForm.labels.verificationCode')}
+                            label={this.translate('components.createProfileForm.labels.verificationCode')}
                         />
 
                         <div className="form-field flex-box space-between row">

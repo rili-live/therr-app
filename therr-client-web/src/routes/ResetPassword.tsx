@@ -35,7 +35,7 @@ const envVars = globalConfig[process.env.NODE_ENV];
  * ResetPassword
  */
 export class ResetPasswordComponent extends React.Component<IResetPasswordProps, IResetPasswordState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: IResetPasswordProps) {
         super(props);
@@ -110,7 +110,7 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps,
                             onEnter={this.onSubmit}
                             translateFn={this.translate}
                             validations={['isRequired', 'email']}
-                            placeholder={this.translate('pages.resetPassword.labels.email')}
+                            label={this.translate('pages.resetPassword.labels.email')}
                         />
 
                         <div className="form-field text-right">

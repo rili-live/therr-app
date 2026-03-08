@@ -12,7 +12,7 @@ footer {
     width: 100%;
     height: $footer-height-small;
     text-align: center;
-    background: $therr-primary-1;
+    background: var(--therr-footer-bg, $therr-primary-1);
     box-shadow: $box-shadow-fixed-bot;
 
     .footer-menu-item {
@@ -54,25 +54,32 @@ button {
         display: flex;
         align-items: center;
         background: transparent;
+        box-shadow: none;
     }
 
     &#footer_close,
     &#footer_home,
     &#footer_messages {
         width: 2.15rem;
+        background: transparent;
+        box-shadow: none;
     }
 
     &#footer_close,
     &#footer_messages {
         margin-right: $messaging-side-margin;
         padding: rem-calc(7px);
-        background: transparent;
+    }
+
+    &#footer_home {
+        padding: rem-calc(7px);
     }
 
     &#footer_locations_icon {
         display: flex;
         align-items: center;
         background: transparent;
+        box-shadow: none;
     }
 
     &#footer_info {
@@ -80,6 +87,7 @@ button {
         align-items: center;
         margin-left: $messaging-side-margin-half;
         background: transparent;
+        box-shadow: none;
     }
 
     &#footer_messaging {
@@ -87,11 +95,25 @@ button {
         align-items: center;
         margin-left: $messaging-side-margin;
         background: transparent;
+        box-shadow: none;
 
         .inline-svg:nth-child(2),
         .inline-svg:nth-child(3) {
             display: none;
         }
+    }
+}
+
+// Ensure all footer icon SVGs are white on the teal footer bar
+footer {
+    .inline-svg {
+        svg {
+            fill: $therr-white;
+        }
+    }
+
+    button:hover {
+        background: transparentize($therr-white, .85);
     }
 }
 

@@ -53,7 +53,7 @@ $profileImgWidth: rem-calc(100px);
 
             h2 {
                 width: 100%;
-                border-bottom: 1px solid;
+                border-bottom: 1px solid var(--therr-divider-grey, currentColor);
                 padding: .5rem .75rem;
                 box-sizing: border-box;
             }
@@ -184,10 +184,6 @@ $profileImgWidth: rem-calc(100px);
 
                 &#add_connections {
                     width: 100%;
-                    
-                    #send_request {
-                        width: 4rem;
-                    }
                 }
 
                 .user-connections-container {
@@ -200,6 +196,22 @@ $profileImgWidth: rem-calc(100px);
                 }
             }
         }
+    }
+}
+
+#page_view_user {
+    .user-breadcrumbs {
+        font-size: 0.875rem;
+    }
+
+    .user-profile-header {
+        .user-avatar {
+            border: 3px solid var(--mantine-color-default-border);
+        }
+    }
+
+    .user-bio {
+        line-height: 1.6;
     }
 }
 

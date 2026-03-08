@@ -5,19 +5,29 @@
     <meta charset="utf-8" />
     <title>{{title}} | Therr App</title>
     <link rel="canonical" href="https://www.therr.com{{requestPath}}" />
-    
+
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
 
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="description" content="{{description}}">
-    <meta name="author" content="Therr">
+    <meta name="author" content="{{#if authorName}}{{authorName}}{{else}}Therr{{/if}}">
     <meta name="keywords" content="therr, therr app, therr social network, social platform, small businesses, local businesses, mobile, therr startup, startup, geo-social, freelance, freelancer, meet people, communities,  app, social network, chat, therr chat, therr mobile, therr web, hosted chat, geofencing app, social, influencer marketing, create content, brick and mortar, local events, local first social network, TherrCoin, set group of people, geo targeting, geotargeting">
-    
+
     <meta property="og:site_name" content="Therr" />
+    <meta property="og:type" content="article" />
     <meta property="og:title" content="{{title}} | Therr App" />
     <meta property="og:image" content="{{#if metaImgUrl}}{{metaImgUrl}}{{else}}https://therr.com/assets/images/meta-image-logo.png{{/if}}" />
     <meta property="og:description" content="{{description}}" />
+    {{#if datePublished}}
+    <meta property="article:published_time" content="{{datePublished}}" />
+    {{/if}}
+    {{#if authorName}}
+    <meta property="article:author" content="{{authorName}}" />
+    {{/if}}
+    {{#if momentCategory}}
+    <meta property="article:section" content="{{momentCategory}}" />
+    {{/if}}
     <meta name="twitter:image" content="{{#if metaImgUrl}}{{metaImgUrl}}{{else}}https://therr.com/assets/images/meta-image-logo.png{{/if}}" />
     <meta name="twitter:title" content="{{title}} | Therr App" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -31,21 +41,8 @@
     <link rel="preload" as="image" href="{{#if metaImgUrl}}{{metaImgUrl}}{{else}}https://therr.com/assets/images/meta-image-logo.png{{/if}}">
     <script>document.documentElement.setAttribute('data-mantine-color-scheme', (document.cookie.match(/therr-color-scheme=(light|dark)/)||[])[1]||'light');</script>
 
-    <script type="application/ld+json">
-        {
-            "@context":"https://schema.org",
-            "@type":"SocialMediaPosting",
-            "@id":"https://www.therr.com{{requestPath}}",
-            "datePublished":"{{datePublished}}",
-            "image": "{{#if metaImgUrl}}{{metaImgUrl}}{{else}}{{/if}}",
-            "author":{
-                "@type":"Person",
-                "name":"{{authorName}}",
-                "url":"{{#if authorId}}https://therr.com/users/{{authorId}}{{else}}{{/if}}"
-            },
-            "headline":"{{title}}"
-        }
-    </script>
+    <script type="application/ld+json">{{{momentSchema}}}</script>
+    <script type="application/ld+json">{{{breadcrumbSchema}}}</script>
 </head>
 
 <body>
@@ -54,7 +51,7 @@
         window.__PRELOADED_STATE__ = "{{state}}"
     </script>
     <!-- Stylesheet -->
-    <link rel="stylesheet" type="text/css" href="/app.28d66081a0183b61e24b.css">
+    <link rel="stylesheet" type="text/css" href="/app.css">
     <script defer src="/app.js"></script>
 </body>
 

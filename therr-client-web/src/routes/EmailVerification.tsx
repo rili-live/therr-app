@@ -35,7 +35,7 @@ const envVars = globalConfig[process.env.NODE_ENV];
  * EmailVerification
  */
 export class EmailVerificationComponent extends React.Component<IEmailVerificationProps, IEmailVerificationState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: IEmailVerificationProps & IEmailVerificationDispatchProps) {
         super(props);
@@ -159,7 +159,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                                         onEnter={this.onSubmit}
                                         translateFn={this.translate}
                                         validations={['isRequired', 'email']}
-                                        placeholder={this.translate('pages.emailVerification.labels.email')}
+                                        label={this.translate('pages.emailVerification.labels.email')}
                                     />
 
                                     <div className="form-field text-right">

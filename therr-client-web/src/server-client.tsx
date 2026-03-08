@@ -158,13 +158,51 @@ const renderMomentView = (req, res, config, {
         }
     }
 
+    const momentCategory = moment?.category || '';
+
+    const momentSchema: any = {
+        '@context': 'https://schema.org',
+        '@type': 'SocialMediaPosting',
+        '@id': `https://www.therr.com${req.path}`,
+        headline: momentTitle,
+        datePublished: moment?.createdAt || '',
+        image: metaImgUrl || '',
+        author: {
+            '@type': 'Person',
+            name: authorName,
+            url: authorId ? `https://therr.com/users/${authorId}` : '',
+        },
+    };
+
+    if (moment?.message) {
+        momentSchema.articleBody = momentDescription;
+    }
+
+    // Breadcrumb schema
+    const breadcrumbItems: any[] = [
+        {
+            '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+        },
+        { '@type': 'ListItem', position: 2, name: 'Moments' },
+        { '@type': 'ListItem', position: 3, name: momentTitle },
+    ];
+
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbItems,
+    };
+
     return res.render(routeView, {
         title: momentTitle,
         description: momentDescription,
         datePublished: moment?.createdAt,
         authorName,
         authorId,
+        momentCategory,
         metaImgUrl,
+        momentSchema: JSON.stringify(momentSchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         markup,
         requestPath: req.path,
         routePath,
@@ -217,9 +255,32 @@ const renderSpaceView = (req, res, config, {
         }
     }
 
+    // Map category to schema.org type
+    const categorySchemaMap: { [key: string]: string } = {
+        'categories.restaurant/food': 'Restaurant',
+        'categories.food': 'Restaurant',
+        'categories.menu': 'Restaurant',
+        'categories.bar/drinks': 'BarOrNightClub',
+        'categories.drinks': 'BarOrNightClub',
+        'categories.nightLife': 'BarOrNightClub',
+        'categories.hotels/lodging': 'LodgingBusiness',
+        'categories.fitness/sports': 'SportsActivityLocation',
+        'categories.fitness': 'SportsActivityLocation',
+        'categories.sports': 'SportsActivityLocation',
+        'categories.storefront/shop': 'Store',
+        'categories.storefront': 'Store',
+        'categories.museum/academia': 'Museum',
+        'categories.event/space': 'EventVenue',
+    };
+    const schemaType = categorySchemaMap[space?.category] || 'LocalBusiness';
+
+    const spaceLatitude = space?.latitude || '';
+    const spaceLongitude = space?.longitude || '';
+    const spaceAddressReadable = space?.addressReadable || '';
+
     const spaceSchema: any = {
-        context: 'https://schema.org',
-        '@type': 'Restaurant',
+        '@context': 'https://schema.org',
+        '@type': schemaType,
         name: spaceTitle,
         image: metaImgUrl || '',
         priceRange: '$'.repeat(spacePriceRange || 2),
@@ -236,17 +297,26 @@ const renderSpaceView = (req, res, config, {
         servesCuisine: spaceFoodGenre,
     };
 
-    if (space?.aggregateRating) { // TODO: add to request details
+    if (spaceLatitude && spaceLongitude) {
+        spaceSchema.geo = {
+            '@type': 'GeoCoordinates',
+            latitude: spaceLatitude,
+            longitude: spaceLongitude,
+        };
+    }
+
+    if (space?.rating?.avgRating) {
         spaceSchema.aggregateRating = {
             '@type': 'AggregateRating',
-            ratingValue: space?.aggregateRating.rating,
-            reviewCount: space?.aggregateRating.total,
+            ratingValue: space.rating.avgRating,
+            reviewCount: space.rating.totalRatings,
+            bestRating: 5,
         };
     }
 
     spaceSchema.openingHours = space?.openingHours?.schema || [];
 
-    if (space?.reviews) { // TODO: add to request details
+    if (space?.reviews) {
         spaceSchema.review = space?.reviews.slice(0, 10).map((review) => ({
             author: review.author,
             datePublished: review.createdAt,
@@ -256,6 +326,29 @@ const renderSpaceView = (req, res, config, {
             description: review.text,
         }));
     }
+
+    // Breadcrumb schema
+    const breadcrumbLocality = spaceAddressLocality || spaceAddressRegion || '';
+    const breadcrumbItems: any[] = [
+        {
+            '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+        },
+        {
+            '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
+        },
+    ];
+    if (breadcrumbLocality) {
+        breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: breadcrumbLocality });
+        breadcrumbItems.push({ '@type': 'ListItem', position: 4, name: spaceTitle });
+    } else {
+        breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: spaceTitle });
+    }
+
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbItems,
+    };
 
     return res.render(routeView, {
         title: spaceTitle,
@@ -269,7 +362,11 @@ const renderSpaceView = (req, res, config, {
         spacePostalCode,
         spaceWebsiteUrl,
         spacePriceRange,
+        spaceLatitude,
+        spaceLongitude,
+        spaceAddressReadable,
         spaceSchema: JSON.stringify(spaceSchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         markup,
         requestPath: req.path,
         routePath,
@@ -304,10 +401,55 @@ const renderUserView = (req, res, config, {
         }
     }
 
+    const userHandle = user?.userName || '';
+    const userBio = user?.settingsBio || '';
+
+    // Collect social links for schema sameAs
+    const sameAs: string[] = [];
+    if (user?.socialSyncs?.tiktok?.link) sameAs.push(user.socialSyncs.tiktok.link);
+    if (user?.socialSyncs?.twitter?.link) sameAs.push(user.socialSyncs.twitter.link);
+    if (user?.socialSyncs?.youtube?.link) sameAs.push(user.socialSyncs.youtube.link);
+    if (user?.socialSyncs?.instagram?.link) sameAs.push(user.socialSyncs.instagram.link);
+
+    const userSchema: any = {
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: userName,
+        url: `https://www.therr.com${req.path}`,
+    };
+
+    if (metaImgUrl) {
+        userSchema.image = metaImgUrl;
+    }
+    if (userBio) {
+        userSchema.description = userBio;
+    }
+    if (sameAs.length > 0) {
+        userSchema.sameAs = sameAs;
+    }
+
+    // Breadcrumb schema
+    const breadcrumbItems: any[] = [
+        {
+            '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+        },
+        { '@type': 'ListItem', position: 2, name: 'Users' },
+        { '@type': 'ListItem', position: 3, name: userName || title },
+    ];
+
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbItems,
+    };
+
     return res.render(routeView, {
         title: userName || title,
-        description: user?.settingsBio || description,
+        description: userBio || description,
+        userHandle,
         metaImgUrl,
+        userSchema: JSON.stringify(userSchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         markup,
         requestPath: req.path,
         routePath,

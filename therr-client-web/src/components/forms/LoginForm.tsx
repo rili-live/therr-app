@@ -26,7 +26,7 @@ interface ILoginFormState {
  * LoginForm
  */
 export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginFormState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: ILoginFormProps) {
         super(props);
@@ -161,7 +161,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                             onEnter={this.onSubmit}
                             translateFn={this.translate}
                             validations={['isRequired']}
-                            placeholder={this.translate('components.loginForm.labels.userName')}
+                            label={this.translate('components.loginForm.labels.userName')}
                         />
 
                         <MantineInput
@@ -171,7 +171,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                             value={this.state.inputs.password}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
-                            placeholder={this.translate('components.loginForm.labels.password')}
+                            label={this.translate('components.loginForm.labels.password')}
                             translateFn={this.translate}
                             validations={['isRequired']}
                         />

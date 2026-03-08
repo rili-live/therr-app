@@ -35,16 +35,22 @@ const MantineInput = React.forwardRef<HTMLInputElement, IMantineInputProps>(({
     const [isTouched, setIsTouched] = React.useState(false);
     const [error, setError] = React.useState<string | undefined>();
 
+    // Stabilize references to avoid infinite re-render loops
+    const onValidateRef = React.useRef(onValidate);
+    onValidateRef.current = onValidate;
+    const validationsKey = JSON.stringify(validations);
+
     React.useEffect(() => {
         if (validations.length === 0 || !translateFn) return;
 
         const errors: string[] = [];
+        const safeValue = value || '';
         validations.forEach((key) => {
-            if (!isValidInput(VALIDATIONS, key, value)) {
+            if (!isValidInput(VALIDATIONS, key, safeValue)) {
                 errors.push(
                     translateFn(
                         VALIDATIONS[key].errorMessageLocalizationKey,
-                        { value },
+                        { value: safeValue },
                     ),
                 );
             }
@@ -56,10 +62,10 @@ const MantineInput = React.forwardRef<HTMLInputElement, IMantineInputProps>(({
             setError(errorMsg);
         }
 
-        if (onValidate) {
-            onValidate(errorMsg ? { [id]: errorMsg } : {});
+        if (onValidateRef.current) {
+            onValidateRef.current(errorMsg ? { [id]: errorMsg } : {});
         }
-    }, [value, validations, id, translateFn, onValidate, isTouched, isDirty]);
+    }, [value, validationsKey, id, translateFn, isTouched, isDirty]); // validationsKey is stable string
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setIsDirty(true);

@@ -27,6 +27,7 @@ const moments = [
         latitude: 37.3361,
         longitude: -122.0389,
         hashTags: 'views,hiking,discovery',
+        spaceId: null, // standalone moment
     },
     {
         id: '10000000-0000-0000-0000-000000000002',
@@ -36,6 +37,7 @@ const moments = [
         latitude: 37.3490,
         longitude: -122.0480,
         hashTags: 'coffee,morningvibes,caffeine',
+        spaceId: '20000000-0000-0000-0000-000000000001', // Cupertino Coffee House
     },
     {
         id: '10000000-0000-0000-0000-000000000003',
@@ -45,6 +47,7 @@ const moments = [
         latitude: 37.3700,
         longitude: -122.0620,
         hashTags: 'farmersmarket,local,fresh',
+        spaceId: null, // standalone moment
     },
     {
         id: '10000000-0000-0000-0000-000000000004',
@@ -54,6 +57,7 @@ const moments = [
         latitude: 37.3861,
         longitude: -122.0839,
         hashTags: 'tech,networking,siliconvalley',
+        spaceId: '20000000-0000-0000-0000-000000000003', // TechHub Coworking Space
     },
     {
         id: '10000000-0000-0000-0000-000000000005',
@@ -63,6 +67,7 @@ const moments = [
         latitude: 37.4000,
         longitude: -122.0750,
         hashTags: 'streetart,mural,art',
+        spaceId: '20000000-0000-0000-0000-000000000006', // The Gallery at Mountain View
     },
     {
         id: '10000000-0000-0000-0000-000000000006',
@@ -72,6 +77,7 @@ const moments = [
         latitude: 37.4110,
         longitude: -122.0620,
         hashTags: 'running,fitness,outdoors',
+        spaceId: null, // standalone moment
     },
     {
         id: '10000000-0000-0000-0000-000000000007',
@@ -81,6 +87,7 @@ const moments = [
         latitude: 37.4221,
         longitude: -122.0841,
         hashTags: 'tacos,foodtruck,lunch',
+        spaceId: '20000000-0000-0000-0000-000000000002', // Silicon Valley Bites
     },
     {
         id: '10000000-0000-0000-0000-000000000008',
@@ -90,6 +97,7 @@ const moments = [
         latitude: 37.4300,
         longitude: -122.0900,
         hashTags: 'sunset,nature,peaceful',
+        spaceId: null, // standalone moment
     },
     {
         id: '10000000-0000-0000-0000-000000000009',
@@ -99,6 +107,7 @@ const moments = [
         latitude: 37.4150,
         longitude: -122.1000,
         hashTags: 'community,cleanup,neighborhood',
+        spaceId: null, // standalone moment
     },
     {
         id: '10000000-0000-0000-0000-000000000010',
@@ -108,6 +117,7 @@ const moments = [
         latitude: 37.3600,
         longitude: -122.0450,
         hashTags: 'books,reading,discovery',
+        spaceId: '20000000-0000-0000-0000-000000000004', // Palo Alto Bookshop
     },
 ];
 
@@ -343,29 +353,29 @@ exports.seed = async (knex) => {
                  latitude, longitude, radius, "polygonCoords", "maxProximity",
                  "doesRequireProximityToView", "isMatureContent", "isModeratorApproved",
                  "isForSale", "isHirable", "isPromotional", "isExclusiveToGroups",
-                 category, valuation, region, geom)
+                 category, valuation, region, geom, "spaceId")
             VALUES
                 (?, ?, ?, ?, ?, ?,
                  ?, ?, ?, ?,
                  ?, ?, ?, ?::jsonb, ?,
                  ?, ?, ?,
                  ?, ?, ?, ?,
-                 ?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326))
-            ON CONFLICT (id) DO NOTHING
+                 ?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), ?)
+            ON CONFLICT (id) DO UPDATE SET "spaceId" = EXCLUDED."spaceId"
         `, [
             m.id, DEV_USER_ID, LOCALE, true, m.message, m.notificationMsg,
             '', '', m.hashTags, 0,
             m.latitude, m.longitude, MOMENT_RADIUS, '[]', 0.0,
             false, false, true,
             false, false, false, false,
-            m.category, 0, REGION, m.longitude, m.latitude,
+            m.category, 0, REGION, m.longitude, m.latitude, m.spaceId,
         ])),
     );
 
     const momentsInserted = momentResults.filter((r) => r.rowCount > 0).length;
     const momentsSkipped = momentResults.length - momentsInserted;
     // eslint-disable-next-line no-console
-    console.log(`Moments seed complete: ${momentsInserted} inserted, ${momentsSkipped} skipped`);
+    console.log(`Moments seed complete: ${momentsInserted} inserted/updated, ${momentsSkipped} skipped`);
 
     // ── Spaces ─────────────────────────────────────────────────────────────────
     const spaceResults = await Promise.all(

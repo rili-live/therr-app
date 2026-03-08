@@ -43,7 +43,7 @@ const envVars = globalConfig[process.env.NODE_ENV];
  * AppFeedback
  */
 export class AppFeedbackComponent extends React.Component<IAppFeedbackProps, IAppFeedbackState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: IAppFeedbackProps & IAppFeedbackDispatchProps) {
         super(props);

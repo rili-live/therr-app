@@ -14,6 +14,16 @@ const teal: MantineColorsTuple = [
     '#0a3239', // 9 - darkest
 ];
 
+// Shared input styles to match mobile app (52px tall, rounded)
+const inputStyles = {
+    input: {
+        height: '3.25rem',
+        minHeight: '3.25rem',
+        borderRadius: '1rem',
+        fontSize: '1rem',
+    },
+};
+
 const mantineTheme = createTheme({
     primaryColor: 'teal',
     colors: {
@@ -26,18 +36,37 @@ const mantineTheme = createTheme({
     components: {
         Button: {
             defaultProps: {
-                radius: 'sm',
+                radius: 'xl',
+                size: 'lg',
             },
         },
         TextInput: {
             defaultProps: {
                 size: 'md',
             },
+            styles: inputStyles,
+        },
+        PasswordInput: {
+            defaultProps: {
+                size: 'md',
+            },
+            styles: {
+                input: {
+                    height: '3.25rem',
+                    minHeight: '3.25rem',
+                    borderRadius: '1rem',
+                    fontSize: '1rem',
+                },
+                innerInput: {
+                    height: '3.25rem',
+                },
+            },
         },
         Select: {
             defaultProps: {
                 size: 'md',
             },
+            styles: inputStyles,
         },
         Checkbox: {
             defaultProps: {

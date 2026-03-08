@@ -5,7 +5,7 @@ interface IMantineSearchBoxProps extends Omit<TextInputProps, 'onChange'> {
     id: string;
     name: string;
     value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onChange: (name: string, value: string) => void;
     onSearch: (value: string) => void;
 }
 
@@ -34,6 +34,10 @@ const MantineSearchBox: React.FC<IMantineSearchBoxProps> = ({
     onSearch,
     ...rest
 }) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange(name, e.target.value);
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             onSearch(value);
@@ -45,7 +49,7 @@ const MantineSearchBox: React.FC<IMantineSearchBoxProps> = ({
             id={id}
             name={name}
             value={value}
-            onChange={onChange}
+            onChange={handleChange}
             onKeyDown={handleKeyDown}
             leftSection={searchIcon}
             {...rest}

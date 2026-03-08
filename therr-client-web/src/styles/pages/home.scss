@@ -7,8 +7,22 @@ $profileImgWidth: rem-calc(100px);
         justify-content: space-around;
         flex-wrap: wrap;
     }
+
+    .info-container {
+        color: var(--therr-text-a, $therr-text-a);
+    }
+}
+
+#page_login {
+    .store-image-links {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
 }
 
 @media only screen and (min-width: $screen-small) {
-    
+
 }

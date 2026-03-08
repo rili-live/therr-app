@@ -1,5 +1,5 @@
 label {
-    color: $therr-label-color;
+    color: var(--therr-label-color, $therr-label-color);
     font-weight: 400;
 
     &.required {
@@ -9,26 +9,24 @@ label {
     }
 }
 
-// Login/register containers: elevated dark card on desktop
-@media only screen and (min-width: 540px) {
-    .content-container-home {
-        .login-container,
-        .register-container,
-        .centered-container {
-            background-color: #2A2A2A;
-            border: 1px solid $therr-light-grey;
-            border-radius: 1rem;
-            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.3);
-        }
-    }
+// Ensure Mantine input labels use theme colors
+.mantine-TextInput-label,
+.mantine-PasswordInput-label,
+.mantine-Select-label {
+    color: var(--therr-label-color, $therr-label-color);
 }
 
-// Fix .link-plain-white for dark theme (already light text, just ensure contrast)
-.link-plain-white {
-    color: $therr-link-blue-2;
+// Ensure Mantine inputs use theme colors
+.mantine-TextInput-input,
+.mantine-PasswordInput-input,
+.mantine-Select-input {
+    background-color: var(--therr-input-bg-color, $therr-input-bg-color);
+    border-color: var(--therr-input-border-color, $therr-input-border-color);
+    color: var(--therr-input-text-color, $therr-input-text-color);
 
-    &:visited {
-        color: $therr-link-1;
+    &:focus,
+    &:focus-within {
+        border-color: var(--therr-input-focus-color, $therr-input-focus-color);
     }
 }
 

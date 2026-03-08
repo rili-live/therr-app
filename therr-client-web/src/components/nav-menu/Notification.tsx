@@ -21,34 +21,38 @@ const Notification: React.FunctionComponent<INotificationProps> = ({
     if (notification.type === 'CONNECTION_REQUEST_RECEIVED') {
         return (
             <div className={notificationClassNames} onClick={(e) => handleSetRead(e, notification)}>
-                <span>{notification.message}</span>
-                {
-                    notification.userConnection.requestStatus === UserConnectionTypes.PENDING
-                    && <div className="action-buttons text-right">
-                        <MantineButton
-                            id="deny_connection_request_button"
-                            className="action-button"
-                            text="Deny"
-                            onClick={(e) => handleConnectionRequestAction(e, notification, false)}
-                            variant="outline"
-                            size="compact-sm"
-                        />
-                        <MantineButton
-                            id="accept_connection_request_button"
-                            className="action-button"
-                            text="Accept"
-                            onClick={(e) => handleConnectionRequestAction(e, notification, true)}
-                            size="compact-sm"
-                        />
-                    </div>
-                }
+                <div className="notification-content">
+                    <span>{notification.message}</span>
+                    {
+                        notification.userConnection.requestStatus === UserConnectionTypes.PENDING
+                        && <div className="action-buttons text-right">
+                            <MantineButton
+                                id="deny_connection_request_button"
+                                className="action-button"
+                                text="Deny"
+                                onClick={(e) => handleConnectionRequestAction(e, notification, false)}
+                                variant="outline"
+                                size="compact-sm"
+                            />
+                            <MantineButton
+                                id="accept_connection_request_button"
+                                className="action-button"
+                                text="Accept"
+                                onClick={(e) => handleConnectionRequestAction(e, notification, true)}
+                                size="compact-sm"
+                            />
+                        </div>
+                    }
+                </div>
             </div>
         );
     }
 
     return (
         <div className={notificationClassNames} onClick={(e) => handleSetRead(e, notification)}>
-            <span>{notification.message}</span>
+            <div className="notification-content">
+                <span>{notification.message}</span>
+            </div>
         </div>
     );
 };
