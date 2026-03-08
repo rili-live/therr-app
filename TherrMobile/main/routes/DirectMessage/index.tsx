@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView, FlatList, View, KeyboardAvoidingView, Platform } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -38,6 +38,7 @@ export interface IDirectMessageProps extends IStoreProps {
 
 interface IDirectMessageState {
     isLoading: boolean;
+    isSending: boolean;
     msgInputVal: string;
     msgScrollPosition: number;
     pageNumber: number;
@@ -72,6 +73,7 @@ class DirectMessage extends React.Component<
 
         this.state = {
             isLoading: false,
+            isSending: false,
             msgInputVal: '',
             msgScrollPosition: 0,
             pageNumber: 1,
@@ -144,11 +146,13 @@ class DirectMessage extends React.Component<
 
     handleSend = (e) => {
         e.preventDefault();
-        const { msgInputVal } = this.state;
+        const { isSending, msgInputVal } = this.state;
 
-        if (msgInputVal) {
+        if (msgInputVal && !isSending) {
             const { route, sendDirectMessage, user } = this.props;
             const { connectionDetails } = route.params;
+
+            this.setState({ isSending: true });
 
             sendDirectMessage({
                 message: msgInputVal,
@@ -160,6 +164,11 @@ class DirectMessage extends React.Component<
             this.setState({
                 msgInputVal: '',
             });
+
+            // Brief cooldown to prevent double-tap
+            setTimeout(() => {
+                this.setState({ isSending: false });
+            }, 500);
         }
     };
 
@@ -188,7 +197,7 @@ class DirectMessage extends React.Component<
     };
 
     render() {
-        const { isLoading, msgInputVal } = this.state;
+        const { isLoading, isSending, msgInputVal } = this.state;
         const { messages, route, user } = this.props;
         const { connectionDetails } = route.params;
         const dms = messages.dms ? (messages.dms[connectionDetails.id] || []) : [];
@@ -198,10 +207,9 @@ class DirectMessage extends React.Component<
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={[this.theme.styles.safeAreaView]}>
                     <KeyboardAvoidingView
-                        behavior="padding"
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                         style={this.themeMessage.styles.container}
-                        keyboardVerticalOffset={this.themeMessage.styles.sendInputsContainer.height}
-                        enabled={Platform.OS === 'ios'}
+                        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
                     >
                         {
                             isLoading ?
@@ -260,6 +268,7 @@ class DirectMessage extends React.Component<
                                 buttonStyle={this.themeMessage.styles.sendBtn}
                                 containerStyle={this.themeMessage.styles.sendBtnContainer}
                                 onPress={this.handleSend}
+                                disabled={isSending || !msgInputVal}
                             />
                         </View>
                     </KeyboardAvoidingView>

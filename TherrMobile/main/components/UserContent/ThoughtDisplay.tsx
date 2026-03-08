@@ -7,7 +7,8 @@ import {
     TouchableWithoutFeedbackComponent,
     View,
 } from 'react-native';
-import { Button, Image } from 'react-native-elements';
+import { Button } from '../BaseButton';
+import { Image } from '../BaseImage';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
@@ -144,7 +145,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
 
         return (
-            <>
+            <View style={themeViewContent.styles.thoughtCard}>
                 <View style={[themeViewContent.styles.thoughtContainer]}>
                     <View style={themeViewContent.styles.thoughtLeftContainer}>
                         <Pressable
@@ -156,7 +157,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                 }, 52) }}
                                 style={themeViewContent.styles.thoughtUserAvatarImg}
                                 containerStyle={themeViewContent.styles.thoughtUserAvatarImgContainer}
-                                PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
+                                PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen}/>}
                                 transition={false}
                             />
                         </Pressable>
@@ -202,7 +203,6 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                 }
                                 onPress={() => toggleThoughtOptions(thought)}
                                 type="clear"
-                                TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
                         </View>
                         {
@@ -230,26 +230,28 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                 </View>
                 {
                     isExpanded &&
-                        <ThoughtContent
-                            hashtags={hashtags}
-                            isBookmarked={isBookmarked}
-                            isExpanded={isExpanded}
-                            isDarkMode={isDarkMode}
-                            isLiked={isLiked}
-                            isRepliable={isRepliable}
-                            likeColor={likeColor}
-                            likeCount={likeCount}
-                            inspectThought={inspectThought}
-                            onBookmarkPress={this.onBookmarkPress}
-                            onCommentPress={this.onCommentPress}
-                            onLikePress={this.onLikePress}
-                            theme={theme}
-                            themeForms={themeForms}
-                            themeViewContent={themeViewContent}
-                            thought={thought}
-                        />
+                        <View>
+                            <ThoughtContent
+                                hashtags={hashtags}
+                                isBookmarked={isBookmarked}
+                                isExpanded={isExpanded}
+                                isDarkMode={isDarkMode}
+                                isLiked={isLiked}
+                                isRepliable={isRepliable}
+                                likeColor={likeColor}
+                                likeCount={likeCount}
+                                inspectThought={inspectThought}
+                                onBookmarkPress={this.onBookmarkPress}
+                                onCommentPress={this.onCommentPress}
+                                onLikePress={this.onLikePress}
+                                theme={theme}
+                                themeForms={themeForms}
+                                themeViewContent={themeViewContent}
+                                thought={thought}
+                            />
+                        </View>
                 }
-            </>
+            </View>
         );
     }
 }
@@ -352,8 +354,8 @@ const ThoughtContent = ({
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
                             <Button
-                                containerStyle={themeViewContent.styles.areaReactionButtonContainer}
-                                buttonStyle={themeViewContent.styles.areaReactionButton}
+                                containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                buttonStyle={themeViewContent.styles.thoughtReactionButton}
                                 icon={
                                     <TherrIcon
                                         name={ isLiked ? 'heart-filled' : 'heart' }

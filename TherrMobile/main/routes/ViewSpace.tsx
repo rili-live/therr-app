@@ -1,54 +1,50 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Dimensions,
     Platform,
     SafeAreaView,
     Share,
+    StyleSheet,
     Text,
     View,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button as PaperButton, Text as PaperText } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Toast from 'react-native-toast-message';
-// import { Button }  from 'react-native-elements';
-// import changeNavigationBarColor from 'react-native-navigation-bar-color';
+import { showToast } from '../utilities/toasts';
 import { IContentState, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { Content, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import TherrIcon from '../components/TherrIcon';
 import { ILocationState } from '../types/redux/location';
 import LocationActions from '../redux/actions/LocationActions';
-// import Alert from '../components/Alert';
 import translator from '../services/translator';
+import { isDarkTheme } from '../styles/themes';
 import { buildStyles } from '../styles';
 import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
-import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/viewing';
-import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
+import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
+import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import userContentStyles from '../styles/user-content';
 import spacingStyles from '../styles/layouts/spacing';
-import { youtubeLinkRegex } from '../constants';
+import { youtubeLinkRegex, MAX_DISTANCE_TO_NEARBY_SPACE } from '../constants';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
-import formatDate from '../utilities/formatDate';
+import ConfirmModal from '../components/Modals/ConfirmModal';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyContent as checkIsMySpace, getUserContentUri } from '../utilities/content';
-import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../components/ActionSheet/ContentOptionsSheet';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
-import { MAX_DISTANCE_TO_NEARBY_SPACE } from '../constants';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { isLocationPermissionGranted } from '../utilities/requestOSPermissions';
 import getNearbySpaces from '../utilities/getNearbySpaces';
 import { isUserAuthenticated } from '../utilities/authUtils';
-// import AccentInput from '../components/Input/Accent';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -69,25 +65,9 @@ interface IStoreProps extends IViewSpaceDispatchProps {
     user: IUserState;
 }
 
-// Regular component props
 export interface IViewSpaceProps extends IStoreProps {
     navigation: any;
     route: any;
-}
-
-interface IViewSpaceState {
-    areAreaOptionsVisible: boolean;
-    errorMsg: string;
-    successMsg: string;
-    isDeleting: boolean;
-    isUserInSpace: boolean;
-    isVerifyingDelete: boolean;
-    isViewingIncentives: boolean;
-    moments: any[];
-    fetchedSpace: any;
-    previewLinkId?: string;
-    previewStyleState: any;
-    selectedSpace: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -107,355 +87,213 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     updateLocationPermissions: LocationActions.updateLocationPermissions,
 }, dispatch);
 
-export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState> {
-    private date;
-    private notificationMsg;
-    private hashtags;
-    private scrollViewRef;
-    private translate: Function;
-    private unsubscribeNavListener;
-    private theme = buildStyles();
-    private themeAccentLayout = buildAccentStyles();
-    private themeButtons = buildButtonsStyles();
-    private themeArea = buildMomentStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
-    private themeForms = buildFormStyles();
-    private themeAccentForms = buildAccentFormStyles();
+const ViewSpace = ({
+    content,
+    location,
+    map,
+    reactions,
+    user,
+    navigation,
+    route,
+    getSpaceDetails,
+    deleteSpace,
+    createOrUpdateSpaceReaction,
+    updateGpsStatus,
+    updateLocationDisclosure,
+}: IViewSpaceProps) => {
+    const translate = useCallback(
+        (key: string, params?: any) => translator('en-us', key, params),
+        []
+    );
 
-    constructor(props) {
-        super(props);
+    // State
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isUserInSpace, setIsUserInSpace] = useState(true);
+    const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
+    const [isViewingIncentives, setIsViewingIncentives] = useState(false);
+    const [moments, setMoments] = useState<any[]>([]);
+    const [fetchedSpace, setFetchedSpace] = useState<any>({});
+    const [previewStyleState, setPreviewStyleState] = useState<any>({});
 
-        const { route } = props;
-        const { space } = route.params;
+    // Refs
+    const scrollViewRef = useRef<any>(null);
 
+    // Themes
+    const theme = buildStyles(user.settings?.mobileThemeName);
+    const themeAccentLayout = buildAccentStyles(user.settings?.mobileThemeName);
+    const themeArea = buildMomentStyles(user.settings?.mobileThemeName, true);
+    const themeForms = buildFormStyles(user.settings?.mobileThemeName);
+    const themeConfirmModal = buildConfirmModalStyles(user.settings?.mobileThemeName);
+    const themeButtons = buildButtonsStyles(user.settings?.mobileThemeName);
+    const isDarkMode = isDarkTheme(user.settings?.mobileThemeName);
+    const brandColor = theme.colors.brandingBlueGreen;
+
+    // Derived values
+    const { space, isMyContent, previousView } = route.params;
+
+    const hashtags = useMemo(
+        () => (space.hashTags ? space.hashTags.split(',') : []),
+        [space.hashTags]
+    );
+
+    const notificationMsg = useMemo(
+        () => (space.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' '),
+        [space.notificationMsg]
+    );
+
+    const previewLinkId = useMemo(() => {
         const youtubeMatches = (space.message || '').match(youtubeLinkRegex);
+        return youtubeMatches && youtubeMatches[1];
+    }, [space.message]);
 
-        this.state = {
-            areAreaOptionsVisible: false,
-            errorMsg: '',
-            successMsg: '',
-            isDeleting: false,
-            isUserInSpace: true,
-            isVerifyingDelete: false,
-            isViewingIncentives: false,
-            moments: [],
-            fetchedSpace: {},
-            previewStyleState: {},
-            previewLinkId: youtubeMatches && youtubeMatches[1],
-            selectedSpace: {},
-        };
+    const spaceInView = useMemo(() => ({
+        ...space,
+        ...fetchedSpace,
+        associatedMoments: moments,
+    }), [space, fetchedSpace, moments]);
 
-        this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
-        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
-        this.themeArea = buildMomentStyles(props.user.settings?.mobileThemeName, true);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+    const spaceUserName = isMyContent ? user.details.userName : spaceInView.fromUserName;
+    const spaceUserMedia = isMyContent ? user.details.media : (spaceInView.fromUserMedia || {});
+    const spaceUserIsSuperUser = isMyContent ? user.details.isSuperUser : (spaceInView.fromUserIsSuperUser || {});
 
-        this.notificationMsg = (space.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
-        this.hashtags = space.hashTags ? space.hashTags.split(',') : [];
+    const mediaPath = spaceInView.medias?.[0]?.path;
+    const mediaType = spaceInView.medias?.[0]?.type;
+    const spaceMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+        ? getUserContentUri(spaceInView.medias?.[0], screenWidth, screenWidth)
+        : content?.media[mediaPath];
 
-        const dateTime = formatDate(space.updatedAt);
-        this.date = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
-
-        // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
+    let areaUserName = spaceUserName || translate('alertTitles.nameUnknown');
+    if (areaUserName === 'therr_it_is') {
+        areaUserName = translate('alertTitles.nameUnknown');
     }
 
-    componentDidMount() {
-        const { content, getSpaceDetails, navigation, route } = this.props;
-        const { space } = route.params;
-
+    useEffect(() => {
         const shouldFetchUser = !space?.fromUserMedia || !space.fromUserName;
-        const mediaPath = space?.medias?.[0]?.path;
-        const spaceMedia = content?.media[mediaPath];
+        const mPath = space?.medias?.[0]?.path;
+        const sMedia = content?.media[mPath];
 
-        // Move space details out of route params and into redux
         getSpaceDetails(space.id, {
             withEvents: true,
-            withMedia: !spaceMedia,
+            withMedia: !sMedia,
             withUser: shouldFetchUser,
             withRatings: true,
         }).then((data) => {
             if (data?.space?.notificationMsg) {
-                this.notificationMsg = (data?.space?.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
                 navigation.setOptions({
-                    title: this.notificationMsg,
+                    title: (data.space.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' '),
                 });
             }
-            this.setState({
-                fetchedSpace: data?.space,
-            });
+            setFetchedSpace(data?.space || {});
         }).catch(() => {
-            // Happens when space is not yet activated, but that is OK
+            // Happens when space is not yet activated
         });
 
-        // TODO: Fetch and render moments for this spaces
         MapsService.getSpaceMoments({
             itemsPerPage: 5,
             pageNumber: 1,
             withMedia: true,
         }, [space.id], true).then((response) => {
-            this.setState({
-                moments: response.data?.results?.moments || [],
-            });
+            setMoments(response.data?.results?.moments || []);
         }).catch((err) => {
             console.log(err);
         });
 
-        navigation.setOptions({
-            title: this.notificationMsg,
-        });
+        navigation.setOptions({ title: notificationMsg });
 
-        this.unsubscribeNavListener = navigation.addListener('beforeRemove', (e) => {
-            const { isViewingIncentives } = this.state;
-            // changeNavigationBarColor(therrTheme.colors.primary, false, true);
+        const unsubscribeNavListener = navigation.addListener('beforeRemove', (e) => {
             if (isViewingIncentives && (e.data.action.type === 'GO_BACK' || e.data.action.type === 'POP')) {
                 e.preventDefault();
-                this.setState({
-                    isViewingIncentives: false,
-                });
+                setIsViewingIncentives(false);
             }
         });
-    }
 
-    componentWillUnmount() {
-        this.unsubscribeNavListener();
-    }
-
-    renderHashtagPill = (tag, key) => {
-        return (
-            <Button
-                key={key}
-                buttonStyle={this.themeForms.styles.buttonPill}
-                containerStyle={this.themeForms.styles.buttonPillContainer}
-                titleStyle={this.themeForms.styles.buttonPillTitle}
-                title={`#${tag}`}
-            />
-        );
-    };
-
-    handlePreviewFullScreen = (isFullScreen) => {
-        const previewStyleState = isFullScreen ? {
-            top: 0,
-            left: 0,
-            padding: 0,
-            margin: 0,
-            position: 'absolute',
-            zIndex: 20,
-        } : {};
-        this.setState({
-            previewStyleState,
-        });
-    };
-
-    onEdit = () => {
-        const { navigation, route, user } = this.props;
-        const { space } = route.params;
-        const { fetchedSpace } = this.state;
-        const spaceInView = {
-            ...space,
-            ...fetchedSpace,
+        return () => {
+            unsubscribeNavListener();
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-        navigation.navigate('EditSpace', {
-            area: spaceInView,
-            imageDetails: {},
-            isBusinessAccount: checkIsMySpace(spaceInView, user) || user.details?.isBusinessAccount,
-            isCreatorAccount: user.details?.isCreatorAccount,
+    // Update nav listener when isViewingIncentives changes
+    useEffect(() => {
+        const unsubscribeNavListener = navigation.addListener('beforeRemove', (e) => {
+            if (isViewingIncentives && (e.data.action.type === 'GO_BACK' || e.data.action.type === 'POP')) {
+                e.preventDefault();
+                setIsViewingIncentives(false);
+            }
         });
-    };
+        return () => {
+            unsubscribeNavListener();
+        };
+    }, [navigation, isViewingIncentives]);
 
-    onDelete = () => {
-        this.setState({
-            isVerifyingDelete: true,
-        });
-    };
-
-    onDeleteCancel = () => {
-        this.setState({
-            isVerifyingDelete: false,
-        });
-    };
-
-    onDeleteConfirm = () => {
-        const { deleteSpace, navigation, user } = this.props;
-        const { fetchedSpace } = this.state;
-
-        this.setState({
-            isDeleting: true,
-        });
-        if (checkIsMySpace(fetchedSpace, user)) {
-            deleteSpace({ ids: [fetchedSpace.id] })
-                .then(() => {
-                    navigation.navigate('Map', {
-                        shouldShowPreview: false,
-                    });
-                })
-                .catch((err) => {
-                    console.log('Error deleting space', err);
-                    this.setState({
-                        isDeleting: true,
-                        isVerifyingDelete: false,
-                    });
-                });
-        } else {
-            this.setState({
-                isDeleting: false,
-                isVerifyingDelete: false,
-            });
-        }
-    };
-
-    onSpaceOptionSelect = (type: ISelectionType) => {
-        const { selectedSpace } = this.state;
-
-        if (type === 'getDirections') {
-            getDirections({
-                latitude: selectedSpace.latitude,
-                longitude: selectedSpace.longitude,
-                title: selectedSpace.notificationMsg,
-            });
-        } else if (type === 'shareALink') {
-            Share.share({
-                message: this.translate('modals.contentOptions.shareLink.message', {
-                    spaceId: selectedSpace.id,
-                }),
-                url: `https://www.therr.com/spaces/${selectedSpace.id}`,
-                title: this.translate('modals.contentOptions.shareLink.title', {
-                    spaceTitle: selectedSpace.notificationMsg,
-                }),
-            }).then((response) => {
-                if (response.action === Share.sharedAction) {
-                    if (response.activityType) {
-                        // shared with activity type of response.activityType
-                    } else {
-                        // shared
-                    }
-                } else if (response.action === Share.dismissedAction) {
-                    // dismissed
-                }
-            }).catch((err) => {
-                console.error(err);
-            });
-        } else {
-            const requestArgs: any = getReactionUpdateArgs(type);
-
-            this.onUpdateSpaceReaction(selectedSpace.id, requestArgs).finally(() => {
-                this.toggleAreaOptions();
-            });
-        }
-    };
-
-    goBack = () => {
-        if (this.state.isViewingIncentives) {
-            this.setState({
-                isViewingIncentives: false,
-            });
+    const handleGoBack = useCallback(() => {
+        if (isViewingIncentives) {
+            setIsViewingIncentives(false);
             return;
         }
-        const { navigation, route, user } = this.props;
-        const { previousView } = route.params;
         if (!isUserAuthenticated(user)) {
-            navigation.navigate('Map', {
-                shouldShowPreview: true,
-            });
+            navigation.navigate('Map', { shouldShowPreview: true });
         } else if (previousView === 'Areas') {
             navigation.goBack();
         } else if (previousView === 'ActivityGenerator') {
             navigation.navigate('ActivityGenerator');
-        }  else if (previousView === 'Notifications') {
+        } else if (previousView === 'Notifications') {
             navigation.navigate('Notifications');
         } else {
-            navigation.navigate('Map', {
-                shouldShowPreview: true,
-            });
+            navigation.navigate('Map', { shouldShowPreview: true });
         }
-    };
+    }, [isViewingIncentives, user, previousView, navigation]);
 
-    goToViewMap = (lat, long) => {
-        const { navigation } = this.props;
+    const handleGoToViewMap = useCallback((lat, long) => {
+        navigation.replace('Map', { latitude: lat, longitude: long });
+    }, [navigation]);
 
-        navigation.replace('Map', {
-            latitude: lat,
-            longitude: long,
-        });
-    };
-
-    goToViewEvent = (event) => {
-        const { navigation, user } = this.props;
-
-        if (event.id && isUserAuthenticated(user)) {
+    const handleGoToViewEvent = useCallback((evt) => {
+        if (evt.id && isUserAuthenticated(user)) {
             navigation.navigate('ViewEvent', {
-                isMyContent: event?.fromUserId === user.details.id,
+                isMyContent: evt?.fromUserId === user.details.id,
                 previousView: 'Areas',
-                event: {
-                    id: event.id,
-                },
+                event: { id: evt.id },
                 eventDetails: {},
             });
         }
-    };
+    }, [navigation, user]);
 
-    goToViewMoment = (moment) => {
-        const { navigation, user } = this.props;
-
+    const handleGoToViewMoment = useCallback((moment) => {
         if (moment.id && isUserAuthenticated(user)) {
             navigation.navigate('ViewMoment', {
                 isMyContent: moment?.fromUserId === user.details.id,
                 previousView: 'Areas',
-                moment: {
-                    id: moment.id,
-                },
+                moment: { id: moment.id },
                 momentDetails: {},
             });
         }
-    };
+    }, [navigation, user]);
 
-    goToViewUser = (userId) => {
-        const { navigation, user } = this.props;
-
+    const handleGoToViewUser = useCallback((userId) => {
         if (!isUserAuthenticated(user)) {
-            navigation.navigate('ViewUser', {
-                userInView: {
-                    id: userId,
-                },
-            });
+            navigation.navigate('ViewUser', { userInView: { id: userId } });
         }
-    };
+    }, [navigation, user]);
 
-    goToViewIncentives = () => {
-        const { navigation, user } = this.props;
-
+    const handleGoToViewIncentives = useCallback(() => {
         if (isUserAuthenticated(user)) {
-            this.setState({
-                isViewingIncentives: true,
-            });
-
-            // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
-            // before preventDefault is called in the beforeRemove listener
+            setIsViewingIncentives(true);
             navigation.setOptions({
-                // animation: 'none', // navigation v6
                 animationEnabled: false,
-                gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
+                gestureEnabled: true,
             });
         } else {
             navigation.push('Login');
         }
-    };
+    }, [user, navigation]);
 
-    onUpdateSpaceReaction = (spaceId, data) => {
-        const { createOrUpdateSpaceReaction, navigation, route, user } = this.props;
-        const { space } = route.params;
+    const handleUpdateSpaceReaction = useCallback((spaceId, data) => {
         if (isUserAuthenticated(user)) {
             navigation.setParams({
                 space: {
                     ...space,
-                    reaction: {
-                        ...space.reaction,
-                        ...data,
-                    },
+                    reaction: { ...space.reaction, ...data },
                 },
             });
             return createOrUpdateSpaceReaction(spaceId, data, space.fromUserId, user.details.userName);
@@ -463,58 +301,97 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             navigation.push('Login');
             return Promise.resolve();
         }
-    };
+    }, [user, space, navigation, createOrUpdateSpaceReaction]);
 
-    toggleAreaOptions = (displayArea?: any) => {
-        const { areAreaOptionsVisible, fetchedSpace } = this.state;
-        const { space } = this.props.route.params;
-        const area = {
-            ...space,
-            ...fetchedSpace,
-        };
+    const handleToggleAreaOptions = useCallback((displayArea?: any) => {
+        const area = displayArea || { ...space, ...fetchedSpace };
 
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedSpace: areAreaOptionsVisible ? {} : (area || displayArea),
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                shouldIncludeShareButton: true,
+                translate,
+                themeForms,
+                onSelect: (type: IContentSelectionType) => {
+                    if (type === 'getDirections') {
+                        getDirections({
+                            latitude: area.latitude,
+                            longitude: area.longitude,
+                            title: area.notificationMsg,
+                        });
+                    } else if (type === 'shareALink') {
+                        Share.share({
+                            message: translate('modals.contentOptions.shareLink.message', { spaceId: area.id }),
+                            url: `https://www.therr.com/spaces/${area.id}`,
+                            title: translate('modals.contentOptions.shareLink.title', { spaceTitle: area.notificationMsg }),
+                        }).catch((err) => console.error(err));
+                    } else {
+                        const requestArgs: any = getReactionUpdateArgs(type);
+                        handleUpdateSpaceReaction(area.id, requestArgs);
+                    }
+                },
+            },
         });
-    };
+    }, [space, fetchedSpace, translate, themeForms, handleUpdateSpaceReaction]);
 
-    handleCreateMoment = () => {
-        const {
-            location,
-            map,
-            navigation,
-            reactions,
-            updateGpsStatus,
-            updateLocationDisclosure,
-            user,
-        } = this.props;
+    const handleEdit = useCallback(() => {
+        navigation.navigate('EditSpace', {
+            area: spaceInView,
+            imageDetails: {},
+            isBusinessAccount: checkIsMySpace(spaceInView, user) || user.details?.isBusinessAccount,
+            isCreatorAccount: user.details?.isCreatorAccount,
+        });
+    }, [navigation, spaceInView, user]);
 
+    const handleDeleteConfirm = useCallback(() => {
+        setIsDeleting(true);
+        if (checkIsMySpace(fetchedSpace, user)) {
+            deleteSpace({ ids: [fetchedSpace.id] })
+                .then(() => {
+                    navigation.navigate('Map', { shouldShowPreview: false });
+                })
+                .catch((err) => {
+                    console.log('Error deleting space', err);
+                    setIsDeleting(false);
+                    setIsDeleteDialogVisible(false);
+                });
+        } else {
+            setIsDeleting(false);
+            setIsDeleteDialogVisible(false);
+        }
+    }, [fetchedSpace, user, deleteSpace, navigation]);
+
+    const handlePreviewFullScreen = useCallback((isFullScreen) => {
+        setPreviewStyleState(isFullScreen ? {
+            top: 0,
+            left: 0,
+            padding: 0,
+            margin: 0,
+            position: 'absolute',
+            zIndex: 20,
+        } : {});
+    }, []);
+
+    const handleCreateMoment = useCallback(() => {
         return requestLocationServiceActivation({
             isGpsEnabled: location?.settings?.isGpsEnabled,
-            translate: this.translate,
+            translate,
             shouldIgnoreRequirement: false,
         }).then((response: any) => {
             if (response?.status || Platform.OS === 'ios') {
                 if (response?.alreadyEnabled && isLocationPermissionGranted(location.permissions)) {
-                    // Ensure that the user sees location disclosure even if gps is already enabled (otherwise requestOSMapPermissions will handle it)
                     if (!location?.settings?.isLocationDislosureComplete) {
-                        // TODO: Show location disclosure modal
                         return true;
                     } else {
                         return false;
                     }
                 }
-
                 updateLocationDisclosure(true);
                 updateGpsStatus(response?.status || 'enabled');
-
                 return false;
             }
-
             return Promise.resolve(false);
         }).then((shouldAbort) => {
-            // TODO: Consider also calling requestOSMapPermissions here
             if (!shouldAbort && location.user?.latitude && location.user?.longitude) {
                 const userCenter = {
                     latitude: location.user.latitude,
@@ -522,8 +399,6 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                 };
                 const nearbySpaces = getNearbySpaces(userCenter, user, reactions, map?.spaces);
                 if (nearbySpaces.length > 0) {
-                    // CAUTION: Do not use navigation.reset. It seems to cause the app to crash on Android when
-                    // setting the 1st route to Map and 2nd round to EditMoment
                     navigation.navigate({
                         name: 'EditMoment',
                         params: {
@@ -534,365 +409,228 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                         },
                     });
                 } else {
-                    Toast.show({
-                        type: 'warnBig',
-                        text1: this.translate('alertTitles.walkCloser'),
-                        text2: this.translate('alertMessages.walkCloser'),
+                    showToast.warn({
+                        text1: translate('alertTitles.walkCloser'),
+                        text2: translate('alertMessages.walkCloser'),
                     });
-                    this.setState({
-                        isUserInSpace: false,
-                    });
+                    setIsUserInSpace(false);
                 }
             }
         });
-    };
+    }, [location, translate, updateLocationDisclosure, updateGpsStatus, user, reactions, map, navigation]);
 
-    renderViewIncentives({
-        spaceInView,
-    }) {
-        const { isUserInSpace } = this.state;
+    const renderViewIncentives = () => {
         const stepContainerStyle = [{ width: 50 }, spacingStyles.alignCenter];
 
         return (
             <View style={spacingStyles.fullWidth}>
-                <View style={this.theme.styles.sectionContainer}>
-                    <Text style={this.theme.styles.sectionTitleCenter}>
-                        {this.translate('pages.viewSpace.h2.claimRewards')}
+                <View style={theme.styles.sectionContainer}>
+                    <Text style={theme.styles.sectionTitleCenter}>
+                        {translate('pages.viewSpace.h2.claimRewards')}
                     </Text>
-                    {
-                        spaceInView.featuredIncentiveKey === IncentiveRequirementKeys.SHARE_A_MOMENT &&
-                        <Text style={this.theme.styles.sectionDescription}>
-                            {this.translate('pages.viewSpace.info.shareAMoment.claimRewards')}
+                    {spaceInView.featuredIncentiveKey === IncentiveRequirementKeys.SHARE_A_MOMENT && (
+                        <Text style={theme.styles.sectionDescription}>
+                            {translate('pages.viewSpace.info.shareAMoment.claimRewards')}
                         </Text>
-                    }
+                    )}
                 </View>
-                <View style={this.themeArea.styles.banner}>
-                    <View style={this.themeArea.styles.bannerTitle}>
-                        <Button
-                            type="clear"
-                            icon={
-                                <TherrIcon
-                                    name="gift"
-                                    size={28}
-                                    style={this.themeArea.styles.bannerTitleIcon}
-                                />
-                            }
-                            onPress={() =>{}}
+                <View style={themeArea.styles.banner}>
+                    <View style={themeArea.styles.bannerTitle}>
+                        <TherrIcon
+                            name="gift"
+                            size={20}
+                            style={themeArea.styles.bannerTitleIcon}
                         />
-                        <Text numberOfLines={1} style={[this.themeArea.styles.bannerTitleTextCenter, spacingStyles.flexOne]}>
-                            {this.translate('pages.viewSpace.buttons.coinReward', {
+                        <Text numberOfLines={1} style={[themeArea.styles.bannerTitleTextCenter, spacingStyles.flexOne]}>
+                            {translate('pages.viewSpace.buttons.coinReward', {
                                 count: spaceInView.featuredIncentiveRewardValue,
                             })}
                         </Text>
                     </View>
-                    <Button
-                        icon={
-                            <TherrIcon
-                                name="hand-coin"
-                                size={28}
-                                color={this.theme.colors.accentYellow}
-                            />
-                        }
-                        iconRight
-                        onPress={() =>{}}
-                        type="clear"
-                    />
                 </View>
-                {
-                    spaceInView.featuredIncentiveKey === IncentiveRequirementKeys.SHARE_A_MOMENT &&
-                        <View style={this.theme.styles.sectionContainer}>
-                            <Text style={this.theme.styles.sectionTitleCenter}>
-                                {this.translate('pages.viewSpace.h2.requirements')}
-                            </Text>
-                            <View style={spacingStyles.flexRow}>
-                                <View style={stepContainerStyle}>
-                                    <MaterialIcon
-                                        name="looks-one"
-                                        size={23}
-                                        style={{ color: this.theme.colors.primary4 }}
-                                    />
-                                </View>
-                                <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
-                                    {this.translate('pages.viewSpace.info.shareAMoment.stepOne', {
-                                        maxDistance: MAX_DISTANCE_TO_NEARBY_SPACE,
-                                    })}
-                                </Text>
-                            </View>
-                            <View style={spacingStyles.flexRow}>
-                                <View style={stepContainerStyle}>
-                                    <MaterialIcon
-                                        name="looks-two"
-                                        size={23}
-                                        style={{ color: this.theme.colors.primary4 }}
-                                    />
-                                </View>
-                                <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
-                                    {this.translate('pages.viewSpace.info.shareAMoment.stepTwo')}
-                                </Text>
-                            </View>
-                            <View style={spacingStyles.flexRow}>
-                                <View style={stepContainerStyle}>
-                                    <MaterialIcon
-                                        name="looks-3"
-                                        size={23}
-                                        style={{ color: this.theme.colors.primary4 }}
-                                    />
-                                </View>
-                                <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
-                                    {this.translate('pages.viewSpace.info.shareAMoment.stepThree')}
-                                </Text>
-                            </View>
-                            <View style={spacingStyles.flexRow}>
-                                <View style={stepContainerStyle}>
-                                    <MaterialIcon
-                                        name="priority-high"
-                                        size={23}
-                                        style={{ color: this.theme.colors.primary4 }}
-                                    />
-                                </View>
-                                <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
-                                    {this.translate('pages.viewSpace.info.shareAMoment.protip')}
-                                </Text>
-                            </View>
-                        </View>
-                }
-                <View style={this.theme.styles.sectionContainer}>
-                    {/* TODO: Conditionally Show text if user has already claimed reward (or needs to walk closer) */}
-                    <Button
-                        containerStyle={this.themeButtons.styles.btnContainer}
-                        buttonStyle={this.themeButtons.styles.btnLargeWithText}
-                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                        titleStyle={this.themeButtons.styles.btnMediumTitle}
-                        title={this.translate(
-                            'menus.mapActions.uploadAMoment'
-                        )}
-                        icon={
-                            <TherrIcon
-                                name="map-marker-clock"
-                                size={24}
-                                style={this.themeButtons.styles.btnIcon}
-                            />
-                        }
-                        onPress={() => this.handleCreateMoment()}
-                        raised={false}
-                    />
-                    {
-                        !isUserInSpace &&
-                        <Text style={[this.theme.styles.sectionDescriptionNote, spacingStyles.marginTopSm]}>
-                            {this.translate('pages.viewSpace.info.walkCloser')}
+                {spaceInView.featuredIncentiveKey === IncentiveRequirementKeys.SHARE_A_MOMENT && (
+                    <View style={theme.styles.sectionContainer}>
+                        <Text style={theme.styles.sectionTitleCenter}>
+                            {translate('pages.viewSpace.h2.requirements')}
                         </Text>
-                    }
+                        <View style={spacingStyles.flexRow}>
+                            <View style={stepContainerStyle}>
+                                <MaterialIcon name="looks-one" size={23} style={{ color: theme.colors.primary4 }} />
+                            </View>
+                            <Text style={[theme.styles.sectionDescription16, spacingStyles.flexOne]}>
+                                {translate('pages.viewSpace.info.shareAMoment.stepOne', { maxDistance: MAX_DISTANCE_TO_NEARBY_SPACE })}
+                            </Text>
+                        </View>
+                        <View style={spacingStyles.flexRow}>
+                            <View style={stepContainerStyle}>
+                                <MaterialIcon name="looks-two" size={23} style={{ color: theme.colors.primary4 }} />
+                            </View>
+                            <Text style={[theme.styles.sectionDescription16, spacingStyles.flexOne]}>
+                                {translate('pages.viewSpace.info.shareAMoment.stepTwo')}
+                            </Text>
+                        </View>
+                        <View style={spacingStyles.flexRow}>
+                            <View style={stepContainerStyle}>
+                                <MaterialIcon name="looks-3" size={23} style={{ color: theme.colors.primary4 }} />
+                            </View>
+                            <Text style={[theme.styles.sectionDescription16, spacingStyles.flexOne]}>
+                                {translate('pages.viewSpace.info.shareAMoment.stepThree')}
+                            </Text>
+                        </View>
+                        <View style={spacingStyles.flexRow}>
+                            <View style={stepContainerStyle}>
+                                <MaterialIcon name="priority-high" size={23} style={{ color: theme.colors.primary4 }} />
+                            </View>
+                            <Text style={[theme.styles.sectionDescription16, spacingStyles.flexOne]}>
+                                {translate('pages.viewSpace.info.shareAMoment.protip')}
+                            </Text>
+                        </View>
+                    </View>
+                )}
+                <View style={theme.styles.sectionContainer}>
+                    <PaperButton
+                        mode="contained"
+                        onPress={handleCreateMoment}
+                        icon="map-clock"
+                        buttonColor={brandColor}
+                        textColor={theme.colors.brandingWhite}
+                        style={localStyles.incentiveButton}
+                    >
+                        {translate('menus.mapActions.uploadAMoment')}
+                    </PaperButton>
+                    {!isUserInSpace && (
+                        <PaperText style={[theme.styles.sectionDescriptionNote, spacingStyles.marginTopSm]}>
+                            {translate('pages.viewSpace.info.walkCloser')}
+                        </PaperText>
+                    )}
                 </View>
             </View>
         );
-    }
+    };
 
-    render() {
-        const {
-            areAreaOptionsVisible,
-            isDeleting,
-            isVerifyingDelete,
-            isViewingIncentives,
-            moments,
-            fetchedSpace,
-            previewLinkId,
-            previewStyleState,
-        } = this.state;
-        const { content, route, user } = this.props;
-        const { space, isMyContent } = route.params;
-        const spaceInView = {
-            ...space,
-            ...fetchedSpace,
-            associatedMoments: moments,
-        };
-        const spaceUserName = isMyContent ? user.details.userName : spaceInView.fromUserName;
-        const spaceUserMedia = isMyContent ? user.details.media : (spaceInView.fromUserMedia || {});
-        const spaceUserIsSuperUser = isMyContent ? user.details.isSuperUser : (spaceInView.fromUserIsSuperUser || {});
-
-        // TODO: Everything should use post.medias after migrations
-        // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
-        const mediaPath = (spaceInView.medias?.[0]?.path);
-        const mediaType = (spaceInView.medias?.[0]?.type);
-        const spaceMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-            ? getUserContentUri(spaceInView.medias?.[0], screenWidth, screenWidth)
-            : content?.media[mediaPath];
-        let areaUserName = spaceUserName || this.translate('alertTitles.nameUnknown');
-        if (areaUserName === 'therr_it_is') {
-            // This allows us to hide the user name/image when space is create by (essentially) our admin account
-            areaUserName = this.translate('alertTitles.nameUnknown');
-        }
-
-        return (
-            <>
-                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView  style={this.theme.styles.safeAreaView}>
-                    <KeyboardAwareScrollView
-                        contentInsetAdjustmentBehavior="automatic"
-                        ref={(component) => (this.scrollViewRef = component)}
-                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyView]}
-                        contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyViewScroll]}
-                    >
-                        <View style={[this.themeAccentLayout.styles.container, this.themeArea.styles.areaContainer]}>
-                            {
-                                isViewingIncentives ?
-                                    this.renderViewIncentives({
-                                        spaceInView,
-                                    }) :
-                                    <AreaDisplay
-                                        translate={this.translate}
-                                        toggleAreaOptions={this.toggleAreaOptions}
-                                        hashtags={this.hashtags}
-                                        isDarkMode={user.settings?.mobileThemeName === 'retro'}
-                                        isExpanded={true}
-                                        inspectContent={() => null}
-                                        area={spaceInView}
-                                        goToViewEvent={this.goToViewEvent}
-                                        goToViewMoment={this.goToViewMoment}
-                                        goToViewMap={this.goToViewMap}
-                                        goToViewUser={this.goToViewUser}
-                                        goToViewIncentives={this.goToViewIncentives}
-                                        updateAreaReaction={this.onUpdateSpaceReaction}
-                                        // TODO: User Username from response
-                                        user={user}
-                                        areaUserDetails={{
-                                            media: spaceUserMedia,
-                                            userName: areaUserName,
-                                            isSuperUser: spaceUserIsSuperUser,
-                                        }}
-                                        areaMedia={spaceMedia}
-                                        placeholderMediaType="autoplay"
-                                        theme={this.theme}
-                                        themeForms={this.themeForms}
-                                        themeViewArea={this.themeArea}
-                                    />
-                            }
-                        </View>
-                        {
-                            previewLinkId
-                            && <View style={[userContentStyles.preview, previewStyleState]}>
-                                <YoutubePlayer
-                                    height={260}
-                                    play={false}
-                                    videoId={previewLinkId}
-                                    onFullScreenChange={this.handlePreviewFullScreen}
-                                />
-                            </View>
-                        }
-                    </KeyboardAwareScrollView>
-                    {
-                        <View style={[this.themeAccentLayout.styles.footer, this.themeArea.styles.footer]}>
-                            <Button
-                                containerStyle={this.themeAccentForms.styles.backButtonContainer}
-                                buttonStyle={this.themeAccentForms.styles.backButton}
-                                onPress={() => this.goBack()}
-                                icon={
-                                    <FontAwesome5Icon
-                                        name="arrow-left"
-                                        size={25}
-                                        color={'black'}
-                                    />
-                                }
-                                type="clear"
+    return (
+        <>
+            <BaseStatusBar therrThemeName={user.settings?.mobileThemeName} />
+            <SafeAreaView style={theme.styles.safeAreaView}>
+                <KeyboardAwareScrollView
+                    contentInsetAdjustmentBehavior="automatic"
+                    ref={scrollViewRef}
+                    style={[theme.styles.bodyFlex, themeAccentLayout.styles.bodyView]}
+                    contentContainerStyle={[theme.styles.bodyScroll, themeAccentLayout.styles.bodyViewScroll]}
+                >
+                    <View style={[themeAccentLayout.styles.container, themeArea.styles.areaContainer]}>
+                        {isViewingIncentives ? (
+                            renderViewIncentives()
+                        ) : (
+                            <AreaDisplay
+                                translate={translate}
+                                toggleAreaOptions={handleToggleAreaOptions}
+                                hashtags={hashtags}
+                                isDarkMode={isDarkMode}
+                                isExpanded={true}
+                                inspectContent={() => null}
+                                area={spaceInView}
+                                goToViewEvent={handleGoToViewEvent}
+                                goToViewMoment={handleGoToViewMoment}
+                                goToViewMap={handleGoToViewMap}
+                                goToViewUser={handleGoToViewUser}
+                                goToViewIncentives={handleGoToViewIncentives}
+                                updateAreaReaction={handleUpdateSpaceReaction}
+                                user={user}
+                                areaUserDetails={{
+                                    media: spaceUserMedia,
+                                    userName: areaUserName,
+                                    isSuperUser: spaceUserIsSuperUser,
+                                }}
+                                areaMedia={spaceMedia}
+                                placeholderMediaType="autoplay"
+                                theme={theme}
+                                themeForms={themeForms}
+                                themeViewArea={themeArea}
                             />
-                            {
-                                isMyContent &&
-                                <>
-                                    {
-                                        !isVerifyingDelete &&
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.draftButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={[this.themeAccentForms.styles.submitButtonContainer, spacingStyles.marginRtXLg]}
-                                                title={this.translate(
-                                                    'forms.editSpace.buttons.edit'
-                                                )}
-                                                icon={
-                                                    <TherrIcon
-                                                        name="edit"
-                                                        size={22}
-                                                        color={'black'}
-                                                        style={this.themeAccentForms.styles.submitButtonIcon}
-                                                    />
-                                                }
-                                                onPress={this.onEdit}
-                                                raised={true}
-                                            />
-                                    }
-                                    {
-                                        !isVerifyingDelete &&
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitDeleteButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editSpace.buttons.delete'
-                                                )}
-                                                icon={
-                                                    <FontAwesome5Icon
-                                                        name="trash-alt"
-                                                        size={22}
-                                                        color={'black'}
-                                                        style={this.themeAccentForms.styles.submitButtonIcon}
-                                                    />
-                                                }
-                                                onPress={this.onDelete}
-                                                raised={true}
-                                            />
-                                    }
-                                    {
-                                        isVerifyingDelete &&
-                                        <View style={this.themeAccentForms.styles.submitConfirmContainer}>
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitCancelButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
-                                                containerStyle={this.themeAccentForms.styles.submitCancelButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editSpace.buttons.cancel'
-                                                )}
-                                                onPress={this.onDeleteCancel}
-                                                disabled={isDeleting}
-                                                raised={true}
-                                            />
-                                            <Button
-                                                buttonStyle={this.themeAccentForms.styles.submitConfirmButton}
-                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
-                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
-                                                titleStyle={this.themeAccentForms.styles.submitButtonTitleLight}
-                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                                                title={this.translate(
-                                                    'forms.editSpace.buttons.confirm'
-                                                )}
-                                                onPress={this.onDeleteConfirm}
-                                                disabled={isDeleting}
-                                                raised={true}
-                                            />
-                                        </View>
-                                    }
-                                </>
-                            }
+                        )}
+                    </View>
+                    {previewLinkId && (
+                        <View style={[userContentStyles.preview, previewStyleState]}>
+                            <YoutubePlayer
+                                height={260}
+                                play={false}
+                                videoId={previewLinkId}
+                                onFullScreenChange={handlePreviewFullScreen}
+                            />
                         </View>
-                    }
-                </SafeAreaView>
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={this.toggleAreaOptions}
-                    translate={this.translate}
-                    onSelect={this.onSpaceOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                    shouldIncludeShareButton={true}
-                />
-            </>
-        );
-    }
-}
+                    )}
+                </KeyboardAwareScrollView>
+
+                {/* Footer */}
+                <View style={[themeAccentLayout.styles.footer, localStyles.footer]}>
+                    <PaperButton
+                        mode="outlined"
+                        onPress={handleGoBack}
+                        icon="arrow-left"
+                        textColor={brandColor}
+                        style={localStyles.footerButton}
+                    >
+                        {translate('forms.editSpace.buttons.back')}
+                    </PaperButton>
+                    {isMyContent && (
+                        <>
+                            <PaperButton
+                                mode="outlined"
+                                onPress={handleEdit}
+                                icon="pencil"
+                                textColor={brandColor}
+                                style={localStyles.footerButton}
+                            >
+                                {translate('forms.editSpace.buttons.edit')}
+                            </PaperButton>
+                            <PaperButton
+                                mode="contained"
+                                onPress={() => setIsDeleteDialogVisible(true)}
+                                icon="trash-can-outline"
+                                buttonColor={theme.colors.accentRed}
+                                textColor={theme.colors.brandingWhite}
+                                style={localStyles.footerButton}
+                                disabled={isDeleting}
+                                loading={isDeleting}
+                            >
+                                {translate('forms.editSpace.buttons.delete')}
+                            </PaperButton>
+                        </>
+                    )}
+                </View>
+            </SafeAreaView>
+
+            {/* Delete confirmation modal */}
+            <ConfirmModal
+                isConfirming={isDeleting}
+                isVisible={isDeleteDialogVisible}
+                onCancel={() => setIsDeleteDialogVisible(false)}
+                onConfirm={handleDeleteConfirm}
+                text={translate('forms.editSpace.deleteConfirmation')}
+                textConfirm={translate('forms.editSpace.buttons.confirm')}
+                textCancel={translate('forms.editSpace.buttons.cancel')}
+                translate={translate}
+                theme={theme}
+                themeModal={themeConfirmModal}
+                themeButtons={themeButtons}
+            />
+        </>
+    );
+};
+
+const localStyles = StyleSheet.create({
+    footer: {
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+    },
+    footerButton: {
+        flex: 1,
+        marginHorizontal: 4,
+    },
+    incentiveButton: {
+        marginTop: 8,
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(ViewSpace);

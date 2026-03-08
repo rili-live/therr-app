@@ -1,7 +1,8 @@
 import React from 'react';
 import { ActivityIndicator, Dimensions, View } from 'react-native';
 import { connect } from 'react-redux';
-import { Button, Image } from 'react-native-elements';
+import { Button } from '../BaseButton';
+import { Image } from '../BaseImage';
 import 'react-native-gesture-handler';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {
@@ -62,6 +63,8 @@ const ViewProfileButton = ({
         },
     ]}>
         <Button
+            type="clear"
+            iconTop
             buttonStyle={themeMenu.styles.buttons}
             containerStyle={themeMenu.styles.buttonContainerUserProfile}
             titleStyle={themeMenu.styles.buttonsTitle}
@@ -70,7 +73,7 @@ const ViewProfileButton = ({
                     <Image
                         source={{ uri: getUserImageUri(user, 50) }}
                         style={imageStyle}
-                        PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
+                        PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.brandingBlueGreen} />}
                     /> :
                     <TherrIcon
                         name="user-star"
@@ -80,7 +83,6 @@ const ViewProfileButton = ({
             }
             onPress={goToMyProfile}
             title={translate('menus.main.buttons.profile')}
-            type="clear"
         />
         {/* {
             hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
@@ -282,6 +284,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                     <AttachStep index={2}>
                         <Button
                             title={!isCompact ? translate('menus.main.buttons.list') : null}
+                            type="clear"
+                            iconTop
                             buttonStyle={
                                 activeRoute === 'Areas'
                                     ? themeMenu.styles.buttonsActive
@@ -318,6 +322,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                 <FeatureGate feature={FeatureFlags.ENABLE_GROUPS}>
                     <Button
                         title={!isCompact ? translate('menus.main.buttons.groups') : null}
+                        type="clear"
+                        iconTop
                         buttonStyle={
                             ['Groups', 'ActivityScheduler'].includes(activeRoute)
                                 ? themeMenu.styles.buttonsActive
@@ -354,6 +360,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                     <AttachStep index={6}>
                         <Button
                             title={!isCompact ? translate('menus.main.buttons.map') : null}
+                            type="clear"
+                            iconTop
                             buttonStyle={
                                 ['Map', 'ActivityGenerator'].includes(activeRoute)
                                     ? themeMenu.styles.buttonsActive
@@ -391,6 +399,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                     <AttachStep index={5}>
                         <Button
                             title={!isCompact ? translate('menus.main.buttons.connect') : null}
+                            type="clear"
+                            iconTop
                             buttonStyle={
                                 isConnectViewActive
                                     ? themeMenu.styles.buttonsActive

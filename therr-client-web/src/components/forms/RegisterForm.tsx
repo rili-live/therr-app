@@ -1,13 +1,15 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { isValidPhoneNumber } from 'react-phone-number-input';
+import { Stack } from '@mantine/core';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
 import {
-    ButtonPrimary,
-    CheckBox,
-    Input,
     PasswordRequirements,
 } from 'therr-react/components';
+import {
+    MantineButton,
+    MantineCheckbox,
+    MantineInput,
+} from 'therr-react/components/mantine';
 import translator from '../../services/translator';
 
 // Regular component props
@@ -19,15 +21,15 @@ interface IRegisterFormProps {
 
 interface IRegisterFormState {
     inputs: any;
-    isPhoneNumberValid: boolean;
 }
 
 /**
  * RegisterForm
- * TODO: Use timer and mark as spam if form is submitted in less that 2 second
  */
-export class RegisterFormComponent extends React.Component<IRegisterFormProps, IRegisterFormState> {
-    private translate: Function;
+export class RegisterFormComponent extends React.Component<
+    IRegisterFormProps, IRegisterFormState
+> {
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: IRegisterFormProps) {
         super(props);
@@ -36,22 +38,25 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
             inputs: {
                 settingsEmailMarketing: true,
             },
-            isPhoneNumberValid: false,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     isFormDisabled() {
-        return !this.state.inputs.email || !this.state.inputs.password || !this.state.inputs.hasAgreedToTerms || !this.isFormValid();
+        return !this.state.inputs.email
+            || !this.state.inputs.password
+            || !this.state.inputs.hasAgreedToTerms
+            || !this.isFormValid();
     }
 
     isFormValid() {
         const { inputs } = this.state;
-        return inputs.password === inputs.repeatPassword && isValidPassword(inputs.password);
+        return inputs.password === inputs.repeatPassword
+            && isValidPassword(inputs.password);
     }
 
-    onSubmit = (event: any) => {
+    onSubmit = () => {
         if (!this.isFormDisabled()) {
             const creds = { ...this.state.inputs };
             delete creds.repeatPassword;
@@ -76,7 +81,9 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
         });
     };
 
-    onCheckboxChange: React.ChangeEventHandler<HTMLInputElement> = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onCheckboxChange: React.ChangeEventHandler<HTMLInputElement> = (
+        event: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const { name } = event.currentTarget;
 
         const newInputChanges = {
@@ -93,114 +100,136 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
 
     public render(): JSX.Element | null {
         const { inviteCode } = this.props;
-        const { isPhoneNumberValid } = this.state;
 
         return (
             <div className="register-container">
                 <div className="flex fill max-wide-30">
-                    <h1 className="text-center">{this.props.title}</h1>
-                    {
-                        inviteCode
-                        && <h4 className="mb-1 text-underline text-center">
-                            {this.translate('components.registerForm.text.signupForRewards', {
-                                userName: inviteCode,
-                            })}
-                        </h4>
-                    }
-                    {/* <label className="required" htmlFor="e_mail">{this.translate('components.registerForm.labels.email')}:</label> */}
-                    <Input
-                        type="text"
-                        id="e_mail"
-                        name="email"
-                        value={this.state.inputs.email}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        validations={['isRequired', 'email']}
-                        placeholder={this.translate('components.registerForm.labels.email')}
-                    />
+                    <Stack gap="sm">
+                        <h1 className="text-center">{this.props.title}</h1>
+                        {
+                            inviteCode
+                            && (
+                                <h4 className="mb-1 text-underline text-center">
+                                    {this.translate(
+                                        'components.registerForm.text.signupForRewards',
+                                        { userName: inviteCode },
+                                    )}
+                                </h4>
+                            )
+                        }
+                        <MantineInput
+                            type="text"
+                            id="e_mail"
+                            name="email"
+                            value={this.state.inputs.email}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translateFn={this.translate}
+                            validations={['isRequired', 'email']}
+                            label={this.translate(
+                                'components.registerForm.labels.email',
+                            )}
+                        />
 
-                    {/* TODO: RMOBILE-26: Centralize password requirements */}
-                    {/* <label className="required" htmlFor="password">{this.translate('components.registerForm.labels.password')}:</label> */}
-                    <Input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={this.state.inputs.password}
-                        minLength="8"
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        validations={['isRequired', 'password']}
-                        placeholder={this.translate('components.registerForm.labels.password')}
-                    />
+                        <MantineInput
+                            type="password"
+                            id="password"
+                            name="password"
+                            value={this.state.inputs.password}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translateFn={this.translate}
+                            validations={['isRequired', 'password']}
+                            label={this.translate(
+                                'components.registerForm.labels.password',
+                            )}
+                        />
 
-                    {/* <label className="required" htmlFor="repeat_password">{this.translate('components.registerForm.labels.repeatPassword')}:</label> */}
-                    <Input
-                        autoComplete="off"
-                        type="hidden"
-                        id="sweety_pie"
-                        name="website"
-                        value={this.state.inputs.website}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        placeholder={this.translate('components.registerForm.labels.mySweet')}
-                        tabIndex="-1"
-                    />
+                        {/* Honeypot field */}
+                        <input
+                            autoComplete="off"
+                            type="text"
+                            id="sweety_pie"
+                            name="website"
+                            value={this.state.inputs.website || ''}
+                            onChange={(e) => this.onInputChange('website', e.target.value)}
+                            tabIndex={-1}
+                            style={{ position: 'absolute', left: '-9999px' }}
+                            aria-hidden="true"
+                        />
 
-                    <Input
-                        type="password"
-                        id="repeat_password"
-                        name="repeatPassword"
-                        value={this.state.inputs.repeatPassword}
-                        minLength="8"
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        validations={['isRequired']}
-                        placeholder={this.translate('components.registerForm.labels.repeatPassword')}
-                    />
+                        <MantineInput
+                            type="password"
+                            id="repeat_password"
+                            name="repeatPassword"
+                            value={this.state.inputs.repeatPassword}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translateFn={this.translate}
+                            validations={['isRequired']}
+                            label={this.translate(
+                                'components.registerForm.labels.repeatPassword',
+                            )}
+                        />
 
-                    <PasswordRequirements
-                        className="password-requirements mb-2 px-2"
-                        password={this.state.inputs.password}
-                        translate={this.translate}
-                    />
+                        <PasswordRequirements
+                            className="password-requirements mb-2 px-2"
+                            password={this.state.inputs.password}
+                            translate={this.translate}
+                        />
 
-                    <CheckBox
-                        id="newsletter"
-                        name="settingsEmailMarketing"
-                        label={this.translate('components.registerForm.labels.newsletter')}
-                        value={this.state.inputs.settingsEmailMarketing}
-                        onChange={this.onCheckboxChange}
-                        className="text-center"
-                    />
+                        <MantineCheckbox
+                            id="newsletter"
+                            name="settingsEmailMarketing"
+                            label={this.translate(
+                                'components.registerForm.labels.newsletter',
+                            )}
+                            isChecked={this.state.inputs.settingsEmailMarketing}
+                            onChange={this.onCheckboxChange}
+                        />
 
-                    <CheckBox
-                        id="terms_and_conditions"
-                        name="hasAgreedToTerms"
-                        label={this.translate('components.registerForm.labels.termsAndConditions')}
-                        value={this.state.inputs.hasAgreedToTerms}
-                        onChange={this.onCheckboxChange}
-                        className="text-center"
-                    />
+                        <MantineCheckbox
+                            id="terms_and_conditions"
+                            name="hasAgreedToTerms"
+                            label={this.translate(
+                                'components.registerForm.labels.termsAndConditions',
+                            )}
+                            isChecked={this.state.inputs.hasAgreedToTerms}
+                            onChange={this.onCheckboxChange}
+                        />
 
-                    <div className="form-field text-right">
-                        <ButtonPrimary
-                            id="register"
-                            text={this.translate('components.registerForm.buttons.register')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
-                    </div>
+                        <div className="form-field text-right">
+                            <MantineButton
+                                id="register"
+                                text={this.translate(
+                                    'components.registerForm.buttons.register',
+                                )}
+                                onClick={this.onSubmit}
+                                disabled={this.isFormDisabled()}
+                                fullWidth
+                            />
+                        </div>
 
-                    <div className="text-left">
-                        <Link to="/login">{this.translate('components.registerForm.buttons.backToLogin')}</Link>
-                    </div>
+                        <div className="text-left">
+                            <Link to="/login">
+                                {this.translate(
+                                    'components.registerForm.buttons.backToLogin',
+                                )}
+                            </Link>
+                        </div>
 
-                    <div className="text-center margin-top-lg">
-                        <a href="https://www.therr.app/terms-and-conditions.html" target="_blank" rel="noreferrer">
-                            {this.translate('components.registerForm.buttons.terms')}
-                        </a>
-                    </div>
+                        <div className="text-center margin-top-lg">
+                            <a
+                                href="https://www.therr.app/terms-and-conditions.html"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                {this.translate(
+                                    'components.registerForm.buttons.terms',
+                                )}
+                            </a>
+                        </div>
+                    </Stack>
                 </div>
             </div>
         );

@@ -1,12 +1,13 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import {
-    Input,
-    SelectBox,
-    SvgButton,
-} from 'therr-react/components';
+import { Alert, Stack } from '@mantine/core';
 import PhoneInput, { flags, isValidPhoneNumber } from 'react-phone-number-input';
 import { IUserState } from 'therr-react/types';
+import {
+    MantineButton,
+    MantineInput,
+    MantineSelect,
+} from 'therr-react/components/mantine';
 import translator from '../../services/translator';
 
 interface ICreateConnectionFormState {
@@ -23,7 +24,7 @@ interface ICreateConnectionFormProps {
 }
 
 class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, ICreateConnectionFormState> {
-    private translate;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: ICreateConnectionFormProps) {
         super(props);
@@ -84,8 +85,8 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
         });
     };
 
-    onValidateInput = (validations: any) => {
-        const hasValidationErrors = !!Object.keys(validations).filter((key) => validations[key].length).length;
+    onValidateInput = (validations: Record<string, string>) => {
+        const hasValidationErrors = Object.values(validations).some((msg) => !!msg);
         this.setState({
             hasValidationErrors,
         });
@@ -128,6 +129,10 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
         }
     };
 
+    onSelectChange = (value: string | null) => {
+        this.onInputChange('connectionIdentifier', value || '');
+    };
+
     render() {
         const {
             inputs,
@@ -136,27 +141,25 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
         } = this.state;
 
         return (
-            <>
-                <SelectBox
-                    type="text"
+            <Stack gap="sm">
+                <MantineSelect
                     id="connection_identifier"
                     name="connectionIdentifier"
-                    value={inputs.connectionIdentifier}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    options={[
+                    value={inputs.connectionIdentifier || null}
+                    onChange={this.onSelectChange}
+                    translateFn={this.translate}
+                    required
+                    placeholder="Choose an identifier..."
+                    data={[
                         {
-                            text: this.translate('pages.userProfile.labels.phoneNumber'),
+                            label: this.translate('pages.userProfile.labels.phoneNumber'),
                             value: 'acceptingUserPhoneNumber',
                         },
                         {
-                            text: this.translate('pages.userProfile.labels.email'),
+                            label: this.translate('pages.userProfile.labels.email'),
                             value: 'acceptingUserEmail',
                         },
                     ]}
-                    placeHolderText="Choose an identifier..."
-                    validations={['isRequired']}
                 />
                 {
                     inputs.connectionIdentifier === 'acceptingUserPhoneNumber'
@@ -185,36 +188,37 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                 }
                 {
                     inputs.connectionIdentifier === 'acceptingUserEmail'
-                    && <>
-                        <label className="required" htmlFor="email">{this.translate('pages.userProfile.labels.email')}:</label>
-                        <Input
-                            type="text"
-                            id="email"
-                            name="email"
-                            value={inputs.email}
-                            onChange={this.onInputChange}
-                            onEnter={this.onSubmit}
-                            translate={this.translate}
-                            validations={['isRequired', 'email']}
-                            onValidate={this.onValidateInput}
-                        />
-                    </>
+                    && <MantineInput
+                        type="text"
+                        id="email"
+                        name="email"
+                        value={inputs.email}
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translateFn={this.translate}
+                        validations={['isRequired', 'email']}
+                        onValidate={this.onValidateInput}
+                        label={this.translate('pages.userProfile.labels.email')}
+                    />
                 }
                 {
                     prevRequestSuccess
-                    && <div className="text-center alert-success">{prevRequestSuccess}</div>
+                    && <Alert color="green" variant="light">{prevRequestSuccess}</Alert>
                 }
                 {
                     prevRequestError
-                    && <div className="text-center alert-error backed padding-sm margin-bot-sm">{prevRequestError}</div>
+                    && <Alert color="red" variant="light">{prevRequestError}</Alert>
                 }
                 <div className="form-field text-right">
-                    <SvgButton
+                    <MantineButton
                         id="send_request"
-                        name="send"
-                        onClick={this.onSubmit} disabled={!this.isFormValid()} />
+                        text={this.translate('pages.userProfile.buttons.sendRequest')}
+                        onClick={this.onSubmit}
+                        disabled={!this.isFormValid()}
+                        fullWidth
+                    />
                 </div>
-            </>
+            </Stack>
         );
     }
 }

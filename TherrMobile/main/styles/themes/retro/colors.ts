@@ -14,8 +14,8 @@ const colors: ITherrThemeColors = {
     tertiary: '#104B52',
 
     // Text
-    textBlack: '#363636',
-    textDark: '#363636',
+    textBlack: '#c8e6e9',
+    textDark: '#a8d0d4',
     textGray: 'rgba(255,255,255,.78)',
     textDarkGray: '#728f94',
     textWhite: '#fcfeff',
@@ -31,10 +31,10 @@ const colors: ITherrThemeColors = {
     brandingLightBlue: '#d8f0f2',
 
     // Background
-    backgroundCream: '#fefbf0',
-    backgroundWhite: '#ffffff',
-    backgroundGray: '#f3f4f6',
-    backgroundNeutral: '#e7eaed',
+    backgroundCream: '#a0c8cc',
+    backgroundWhite: '#1a6d76',
+    backgroundGray: '#155862',
+    backgroundNeutral: '#1b5f68',
     backgroundBlack: '#000000',
     inputBackgroundAndroid: 'rgba(255,255,255,.15)',
     inputBackgroundIOS: 'rgba(255,255,255,.1)',
@@ -43,7 +43,7 @@ const colors: ITherrThemeColors = {
     placeholderTextColor: '#78909b',
     placeholderTextColorAlt: 'rgba(255,255,255,.58)',
 
-    hyperlink: '#0e01b3',
+    hyperlink: '#64B5F6',
     controlButtons: 'rgba(255, 255, 255, 0.92)',
 
     // Alerts
@@ -60,7 +60,7 @@ const colors: ITherrThemeColors = {
     accentRed: '#fe0156',
     accentYellow: '#fed61e',
     accentBlue: '#17657D',
-    accentPurple: '#0e01b3',
+    accentPurple: '#9C7CF4',
     accentTeal: '#2BC5D6',
     accentLime: '#00f729',
     accentDivider: '#4950571c',

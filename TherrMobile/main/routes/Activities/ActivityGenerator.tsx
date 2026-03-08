@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text, Pressable, Dimensions } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import { ContentActions, MapActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import {
@@ -408,7 +408,10 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
                 </SafeAreaView>
                 <View style={this.themeMenu.styles.submitButtonContainerFloat}>
                     <Button
-                        buttonStyle={this.themeForms.styles.button}
+                        buttonStyle={this.themeForms.styles.buttonPrimary}
+                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                        titleStyle={this.themeForms.styles.buttonTitle}
+                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         title={this.translate(
                             'pages.activityGenerator.buttons.scheduleAndInvite'
                         )}
@@ -423,7 +426,6 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
                         }
                         onPress={this.onSubmit}
                         disabled={this.isFormDisabled()}
-                        raised={true}
                     />
                 </View>
                 <MainButtonMenu

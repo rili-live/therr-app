@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { connect } from 'react-redux';
 import { Animated, SafeAreaView, View, Text, ImageProps, Pressable } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../components/BaseButton';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';

@@ -1,6 +1,6 @@
 import React from 'react';
-import { PermissionsAndroid, Platform, Text, View } from 'react-native';
-// import { Slider } from 'react-native-elements';
+import { PermissionsAndroid, Platform, View } from 'react-native';
+import { Text as PaperText } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -17,12 +17,12 @@ import { buildStyles as buildDisclosureStyles } from '../../../styles/modal/loca
 import { buildStyles as buildLoaderStyles } from '../../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../../styles/navigation/buttonMenu';
 import { buildStyles as buildMomentStyles } from '../../../styles/user-content/areas';
-import { buildStyles as buildReactionsModalStyles } from '../../../styles/modal/areaReactionsModal';
 import { buildStyles as buildFormStyles } from '../../../styles/forms';
 // import { buttonMenuHeightCompact } from '../../../styles/navigation/buttonMenu';
 import translator from '../../../services/translator';
 import AreaCarousel from '../AreaCarousel';
-import AreaOptionsModal, { ISelectionType } from '../../../components/Modals/AreaOptionsModal';
+import { SheetManager } from 'react-native-actions-sheet';
+import { IContentSelectionType } from '../../../components/ActionSheet/ContentOptionsSheet';
 import LottieLoader, { ILottieId } from '../../../components/LottieLoader';
 import getActiveCarouselData from '../../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../../constants';
@@ -82,8 +82,6 @@ interface INearbyWrapperState {
     isLoading: boolean;
     isLocationUseDisclosureModalVisible: boolean;
     isNearbyNewsfeedVisible: boolean;
-    areAreaOptionsVisible: boolean;
-    selectedArea: any;
 }
 
 const shouldRenderNearbyAreaFeed = (location) => {
@@ -135,7 +133,6 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
     private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
     private themeMoments = buildMomentStyles();
-    private themeReactionsModal = buildReactionsModalStyles();
     private themeForms = buildFormStyles();
     private mapWatchId;
 
@@ -159,8 +156,6 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             isLoading: true,
             isLocationUseDisclosureModalVisible: false,
             isNearbyNewsfeedVisible: false,
-            areAreaOptionsVisible: false,
-            selectedArea: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -169,7 +164,6 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
@@ -381,18 +375,17 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
             });
     };
 
-    onAreaOptionSelect = (type: ISelectionType) => {
-        const { selectedArea } = this.state;
+    onAreaOptionSelect = (type: IContentSelectionType, area: any) => {
         const { createOrUpdateEventReaction, createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
 
         if (type === 'getDirections') {
             getDirections({
-                latitude: selectedArea.latitude,
-                longitude: selectedArea.longitude,
-                title: selectedArea.notificationMsg,
+                latitude: area.latitude,
+                longitude: area.longitude,
+                title: area.notificationMsg,
             });
         } else {
-            handleAreaReaction(selectedArea, type, {
+            handleAreaReaction(area, type, {
                 user,
                 createOrUpdateEventReaction,
                 createOrUpdateMomentReaction,
@@ -412,11 +405,15 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
         this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
     };
 
-    toggleAreaOptions = (area) => {
-        const { areAreaOptionsVisible } = this.state;
-        this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedArea: areAreaOptionsVisible ? {} : area,
+    toggleAreaOptions = (displayArea) => {
+        const area = displayArea || {};
+        SheetManager.show('content-options-sheet', {
+            payload: {
+                contentType: 'area',
+                translate: this.translate,
+                themeForms: this.themeForms,
+                onSelect: (type: IContentSelectionType) => this.onAreaOptionSelect(type, area),
+            },
         });
     };
 
@@ -596,9 +593,9 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
         return (
             <>
                 <View style={[this.theme.styles.sectionContainerBottomSheet, { backgroundColor: this.theme.colors.brandingWhite }]}>
-                    <Text style={this.theme.styles.sectionTitleBottomSheet}>
+                    <PaperText variant="titleMedium" style={this.theme.styles.sectionTitleBottomSheet}>
                         {this.translate('components.nearbyBottomSheet.title')}
-                    </Text>
+                    </PaperText>
                 </View>
                 {/* <View style={[this.themeMoments.styles.areaCarouselHeaderSliders, { backgroundColor: this.theme.colors.backgroundWhite }]}>
                     <View style={this.themeForms.styles.inputSliderContainerTight}>
@@ -645,10 +642,8 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
     render() {
         const {
             activeTab,
-            areAreaOptionsVisible,
             isLocationUseDisclosureModalVisible,
             isLoading,
-            selectedArea,
         } = this.state;
         const {
             carouselRef,
@@ -744,18 +739,9 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
                     !shouldRenderAreaFeed && <GpsEnableButtonDialog
                         handleEnableLocationPress={this.handleEnableLocationPress}
                         theme={this.theme}
-                        themeForms={this.themeForms}
                         translate={this.translate}
                     />
                 }
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={() => this.toggleAreaOptions(selectedArea)}
-                    translate={this.translate}
-                    onSelect={this.onAreaOptionSelect}
-                    themeButtons={this.themeButtons}
-                    themeReactionsModal={this.themeReactionsModal}
-                />
                 <LocationUseDisclosureModal
                     isVisible={isLocationUseDisclosureModalVisible}
                     translate={this.translate}

@@ -53,6 +53,7 @@ const BottomSheetPlus = ({
 
     const backgroundStyle: any = {
         borderRadius: borderRadius,
+        backgroundColor: themeBottomSheet.colors.backgroundWhite,
     };
     if (isTransparent) {
         backgroundStyle.backgroundColor = 'transparent';

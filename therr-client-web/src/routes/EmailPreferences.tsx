@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { Link, NavigateFunction } from 'react-router-dom';
+import { Alert, Stack } from '@mantine/core';
 import {
-    ButtonPrimary,
-    CheckBox,
-    Input,
-} from 'therr-react/components';
+    MantineButton,
+    MantineCheckbox,
+} from 'therr-react/components/mantine';
 import { UsersService } from 'therr-react/services';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
@@ -203,109 +203,100 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
             <div id="page_email_preferences" className="flex-box space-evenly center row wrap-reverse">
                 <div className="register-container">
                     <div className="flex fill max-wide-30">
-                        <h1 className="text-center">{this.translate('pages.emailPreferences.pageTitle')}</h1>
-                        {
-                            alertMessage
-                            && <div className="form-field">
-                                {
-                                    alertVariation === 'success'
-                                    && <p className={`alert-${alertVariation}`}>{alertMessage}</p>
-                                }
-                                {
-                                    (alertVariation === 'error' || alertVariation === 'warning')
-                                    && <p className={`alert-${alertVariation}`}>{alertMessage}</p>
-                                }
-                            </div>
-                        }
-                        <div className="form-field">
+                        <Stack gap="sm">
+                            <h1 className="text-center">{this.translate('pages.emailPreferences.pageTitle')}</h1>
+                            {
+                                alertMessage
+                                && <Alert
+                                    color={alertVariation === 'success' ? 'green' : 'red'}
+                                    variant="light"
+                                >
+                                    {alertMessage}
+                                </Alert>
+                            }
+
                             <h4>{this.translate('pages.emailPreferences.sectionHeaders.marketing')}:</h4>
-                            <CheckBox
+                            <MantineCheckbox
                                 id="settingsEmailMarketing"
                                 name="settingsEmailMarketing"
                                 label={this.translate('pages.emailPreferences.labels.settingsEmailMarketing')}
-                                value={inputs.settingsEmailMarketing}
+                                isChecked={inputs.settingsEmailMarketing}
                                 onChange={this.onCheckboxChange}
-                                className=""
                                 disabled={isLoading}
                             />
-                            <CheckBox
+                            <MantineCheckbox
                                 id="settingsEmailBusMarketing"
                                 name="settingsEmailBusMarketing"
                                 label={this.translate('pages.emailPreferences.labels.settingsEmailBusMarketing')}
-                                value={inputs.settingsEmailBusMarketing}
+                                isChecked={inputs.settingsEmailBusMarketing}
                                 onChange={this.onCheckboxChange}
-                                className=""
                                 disabled={isLoading}
                             />
 
                             <h4>{this.translate('pages.emailPreferences.sectionHeaders.social')}:</h4>
-                            <CheckBox
+                            <MantineCheckbox
                                 id="settingsEmailLikes"
                                 name="settingsEmailLikes"
                                 label={this.translate('pages.emailPreferences.labels.settingsEmailLikes')}
-                                value={inputs.settingsEmailLikes}
+                                isChecked={inputs.settingsEmailLikes}
                                 onChange={this.onCheckboxChange}
-                                className=""
                                 disabled={isLoading}
                             />
-                            <CheckBox
+                            <MantineCheckbox
                                 id="settingsEmailInvites"
                                 name="settingsEmailInvites"
                                 label={this.translate('pages.emailPreferences.labels.settingsEmailInvites')}
-                                value={inputs.settingsEmailInvites}
+                                isChecked={inputs.settingsEmailInvites}
                                 onChange={this.onCheckboxChange}
-                                className=""
                                 disabled={isLoading}
                             />
-                            <CheckBox
+                            <MantineCheckbox
                                 id="settingsEmailMentions"
                                 name="settingsEmailMentions"
                                 label={this.translate('pages.emailPreferences.labels.settingsEmailMentions')}
-                                value={inputs.settingsEmailMentions}
+                                isChecked={inputs.settingsEmailMentions}
                                 onChange={this.onCheckboxChange}
-                                className=""
                                 disabled={isLoading}
                             />
-                            <CheckBox
+                            <MantineCheckbox
                                 id="settingsEmailMessages"
                                 name="settingsEmailMessages"
                                 label={this.translate('pages.emailPreferences.labels.settingsEmailMessages')}
-                                value={inputs.settingsEmailMessages}
+                                isChecked={inputs.settingsEmailMessages}
                                 onChange={this.onCheckboxChange}
-                                className=""
                                 disabled={isLoading}
                             />
-                            <CheckBox
+                            <MantineCheckbox
                                 id="settingsEmailReminders"
                                 name="settingsEmailReminders"
                                 label={this.translate('pages.emailPreferences.labels.settingsEmailReminders')}
-                                value={inputs.settingsEmailReminders}
+                                isChecked={inputs.settingsEmailReminders}
                                 onChange={this.onCheckboxChange}
-                                className=""
                                 disabled={isLoading}
                             />
-                            <CheckBox
+                            <MantineCheckbox
                                 id="settingsEmailBackground"
                                 name="settingsEmailBackground"
                                 label={this.translate('pages.emailPreferences.labels.settingsEmailBackground')}
-                                value={inputs.settingsEmailBackground}
+                                isChecked={inputs.settingsEmailBackground}
                                 onChange={this.onCheckboxChange}
-                                className=""
                                 disabled={isLoading}
                             />
 
                             <div className="form-field text-right">
-                                <ButtonPrimary
+                                <MantineButton
                                     id="email"
                                     text={this.translate('pages.emailPreferences.buttons.send')}
                                     onClick={this.onSubmit}
                                     disabled={isLoading}
+                                    fullWidth
                                 />
                             </div>
-                        </div>
-                        <div className="text-center">
-                            <Link to="/login">{this.translate('pages.emailPreferences.returnToLogin')}</Link>
-                        </div>
+
+                            <div className="text-center">
+                                <Link to="/login">{this.translate('pages.emailPreferences.returnToLogin')}</Link>
+                            </div>
+                        </Stack>
                     </div>
                 </div>
             </div>

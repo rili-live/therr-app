@@ -195,6 +195,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         fetchData: (dispatch: any, params: any) => MapActions.getSpaceDetails(params.spaceId, {
             withMedia: true,
             withUser: true,
+            withRatings: true,
         })(dispatch),
     },
     {

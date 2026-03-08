@@ -6,13 +6,14 @@ import { getTheme } from '../themes';
 
 const userProfileButtonContainerStyles: any = {
     margin: 0,
+    marginRight: 6,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'flex-end',
     alignItems: 'center',
 };
 
-const getNotificationCircleStyles = (theme): any => ({
+const getNotificationCircleStyles = (theme: ReturnType<typeof getTheme>): any => ({
     position: 'absolute',
     top: 7,
     right: 14,
@@ -78,10 +79,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingRight: 10,
         },
         notificationsItemContainer: {
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
+            position: 'relative',
+        },
+        notificationBadge: {
+            position: 'absolute',
+            top: 14,
+            right: 8,
         },
         notificationCircle: {
             ...getNotificationCircleStyles(therrTheme),
@@ -107,7 +110,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '500',
         },
         overlayContainer: {
-            // backgroundColor: therrTheme.colors.textWhite,
+            backgroundColor: therrTheme.colors.backgroundWhite,
             display: 'flex',
             height: '100%',
             width: '75%',
@@ -157,6 +160,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: HEADER_HEIGHT - HEADER_EXTRA_HEIGHT,
             backgroundColor: therrTheme.colors.brandingBlueGreen,
             alignItems: 'center',
+            paddingHorizontal: 8,
+            paddingVertical: 4,
         },
         subheaderTitle: {
             display: 'flex',
@@ -173,6 +178,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         subheaderLinkText: {
             textDecorationLine: 'underline',
             color: therrTheme.colors.brandingWhite,
+            paddingHorizontal: 6,
         },
         subheaderTitleIcon: {
             color: therrTheme.colors.brandingWhite,
@@ -187,6 +193,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         footer: {
             paddingBottom: 8,
+        },
+        footerButtonCenter: {
+            justifyContent: 'center',
+        },
+        footerButtonMargin: {
+            marginBottom: 10,
         },
         toggleIcon: {
             height: 30,

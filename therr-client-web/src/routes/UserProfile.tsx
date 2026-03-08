@@ -4,6 +4,7 @@ import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import { MantineButton } from 'therr-react/components/mantine';
 import CreateConnectionForm from '../components/forms/CreateConnectionForm';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
@@ -155,9 +156,10 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                     </div>
                 </div>
                 <div className="fill text-right padding-sm">
-                    <button type="button" className="primary text-white" onClick={this.onCreateForumClick}>
-                        {this.translate('pages.userProfile.buttons.createAForum')}
-                    </button>
+                    <MantineButton
+                        text={this.translate('pages.userProfile.buttons.createAForum')}
+                        onClick={this.onCreateForumClick}
+                    />
                 </div>
             </div>
         );

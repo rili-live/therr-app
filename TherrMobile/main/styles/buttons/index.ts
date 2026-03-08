@@ -207,7 +207,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         quickFiltersButtonTiny: {
             ...quickFiltersButtonTinyBase,
-            backgroundColor: therrTheme.colors.brandingWhite,
+            backgroundColor: therrTheme.colors.backgroundWhite,
         },
         quickFiltersButtonTinyActive: {
             ...quickFiltersButtonTinyBase,
@@ -550,6 +550,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingRight: 6,
             fontFamily: therrFontFamily,
             fontSize: 15,
+            color: therrTheme.colors.ternary,
         },
         btnClear: {
             ...btnStyles,

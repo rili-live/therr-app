@@ -7,15 +7,17 @@ import {
     Linking,
     Pressable,
     Share,
+    StyleSheet,
     Text,
     TouchableWithoutFeedbackComponent,
     View,
 } from 'react-native';
-import { Button, Image } from 'react-native-elements';
+import { Button } from '../BaseButton';
+import { Image } from '../BaseImage';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utilities/toasts';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { MapsService } from 'therr-react/services';
@@ -233,7 +235,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
                         height={themeViewArea.styles.areaUserAvatarImg.height}
                         width={themeViewArea.styles.areaUserAvatarImg.width}
-                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen} />}
                         transition={false}
                     />
                 </Pressable>
@@ -257,11 +259,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         source={{
                             uri: getUserContentUri(moment.medias[0], 100, 100),
                         }}
-                        style={{
-                            width: 100,
-                            height: 100,
-                            borderRadius: 5,
-                        }}
+                        style={localStyles.momentThumbnail}
                         resizeMode="contain"
                         PlaceholderContent={<ActivityIndicator />}
                     />
@@ -304,7 +302,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 containerStyle={[spacingStyles.marginVertSm, spacingStyles.marginHorizSm]}
                 buttonStyle={[themeForms.styles.buttonRoundAltSmall, spacingStyles.heightMd]}
                 // disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
-                titleStyle={[themeForms.styles.buttonTitleAlt, { fontSize: 12 }]}
+                titleStyle={[themeForms.styles.buttonTitleAlt, localStyles.actionLinkTitle]}
                 title={item.title}
                 type="outline"
                 onPress={onPress}
@@ -323,11 +321,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     claimSpace = () => {
         const { area, translate } = this.props;
         MapsService.claimSpace(area.id).then(() => {
-            Toast.show({
-                type: 'success',
+            showToast.success({
                 text1: translate('alertTitles.requestClaimSent'),
                 text2: translate('alertMessages.requestClaimSent'),
-                visibilityTime: 3500,
             });
         });
     };
@@ -368,9 +364,12 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         const toggleOptions = () => toggleAreaOptions(area);
         const isEvent = area.areaType === 'events';
         const isSpace = area.areaType === 'spaces';
+        const isMoment = !isEvent && !isSpace;
         const mediaDimensions = {
             width: viewportWidth - (mediaPadding * 2),
-            height: isEvent ? ((viewportWidth - (mediaPadding * 2)) * (3 / 4)) : viewportWidth - (mediaPadding * 2),
+            height: (isEvent || isSpace)
+                ? ((viewportWidth - (mediaPadding * 2)) * (3 / 4))
+                : viewportWidth - (mediaPadding * 2),
         };
         const actionLinks = !isSpace ? [] : [
             {
@@ -410,12 +409,11 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         }
 
         return (
-            <>
+            <View style={themeViewArea.styles.areaCard}>
                 <View style={themeViewArea.styles.areaAuthorContainer}>
                     {
-                        // (isSpace && areaUserDetails?.userName === translate('alertTitles.nameUnknown'))
-                        isSpace
-                            ? <View style={{ flex: 1 }} />
+                        isSpace && !isExpanded
+                            ? <View style={localStyles.spacerFlex} />
                             : <>
                                 <Pressable
                                     onPress={() => goToViewUser(area.fromUserId)}
@@ -434,7 +432,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                         containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
                                         height={themeViewArea.styles.areaUserAvatarImg.height}
                                         width={themeViewArea.styles.areaUserAvatarImg.width}
-                                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.brandingBlueGreen} />}
                                         transition={false}
                                     />
                                 </Pressable>
@@ -489,7 +487,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         data={actionLinks}
                         renderItem={this.renderActionLink}
                         keyExtractor={item => item.url}
-                        style={{ width: '100%' }}
+                        style={localStyles.fullWidth}
                         showsHorizontalScrollIndicator={false}
                     />
                 }
@@ -522,8 +520,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 themeViewArea={themeViewArea}
                                 placeholderMediaType={placeholderMediaType}
                                 dimensions={{
-                                    height: mediaDimensions.width,
-                                    width: mediaDimensions.height,
+                                    height: Math.min(mediaDimensions.height, 160),
+                                    width: mediaDimensions.width,
                                 }}
                             />
                     }
@@ -552,7 +550,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         />
                     }
                     {
-                        !area.isDraft &&
+                        !area.isDraft && !isMoment &&
                         <>
                             {
                                 area?.viewCount != null &&
@@ -616,15 +614,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     isEvent &&
                     <View style={themeViewArea.styles.banner}>
                         <View style={themeViewArea.styles.bannerTitle}>
-                            <Button
-                                type="clear"
-                                icon={
-                                    <TherrIcon
-                                        name="calendar"
-                                        size={26}
-                                        style={themeViewArea.styles.bannerTitleIcon}
-                                    />
-                                }
+                            <TherrIcon
+                                name="calendar"
+                                size={20}
+                                style={themeViewArea.styles.bannerTitleIcon}
                             />
                             <Text numberOfLines={1} style={themeViewArea.styles.bannerTitleText}>
                                 {/* eslint-disable-next-line max-len */}
@@ -637,16 +630,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     shouldDisplayRewardsBanner &&
                     <Pressable style={themeViewArea.styles.banner} onPress={this.onClaimRewardPress}>
                         <View style={themeViewArea.styles.bannerTitle}>
-                            <Button
-                                type="clear"
-                                icon={
-                                    <TherrIcon
-                                        name="gift"
-                                        size={28}
-                                        style={themeViewArea.styles.bannerTitleIcon}
-                                    />
-                                }
-                                onPress={this.onClaimRewardPress}
+                            <TherrIcon
+                                name="gift"
+                                size={20}
+                                style={themeViewArea.styles.bannerTitleIcon}
                             />
                             <Text numberOfLines={1} style={themeViewArea.styles.bannerTitleText}>
                                 {translate('pages.viewSpace.buttons.coinReward', {
@@ -654,39 +641,21 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 })}
                             </Text>
                         </View>
-                        <Pressable onPress={this.onClaimRewardPress}>
+                        <Pressable onPress={this.onClaimRewardPress} style={spacingStyles.marginRtMd}>
                             <Text style={themeViewArea.styles.bannerLinkText}>
                                 {translate('pages.viewSpace.buttons.claimRewards')}
                             </Text>
                         </Pressable>
-                        <Button
-                            icon={
-                                <TherrIcon
-                                    name="hand-coin"
-                                    size={28}
-                                    color={theme.colors.accentYellow}
-                                />
-                            }
-                            iconRight
-                            onPress={this.onClaimRewardPress}
-                            type="clear"
-                        />
                     </Pressable>
                 }
                 {
                     shouldDisplayRelatedSpaceBanner &&
                     <Pressable style={themeViewArea.styles.banner} onPress={this.onGoToSpace}>
                         <View style={themeViewArea.styles.bannerTitle}>
-                            <Button
-                                type="clear"
-                                icon={
-                                    <TherrIcon
-                                        name="road-map"
-                                        size={26}
-                                        style={themeViewArea.styles.bannerTitleIcon}
-                                    />
-                                }
-                                onPress={this.onGoToSpace}
+                            <TherrIcon
+                                name="road-map"
+                                size={20}
+                                style={themeViewArea.styles.bannerTitleIcon}
                             />
                             {
                                 area.space &&
@@ -716,12 +685,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 spacingStyles.alignCenter,
                                 spacingStyles.flexRow,
                             ]}>
-                                <Text style={[
-                                    spacingStyles.padRtTiny,
-                                    {
-                                        fontWeight: '300',
-                                    },
-                                ]}>{area.rating?.avgRating}</Text>
+                                <Text style={[spacingStyles.padRtTiny, localStyles.ratingText]}>
+                                    {area.rating?.avgRating}
+                                </Text>
                                 <SpaceRating
                                     themeForms={themeForms}
                                     initialRating={area.rating?.avgRating}
@@ -729,17 +695,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                     style={[
                                         spacingStyles.alignCenter,
                                         spacingStyles.justifyStart,
-                                        {
-                                            width: 'auto',
-                                        },
+                                        localStyles.ratingStars,
                                     ]}
                                 />
-                                <Text style={[
-                                    spacingStyles.padLtTiny,
-                                    {
-                                        fontWeight: '300',
-                                    },
-                                ]}>
+                                <Text style={[spacingStyles.padLtTiny, localStyles.ratingText]}>
                                     ({area.rating.totalRatings})
                                 </Text>
                             </View>
@@ -747,12 +706,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     </View>
                     {
                         area.distance != null &&
-                        <Text style={[
-                            themeViewArea.styles.areaDistanceRight,
-                            {
-                                width: 'auto',
-                            },
-                        ]}>{`${area.distance}`}</Text>
+                        <Text style={[themeViewArea.styles.areaDistanceRight, localStyles.distanceText]}>
+                            {`${area.distance}`}
+                        </Text>
                     }
                 </View>
                 <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
@@ -849,6 +805,66 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     />
                 </View>
                 {
+                    isMoment && !area.isDraft &&
+                    <View style={themeViewArea.styles.areaReactionsContainer}>
+                        {
+                            area?.viewCount != null &&
+                            <Button
+                                containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                                buttonStyle={themeViewArea.styles.areaReactionButton}
+                                icon={
+                                    <TherrIcon
+                                        name="bar-chart"
+                                        size={22}
+                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                    />
+                                }
+                                onPress={() => {}}
+                                type="clear"
+                                title={area?.viewCount}
+                                titleStyle={[
+                                    themeViewArea.styles.areaReactionButtonTitle,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                ]}
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
+                        }
+                        <Button
+                            containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                            buttonStyle={themeViewArea.styles.areaReactionButton}
+                            icon={
+                                <Icon
+                                    name={isBookmarked ? 'bookmark' : 'bookmark-border'}
+                                    size={24}
+                                    color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                />
+                            }
+                            onPress={() => this.onBookmarkPress(area)}
+                            type="clear"
+                            TouchableComponent={TouchableWithoutFeedbackComponent}
+                        />
+                        <Button
+                            containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                            buttonStyle={themeViewArea.styles.areaReactionButton}
+                            icon={
+                                <TherrIcon
+                                    name={isLiked ? 'heart-filled' : 'heart'}
+                                    size={22}
+                                    color={likeColor}
+                                />
+                            }
+                            onPress={() => this.onLikePress(area)}
+                            type="clear"
+                            title={(likeCount && likeCount > 0) ? likeCount.toString() : ''}
+                            titleStyle={[
+                                themeViewArea.styles.areaReactionButtonTitle,
+                                { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                            ]}
+                            TouchableComponent={TouchableWithoutFeedbackComponent}
+                        />
+                    </View>
+                }
+                {
                     isSpace && isExpanded && area.events?.length > 0
                     && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
                         <Text style={theme.styles.sectionTitleCenter}>
@@ -897,7 +913,33 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         />
                     </View>
                 }
-            </>
+            </View>
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    momentThumbnail: {
+        width: 100,
+        height: 100,
+        borderRadius: 5,
+    },
+    actionLinkTitle: {
+        fontSize: 12,
+    },
+    spacerFlex: {
+        flex: 1,
+    },
+    fullWidth: {
+        width: '100%',
+    },
+    ratingText: {
+        fontWeight: '300',
+    },
+    ratingStars: {
+        width: 'auto',
+    },
+    distanceText: {
+        width: 'auto',
+    },
+});

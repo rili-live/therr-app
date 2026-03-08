@@ -677,7 +677,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
         if (coords.latitude !== location?.user?.latitude || coords.longitude !== location?.user?.longitude) {
             // Send location to backend for processing
-            if (isUserAuthenticated(user)) {
+            if (isUserAuthenticated(user) && lastLocationSendForProcessing) {
                 PushNotificationsService.postLocationChange({
                     longitude: coords.longitude,
                     latitude: coords.latitude,
@@ -1117,6 +1117,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     }]}>
                         <Animated.ScrollView
                             horizontal
+                            removeClippedSubviews={false}
                             scrollEventThrottle={0}
                             showsHorizontalScrollIndicator={false}
                             snapToInterval={CARD_WIDTH}

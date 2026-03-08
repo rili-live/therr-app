@@ -1,11 +1,10 @@
-/* eslint-disable max-len */
-
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+import { Alert, Stack } from '@mantine/core';
 import {
-    ButtonPrimary,
-    Input,
-} from 'therr-react/components';
+    MantineButton,
+    MantineInput,
+} from 'therr-react/components/mantine';
 import translator from '../../services/translator';
 
 // Regular component props
@@ -27,7 +26,7 @@ interface ILoginFormState {
  * LoginForm
  */
 export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginFormState> {
-    private translate: Function;
+    private translate: (key: string, params?: any) => string;
 
     constructor(props: ILoginFormProps) {
         super(props);
@@ -44,13 +43,15 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
     }
 
     isLoginFormDisabled() {
-        return !this.state.inputs.userName || !this.state.inputs.password || this.state.isSubmitting;
+        return !this.state.inputs.userName
+            || !this.state.inputs.password
+            || this.state.isSubmitting;
     }
 
     onSubmit = (event: any) => {
         event.preventDefault();
         const { password, rememberMe, userName } = this.state.inputs;
-        switch (event.target.id) {
+        switch (event.target.id || event.currentTarget.id) {
             case 'password':
             case 'user_name':
             case 'login_button':
@@ -67,17 +68,25 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                             this.setState({
                                 prevLoginError: error.message,
                             });
-                        } else if (error.statusCode === 403 && error.message === 'One-time password has expired') {
+                        } else if (error.statusCode === 403
+                            && error.message === 'One-time password has expired') {
                             this.setState({
-                                prevLoginError: this.translate('components.loginForm.oneTimePasswordExpired'),
+                                prevLoginError: this.translate(
+                                    'components.loginForm.oneTimePasswordExpired',
+                                ),
                             });
-                        } else if (error.statusCode === 429 && error.message === 'Too many login attempts, please try again later.') {
+                        } else if (error.statusCode === 429
+                            && error.message === 'Too many login attempts, please try again later.') {
                             this.setState({
-                                prevLoginError: this.translate('components.loginForm.tooManyRequests'),
+                                prevLoginError: this.translate(
+                                    'components.loginForm.tooManyRequests',
+                                ),
                             });
                         } else {
                             this.setState({
-                                prevLoginError: this.translate('components.loginForm.backendErrorMessage'),
+                                prevLoginError: this.translate(
+                                    'components.loginForm.backendErrorMessage',
+                                ),
                             });
                         }
                         this.setState({
@@ -120,50 +129,73 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
         return (
             <div className={`login-container ${className}`}>
                 <div className="flex fill max-wide-20">
-                    <h1 className="text-title-medium">{ title || this.translate('components.loginForm.defaultTitle') }</h1>
-                    {
-                        alert && !prevLoginError
-                        && <div className={`text-center alert-${alertVariation} mb-2`}>{alert}</div>
-                    }
-                    {
-                        prevLoginError
-                        && <div className="text-center alert-error backed padding-sm mb-2">{prevLoginError}</div>
-                    }
-                    {/* <label htmlFor="user_name">{this.translate('components.loginForm.labels.userName')}:</label> */}
-                    <Input
-                        type="text"
-                        id="user_name"
-                        name="userName"
-                        value={this.state.inputs.userName}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        validations={['isRequired']}
-                        placeholder={this.translate('components.loginForm.labels.userName')}
-                    />
+                    <Stack gap="sm">
+                        <h1 className="text-title-medium">
+                            {title || this.translate('components.loginForm.defaultTitle')}
+                        </h1>
+                        {
+                            alert && !prevLoginError
+                            && (
+                                <Alert
+                                    color={alertVariation === 'success' ? 'green' : 'red'}
+                                    variant="light"
+                                >
+                                    {alert}
+                                </Alert>
+                            )
+                        }
+                        {
+                            prevLoginError
+                            && (
+                                <Alert color="red" variant="light">
+                                    {prevLoginError}
+                                </Alert>
+                            )
+                        }
+                        <MantineInput
+                            type="text"
+                            id="user_name"
+                            name="userName"
+                            value={this.state.inputs.userName}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translateFn={this.translate}
+                            validations={['isRequired']}
+                            label={this.translate('components.loginForm.labels.userName')}
+                        />
 
-                    {/* TODO: RMOBILE-26: Centralize password requirements */}
-                    {/* <label htmlFor="password">{this.translate('components.loginForm.labels.password')}:</label> */}
-                    <Input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={this.state.inputs.password}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        placeholder={this.translate('components.loginForm.labels.password')}
-                        translate={this.translate}
-                        validations={['isRequired']}
-                    />
+                        <MantineInput
+                            type="password"
+                            id="password"
+                            name="password"
+                            value={this.state.inputs.password}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            label={this.translate('components.loginForm.labels.password')}
+                            translateFn={this.translate}
+                            validations={['isRequired']}
+                        />
 
-                    <div className="form-field text-right" style={{ paddingTop: '.5rem' }}>
-                        <ButtonPrimary
-                            id="login_button" text={this.translate('components.loginForm.buttons.login')} onClick={this.onSubmit} disabled={this.isLoginFormDisabled()} />
-                    </div>
+                        <div className="form-field text-right" style={{ paddingTop: '.5rem' }}>
+                            <MantineButton
+                                id="login_button"
+                                text={this.translate('components.loginForm.buttons.login')}
+                                onClick={this.onSubmit}
+                                disabled={this.isLoginFormDisabled()}
+                                fullWidth
+                            />
+                        </div>
 
-                    <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>
-                        <Link to="/register">{this.translate('components.loginForm.buttons.signUp')}</Link> | <Link to="/reset-password">{this.translate('components.loginForm.buttons.forgotPassword')}</Link>
-                    </div>
+                        <div className="text-center" style={{ padding: '1rem 0 0' }}>
+                            <Link to="/register">
+                                {this.translate('components.loginForm.buttons.signUp')}
+                            </Link>
+                            {' | '}
+                            <Link to="/reset-password">
+                                {this.translate('components.loginForm.buttons.forgotPassword')}
+                            </Link>
+                        </div>
+                    </Stack>
                 </div>
             </div>
         );

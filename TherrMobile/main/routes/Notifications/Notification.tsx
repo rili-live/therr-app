@@ -1,6 +1,6 @@
 import React from 'react';
-import { GestureResponderEvent, Pressable, View } from 'react-native';
-import { Button, Text } from 'react-native-elements';
+import { GestureResponderEvent, Pressable, Text, View } from 'react-native';
+import { Button } from '../../components/BaseButton';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import formatDate from '../../utilities/formatDate';
 import { ITherrThemeColors } from '../../styles/themes';

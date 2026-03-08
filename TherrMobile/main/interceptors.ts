@@ -82,6 +82,9 @@ const initInterceptors = (
             return response;
         },
         (error) => {
+            if (__DEV__) {
+                console.log('[Interceptor Error]', error?.config?.url, error?.response?.status, error?.message);
+            }
             if (error.response) {
                 if (
                     Number(error.response.status) === 401 ||

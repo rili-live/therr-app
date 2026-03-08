@@ -1,7 +1,8 @@
-import BottomSheet from '../../components/BottomSheet/BottomSheet';
-import React, { useState } from 'react';
+import React from 'react';
 import { ActivityIndicator, Text, View, Pressable, Share, Platform } from 'react-native';
-import { Button, Image } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
+import { Image } from '../../components/BaseImage';
+import { SheetManager } from 'react-native-actions-sheet';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
 import SocialIconLink from './SocialIconLink';
@@ -10,6 +11,7 @@ import spacingStyles from '../../styles/layouts/spacing';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import TherrIcon from '../../components/TherrIcon';
 import SuperUserStatusIcon from '../../components/SuperUserStatusIcon';
+import { IUserProfileAction } from '../../components/ActionSheet/UserProfileSheet';
 
 const LogoIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -102,90 +104,6 @@ const getActionableOptions = (isMe: boolean, userInView: any) => {
     return filteredOptions;
 };
 
-const ListItem = ({
-    item,
-    navigation,
-    onBlockUser,
-    onConnectionRequest,
-    // onMessageUser,
-    onReportUser,
-    onToggleMoreBottomSheet,
-    translate,
-    themeUser,
-    userInView,
-}) => {
-    let contextOnPress;
-
-    switch (item.name) {
-        case 'sync-socials':
-            contextOnPress = () => {
-                onToggleMoreBottomSheet(false);
-                navigation.navigate('SocialSync', userInView);
-            };
-            break;
-        case 'remove-connection-request':
-            contextOnPress = (context, userDetails) => {
-                onToggleMoreBottomSheet(false);
-                onConnectionRequest(context, userDetails);
-            };
-            break;
-        // case 'send-message':
-        //     contextOnPress = onMessageUser;
-        //     break;
-        case 'block-user':
-            contextOnPress = (context, userDetails) => {
-                onToggleMoreBottomSheet(false);
-                onBlockUser(context, userDetails);
-            };
-            break;
-        case 'report-user':
-            contextOnPress = (context, userDetails) => {
-                onToggleMoreBottomSheet(false);
-                onReportUser(context, userDetails);
-            };
-            break;
-        case 'share-a-link':
-            contextOnPress = (context, userDetails) => {
-                onToggleMoreBottomSheet(false);
-                Share.share({
-                    message: Platform.OS === 'ios' ? undefined : `https://www.therr.com/users/${userDetails.id}`,
-                    url: `https://www.therr.com/users/${userDetails.id}`,
-                    title: translate('modals.contentOptions.shareLink.titleUser', {
-                        userName: userDetails.userName,
-                    }),
-                }).then((response) => {
-                    if (response.action === Share.sharedAction) {
-                        if (response.activityType) {
-                            // shared with activity type of response.activityType
-                        } else {
-                            // shared
-                        }
-                    } else if (response.action === Share.dismissedAction) {
-                        // dismissed
-                    }
-                }).catch((err) => {
-                    console.error(err);
-                });
-            };
-            break;
-        default:
-            contextOnPress = () => onToggleMoreBottomSheet(false);
-    }
-
-    return (
-        <Pressable onPress={() => contextOnPress(item, userInView)} style={themeUser.styles.actionMenuItemContainer}>
-            <View style={themeUser.styles.actionMenuItemIcon}>
-                <MaterialIcon
-                    name={item.icon}
-                    size={30}
-                    color={themeUser.colorVariations.primary3LightFade}
-                />
-            </View>
-            <Text numberOfLines={1} style={themeUser.styles.actionMenuItemText}>{translate(item.title)}</Text>
-        </Pressable>
-    );
-};
-
 const MainActionButton = ({
     themeForms,
     themeUser,
@@ -261,20 +179,55 @@ const UserDisplayHeader = ({
     onReportUser,
     onProfilePicturePress,
     themeForms,
-    themeModal,
     themeUser,
     translate,
     user,
     userInView,
 }) => {
-    const [isMoreBottomSheetVisible, toggleMoreBottomSheet] = useState(false);
-
     // eslint-disable-next-line eqeqeq
     const isMe = user.details?.id == userInView.id;
-    let actionsList = getActionableOptions(isMe, userInView);
-    const onToggleMoreBottomSheet = (isVisible: boolean) => {
+    const actionsList = getActionableOptions(isMe, userInView);
+
+    const handleAction = (action: IUserProfileAction) => {
+        switch (action.name) {
+            case 'sync-socials':
+                navigation.navigate('SocialSync', userInView);
+                break;
+            case 'remove-connection-request':
+                onConnectionRequest(action, userInView);
+                break;
+            case 'block-user':
+                onBlockUser(action, userInView);
+                break;
+            case 'report-user':
+                onReportUser(action, userInView);
+                break;
+            case 'share-a-link':
+                Share.share({
+                    message: Platform.OS === 'ios' ? undefined : `https://www.therr.com/users/${userInView.id}`,
+                    url: `https://www.therr.com/users/${userInView.id}`,
+                    title: translate('modals.contentOptions.shareLink.titleUser', {
+                        userName: userInView.userName,
+                    }),
+                }).catch((err) => {
+                    console.error(err);
+                });
+                break;
+            default:
+                break;
+        }
+    };
+
+    const onShowMoreOptions = () => {
         if (actionsList.length) {
-            toggleMoreBottomSheet(isVisible);
+            SheetManager.show('user-profile-sheet', {
+                payload: {
+                    actions: actionsList,
+                    translate,
+                    themeForms,
+                    onAction: handleAction,
+                },
+            });
         }
     };
 
@@ -291,7 +244,7 @@ const UserDisplayHeader = ({
                         height={themeUser.styles.profileImage.height}
                         width={themeUser.styles.profileImage.width}
                         containerStyle={{}}
-                        PlaceholderContent={<ActivityIndicator size="large" color={themeUser.colors.primary}/>}
+                        PlaceholderContent={<ActivityIndicator size="large" color={themeUser.colors.brandingBlueGreen}/>}
                         transition={false}
                     />
                 </Pressable>
@@ -417,7 +370,7 @@ const UserDisplayHeader = ({
                 <Button
                     containerStyle={spacingStyles.marginRtLg}
                     buttonStyle={[themeForms.styles.buttonRoundAltSmall, themeForms.styles.buttonRoundAltSmallWidth]}
-                    onPress={() => onToggleMoreBottomSheet(true)}
+                    onPress={onShowMoreOptions}
                     icon={
                         <TherrIcon
                             name="dots-horiz"
@@ -427,27 +380,6 @@ const UserDisplayHeader = ({
                     }
                 />
             </View>
-            <BottomSheet
-                isVisible={isMoreBottomSheetVisible}
-                onRequestClose={() => onToggleMoreBottomSheet(!isMoreBottomSheetVisible)}
-                themeModal={themeModal}
-            >
-                {
-                    actionsList.map((item) => <ListItem
-                        key={item.id}
-                        item={item}
-                        navigation={navigation}
-                        onBlockUser={onBlockUser}
-                        onConnectionRequest={onConnectionRequest}
-                        // onMessageUser={onMessageUser}
-                        onReportUser={onReportUser}
-                        onToggleMoreBottomSheet={onToggleMoreBottomSheet}
-                        translate={translate}
-                        themeUser={themeUser}
-                        userInView={userInView}
-                    />)
-                }
-            </BottomSheet>
         </>
     );
 };

@@ -2,9 +2,12 @@ import React, { useEffect } from 'react';
 import { useSpotlightTour } from 'react-native-spotlight-tour';
 
 const TOUR_DELAY_MS = 10 * 1000;
+const TOUR_IMMEDIATE_DELAY_MS = 300;
 
 const MapTourRenderer = ({
     getCurrentScreen,
+    immediate,
+    navigation,
     updateTour,
     user,
 }) => {
@@ -18,14 +21,19 @@ const MapTourRenderer = ({
         let timeoutId;
 
         if (currentRouteName === 'Map') {
+            const delayMs = immediate ? TOUR_IMMEDIATE_DELAY_MS : TOUR_DELAY_MS;
             timeoutId = setTimeout(() => {
                 updateTour({
                     isTouring: false,
                     isNavigationTouring: true,
                 }, user?.details?.id);
 
+                if (immediate && navigation) {
+                    navigation.setParams({ shouldStartNavigationTour: false });
+                }
+
                 start();
-            }, TOUR_DELAY_MS);
+            }, delayMs);
         } else {
             stop();
         }
@@ -34,6 +42,8 @@ const MapTourRenderer = ({
         return () => clearTimeout(timeoutId);
     }, [
         currentRouteName,
+        immediate,
+        navigation,
         start,
         stop,
         updateTour,

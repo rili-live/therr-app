@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Pressable } from 'react-native';
+import { Dialog, Portal } from 'react-native-paper';
 
 interface IWrapperModal {
     children: React.ReactNode;
@@ -17,22 +17,14 @@ export default ({
     themeModal,
 }: IWrapperModal) => {
     return (
-        <Modal
-            animationType="fade"
-            visible={isVisible}
-            onRequestClose={onRequestClose}
-            transparent={true}
-            style={{
-                zIndex: 1000,
-            }}
-        >
-            <Pressable
-                onPress={onRequestClose}
-                style={themeModal.styles.overlay}>
-                <Pressable style={themeModal.styles.container}>
-                    {children}
-                </Pressable>
-            </Pressable>
-        </Modal>
+        <Portal>
+            <Dialog
+                visible={isVisible}
+                onDismiss={onRequestClose}
+                style={themeModal.styles.container}
+            >
+                {children}
+            </Dialog>
+        </Portal>
     );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Button } from '../../components/BaseButton';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import spacingStyles from '../../styles/layouts/spacing';
 import formatDate from '../../utilities/formatDate';

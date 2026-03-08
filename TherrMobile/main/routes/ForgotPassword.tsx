@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text } from 'react-native';
-import { Button }  from 'react-native-elements';
+import { Button } from '../components/BaseButton';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
@@ -123,6 +123,9 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                             errorMsg: this.translate('forms.forgotPassword.backendErrorMessage'),
                         });
                     }
+                })
+                .finally(() => {
+                    this.setState({ isSubmitting: false });
                 });
         }
     };
@@ -194,12 +197,16 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                         </View>
                         <View style={this.themeAuthForm.styles.submitButtonContainer}>
                             <Button
-                                buttonStyle={this.themeAuthForm.styles.button}
+                                buttonStyle={this.themeForms.styles.buttonPrimary}
+                                titleStyle={this.themeForms.styles.buttonTitle}
+                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                disabledStyle={this.themeForms.styles.buttonDisabled}
                                 title={this.translate(
                                     'forms.forgotPassword.buttons.submit'
                                 )}
                                 onPress={this.onSubmit}
                                 disabled={this.isFormDisabled()}
+                                loading={this.state.isSubmitting}
                             />
                         </View>
                     </ScrollView>
