@@ -458,24 +458,21 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '500',
         },
         googleButtonIcon: {
-            height: 26,
-            width: 26,
-            padding: 8,
+            height: 36,
+            width: 36,
             marginLeft: 12,
         },
         appleButtonContainer: {
             width: '100%', // You must specify a width
-            borderWidth: isDark ? 0 : 2,
-            borderRadius: isDark ? 0 : 15,
             height: 52,
             elevation: 3,
         },
         appleTitleStyle: {
         },
         appleButtonIcon: {
-            height: 22,
-            width: 18,
-            padding: 8,
+            height: 32,
+            width: 26,
+            marginLeft: 12,
         },
         headerInputBadgeContainer: {
             position: 'absolute',
