@@ -7,12 +7,12 @@
 @import '../components';
 
 html {
-    background: $therr-background;
+    background: var(--therr-background, $therr-background);
 }
 
 html,
 body {
-    color: $therr-text-a;
+    color: var(--therr-text-a, $therr-text-a);
     font-family: sans-serif;
     font-size: 16px;
     margin: 0;
@@ -45,7 +45,7 @@ h4 {
 }
 
 .content-container {
-    background: $therr-background-black;
+    background: var(--therr-background-black, $therr-background-black);
     border: none;
     border-radius: 0;
     // border-left: rem-calc(4px) double $therr-primary-2;
@@ -59,7 +59,7 @@ h4 {
 
 .content-container-home {
     display: flex;
-    background: $therr-background-black;
+    background: var(--therr-background-black, $therr-background-black);
     border: none;
     border-radius: 0;
     // border-left: rem-calc(4px) double $therr-primary-2;

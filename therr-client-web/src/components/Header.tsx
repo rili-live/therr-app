@@ -11,6 +11,7 @@ import { bindActionCreators } from 'redux';
 import translator from '../services/translator';
 import { INavMenuContext } from '../types';
 import UsersActions from '../redux/actions/UsersActions';
+import ColorSchemeToggle from './ColorSchemeToggle';
 
 interface IHeaderDispatchProps {
     logout: Function;
@@ -110,6 +111,7 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                         aria-label="Therr logo text home link"
                     />
                 </div>
+                <ColorSchemeToggle />
                 <AccessControl isAuthorized={isAuthorized} publicOnly>
                     <div className="login-link flex-box row center align-center">
                         <SvgButton

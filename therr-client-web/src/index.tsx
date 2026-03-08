@@ -4,14 +4,19 @@ import setupLogRocketReact from 'logrocket-react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { MantineProvider } from '@mantine/core';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import store from './store';
+import mantineTheme from './styles/mantine-theme';
 
 // Third Party Styles
+import '@mantine/core/styles.css';
 import 'react-phone-number-input/style.css';
 
 // Therr Styles
+// CSS custom properties for runtime light/dark switching
+import './styles/themes/css-variables.scss';
 // Change the following import to alter theme
 // TODO: RSERV-8-: Use themes endpoint to dynamically load theme styles
 import './styles/themes/light/index.scss';
@@ -19,12 +24,14 @@ import './styles/themes/light/index.scss';
 const rootEl = document.getElementById('app');
 // const root = createRoot(rootEl);
 const RootComponent = () => (
-    <Provider store={store} serverState={store.preloadedState}>
-        <BrowserRouter>
-            <ScrollToTop />
-            <Layout />
-        </BrowserRouter>
-    </Provider>
+    <MantineProvider theme={mantineTheme} defaultColorScheme="light">
+        <Provider store={store} serverState={store.preloadedState}>
+            <BrowserRouter>
+                <ScrollToTop />
+                <Layout />
+            </BrowserRouter>
+        </Provider>
+    </MantineProvider>
 );
 
 LogRocket.init('pibaqj/therr-web-app');

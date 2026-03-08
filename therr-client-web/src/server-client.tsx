@@ -11,6 +11,7 @@ import ReactGA from 'react-ga4';
 import LogRocket from 'logrocket';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
+import { MantineProvider } from '@mantine/core';
 import printLogs from 'therr-js-utilities/print-logs';
 import serialize from 'serialize-javascript';
 import { BrandVariations, Content } from 'therr-js-utilities/constants';
@@ -42,6 +43,7 @@ if (!process.env.BROWSER) {
 }
 import Layout from './components/Layout'; // eslint-disable-line
 import getRoutes, { IRoute } from './routes'; // eslint-disable-line
+import mantineTheme from './styles/mantine-theme'; // eslint-disable-line
 
 // Initialize the server and configure support for handlebars templates
 const app = express();
@@ -322,6 +324,7 @@ routeConfig.forEach((config) => {
     || 'A nearby newsfeed app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
 
     app.get(routePath, (req, res) => {
+        const colorScheme = (req.headers.cookie?.match(/therr-color-scheme=(light|dark)/)?.[1] || 'light') as 'light' | 'dark';
         const promises: any = [];
         const staticContext: any = {};
         const initialState: any = {
@@ -361,11 +364,13 @@ routeConfig.forEach((config) => {
 
         Promise.all(promises).then(() => {
             const markup = ReactDOMServer.renderToString(
-                <Provider store={store}>
-                    <StaticRouter location={req.url}>
-                        <Layout />
-                    </StaticRouter>
-                </Provider>,
+                <MantineProvider theme={mantineTheme} defaultColorScheme={colorScheme}>
+                    <Provider store={store}>
+                        <StaticRouter location={req.url}>
+                            <Layout />
+                        </StaticRouter>
+                    </Provider>
+                </MantineProvider>,
             );
 
             // This gets the initial state created after all dispatches are called in fetchData

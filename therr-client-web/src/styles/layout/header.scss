@@ -1,7 +1,7 @@
 header {
     z-index: 90;
     align-items: center;
-    background: $therr-primary-1;
+    background: var(--therr-primary-1, $therr-primary-1);
     display: flex;
     height: $header-height-small;
     left: 0;
@@ -51,6 +51,11 @@ header {
                 }
             }
         }
+    }
+
+    .mantine-ActionIcon-root {
+        position: absolute;
+        right: 7rem;
     }
 
     .login-link,
