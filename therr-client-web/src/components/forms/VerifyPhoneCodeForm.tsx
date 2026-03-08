@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { isValidPhoneNumber } from 'react-phone-number-input';
+import { Stack } from '@mantine/core';
 import {
-    ButtonPrimary,
-    Input,
-} from 'therr-react/components';
+    MantineButton,
+    MantineInput,
+} from 'therr-react/components/mantine';
 import translator from '../../services/translator';
 
 // Regular component props
@@ -72,28 +72,36 @@ export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCo
         return (
             <div className="register-container">
                 <div className="flex fill">
-                    <h1 className="text-center">{this.props.title}</h1>
+                    <Stack gap="sm">
+                        <h1 className="text-center">{this.props.title}</h1>
 
-                    <label className="required" htmlFor="verification_code">{this.translate('components.createProfileForm.labels.verificationCode')}:</label>
-                    <Input
-                        type="text"
-                        id="verification_code"
-                        name="verificationCode"
-                        value={this.state.inputs.verificationCode}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        validations={['isRequired']}
-                    />
+                        <MantineInput
+                            type="text"
+                            id="verification_code"
+                            name="verificationCode"
+                            value={this.state.inputs.verificationCode}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translateFn={this.translate}
+                            validations={['isRequired']}
+                            placeholder={this.translate('components.createProfileForm.labels.verificationCode')}
+                        />
 
-                    <div className="form-field flex-box space-between row">
-                        <ButtonPrimary
-                            id="resend_phone"
-                            text={this.translate('components.createProfileForm.buttons.resend')} onClick={this.onResendCode} />
-                        <ButtonPrimary
-                            id="verify_phone"
-                            text={this.translate('components.createProfileForm.buttons.submit')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
-                    </div>
+                        <div className="form-field flex-box space-between row">
+                            <MantineButton
+                                id="resend_phone"
+                                text={this.translate('components.createProfileForm.buttons.resend')}
+                                onClick={this.onResendCode}
+                                variant="outline"
+                            />
+                            <MantineButton
+                                id="verify_phone"
+                                text={this.translate('components.createProfileForm.buttons.submit')}
+                                onClick={this.onSubmit}
+                                disabled={this.isFormDisabled()}
+                            />
+                        </div>
+                    </Stack>
                 </div>
             </div>
         );

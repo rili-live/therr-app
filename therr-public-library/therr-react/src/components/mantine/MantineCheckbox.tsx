@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { Checkbox, CheckboxProps } from '@mantine/core';
 
-interface IMantineCheckboxProps extends Omit<CheckboxProps, 'onChange'> {
+interface IMantineCheckboxProps extends Omit<CheckboxProps, 'onChange' | 'checked'> {
     id?: string;
     name?: string;
     label: string;
-    checked: boolean;
+    isChecked?: boolean;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -13,7 +13,7 @@ const MantineCheckbox: React.FC<IMantineCheckboxProps> = ({
     id,
     name,
     label,
-    checked,
+    isChecked,
     onChange,
     ...rest
 }) => (
@@ -21,7 +21,7 @@ const MantineCheckbox: React.FC<IMantineCheckboxProps> = ({
         id={id}
         name={name}
         label={label}
-        checked={checked}
+        checked={isChecked}
         onChange={onChange}
         {...rest}
     />

@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { Link, NavigateFunction } from 'react-router-dom';
+import { Alert, Stack } from '@mantine/core';
 import {
-    ButtonPrimary,
-    CheckBox,
-    Input,
-} from 'therr-react/components';
+    MantineButton,
+    MantineCheckbox,
+    MantineInput,
+} from 'therr-react/components/mantine';
 import { UsersService } from 'therr-react/services';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
@@ -140,71 +141,63 @@ export class AppFeedbackComponent extends React.Component<IAppFeedbackProps, IAp
             <div id="page_app_feedback" className="flex-box space-evenly center row wrap-reverse">
                 <div className="register-container">
                     <div className="flex fill max-wide-30">
-                        <h1 className="text-center">{this.translate('pages.appFeedback.pageTitle')}</h1>
-                        {
-                            alertMessage
-                            && <div className="form-field text-center">
-                                {
-                                    alertVariation === 'success'
-                                    && <p className={`alert-${alertVariation}`}>{alertMessage}</p>
-                                }
-                                {
-                                    (alertVariation === 'error' || alertVariation === 'warning')
-                                    && <p className={`alert-${alertVariation}`}>{alertMessage}</p>
-                                }
-                            </div>
-                        }
-                        <div className="form-field mb-2">
+                        <Stack gap="sm">
+                            <h1 className="text-center">{this.translate('pages.appFeedback.pageTitle')}</h1>
+                            {
+                                alertMessage
+                                && <Alert
+                                    color={alertVariation === 'success' ? 'green' : 'red'}
+                                    variant="light"
+                                >
+                                    {alertMessage}
+                                </Alert>
+                            }
+
                             <h4 className="text-center">{this.translate('pages.appFeedback.sectionHeaders.response')}</h4>
-                            <div className="mb-2 text-center">
-                                <CheckBox
-                                    id="isSocialHealth"
-                                    name="isSocialHealth"
-                                    label={this.translate('pages.appFeedback.labels.isSocialHealth')}
-                                    value={inputs.isSocialHealth}
-                                    onChange={this.onCheckboxChange}
-                                    className="no-padding"
-                                    disabled={isLoading}
-                                />
-                                <CheckBox
-                                    id="isLoyaltyRewards"
-                                    name="isLoyaltyRewards"
-                                    label={this.translate('pages.appFeedback.labels.isLoyaltyRewards')}
-                                    value={inputs.isLoyaltyRewards}
-                                    onChange={this.onCheckboxChange}
-                                    className="no-padding"
-                                    disabled={isLoading}
-                                />
-                            </div>
-                            <div className="text-center no-padding">
-                                <label className="required" htmlFor="app_feedback">
-                                    {this.translate('pages.appFeedback.labels.feedback')}:
-                                </label>
-                                <Input
-                                    type="text"
-                                    id="app_feedback"
-                                    name="appFeedback"
-                                    value={this.state.inputs.appFeedback}
-                                    onChange={this.onInputChange}
-                                    onEnter={this.onSubmit}
-                                    translate={this.translate}
-                                    validations={['isRequired']}
-                                    placeholder={this.translate('pages.appFeedback.labels.missing')}
-                                />
-                            </div>
+                            <MantineCheckbox
+                                id="isSocialHealth"
+                                name="isSocialHealth"
+                                label={this.translate('pages.appFeedback.labels.isSocialHealth')}
+                                isChecked={inputs.isSocialHealth}
+                                onChange={this.onCheckboxChange}
+                                disabled={isLoading}
+                            />
+                            <MantineCheckbox
+                                id="isLoyaltyRewards"
+                                name="isLoyaltyRewards"
+                                label={this.translate('pages.appFeedback.labels.isLoyaltyRewards')}
+                                isChecked={inputs.isLoyaltyRewards}
+                                onChange={this.onCheckboxChange}
+                                disabled={isLoading}
+                            />
+
+                            <MantineInput
+                                type="text"
+                                id="app_feedback"
+                                name="appFeedback"
+                                value={this.state.inputs.appFeedback}
+                                onChange={this.onInputChange}
+                                onEnter={this.onSubmit}
+                                translateFn={this.translate}
+                                validations={['isRequired']}
+                                placeholder={this.translate('pages.appFeedback.labels.missing')}
+                                label={this.translate('pages.appFeedback.labels.feedback')}
+                            />
 
                             <div className="form-field text-right">
-                                <ButtonPrimary
+                                <MantineButton
                                     id="email"
                                     text={this.translate('pages.appFeedback.buttons.send')}
                                     onClick={this.onSubmit}
                                     disabled={isLoading || !this.state.inputs.appFeedback}
+                                    fullWidth
                                 />
                             </div>
-                        </div>
-                        <div className="text-center">
-                            <Link to="/login">{this.translate('pages.appFeedback.returnToLogin')}</Link>
-                        </div>
+
+                            <div className="text-center">
+                                <Link to="/login">{this.translate('pages.appFeedback.returnToLogin')}</Link>
+                            </div>
+                        </Stack>
                     </div>
                 </div>
             </div>

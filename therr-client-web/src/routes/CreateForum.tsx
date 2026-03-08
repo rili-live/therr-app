@@ -2,10 +2,11 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
+import { Stack } from '@mantine/core';
 import {
-    Input,
-    ButtonPrimary,
-} from 'therr-react/components';
+    MantineButton,
+    MantineInput,
+} from 'therr-react/components/mantine';
 import { ForumActions } from 'therr-react/redux/actions';
 import { IForumsState, IUserState } from 'therr-react/types';
 import withNavigation from '../wrappers/withNavigation';
@@ -238,70 +239,73 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
 
         return (
             <div id="page_join_forum">
-                <h1>{this.translate('pages.createForum.pageTitle')}</h1>
-                <label htmlFor="forum_title">{this.translate('pages.createForum.labels.title')}:</label>
-                <Input
-                    type="text"
-                    id="forum_title"
-                    name="title"
-                    value={this.state.inputs.title}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    placeholder={this.translate('pages.createForum.placeholders.title')}
-                />
-                <label htmlFor="forum_subtitle">{this.translate('pages.createForum.labels.subtitle')}:</label>
-                <Input
-                    type="text"
-                    id="forum_subtitle"
-                    name="subtitle"
-                    value={this.state.inputs.subtitle}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    placeholder={this.translate('pages.createForum.placeholders.subtitle')}
-                />
-                <label htmlFor="forum_hashtags">{this.translate('pages.createForum.labels.hashTags')}:</label>
-                <Input
-                    type="text"
-                    id="forum_hashtags"
-                    name="hashTags"
-                    value={this.state.inputs.hashTags}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    placeholder={this.translate('pages.createForum.placeholders.hashTags')}
-                />
-                <div>{ tagsString }</div>
-                <label htmlFor="forum_description">{this.translate('pages.createForum.labels.description')}:</label>
-                <Input
-                    type="text"
-                    id="forum_description"
-                    name="description"
-                    value={this.state.inputs.description}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    placeholder={this.translate('pages.createForum.placeholders.description')}
-                />
-                <div className="form-field text-right">
-                    <ButtonPrimary
-                        id="join_forum"
-                        text={this.translate('pages.createForum.buttons.submit')}
-                        onClick={this.onSubmit}
-                        disabled={this.shouldDisableInput('forum')}
+                <Stack gap="sm">
+                    <h1>{this.translate('pages.createForum.pageTitle')}</h1>
+                    <MantineInput
+                        type="text"
+                        id="forum_title"
+                        name="title"
+                        value={this.state.inputs.title}
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translateFn={this.translate}
+                        placeholder={this.translate('pages.createForum.placeholders.title')}
+                        label={this.translate('pages.createForum.labels.title')}
                     />
-                </div>
-                {
-                    forums && forums.activeForums
-                    && <span className="forums-list">
-                        {
-                            forums.activeForums.length < 1
-                                ? <i>{this.translate('pages.createForum.noForumsMessage')}</i>
-                                : <span>{this.translate('pages.createForum.labels.activeForums')}: <i>{forums?.activeForums?.length || 0}</i></span>
-                        }
-                    </span>
-                }
+                    <MantineInput
+                        type="text"
+                        id="forum_subtitle"
+                        name="subtitle"
+                        value={this.state.inputs.subtitle}
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translateFn={this.translate}
+                        placeholder={this.translate('pages.createForum.placeholders.subtitle')}
+                        label={this.translate('pages.createForum.labels.subtitle')}
+                    />
+                    <MantineInput
+                        type="text"
+                        id="forum_hashtags"
+                        name="hashTags"
+                        value={this.state.inputs.hashTags}
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translateFn={this.translate}
+                        placeholder={this.translate('pages.createForum.placeholders.hashTags')}
+                        label={this.translate('pages.createForum.labels.hashTags')}
+                    />
+                    <div>{ tagsString }</div>
+                    <MantineInput
+                        type="text"
+                        id="forum_description"
+                        name="description"
+                        value={this.state.inputs.description}
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translateFn={this.translate}
+                        placeholder={this.translate('pages.createForum.placeholders.description')}
+                        label={this.translate('pages.createForum.labels.description')}
+                    />
+                    <div className="form-field text-right">
+                        <MantineButton
+                            id="join_forum"
+                            text={this.translate('pages.createForum.buttons.submit')}
+                            onClick={this.onSubmit}
+                            disabled={this.shouldDisableInput('forum')}
+                            fullWidth
+                        />
+                    </div>
+                    {
+                        forums && forums.activeForums
+                        && <span className="forums-list">
+                            {
+                                forums.activeForums.length < 1
+                                    ? <i>{this.translate('pages.createForum.noForumsMessage')}</i>
+                                    : <span>{this.translate('pages.createForum.labels.activeForums')}: <i>{forums?.activeForums?.length || 0}</i></span>
+                            }
+                        </span>
+                    }
+                </Stack>
             </div>
         );
     }

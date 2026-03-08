@@ -5,7 +5,8 @@ interface IMantineButtonProps extends ButtonProps {
     id?: string;
     onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
     type?: 'button' | 'submit' | 'reset';
-    children: React.ReactNode;
+    text?: string;
+    children?: React.ReactNode;
 }
 
 const MantineButton: React.FC<IMantineButtonProps> = ({
@@ -13,6 +14,7 @@ const MantineButton: React.FC<IMantineButtonProps> = ({
     onClick,
     type = 'button',
     variant = 'filled',
+    text,
     children,
     ...rest
 }) => (
@@ -23,7 +25,7 @@ const MantineButton: React.FC<IMantineButtonProps> = ({
         variant={variant}
         {...rest}
     >
-        {children}
+        {text || children}
     </Button>
 );
 
