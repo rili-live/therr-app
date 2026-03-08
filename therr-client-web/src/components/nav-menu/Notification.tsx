@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ButtonPrimary } from 'therr-react/components';
+import { MantineButton } from 'therr-react/components/mantine';
 import { INotification } from 'therr-react/types';
 import { UserConnectionTypes } from 'therr-js-utilities/constants';
 
@@ -25,21 +25,20 @@ const Notification: React.FunctionComponent<INotificationProps> = ({
                 {
                     notification.userConnection.requestStatus === UserConnectionTypes.PENDING
                     && <div className="action-buttons text-right">
-                        <ButtonPrimary
+                        <MantineButton
                             id="deny_connection_request_button"
                             className="action-button"
-                            name="Deny"
                             text="Deny"
                             onClick={(e) => handleConnectionRequestAction(e, notification, false)}
-                            buttonType="primary"
+                            variant="outline"
+                            size="compact-sm"
                         />
-                        <ButtonPrimary
+                        <MantineButton
                             id="accept_connection_request_button"
                             className="action-button"
-                            name="Accept"
                             text="Accept"
                             onClick={(e) => handleConnectionRequestAction(e, notification, true)}
-                            buttonType="primary"
+                            size="compact-sm"
                         />
                     </div>
                 }

@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { NavigateFunction } from 'react-router-dom';
-import {
-    ButtonPrimary,
-    SvgButton,
-} from 'therr-react/components';
+import { SvgButton } from 'therr-react/components';
+import { MantineButton } from 'therr-react/components/mantine';
 import {
     NotificationActions,
     UserConnectionsActions,
@@ -140,16 +138,22 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         <>
             <h2>{this.translate('components.userMenu.h2.profileSettings')}</h2>
             <div className="profile-settings-menu">
-                <ButtonPrimary
+                <MantineButton
                     id="nav_menu_view_profile"
                     className="menu-item"
-                    name={this.translate('components.userMenu.buttons.viewProfile')}
-                    text={this.translate('components.userMenu.buttons.viewProfile')} onClick={this.navigate('view-profile')} buttonType="primary" />
-                <ButtonPrimary
+                    text={this.translate('components.userMenu.buttons.viewProfile')}
+                    onClick={this.navigate('view-profile')}
+                    variant="subtle"
+                    fullWidth
+                />
+                <MantineButton
                     id="nav_menu_edit_profile"
                     className="menu-item"
-                    name={this.translate('components.userMenu.buttons.editProfile')}
-                    text={this.translate('components.userMenu.buttons.editProfile')} onClick={this.navigate('edit-profile')} buttonType="primary" />
+                    text={this.translate('components.userMenu.buttons.editProfile')}
+                    onClick={this.navigate('edit-profile')}
+                    variant="subtle"
+                    fullWidth
+                />
             </div>
         </>
     );
@@ -180,11 +184,14 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         <>
             <h2>{this.translate('components.userMenu.h2.accountSettings')}</h2>
             <div className="account-settings-menu">
-                <ButtonPrimary
+                <MantineButton
                     id="nav_menu_change_password"
                     className="menu-item"
-                    name={this.translate('components.userMenu.buttons.changePassword')}
-                    text={this.translate('components.userMenu.buttons.changePassword')} onClick={this.navigate('change-password')} buttonType="primary" />
+                    text={this.translate('components.userMenu.buttons.changePassword')}
+                    onClick={this.navigate('change-password')}
+                    variant="subtle"
+                    fullWidth
+                />
             </div>
         </>
     );

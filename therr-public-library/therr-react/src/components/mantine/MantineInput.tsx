@@ -19,7 +19,7 @@ interface IMantineInputProps extends Omit<TextInputProps, 'onChange'> {
     onValidate?: (errors: Record<string, string>) => void;
 }
 
-const MantineInput: React.FC<IMantineInputProps> = ({
+const MantineInput = React.forwardRef<HTMLInputElement, IMantineInputProps>(({
     id,
     name,
     value,
@@ -30,7 +30,7 @@ const MantineInput: React.FC<IMantineInputProps> = ({
     translateFn,
     onValidate,
     ...rest
-}) => {
+}, ref) => {
     const [isDirty, setIsDirty] = React.useState(false);
     const [isTouched, setIsTouched] = React.useState(false);
     const [error, setError] = React.useState<string | undefined>();
@@ -77,6 +77,7 @@ const MantineInput: React.FC<IMantineInputProps> = ({
     const sharedProps = {
         id,
         name,
+        ref,
         value: value || '',
         onChange: handleChange,
         onKeyDown: onEnter ? handleKeyDown : undefined,
@@ -99,6 +100,8 @@ const MantineInput: React.FC<IMantineInputProps> = ({
             {...sharedProps}
         />
     );
-};
+});
+
+MantineInput.displayName = 'MantineInput';
 
 export default MantineInput;

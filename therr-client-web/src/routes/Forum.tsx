@@ -5,9 +5,9 @@ import classnames from 'classnames';
 import randomColor from 'randomcolor';
 import { SocketActions } from 'therr-react/redux/actions';
 import {
-    Input,
-    ButtonPrimary,
-} from 'therr-react/components';
+    MantineButton,
+    MantineInput,
+} from 'therr-react/components/mantine';
 import scrollTo from 'therr-js-utilities/scroll-to';
 import {
     IForumMsg,
@@ -168,7 +168,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     componentDidMount() {
         const { isFirstLoad } = this.state;
         document.title = `Therr | ${this.translate('pages.chatForum.pageTitle')}`;
-        this.messageInputRef.current.inputEl.focus();
+        this.messageInputRef.current?.focus();
         // if (isFirstLoad) {
         //     verifyAndJoinForum(this.props);
         // }
@@ -236,7 +236,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         return (
             <div id="page_chat_forum">
                 <div className="form-field-wrapper inline message-input">
-                    <Input
+                    <MantineInput
                         ref={this.messageInputRef}
                         autoComplete="off"
                         type="text"
@@ -246,10 +246,10 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                         onChange={this.onInputChange}
                         onEnter={this.onButtonClick}
                         placeholder={this.translate('pages.chatForum.inputPlaceholder')}
-                        translate={this.translate}
+                        translateFn={this.translate}
                     />
                     <div className="form-field">
-                        <ButtonPrimary
+                        <MantineButton
                             id="enter_message"
                             text="Send"
                             onClick={this.onButtonClick}
