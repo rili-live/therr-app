@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Alert, Stack } from '@mantine/core';
+import {
+    Alert, Card, Container, Stack,
+} from '@mantine/core';
 import {
     MantineButton,
     MantineInput,
@@ -117,70 +119,74 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
 
         return (
             <div id="page_change_password">
-                <Stack gap="sm">
-                    <h1 className="margin-bot-lg">{this.translate('pages.changePassword.pageTitle')}</h1>
+                <Container size="sm">
+                    <Card shadow="sm" padding="lg" radius="md" withBorder>
+                        <Stack gap="sm">
+                            <h1 className="margin-bot-lg">{this.translate('pages.changePassword.pageTitle')}</h1>
 
-                    {
-                        !errorReason && isSuccess
-                        && <Alert color="green" variant="light">{this.translate('pages.changePassword.successMessage')}</Alert>
-                    }
-                    {
-                        errorReason === 'UserNotFound'
-                        && <Alert color="red" variant="light">{this.translate('pages.changePassword.failedMessageUserNotFound')}</Alert>
-                    }
-                    {
-                        errorReason === 'IncorrectPassword'
-                        && <Alert color="red" variant="light">{this.translate('pages.changePassword.failedMessageIncorrectPassword')}</Alert>
-                    }
-                    {
-                        errorReason && errorReason !== 'UserNotFound' && errorReason !== 'IncorrectPassword'
-                        && <Alert color="red" variant="light">{this.translate('pages.changePassword.failedMessage')}</Alert>
-                    }
+                            {
+                                !errorReason && isSuccess
+                                && <Alert color="green" variant="light">{this.translate('pages.changePassword.successMessage')}</Alert>
+                            }
+                            {
+                                errorReason === 'UserNotFound'
+                                && <Alert color="red" variant="light">{this.translate('pages.changePassword.failedMessageUserNotFound')}</Alert>
+                            }
+                            {
+                                errorReason === 'IncorrectPassword'
+                                && <Alert color="red" variant="light">{this.translate('pages.changePassword.failedMessageIncorrectPassword')}</Alert>
+                            }
+                            {
+                                errorReason && errorReason !== 'UserNotFound' && errorReason !== 'IncorrectPassword'
+                                && <Alert color="red" variant="light">{this.translate('pages.changePassword.failedMessage')}</Alert>
+                            }
 
-                    <MantineInput
-                        type="password"
-                        id="old_password"
-                        name="oldPassword"
-                        value={this.state.inputs.oldPassword}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translateFn={this.translate}
-                        validations={['isRequired']}
-                        label={this.translate('pages.changePassword.labels.oldPassword')}
-                    />
-                    <MantineInput
-                        type="password"
-                        id="new_password"
-                        name="newPassword"
-                        value={this.state.inputs.newPassword}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translateFn={this.translate}
-                        validations={['isRequired']}
-                        label={this.translate('pages.changePassword.labels.newPassword')}
-                    />
-                    <MantineInput
-                        type="password"
-                        id="new_password_repeat"
-                        name="newPasswordRepeat"
-                        value={this.state.inputs.newPasswordRepeat}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translateFn={this.translate}
-                        validations={['isRequired']}
-                        label={this.translate('pages.changePassword.labels.newPasswordRepeat')}
-                    />
+                            <MantineInput
+                                type="password"
+                                id="old_password"
+                                name="oldPassword"
+                                value={this.state.inputs.oldPassword}
+                                onChange={this.onInputChange}
+                                onEnter={this.onSubmit}
+                                translateFn={this.translate}
+                                validations={['isRequired']}
+                                label={this.translate('pages.changePassword.labels.oldPassword')}
+                            />
+                            <MantineInput
+                                type="password"
+                                id="new_password"
+                                name="newPassword"
+                                value={this.state.inputs.newPassword}
+                                onChange={this.onInputChange}
+                                onEnter={this.onSubmit}
+                                translateFn={this.translate}
+                                validations={['isRequired']}
+                                label={this.translate('pages.changePassword.labels.newPassword')}
+                            />
+                            <MantineInput
+                                type="password"
+                                id="new_password_repeat"
+                                name="newPasswordRepeat"
+                                value={this.state.inputs.newPasswordRepeat}
+                                onChange={this.onInputChange}
+                                onEnter={this.onSubmit}
+                                translateFn={this.translate}
+                                validations={['isRequired']}
+                                label={this.translate('pages.changePassword.labels.newPasswordRepeat')}
+                            />
 
-                    <div className="form-field text-right">
-                        <MantineButton
-                            id="email"
-                            text={this.translate('pages.changePassword.buttons.send')}
-                            onClick={this.onSubmit}
-                            disabled={this.isFormDisabled()}
-                            fullWidth
-                        />
-                    </div>
-                </Stack>
+                            <div className="form-field text-right">
+                                <MantineButton
+                                    id="email"
+                                    text={this.translate('pages.changePassword.buttons.send')}
+                                    onClick={this.onSubmit}
+                                    disabled={this.isFormDisabled()}
+                                    fullWidth
+                                />
+                            </div>
+                        </Stack>
+                    </Card>
+                </Container>
             </div>
         );
     }

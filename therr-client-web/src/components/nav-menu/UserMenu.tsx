@@ -91,7 +91,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             requestStatus: isAccepted ? UserConnectionTypes.COMPLETE : UserConnectionTypes.DENIED,
         };
 
-        this.markNotificationAsRead(e, notification, updatedUserConnection);
+        this.toggleNotificationRead(e, notification, updatedUserConnection);
 
         updateUserConnection({
             connection: {
@@ -101,23 +101,38 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         });
     };
 
-    markNotificationAsRead = (event, notification, userConnection?: any) => {
-        if (notification.isUnread || userConnection) {
-            const { updateNotification, user } = this.props;
+    toggleNotificationRead = (event, notification, userConnection?: any) => {
+        const { updateNotification, user } = this.props;
 
-            const message = {
+        const message = {
+            notification: {
+                ...notification,
+                isUnread: !notification.isUnread,
+            },
+            userName: user.details.userName,
+        };
+
+        if (userConnection) {
+            message.notification.isUnread = false;
+            message.notification.userConnection = userConnection;
+        }
+
+        updateNotification(message);
+    };
+
+    markAllNotificationsAsRead = () => {
+        const { notifications, updateNotification, user } = this.props;
+        const unreadNotifications = notifications.messages.filter((n) => n.isUnread);
+
+        unreadNotifications.forEach((notification) => {
+            updateNotification({
                 notification: {
                     ...notification,
                     isUnread: false,
                 },
                 userName: user.details.userName,
-            };
-
-            if (userConnection) {
-                message.notification.userConnection = userConnection;
-            }
-            updateNotification(message);
-        }
+            });
+        });
     };
 
     navigate = (destination) => (e) => {
@@ -130,6 +145,8 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 return this.props.navigation.navigate('/user/profile');
             case 'edit-profile':
                 return this.props.navigation.navigate('/user/profile');
+            case 'discovered':
+                return this.props.navigation.navigate('/discovered');
             default:
         }
     };
@@ -154,22 +171,43 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                     variant="subtle"
                     fullWidth
                 />
+                <MantineButton
+                    id="nav_menu_discovered"
+                    className="menu-item"
+                    text={this.translate('components.userMenu.buttons.discovered')}
+                    onClick={this.navigate('discovered')}
+                    variant="subtle"
+                    fullWidth
+                />
             </div>
         </>
     );
 
     renderNotificationsContent = () => {
         const { notifications } = this.props;
+        const hasUnread = notifications.messages.some((n) => n.isUnread);
 
         return (
             <>
-                <h2>{this.translate('components.userMenu.h2.notifications')}</h2>
+                <div className="notifications-header">
+                    <h2>{this.translate('components.userMenu.h2.notifications')}</h2>
+                    {hasUnread && (
+                        <MantineButton
+                            id="mark_all_read"
+                            className="mark-all-read-button"
+                            text={this.translate('components.userMenu.buttons.markAllRead')}
+                            onClick={this.markAllNotificationsAsRead}
+                            variant="subtle"
+                            size="xs"
+                        />
+                    )}
+                </div>
                 <div className="notifications">
                     {
                         notifications.messages.map((n: INotification) => (
                             <Notification
                                 key={n.id}
-                                handleSetRead={this.markNotificationAsRead}
+                                handleSetRead={this.toggleNotificationRead}
                                 handleConnectionRequestAction={this.handleConnectionRequestAction}
                                 notification={n}
                             />

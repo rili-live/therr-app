@@ -1,62 +1,147 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { SvgButton } from 'therr-react/components';
+import React, { useCallback } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { ContentActions } from 'therr-react/redux/actions';
+import { Content } from 'therr-js-utilities/constants';
+import {
+    ActionIcon,
+    Badge,
+    Card,
+    Group,
+    Image,
+    Text,
+    Tooltip,
+} from '@mantine/core';
+import { InlineSvg } from 'therr-react/components';
+import getUserContentUri from '../../utilities/getUserContentUri';
 
-interface MomentProps {
+interface ITileProps {
     area: any;
-    updateAreaReaction: any;
+    areaType: string;
     userDetails: any;
 }
 
-const Tile: React.FC<MomentProps> = ({ area, updateAreaReaction, userDetails }: MomentProps) => {
-    const content: any = useSelector((state: any) => state.content);
+const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const content = useSelector((state: any) => state.content);
+
     const isBookmarked = area.reaction?.userBookmarkCategory;
     const isLiked = area.reaction?.userHasLiked;
 
-    const onBookmarkPress = () => {
-        updateAreaReaction(area.id, {
-            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
-        }, area.fromUserId, userDetails.userName);
-    };
+    const mediaPath = area.medias?.[0]?.path;
+    const mediaType = area.medias?.[0]?.type;
+    const mediaObj = area.medias?.[0];
 
-    const onLikePress = () => {
-        if (!area.isDraft) {
-            updateAreaReaction(area.id, {
-                userHasLiked: !area.reaction?.userHasLiked,
-            }, area.fromUserId, userDetails.userName);
+    let imageUrl: string | undefined;
+    if (mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC && mediaObj) {
+        imageUrl = getUserContentUri(mediaObj, 480, 480, true);
+    } else if (mediaPath) {
+        imageUrl = content.media?.[mediaPath];
+    }
+
+    const isSpace = areaType === 'spaces';
+
+    const onBookmarkPress = useCallback(() => {
+        const reactionData: any = {
+            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+        };
+        if (isSpace) {
+            reactionData.spaceId = area.id;
+            dispatch(ContentActions.createOrUpdateSpaceReaction(area.id, reactionData, area.fromUserId, userDetails.userName) as any);
+        } else {
+            dispatch(ContentActions.createOrUpdateMomentReaction(area.id, reactionData, area.fromUserId, userDetails.userName) as any);
         }
-    };
+    }, [dispatch, isSpace, area.id, area.reaction?.userBookmarkCategory, area.fromUserId, userDetails.userName]);
+
+    const onLikePress = useCallback(() => {
+        if (!area.isDraft) {
+            const reactionData: any = {
+                userHasLiked: !area.reaction?.userHasLiked,
+            };
+            if (isSpace) {
+                reactionData.spaceId = area.id;
+                dispatch(ContentActions.createOrUpdateSpaceReaction(area.id, reactionData, area.fromUserId, userDetails.userName) as any);
+            } else {
+                dispatch(ContentActions.createOrUpdateMomentReaction(area.id, reactionData, area.fromUserId, userDetails.userName) as any);
+            }
+        }
+    }, [dispatch, isSpace, area.id, area.isDraft, area.reaction?.userHasLiked, area.fromUserId, userDetails.userName]);
+
+    const handleCardClick = useCallback(() => {
+        const route = areaType === 'spaces' ? `/spaces/${area.id}` : `/moments/${area.id}`;
+        navigate(route);
+    }, [navigate, areaType, area.id]);
+
+    const typeLabel = areaType === 'spaces' ? 'Space' : 'Moment';
 
     return (
-        <div className='tile_wrapper'>
-            <div className="tile">
-                <p className="tile-username">{area.fromUserName}</p>
-                {area.media.length > 0
-                && <img
-                    className="tile-image"
-                    src={content.media?.[area.medias?.[0]?.path]}
-                    alt={area.fromUserName}
-                />}
-                <div className='tile-lower-content'>
-                    <p className="tile-title">{area.notificationMsg}</p>
-                    <SvgButton
-                        id="bookmark_button"
-                        name={isBookmarked ? 'bookmark' : 'bookmark-border'}
-                        className={isBookmarked ? 'tile-button-bookmarked' : 'tile-button-unbookmarked'}
-                        onClick={onBookmarkPress}
-                        buttonType="primary"
+        <Card shadow="sm" padding={0} radius="md" withBorder className="discovered-tile">
+            {imageUrl && (
+                <Card.Section
+                    onClick={handleCardClick}
+                    style={{ cursor: 'pointer' }}
+                >
+                    <Image
+                        src={imageUrl}
+                        alt={area.notificationMsg || area.fromUserName}
+                        height={200}
+                        fit="cover"
                     />
-                    <SvgButton
-                        id="like_button"
-                        name={isLiked ? 'favorite' : 'favorite-border'}
-                        className={isLiked ? 'tile-button-liked' : 'tile-button-unliked'}
-                        onClick={onLikePress}
-                        buttonType="primary"
-                    />
-                </div>
-                <p className="tile-message">{area.message}</p>
-            </div>
-        </div>
+                </Card.Section>
+            )}
+
+            <Card.Section p="sm">
+                <Group justify="space-between" align="flex-start" wrap="nowrap" mb={4}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <Text
+                            fw={600}
+                            size="sm"
+                            lineClamp={1}
+                            onClick={handleCardClick}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            {area.notificationMsg || 'Untitled'}
+                        </Text>
+                        <Text size="xs" c="dimmed" lineClamp={1}>
+                            {area.fromUserName}
+                        </Text>
+                    </div>
+                    <Badge variant="light" size="xs" color={areaType === 'spaces' ? 'teal' : 'blue'}>
+                        {typeLabel}
+                    </Badge>
+                </Group>
+
+                {area.message && (
+                    <Text size="xs" c="dimmed" lineClamp={2} mb="xs">
+                        {area.message}
+                    </Text>
+                )}
+
+                <Group gap="xs" justify="flex-end">
+                    <Tooltip label={isLiked ? 'Unlike' : 'Like'}>
+                        <ActionIcon
+                            variant="subtle"
+                            size="sm"
+                            onClick={onLikePress}
+                            color={isLiked ? 'red' : 'gray'}
+                        >
+                            <InlineSvg name={isLiked ? 'favorite' : 'favorite-border'} className="discovered-tile-icon" />
+                        </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label={isBookmarked ? 'Remove bookmark' : 'Bookmark'}>
+                        <ActionIcon
+                            variant="subtle"
+                            size="sm"
+                            onClick={onBookmarkPress}
+                            color={isBookmarked ? 'yellow' : 'gray'}
+                        >
+                            <InlineSvg name={isBookmarked ? 'bookmark' : 'bookmark-border'} className="discovered-tile-icon" />
+                        </ActionIcon>
+                    </Tooltip>
+                </Group>
+            </Card.Section>
+        </Card>
     );
 };
 

@@ -131,7 +131,9 @@
     "userMenu": {
       "buttons": {
         "changePassword": "Change Password",
+        "discovered": "Discovered Feed",
         "editProfile": "Edit Profile",
+        "markAllRead": "Mark all as read",
         "viewProfile": "View Profile"
       },
       "h2": {
@@ -163,7 +165,9 @@
       }
     },
     "discovered": {
-      "pageTitle": "Discovered"
+      "pageTitle": "Discovered",
+      "subtitle": "Recently shared moments and spaces from the community",
+      "noResults": "Nothing to show yet. Check back later for new content from the community."
     },
     "chatForum": {
       "pageTitle": "Hosted Chat",

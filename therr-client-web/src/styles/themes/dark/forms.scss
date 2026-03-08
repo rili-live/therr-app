@@ -57,7 +57,8 @@ label {
 }
 
 // SVG icons in content areas need to be visible on dark bg
-.tile {
+.tile,
+.discovered-tile {
     .inline-svg svg {
         fill: $therr-text-a;
     }
