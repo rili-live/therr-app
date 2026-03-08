@@ -1,0 +1,66 @@
+label {
+    color: $therr-label-color;
+    font-weight: 400;
+
+    &.required {
+        &::before {
+            display: none;
+        }
+    }
+}
+
+// Login/register containers: elevated dark card on desktop
+@media only screen and (min-width: 540px) {
+    .content-container-home {
+        .login-container,
+        .register-container,
+        .centered-container {
+            background-color: #2A2A2A;
+            border: 1px solid $therr-light-grey;
+            border-radius: 1rem;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.3);
+        }
+    }
+}
+
+// Fix .link-plain-white for dark theme (already light text, just ensure contrast)
+.link-plain-white {
+    color: $therr-link-blue-2;
+
+    &:visited {
+        color: $therr-link-1;
+    }
+}
+
+// Ensure pagination text is visible on dark backgrounds
+.pagination-controls {
+    .pages-info {
+        color: $therr-very-dark-grey;
+    }
+
+    .controls-list {
+        .page-button,
+        .page-button-start,
+        .page-button-end,
+        .page-button-back,
+        .page-button-forward {
+            background: $therr-bg-grey;
+            color: $therr-middle-grey;
+
+            &:hover {
+                background: $therr-hover-grey;
+            }
+
+            &.active {
+                color: #ffffff;
+            }
+        }
+    }
+}
+
+// SVG icons in content areas need to be visible on dark bg
+.tile {
+    .inline-svg svg {
+        fill: $therr-text-a;
+    }
+}

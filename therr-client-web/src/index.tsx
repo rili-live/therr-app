@@ -14,7 +14,7 @@ import 'react-phone-number-input/style.css';
 // Therr Styles
 // Change the following import to alter theme
 // TODO: RSERV-8-: Use themes endpoint to dynamically load theme styles
-import './styles/themes/retro/index.scss';
+import './styles/themes/light/index.scss';
 
 const rootEl = document.getElementById('app');
 // const root = createRoot(rootEl);

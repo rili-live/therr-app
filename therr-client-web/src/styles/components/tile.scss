@@ -14,7 +14,7 @@
 
 .tile {
     width: 100%;
-    color: #6a7071;
+    color: $therr-ghost-grey;
     background-color: $therr-white;
     padding: rem-calc(12px);
     border-color: $therr-light-grey;
@@ -25,7 +25,7 @@
 }
 
 .tile-username {
-    color: #393C3C
+    color: $therr-dark-grey;
 }
 
 .tile-image {

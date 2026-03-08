@@ -1,0 +1,40 @@
+label {
+    color: $therr-label-color;
+    font-weight: 400;
+
+    &.required {
+        &::before {
+            display: none;
+        }
+    }
+}
+
+// Login/register containers: white card with subtle border on desktop
+@media only screen and (min-width: 540px) {
+    .content-container-home {
+        .login-container,
+        .register-container,
+        .centered-container {
+            background-color: #ffffff;
+            border: 1px solid $therr-divider-grey;
+            border-radius: 1rem;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.08);
+        }
+    }
+}
+
+// Fix .link-plain-white (white text on white bg)
+.link-plain-white {
+    color: $therr-primary-1;
+
+    &:visited {
+        color: $therr-primary-2;
+    }
+}
+
+// Ensure pagination text is visible on light backgrounds
+.pagination-controls {
+    .pages-info {
+        color: $therr-very-dark-grey;
+    }
+}
