@@ -2,6 +2,7 @@ import beeline from './beeline'; // eslint-disable-line import/order
 import axios from 'axios';
 import * as path from 'path';
 import express from 'express';
+import expressStaticGzip from 'express-static-gzip';
 import helmet from 'helmet';
 import * as React from 'react';
 import * as url from 'url';
@@ -99,7 +100,20 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Define the folder that will be used for static assets
-app.use(express.static(path.join(__dirname, '/../build/static/')));
+// Serves pre-compressed .br and .gz files when the client supports them
+app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
+    enableBrotli: true,
+    orderPreference: ['br', 'gzip'],
+    serveStatic: {
+        setHeaders: (res, filePath) => {
+            if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+                res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+            } else {
+                res.setHeader('Cache-Control', 'public, max-age=86400');
+            }
+        },
+    },
+}));
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 
 // Universal routing and rendering for SEO

@@ -25,9 +25,9 @@ const entry = {
 };
 
 // This allows us to output multiple css theme files
-fs.readdirSync(PATHS.themes).forEach((pathName) => {
-    if (pathName !== '_sample') {
-        entry[`theme-${pathName}`] = `${PATHS.themes}/${pathName}/index.ts`;
+fs.readdirSync(PATHS.themes, { withFileTypes: true }).forEach((dirent) => {
+    if (dirent.isDirectory() && dirent.name !== '_sample') {
+        entry[`theme-${dirent.name}`] = `${PATHS.themes}/${dirent.name}/index.ts`;
     }
 });
 
@@ -61,6 +61,21 @@ const common = merge([
         },
         optimization: {
             emitOnErrors: true,
+            splitChunks: {
+                // Only split the app entry; theme entries stay isolated so their
+                // CSS isn't reshuffled into shared chunks with unpredictable names
+                chunks(chunk) {
+                    return chunk.name === 'app';
+                },
+                cacheGroups: {
+                    vendor: {
+                        test: /[\\/]node_modules[\\/]/,
+                        name: 'vendor',
+                        priority: 10,
+                    },
+                },
+            },
+            runtimeChunk: 'single',
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
@@ -117,6 +132,7 @@ const buildProd = () => merge([
     }),
     parts.loadCSS(null, 'production'),
     parts.minifyJavaScript({ useSourceMap: false }),
+    parts.compressAssets(),
 ]);
 
 module.exports = (env) => {

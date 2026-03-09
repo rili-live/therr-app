@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as path from 'path';
 import compression from 'compression';
 import express from 'express';
+import expressStaticGzip from 'express-static-gzip';
 import helmet from 'helmet';
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
@@ -106,13 +107,18 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Define the folder that will be used for static assets
-app.use(express.static(path.join(__dirname, '/../build/static/'), {
-    setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
-            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        } else {
-            res.setHeader('Cache-Control', 'public, max-age=86400');
-        }
+// Serves pre-compressed .br and .gz files when the client supports them
+app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
+    enableBrotli: true,
+    orderPreference: ['br', 'gzip'],
+    serveStatic: {
+        setHeaders: (res, filePath) => {
+            if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+                res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+            } else {
+                res.setHeader('Cache-Control', 'public, max-age=86400');
+            }
+        },
     },
 }));
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
