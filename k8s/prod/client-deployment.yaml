@@ -38,11 +38,11 @@ spec:
               - ALL
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "25m"
+            memory: "192Mi"
+            cpu: "50m"
           limits:
-            memory: "128Mi"
-            cpu: "25m"
+            memory: "192Mi"
+            cpu: "50m"
         ports:
         - containerPort: 7070
         - containerPort: 7071
@@ -50,7 +50,7 @@ spec:
           httpGet:
             path: /healthcheck
             port: 7070
-          initialDelaySeconds: 30
+          initialDelaySeconds: 90
           periodSeconds: 15
           timeoutSeconds: 5
           failureThreshold: 3
@@ -58,10 +58,10 @@ spec:
           httpGet:
             path: /healthcheck
             port: 7070
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 2
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 5
         env:
           - name: USERS_SERVICE_API_PORT
             value: "7771"
