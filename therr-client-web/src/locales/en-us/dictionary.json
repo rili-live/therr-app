@@ -88,7 +88,7 @@
       "conversation": {
         "to": "To: {firstName} {lastName}"
       },
-      "inputPlaceholder": "Enter a message",
+      "inputPlaceholder": "Enter a message...",
       "welcome": "This is the start of a new conversation..."
     },
     "messagesMenu": {

@@ -14,7 +14,7 @@ export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
     || !props.user.details.accessLevels
     || !props.user.details.accessLevels.length;
 
-export const routeAfterLogin = '/user/go-mobile';
+export const routeAfterLogin = '/explore';
 
 interface ILoginRouterProps {
     location: Location;

@@ -2,12 +2,13 @@ import classnames from 'classnames';
 import * as React from 'react';
 import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { Location, NavigateFunction } from 'react-router-dom';
+import { Link, Location, NavigateFunction } from 'react-router-dom';
 import { TransitionGroup } from 'react-transition-group';
 import ReactGA from 'react-ga4';
 import { IMessagesState, IUserState, AccessCheckType } from 'therr-react/types';
 import {
     AccessControl,
+    InlineSvg,
     SvgButton,
 } from 'therr-react/components';
 import { NotificationActions, SocketActions, MessageActions } from 'therr-react/redux/actions';
@@ -388,7 +389,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         appear
                         enter
                         exit
-                        component="div"
+                        component="main"
                         className={ isLandingStylePage ? 'content-container-home view' : 'content-container view' }
                     >
                         <AppRoutes
@@ -399,6 +400,16 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
                     {/* <Alerts></Alerts> */}
                     {/* <Loader></Loader> */}
+
+                    <AccessControl isAuthorized={UsersService.isAuthorized({ type: AccessCheckType.ALL, levels: ['user.default'] }, this.props.user)}>
+                        <Link
+                            to="/posts/thoughts"
+                            className="floating-create-button"
+                            aria-label="Create a thought"
+                        >
+                            <InlineSvg name="lightbulb" />
+                        </Link>
+                    </AccessControl>
 
                     { this.renderFooter(isLandingStylePage) }
                 </>
