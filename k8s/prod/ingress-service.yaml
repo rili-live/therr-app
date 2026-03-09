@@ -19,16 +19,6 @@ metadata:
     nginx.ingress.kubernetes.io/gzip-min-length: "1000"
     # nginx.ingress.kubernetes.io/proxy-read-timeout: “3600”
     # nginx.ingress.kubernetes.io/proxy-send-timeout: “3600”
-    nginx.ingress.kubernetes.io/server-snippet: |
-        gzip on;
-        gzip_types      text/plain text/css text/js application/xml application/javascript;
-        gzip_proxied    no-cache no-store private expired auth;
-        gzip_min_length 1000;
-        gzip_disable "MSIE [1-6]\.";
-        gzip_vary on;
-        gzip_proxied any;
-        gzip_comp_level 5;
-        gzip_buffers 16 128k;
 spec:
   tls:
   - hosts:

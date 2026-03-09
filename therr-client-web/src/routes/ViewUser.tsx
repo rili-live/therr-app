@@ -80,20 +80,28 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
+        this.fetchUserData();
+    }
+
+    componentDidUpdate(prevProps: IViewUserProps) {
+        const { routeParams } = this.props;
+        if (prevProps.routeParams.userId !== routeParams.userId) {
+            this.setState({ userId: routeParams.userId }, () => {
+                this.fetchUserData();
+            });
+        }
+    }
+
+    fetchUserData = () => {
         const {
             getUser, searchUserConnections, user, userConnections,
         } = this.props;
-        const userInView = user.userInView;
 
-        if (!userInView) {
-            getUser(this.state.userId).then((fetchedUser) => {
-                document.title = `${fetchedUser?.firstName} ${fetchedUser?.lastName} | Therr App`;
-            }).catch(() => {
-                this.props.navigation.navigate('/');
-            });
-        } else {
-            document.title = `${userInView.firstName} ${userInView?.lastName} | Therr App`;
-        }
+        getUser(this.state.userId).then((fetchedUser) => {
+            document.title = `${fetchedUser?.firstName} ${fetchedUser?.lastName} | Therr App`;
+        }).catch(() => {
+            this.props.navigation.navigate('/');
+        });
 
         if (user.isAuthenticated && !userConnections.connections.length) {
             searchUserConnections({
@@ -107,7 +115,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
             // eslint-disable-next-line @typescript-eslint/no-empty-function
             }, user.details.id).catch(() => {});
         }
-    }
+    };
 
     getConnectionDetails = () => {
         const { user, userConnections } = this.props;
