@@ -29,12 +29,37 @@ spec:
       containers:
       - name: server-messages
         image: therrapp/messages-service:latest
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         resources:
+          requests:
+            memory: "96Mi"
+            cpu: "25m"
           limits:
             memory: "96Mi"
             cpu: "25m"
         ports:
         - containerPort: 7772
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7772
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7772
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
         env:
         - name: MESSAGES_SERVICE_API_PORT
           value: "7772"

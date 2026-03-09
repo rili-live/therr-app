@@ -24,15 +24,51 @@ spec:
               - key: cloud.google.com/gke-preemptible
                 operator: DoesNotExist
             weight: 100
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: component
+                  operator: In
+                  values:
+                  - server-users
+              topologyKey: kubernetes.io/hostname
       containers:
       - name: server-users
         image: therrapp/users-service:latest
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         resources:
+          requests:
+            memory: "192Mi"
+            cpu: "50m"
           limits:
             memory: "192Mi"
             cpu: "50m"
         ports:
         - containerPort: 7771
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7771
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7771
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
         env:
         - name: AWS_SES_ACCESS_KEY_ID
           valueFrom:

@@ -24,17 +24,53 @@ spec:
               - key: cloud.google.com/gke-preemptible
                 operator: Exists
             weight: 100
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: component
+                  operator: In
+                  values:
+                  - server-push-notifications
+              topologyKey: kubernetes.io/hostname
       nodeSelector:
         cloud.google.com/gke-preemptible: "true"
       containers:
       - name: server-push-notifications
         image: therrapp/push-notifications-service:latest
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         resources:
+          requests:
+            memory: "192Mi"
+            cpu: "100m"
           limits:
             memory: "192Mi"
             cpu: "100m"
         ports:
         - containerPort: 7775
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7775
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 7775
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
         env:
         - name: PUSH_NOTIFICATIONS_SERVICE_API_PORT
           value: "7775"

@@ -16,7 +16,7 @@ $recent-chats-min-height: rem-calc(200px);
     position: fixed;
     bottom: 0;
     left: 0;
-    width: 100%;
+    width: auto;
     z-index: 91;
     display: flex;
     flex-direction: column;
@@ -50,6 +50,7 @@ $recent-chats-min-height: rem-calc(200px);
             display: inline-block;
             width: .5rem;
             height: .5rem;
+            margin-left: .5rem;
             border-right: 2px solid $therr-white;
             border-bottom: 2px solid $therr-white;
             transition: transform .2s ease;
@@ -67,6 +68,10 @@ $recent-chats-min-height: rem-calc(200px);
     // Body opens upward above the footer
     .messaging-panel-body {
         order: -1;
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        width: 100vw;
         background: #fff;
         box-shadow: 0 -4px 12px rgba(0, 0, 0, .12);
         border-radius: .5rem .5rem 0 0;
@@ -285,8 +290,42 @@ $recent-chats-min-height: rem-calc(200px);
             align-items: center;
             gap: .5rem;
 
-            .form-field {
-                flex-shrink: 0;
+            > .mantine-TextInput-root {
+                flex: 1;
+                min-width: 0;
+                margin-bottom: 0;
+
+                input {
+                    margin-bottom: 0;
+                }
+            }
+
+            > .form-field {
+                flex: 0 0 auto;
+                margin: 0;
+                align-self: center;
+
+                button {
+                    width: 2.5rem;
+                    height: 2.5rem;
+                    min-width: unset;
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    .inline-svg {
+                        width: 1.5rem;
+                        height: 1.5rem;
+                    }
+
+                    svg {
+                        width: 1.5rem;
+                        height: 1.5rem;
+                        display: block;
+                        margin: auto;
+                    }
+                }
             }
 
             button {
@@ -321,10 +360,12 @@ $recent-chats-min-height: rem-calc(200px);
 
 @media only screen and (min-width: rem-calc(540px)) {
     .messaging-panel {
-        width: $recent-chats-width;
-
         .messaging-panel-header {
             height: $footer-height;
+        }
+
+        .messaging-panel-body {
+            width: $recent-chats-width;
         }
     }
 }

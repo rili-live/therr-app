@@ -7,7 +7,7 @@ import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
 import {
     Stack, Group, Title, Text, Badge, Anchor,
-    Paper, Skeleton, Button, Image, SimpleGrid,
+    Paper, Skeleton, Button, Image,
 } from '@mantine/core';
 import { MantineSearchBox } from 'therr-react/components/mantine';
 import { ILocationState } from '../types/redux/location';
@@ -282,111 +282,91 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
         return (
             <div id="page_view_spaces">
-                <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl" p="xl">
-                    {/* Promotional Sidebar */}
-                    <Stack gap="md" align="center">
-                        <Image
-                            src="/assets/images/on-the-map.svg"
-                            alt="Therr users on the map"
-                            maw={400}
-                        />
-                        <Title order={2} ta="center">
-                            {this.translate('pages.home.welcome')}
+                <Stack gap="lg" p="xl" maw={800} mx="auto">
+                    <div>
+                        <Title order={1} mb="xs">
+                            {this.translate('pages.spaces.header1')}
                         </Title>
-                        <Text ta="center">{this.translate('pages.home.info')}</Text>
-                        <Text ta="center">{this.translate('pages.home.info2')}</Text>
-                        <Text ta="center">{this.translate('pages.home.info3')}</Text>
-                        <Group gap="md" justify="center" className="store-image-links" mt="md">
-                            <Anchor href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
-                                <Image
-                                    aria-label="apple store link"
-                                    maw={160}
-                                    src="/assets/images/apple-store-download-button.svg"
-                                    alt="Download Therr on the App Store"
-                                />
-                            </Anchor>
-                            <Anchor href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
-                                <Image
-                                    aria-label="play store link"
-                                    maw={160}
-                                    src="/assets/images/play-store-download-button.svg"
-                                    alt="Download Therr on Google Play"
-                                />
-                            </Anchor>
-                        </Group>
-                        <Group gap="xs" justify="center" mt="sm">
-                            <Anchor href="https://www.therr.app/privacy-policy.html" target="_blank" size="sm">
-                                {this.translate('components.loginForm.buttons.privacyPolicy')}
-                            </Anchor>
-                            <Text size="sm" c="dimmed">|</Text>
-                            <Anchor href="https://www.therr.app/terms-and-conditions.html" target="_blank" size="sm">
-                                {this.translate('components.loginForm.buttons.toc')}
-                            </Anchor>
-                        </Group>
-                    </Stack>
-
-                    {/* Directory Column */}
-                    <Stack gap="lg">
-                        <div>
-                            <Title order={1} mb="xs">
-                                {this.translate('pages.spaces.header1')}
-                            </Title>
-                            {!isAuthenticated && (
-                                <Text size="sm" c="dimmed">
-                                    <Anchor component={Link} to="/login" size="sm">Sign in</Anchor>
-                                    {' '}to see your private spaces and manage listings.
-                                </Text>
-                            )}
-                        </div>
-
-                        {/* Search Input */}
-                        <Group gap="sm">
-                            <MantineSearchBox
-                                id="space-search"
-                                name="spaceSearch"
-                                value={searchQuery}
-                                onChange={this.handleSearchChange}
-                                onSearch={this.handleSearch}
-                                placeholder={this.translate('pages.spaces.searchPlaceholder')}
-                                style={{ flex: 1 }}
-                            />
-                            {searchQuery && (
-                                <Button variant="subtle" size="sm" onClick={this.handleClearSearch}>
-                                    Clear
-                                </Button>
-                            )}
-                        </Group>
-
-                        {/* Results */}
-                        {isSearching && this.renderSkeleton()}
-                        {!isSearching && spacesArray.length === 0 && (
-                            <Paper withBorder p="xl" radius="md">
-                                <Text ta="center" c="dimmed">
-                                    {this.translate('pages.spaces.noResults')}
-                                </Text>
-                            </Paper>
+                        {!isAuthenticated && (
+                            <Text size="sm" c="dimmed">
+                                <Anchor component={Link} to="/login" size="sm">Sign in</Anchor>
+                                {' '}to see your private spaces and manage listings.
+                            </Text>
                         )}
-                        {!isSearching && spacesArray.length > 0 && (
-                            <Stack gap="sm" className="spaces-list-scroll">
-                                {spacesArray.map((space) => this.renderSpaceCard(space))}
-                            </Stack>
-                        )}
+                    </div>
 
-                        {/* Pagination */}
-                        <Group justify="center" gap="md">
-                            {pageNumber > 1 && (
-                                <Button component={Link} to={`/locations/${pageNumber - 1}`} variant="outline" size="sm">
-                                    {this.translate('pages.spaces.previousPage', { pageNumber: pageNumber - 1 })}
-                                </Button>
-                            )}
-                            {spacesArray.length >= itemsPerPage && (
-                                <Button component={Link} to={`/locations/${pageNumber + 1}`} variant="outline" size="sm">
-                                    {this.translate('pages.spaces.nextPage', { pageNumber: pageNumber + 1 })}
-                                </Button>
-                            )}
+                    {/* Search Input */}
+                    <Group gap="sm">
+                        <MantineSearchBox
+                            id="space-search"
+                            name="spaceSearch"
+                            value={searchQuery}
+                            onChange={this.handleSearchChange}
+                            onSearch={this.handleSearch}
+                            placeholder={this.translate('pages.spaces.searchPlaceholder')}
+                            style={{ flex: 1 }}
+                        />
+                        {searchQuery && (
+                            <Button variant="subtle" size="sm" onClick={this.handleClearSearch}>
+                                Clear
+                            </Button>
+                        )}
+                    </Group>
+
+                    {/* Results */}
+                    {isSearching && this.renderSkeleton()}
+                    {!isSearching && spacesArray.length === 0 && (
+                        <Paper withBorder p="xl" radius="md">
+                            <Text ta="center" c="dimmed">
+                                {this.translate('pages.spaces.noResults')}
+                            </Text>
+                        </Paper>
+                    )}
+                    {!isSearching && spacesArray.length > 0 && (
+                        <Stack gap="sm" className="spaces-list-scroll">
+                            {spacesArray.map((space) => this.renderSpaceCard(space))}
+                        </Stack>
+                    )}
+
+                    {/* Pagination */}
+                    <Group justify="center" gap="md">
+                        {pageNumber > 1 && (
+                            <Button component={Link} to={`/locations/${pageNumber - 1}`} variant="outline" size="sm">
+                                {this.translate('pages.spaces.previousPage', { pageNumber: pageNumber - 1 })}
+                            </Button>
+                        )}
+                        {spacesArray.length >= itemsPerPage && (
+                            <Button component={Link} to={`/locations/${pageNumber + 1}`} variant="outline" size="sm">
+                                {this.translate('pages.spaces.nextPage', { pageNumber: pageNumber + 1 })}
+                            </Button>
+                        )}
+                    </Group>
+
+                    {/* Compact App Download CTA */}
+                    <Paper withBorder p="sm" radius="md" mt="md">
+                        <Group justify="center" gap="md" wrap="wrap">
+                            <Text size="sm" c="dimmed">{this.translate('pages.home.info')}</Text>
+                            <Group gap="xs" className="store-image-links">
+                                <Anchor href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
+                                    <Image
+                                        aria-label="apple store link"
+                                        maw={120}
+                                        src="/assets/images/apple-store-download-button.svg"
+                                        alt="Download Therr on the App Store"
+                                    />
+                                </Anchor>
+                                <Anchor href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
+                                    <Image
+                                        aria-label="play store link"
+                                        maw={120}
+                                        src="/assets/images/play-store-download-button.svg"
+                                        alt="Download Therr on Google Play"
+                                    />
+                                </Anchor>
+                            </Group>
                         </Group>
-                    </Stack>
-                </SimpleGrid>
+                    </Paper>
+                </Stack>
             </div>
         );
     }
