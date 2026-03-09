@@ -183,27 +183,22 @@ exports.generateSourcemaps = type => ({
     devtool: type,
 });
 
-exports.minifyCss = () => ({
-    optimization: {
-        minimizer: [
-            new CssMinimizerPlugin({})
-        ],
-    }
-})
-
 exports.minifyJavaScript = ({ useSourceMap }) => ({
     optimization: {
         minimize: true,
-        minimizer: [new TerserPlugin({
-            parallel: true,
-            terserOptions: {
-                compress: {
-                    warnings: false,
+        minimizer: [
+            new TerserPlugin({
+                parallel: true,
+                terserOptions: {
+                    compress: {
+                        warnings: false,
+                    },
+                    ecma: 2015,
+                    mangle: true
                 },
-                ecma: 2015,
-                mangle: true
-            },
-        })],
+            }),
+            new CssMinimizerPlugin({}),
+        ],
     }
 });
 

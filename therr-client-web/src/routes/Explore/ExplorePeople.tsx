@@ -18,6 +18,7 @@ import {
 } from '@mantine/core';
 import { MantineSearchBox } from 'therr-react/components/mantine';
 import UsersActions from '../../redux/actions/UsersActions';
+import getUserImageUri from '../../utilities/getUserImageUri';
 import translator from '../../services/translator';
 
 const translate = (key: string, params?: any) => translator('en-us', key, params);
@@ -30,18 +31,24 @@ const ExplorePeople: React.FC = () => {
     const user = useSelector((state: any) => state.user);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [activeQuery, setActiveQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [lastResultCount, setLastResultCount] = useState(0);
 
-    const fetchUsers = useCallback((query = '') => {
+    const fetchUsers = useCallback((query = '', page = 1) => {
         setIsLoading(true);
         const args: any = {
             limit: ITEMS_PER_PAGE,
-            offset: 0,
+            offset: (page - 1) * ITEMS_PER_PAGE,
         };
         if (query.trim()) {
             args.query = query.trim();
             args.queryColumnName = 'userName';
         }
         dispatch(UsersActions.search(args) as any)
+            .then((data: any) => {
+                setLastResultCount(data?.results?.length || 0);
+            })
             .catch((err) => console.log(err))
             .finally(() => setIsLoading(false));
     }, [dispatch]);
@@ -56,12 +63,22 @@ const ExplorePeople: React.FC = () => {
     };
 
     const handleSearch = () => {
-        fetchUsers(searchQuery);
+        setActiveQuery(searchQuery);
+        setCurrentPage(1);
+        fetchUsers(searchQuery, 1);
     };
 
     const handleClearSearch = () => {
         setSearchQuery('');
-        fetchUsers('');
+        setActiveQuery('');
+        setCurrentPage(1);
+        fetchUsers('', 1);
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        fetchUsers(activeQuery, page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const getInitials = (u: any) => {
@@ -78,6 +95,8 @@ const ExplorePeople: React.FC = () => {
 
     const users = Object.values(user.users || {}) as any[];
     const hasContent = users.length > 0;
+    const hasPrev = currentPage > 1;
+    const hasNext = lastResultCount >= ITEMS_PER_PAGE;
 
     return (
         <Container id="page_explore_people" size="lg" py="xl">
@@ -100,7 +119,10 @@ const ExplorePeople: React.FC = () => {
                         placeholder={translate('pages.explorePeople.searchPlaceholder')}
                         style={{ flex: 1 }}
                     />
-                    {searchQuery && (
+                    <Button variant="filled" size="sm" onClick={handleSearch}>
+                        Search
+                    </Button>
+                    {activeQuery && (
                         <Button variant="subtle" size="sm" onClick={handleClearSearch}>
                             Clear
                         </Button>
@@ -122,39 +144,66 @@ const ExplorePeople: React.FC = () => {
                 )}
 
                 {!isLoading && hasContent && (
-                    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-                        {users.map((u) => (
-                            <Card
-                                key={u.id}
-                                shadow="sm"
-                                padding="md"
-                                radius="md"
-                                withBorder
-                                className="discovered-tile"
-                                onClick={() => navigate(`/users/${u.id}`)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <Group wrap="nowrap">
-                                    <Avatar size="lg" radius="xl" color="blue">
-                                        {getInitials(u)}
-                                    </Avatar>
-                                    <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-                                        <Text fw={600} size="sm" lineClamp={1}>
-                                            {u.firstName} {u.lastName}
-                                        </Text>
-                                        <Text size="xs" c="dimmed" lineClamp={1}>
-                                            @{u.userName}
-                                        </Text>
-                                        {u.settingsBio && (
-                                            <Text size="xs" c="dimmed" lineClamp={2}>
-                                                {u.settingsBio}
+                    <>
+                        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+                            {users.map((u) => (
+                                <Card
+                                    key={u.id}
+                                    shadow="sm"
+                                    padding="md"
+                                    radius="md"
+                                    withBorder
+                                    className="discovered-tile"
+                                    onClick={() => navigate(`/users/${u.id}`)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <Group wrap="nowrap">
+                                        <Avatar
+                                            src={getUserImageUri({ details: u }, 200)}
+                                            alt={`${u.firstName} ${u.lastName}`}
+                                            size="lg"
+                                            radius="xl"
+                                            color="blue"
+                                        >
+                                            {getInitials(u)}
+                                        </Avatar>
+                                        <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
+                                            <Text fw={600} size="sm" lineClamp={1}>
+                                                {u.firstName} {u.lastName}
                                             </Text>
-                                        )}
-                                    </Stack>
-                                </Group>
-                            </Card>
-                        ))}
-                    </SimpleGrid>
+                                            <Text size="xs" c="dimmed" lineClamp={1}>
+                                                @{u.userName}
+                                            </Text>
+                                            {u.settingsBio && (
+                                                <Text size="xs" c="dimmed" lineClamp={2}>
+                                                    {u.settingsBio}
+                                                </Text>
+                                            )}
+                                        </Stack>
+                                    </Group>
+                                </Card>
+                            ))}
+                        </SimpleGrid>
+                        {(hasPrev || hasNext) && (
+                            <Group justify="center" gap="md">
+                                <Button
+                                    variant="outline"
+                                    disabled={!hasPrev}
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                >
+                                    Previous
+                                </Button>
+                                <Text size="sm" c="dimmed">Page {currentPage}</Text>
+                                <Button
+                                    variant="outline"
+                                    disabled={!hasNext}
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                >
+                                    Next
+                                </Button>
+                            </Group>
+                        )}
+                    </>
                 )}
             </Stack>
         </Container>

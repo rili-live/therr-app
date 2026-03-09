@@ -29,6 +29,9 @@ const Messages = {
 
         return response?.data;
     }),
+    markDmsRead: () => (dispatch: any) => {
+        dispatch({ type: MessageActionTypes.MARK_DMS_READ });
+    },
     searchForumMessages: (forumId: string, userId: string, query: any) => (dispatch: any) => MessagesService
         .searchForumMessages(forumId, query)
         .then((response: any) => {

@@ -7,6 +7,7 @@ const initialState: IMessagesState = {
     dms: {},
     myDMs: {},
     forumMsgs: {},
+    hasUnreadDms: false,
 };
 
 const messages = produce((draft: IMessagesState, action: any) => {
@@ -62,8 +63,12 @@ const messages = produce((draft: IMessagesState, action: any) => {
                 draft.dms[action.data.contextUserId] = [] as any;
             }
             (draft.dms[action.data.contextUserId] as any[]).unshift(action.data.message);
+            draft.hasUnreadDms = true;
             break;
         }
+        case MessageActionTypes.MARK_DMS_READ:
+            draft.hasUnreadDms = false;
+            break;
         case SocketClientActionTypes.LOGOUT:
             draft.forums = [];
             draft.dms = [];

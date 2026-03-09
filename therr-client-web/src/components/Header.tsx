@@ -45,13 +45,11 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState> {
-    static getDerivedStateFromProps(nextProps: IHeaderProps, nextState: IHeaderState) {
-        if (!nextState.hasUnreadNotifications && nextProps.notifications.messages.filter((m: INotification) => m.isUnread).length) {
-            return {
-                hasUnreadNotifications: true,
-            };
-        }
-        return {};
+    static getDerivedStateFromProps(nextProps: IHeaderProps) {
+        const hasUnread = nextProps.notifications.messages.filter((m: INotification) => m.isUnread).length > 0;
+        return {
+            hasUnreadNotifications: hasUnread,
+        };
     }
 
     private translate: Function;

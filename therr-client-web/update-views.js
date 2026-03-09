@@ -4,7 +4,7 @@ const path = require('path');
 
 // We need to keep the css file path up to date becuase we use hashing in the build compilation
 const replaceInFile = (fileToUpdate, replacementString) => {
-    const fileNameToReplaceRegex = new RegExp(/app.*.css/);
+    const fileNameToReplaceRegex = new RegExp(/app.*.css/g);
 
     fs.readFile(fileToUpdate, 'utf8', function (err, data) {
         if (err) {

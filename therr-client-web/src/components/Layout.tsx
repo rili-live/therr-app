@@ -38,6 +38,7 @@ interface ILayoutRouterProps {
 interface ILayoutDispatchProps {
     // Add your dispatcher properties here
     logout: Function;
+    markDmsRead: Function;
     refreshConnection: Function;
     searchDms: Function;
     searchNotifications: Function;
@@ -71,6 +72,7 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
     logout: UsersActions.logout,
+    markDmsRead: MessageActions.markDmsRead,
     searchDms: MessageActions.searchDMs,
     refreshConnection: SocketActions.refreshConnection,
     searchNotifications: NotificationActions.search,
@@ -159,7 +161,8 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             const navMenuEl = document.getElementById('nav_menu');
             const isClickInsideNavMenu = navMenuEl.contains(event.target)
                 || document.getElementById('footer_messages').contains(event.target)
-                || document.getElementById('header_account_button').contains(event.target);
+                || document.getElementById('header_account_button').contains(event.target)
+                || event.target.closest('[data-portal]');
 
             if (!isClickInsideNavMenu) {
                 this.toggleNavMenu(event);
@@ -182,6 +185,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         }
         if (context) {
             newState.navMenuContext = context;
+        }
+        if (context === INavMenuContext.FOOTER_MESSAGES) {
+            this.props.markDmsRead();
         }
         const navMenuEl = document.getElementById('nav_menu');
         this.setState(newState, () => {
@@ -325,7 +331,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     };
 
     renderFooter = (isLandingStylePage?: boolean) => {
-        const { isMessagingOpen, isMsgContainerOpen, messagingContext } = this.state;
+        const { isMsgContainerOpen, messagingContext } = this.state;
 
         return (
             <Footer
@@ -340,9 +346,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         this.props.user,
                     )
                 }
-                isMessagingOpen={isMessagingOpen}
                 isMsgContainerOpen={isMsgContainerOpen}
                 messagingContext={messagingContext}
+                onInitMessaging={this.initMessaging}
                 toggleNavMenu={this.toggleNavMenu}
                 toggleMessaging={this.toggleMessaging}
                 isLandingStylePage={isLandingStylePage}

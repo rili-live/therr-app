@@ -57,6 +57,22 @@ button {
         padding: rem-calc(7px);
     }
 
+    &#footer_messages {
+        position: relative;
+
+        &.has-unread-messages::after {
+            position: absolute;
+            content: '';
+            background: $therr-alert-error;
+            top: 2px;
+            right: 2px;
+            height: .5rem;
+            width: .5rem;
+            border-radius: 50%;
+            border: 1px solid $therr-primary-1;
+        }
+    }
+
     &#footer_home,
     &#footer_explore,
     &#footer_locations_icon {
@@ -76,18 +92,6 @@ button {
         box-shadow: none;
     }
 
-    &#footer_messaging {
-        display: flex;
-        align-items: center;
-        margin-left: $messaging-side-margin;
-        background: transparent;
-        box-shadow: none;
-
-        .inline-svg:nth-child(2),
-        .inline-svg:nth-child(3) {
-            display: none;
-        }
-    }
 }
 
 // Ensure all footer icon SVGs are white on the teal footer bar
@@ -120,17 +124,5 @@ footer {
 @media only screen and (min-width: rem-calc(540px)) {
     footer {
         height: $footer-height;
-    }
-
-    button {
-        &#footer_messaging {
-            width: $messaging-toggle-width;
-            background: $therr-secondary-1;
-
-            .inline-svg:nth-child(2),
-            .inline-svg:nth-child(3) {
-                display: inline;
-            }
-        }
     }
 }

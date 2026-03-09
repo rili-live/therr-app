@@ -5,6 +5,7 @@ import { ContentActions } from 'therr-react/redux/actions';
 import {
     Anchor,
     Breadcrumbs,
+    Button,
     Container,
     Group,
     SimpleGrid,
@@ -13,21 +14,23 @@ import {
     Text,
     Title,
     Alert,
-    Button,
 } from '@mantine/core';
 import translator from '../../services/translator';
 import Tile from '../Discovered/Tile';
 
 const translate = (key: string, params?: any) => translator('en-us', key, params);
 
+const ITEMS_PER_PAGE = 30;
+
 const ExploreMoments: React.FC = () => {
     const dispatch = useDispatch();
     const content = useSelector((state: any) => state.content);
     const user = useSelector((state: any) => state.user);
     const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
 
-    const fetchMoments = useCallback((offset = 0, isRefresh = true) => {
+    const fetchMoments = useCallback((page = 1) => {
+        const offset = (page - 1) * ITEMS_PER_PAGE;
         const params = {
             withMedia: true,
             withUser: true,
@@ -37,31 +40,28 @@ const ExploreMoments: React.FC = () => {
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         };
 
-        if (isRefresh) {
-            setIsLoading(true);
-            return dispatch(ContentActions.updateActiveMomentsStream(params) as any)
-                .catch((err) => console.log(err))
-                .finally(() => setIsLoading(false));
-        }
-
-        setIsLoadingMore(true);
-        return dispatch(ContentActions.searchActiveMoments(params) as any)
+        setIsLoading(true);
+        return dispatch(ContentActions.updateActiveMomentsStream(params, ITEMS_PER_PAGE) as any)
             .catch((err) => console.log(err))
-            .finally(() => setIsLoadingMore(false));
+            .finally(() => setIsLoading(false));
     }, [dispatch, content.activeAreasFilters, user.details.blockedUsers, user.details.shouldHideMatureContent]);
 
     useEffect(() => {
         document.title = `Therr | ${translate('pages.exploreMoments.pageTitle')}`;
-        fetchMoments(0, true);
+        fetchMoments(1);
     }, []); // eslint-disable-line
 
     const moments = (content.activeMoments || []).filter((a) => a.areaType === 'moments');
     const hasContent = moments.length > 0;
     const pagination = content.activeMomentsPagination;
-    const hasMore = pagination && moments.length < (pagination.totalResults || 0);
+    const isLastPage = pagination?.isLastPage !== false && moments.length < ITEMS_PER_PAGE;
+    const hasPrev = currentPage > 1;
+    const hasNext = !isLastPage;
 
-    const handleLoadMore = () => {
-        fetchMoments(moments.length, false);
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        fetchMoments(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const breadcrumbs = [
@@ -107,14 +107,22 @@ const ExploreMoments: React.FC = () => {
                                 />
                             ))}
                         </SimpleGrid>
-                        {hasMore && (
-                            <Group justify="center">
+                        {(hasPrev || hasNext) && (
+                            <Group justify="center" gap="md">
                                 <Button
                                     variant="outline"
-                                    onClick={handleLoadMore}
-                                    loading={isLoadingMore}
+                                    disabled={!hasPrev}
+                                    onClick={() => handlePageChange(currentPage - 1)}
                                 >
-                                    {translate('pages.exploreMoments.loadMore')}
+                                    Previous
+                                </Button>
+                                <Text size="sm" c="dimmed">Page {currentPage}</Text>
+                                <Button
+                                    variant="outline"
+                                    disabled={!hasNext}
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                >
+                                    Next
                                 </Button>
                             </Group>
                         )}
