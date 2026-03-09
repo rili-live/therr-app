@@ -197,7 +197,18 @@
       "pageTitle": "Explore Thoughts",
       "subtitle": "Ideas, observations, and conversations from the community",
       "noResults": "No thoughts found. Check back later.",
-      "loadMore": "Load More"
+      "loadMore": "Load More",
+      "composePlaceholder": "What's on your mind?",
+      "hashtagsPlaceholder": "Add hashtags (comma separated)",
+      "postButton": "Post",
+      "postingButton": "Posting...",
+      "loginToPost": "Log in to share your thoughts",
+      "categoryLabel": "Category",
+      "visibilityPublic": "Public",
+      "visibilityPrivate": "Private",
+      "postSuccess": "Thought posted!",
+      "postError": "Failed to post thought. Please try again.",
+      "messageTooShort": "Message is too short"
     },
     "explorePeople": {
       "pageTitle": "Search People",

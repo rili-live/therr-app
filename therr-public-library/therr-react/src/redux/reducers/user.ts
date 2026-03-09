@@ -196,6 +196,9 @@ const getUserReducer = (socketIO) => produce((draft: IUserState, action: any) =>
             draft.myThoughts = action.data.results;
             break;
         case UserActionTypes.THOUGHT_CREATED:
+            if (!draft.myThoughts) {
+                draft.myThoughts = [];
+            }
             draft.myThoughts.unshift(action.data);
             break;
             // case UserActionTypes.THOUGHT_UPDATED:

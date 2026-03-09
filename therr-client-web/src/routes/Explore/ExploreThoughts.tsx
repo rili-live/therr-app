@@ -11,16 +11,30 @@ import {
     Button,
     Container,
     Group,
+    NativeSelect,
     Skeleton,
     Stack,
+    Switch,
     Text,
+    Textarea,
+    TextInput,
     Title,
     Alert,
     Tooltip,
 } from '@mantine/core';
+import { Categories } from 'therr-js-utilities/constants';
+import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
 
 const translate = (key: string, params?: any) => translator('en-us', key, params);
+
+const categoryOptions = Categories.ThoughtCategories.map((cat: string) => {
+    const label = cat.replace('categories.', '').replace('/', ' / ');
+    return { value: cat, label: label.charAt(0).toUpperCase() + label.slice(1) };
+});
+
+const categoryLabelMap: Record<string, string> = {};
+categoryOptions.forEach((opt) => { categoryLabelMap[opt.value] = opt.label; });
 
 const formatTimeAgo = (dateStr: string): string => {
     const date = new Date(dateStr);
@@ -70,6 +84,11 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
                     <Text size="xs" c="dimmed">
                         {thought.createdAt && formatTimeAgo(thought.createdAt)}
                     </Text>
+                    {thought.category && categoryLabelMap[thought.category] && (
+                        <Text size="xs" c="dimmed" className="thought-card-category">
+                            {categoryLabelMap[thought.category]}
+                        </Text>
+                    )}
                 </Group>
 
                 <Text size="sm" mb="xs" className="thought-card-message">
@@ -124,6 +143,193 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
                     </Tooltip>
                 </Group>
             </div>
+        </div>
+    );
+};
+
+interface IComposeThoughtProps {
+    onSuccess: () => void;
+}
+
+const formatHashtags = (value: string, hashtagsClone: string[]): { formattedValue: string; formattedHashtags: string[] } => {
+    const lastCharacter = value.substring(value.length - 1, value.length);
+    let modifiedValue = value.replace(/[^\w_]/gi, '');
+
+    if (lastCharacter === ',' || lastCharacter === ' ') {
+        const tag = modifiedValue;
+        if (tag !== '' && hashtagsClone.length < 50 && !hashtagsClone.includes(tag)) {
+            hashtagsClone.push(tag);
+        }
+        modifiedValue = '';
+    }
+
+    return {
+        formattedValue: modifiedValue,
+        formattedHashtags: hashtagsClone,
+    };
+};
+
+const ComposeThought: React.FC<IComposeThoughtProps> = ({ onSuccess }) => {
+    const dispatch = useDispatch();
+    const user = useSelector((state: any) => state.user);
+    const [message, setMessage] = useState('');
+    const [hashTagInput, setHashTagInput] = useState('');
+    const [hashtags, setHashtags] = useState<string[]>([]);
+    const [category, setCategory] = useState(categoryOptions[0]?.value || '');
+    const [isPublic, setIsPublic] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleHashTagChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.currentTarget.value;
+        const { formattedValue, formattedHashtags } = formatHashtags(value, [...hashtags]);
+        setHashTagInput(formattedValue);
+        setHashtags(formattedHashtags);
+    }, [hashtags]);
+
+    const handleHashTagBlur = useCallback(() => {
+        if (hashTagInput.trim().length) {
+            const { formattedValue, formattedHashtags } = formatHashtags(`${hashTagInput},`, [...hashtags]);
+            setHashTagInput(formattedValue);
+            setHashtags(formattedHashtags);
+        }
+    }, [hashTagInput, hashtags]);
+
+    const handleHashTagRemove = useCallback((tag: string) => {
+        setHashtags((prev) => prev.filter((t) => t !== tag));
+    }, []);
+
+    const handleSubmit = useCallback(() => {
+        if (message.trim().length < 3) {
+            setError(translate('pages.exploreThoughts.messageTooShort'));
+            return;
+        }
+
+        // Finalize any in-progress hashtag input
+        const finalHashtags = [...hashtags];
+        if (hashTagInput.trim().length) {
+            const tag = hashTagInput.replace(/[^\w_]/gi, '');
+            if (tag && !finalHashtags.includes(tag)) {
+                finalHashtags.push(tag);
+            }
+        }
+
+        setError('');
+        setIsSubmitting(true);
+
+        const createArgs = {
+            fromUserId: user.details.id,
+            message: message.trim(),
+            hashTags: finalHashtags.join(','),
+            category,
+            isPublic,
+            locale: user.details.locale || 'en-us',
+        };
+
+        dispatch(UsersActions.createThought(createArgs) as any)
+            .then(
+                () => {
+                    setMessage('');
+                    setHashTagInput('');
+                    setHashtags([]);
+                    setCategory(categoryOptions[0]?.value || '');
+                    setIsPublic(true);
+                    setIsSubmitting(false);
+                    onSuccess();
+                },
+                (err: any) => {
+                    console.error('createThought error:', err); // eslint-disable-line no-console
+                    setError(translate('pages.exploreThoughts.postError'));
+                    setIsSubmitting(false);
+                },
+            );
+    }, [dispatch, message, hashTagInput, hashtags, category, isPublic, user.details.id, user.details.locale, onSuccess]);
+
+    if (!user?.isAuthenticated) {
+        return (
+            <Alert variant="light" color="blue" radius="md">
+                <Text ta="center" size="sm">
+                    <Anchor component={Link} to="/login">{translate('pages.exploreThoughts.loginToPost')}</Anchor>
+                </Text>
+            </Alert>
+        );
+    }
+
+    return (
+        <div className="compose-thought">
+            <Textarea
+                placeholder={translate('pages.exploreThoughts.composePlaceholder')}
+                value={message}
+                onChange={(e) => setMessage(e.currentTarget.value)}
+                minRows={2}
+                maxRows={6}
+                maxLength={255}
+                autosize
+            />
+            <TextInput
+                placeholder={translate('pages.exploreThoughts.hashtagsPlaceholder')}
+                value={hashTagInput}
+                onChange={handleHashTagChange}
+                onBlur={handleHashTagBlur}
+                mt="xs"
+            />
+            {hashtags.length > 0 && (
+                <Group gap={6} mt="xs" wrap="wrap">
+                    {hashtags.map((tag) => (
+                        <Badge
+                            key={tag}
+                            variant="light"
+                            size="sm"
+                            color="blue"
+                            className="compose-thought-hashtag"
+                            rightSection={
+                                <ActionIcon
+                                    variant="transparent"
+                                    size={14}
+                                    onClick={() => handleHashTagRemove(tag)}
+                                    color="blue"
+                                >
+                                    x
+                                </ActionIcon>
+                            }
+                        >
+                            #{tag}
+                        </Badge>
+                    ))}
+                </Group>
+            )}
+            <Group justify="space-between" mt="xs" align="center">
+                <Group gap="sm">
+                    <NativeSelect
+                        data={categoryOptions}
+                        value={category}
+                        onChange={(e) => setCategory(e.currentTarget.value)}
+                        size="xs"
+                    />
+                    <Switch
+                        label={isPublic
+                            ? translate('pages.exploreThoughts.visibilityPublic')
+                            : translate('pages.exploreThoughts.visibilityPrivate')}
+                        checked={isPublic}
+                        onChange={(e) => setIsPublic(e.currentTarget.checked)}
+                        size="xs"
+                    />
+                </Group>
+                <Group gap="xs">
+                    <Text size="xs" c="dimmed">{message.length}/255</Text>
+                    <Button
+                        size="xs"
+                        onClick={handleSubmit}
+                        loading={isSubmitting}
+                        disabled={message.trim().length < 3}
+                    >
+                        {translate('pages.exploreThoughts.postButton')}
+                    </Button>
+                </Group>
+            </Group>
+            {error && (
+                <Text size="xs" c="red" mt="xs">{error}</Text>
+            )}
         </div>
     );
 };
@@ -192,6 +398,11 @@ const ExploreThoughts: React.FC = () => {
         ) as any);
     }, [dispatch, user?.details?.userName]);
 
+    const handlePostSuccess = useCallback(() => {
+        setCurrentPage(1);
+        fetchThoughts(1);
+    }, [fetchThoughts]);
+
     const breadcrumbs = [
         <Anchor component={Link} to="/" key="home" size="sm">Home</Anchor>,
         <Anchor component={Link} to="/explore" key="explore" size="sm">Explore</Anchor>,
@@ -207,6 +418,8 @@ const ExploreThoughts: React.FC = () => {
                     <Title order={2}>{translate('pages.exploreThoughts.pageTitle')}</Title>
                     <Text size="sm" c="dimmed">{translate('pages.exploreThoughts.subtitle')}</Text>
                 </div>
+
+                <ComposeThought onSuccess={handlePostSuccess} />
 
                 {isLoading && (
                     <Stack gap="md">
