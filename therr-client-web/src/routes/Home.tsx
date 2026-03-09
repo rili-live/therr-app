@@ -91,7 +91,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                 <div className="login-container info-container">
                     <div className="flex fill max-wide-40">
                         <div className="flex-box fill">
-                            <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" />
+                            <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" width="400" height="300" />
                         </div>
                         <h2 className="text-title-medium no-bot-margin fill">
                             {this.translate('pages.home.welcome')}
@@ -101,10 +101,10 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                         <p className="info-text fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info3')}</p>
                         <div className="store-image-links margin-top-lg">
                             <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
-                                <img aria-label="apple store link" className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
+                                <img aria-label="apple store link" className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" width="150" height="50" loading="lazy" />
                             </a>
                             <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
-                                <img aria-label="play store link" className="max-100" src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" />
+                                <img aria-label="play store link" className="max-100" src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" width="150" height="50" loading="lazy" />
                             </a>
                         </div>
                         <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>

@@ -73,6 +73,9 @@ const renderMessage = (message: IForumMsg, index, user: IUserState) => {
                     <img
                         src={`${message.fromUserImgSrc}?size=50x50`}
                         alt={`Profile Picture: ${user.details.userName}`}
+                        width="50"
+                        height="50"
+                        loading="lazy"
                     />
                 </div>
                 <div className="forum-message-content-container">

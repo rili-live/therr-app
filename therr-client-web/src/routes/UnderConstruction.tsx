@@ -66,7 +66,7 @@ export class UnderConstructionAppComponent extends React.Component<IUnderConstru
                 <div className="margin-top-lg margin-bot-lg">
                     <div className="flex fill max-wide-40">
                         <div className="flex-box fill">
-                            <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" />
+                            <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" width="400" height="300" />
                         </div>
                         <h2 className="text-title-medium text-center no-bot-margin fill">
                             {this.translate('pages.goMobile.welcome')}
@@ -95,10 +95,24 @@ export class UnderConstructionAppComponent extends React.Component<IUnderConstru
                         <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info3')}</p>
                         <div className="store-image-links flex-box row space-around margin-top-lg">
                             <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
-                                <img className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
+                                <img
+                                    className="max-100"
+                                    src="/assets/images/apple-store-download-button.svg"
+                                    alt="Download Therr on the App Store"
+                                    width="150"
+                                    height="50"
+                                    loading="lazy"
+                                />
                             </a>
                             <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
-                                <img className="max-100" src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" />
+                                <img
+                                    className="max-100"
+                                    src="/assets/images/play-store-download-button.svg"
+                                    alt="Download Therr on Google Play"
+                                    width="150"
+                                    height="50"
+                                    loading="lazy"
+                                />
                             </a>
                         </div>
                     </div>

@@ -1,6 +1,7 @@
 import beeline from './beeline'; // eslint-disable-line import/order
 import axios from 'axios';
 import * as path from 'path';
+import compression from 'compression';
 import express from 'express';
 import helmet from 'helmet';
 import * as React from 'react';
@@ -47,6 +48,9 @@ import mantineTheme from './styles/mantine-theme'; // eslint-disable-line
 
 // Initialize the server and configure support for handlebars templates
 const app = express();
+
+// Enable gzip/deflate compression for all responses
+app.use(compression());
 
 if (process.env.NODE_ENV !== 'development') {
     app.use(helmet({
