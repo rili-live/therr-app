@@ -149,7 +149,38 @@ jobs:
       - run:
           name: Login to DockerHub
           command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
-      - run: 
+      - run:
+          name: Login to Google Cloud and connect to GKE Cluster
+          command: |
+            gke-gcloud-auth-plugin --version
+            echo "export USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> ~/.bashrc
+            source ~/.bashrc
+            echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+            gcloud --quiet config set project therr-app
+            gcloud --quiet config set compute/zone us-central1-a
+            gcloud container clusters get-credentials cluster-1
+      - add_ssh_keys:
+          fingerprints:
+            - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
+      - run:
+          name: Deploy Changes To GKE
+          command: ./_bin/cicd/deploy.sh
+  deploy_config_only:
+    docker:
+      - image: cimg/gcp:2025.01
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
+    environment:
+      CICD_BRANCH: << pipeline.git.branch >>
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Login to DockerHub
+          command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
+      - run:
           name: Login to Google Cloud and connect to GKE Cluster
           command: |
             gke-gcloud-auth-plugin --version
@@ -178,6 +209,7 @@ workflows:
             branches:
               ignore:
                 - main
+                - deploy
       - test_libraries:
           requires:
           - docker_build_base_image
@@ -186,6 +218,7 @@ workflows:
               ignore:
                 - stage
                 - main
+                - deploy
       - docker_build_test_publish_images:
           requires:
           - docker_build_base_image
@@ -206,3 +239,13 @@ workflows:
             branches:
               only:
                 - main
+  # Deploy-only workflow: push to 'deploy' branch to skip build and go straight to kubectl apply.
+  # If VERSIONS.txt has a GIT_SHA, it will also re-tag and deploy those images.
+  # If VERSIONS.txt is empty, it only applies k8s config changes (no image updates).
+  deploy_only:
+    jobs:
+      - deploy_config_only:
+          filters:
+            branches:
+              only:
+                - deploy

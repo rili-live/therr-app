@@ -16,8 +16,8 @@ export $(cat VERSIONS.txt)
 GIT_SHA="${LAST_PUBLISHED_GIT_SHA}"
 echo "LAST_PUBLISHED_GIT_SHA=${GIT_SHA}"
 
-# Only build the docker images when the source branch is stage or main
-if [[ ("$CURRENT_BRANCH" != "stage") && ("$CURRENT_BRANCH" != "main") ]]; then
+# Only build the docker images when the source branch is stage, main, or deploy
+if [[ ("$CURRENT_BRANCH" != "stage") && ("$CURRENT_BRANCH" != "main") && ("$CURRENT_BRANCH" != "deploy") ]]; then
   echo "Skipping post build stage."
   exit 0
 fi
@@ -173,12 +173,17 @@ fi
 
 echo "Kubectl apply complete for all services with changes"
 
-echo "Resetting VERSIONS.txt"
-cat > VERSIONS.txt <<EOF
+# Only reset VERSIONS.txt on main branch deploys
+if [[ "$CURRENT_BRANCH" == "main" ]]; then
+  echo "Resetting VERSIONS.txt"
+  cat > VERSIONS.txt <<EOF
 EOF
 
-git config user.email "rili.main@gmail.com"
-git config user.name "Rili Admin"
-git add VERSIONS.txt
-git commit -m "[skip ci] Updated VERSIONS.txt"
-git push --set-upstream origin main --no-verify
+  git config user.email "rili.main@gmail.com"
+  git config user.name "Rili Admin"
+  git add VERSIONS.txt
+  git commit -m "[skip ci] Updated VERSIONS.txt"
+  git push --set-upstream origin main --no-verify
+else
+  echo "Skipping VERSIONS.txt reset (not on main branch)"
+fi
