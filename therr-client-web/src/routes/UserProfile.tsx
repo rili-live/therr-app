@@ -6,6 +6,7 @@ import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { MantineButton } from 'therr-react/components/mantine';
 import CreateConnectionForm from '../components/forms/CreateConnectionForm';
+import getUserImageUri from '../utilities/getUserImageUri';
 import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
 
@@ -26,9 +27,7 @@ interface IStoreProps extends IUserProfileDispatchProps {
 }
 
 // Regular component props
-interface IUserProfileProps extends IUserProfileRouterProps, IStoreProps {
-    onInitMessaging?: Function;
-}
+interface IUserProfileProps extends IUserProfileRouterProps, IStoreProps {}
 
 interface IUserProfileState {}
 
@@ -81,9 +80,9 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         return connection.users.find((u) => u.id !== user.details.id);
     };
 
-    handleInitMessaging = (e, connection) => {
-        const { onInitMessaging } = this.props;
-        return onInitMessaging && onInitMessaging(e, this.getConnectionDetails(connection), 'user-profile');
+    handleConnectionClick = (connection) => {
+        const connectionDetails = this.getConnectionDetails(connection);
+        this.props.navigation.navigate(`/users/${connectionDetails.id}`);
     };
 
     onCreateForumClick = () => {
@@ -103,7 +102,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                     <h1 className="fill text-left">{user.details.userName}</h1>
                     <div className="user-profile-icon">
                         <img
-                            src={`https://robohash.org/${user.details.id}?size=100x100`}
+                            src={getUserImageUri(user, 100)}
                             alt="Profile Picture"
                         />
                     </div>
@@ -134,9 +133,9 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                                     && <span className="name-tag">{connectionDetails.firstName}</span>
                                                 }
                                                 <img
-                                                    src={`https://robohash.org/${connectionDetails.id}?size=100x100`}
+                                                    src={getUserImageUri({ details: connectionDetails }, 100)}
                                                     alt="User Connection"
-                                                    onClick={(e) => this.handleInitMessaging(e, connection)}
+                                                    onClick={() => this.handleConnectionClick(connection)}
                                                 />
                                             </div>
                                         );

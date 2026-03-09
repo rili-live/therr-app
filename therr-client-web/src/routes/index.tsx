@@ -20,6 +20,10 @@ import ListSpaces, { DEFAULT_ITEMS_PER_PAGE, DEFAULT_LATITUDE, DEFAULT_LONGITUDE
 import UserProfile from './UserProfile';
 import ChangePassword from './ChangePassword';
 import Discovered from './Discovered';
+import Explore from './Explore';
+import ExploreMoments from './Explore/ExploreMoments';
+import ExploreThoughts from './Explore/ExploreThoughts';
+import ExplorePeople from './Explore/ExplorePeople';
 import UnderConstruction from './UnderConstruction';
 import ViewMoment from './ViewMoment';
 import ViewUser from './ViewUser';
@@ -123,7 +127,51 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/user/profile',
         element: <AuthRoute
-            render={() => <UserProfile onInitMessaging={routePropsConfig.onInitMessaging} />}
+            render={() => <UserProfile />}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/explore',
+        element: <AuthRoute
+            component={Explore}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/posts/moments',
+        element: <AuthRoute
+            component={ExploreMoments}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/posts/thoughts',
+        element: <AuthRoute
+            component={ExploreThoughts}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/users',
+        element: <AuthRoute
+            component={ExplorePeople}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -200,7 +248,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     },
     {
         path: '/users/:userId',
-        element: <ViewUser />,
+        element: <ViewUser onInitMessaging={routePropsConfig.onInitMessaging} />,
         fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
     },
 

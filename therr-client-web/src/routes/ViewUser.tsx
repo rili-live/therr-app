@@ -3,10 +3,11 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
-import { IContentState, IUserState } from 'therr-react/types';
+import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { UserConnectionsActions } from 'therr-react/redux/actions';
 import {
     Container, Stack, Group, Title, Text, Anchor,
-    Divider, Avatar, Skeleton, Breadcrumbs,
+    Divider, Avatar, Skeleton, Breadcrumbs, Button,
 } from '@mantine/core';
 import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
@@ -25,15 +26,18 @@ interface IViewUserRouterProps {
 interface IViewUserDispatchProps {
     login: Function;
     getUser: Function;
+    searchUserConnections: Function;
 }
 
 interface IStoreProps extends IViewUserDispatchProps {
     content: IContentState;
     user: IUserState;
+    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
 interface IViewUserProps extends IViewUserRouterProps, IStoreProps {
+    onInitMessaging?: Function;
 }
 
 interface IViewUserState {
@@ -43,10 +47,12 @@ interface IViewUserState {
 const mapStateToProps = (state: any) => ({
     content: state.content,
     user: state.user,
+    userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getUser: UsersActions.get,
+    searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
 /**
@@ -74,7 +80,9 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        const { getUser, user } = this.props;
+        const {
+            getUser, searchUserConnections, user, userConnections,
+        } = this.props;
         const userInView = user.userInView;
 
         if (!userInView) {
@@ -86,7 +94,49 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         } else {
             document.title = `${userInView.firstName} ${userInView?.lastName} | Therr App`;
         }
+
+        if (user.isAuthenticated && !userConnections.connections.length) {
+            searchUserConnections({
+                filterBy: 'acceptingUserId',
+                query: user.details.id,
+                itemsPerPage: 50,
+                pageNumber: 1,
+                orderBy: 'interactionCount',
+                order: 'desc',
+                shouldCheckReverse: true,
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            }, user.details.id).catch(() => {});
+        }
     }
+
+    getConnectionDetails = () => {
+        const { user, userConnections } = this.props;
+        const { userId } = this.state;
+
+        const connection = userConnections.connections.find(
+            (conn: any) => conn.users && conn.users.some((u: any) => u.id === userId),
+        );
+
+        if (!connection) return null;
+
+        return connection.users.find((u: any) => u.id !== user.details.id);
+    };
+
+    handleChatClick = (e) => {
+        const { onInitMessaging, user } = this.props;
+
+        if (!user.isAuthenticated) {
+            this.props.navigation.navigate('/login');
+            return;
+        }
+
+        e.stopPropagation();
+
+        const connectionDetails = this.getConnectionDetails();
+        if (connectionDetails && onInitMessaging) {
+            onInitMessaging(e, connectionDetails, 'view-user');
+        }
+    };
 
     login = (credentials: any) => this.props.login(credentials);
 
@@ -149,6 +199,10 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
             return this.renderSkeleton();
         }
 
+        const isOwnProfile = user.isAuthenticated && user.details?.id === userInView.id;
+        const isConnected = !isOwnProfile && !!this.getConnectionDetails();
+        const showChatButton = !isOwnProfile && (isConnected || !user.isAuthenticated);
+
         const userImageUri = getUserImageUri({ details: userInView }, 480);
         const fullName = `${userInView.firstName} ${userInView.lastName}`;
 
@@ -173,6 +227,16 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                                 <Text size="lg" c="dimmed">@{userInView.userName}</Text>
                             )}
                             {this.renderSocialLinks(userInView)}
+                            {showChatButton && (
+                                <Group mt="xs">
+                                    <Button
+                                        variant="filled"
+                                        onClick={this.handleChatClick}
+                                    >
+                                        {this.translate('pages.viewUser.buttons.chat')}
+                                    </Button>
+                                </Group>
+                            )}
                         </Stack>
                     </Group>
 

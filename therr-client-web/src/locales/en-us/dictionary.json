@@ -133,8 +133,19 @@
         "changePassword": "Change Password",
         "discovered": "Discovered Feed",
         "editProfile": "Edit Profile",
+        "explore": "Explore All",
+        "exploreMoments": "Moments",
+        "exploreSpaces": "Spaces & Locations",
+        "exploreThoughts": "Thoughts",
+        "explorePeople": "People",
         "markAllRead": "Mark all as read",
         "viewProfile": "View Profile"
+      },
+      "exploreDescriptions": {
+        "moments": "Photos, stories & experiences",
+        "spaces": "Local businesses & venues",
+        "thoughts": "Ideas & conversations",
+        "people": "Creators & community"
       },
       "h2": {
         "accountSettings": "Account Settings",
@@ -168,6 +179,32 @@
       "pageTitle": "Discovered",
       "subtitle": "Recently shared moments and spaces from the community",
       "noResults": "Nothing to show yet. Check back later for new content from the community."
+    },
+    "explore": {
+      "pageTitle": "Explore",
+      "subtitle": "Discover moments, spaces, thoughts, and people in your community",
+      "recentContent": "Recent Content",
+      "viewAll": "View all",
+      "noResults": "Nothing to show yet. Check back later for new content."
+    },
+    "exploreMoments": {
+      "pageTitle": "Explore Moments",
+      "subtitle": "Photos, stories, and experiences shared by the community",
+      "noResults": "No moments found. Check back later.",
+      "loadMore": "Load More"
+    },
+    "exploreThoughts": {
+      "pageTitle": "Explore Thoughts",
+      "subtitle": "Ideas, observations, and conversations from the community",
+      "noResults": "No thoughts found. Check back later.",
+      "loadMore": "Load More"
+    },
+    "explorePeople": {
+      "pageTitle": "Search People",
+      "subtitle": "Discover creators, businesses, and community members",
+      "noResults": "No users found. Try a different search.",
+      "searchPlaceholder": "Search by username...",
+      "loadMore": "Load More"
     },
     "chatForum": {
       "pageTitle": "Hosted Chat",
@@ -354,6 +391,11 @@
     },
     "viewSpace": {
       "pageTitle": ""
+    },
+    "viewUser": {
+      "buttons": {
+        "chat": "Chat"
+      }
     }
   }
 }

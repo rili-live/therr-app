@@ -1,11 +1,5 @@
 .notifications-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-
   h2 {
-    margin: 0;
     flex-shrink: 1;
     min-width: 0;
   }
