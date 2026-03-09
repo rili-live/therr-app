@@ -46,6 +46,7 @@ app.use(express.static(path.join(__dirname, 'static')));
 
 // Configure routes
 app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
+app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.use(API_BASE_ROUTE, router);
 
 const { PUSH_NOTIFICATIONS_SERVICE_API_PORT } = process.env;

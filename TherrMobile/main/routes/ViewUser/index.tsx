@@ -210,7 +210,10 @@ class ViewUser extends React.Component<
                 tabRoutes.unshift({ key: PROFILE_CAROUSEL_TABS.MOMENTS, title: this.translate('menus.headerTabs.moments') });
             }
             this.setState({
+                isLoading: true,
                 tabRoutes,
+                userInViewsMoments: [],
+                userInViewsThoughts: [],
             });
             this.fetchUser();
         }

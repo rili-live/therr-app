@@ -73,6 +73,10 @@ const startExpressSocketIOServer = () => {
     const app = express();
     const { SOCKET_PORT } = process.env;
 
+    // Healthcheck
+    app.get('/', (req, res) => { res.status(200).json('OK'); });
+    app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); });
+
     const server = http.createServer(app);
     serverObj = server.listen(Number(SOCKET_PORT), () => {
         logSpan({

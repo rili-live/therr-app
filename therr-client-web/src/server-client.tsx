@@ -117,6 +117,7 @@ app.use(express.static(path.join(__dirname, '/../build/static/'), {
 }));
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 app.get('/sitemap.xml', express.static(path.join(__dirname, '/../build/static/sitemap.xml')));
+app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 
 const appLinksJson = {
     applinks: {

@@ -61,6 +61,7 @@ app.use(express.static(path.join(__dirname, 'static')));
 app.use(authenticate.unless({
     path: [
         { url: '/', methods: ['GET'] }, // healthcheck
+        { url: '/healthcheck', methods: ['GET'] }, // healthcheck
         // { url: '/favicon.ico', methods: ['GET'] }, // favicon
         { url: '/v1/users-service/interests', methods: ['GET'] },
         { url: '/v1/users-service/rewards/exchange-rate', methods: ['GET'] },
@@ -93,6 +94,7 @@ app.use(authenticate.unless({
 
 // Configure routes
 app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
+app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.use(API_BASE_ROUTE, router);
 
 const { API_GATEWAY_PORT } = process.env;
