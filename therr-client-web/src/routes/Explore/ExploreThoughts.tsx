@@ -8,6 +8,7 @@ import {
     Anchor,
     Badge,
     Breadcrumbs,
+    Button,
     Container,
     Group,
     Skeleton,
@@ -15,7 +16,6 @@ import {
     Text,
     Title,
     Alert,
-    Button,
     Tooltip,
 } from '@mantine/core';
 import translator from '../../services/translator';
@@ -128,14 +128,17 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
     );
 };
 
+const ITEMS_PER_PAGE = 30;
+
 const ExploreThoughts: React.FC = () => {
     const dispatch = useDispatch();
     const content = useSelector((state: any) => state.content);
     const user = useSelector((state: any) => state.user);
     const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
 
-    const fetchThoughts = useCallback((offset = 0, isRefresh = true) => {
+    const fetchThoughts = useCallback((page = 1) => {
+        const offset = (page - 1) * ITEMS_PER_PAGE;
         const params = {
             withMedia: true,
             withUser: true,
@@ -145,31 +148,28 @@ const ExploreThoughts: React.FC = () => {
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         };
 
-        if (isRefresh) {
-            setIsLoading(true);
-            return dispatch(ContentActions.updateActiveThoughtsStream(params) as any)
-                .catch((err) => console.log(err))
-                .finally(() => setIsLoading(false));
-        }
-
-        setIsLoadingMore(true);
-        return dispatch(ContentActions.searchActiveThoughts(params) as any)
+        setIsLoading(true);
+        return dispatch(ContentActions.updateActiveThoughtsStream(params, ITEMS_PER_PAGE) as any)
             .catch((err) => console.log(err))
-            .finally(() => setIsLoadingMore(false));
+            .finally(() => setIsLoading(false));
     }, [dispatch, content.activeAreasFilters, user.details.blockedUsers, user.details.shouldHideMatureContent]);
 
     useEffect(() => {
         document.title = `Therr | ${translate('pages.exploreThoughts.pageTitle')}`;
-        fetchThoughts(0, true);
+        fetchThoughts(1);
     }, []); // eslint-disable-line
 
     const thoughts = content.activeThoughts || [];
     const hasContent = thoughts.length > 0;
     const pagination = content.activeThoughtsPagination;
-    const hasMore = pagination && thoughts.length < (pagination.totalResults || 0);
+    const isLastPage = pagination?.isLastPage !== false && thoughts.length < ITEMS_PER_PAGE;
+    const hasPrev = currentPage > 1;
+    const hasNext = !isLastPage;
 
-    const handleLoadMore = () => {
-        fetchThoughts(thoughts.length, false);
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        fetchThoughts(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleLike = useCallback((thought: any) => {
@@ -234,14 +234,22 @@ const ExploreThoughts: React.FC = () => {
                                 />
                             ))}
                         </Stack>
-                        {hasMore && (
-                            <Group justify="center">
+                        {(hasPrev || hasNext) && (
+                            <Group justify="center" gap="md">
                                 <Button
                                     variant="outline"
-                                    onClick={handleLoadMore}
-                                    loading={isLoadingMore}
+                                    disabled={!hasPrev}
+                                    onClick={() => handlePageChange(currentPage - 1)}
                                 >
-                                    {translate('pages.exploreThoughts.loadMore')}
+                                    Previous
+                                </Button>
+                                <Text size="sm" c="dimmed">Page {currentPage}</Text>
+                                <Button
+                                    variant="outline"
+                                    disabled={!hasNext}
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                >
+                                    Next
                                 </Button>
                             </Group>
                         )}

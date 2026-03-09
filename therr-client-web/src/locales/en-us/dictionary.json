@@ -389,6 +389,32 @@
       "welcome": "Get the Mobile App",
       "info": "You must be looking for the mobile app! Find it below. For now, the desktop app only supports basic features like updating your password or account details."
     },
+    "goMobile": {
+      "pageTitle": "Your Hub",
+      "welcome": "Hey Therr",
+      "subtitle": "Discover local people, places, and moments — right from your browser. Explore what's happening around you and connect with your community. Get the mobile app to enjoy all the fun on the go",
+      "featuresHeading": "Start Exploring",
+      "features": {
+        "explore": {
+          "title": "Explore Nearby",
+          "description": "Browse trending posts and discover what people are sharing in your area."
+        },
+        "locations": {
+          "title": "Find Locations",
+          "description": "Search local businesses, events, and hidden gems near you."
+        },
+        "moments": {
+          "title": "View Moments",
+          "description": "See photo and video moments shared by the community."
+        },
+        "connect": {
+          "title": "Meet People",
+          "description": "Find and connect with people who share your interests nearby."
+        }
+      },
+      "ctaHeading": "Unlock the Full Experience",
+      "ctaInfo": "Love what you see? The mobile app takes it further — with real-time location discovery, push notifications, rewards, and more. Download for free and never miss what's happening around you."
+    },
     "viewSpace": {
       "pageTitle": ""
     },

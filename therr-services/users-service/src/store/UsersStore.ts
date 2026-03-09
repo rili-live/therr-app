@@ -210,7 +210,7 @@ export default class UsersStore {
         }: ISearchUsersArgs,
         withConnections = false,
         onlyVerified = false,
-        returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser'],
+        returning: any = ['id', 'userName', 'firstName', 'lastName', 'media', 'isSuperUser', 'settingsBio'],
     ) {
         const supportedSearchColumns = ['firstName', 'lastName', 'userName'];
         const MAX_LIMIT = 200;
