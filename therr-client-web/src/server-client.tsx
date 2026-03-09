@@ -102,7 +102,15 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Define the folder that will be used for static assets
-app.use(express.static(path.join(__dirname, '/../build/static/')));
+app.use(express.static(path.join(__dirname, '/../build/static/'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else {
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+        }
+    },
+}));
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 app.get('/sitemap.xml', express.static(path.join(__dirname, '/../build/static/sitemap.xml')));
 
