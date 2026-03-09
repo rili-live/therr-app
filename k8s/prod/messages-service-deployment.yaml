@@ -31,6 +31,8 @@ spec:
         image: therrapp/messages-service:latest
         securityContext:
           runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
           allowPrivilegeEscalation: false
           capabilities:
             drop:
