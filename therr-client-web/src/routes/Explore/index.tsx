@@ -1,0 +1,176 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { ContentActions } from 'therr-react/redux/actions';
+import {
+    Container,
+    Group,
+    SimpleGrid,
+    Skeleton,
+    Stack,
+    Text,
+    Title,
+    UnstyledButton,
+    Paper,
+    ThemeIcon,
+} from '@mantine/core';
+import translator from '../../services/translator';
+import Tile from '../Discovered/Tile';
+
+const translate = (key: string, params?: any) => translator('en-us', key, params);
+
+interface ICategoryCard {
+    title: string;
+    description: string;
+    path: string;
+    color: string;
+    emoji: string;
+}
+
+const categories: ICategoryCard[] = [
+    {
+        title: 'Moments',
+        description: 'Photos, stories, and experiences shared by the community',
+        path: '/posts/moments',
+        color: 'blue',
+        emoji: '📸',
+    },
+    {
+        title: 'Spaces',
+        description: 'Local businesses, venues, and points of interest',
+        path: '/locations',
+        color: 'teal',
+        emoji: '📍',
+    },
+    {
+        title: 'Thoughts',
+        description: 'Ideas, observations, and conversations',
+        path: '/posts/thoughts',
+        color: 'violet',
+        emoji: '💭',
+    },
+    {
+        title: 'People',
+        description: 'Discover creators, businesses, and community members',
+        path: '/users',
+        color: 'orange',
+        emoji: '👥',
+    },
+];
+
+const Explore: React.FC = () => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const content = useSelector((state: any) => state.content);
+    const user = useSelector((state: any) => state.user);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const handleRefresh = useCallback(() => {
+        setIsLoading(true);
+
+        const sharedParams = {
+            withMedia: true,
+            withUser: true,
+            offset: 0,
+            ...content.activeAreasFilters,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
+        };
+
+        const momentsPromise = dispatch(ContentActions.updateActiveMomentsStream(sharedParams) as any);
+        const spacesPromise = dispatch(ContentActions.updateActiveSpacesStream(sharedParams) as any);
+
+        Promise.all([momentsPromise, spacesPromise])
+            .catch((err) => console.log(err))
+            .finally(() => setIsLoading(false));
+    }, [dispatch, content.activeAreasFilters, user.details.blockedUsers, user.details.shouldHideMatureContent]);
+
+    useEffect(() => {
+        document.title = `Therr | ${translate('pages.explore.pageTitle')}`;
+        handleRefresh();
+    }, []); // eslint-disable-line
+
+    const recentAreas = (content.activeMoments || []).slice(0, 6);
+    const hasContent = recentAreas.length > 0;
+
+    return (
+        <Container id="page_explore" size="lg" py="xl">
+            <Stack gap="xl">
+                <div>
+                    <Title order={2}>{translate('pages.explore.pageTitle')}</Title>
+                    <Text size="sm" c="dimmed">{translate('pages.explore.subtitle')}</Text>
+                </div>
+
+                {/* Category Navigation Cards */}
+                <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
+                    {categories.map((cat) => (
+                        <UnstyledButton
+                            key={cat.path}
+                            onClick={() => navigate(cat.path)}
+                            className="explore-category-card"
+                        >
+                            <Paper
+                                withBorder
+                                p="lg"
+                                radius="md"
+                                className="explore-category-paper"
+                            >
+                                <Stack gap={8} align="center" ta="center">
+                                    <ThemeIcon size={48} radius="md" variant="light" color={cat.color}>
+                                        <Text size="xl">{cat.emoji}</Text>
+                                    </ThemeIcon>
+                                    <Text fw={600} size="sm">{cat.title}</Text>
+                                    <Text size="xs" c="dimmed" lineClamp={2}>{cat.description}</Text>
+                                </Stack>
+                            </Paper>
+                        </UnstyledButton>
+                    ))}
+                </SimpleGrid>
+
+                {/* Recent Content Preview */}
+                <div>
+                    <Group justify="space-between" align="center" mb="md">
+                        <Title order={3}>{translate('pages.explore.recentContent')}</Title>
+                        <Text
+                            size="sm"
+                            c="blue"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => navigate('/discovered')}
+                        >
+                            {translate('pages.explore.viewAll')}
+                        </Text>
+                    </Group>
+
+                    {isLoading && (
+                        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <Skeleton key={i} height={280} radius="md" />
+                            ))}
+                        </SimpleGrid>
+                    )}
+
+                    {!isLoading && !hasContent && (
+                        <Paper withBorder p="xl" radius="md">
+                            <Text ta="center" c="dimmed">{translate('pages.explore.noResults')}</Text>
+                        </Paper>
+                    )}
+
+                    {!isLoading && hasContent && (
+                        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+                            {recentAreas.map((area) => (
+                                <Tile
+                                    key={area.id}
+                                    area={area}
+                                    areaType={area.areaType}
+                                    userDetails={user.details}
+                                />
+                            ))}
+                        </SimpleGrid>
+                    )}
+                </div>
+            </Stack>
+        </Container>
+    );
+};
+
+export default Explore;

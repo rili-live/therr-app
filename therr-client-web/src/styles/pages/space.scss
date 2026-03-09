@@ -90,6 +90,14 @@ $profileImgWidth: rem-calc(100px);
 }
 
 #page_view_spaces {
+    // On mobile, show directory column first (before promotional sidebar)
+    @media (max-width: 61.99em) {
+        .mantine-SimpleGrid-root {
+            display: flex;
+            flex-direction: column-reverse;
+        }
+    }
+
     .store-image-links {
         display: flex;
         flex-direction: row;
