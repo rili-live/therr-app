@@ -107,8 +107,8 @@ export default [
     {
         route: '/go-mobile',
         head: {
-            title: 'Go Mobile',
-            description: 'For the best experience, download the mobile version of Therr app',
+            title: 'Your Hub',
+            description: 'Explore local people, places, and moments on Therr. Download the mobile app for the full experience.',
         },
         view: 'index',
     },

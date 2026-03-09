@@ -34,9 +34,6 @@ const RootComponent = () => (
     </MantineProvider>
 );
 
-LogRocket.init('pibaqj/therr-web-app');
-// after calling LogRocket.init()
-setupLogRocketReact(LogRocket);
 if (process.env.NODE_ENV === 'development') {
     createRoot(rootEl).render(<RootComponent />);
 } else {
@@ -45,3 +42,9 @@ if (process.env.NODE_ENV === 'development') {
         <RootComponent />,
     );
 }
+
+// Defer LogRocket initialization to reduce main thread blocking during page load
+requestIdleCallback(() => {
+    LogRocket.init('pibaqj/therr-web-app');
+    setupLogRocketReact(LogRocket);
+}, { timeout: 5000 });

@@ -29,6 +29,7 @@ export interface IMessagesState {
     forumMsgs: {
         [key: string]: IForumMsg;
     } | {};
+    hasUnreadDms: boolean;
 }
 
 export enum MessageActionTypes {
@@ -37,4 +38,5 @@ export enum MessageActionTypes {
     GET_MY_DIRECT_MESSAGES = 'GET_MY_DIRECT_MESSAGES',
     GET_MORE_OF_MY_DIRECT_MESSAGES = 'GET_MORE_OF_MY_DIRECT_MESSAGES',
     GET_FORUM_MESSAGES = 'GET_FORUM_MESSAGES',
+    MARK_DMS_READ = 'MARK_DMS_READ',
 }

@@ -1,6 +1,7 @@
 import beeline from './beeline'; // eslint-disable-line import/order
 import axios from 'axios';
 import * as path from 'path';
+import compression from 'compression';
 import express from 'express';
 import helmet from 'helmet';
 import * as React from 'react';
@@ -47,6 +48,9 @@ import mantineTheme from './styles/mantine-theme'; // eslint-disable-line
 
 // Initialize the server and configure support for handlebars templates
 const app = express();
+
+// Enable gzip/deflate compression for all responses
+app.use(compression());
 
 if (process.env.NODE_ENV !== 'development') {
     app.use(helmet({
@@ -102,7 +106,15 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Define the folder that will be used for static assets
-app.use(express.static(path.join(__dirname, '/../build/static/')));
+app.use(express.static(path.join(__dirname, '/../build/static/'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else {
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+        }
+    },
+}));
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 app.get('/sitemap.xml', express.static(path.join(__dirname, '/../build/static/sitemap.xml')));
 

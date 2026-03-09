@@ -104,6 +104,8 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         <img
                             src={getUserImageUri(user, 100)}
                             alt="Profile Picture"
+                            width="100"
+                            height="100"
                         />
                     </div>
                 </div>
@@ -135,6 +137,9 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                                 <img
                                                     src={getUserImageUri({ details: connectionDetails }, 100)}
                                                     alt="User Connection"
+                                                    width="100"
+                                                    height="100"
+                                                    loading="lazy"
                                                     onClick={() => this.handleConnectionClick(connection)}
                                                 />
                                             </div>

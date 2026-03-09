@@ -98,6 +98,24 @@
   margin-top: 12px;
 }
 
+// Compose thought form
+.compose-thought {
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+
+  [data-mantine-color-scheme="dark"] & {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.compose-thought-hashtag {
+  cursor: default;
+  padding-right: 4px;
+}
+
 // Thought card - Twitter/X style feed
 .thought-card {
   padding: 16px 0;
@@ -121,6 +139,16 @@
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+.thought-card-category {
+  opacity: 0.6;
+  font-style: italic;
+
+  &::before {
+    content: '·';
+    margin-right: 6px;
   }
 }
 

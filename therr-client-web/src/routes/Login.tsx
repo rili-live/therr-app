@@ -100,6 +100,9 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                             className="max-100"
                             src="/assets/images/apple-store-download-button.svg"
                             alt="Download Therr on the App Store"
+                            width="150"
+                            height="50"
+                            loading="lazy"
                         />
                     </a>
                     <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
@@ -108,6 +111,9 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                             className="max-100"
                             src="/assets/images/play-store-download-button.svg"
                             alt="Download Therr on Google Play"
+                            width="150"
+                            height="50"
+                            loading="lazy"
                         />
                     </a>
                 </div>

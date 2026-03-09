@@ -8,19 +8,33 @@ import {
     Anchor,
     Badge,
     Breadcrumbs,
+    Button,
     Container,
     Group,
+    NativeSelect,
     Skeleton,
     Stack,
+    Switch,
     Text,
+    Textarea,
+    TextInput,
     Title,
     Alert,
-    Button,
     Tooltip,
 } from '@mantine/core';
+import { Categories } from 'therr-js-utilities/constants';
+import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
 
 const translate = (key: string, params?: any) => translator('en-us', key, params);
+
+const categoryOptions = Categories.ThoughtCategories.map((cat: string) => {
+    const label = cat.replace('categories.', '').replace('/', ' / ');
+    return { value: cat, label: label.charAt(0).toUpperCase() + label.slice(1) };
+});
+
+const categoryLabelMap: Record<string, string> = {};
+categoryOptions.forEach((opt) => { categoryLabelMap[opt.value] = opt.label; });
 
 const formatTimeAgo = (dateStr: string): string => {
     const date = new Date(dateStr);
@@ -70,6 +84,11 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
                     <Text size="xs" c="dimmed">
                         {thought.createdAt && formatTimeAgo(thought.createdAt)}
                     </Text>
+                    {thought.category && categoryLabelMap[thought.category] && (
+                        <Text size="xs" c="dimmed" className="thought-card-category">
+                            {categoryLabelMap[thought.category]}
+                        </Text>
+                    )}
                 </Group>
 
                 <Text size="sm" mb="xs" className="thought-card-message">
@@ -128,14 +147,204 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
     );
 };
 
+interface IComposeThoughtProps {
+    onSuccess: () => void;
+}
+
+const formatHashtags = (value: string, hashtagsClone: string[]): { formattedValue: string; formattedHashtags: string[] } => {
+    const lastCharacter = value.substring(value.length - 1, value.length);
+    let modifiedValue = value.replace(/[^\w_]/gi, '');
+
+    if (lastCharacter === ',' || lastCharacter === ' ') {
+        const tag = modifiedValue;
+        if (tag !== '' && hashtagsClone.length < 50 && !hashtagsClone.includes(tag)) {
+            hashtagsClone.push(tag);
+        }
+        modifiedValue = '';
+    }
+
+    return {
+        formattedValue: modifiedValue,
+        formattedHashtags: hashtagsClone,
+    };
+};
+
+const ComposeThought: React.FC<IComposeThoughtProps> = ({ onSuccess }) => {
+    const dispatch = useDispatch();
+    const user = useSelector((state: any) => state.user);
+    const [message, setMessage] = useState('');
+    const [hashTagInput, setHashTagInput] = useState('');
+    const [hashtags, setHashtags] = useState<string[]>([]);
+    const [category, setCategory] = useState(categoryOptions[0]?.value || '');
+    const [isPublic, setIsPublic] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleHashTagChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.currentTarget.value;
+        const { formattedValue, formattedHashtags } = formatHashtags(value, [...hashtags]);
+        setHashTagInput(formattedValue);
+        setHashtags(formattedHashtags);
+    }, [hashtags]);
+
+    const handleHashTagBlur = useCallback(() => {
+        if (hashTagInput.trim().length) {
+            const { formattedValue, formattedHashtags } = formatHashtags(`${hashTagInput},`, [...hashtags]);
+            setHashTagInput(formattedValue);
+            setHashtags(formattedHashtags);
+        }
+    }, [hashTagInput, hashtags]);
+
+    const handleHashTagRemove = useCallback((tag: string) => {
+        setHashtags((prev) => prev.filter((t) => t !== tag));
+    }, []);
+
+    const handleSubmit = useCallback(() => {
+        if (message.trim().length < 3) {
+            setError(translate('pages.exploreThoughts.messageTooShort'));
+            return;
+        }
+
+        // Finalize any in-progress hashtag input
+        const finalHashtags = [...hashtags];
+        if (hashTagInput.trim().length) {
+            const tag = hashTagInput.replace(/[^\w_]/gi, '');
+            if (tag && !finalHashtags.includes(tag)) {
+                finalHashtags.push(tag);
+            }
+        }
+
+        setError('');
+        setIsSubmitting(true);
+
+        const createArgs = {
+            fromUserId: user.details.id,
+            message: message.trim(),
+            hashTags: finalHashtags.join(','),
+            category,
+            isPublic,
+            locale: user.details.locale || 'en-us',
+        };
+
+        dispatch(UsersActions.createThought(createArgs) as any)
+            .then(
+                () => {
+                    setMessage('');
+                    setHashTagInput('');
+                    setHashtags([]);
+                    setCategory(categoryOptions[0]?.value || '');
+                    setIsPublic(true);
+                    setIsSubmitting(false);
+                    onSuccess();
+                },
+                (err: any) => {
+                    console.error('createThought error:', err); // eslint-disable-line no-console
+                    setError(translate('pages.exploreThoughts.postError'));
+                    setIsSubmitting(false);
+                },
+            );
+    }, [dispatch, message, hashTagInput, hashtags, category, isPublic, user.details.id, user.details.locale, onSuccess]);
+
+    if (!user?.isAuthenticated) {
+        return (
+            <Alert variant="light" color="blue" radius="md">
+                <Text ta="center" size="sm">
+                    <Anchor component={Link} to="/login">{translate('pages.exploreThoughts.loginToPost')}</Anchor>
+                </Text>
+            </Alert>
+        );
+    }
+
+    return (
+        <div className="compose-thought">
+            <Textarea
+                placeholder={translate('pages.exploreThoughts.composePlaceholder')}
+                value={message}
+                onChange={(e) => setMessage(e.currentTarget.value)}
+                minRows={2}
+                maxRows={6}
+                maxLength={255}
+                autosize
+            />
+            <TextInput
+                placeholder={translate('pages.exploreThoughts.hashtagsPlaceholder')}
+                value={hashTagInput}
+                onChange={handleHashTagChange}
+                onBlur={handleHashTagBlur}
+                mt="xs"
+            />
+            {hashtags.length > 0 && (
+                <Group gap={6} mt="xs" wrap="wrap">
+                    {hashtags.map((tag) => (
+                        <Badge
+                            key={tag}
+                            variant="light"
+                            size="sm"
+                            color="blue"
+                            className="compose-thought-hashtag"
+                            rightSection={
+                                <ActionIcon
+                                    variant="transparent"
+                                    size={14}
+                                    onClick={() => handleHashTagRemove(tag)}
+                                    color="blue"
+                                >
+                                    x
+                                </ActionIcon>
+                            }
+                        >
+                            #{tag}
+                        </Badge>
+                    ))}
+                </Group>
+            )}
+            <Group justify="space-between" mt="xs" align="center">
+                <Group gap="sm">
+                    <NativeSelect
+                        data={categoryOptions}
+                        value={category}
+                        onChange={(e) => setCategory(e.currentTarget.value)}
+                        size="xs"
+                    />
+                    <Switch
+                        label={isPublic
+                            ? translate('pages.exploreThoughts.visibilityPublic')
+                            : translate('pages.exploreThoughts.visibilityPrivate')}
+                        checked={isPublic}
+                        onChange={(e) => setIsPublic(e.currentTarget.checked)}
+                        size="xs"
+                    />
+                </Group>
+                <Group gap="xs">
+                    <Text size="xs" c="dimmed">{message.length}/255</Text>
+                    <Button
+                        size="xs"
+                        onClick={handleSubmit}
+                        loading={isSubmitting}
+                        disabled={message.trim().length < 3}
+                    >
+                        {translate('pages.exploreThoughts.postButton')}
+                    </Button>
+                </Group>
+            </Group>
+            {error && (
+                <Text size="xs" c="red" mt="xs">{error}</Text>
+            )}
+        </div>
+    );
+};
+
+const ITEMS_PER_PAGE = 30;
+
 const ExploreThoughts: React.FC = () => {
     const dispatch = useDispatch();
     const content = useSelector((state: any) => state.content);
     const user = useSelector((state: any) => state.user);
     const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
 
-    const fetchThoughts = useCallback((offset = 0, isRefresh = true) => {
+    const fetchThoughts = useCallback((page = 1) => {
+        const offset = (page - 1) * ITEMS_PER_PAGE;
         const params = {
             withMedia: true,
             withUser: true,
@@ -145,31 +354,28 @@ const ExploreThoughts: React.FC = () => {
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         };
 
-        if (isRefresh) {
-            setIsLoading(true);
-            return dispatch(ContentActions.updateActiveThoughtsStream(params) as any)
-                .catch((err) => console.log(err))
-                .finally(() => setIsLoading(false));
-        }
-
-        setIsLoadingMore(true);
-        return dispatch(ContentActions.searchActiveThoughts(params) as any)
+        setIsLoading(true);
+        return dispatch(ContentActions.updateActiveThoughtsStream(params, ITEMS_PER_PAGE) as any)
             .catch((err) => console.log(err))
-            .finally(() => setIsLoadingMore(false));
+            .finally(() => setIsLoading(false));
     }, [dispatch, content.activeAreasFilters, user.details.blockedUsers, user.details.shouldHideMatureContent]);
 
     useEffect(() => {
         document.title = `Therr | ${translate('pages.exploreThoughts.pageTitle')}`;
-        fetchThoughts(0, true);
+        fetchThoughts(1);
     }, []); // eslint-disable-line
 
     const thoughts = content.activeThoughts || [];
     const hasContent = thoughts.length > 0;
     const pagination = content.activeThoughtsPagination;
-    const hasMore = pagination && thoughts.length < (pagination.totalResults || 0);
+    const isLastPage = pagination?.isLastPage !== false && thoughts.length < ITEMS_PER_PAGE;
+    const hasPrev = currentPage > 1;
+    const hasNext = !isLastPage;
 
-    const handleLoadMore = () => {
-        fetchThoughts(thoughts.length, false);
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        fetchThoughts(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleLike = useCallback((thought: any) => {
@@ -192,6 +398,11 @@ const ExploreThoughts: React.FC = () => {
         ) as any);
     }, [dispatch, user?.details?.userName]);
 
+    const handlePostSuccess = useCallback(() => {
+        setCurrentPage(1);
+        fetchThoughts(1);
+    }, [fetchThoughts]);
+
     const breadcrumbs = [
         <Anchor component={Link} to="/" key="home" size="sm">Home</Anchor>,
         <Anchor component={Link} to="/explore" key="explore" size="sm">Explore</Anchor>,
@@ -207,6 +418,8 @@ const ExploreThoughts: React.FC = () => {
                     <Title order={2}>{translate('pages.exploreThoughts.pageTitle')}</Title>
                     <Text size="sm" c="dimmed">{translate('pages.exploreThoughts.subtitle')}</Text>
                 </div>
+
+                <ComposeThought onSuccess={handlePostSuccess} />
 
                 {isLoading && (
                     <Stack gap="md">
@@ -234,14 +447,22 @@ const ExploreThoughts: React.FC = () => {
                                 />
                             ))}
                         </Stack>
-                        {hasMore && (
-                            <Group justify="center">
+                        {(hasPrev || hasNext) && (
+                            <Group justify="center" gap="md">
                                 <Button
                                     variant="outline"
-                                    onClick={handleLoadMore}
-                                    loading={isLoadingMore}
+                                    disabled={!hasPrev}
+                                    onClick={() => handlePageChange(currentPage - 1)}
                                 >
-                                    {translate('pages.exploreThoughts.loadMore')}
+                                    Previous
+                                </Button>
+                                <Text size="sm" c="dimmed">Page {currentPage}</Text>
+                                <Button
+                                    variant="outline"
+                                    disabled={!hasNext}
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                >
+                                    Next
                                 </Button>
                             </Group>
                         )}
