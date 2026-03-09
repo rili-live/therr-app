@@ -89,6 +89,7 @@ if (process.env.NODE_ENV !== 'development') {
                     'data:',
                     'https://*.therr.com',
                     'https://ik.imagekit.io',
+                    'https://robohash.org',
                     'https://*.google-analytics.com',
                     'https://*.googletagmanager.com',
                 ],

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { NavigateFunction } from 'react-router-dom';
-import { SvgButton } from 'therr-react/components';
+import { InlineSvg, SvgButton } from 'therr-react/components';
 import { MantineButton } from 'therr-react/components/mantine';
 import {
     NotificationActions,
@@ -13,6 +13,15 @@ import { bindActionCreators } from 'redux';
 import Notification from './Notification';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
+import shareMomentAnim from '../../assets/lottie/share-a-moment.json';
+import discoverAnim from '../../assets/lottie/discover.json';
+import thinkerAnim from '../../assets/lottie/thinker-card.json';
+import profileCirclingAnim from '../../assets/lottie/profile-circling.json';
+
+// Lazy-load lottie-react only on client (lottie-web crashes on server due to document.createElement)
+const Lottie = typeof window !== 'undefined'
+    ? React.lazy(() => import('lottie-react'))
+    : (() => null) as any;
 
 interface IUserMenuRouterProps {
     navigation: {
@@ -69,11 +78,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             activeTab: tabName,
         });
 
-        if (tabName === 'location') {
-            this.props.handleWidthResize(true);
-        } else {
-            this.props.handleWidthResize(false);
-        }
+        this.props.handleWidthResize(false);
     };
 
     handleConnectionRequestAction = (e, notification, isAccepted) => {
@@ -147,17 +152,30 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 return this.props.navigation.navigate('/user/profile');
             case 'discovered':
                 return this.props.navigation.navigate('/discovered');
+            case 'explore':
+                return this.props.navigation.navigate('/explore');
+            case 'explore-moments':
+                return this.props.navigation.navigate('/posts/moments');
+            case 'explore-spaces':
+                return this.props.navigation.navigate('/locations');
+            case 'explore-thoughts':
+                return this.props.navigation.navigate('/posts/thoughts');
+            case 'explore-people':
+                return this.props.navigation.navigate('/users');
             default:
         }
     };
 
     renderProfileContent = () => (
         <>
-            <h2>{this.translate('components.userMenu.h2.profileSettings')}</h2>
+            <div className="tab-content-header">
+                <h2>{this.translate('components.userMenu.h2.profileSettings')}</h2>
+            </div>
             <div className="profile-settings-menu">
                 <MantineButton
                     id="nav_menu_view_profile"
-                    className="menu-item"
+                    className="menu-item left-icon"
+                    leftSection={<InlineSvg name="account" />}
                     text={this.translate('components.userMenu.buttons.viewProfile')}
                     onClick={this.navigate('view-profile')}
                     variant="subtle"
@@ -165,7 +183,8 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 />
                 <MantineButton
                     id="nav_menu_edit_profile"
-                    className="menu-item"
+                    className="menu-item left-icon"
+                    leftSection={<InlineSvg name="settings" />}
                     text={this.translate('components.userMenu.buttons.editProfile')}
                     onClick={this.navigate('edit-profile')}
                     variant="subtle"
@@ -173,7 +192,8 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 />
                 <MantineButton
                     id="nav_menu_discovered"
-                    className="menu-item"
+                    className="menu-item left-icon"
+                    leftSection={<InlineSvg name="bookmark" />}
                     text={this.translate('components.userMenu.buttons.discovered')}
                     onClick={this.navigate('discovered')}
                     variant="subtle"
@@ -189,7 +209,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
 
         return (
             <>
-                <div className="notifications-header">
+                <div className="tab-content-header notifications-header">
                     <h2>{this.translate('components.userMenu.h2.notifications')}</h2>
                     {hasUnread && (
                         <MantineButton
@@ -220,11 +240,14 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
 
     renderAccountContent = () => (
         <>
-            <h2>{this.translate('components.userMenu.h2.accountSettings')}</h2>
+            <div className="tab-content-header">
+                <h2>{this.translate('components.userMenu.h2.accountSettings')}</h2>
+            </div>
             <div className="account-settings-menu">
                 <MantineButton
                     id="nav_menu_change_password"
-                    className="menu-item"
+                    className="menu-item left-icon"
+                    leftSection={<InlineSvg name="door" />}
                     text={this.translate('components.userMenu.buttons.changePassword')}
                     onClick={this.navigate('change-password')}
                     variant="subtle"
@@ -236,7 +259,75 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
 
     renderLocationContent = () => (
         <>
-            <h2>{this.translate('components.userMenu.h2.locationMap')}</h2>
+            <div className="tab-content-header">
+                <h2>{this.translate('components.userMenu.h2.locationMap')}</h2>
+            </div>
+            <div className="explore-nav-grid">
+                <button
+                    type="button"
+                    id="nav_menu_explore_moments"
+                    className="explore-nav-tile"
+                    onClick={this.navigate('explore-moments')}
+                >
+                    <div className="explore-nav-tile-lottie">
+                        <React.Suspense fallback={<div style={{ width: 52, height: 52 }} />}>
+                            <Lottie animationData={shareMomentAnim} loop autoplay style={{ width: 52, height: 52 }} />
+                        </React.Suspense>
+                    </div>
+                    <span className="explore-nav-tile-title">{this.translate('components.userMenu.buttons.exploreMoments')}</span>
+                    <span className="explore-nav-tile-desc">{this.translate('components.userMenu.exploreDescriptions.moments')}</span>
+                </button>
+                <button
+                    type="button"
+                    id="nav_menu_explore_spaces"
+                    className="explore-nav-tile"
+                    onClick={this.navigate('explore-spaces')}
+                >
+                    <div className="explore-nav-tile-lottie">
+                        <React.Suspense fallback={<div style={{ width: 52, height: 52 }} />}>
+                            <Lottie animationData={discoverAnim} loop autoplay style={{ width: 52, height: 52 }} />
+                        </React.Suspense>
+                    </div>
+                    <span className="explore-nav-tile-title">{this.translate('components.userMenu.buttons.exploreSpaces')}</span>
+                    <span className="explore-nav-tile-desc">{this.translate('components.userMenu.exploreDescriptions.spaces')}</span>
+                </button>
+                <button
+                    type="button"
+                    id="nav_menu_explore_thoughts"
+                    className="explore-nav-tile"
+                    onClick={this.navigate('explore-thoughts')}
+                >
+                    <div className="explore-nav-tile-lottie">
+                        <React.Suspense fallback={<div style={{ width: 52, height: 52 }} />}>
+                            <Lottie animationData={thinkerAnim} loop autoplay style={{ width: 52, height: 52 }} />
+                        </React.Suspense>
+                    </div>
+                    <span className="explore-nav-tile-title">{this.translate('components.userMenu.buttons.exploreThoughts')}</span>
+                    <span className="explore-nav-tile-desc">{this.translate('components.userMenu.exploreDescriptions.thoughts')}</span>
+                </button>
+                <button
+                    type="button"
+                    id="nav_menu_explore_people"
+                    className="explore-nav-tile"
+                    onClick={this.navigate('explore-people')}
+                >
+                    <div className="explore-nav-tile-lottie">
+                        <React.Suspense fallback={<div style={{ width: 52, height: 52 }} />}>
+                            <Lottie animationData={profileCirclingAnim} loop autoplay style={{ width: 52, height: 52 }} />
+                        </React.Suspense>
+                    </div>
+                    <span className="explore-nav-tile-title">{this.translate('components.userMenu.buttons.explorePeople')}</span>
+                    <span className="explore-nav-tile-desc">{this.translate('components.userMenu.exploreDescriptions.people')}</span>
+                </button>
+            </div>
+            <MantineButton
+                id="nav_menu_explore_all"
+                className="explore-nav-view-all"
+                text={this.translate('components.userMenu.buttons.explore')}
+                onClick={this.navigate('explore')}
+                variant="light"
+                fullWidth
+            />
         </>
     );
 

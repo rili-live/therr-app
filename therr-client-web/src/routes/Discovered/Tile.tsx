@@ -126,7 +126,10 @@ const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
                             onClick={onLikePress}
                             color={isLiked ? 'red' : 'gray'}
                         >
-                            <InlineSvg name={isLiked ? 'favorite' : 'favorite-border'} className="discovered-tile-icon" />
+                            <InlineSvg
+                                name={isLiked ? 'favorite' : 'favorite-border'}
+                                className={`discovered-tile-icon ${isLiked ? 'discovered-tile-icon-liked' : ''}`}
+                            />
                         </ActionIcon>
                     </Tooltip>
                     <Tooltip label={isBookmarked ? 'Remove bookmark' : 'Bookmark'}>
@@ -134,9 +137,12 @@ const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
                             variant="subtle"
                             size="sm"
                             onClick={onBookmarkPress}
-                            color={isBookmarked ? 'yellow' : 'gray'}
+                            color={isBookmarked ? 'dark' : 'gray'}
                         >
-                            <InlineSvg name={isBookmarked ? 'bookmark' : 'bookmark-border'} className="discovered-tile-icon" />
+                            <InlineSvg
+                                name={isBookmarked ? 'bookmark' : 'bookmark-border'}
+                                className={`discovered-tile-icon ${isBookmarked ? 'discovered-tile-icon-bookmarked' : ''}`}
+                            />
                         </ActionIcon>
                     </Tooltip>
                 </Group>

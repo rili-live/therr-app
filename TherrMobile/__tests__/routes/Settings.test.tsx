@@ -119,7 +119,7 @@ describe('Settings', () => {
             });
             const instance = component!.getInstance() as Settings;
 
-            expect(instance.state.isNightMode).toBe(true);
+            expect(instance.state.selectedTheme).toBe('retro');
         });
 
         it('should initialize ad opt-in from user settings', () => {
@@ -278,20 +278,20 @@ describe('Settings', () => {
     });
 
     describe('Theme Switching', () => {
-        it('should update isNightMode when theme changes', () => {
+        it('should update selectedTheme when theme changes', () => {
             let component: renderer.ReactTestRenderer;
             act(() => {
                 component = renderer.create(<Settings {...defaultProps} />);
             });
             const instance = component!.getInstance() as Settings;
 
-            act(() => { instance.onThemeChange(true); });
+            act(() => { instance.onThemeChange('retro'); });
 
-            expect(instance.state.isNightMode).toBe(true);
+            expect(instance.state.selectedTheme).toBe('retro');
 
-            act(() => { instance.onThemeChange(false); });
+            act(() => { instance.onThemeChange('light'); });
 
-            expect(instance.state.isNightMode).toBe(false);
+            expect(instance.state.selectedTheme).toBe('light');
         });
     });
 
@@ -366,7 +366,7 @@ describe('Settings', () => {
             });
             const instance = component!.getInstance() as Settings;
 
-            act(() => { instance.onThemeChange(true); });
+            act(() => { instance.onThemeChange('retro'); });
 
             await act(async () => {
                 instance.onSubmit();
@@ -575,7 +575,7 @@ describe('Settings', () => {
 
             expect(Toast.show).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    type: 'success',
+                    type: 'successBig',
                 })
             );
         });

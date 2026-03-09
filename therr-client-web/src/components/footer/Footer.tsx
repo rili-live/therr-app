@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import {
@@ -140,18 +139,27 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                         type: AccessCheckType.ALL,
                         levels: [AccessLevels.EMAIL_VERIFIED],
                     }, user)} publicOnly>
-                        <div className="locations-link flex-box row center align-center">
-                            <SvgButton
-                                id="footer_locations_icon"
-                                name="world"
-                                onClick={() => goTo('/locations')}
-                                buttonType="primary"
-                                aria-label="View business locations on Therr App"
-                            />
-                            <Link aria-label="View business locations on Therr App" to="/locations">
-                                {this.translate('components.footer.buttons.locations')}
-                            </Link>
-                        </div>
+                        <SvgButton
+                            id="footer_locations_icon"
+                            name="location"
+                            className="locations-button"
+                            onClick={() => goTo('/locations')}
+                            buttonType="primary"
+                            aria-label="View business locations on Therr App"
+                        />
+                    </AccessControl>
+                    <AccessControl isAuthorized={UsersService.isAuthorized({
+                        type: AccessCheckType.ALL,
+                        levels: [AccessLevels.EMAIL_VERIFIED],
+                    }, user)}>
+                        <SvgButton
+                            id="footer_explore"
+                            name="world"
+                            className="explore-button"
+                            onClick={() => goTo('/explore')}
+                            buttonType="primary"
+                            aria-label="Explore content"
+                        />
                     </AccessControl>
                 </div>
             </footer>

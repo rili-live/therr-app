@@ -362,7 +362,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             || location.pathname === '/login'
             || location.pathname.includes('/locations')
             || location.pathname.includes('/spaces')
-            || location.pathname.includes('/users')
+            || location.pathname.startsWith('/users/')
             || location.pathname === '/register'
             || location.pathname === '/verify-account'
             || location.pathname === '/app-feedback'
