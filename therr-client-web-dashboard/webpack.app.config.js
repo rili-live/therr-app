@@ -61,6 +61,19 @@ const common = merge([
         },
         optimization: {
             emitOnErrors: true,
+            splitChunks: {
+                chunks(chunk) {
+                    return chunk.name === 'app';
+                },
+                cacheGroups: {
+                    vendor: {
+                        test: /[\\/]node_modules[\\/]/,
+                        name: 'vendor',
+                        priority: 10,
+                    },
+                },
+            },
+            runtimeChunk: 'single',
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
@@ -117,6 +130,7 @@ const buildProd = () => merge([
     }),
     parts.loadCSS(null, 'production'),
     parts.minifyJavaScript({ useSourceMap: false }),
+    parts.compressAssets(),
 ]);
 
 module.exports = (env) => {
