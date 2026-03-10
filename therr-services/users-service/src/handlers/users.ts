@@ -606,6 +606,7 @@ const updateUser = (req, res) => {
                 settingsIsProfilePublic: req.body.settingsIsProfilePublic,
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
+                settingsLocale: req.body.settingsLocale,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
             };

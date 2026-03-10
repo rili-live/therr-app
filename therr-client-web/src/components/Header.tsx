@@ -120,6 +120,13 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
             // Ignore storage errors
         }
 
+        // Set cookie for SSR locale detection
+        document.cookie = `therr-locale=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
+
+        // Update HTML lang attribute for accessibility and client-side SEO
+        const htmlLangMap: Record<string, string> = { 'en-us': 'en-US', es: 'es-MX' };
+        document.documentElement.lang = htmlLangMap[newLocale] || 'en-US';
+
         // Persist to backend for authenticated users
         if (user?.isAuthenticated && user?.details?.id) {
             updateUser(user.details.id, { settingsLocale: newLocale });
