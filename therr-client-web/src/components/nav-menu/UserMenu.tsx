@@ -11,8 +11,8 @@ import { IUserState, INotificationsState, INotification } from 'therr-react/type
 import { UserConnectionTypes } from 'therr-js-utilities/constants';
 import { bindActionCreators } from 'redux';
 import Notification from './Notification';
-import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
+import withTranslation from '../../wrappers/withTranslation';
 import shareMomentAnim from '../../assets/lottie/share-a-moment.json';
 import discoverAnim from '../../assets/lottie/discover.json';
 import thinkerAnim from '../../assets/lottie/thinker-card.json';
@@ -44,6 +44,7 @@ interface IUserMenuProps extends IUserMenuRouterProps, IStoreProps {
     handleLogout: any;
     handleWidthResize: Function;
     toggleNavMenu: Function;
+    translate: (key: string, params?: any) => string;
 }
 
 interface IUserMenuState {
@@ -61,16 +62,12 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenuState> {
-    private translate: Function;
-
     constructor(props) {
         super(props);
 
         this.state = {
             activeTab: 'notifications',
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     handleTabSelect = (e, tabName) => {
@@ -169,14 +166,14 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
     renderProfileContent = () => (
         <>
             <div className="tab-content-header">
-                <h2>{this.translate('components.userMenu.h2.profileSettings')}</h2>
+                <h2>{this.props.translate('components.userMenu.h2.profileSettings')}</h2>
             </div>
             <div className="profile-settings-menu">
                 <MantineButton
                     id="nav_menu_view_profile"
                     className="menu-item left-icon"
                     leftSection={<InlineSvg name="account" />}
-                    text={this.translate('components.userMenu.buttons.viewProfile')}
+                    text={this.props.translate('components.userMenu.buttons.viewProfile')}
                     onClick={this.navigate('view-profile')}
                     variant="subtle"
                     fullWidth
@@ -185,7 +182,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                     id="nav_menu_edit_profile"
                     className="menu-item left-icon"
                     leftSection={<InlineSvg name="settings" />}
-                    text={this.translate('components.userMenu.buttons.editProfile')}
+                    text={this.props.translate('components.userMenu.buttons.editProfile')}
                     onClick={this.navigate('edit-profile')}
                     variant="subtle"
                     fullWidth
@@ -194,7 +191,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                     id="nav_menu_discovered"
                     className="menu-item left-icon"
                     leftSection={<InlineSvg name="bookmark" />}
-                    text={this.translate('components.userMenu.buttons.discovered')}
+                    text={this.props.translate('components.userMenu.buttons.discovered')}
                     onClick={this.navigate('discovered')}
                     variant="subtle"
                     fullWidth
@@ -210,12 +207,12 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         return (
             <>
                 <div className="tab-content-header notifications-header">
-                    <h2>{this.translate('components.userMenu.h2.notifications')}</h2>
+                    <h2>{this.props.translate('components.userMenu.h2.notifications')}</h2>
                     {hasUnread && (
                         <MantineButton
                             id="mark_all_read"
                             className="mark-all-read-button"
-                            text={this.translate('components.userMenu.buttons.markAllRead')}
+                            text={this.props.translate('components.userMenu.buttons.markAllRead')}
                             onClick={this.markAllNotificationsAsRead}
                             variant="subtle"
                             size="xs"
@@ -241,14 +238,14 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
     renderAccountContent = () => (
         <>
             <div className="tab-content-header">
-                <h2>{this.translate('components.userMenu.h2.accountSettings')}</h2>
+                <h2>{this.props.translate('components.userMenu.h2.accountSettings')}</h2>
             </div>
             <div className="account-settings-menu">
                 <MantineButton
                     id="nav_menu_change_password"
                     className="menu-item left-icon"
                     leftSection={<InlineSvg name="door" />}
-                    text={this.translate('components.userMenu.buttons.changePassword')}
+                    text={this.props.translate('components.userMenu.buttons.changePassword')}
                     onClick={this.navigate('change-password')}
                     variant="subtle"
                     fullWidth
@@ -260,7 +257,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
     renderLocationContent = () => (
         <>
             <div className="tab-content-header">
-                <h2>{this.translate('components.userMenu.h2.locationMap')}</h2>
+                <h2>{this.props.translate('components.userMenu.h2.locationMap')}</h2>
             </div>
             <div className="explore-nav-grid">
                 <button
@@ -274,8 +271,8 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                             <Lottie animationData={shareMomentAnim} loop autoplay style={{ width: 52, height: 52 }} />
                         </React.Suspense>
                     </div>
-                    <span className="explore-nav-tile-title">{this.translate('components.userMenu.buttons.exploreMoments')}</span>
-                    <span className="explore-nav-tile-desc">{this.translate('components.userMenu.exploreDescriptions.moments')}</span>
+                    <span className="explore-nav-tile-title">{this.props.translate('components.userMenu.buttons.exploreMoments')}</span>
+                    <span className="explore-nav-tile-desc">{this.props.translate('components.userMenu.exploreDescriptions.moments')}</span>
                 </button>
                 <button
                     type="button"
@@ -288,8 +285,8 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                             <Lottie animationData={discoverAnim} loop autoplay style={{ width: 52, height: 52 }} />
                         </React.Suspense>
                     </div>
-                    <span className="explore-nav-tile-title">{this.translate('components.userMenu.buttons.exploreSpaces')}</span>
-                    <span className="explore-nav-tile-desc">{this.translate('components.userMenu.exploreDescriptions.spaces')}</span>
+                    <span className="explore-nav-tile-title">{this.props.translate('components.userMenu.buttons.exploreSpaces')}</span>
+                    <span className="explore-nav-tile-desc">{this.props.translate('components.userMenu.exploreDescriptions.spaces')}</span>
                 </button>
                 <button
                     type="button"
@@ -302,8 +299,8 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                             <Lottie animationData={thinkerAnim} loop autoplay style={{ width: 52, height: 52 }} />
                         </React.Suspense>
                     </div>
-                    <span className="explore-nav-tile-title">{this.translate('components.userMenu.buttons.exploreThoughts')}</span>
-                    <span className="explore-nav-tile-desc">{this.translate('components.userMenu.exploreDescriptions.thoughts')}</span>
+                    <span className="explore-nav-tile-title">{this.props.translate('components.userMenu.buttons.exploreThoughts')}</span>
+                    <span className="explore-nav-tile-desc">{this.props.translate('components.userMenu.exploreDescriptions.thoughts')}</span>
                 </button>
                 <button
                     type="button"
@@ -316,14 +313,14 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                             <Lottie animationData={profileCirclingAnim} loop autoplay style={{ width: 52, height: 52 }} />
                         </React.Suspense>
                     </div>
-                    <span className="explore-nav-tile-title">{this.translate('components.userMenu.buttons.explorePeople')}</span>
-                    <span className="explore-nav-tile-desc">{this.translate('components.userMenu.exploreDescriptions.people')}</span>
+                    <span className="explore-nav-tile-title">{this.props.translate('components.userMenu.buttons.explorePeople')}</span>
+                    <span className="explore-nav-tile-desc">{this.props.translate('components.userMenu.exploreDescriptions.people')}</span>
                 </button>
             </div>
             <MantineButton
                 id="nav_menu_explore_all"
                 className="explore-nav-view-all"
-                text={this.translate('components.userMenu.buttons.explore')}
+                text={this.props.translate('components.userMenu.buttons.explore')}
                 onClick={this.navigate('explore')}
                 variant="light"
                 fullWidth
@@ -401,7 +398,15 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 {
                     activeTab === 'account'
                         && <div className="nav-menu-subfooter">
-                            <button type="button" className="primary text-white logout-button" onClick={handleLogout}>Logout</button>
+                            <MantineButton
+                                id="nav_menu_logout"
+                                className="menu-item left-icon"
+                                leftSection={<InlineSvg name="door" />}
+                                text={this.props.translate('components.userMenu.buttons.logout')}
+                                onClick={handleLogout}
+                                variant="subtle"
+                                fullWidth
+                            />
                         </div>
                 }
                 <div className="nav-menu-footer">
@@ -412,4 +417,4 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(UserMenuComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(UserMenuComponent)));

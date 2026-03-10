@@ -3,9 +3,9 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Link, Location, NavigateFunction } from 'react-router-dom';
 import { IUserState } from 'therr-react/types';
-import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 interface IUnderConstructionAppRouterProps {
     location: Location;
@@ -24,6 +24,7 @@ interface IStoreProps extends IUnderConstructionAppDispatchProps, IUnderConstruc
 
 // Regular component props
 export interface IUnderConstructionAppProps extends IUnderConstructionAppRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 interface IUnderConstructionAppState {
@@ -42,20 +43,16 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Login
  */
 export class UnderConstructionAppComponent extends React.Component<IUnderConstructionAppProps, IUnderConstructionAppState> {
-    private translate: Function;
-
     constructor(props: IUnderConstructionAppProps) {
         super(props);
 
         this.state = {
             inputs: {},
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.goMobile.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.goMobile.pageTitle')}`;
     }
 
     login = (credentials: any) => this.props.login(credentials);
@@ -69,9 +66,9 @@ export class UnderConstructionAppComponent extends React.Component<IUnderConstru
                             <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" width="400" height="300" />
                         </div>
                         <h2 className="text-title-medium text-center no-bot-margin fill">
-                            {this.translate('pages.goMobile.welcome')}
+                            {this.props.translate('pages.goMobile.welcome')}
                         </h2>
-                        <p className="info-text text-center fill">{this.translate('pages.goMobile.subtitle')}</p>
+                        <p className="info-text text-center fill">{this.props.translate('pages.goMobile.subtitle')}</p>
                         <div className="flex-box center margin-top-lg margin-bot-lg">
                             <Link to="/explore" className="btn btn-primary explore-link-button">
                                 <svg
@@ -88,11 +85,11 @@ export class UnderConstructionAppComponent extends React.Component<IUnderConstru
                                     <circle cx="12" cy="12" r="10" />
                                     <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
                                 </svg>
-                                <span>{this.translate('pages.goMobile.featuresHeading')}</span>
+                                <span>{this.props.translate('pages.goMobile.featuresHeading')}</span>
                             </Link>
                         </div>
-                        <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info2')}</p>
-                        <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info3')}</p>
+                        <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.props.translate('pages.home.info2')}</p>
+                        <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.props.translate('pages.home.info3')}</p>
                         <div className="store-image-links flex-box row space-around margin-top-lg">
                             <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
                                 <img
@@ -122,4 +119,4 @@ export class UnderConstructionAppComponent extends React.Component<IUnderConstru
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(UnderConstructionAppComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(UnderConstructionAppComponent)));

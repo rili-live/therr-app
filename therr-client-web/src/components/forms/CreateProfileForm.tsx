@@ -6,13 +6,14 @@ import {
     MantineButton,
     MantineInput,
 } from 'therr-react/components/mantine';
-import translator from '../../services/translator';
+import withTranslation from '../../wrappers/withTranslation';
 
 // Regular component props
 interface ICreateProfileFormProps {
   isSubmitting: boolean;
   onSubmit: Function;
   title: string;
+  translate: (key: string, params?: any) => string;
 }
 
 interface ICreateProfileFormState {
@@ -24,8 +25,6 @@ interface ICreateProfileFormState {
  * CreateProfileForm
  */
 export class CreateProfileFormComponent extends React.Component<ICreateProfileFormProps, ICreateProfileFormState> {
-    private translate: (key: string, params?: any) => string;
-
     constructor(props: ICreateProfileFormProps) {
         super(props);
 
@@ -35,8 +34,6 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
             },
             isPhoneNumberValid: false,
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     isFormDisabled() {
@@ -99,9 +96,9 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             value={this.state.inputs.userName}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
-                            translateFn={this.translate}
+                            translateFn={this.props.translate}
                             validations={['isRequired']}
-                            label={this.translate('components.createProfileForm.labels.userName')}
+                            label={this.props.translate('components.createProfileForm.labels.userName')}
                         />
 
                         <MantineInput
@@ -111,9 +108,9 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             value={this.state.inputs.firstName}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
-                            translateFn={this.translate}
+                            translateFn={this.props.translate}
                             validations={['isRequired']}
-                            label={this.translate('components.createProfileForm.labels.firstName')}
+                            label={this.props.translate('components.createProfileForm.labels.firstName')}
                         />
 
                         <MantineInput
@@ -123,12 +120,12 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             value={this.state.inputs.lastName}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
-                            translateFn={this.translate}
+                            translateFn={this.props.translate}
                             validations={['isRequired']}
-                            label={this.translate('components.createProfileForm.labels.lastName')}
+                            label={this.props.translate('components.createProfileForm.labels.lastName')}
                         />
 
-                        <label className="required" htmlFor="phone_number">{this.translate('components.createProfileForm.labels.mobilePhone')}:</label>
+                        <label className="required" htmlFor="phone_number">{this.props.translate('components.createProfileForm.labels.mobilePhone')}:</label>
                         <div className="form-field">
                             <PhoneInput
                                 defaultCountry="US"
@@ -142,7 +139,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                                 && <div className="validation-errors">
                                     <div className="message-container icon-small attention-alert">
                                         <em className="message">
-                                            {this.translate('components.createProfileForm.validationErrors.phoneNumber')}
+                                            {this.props.translate('components.createProfileForm.validationErrors.phoneNumber')}
                                         </em>
                                     </div>
                                 </div>
@@ -152,7 +149,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                         <div className="form-field text-right">
                             <MantineButton
                                 id="register"
-                                text={this.translate('components.createProfileForm.buttons.submit')}
+                                text={this.props.translate('components.createProfileForm.buttons.submit')}
                                 onClick={this.onSubmit}
                                 disabled={this.isFormDisabled()}
                                 fullWidth
@@ -161,9 +158,9 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
 
                         <div className="form-field">
                             <h2 className="text-title-medium text-center no-bot-margin fill">
-                                {this.translate('pages.createProfile.infoTitle')}
+                                {this.props.translate('pages.createProfile.infoTitle')}
                             </h2>
-                            <p className="info-text text-center fill">{this.translate('pages.createProfile.info')}</p>
+                            <p className="info-text text-center fill">{this.props.translate('pages.createProfile.info')}</p>
                         </div>
                     </Stack>
                 </div>
@@ -172,4 +169,4 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
     }
 }
 
-export default CreateProfileFormComponent;
+export default withTranslation(CreateProfileFormComponent);

@@ -10,13 +10,14 @@ import {
     MantineCheckbox,
     MantineInput,
 } from 'therr-react/components/mantine';
-import translator from '../../services/translator';
+import withTranslation from '../../wrappers/withTranslation';
 
 // Regular component props
 interface IRegisterFormProps {
   register: Function;
   title: string;
   inviteCode?: string;
+  translate: (key: string, params?: any) => string;
 }
 
 interface IRegisterFormState {
@@ -29,8 +30,6 @@ interface IRegisterFormState {
 export class RegisterFormComponent extends React.Component<
     IRegisterFormProps, IRegisterFormState
 > {
-    private translate: (key: string, params?: any) => string;
-
     constructor(props: IRegisterFormProps) {
         super(props);
 
@@ -39,8 +38,6 @@ export class RegisterFormComponent extends React.Component<
                 settingsEmailMarketing: true,
             },
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     isFormDisabled() {
@@ -110,7 +107,7 @@ export class RegisterFormComponent extends React.Component<
                             inviteCode
                             && (
                                 <h4 className="mb-1 text-underline text-center">
-                                    {this.translate(
+                                    {this.props.translate(
                                         'components.registerForm.text.signupForRewards',
                                         { userName: inviteCode },
                                     )}
@@ -124,9 +121,9 @@ export class RegisterFormComponent extends React.Component<
                             value={this.state.inputs.email}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
-                            translateFn={this.translate}
+                            translateFn={this.props.translate}
                             validations={['isRequired', 'email']}
-                            label={this.translate(
+                            label={this.props.translate(
                                 'components.registerForm.labels.email',
                             )}
                         />
@@ -138,9 +135,9 @@ export class RegisterFormComponent extends React.Component<
                             value={this.state.inputs.password}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
-                            translateFn={this.translate}
+                            translateFn={this.props.translate}
                             validations={['isRequired', 'password']}
-                            label={this.translate(
+                            label={this.props.translate(
                                 'components.registerForm.labels.password',
                             )}
                         />
@@ -165,9 +162,9 @@ export class RegisterFormComponent extends React.Component<
                             value={this.state.inputs.repeatPassword}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
-                            translateFn={this.translate}
+                            translateFn={this.props.translate}
                             validations={['isRequired']}
-                            label={this.translate(
+                            label={this.props.translate(
                                 'components.registerForm.labels.repeatPassword',
                             )}
                         />
@@ -175,13 +172,13 @@ export class RegisterFormComponent extends React.Component<
                         <PasswordRequirements
                             className="password-requirements mb-2 px-2"
                             password={this.state.inputs.password}
-                            translate={this.translate}
+                            translate={this.props.translate}
                         />
 
                         <MantineCheckbox
                             id="newsletter"
                             name="settingsEmailMarketing"
-                            label={this.translate(
+                            label={this.props.translate(
                                 'components.registerForm.labels.newsletter',
                             )}
                             isChecked={this.state.inputs.settingsEmailMarketing}
@@ -191,7 +188,7 @@ export class RegisterFormComponent extends React.Component<
                         <MantineCheckbox
                             id="terms_and_conditions"
                             name="hasAgreedToTerms"
-                            label={this.translate(
+                            label={this.props.translate(
                                 'components.registerForm.labels.termsAndConditions',
                             )}
                             isChecked={this.state.inputs.hasAgreedToTerms}
@@ -201,7 +198,7 @@ export class RegisterFormComponent extends React.Component<
                         <div className="form-field text-right">
                             <MantineButton
                                 id="register"
-                                text={this.translate(
+                                text={this.props.translate(
                                     'components.registerForm.buttons.register',
                                 )}
                                 onClick={this.onSubmit}
@@ -212,7 +209,7 @@ export class RegisterFormComponent extends React.Component<
 
                         <div className="text-left">
                             <Link to="/login">
-                                {this.translate(
+                                {this.props.translate(
                                     'components.registerForm.buttons.backToLogin',
                                 )}
                             </Link>
@@ -224,7 +221,7 @@ export class RegisterFormComponent extends React.Component<
                                 target="_blank"
                                 rel="noreferrer"
                             >
-                                {this.translate(
+                                {this.props.translate(
                                     'components.registerForm.buttons.terms',
                                 )}
                             </a>
@@ -236,4 +233,4 @@ export class RegisterFormComponent extends React.Component<
     }
 }
 
-export default RegisterFormComponent;
+export default withTranslation(RegisterFormComponent);

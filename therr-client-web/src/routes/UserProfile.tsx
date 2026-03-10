@@ -7,8 +7,8 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { MantineButton } from 'therr-react/components/mantine';
 import CreateConnectionForm from '../components/forms/CreateConnectionForm';
 import getUserImageUri from '../utilities/getUserImageUri';
-import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 interface IUserProfileRouterProps {
     navigation: {
@@ -27,7 +27,9 @@ interface IStoreProps extends IUserProfileDispatchProps {
 }
 
 // Regular component props
-interface IUserProfileProps extends IUserProfileRouterProps, IStoreProps {}
+interface IUserProfileProps extends IUserProfileRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
+}
 
 interface IUserProfileState {}
 
@@ -45,14 +47,10 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * UserProfile
  */
 export class UserProfileComponent extends React.Component<IUserProfileProps, IUserProfileState> {
-    private translate: Function;
-
     constructor(props: IUserProfileProps) {
         super(props);
 
         this.state = {};
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() {
@@ -60,7 +58,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
             user,
             userConnections,
         } = this.props;
-        document.title = `Therr | ${this.translate('pages.userProfile.pageTitle')} | ${user.details.userName}`;
+        document.title = `Therr | ${this.props.translate('pages.userProfile.pageTitle')} | ${user.details.userName}`;
         if (!userConnections.connections.length) {
             this.props.searchUserConnections({
                 filterBy: 'acceptingUserId',
@@ -111,17 +109,17 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                 </div>
                 <div className="flex-box account-sections">
                     <div id="account_details" className="account-section">
-                        <h2 className="desktop-only block">{this.translate('pages.userProfile.h2.accountDetails')}</h2>
+                        <h2 className="desktop-only block">{this.props.translate('pages.userProfile.h2.accountDetails')}</h2>
                         <div className="account-section-content">
-                            <h4><label>{this.translate('pages.userProfile.labels.firstName')}:</label> {user.details.firstName}</h4>
-                            <h4><label>{this.translate('pages.userProfile.labels.lastName')}:</label> {user.details.lastName}</h4>
-                            <h4><label>{this.translate('pages.userProfile.labels.userName')}:</label> {user.details.userName}</h4>
-                            <h4><label>{this.translate('pages.userProfile.labels.email')}:</label> {user.details.email}</h4>
-                            <h4><label>{this.translate('pages.userProfile.labels.phone')}:</label> {user.details.phoneNumber}</h4>
+                            <h4><label>{this.props.translate('pages.userProfile.labels.firstName')}:</label> {user.details.firstName}</h4>
+                            <h4><label>{this.props.translate('pages.userProfile.labels.lastName')}:</label> {user.details.lastName}</h4>
+                            <h4><label>{this.props.translate('pages.userProfile.labels.userName')}:</label> {user.details.userName}</h4>
+                            <h4><label>{this.props.translate('pages.userProfile.labels.email')}:</label> {user.details.email}</h4>
+                            <h4><label>{this.props.translate('pages.userProfile.labels.phone')}:</label> {user.details.phoneNumber}</h4>
                         </div>
                     </div>
                     <div id="your_connections" className="account-section">
-                        <h2>{this.translate('pages.userProfile.h2.connections')}</h2>
+                        <h2>{this.props.translate('pages.userProfile.h2.connections')}</h2>
                         <div id="user-connections-container" className="user-connections-container account-section-content">
                             {
                                 userConnections.connections.length
@@ -145,12 +143,12 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                             </div>
                                         );
                                     })
-                                    : <span><i>{this.translate('pages.userProfile.requestRecommendation')}</i></span>
+                                    : <span><i>{this.props.translate('pages.userProfile.requestRecommendation')}</i></span>
                             }
                         </div>
                     </div>
                     <div id="add_connections" className="account-section">
-                        <h2>{this.translate('pages.userProfile.h2.addConnection')}</h2>
+                        <h2>{this.props.translate('pages.userProfile.h2.addConnection')}</h2>
                         <div className="account-content">
                             <CreateConnectionForm
                                 createUserConnection={createUserConnection}
@@ -161,7 +159,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                 </div>
                 <div className="fill text-right padding-sm">
                     <MantineButton
-                        text={this.translate('pages.userProfile.buttons.createAForum')}
+                        text={this.props.translate('pages.userProfile.buttons.createAForum')}
                         onClick={this.onCreateForumClick}
                     />
                 </div>
@@ -170,4 +168,4 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(UserProfileComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(UserProfileComponent)));

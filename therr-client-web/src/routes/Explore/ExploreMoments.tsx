@@ -15,14 +15,13 @@ import {
     Title,
     Alert,
 } from '@mantine/core';
-import translator from '../../services/translator';
+import useTranslation from '../../hooks/useTranslation';
 import Tile from '../Discovered/Tile';
-
-const translate = (key: string, params?: any) => translator('en-us', key, params);
 
 const ITEMS_PER_PAGE = 30;
 
 const ExploreMoments: React.FC = () => {
+    const { t: translate } = useTranslation();
     const dispatch = useDispatch();
     const content = useSelector((state: any) => state.content);
     const user = useSelector((state: any) => state.user);
@@ -65,10 +64,10 @@ const ExploreMoments: React.FC = () => {
     };
 
     const breadcrumbs = [
-        <Anchor component={Link} to="/" key="home" size="sm">Home</Anchor>,
-        <Anchor component={Link} to="/explore" key="explore" size="sm">Explore</Anchor>,
-        <Text size="sm" key="posts">Posts</Text>,
-        <Text size="sm" key="moments">Moments</Text>,
+        <Anchor component={Link} to="/" key="home" size="sm">{translate('pages.navigation.home')}</Anchor>,
+        <Anchor component={Link} to="/explore" key="explore" size="sm">{translate('pages.navigation.explore')}</Anchor>,
+        <Text size="sm" key="posts">{translate('pages.navigation.posts')}</Text>,
+        <Text size="sm" key="moments">{translate('pages.navigation.moments')}</Text>,
     ];
 
     return (
@@ -114,15 +113,15 @@ const ExploreMoments: React.FC = () => {
                                     disabled={!hasPrev}
                                     onClick={() => handlePageChange(currentPage - 1)}
                                 >
-                                    Previous
+                                    {translate('pages.navigation.previous')}
                                 </Button>
-                                <Text size="sm" c="dimmed">Page {currentPage}</Text>
+                                <Text size="sm" c="dimmed">{translate('pages.navigation.page', { pageNumber: currentPage })}</Text>
                                 <Button
                                     variant="outline"
                                     disabled={!hasNext}
                                     onClick={() => handlePageChange(currentPage + 1)}
                                 >
-                                    Next
+                                    {translate('pages.navigation.next')}
                                 </Button>
                             </Group>
                         )}

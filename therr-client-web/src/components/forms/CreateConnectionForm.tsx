@@ -8,7 +8,7 @@ import {
     MantineInput,
     MantineSelect,
 } from 'therr-react/components/mantine';
-import translator from '../../services/translator';
+import withTranslation from '../../wrappers/withTranslation';
 
 interface ICreateConnectionFormState {
     inputs: any;
@@ -21,11 +21,10 @@ interface ICreateConnectionFormState {
 interface ICreateConnectionFormProps {
     createUserConnection: Function;
     user: IUserState;
+    translate: (key: string, params?: any) => string;
 }
 
-class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, ICreateConnectionFormState> {
-    private translate: (key: string, params?: any) => string;
-
+export class CreateConnectionFormComponent extends React.Component<ICreateConnectionFormProps, ICreateConnectionFormState> {
     constructor(props: ICreateConnectionFormProps) {
         super(props);
 
@@ -39,8 +38,6 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
             prevRequestSuccess: '',
             isPhoneNumberValid: false,
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     isFormValid() {
@@ -116,7 +113,7 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                             connectionIdentifier: '',
                             phoneNumber: '',
                         },
-                        prevRequestSuccess: this.translate('pages.userProfile.connectionSent'),
+                        prevRequestSuccess: this.props.translate('pages.userProfile.connectionSent'),
                     });
                 })
                 .catch((error) => {
@@ -147,16 +144,16 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                     name="connectionIdentifier"
                     value={inputs.connectionIdentifier || null}
                     onChange={this.onSelectChange}
-                    translateFn={this.translate}
+                    translateFn={this.props.translate}
                     required
                     placeholder="Choose an identifier..."
                     data={[
                         {
-                            label: this.translate('pages.userProfile.labels.phoneNumber'),
+                            label: this.props.translate('pages.userProfile.labels.phoneNumber'),
                             value: 'acceptingUserPhoneNumber',
                         },
                         {
-                            label: this.translate('pages.userProfile.labels.email'),
+                            label: this.props.translate('pages.userProfile.labels.email'),
                             value: 'acceptingUserEmail',
                         },
                     ]}
@@ -164,7 +161,7 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                 {
                     inputs.connectionIdentifier === 'acceptingUserPhoneNumber'
                     && <>
-                        <label className="required" htmlFor="phone_number">{this.translate('pages.userProfile.labels.phoneNumber')}:</label>
+                        <label className="required" htmlFor="phone_number">{this.props.translate('pages.userProfile.labels.phoneNumber')}:</label>
                         <div className="form-field">
                             <PhoneInput
                                 defaultCountry="US"
@@ -178,7 +175,7 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                                 && <div className="validation-errors phone">
                                     <div className="message-container icon-small attention-alert">
                                         <em className="message">
-                                            {this.translate('pages.userProfile.validationErrors.phoneNumber')}
+                                            {this.props.translate('pages.userProfile.validationErrors.phoneNumber')}
                                         </em>
                                     </div>
                                 </div>
@@ -195,10 +192,10 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                         value={inputs.email}
                         onChange={this.onInputChange}
                         onEnter={this.onSubmit}
-                        translateFn={this.translate}
+                        translateFn={this.props.translate}
                         validations={['isRequired', 'email']}
                         onValidate={this.onValidateInput}
-                        label={this.translate('pages.userProfile.labels.email')}
+                        label={this.props.translate('pages.userProfile.labels.email')}
                     />
                 }
                 {
@@ -212,7 +209,7 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                 <div className="form-field text-right">
                     <MantineButton
                         id="send_request"
-                        text={this.translate('pages.userProfile.buttons.sendRequest')}
+                        text={this.props.translate('pages.userProfile.buttons.sendRequest')}
                         onClick={this.onSubmit}
                         disabled={!this.isFormValid()}
                         fullWidth
@@ -223,4 +220,4 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
     }
 }
 
-export default CreateConnectionForm;
+export default withTranslation(CreateConnectionFormComponent);

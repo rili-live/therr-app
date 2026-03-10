@@ -10,7 +10,7 @@ import {
 import { ForumActions } from 'therr-react/redux/actions';
 import { IForumsState, IUserState } from 'therr-react/types';
 import withNavigation from '../wrappers/withNavigation';
-import translator from '../services/translator';
+import withTranslation from '../wrappers/withTranslation';
 import formatHashtags from '../utilities/formatHashtags';
 // import * as globalConfig from '../../../global-config';
 
@@ -32,6 +32,7 @@ interface IStoreProps extends ICreateForumDispatchProps {
 
 // Regular component props
 interface ICreateForumProps extends ICreateForumRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 interface ICreateForumState {
@@ -64,8 +65,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * CreateForum
  */
 export class CreateForumComponent extends React.Component<ICreateForumProps, ICreateForumState> {
-    private translate: (key: string, params?: any) => string;
-
     static getDerivedStateFromProps(nextProps: ICreateForumProps, nextState: ICreateForumState) {
         if (!nextState.categories || !nextState.categories.length) {
             return {
@@ -93,7 +92,6 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
         };
 
         // this.sessionToken = '';
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
@@ -101,7 +99,7 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
             forums,
             searchCategories,
         } = this.props;
-        document.title = `Therr | ${this.translate('pages.createForum.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.createForum.pageTitle')}`;
 
         if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
             searchCategories({
@@ -242,7 +240,7 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
                 <Container size="sm">
                     <Card shadow="sm" padding="lg" radius="md" withBorder>
                         <Stack gap="sm">
-                            <h1>{this.translate('pages.createForum.pageTitle')}</h1>
+                            <h1>{this.props.translate('pages.createForum.pageTitle')}</h1>
                             <MantineInput
                                 type="text"
                                 id="forum_title"
@@ -250,9 +248,9 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
                                 value={this.state.inputs.title}
                                 onChange={this.onInputChange}
                                 onEnter={this.onSubmit}
-                                translateFn={this.translate}
-                                placeholder={this.translate('pages.createForum.placeholders.title')}
-                                label={this.translate('pages.createForum.labels.title')}
+                                translateFn={this.props.translate}
+                                placeholder={this.props.translate('pages.createForum.placeholders.title')}
+                                label={this.props.translate('pages.createForum.labels.title')}
                             />
                             <MantineInput
                                 type="text"
@@ -261,9 +259,9 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
                                 value={this.state.inputs.subtitle}
                                 onChange={this.onInputChange}
                                 onEnter={this.onSubmit}
-                                translateFn={this.translate}
-                                placeholder={this.translate('pages.createForum.placeholders.subtitle')}
-                                label={this.translate('pages.createForum.labels.subtitle')}
+                                translateFn={this.props.translate}
+                                placeholder={this.props.translate('pages.createForum.placeholders.subtitle')}
+                                label={this.props.translate('pages.createForum.labels.subtitle')}
                             />
                             <MantineInput
                                 type="text"
@@ -272,9 +270,9 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
                                 value={this.state.inputs.hashTags}
                                 onChange={this.onInputChange}
                                 onEnter={this.onSubmit}
-                                translateFn={this.translate}
-                                placeholder={this.translate('pages.createForum.placeholders.hashTags')}
-                                label={this.translate('pages.createForum.labels.hashTags')}
+                                translateFn={this.props.translate}
+                                placeholder={this.props.translate('pages.createForum.placeholders.hashTags')}
+                                label={this.props.translate('pages.createForum.labels.hashTags')}
                             />
                             <div>{ tagsString }</div>
                             <MantineInput
@@ -284,14 +282,14 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
                                 value={this.state.inputs.description}
                                 onChange={this.onInputChange}
                                 onEnter={this.onSubmit}
-                                translateFn={this.translate}
-                                placeholder={this.translate('pages.createForum.placeholders.description')}
-                                label={this.translate('pages.createForum.labels.description')}
+                                translateFn={this.props.translate}
+                                placeholder={this.props.translate('pages.createForum.placeholders.description')}
+                                label={this.props.translate('pages.createForum.labels.description')}
                             />
                             <div className="form-field text-right">
                                 <MantineButton
                                     id="join_forum"
-                                    text={this.translate('pages.createForum.buttons.submit')}
+                                    text={this.props.translate('pages.createForum.buttons.submit')}
                                     onClick={this.onSubmit}
                                     disabled={this.shouldDisableInput('forum')}
                                     fullWidth
@@ -302,8 +300,11 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
                                 && <span className="forums-list">
                                     {
                                         forums.activeForums.length < 1
-                                            ? <i>{this.translate('pages.createForum.noForumsMessage')}</i>
-                                            : <span>{this.translate('pages.createForum.labels.activeForums')}: <i>{forums?.activeForums?.length || 0}</i></span>
+                                            ? <i>{this.props.translate('pages.createForum.noForumsMessage')}</i>
+                                            : <span>
+                                                {this.props.translate('pages.createForum.labels.activeForums')}
+                                                : <i>{forums?.activeForums?.length || 0}</i>
+                                            </span>
                                     }
                                 </span>
                             }
@@ -315,4 +316,4 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(CreateForumComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(CreateForumComponent)));

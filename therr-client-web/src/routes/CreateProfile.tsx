@@ -5,11 +5,11 @@ import ReactGA from 'react-ga4';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { ApiService } from 'therr-react/services';
-import translator from '../services/translator';
 import CreateProfileForm from '../components/forms/CreateProfileForm';
 import VerifyPhoneCodeForm from '../components/forms/VerifyPhoneCodeForm';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 import { routeAfterLogin } from './Login';
 
 interface ICreateProfileRouterProps {
@@ -24,6 +24,7 @@ type IStoreProps = ICreateProfileDispatchProps
 
 // Regular component props
 interface ICreateProfileProps extends ICreateProfileRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
     user?: IUserState;
 }
 
@@ -47,8 +48,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Login
  */
 export class CreateProfileComponent extends React.Component<ICreateProfileProps, ICreateProfileState> {
-    private translate: Function;
-
     constructor(props: ICreateProfileProps) {
         super(props);
 
@@ -59,12 +58,10 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
             isSubmitting: false,
             phoneNumber: '',
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.createProfile.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.createProfile.pageTitle')}`;
     }
 
     onSubmitVerifyPhone = (updateArgs: any) => {
@@ -90,7 +87,7 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
             }).catch((error) => {
                 if (error?.errorCode === ErrorCodes.USER_EXISTS) {
                     this.setState({
-                        errorMessage: this.translate('pages.createProfile.phoneNumberAlreadyInUseError'),
+                        errorMessage: this.props.translate('pages.createProfile.phoneNumberAlreadyInUseError'),
                     });
                 } else {
                     ReactGA.event({
@@ -98,7 +95,7 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                         action: 'verify_phone_error_desktop',
                     });
                     this.setState({
-                        errorMessage: this.translate('pages.createProfile.createProfileError'),
+                        errorMessage: this.props.translate('pages.createProfile.createProfileError'),
                     });
                 }
             }).finally(() => {
@@ -113,7 +110,7 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                 });
             } else {
                 this.setState({
-                    errorMessage: this.translate('pages.createProfile.createProfileError'),
+                    errorMessage: this.props.translate('pages.createProfile.createProfileError'),
                 });
             }
         });
@@ -131,7 +128,7 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                 }).then(() => {
                     navigation.navigate(routeAfterLogin, {
                         state: {
-                            successMessage: this.translate('pages.createProfile.createProfileSuccess'),
+                            successMessage: this.props.translate('pages.createProfile.createProfileSuccess'),
                         },
                     });
                 }).catch((error: any) => {
@@ -141,7 +138,7 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                         });
                     } else {
                         this.setState({
-                            errorMessage: this.translate('pages.createProfile.createProfileError'),
+                            errorMessage: this.props.translate('pages.createProfile.createProfileError'),
                         });
                     }
                 });
@@ -151,11 +148,11 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                     error.statusCode === 400
                 ) {
                     this.setState({
-                        errorMessage: this.translate('pages.createProfile.invalidCode'),
+                        errorMessage: this.props.translate('pages.createProfile.invalidCode'),
                     });
                 } else {
                     this.setState({
-                        errorMessage: this.translate('pages.createProfile.createProfileError'),
+                        errorMessage: this.props.translate('pages.createProfile.createProfileError'),
                     });
                 }
 
@@ -184,7 +181,7 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                                     phoneNumber,
                                 })}
                                 isSubmitting={isSubmitting}
-                                title={this.translate('pages.createProfile.pageTitleVerify')}
+                                title={this.props.translate('pages.createProfile.pageTitleVerify')}
                             />
                     }
                     {
@@ -192,7 +189,7 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                             && <CreateProfileForm
                                 onSubmit={this.onSubmitVerifyPhone}
                                 isSubmitting={isSubmitting}
-                                title={this.translate('pages.createProfile.pageTitle')}
+                                title={this.props.translate('pages.createProfile.pageTitle')}
                             />
                     }
                 </div>
@@ -205,4 +202,4 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(CreateProfileComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(CreateProfileComponent)));

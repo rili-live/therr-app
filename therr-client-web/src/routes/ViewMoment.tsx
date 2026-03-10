@@ -10,8 +10,8 @@ import {
     Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs, Paper,
 } from '@mantine/core';
-import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 
 const formatCategoryLabel = (category: string): string => {
@@ -42,6 +42,7 @@ interface IStoreProps extends IViewMomentDispatchProps {
 
 // Regular component props
 interface IViewMomentProps extends IViewMomentRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 interface IViewMomentState {
@@ -62,8 +63,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * ViewMoment
  */
 export class ViewMomentComponent extends React.Component<IViewMomentProps, IViewMomentState> {
-    private translate: Function;
-
     static getDerivedStateFromProps(nextProps: IViewMomentProps) {
         if (!nextProps.routeParams.momentId) {
             setTimeout(() => nextProps.navigation.navigate('/'));
@@ -78,8 +77,6 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         this.state = {
             momentId: props.routeParams.momentId,
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
@@ -120,8 +117,8 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
 
     renderBreadcrumbs(moment: any): JSX.Element {
         const items = [
-            <Anchor href="/" key="home">Home</Anchor>,
-            <Text key="moments" component="span">Moments</Text>,
+            <Anchor href="/" key="home">{this.props.translate('pages.navigation.home')}</Anchor>,
+            <Text key="moments" component="span">{this.props.translate('pages.navigation.moments')}</Text>,
             <Text key="title" component="span">{moment.notificationMsg}</Text>,
         ];
 
@@ -279,4 +276,4 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(ViewMomentComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(ViewMomentComponent)));

@@ -4,10 +4,10 @@ import { bindActionCreators } from 'redux';
 import LogRocket from 'logrocket';
 import { IUserState } from 'therr-react/types';
 import { Location, NavigateFunction } from 'react-router-dom';
-import translator from '../services/translator';
 import LoginForm from '../components/forms/LoginForm';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
     || !props.user.isAuthenticated
@@ -33,6 +33,7 @@ interface IStoreProps extends ILoginDispatchProps {
 
 // Regular component props
 export interface ILoginProps extends ILoginRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 interface ILoginState {
@@ -51,8 +52,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Login
  */
 export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
-    private translate: Function;
-
     static getDerivedStateFromProps(nextProps: ILoginProps) {
         // TODO: Choose route based on accessLevels
         if (!shouldRenderLoginForm(nextProps)) {
@@ -75,12 +74,10 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         this.state = {
             inputs: {},
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.login.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.login.pageTitle')}`;
     }
 
     login = (credentials: any) => this.props.login(credentials);
@@ -122,4 +119,4 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(LoginComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(LoginComponent)));

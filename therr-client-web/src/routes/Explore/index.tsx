@@ -14,14 +14,12 @@ import {
     Paper,
     ThemeIcon,
 } from '@mantine/core';
-import translator from '../../services/translator';
+import useTranslation from '../../hooks/useTranslation';
 import Tile from '../Discovered/Tile';
 
-const translate = (key: string, params?: any) => translator('en-us', key, params);
-
 interface ICategoryCard {
-    title: string;
-    description: string;
+    titleKey: string;
+    descriptionKey: string;
     path: string;
     color: string;
     emoji: string;
@@ -29,29 +27,29 @@ interface ICategoryCard {
 
 const categories: ICategoryCard[] = [
     {
-        title: 'Moments',
-        description: 'Photos, stories, and experiences shared by the community',
+        titleKey: 'pages.explore.categories.momentsTitle',
+        descriptionKey: 'pages.explore.categories.momentsDescription',
         path: '/posts/moments',
         color: 'blue',
         emoji: '📸',
     },
     {
-        title: 'Spaces',
-        description: 'Local businesses, venues, and points of interest',
+        titleKey: 'pages.explore.categories.spacesTitle',
+        descriptionKey: 'pages.explore.categories.spacesDescription',
         path: '/locations',
         color: 'teal',
         emoji: '📍',
     },
     {
-        title: 'Thoughts',
-        description: 'Ideas, observations, and conversations',
+        titleKey: 'pages.explore.categories.thoughtsTitle',
+        descriptionKey: 'pages.explore.categories.thoughtsDescription',
         path: '/posts/thoughts',
         color: 'violet',
         emoji: '💭',
     },
     {
-        title: 'People',
-        description: 'Discover creators, businesses, and community members',
+        titleKey: 'pages.explore.categories.peopleTitle',
+        descriptionKey: 'pages.explore.categories.peopleDescription',
         path: '/users',
         color: 'orange',
         emoji: '👥',
@@ -59,6 +57,7 @@ const categories: ICategoryCard[] = [
 ];
 
 const Explore: React.FC = () => {
+    const { t: translate } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const content = useSelector((state: any) => state.content);
@@ -119,8 +118,8 @@ const Explore: React.FC = () => {
                                     <ThemeIcon size={48} radius="md" variant="light" color={cat.color}>
                                         <Text size="xl">{cat.emoji}</Text>
                                     </ThemeIcon>
-                                    <Text fw={600} size="sm">{cat.title}</Text>
-                                    <Text size="xs" c="dimmed" lineClamp={2}>{cat.description}</Text>
+                                    <Text fw={600} size="sm">{translate(cat.titleKey)}</Text>
+                                    <Text size="xs" c="dimmed" lineClamp={2}>{translate(cat.descriptionKey)}</Text>
                                 </Stack>
                             </Paper>
                         </UnstyledButton>

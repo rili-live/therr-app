@@ -5,10 +5,10 @@ import {
     MantineButton,
     MantineInput,
 } from 'therr-react/components/mantine';
-import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 import VerificationCodesService from '../services/VerificationCodesService';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 interface IEmailVerificationRouterProps {
     navigation: {
@@ -20,7 +20,9 @@ interface IEmailVerificationDispatchProps {
 // Add your dispatcher properties here
 }
 
-interface IEmailVerificationProps extends IEmailVerificationRouterProps, IEmailVerificationDispatchProps {}
+interface IEmailVerificationProps extends IEmailVerificationRouterProps, IEmailVerificationDispatchProps {
+    translate: (key: string, params?: any) => string;
+}
 
 interface IEmailVerificationState {
     email: string;
@@ -35,8 +37,6 @@ const envVars = globalConfig[process.env.NODE_ENV];
  * EmailVerification
  */
 export class EmailVerificationComponent extends React.Component<IEmailVerificationProps, IEmailVerificationState> {
-    private translate: (key: string, params?: any) => string;
-
     constructor(props: IEmailVerificationProps & IEmailVerificationDispatchProps) {
         super(props);
 
@@ -45,12 +45,10 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
             errorReason: '',
             verificationStatus: 'pending',
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.emailVerification.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.emailVerification.pageTitle')}`;
 
         const queryParams = new URLSearchParams(window.location.search);
         const verificationToken = queryParams.get('token');
@@ -61,7 +59,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                 }, () => {
                     this.props.navigation.navigate('/login', {
                         state: {
-                            successMessage: this.translate('pages.emailVerification.successVerifiedMessage'),
+                            successMessage: this.props.translate('pages.emailVerification.successVerifiedMessage'),
                         },
                     });
                 });
@@ -84,7 +82,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
             .then(() => {
                 this.props.navigation.navigate('/login', {
                     state: {
-                        successMessage: this.translate('pages.emailVerification.failedMessageVerificationResent', {
+                        successMessage: this.props.translate('pages.emailVerification.failedMessageVerificationResent', {
                             email: this.state.email,
                         }),
                     },
@@ -94,7 +92,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                 if (error.message === 'Email already verified') {
                     this.props.navigation.navigate('/login', {
                         state: {
-                            successMessage: this.translate('pages.emailVerification.failedMessageAlreadyVerified'),
+                            successMessage: this.props.translate('pages.emailVerification.failedMessageAlreadyVerified'),
                         },
                     });
                 }
@@ -121,7 +119,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                 <div className="register-container">
                     <div className="flex fill max-wide-20">
                         <Stack gap="sm">
-                            <h1>{this.translate('pages.emailVerification.pageTitle')}</h1>
+                            <h1>{this.props.translate('pages.emailVerification.pageTitle')}</h1>
 
                             {
                                 verificationStatus === 'pending'
@@ -129,22 +127,22 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                             }
                             {
                                 verificationStatus === 'success'
-                                && <Alert color="green" variant="light">{this.translate('pages.emailVerification.successMessage')}</Alert>
+                                && <Alert color="green" variant="light">{this.props.translate('pages.emailVerification.successMessage')}</Alert>
                             }
                             {
                                 verificationStatus === 'failed' && errorReason === 'TokenExpired'
-                                && <Alert color="red" variant="light">{this.translate('pages.emailVerification.failedMessageExpired')}</Alert>
+                                && <Alert color="red" variant="light">{this.props.translate('pages.emailVerification.failedMessageExpired')}</Alert>
                             }
                             {
                                 verificationStatus === 'failed' && errorReason === 'UserNotFound'
-                                && <Alert color="red" variant="light">{this.translate('pages.emailVerification.failedMessageUserNotFound')}</Alert>
+                                && <Alert color="red" variant="light">{this.props.translate('pages.emailVerification.failedMessageUserNotFound')}</Alert>
                             }
                             {
                                 verificationStatus === 'failed' && errorReason !== 'TokenExpired' && errorReason !== 'UserNotFound'
-                                && <Alert color="red" variant="light">{this.translate('pages.emailVerification.failedMessage')}</Alert>
+                                && <Alert color="red" variant="light">{this.props.translate('pages.emailVerification.failedMessage')}</Alert>
                             }
                             <div className="text-center">
-                                <Link to="/login">{this.translate('pages.emailVerification.returnToLogin')}</Link>
+                                <Link to="/login">{this.props.translate('pages.emailVerification.returnToLogin')}</Link>
                             </div>
 
                             {
@@ -157,15 +155,15 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                                         value={this.state.email}
                                         onChange={this.onInputChange}
                                         onEnter={this.onSubmit}
-                                        translateFn={this.translate}
+                                        translateFn={this.props.translate}
                                         validations={['isRequired', 'email']}
-                                        label={this.translate('pages.emailVerification.labels.email')}
+                                        label={this.props.translate('pages.emailVerification.labels.email')}
                                     />
 
                                     <div className="form-field text-right">
                                         <MantineButton
                                             id="email"
-                                            text={this.translate('pages.emailVerification.buttons.send')}
+                                            text={this.props.translate('pages.emailVerification.buttons.send')}
                                             onClick={this.onSubmit}
                                             disabled={!this.state.email}
                                             fullWidth
@@ -181,4 +179,4 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
     }
 }
 
-export default withNavigation(EmailVerificationComponent);
+export default withNavigation(withTranslation(EmailVerificationComponent));

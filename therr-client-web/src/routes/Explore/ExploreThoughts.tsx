@@ -24,9 +24,7 @@ import {
 } from '@mantine/core';
 import { Categories } from 'therr-js-utilities/constants';
 import UsersActions from '../../redux/actions/UsersActions';
-import translator from '../../services/translator';
-
-const translate = (key: string, params?: any) => translator('en-us', key, params);
+import useTranslation from '../../hooks/useTranslation';
 
 const categoryOptions = Categories.ThoughtCategories.map((cat: string) => {
     const label = cat.replace('categories.', '').replace('/', ' / ');
@@ -170,6 +168,7 @@ const formatHashtags = (value: string, hashtagsClone: string[]): { formattedValu
 };
 
 const ComposeThought: React.FC<IComposeThoughtProps> = ({ onSuccess }) => {
+    const { t: translate } = useTranslation();
     const dispatch = useDispatch();
     const user = useSelector((state: any) => state.user);
     const [message, setMessage] = useState('');
@@ -337,6 +336,7 @@ const ComposeThought: React.FC<IComposeThoughtProps> = ({ onSuccess }) => {
 const ITEMS_PER_PAGE = 30;
 
 const ExploreThoughts: React.FC = () => {
+    const { t: translate } = useTranslation();
     const dispatch = useDispatch();
     const content = useSelector((state: any) => state.content);
     const user = useSelector((state: any) => state.user);
@@ -404,9 +404,9 @@ const ExploreThoughts: React.FC = () => {
     }, [fetchThoughts]);
 
     const breadcrumbs = [
-        <Anchor component={Link} to="/" key="home" size="sm">Home</Anchor>,
-        <Anchor component={Link} to="/explore" key="explore" size="sm">Explore</Anchor>,
-        <Text size="sm" key="thoughts">Thoughts</Text>,
+        <Anchor component={Link} to="/" key="home" size="sm">{translate('pages.navigation.home')}</Anchor>,
+        <Anchor component={Link} to="/explore" key="explore" size="sm">{translate('pages.navigation.explore')}</Anchor>,
+        <Text size="sm" key="thoughts">{translate('pages.navigation.thoughts')}</Text>,
     ];
 
     return (
@@ -454,15 +454,15 @@ const ExploreThoughts: React.FC = () => {
                                     disabled={!hasPrev}
                                     onClick={() => handlePageChange(currentPage - 1)}
                                 >
-                                    Previous
+                                    {translate('pages.navigation.previous')}
                                 </Button>
-                                <Text size="sm" c="dimmed">Page {currentPage}</Text>
+                                <Text size="sm" c="dimmed">{translate('pages.navigation.page', { pageNumber: currentPage })}</Text>
                                 <Button
                                     variant="outline"
                                     disabled={!hasNext}
                                     onClick={() => handlePageChange(currentPage + 1)}
                                 >
-                                    Next
+                                    {translate('pages.navigation.next')}
                                 </Button>
                             </Group>
                         )}

@@ -10,9 +10,9 @@ import {
 } from 'therr-react/components/mantine';
 import { UsersService } from 'therr-react/services';
 import { IUserState } from 'therr-react/types';
-import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 interface IStoreProps extends IChangePasswordDispatchProps {
     user: IUserState;
@@ -29,6 +29,7 @@ interface IChangePasswordState {
 }
 
 interface IChangePasswordProps extends IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 // Environment Variables
@@ -45,8 +46,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * ChangePassword
  */
 export class ChangePasswordComponent extends React.Component<IChangePasswordProps & IChangePasswordDispatchProps, IChangePasswordState> {
-    private translate: (key: string, params?: any) => string;
-
     constructor(props: IChangePasswordProps & IChangePasswordDispatchProps) {
         super(props);
 
@@ -55,12 +54,10 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
             errorReason: '',
             isSuccess: false,
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.changePassword.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.changePassword.pageTitle')}`;
     }
 
     isFormDisabled() {
@@ -122,23 +119,23 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                 <Container size="sm">
                     <Card shadow="sm" padding="lg" radius="md" withBorder>
                         <Stack gap="sm">
-                            <h1 className="margin-bot-lg">{this.translate('pages.changePassword.pageTitle')}</h1>
+                            <h1 className="margin-bot-lg">{this.props.translate('pages.changePassword.pageTitle')}</h1>
 
                             {
                                 !errorReason && isSuccess
-                                && <Alert color="green" variant="light">{this.translate('pages.changePassword.successMessage')}</Alert>
+                                && <Alert color="green" variant="light">{this.props.translate('pages.changePassword.successMessage')}</Alert>
                             }
                             {
                                 errorReason === 'UserNotFound'
-                                && <Alert color="red" variant="light">{this.translate('pages.changePassword.failedMessageUserNotFound')}</Alert>
+                                && <Alert color="red" variant="light">{this.props.translate('pages.changePassword.failedMessageUserNotFound')}</Alert>
                             }
                             {
                                 errorReason === 'IncorrectPassword'
-                                && <Alert color="red" variant="light">{this.translate('pages.changePassword.failedMessageIncorrectPassword')}</Alert>
+                                && <Alert color="red" variant="light">{this.props.translate('pages.changePassword.failedMessageIncorrectPassword')}</Alert>
                             }
                             {
                                 errorReason && errorReason !== 'UserNotFound' && errorReason !== 'IncorrectPassword'
-                                && <Alert color="red" variant="light">{this.translate('pages.changePassword.failedMessage')}</Alert>
+                                && <Alert color="red" variant="light">{this.props.translate('pages.changePassword.failedMessage')}</Alert>
                             }
 
                             <MantineInput
@@ -148,9 +145,9 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                                 value={this.state.inputs.oldPassword}
                                 onChange={this.onInputChange}
                                 onEnter={this.onSubmit}
-                                translateFn={this.translate}
+                                translateFn={this.props.translate}
                                 validations={['isRequired']}
-                                label={this.translate('pages.changePassword.labels.oldPassword')}
+                                label={this.props.translate('pages.changePassword.labels.oldPassword')}
                             />
                             <MantineInput
                                 type="password"
@@ -159,9 +156,9 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                                 value={this.state.inputs.newPassword}
                                 onChange={this.onInputChange}
                                 onEnter={this.onSubmit}
-                                translateFn={this.translate}
+                                translateFn={this.props.translate}
                                 validations={['isRequired']}
-                                label={this.translate('pages.changePassword.labels.newPassword')}
+                                label={this.props.translate('pages.changePassword.labels.newPassword')}
                             />
                             <MantineInput
                                 type="password"
@@ -170,15 +167,15 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                                 value={this.state.inputs.newPasswordRepeat}
                                 onChange={this.onInputChange}
                                 onEnter={this.onSubmit}
-                                translateFn={this.translate}
+                                translateFn={this.props.translate}
                                 validations={['isRequired']}
-                                label={this.translate('pages.changePassword.labels.newPasswordRepeat')}
+                                label={this.props.translate('pages.changePassword.labels.newPasswordRepeat')}
                             />
 
                             <div className="form-field text-right">
                                 <MantineButton
                                     id="email"
-                                    text={this.translate('pages.changePassword.buttons.send')}
+                                    text={this.props.translate('pages.changePassword.buttons.send')}
                                     onClick={this.onSubmit}
                                     disabled={this.isFormDisabled()}
                                     fullWidth
@@ -192,4 +189,4 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(ChangePasswordComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(ChangePasswordComponent)));

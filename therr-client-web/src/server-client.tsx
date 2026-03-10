@@ -631,6 +631,9 @@ const renderInviteView = (req, res, config, {
     });
 };
 
+// TODO: Add cookie-based locale detection for SSR (e.g., read 'therr-locale' cookie).
+// For now, SSR defaults to 'en-us' and the client hydrates with the correct locale from Redux.
+
 // Universal routing and rendering for SEO
 routeConfig.forEach((config) => {
     const routePath = config.route;

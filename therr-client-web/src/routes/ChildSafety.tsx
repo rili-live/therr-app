@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { Stack } from '@mantine/core';
-import translator from '../services/translator';
-
-const translate = (key: string, params?: any) => translator('en-us', key, params);
+import useTranslation from '../hooks/useTranslation';
 
 const ChildSafety: React.FC = () => {
+    const { t: translate } = useTranslation();
+
     React.useEffect(() => {
         document.title = `Therr | ${translate('pages.childSafety.pageTitle')}`;
     }, []);

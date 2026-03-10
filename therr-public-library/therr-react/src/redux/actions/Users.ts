@@ -94,7 +94,7 @@ class UsersActions {
         const userSettingsData: IUserSettings = {
             id, // Included because userSettings persists even after logout. This helps prevent cross-user contamination
             userName, // Included because userSettings persists even after logout. This helps prevent cross-user contamination
-            locale: 'en-us',
+            locale: settingsLocale || 'en-us',
             integrations,
             mobileThemeName: settingsThemeName || 'light',
             rememberMe,
@@ -456,7 +456,7 @@ class UsersActions {
         const userSettingsData: IUser = {
             ...localUserSettings,
             ...sessionUserSettings,
-            locale: 'en-us',
+            locale: settingsLocale || 'en-us',
             mobileThemeName: settingsThemeName || 'light',
             settingsBio,
             settingsTherrCoinTotal,

@@ -20,6 +20,7 @@ describe('CreateProfileForm', () => {
         isSubmitting: false,
         onSubmit: jest.fn(),
         title: 'Create Profile',
+        translate: (key: string) => key,
     };
 
     beforeEach(() => {

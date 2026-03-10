@@ -21,6 +21,7 @@ const getComponent = (wrapper: ReactWrapper) => wrapper.find(LoginFormComponent)
 describe('LoginForm', () => {
     const defaultProps = {
         login: jest.fn().mockResolvedValue({}),
+        translate: (key: string) => key,
     };
 
     beforeEach(() => {

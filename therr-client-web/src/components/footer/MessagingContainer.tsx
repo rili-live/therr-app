@@ -12,7 +12,7 @@ import {
     IUserState,
     IUserConnectionsState,
 } from 'therr-react/types';
-import translator from '../../services/translator';
+import withTranslation from '../../wrappers/withTranslation';
 
 export type IMessagingContext = any;
 
@@ -33,6 +33,7 @@ interface IMessagingContainerProps extends IStoreProps {
     messagingContext: IMessagingContext;
     onInitMessaging: Function;
     toggleMessaging: Function;
+    translate: (key: string, params?: Record<string, string>) => string;
 }
 
 interface IMessagingContainerState {
@@ -74,8 +75,6 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
 
     private panelRef: any;
 
-    private translate: (key: string, params?: any) => string;
-
     constructor(props) {
         super(props);
 
@@ -88,7 +87,6 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
 
         this.messageInputRef = React.createRef();
         this.panelRef = React.createRef();
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() {
@@ -271,7 +269,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                     })
                 ) : (
                     <div className="recent-chats-empty">
-                        No recent conversations
+                        {this.props.translate('components.messagingContainer.noRecentConversations')}
                     </div>
                 )}
             </div>
@@ -293,7 +291,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                         &larr;
                     </button>
                     <Link to={`/users/${messagingContext?.id}`}>
-                        {this.translate('components.messagingContainer.conversation.to', { firstName: contextFirstName, lastName: contextLastName })}
+                        {this.props.translate('components.messagingContainer.conversation.to', { firstName: contextFirstName, lastName: contextLastName })}
                     </Link>
                 </div>
                 <span className="dms-body">
@@ -314,7 +312,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                                     })
                                 }
                             </ul>
-                            : <span className="dms-first-info">{this.translate('components.messagingContainer.welcome')}</span>
+                            : <span className="dms-first-info">{this.props.translate('components.messagingContainer.welcome')}</span>
                     }
                 </span>
                 <div className="form-field-wrapper inline dms-input">
@@ -327,8 +325,8 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                         value={this.state.inputs.message}
                         onChange={this.onInputChange}
                         onEnter={this.onSendMessage}
-                        placeholder={this.translate('components.messagingContainer.inputPlaceholder')}
-                        translateFn={this.translate}
+                        placeholder={this.props.translate('components.messagingContainer.inputPlaceholder')}
+                        translateFn={this.props.translate}
                     />
                     <div className="form-field">
                         <SvgButton
@@ -358,7 +356,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                     onClick={this.togglePanel}
                 >
                     <span className="messaging-panel-title">
-                        Messaging
+                        {this.props.translate('components.messagingContainer.panelTitle')}
                     </span>
                     <span className={`chevron ${isPanelOpen ? 'down' : 'up'}`} />
                 </button>
@@ -374,4 +372,4 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MessagingContainerComponent);
+export default withTranslation(connect(mapStateToProps, mapDispatchToProps)(MessagingContainerComponent));

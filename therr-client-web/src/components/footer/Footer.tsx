@@ -10,8 +10,8 @@ import { UsersService } from 'therr-react/services';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { bindActionCreators } from 'redux';
 import MessagingContainer, { IMessagingContext } from './MessagingContainer';
-import translator from '../../services/translator';
 import { INavMenuContext } from '../../types';
+import withTranslation from '../../wrappers/withTranslation';
 import UsersActions from '../../redux/actions/UsersActions';
 
 interface IFooterDispatchProps {
@@ -37,6 +37,7 @@ interface IFooterProps extends IStoreProps {
     toggleNavMenu: Function;
     toggleMessaging: Function;
     isLandingStylePage?: boolean;
+    translate: (key: string, params?: any) => string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -49,13 +50,10 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class FooterComponent extends React.Component<IFooterProps, IFooterState> {
-    private translate: any;
-
     constructor(props) {
         super(props);
 
         this.state = {};
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     handleLogout = () => {
@@ -138,11 +136,11 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                     }, user)}>
                         <SvgButton
                             id="footer_messages"
-                            name="messages"
+                            name="forum"
                             className={`messages-button${messages?.hasUnreadDms ? ' has-unread-messages' : ''}`}
                             onClick={(e) => toggleNavMenu(e, INavMenuContext.FOOTER_MESSAGES)}
                             buttonType="primary"
-                            aria-label="Open Messages"
+                            aria-label="Open Groups"
                         />
                     </AccessControl>
                     <AccessControl isAuthorized={UsersService.isAuthorized({
@@ -177,4 +175,4 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(FooterComponent);
+export default withTranslation(connect(mapStateToProps, mapDispatchToProps)(FooterComponent));

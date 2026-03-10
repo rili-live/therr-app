@@ -231,7 +231,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         const { logout, user } = this.props;
 
         this.toggleNavMenu(e);
-        logout(user.details);
+        logout(user.details).then(() => {
+            this.props.navigation.navigate('/login');
+        });
     };
 
     initMessaging = (e, connectionDetails, context) => {

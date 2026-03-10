@@ -14,9 +14,9 @@ import {
 } from 'therr-react/types';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
-import translator from '../../services/translator';
 import CreateConnectionForm from '../forms/CreateConnectionForm';
 import withNavigation from '../../wrappers/withNavigation';
+import withTranslation from '../../wrappers/withTranslation';
 
 interface IMeassagesRouterProps {
     navigation: {
@@ -41,6 +41,7 @@ interface IMessagesMenuProps extends IStoreProps, IMeassagesRouterProps {
     toggleMessaging: Function;
     toggleNavMenu: Function;
     onInitMessaging: Function;
+    translate: (key: string, params?: any) => string;
 }
 
 interface IMessagesMenuState {
@@ -60,16 +61,12 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, IMessagesMenuState> {
-    private translate: Function;
-
     constructor(props) {
         super(props);
 
         this.state = {
-            activeTab: 'messages',
+            activeTab: 'forums',
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() {
@@ -123,38 +120,6 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         }
     };
 
-    renderMessagesContent = () => {
-        const { onInitMessaging, userConnections } = this.props;
-
-        return (
-            <>
-                <h2>{this.translate('components.messagesMenu.h2.messaging')}</h2>
-                <div className="messages-menu"></div>
-                {
-                    userConnections && userConnections.activeConnections.length > 0
-                        ? <div className="realtime-connections-list">
-                            {
-                                userConnections.activeConnections.map((activeUser) => (
-                                    <MantineButton
-                                        id="nav_menu_connection_link"
-                                        key={activeUser.id}
-                                        className={`connection-link-item right-icon ${activeUser.status === 'active' ? 'active' : 'away'}`}
-                                        onClick={(e) => onInitMessaging(e, activeUser, 'messages-menu')}
-                                        variant="subtle"
-                                        fullWidth
-                                    >
-                                        {`${activeUser.firstName} ${activeUser.lastName}`}
-                                        <InlineSvg name="messages" />
-                                    </MantineButton>
-                                ))
-                            }
-                        </div>
-                        : <div className="realtime-connections-list"><i>{this.translate('components.messagesMenu.noActiveConnections')}</i></div>
-                }
-            </>
-        );
-    };
-
     getForumItemClass = (forum) => {
         const { forums } = this.props;
 
@@ -170,7 +135,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
         return (
             <>
-                <h2>{this.translate('components.messagesMenu.h2.forums')}</h2>
+                <h2>{this.props.translate('components.messagesMenu.h2.forums')}</h2>
                 <div className="forums-menu">
                     <MantineButton
                         id="nav_menu_join_forum"
@@ -180,7 +145,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                         fullWidth
                     >
                         <InlineSvg name="add-circle" />
-                        {this.translate('components.messagesMenu.buttons.createForum')}
+                        {this.props.translate('components.messagesMenu.buttons.createForum')}
                     </MantineButton>
                     {
                         forums && forums.searchResults.length > 0
@@ -213,7 +178,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
     renderPeopleContent = () => (
         <>
-            <h2>{this.translate('components.messagesMenu.h2.friendRequest')}</h2>
+            <h2>{this.props.translate('components.messagesMenu.h2.friendRequest')}</h2>
             <div className="connection-form">
                 <CreateConnectionForm
                     createUserConnection={this.props.createUserConnection}
@@ -231,21 +196,13 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
             <>
                 <div className="nav-menu-header">
                     <SvgButton
-                        id="nav_menu_messages_button"
-                        name="messages"
-                        className={`menu-tab-button ${activeTab === 'messages' ? 'active' : ''}`}
-                        iconClassName="tab-icon"
-                        onClick={(e) => this.handleTabSelect(e, 'messages')}
-                        buttonType="primary"
-                    />
-                    {/* <SvgButton
                         id="nav_menu_forums_button"
                         name="forum"
                         className={`menu-tab-button ${activeTab === 'forums' ? 'active' : ''}`}
                         iconClassName="tab-icon"
                         onClick={(e) => this.handleTabSelect(e, 'forums')}
                         buttonType="primary"
-                    /> */}
+                    />
                     <SvgButton
                         id="nav_menu_people"
                         name="people"
@@ -257,16 +214,12 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                 </div>
                 <div className="nav-menu-content">
                     {
-                        activeTab === 'messages'
-                            && this.renderMessagesContent()
-                    }
-                    {/* {
-                        activeTab === 'forums'
-                            && this.renderForumsContent()
-                    } */}
-                    {
                         activeTab === 'people'
                             && this.renderPeopleContent()
+                    }
+                    {
+                        activeTab === 'forums'
+                            && this.renderForumsContent()
                     }
                 </div>
                 <div className="nav-menu-footer">
@@ -283,4 +236,4 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(MessagesMenuComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(MessagesMenuComponent)));

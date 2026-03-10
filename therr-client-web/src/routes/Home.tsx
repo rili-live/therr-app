@@ -4,11 +4,11 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
 import { IUserState } from 'therr-react/types';
-import translator from '../services/translator';
 import LoginForm from '../components/forms/LoginForm';
 import { shouldRenderLoginForm, ILoginProps, routeAfterLogin } from './Login';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 interface IHomeRouterProps {
     navigation: {
@@ -26,6 +26,7 @@ interface IStoreProps extends IHomeDispatchProps {
 
 // Regular component props
 interface IHomeProps extends IHomeRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 interface IHomeState {
@@ -44,8 +45,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Home
  */
 export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
-    private translate: Function;
-
     static getDerivedStateFromProps(nextProps: IHomeProps) {
         if (!shouldRenderLoginForm(nextProps as ILoginProps)) {
             // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
@@ -62,12 +61,10 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
         this.state = {
             inputs: {},
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.home.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.home.pageTitle')}`;
     }
 
     login = (credentials: any) => this.props.login(credentials);
@@ -81,11 +78,11 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                             <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" width="400" height="300" />
                         </div>
                         <h2 className="text-title-medium no-bot-margin fill">
-                            {this.translate('pages.home.welcome')}
+                            {this.props.translate('pages.home.welcome')}
                         </h2>
-                        <p className="info-text fill">{this.translate('pages.home.info')}</p>
-                        <p className="info-text fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info2')}</p>
-                        <p className="info-text fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info3')}</p>
+                        <p className="info-text fill">{this.props.translate('pages.home.info')}</p>
+                        <p className="info-text fill margin-top-lg margin-bot-lg">{this.props.translate('pages.home.info2')}</p>
+                        <p className="info-text fill margin-top-lg margin-bot-lg">{this.props.translate('pages.home.info3')}</p>
                         <div className="store-image-links margin-top-lg">
                             <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
                                 <img aria-label="apple store link" className="max-100" src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" width="150" height="50" loading="lazy" />
@@ -95,7 +92,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                             </a>
                         </div>
                         <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>
-                            <a href="https://www.therr.app/privacy-policy.html" target="_blank" className="link-plain-white">{this.translate('components.loginForm.buttons.privacyPolicy')}</a> | <a href="https://www.therr.app/terms-and-conditions.html" target="_blank" className="link-plain-white">{this.translate('components.loginForm.buttons.toc')}</a>
+                            <a href="https://www.therr.app/privacy-policy.html" target="_blank" className="link-plain-white">{this.props.translate('components.loginForm.buttons.privacyPolicy')}</a> | <a href="https://www.therr.app/terms-and-conditions.html" target="_blank" className="link-plain-white">{this.props.translate('components.loginForm.buttons.toc')}</a>
                         </div>
                     </div>
                 </div>
@@ -105,4 +102,4 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(HomeComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(HomeComponent)));

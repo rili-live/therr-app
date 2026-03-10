@@ -3,10 +3,10 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Location, NavigateFunction } from 'react-router-dom';
 import qs from 'qs';
-import translator from '../services/translator';
 import RegisterForm from '../components/forms/RegisterForm';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 interface IRegisterRouterProps {
     navigation: {
@@ -23,6 +23,7 @@ type IStoreProps = IRegisterDispatchProps
 
 // Regular component props
 interface IRegisterProps extends IRegisterRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 interface IRegisterState {
@@ -42,8 +43,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Login
  */
 export class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
-    private translate: Function;
-
     constructor(props: IRegisterProps) {
         super(props);
 
@@ -54,12 +53,10 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             inputs: {},
             inviteCode: searchParams?.['invite-code'] as string || '',
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.register.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.register.pageTitle')}`;
 
         if (window?.location) {
             // eslint-disable-next-line no-inner-declarations
@@ -83,7 +80,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         }).then((response: any) => {
             this.props.navigation.navigate('/login', {
                 state: {
-                    successMessage: this.translate('pages.register.registerSuccess'),
+                    successMessage: this.props.translate('pages.register.registerSuccess'),
                 },
             });
         }).catch((error: any) => {
@@ -93,7 +90,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
                 });
             } else {
                 this.setState({
-                    errorMessage: this.translate('pages.register.registerError'),
+                    errorMessage: this.props.translate('pages.register.registerError'),
                 });
             }
         });
@@ -105,7 +102,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         return (
             <>
                 <div id="page_register" className="flex-box space-evenly center row wrap-reverse">
-                    <RegisterForm register={this.register} title={this.translate('pages.register.pageTitle')} inviteCode={inviteCode} />
+                    <RegisterForm register={this.register} title={this.props.translate('pages.register.pageTitle')} inviteCode={inviteCode} />
                 </div>
                 {
                     errorMessage
@@ -116,4 +113,4 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(RegisterComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(RegisterComponent)));

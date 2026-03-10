@@ -138,6 +138,7 @@
         "exploreSpaces": "Spaces & Locations",
         "exploreThoughts": "Thoughts",
         "explorePeople": "People",
+        "logout": "Logout",
         "markAllRead": "Mark all as read",
         "viewProfile": "View Profile"
       },
@@ -153,6 +154,10 @@
         "notifications": "Notifications",
         "profileSettings": "Profile Settings"
       }
+    },
+    "messagingContainer": {
+      "panelTitle": "Messaging",
+      "noRecentConversations": "No recent conversations"
     }
   },
   "pages": {
@@ -232,7 +237,33 @@
       "subtitle": "Discover moments, spaces, thoughts, and people in your community",
       "recentContent": "Recent Content",
       "viewAll": "View all",
-      "noResults": "Nothing to show yet. Check back later for new content."
+      "noResults": "Nothing to show yet. Check back later for new content.",
+      "categories": {
+        "momentsTitle": "Moments",
+        "momentsDescription": "Photos, stories, and experiences shared by the community",
+        "spacesTitle": "Spaces",
+        "spacesDescription": "Local businesses, venues, and points of interest",
+        "thoughtsTitle": "Thoughts",
+        "thoughtsDescription": "Ideas, observations, and conversations",
+        "peopleTitle": "People",
+        "peopleDescription": "Discover creators, businesses, and community members"
+      }
+    },
+    "navigation": {
+      "home": "Home",
+      "explore": "Explore",
+      "locations": "Locations",
+      "posts": "Posts",
+      "moments": "Moments",
+      "thoughts": "Thoughts",
+      "spaces": "Spaces",
+      "users": "Users",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {pageNumber}",
+      "search": "Search",
+      "clear": "Clear",
+      "redirectingToSpaces": "Redirecting to spaces directory..."
     },
     "exploreMoments": {
       "pageTitle": "Explore Moments",

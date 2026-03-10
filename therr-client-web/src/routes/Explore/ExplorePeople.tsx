@@ -19,13 +19,12 @@ import {
 import { MantineSearchBox } from 'therr-react/components/mantine';
 import UsersActions from '../../redux/actions/UsersActions';
 import getUserImageUri from '../../utilities/getUserImageUri';
-import translator from '../../services/translator';
-
-const translate = (key: string, params?: any) => translator('en-us', key, params);
+import useTranslation from '../../hooks/useTranslation';
 
 const ITEMS_PER_PAGE = 30;
 
 const ExplorePeople: React.FC = () => {
+    const { t: translate } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = useSelector((state: any) => state.user);
@@ -88,9 +87,9 @@ const ExplorePeople: React.FC = () => {
     };
 
     const breadcrumbs = [
-        <Anchor component={Link} to="/" key="home" size="sm">Home</Anchor>,
-        <Anchor component={Link} to="/explore" key="explore" size="sm">Explore</Anchor>,
-        <Text size="sm" key="users">Users</Text>,
+        <Anchor component={Link} to="/" key="home" size="sm">{translate('pages.navigation.home')}</Anchor>,
+        <Anchor component={Link} to="/explore" key="explore" size="sm">{translate('pages.navigation.explore')}</Anchor>,
+        <Text size="sm" key="users">{translate('pages.navigation.users')}</Text>,
     ];
 
     const users = Object.values(user.users || {}) as any[];
@@ -120,11 +119,11 @@ const ExplorePeople: React.FC = () => {
                         style={{ flex: 1 }}
                     />
                     <Button variant="filled" size="sm" onClick={handleSearch}>
-                        Search
+                        {translate('pages.navigation.search')}
                     </Button>
                     {activeQuery && (
                         <Button variant="subtle" size="sm" onClick={handleClearSearch}>
-                            Clear
+                            {translate('pages.navigation.clear')}
                         </Button>
                     )}
                 </Group>
@@ -191,15 +190,15 @@ const ExplorePeople: React.FC = () => {
                                     disabled={!hasPrev}
                                     onClick={() => handlePageChange(currentPage - 1)}
                                 >
-                                    Previous
+                                    {translate('pages.navigation.previous')}
                                 </Button>
-                                <Text size="sm" c="dimmed">Page {currentPage}</Text>
+                                <Text size="sm" c="dimmed">{translate('pages.navigation.page', { pageNumber: currentPage })}</Text>
                                 <Button
                                     variant="outline"
                                     disabled={!hasNext}
                                     onClick={() => handlePageChange(currentPage + 1)}
                                 >
-                                    Next
+                                    {translate('pages.navigation.next')}
                                 </Button>
                             </Group>
                         )}

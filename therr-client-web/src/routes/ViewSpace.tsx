@@ -12,8 +12,8 @@ import {
     Divider, Image, Skeleton, Breadcrumbs,
     SimpleGrid, Rating as MantineRating, Paper, Avatar,
 } from '@mantine/core';
-import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 
 const formatCategoryLabel = (category: string): string => {
@@ -54,6 +54,7 @@ interface IStoreProps extends IViewSpaceDispatchProps {
 
 // Regular component props
 interface IViewSpaceProps extends IViewSpaceRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 interface IViewSpaceState {
@@ -76,8 +77,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * ViewSpace
  */
 export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSpaceState> {
-    private translate: Function;
-
     static getDerivedStateFromProps(nextProps: IViewSpaceProps) {
         if (!nextProps.routeParams.spaceId) {
             setTimeout(() => nextProps.navigation.navigate('/'));
@@ -94,8 +93,6 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             spaceMoments: [],
             isMomentsLoading: false,
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
@@ -160,8 +157,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     renderBreadcrumbs(space: any): JSX.Element {
         const locality = space.addressLocality || space.addressRegion || '';
         const items = [
-            <Anchor href="/" key="home">Home</Anchor>,
-            <Anchor href="/locations" key="locations">Locations</Anchor>,
+            <Anchor href="/" key="home">{this.props.translate('pages.navigation.home')}</Anchor>,
+            <Anchor href="/locations" key="locations">{this.props.translate('pages.navigation.locations')}</Anchor>,
         ];
         if (locality) {
             items.push(<Text key="locality" component="span">{locality}</Text>);
@@ -501,4 +498,4 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(ViewSpaceComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(ViewSpaceComponent)));

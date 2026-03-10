@@ -1,14 +1,13 @@
 import * as React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Stack, Button } from '@mantine/core';
-import translator from '../services/translator';
-
-const translate = (key: string, params?: Record<string, string>) => translator('en-us', key, params);
+import useTranslation from '../hooks/useTranslation';
 
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=app.therrmobile'; // eslint-disable-line max-len
 const APP_STORE_URL = 'https://apps.apple.com/us/app/therr/id1569988763?platform=iphone'; // eslint-disable-line max-len
 
 const InviteLanding: React.FC = () => {
+    const { t: translate } = useTranslation();
     const { username } = useParams<{ username: string }>();
     const navigate = useNavigate();
     const [isMobile, setIsMobile] = React.useState(false);
