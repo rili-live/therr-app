@@ -4,7 +4,7 @@ metadata:
   name: api-gateway-service-deployment
   namespace: default
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       component: server-api-gateway
@@ -48,18 +48,18 @@ spec:
               - ALL
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "50m"
+            memory: "96Mi"
+            cpu: "10m"
           limits:
-            memory: "128Mi"
-            cpu: "50m"
+            memory: "192Mi"
+            cpu: "100m"
         ports:
         - containerPort: 7770
         livenessProbe:
           httpGet:
             path: /healthcheck
             port: 7770
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 15
           timeoutSeconds: 5
           failureThreshold: 3
@@ -67,7 +67,7 @@ spec:
           httpGet:
             path: /healthcheck
             port: 7770
-          initialDelaySeconds: 10
+          initialDelaySeconds: 20
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 2

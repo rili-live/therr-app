@@ -119,7 +119,8 @@ $menu-padding: rem-calc(24px);
         right: 0;
 
         button {
-            width: 9rem;
+            width: fit-content;
+            min-width: 9rem;
         }
     }
 

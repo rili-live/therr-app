@@ -4,7 +4,7 @@ metadata:
   name: push-notifications-service-deployment
   namespace: default
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       component: server-push-notifications
@@ -50,8 +50,8 @@ spec:
               - ALL
         resources:
           requests:
-            memory: "192Mi"
-            cpu: "100m"
+            memory: "96Mi"
+            cpu: "10m"
           limits:
             memory: "192Mi"
             cpu: "100m"
@@ -61,7 +61,7 @@ spec:
           httpGet:
             path: /healthcheck
             port: 7775
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 15
           timeoutSeconds: 5
           failureThreshold: 3
@@ -69,7 +69,7 @@ spec:
           httpGet:
             path: /healthcheck
             port: 7775
-          initialDelaySeconds: 10
+          initialDelaySeconds: 20
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 2
@@ -150,12 +150,9 @@ spec:
             # application needs. For details, see
             # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
+          requests:
+            memory: "16Mi"
+            cpu: "5m"
           limits:
-            # The proxy's memory use scales linearly with the number of active
-            # connections. Fewer open connections will use less memory. Adjust
-            # this value based on your application's requirements.
             memory: "64Mi"
-            # The proxy's CPU use scales linearly with the amount of IO between
-            # the database and the application. Adjust this value based on your
-            # application's requirements.
             cpu: "50m"
