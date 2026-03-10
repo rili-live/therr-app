@@ -73,6 +73,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/child-safety',
+        head: {
+            title: 'Child Safety Standards',
+            description: 'Therr\'s child safety standards, prevention practices, and reporting procedures for child sexual abuse and exploitation (CSAE).',
+        },
+        view: 'index',
+    },
+    {
         route: '/delete-account',
         head: {
             title: 'Delete Your Account',
