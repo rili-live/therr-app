@@ -406,6 +406,12 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                             to="/posts/thoughts"
                             className="floating-create-button"
                             aria-label="Create a thought"
+                            onClick={(e) => {
+                                if (this.props.location?.pathname === '/posts/thoughts') {
+                                    e.preventDefault();
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }
+                            }}
                         >
                             <InlineSvg name="lightbulb" />
                         </Link>

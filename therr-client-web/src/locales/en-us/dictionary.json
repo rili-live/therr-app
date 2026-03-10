@@ -156,6 +156,53 @@
     }
   },
   "pages": {
+    "childSafety": {
+      "pageTitle": "Child Safety Standards",
+      "intro": "Therr is committed to the safety and protection of all users, especially children. We maintain a zero-tolerance policy toward child sexual abuse and exploitation (CSAE) on our platform.",
+      "zeroToleranceTitle": "Zero-Tolerance Policy",
+      "zeroToleranceDescription": "Therr strictly prohibits any content that exploits or endangers children, including child sexual abuse material (CSAM), grooming, sextortion, and any other form of child exploitation. Any account found creating, sharing, or distributing such content will be immediately terminated.",
+      "preventionTitle": "Prevention and Enforcement",
+      "prevention": {
+        "contentModeration": "We employ content moderation practices to detect and remove prohibited content.",
+        "reporting": "Users can report child safety concerns directly within the app using the in-app reporting feature.",
+        "accountActions": "Accounts that violate our child safety policies are immediately suspended and permanently banned.",
+        "lawEnforcement": "We cooperate fully with law enforcement investigations related to child exploitation.",
+        "ncmec": "We report all apparent CSAM to the National Center for Missing & Exploited Children (NCMEC) as required by law."
+      },
+      "reportingTitle": "How to Report",
+      "reportingInApp": "If you encounter content or behavior that endangers a child, please report it immediately using the in-app reporting tools available on all content and user profiles.",
+      "reportingEmail": "You may also report child safety concerns directly via email at",
+      "complianceTitle": "Legal Compliance",
+      "complianceDescription": "Therr complies with all relevant child safety laws and regulations. We report to regional and national authorities, including NCMEC, in accordance with applicable legal requirements.",
+      "contactTitle": "Contact Us",
+      "contactDescription": "For questions or concerns about our child safety practices, please contact us at",
+      "returnHome": "Return to home page"
+    },
+    "deleteAccount": {
+      "pageTitle": "Delete Your Account",
+      "description": "We're sorry to see you go. If you'd like to delete your Therr account and all associated data, you can do so using one of the options below.",
+      "optionMobileTitle": "Option 1: Delete via the Mobile App",
+      "steps": {
+        "openApp": "Open the Therr app on your mobile device.",
+        "goToSettings": "Navigate to Settings.",
+        "manageAccount": "Tap \"Manage Account\".",
+        "deleteAccount": "Tap \"Delete Account\".",
+        "confirm": "Confirm the deletion when prompted."
+      },
+      "optionEmailTitle": "Option 2: Request Deletion via Email",
+      "emailInstructions": "Send an email from the address associated with your account to",
+      "dataDeletedTitle": "What Data Will Be Deleted?",
+      "dataDeletedDescription": "When you delete your account, the following data will be permanently removed:",
+      "dataItems": {
+        "profile": "Your profile information (name, email, bio, profile photo)",
+        "posts": "Your posts, moments, and spaces",
+        "connections": "Your connections and friend lists",
+        "messages": "Your direct messages",
+        "notifications": "Your notifications and achievements"
+      },
+      "retentionNote": "Account deletion is permanent and cannot be undone. Some anonymized data may be retained for legal or regulatory purposes as described in our Privacy Policy.",
+      "returnToLogin": "Return to login page"
+    },
     "appFeedback": {
       "pageTitle": "Your Voice Matters",
       "buttons": {

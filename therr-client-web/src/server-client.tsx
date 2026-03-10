@@ -122,7 +122,63 @@ app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
     },
 }));
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
-app.get('/sitemap.xml', express.static(path.join(__dirname, '/../build/static/sitemap.xml')));
+
+// Dynamic sitemap with cached space URLs
+let sitemapCache: { xml: string; timestamp: number } | null = null;
+const SITEMAP_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+app.get('/sitemap.xml', async (req, res) => {
+    const now = Date.now();
+    if (sitemapCache && (now - sitemapCache.timestamp) < SITEMAP_CACHE_TTL) {
+        res.set('Content-Type', 'application/xml');
+        return res.send(sitemapCache.xml);
+    }
+
+    const staticUrls = [
+        { loc: '/', priority: '1.0' },
+        { loc: '/login', priority: '0.8' },
+        { loc: '/register', priority: '0.8' },
+        { loc: '/locations', priority: '0.9' },
+    ];
+
+    let spaceUrls: { loc: string; lastmod: string }[] = [];
+
+    try {
+        const response = await axios.post('/maps-service/spaces/list?itemsPerPage=1000&pageNumber=1', {
+            distanceOverride: 40075 * (1000 / 2),
+        });
+        const spaces = response?.data?.results || [];
+        spaceUrls = spaces.map((space: any) => ({
+            loc: `/spaces/${space.id}`,
+            lastmod: space.updatedAt ? new Date(space.updatedAt).toISOString().split('T')[0] : '',
+        }));
+    } catch (err) {
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SERVER_CLIENT',
+            messages: 'Failed to fetch spaces for sitemap',
+            tracer: beeline,
+            traceArgs: { errorMessage: (err as any)?.message },
+        });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // eslint-disable-next-line max-len
+    const buildUrl = (loc: string, lastmod: string, priority: string) => `  <url>\n    <loc>https://www.therr.com${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n  </url>`;
+
+    const urls = [
+        ...staticUrls.map((u) => buildUrl(u.loc, today, u.priority)),
+        ...spaceUrls.map((u) => buildUrl(u.loc, u.lastmod || today, '0.7')),
+    ];
+
+    // eslint-disable-next-line max-len
+    const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
+
+    sitemapCache = { xml, timestamp: now };
+    res.set('Content-Type', 'application/xml');
+    return res.send(xml);
+});
 app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 
 const appLinksJson = {
@@ -245,7 +301,9 @@ const renderSpaceView = (req, res, config, {
     const spaceId = req.params?.spaceId;
     const content = initialState?.content || {};
     const space = initialState?.map?.spaces[spaceId];
-    const spaceTitle = space ? space?.notificationMsg : title;
+    const spaceNameBase = space ? space?.notificationMsg : title;
+    const locationParts = [space?.addressLocality, space?.addressRegion].filter(Boolean);
+    const spaceTitle = locationParts.length > 0 ? `${spaceNameBase} in ${locationParts.join(', ')}` : spaceNameBase;
     // eslint-disable-next-line prefer-template
     const spaceDescription = `${space?.notificationMsg ? space.notificationMsg + ' - ' : ''}` + (space?.message || description).replace(/\\n/g, ' ')
         .replace(/\\r/g, ' ').substring(0, 300);
@@ -477,6 +535,81 @@ const renderUserView = (req, res, config, {
     });
 };
 
+const renderLocationsView = (req, res, config, {
+    markup,
+    state,
+}, initialState) => {
+    const routePath = config.route;
+    const routeView = config.view;
+    const title = config.head.title;
+    const description = config.head.description
+        // eslint-disable-next-line max-len
+        || 'Browse local businesses, restaurants, bars, shops, and events near you. Read reviews, see hours, and get directions.';
+
+    const spaces = initialState?.map?.searchResults || [];
+    const pageNumber = parseInt(req.params?.pageNumber, 10) || 1;
+
+    // ItemList schema from prefetched spaces
+    const itemListElements = spaces.slice(0, 50).map((space: any, index: number) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `https://www.therr.com/spaces/${space.id}`,
+        name: space.notificationMsg || space.id,
+    }));
+
+    const itemListSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'Business Locations on Therr',
+        numberOfItems: itemListElements.length,
+        itemListElement: itemListElements,
+    };
+
+    // SearchAction schema
+    const searchActionSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        url: 'https://www.therr.com',
+        potentialAction: {
+            '@type': 'SearchAction',
+            target: 'https://www.therr.com/locations?q={search_term_string}',
+            'query-input': 'required name=search_term_string',
+        },
+    };
+
+    // Breadcrumb schema
+    const breadcrumbItems: any[] = [
+        {
+            '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+        },
+        { '@type': 'ListItem', position: 2, name: 'Locations' },
+    ];
+
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbItems,
+    };
+
+    // Pagination links
+    const prevPage = pageNumber > 1 ? `/locations${pageNumber > 2 ? `/${pageNumber - 1}` : ''}` : '';
+    const nextPage = spaces.length > 0 ? `/locations/${pageNumber + 1}` : '';
+
+    return res.render(routeView, {
+        title,
+        description,
+        itemListSchema: JSON.stringify(itemListSchema),
+        searchActionSchema: JSON.stringify(searchActionSchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        prevPage,
+        nextPage,
+        markup,
+        requestPath: req.path,
+        routePath,
+        state,
+    });
+};
+
 // Universal routing and rendering for SEO
 routeConfig.forEach((config) => {
     const routePath = config.route;
@@ -563,6 +696,13 @@ routeConfig.forEach((config) => {
 
                 if (routeView === 'moments') {
                     return renderMomentView(req, res, config, {
+                        markup,
+                        state,
+                    }, initialState);
+                }
+
+                if (routeView === 'locations') {
+                    return renderLocationsView(req, res, config, {
                         markup,
                         state,
                     }, initialState);

@@ -23,8 +23,13 @@ import './styles/themes/light/index.scss';
 
 const rootEl = document.getElementById('app');
 // const root = createRoot(rootEl);
+const getColorScheme = (): 'light' | 'dark' => {
+    const match = document.cookie.match(/therr-color-scheme=(light|dark)/);
+    return (match?.[1] as 'light' | 'dark') || 'light';
+};
+
 const RootComponent = () => (
-    <MantineProvider theme={mantineTheme} defaultColorScheme="light">
+    <MantineProvider theme={mantineTheme} defaultColorScheme={getColorScheme()}>
         <Provider store={store} serverState={store.preloadedState}>
             <BrowserRouter>
                 <ScrollToTop />

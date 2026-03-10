@@ -470,6 +470,31 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
                     {/* Community Posts (Moments) */}
                     {this.renderCommunityPosts()}
+
+                    {/* App Download CTA */}
+                    <Paper withBorder p="sm" radius="md" mt="md">
+                        <Group justify="center" gap="md" wrap="wrap">
+                            <Text size="sm" c="dimmed">Get the full experience on the Therr app</Text>
+                            <Group gap="xs" className="store-image-links">
+                                <Anchor href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
+                                    <Image
+                                        aria-label="apple store link"
+                                        maw={120}
+                                        src="/assets/images/apple-store-download-button.svg"
+                                        alt="Download Therr on the App Store"
+                                    />
+                                </Anchor>
+                                <Anchor href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
+                                    <Image
+                                        aria-label="play store link"
+                                        maw={120}
+                                        src="/assets/images/play-store-download-button.svg"
+                                        alt="Download Therr on Google Play"
+                                    />
+                                </Anchor>
+                            </Group>
+                        </Group>
+                    </Paper>
                 </Stack>
             </Container>
         );
