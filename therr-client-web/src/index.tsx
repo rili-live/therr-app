@@ -28,10 +28,17 @@ const getColorScheme = (): 'light' | 'dark' => {
     return (match?.[1] as 'light' | 'dark') || 'light';
 };
 
+// Detect locale prefix from URL for BrowserRouter basename
+const getLocaleBasename = (): string | undefined => {
+    const match = window.location.pathname.match(/^\/(es)(\/|$)/);
+    return match ? `/${match[1]}` : undefined;
+};
+const localeBasename = getLocaleBasename();
+
 const RootComponent = () => (
     <MantineProvider theme={mantineTheme} defaultColorScheme={getColorScheme()}>
         <Provider store={store} serverState={store.preloadedState}>
-            <BrowserRouter>
+            <BrowserRouter basename={localeBasename}>
                 <ScrollToTop />
                 <Layout />
             </BrowserRouter>
