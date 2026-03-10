@@ -179,6 +179,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                                 text={this.props.translate('components.loginForm.buttons.login')}
                                 onClick={this.onSubmit}
                                 disabled={this.isLoginFormDisabled()}
+                                loading={this.state.isSubmitting}
                                 fullWidth
                             />
                         </div>
