@@ -974,18 +974,33 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         return (
             <>
                 <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
-                    {
-                        !!imagePreviewPath &&
-                        <View style={this.themeAreas.styles.mediaContainer}>
-                            <Image
-                                source={{ uri: imagePreviewPath }}
-                                style={[this.themeAreas.styles.mediaImageEvent, {
-                                    width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
-                                }]}
-                                resizeMode="contain"
-                            />
-                        </View>
-                    }
+                    <View style={this.themeAreas.styles.mediaContainer}>
+                        {
+                            imagePreviewPath
+                                ? (
+                                    <Image
+                                        source={{ uri: imagePreviewPath }}
+                                        style={[this.themeAreas.styles.mediaImageEvent, {
+                                            width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                        }]}
+                                        resizeMode="contain"
+                                    />
+                                )
+                                : (
+                                    <LottieView
+                                        source={require('../../assets/missing-image-events.json')}
+                                        resizeMode="contain"
+                                        speed={1}
+                                        autoPlay
+                                        loop={false}
+                                        style={{
+                                            width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                            height: 160,
+                                        }}
+                                    />
+                                )
+                        }
+                    </View>
                     <Button
                         containerStyle={spacingStyles.marginBotMd}
                         buttonStyle={this.themeForms.styles.buttonPrimary}
