@@ -164,12 +164,22 @@ app.get('/sitemap.xml', async (req, res) => {
 
     const today = new Date().toISOString().split('T')[0];
 
+    // Build URL entries for both English (unprefixed) and Spanish (/es) versions
     // eslint-disable-next-line max-len
-    const buildUrl = (loc: string, lastmod: string, priority: string) => `  <url>\n    <loc>https://www.therr.com${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.therr.com${loc}" />\n    <xhtml:link rel="alternate" hreflang="es-MX" href="https://www.therr.com${loc}" />\n    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.therr.com${loc}" />\n  </url>`;
+    const buildUrlPair = (loc: string, lastmod: string, priority: string) => {
+        const esLoc = loc === '/' ? '/es' : `/es${loc}`;
+        // eslint-disable-next-line max-len
+        const hreflangLinks = `    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.therr.com${loc}" />\n    <xhtml:link rel="alternate" hreflang="es-MX" href="https://www.therr.com${esLoc}" />\n    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.therr.com${loc}" />`;
+        // eslint-disable-next-line max-len
+        const enEntry = `  <url>\n    <loc>https://www.therr.com${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n${hreflangLinks}\n  </url>`;
+        // eslint-disable-next-line max-len
+        const esEntry = `  <url>\n    <loc>https://www.therr.com${esLoc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n${hreflangLinks}\n  </url>`;
+        return `${enEntry}\n${esEntry}`;
+    };
 
     const urls = [
-        ...staticUrls.map((u) => buildUrl(u.loc, today, u.priority)),
-        ...spaceUrls.map((u) => buildUrl(u.loc, u.lastmod || today, '0.7')),
+        ...staticUrls.map((u) => buildUrlPair(u.loc, today, u.priority)),
+        ...spaceUrls.map((u) => buildUrlPair(u.loc, u.lastmod || today, '0.7')),
     ];
 
     // eslint-disable-next-line max-len
@@ -196,6 +206,32 @@ const appLinksJson = {
 // Apple universal link (Opens ios app when clicking therr URLs from mobile)
 app.get('/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
 // app.get('/.well-known/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
+
+// Locale URL prefix support
+const prefixToLocale: Record<string, string> = { es: 'es' };
+
+// Redirect /en/* to /* (strip unnecessary English prefix)
+app.get('/en', (req, res) => res.redirect(301, '/'));
+app.get('/en/*', (req, res) => {
+    const stripped = req.path.replace(/^\/en/, '') || '/';
+    res.redirect(301, stripped);
+});
+
+// Locale prefix middleware: detect and strip /es/ prefix before route matching
+app.use((req: any, res, next) => {
+    const localeMatch = req.path.match(/^\/(es)(\/.*)?$/);
+    if (localeMatch) {
+        req.localeFromUrl = prefixToLocale[localeMatch[1]];
+        req.localePrefix = `/${localeMatch[1]}`;
+        const strippedPath = localeMatch[2] || '/';
+        const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+        req.url = strippedPath + queryString;
+    } else {
+        req.localeFromUrl = 'en-us';
+        req.localePrefix = '';
+    }
+    next();
+});
 
 const renderMomentView = (req, res, config, {
     markup,
@@ -239,7 +275,7 @@ const renderMomentView = (req, res, config, {
     const momentSchema: any = {
         '@context': 'https://schema.org',
         '@type': 'SocialMediaPosting',
-        '@id': `https://www.therr.com${req.path}`,
+        '@id': `https://www.therr.com${localeVars.canonicalPath}`,
         headline: momentTitle,
         datePublished: moment?.createdAt || '',
         image: metaImgUrl || '',
@@ -280,7 +316,6 @@ const renderMomentView = (req, res, config, {
         momentSchema: JSON.stringify(momentSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         markup,
-        requestPath: req.path,
         routePath,
         state,
         ...localeVars,
@@ -447,7 +482,6 @@ const renderSpaceView = (req, res, config, {
         spaceSchema: JSON.stringify(spaceSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         markup,
-        requestPath: req.path,
         routePath,
         state,
         ...localeVars,
@@ -495,7 +529,7 @@ const renderUserView = (req, res, config, {
         '@context': 'https://schema.org',
         '@type': 'Person',
         name: userName,
-        url: `https://www.therr.com${req.path}`,
+        url: `https://www.therr.com${localeVars.canonicalPath}`,
     };
 
     if (metaImgUrl) {
@@ -531,7 +565,6 @@ const renderUserView = (req, res, config, {
         userSchema: JSON.stringify(userSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
         markup,
-        requestPath: req.path,
         routePath,
         state,
         ...localeVars,
@@ -553,10 +586,11 @@ const renderLocationsView = (req, res, config, {
     const pageNumber = parseInt(req.params?.pageNumber, 10) || 1;
 
     // ItemList schema from prefetched spaces
+    const lp = localeVars.localePrefix;
     const itemListElements = spaces.slice(0, 50).map((space: any, index: number) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: `https://www.therr.com/spaces/${space.id}`,
+        url: `https://www.therr.com${lp}/spaces/${space.id}`,
         name: space.notificationMsg || space.id,
     }));
 
@@ -594,9 +628,9 @@ const renderLocationsView = (req, res, config, {
         itemListElement: breadcrumbItems,
     };
 
-    // Pagination links
-    const prevPage = pageNumber > 1 ? `/locations${pageNumber > 2 ? `/${pageNumber - 1}` : ''}` : '';
-    const nextPage = spaces.length > 0 ? `/locations/${pageNumber + 1}` : '';
+    // Pagination links (include locale prefix)
+    const prevPage = pageNumber > 1 ? `${lp}/locations${pageNumber > 2 ? `/${pageNumber - 1}` : ''}` : '';
+    const nextPage = spaces.length > 0 ? `${lp}/locations/${pageNumber + 1}` : '';
 
     return res.render(routeView, {
         title,
@@ -607,7 +641,6 @@ const renderLocationsView = (req, res, config, {
         prevPage,
         nextPage,
         markup,
-        requestPath: req.path,
         routePath,
         state,
         ...localeVars,
@@ -629,30 +662,37 @@ const renderInviteView = (req, res, config, {
         title,
         description,
         markup,
-        requestPath: req.path,
         routePath,
         state,
         ...localeVars,
     });
 };
 
-// Locale detection from cookie for SSR
+// Locale detection for SSR
 const localeMap: Record<string, { htmlLang: string; ogLocale: string }> = {
     'en-us': { htmlLang: 'en-US', ogLocale: 'en_US' },
     es: { htmlLang: 'es-MX', ogLocale: 'es_MX' },
 };
-const supportedLocales = Object.keys(localeMap);
 
-const getLocaleFromCookie = (cookieHeader?: string): string => {
-    const match = cookieHeader?.match(/therr-locale=([^;]+)/);
-    const locale = match?.[1] || 'en-us';
-    return supportedLocales.includes(locale) ? locale : 'en-us';
-};
+const getLocaleVars = (req: any) => {
+    // URL prefix is the source of truth for page locale
+    const locale = req.localeFromUrl || 'en-us';
+    const { htmlLang, ogLocale } = localeMap[locale] || localeMap['en-us'];
+    const basePath = req.path; // stripped path (no locale prefix)
+    const localePrefix = req.localePrefix || '';
 
-const getLocaleVars = (req: express.Request) => {
-    const locale = getLocaleFromCookie(req.headers.cookie);
-    const { htmlLang, ogLocale } = localeMap[locale];
-    return { htmlLang, ogLocale };
+    // Canonical URL uses the current locale's full path
+    let canonicalPath = basePath;
+    if (localePrefix) {
+        canonicalPath = basePath === '/' ? localePrefix : `${localePrefix}${basePath}`;
+    }
+    // hreflang links: English = unprefixed, Spanish = /es prefixed
+    const hreflangEn = basePath;
+    const hreflangEs = basePath === '/' ? '/es' : `/es${basePath}`;
+
+    return {
+        htmlLang, ogLocale, canonicalPath, hreflangEn, hreflangEs, localePrefix,
+    };
 };
 
 // Universal routing and rendering for SEO
@@ -663,13 +703,17 @@ routeConfig.forEach((config) => {
     const description = config.head.description
     || 'A nearby newsfeed app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
 
-    app.get(routePath, (req, res) => {
+    app.get(routePath, (req: any, res) => {
         const colorScheme = (req.headers.cookie?.match(/therr-color-scheme=(light|dark)/)?.[1] || 'light') as 'light' | 'dark';
         const promises: any = [];
         const staticContext: any = {};
+        const urlLocale = req.localeFromUrl || 'en-us';
         const initialState: any = {
             user: {
                 details: {},
+                settings: {
+                    locale: urlLocale,
+                },
             },
         };
         const store = configureStore({
@@ -703,10 +747,11 @@ routeConfig.forEach((config) => {
         });
 
         Promise.all(promises).then(() => {
+            const localePrefix = req.localePrefix || '';
             const markup = ReactDOMServer.renderToString(
                 <MantineProvider theme={mantineTheme} defaultColorScheme={colorScheme}>
                     <Provider store={store}>
-                        <StaticRouter location={req.url}>
+                        <StaticRouter location={req.url} basename={localePrefix || undefined}>
                             <Layout />
                         </StaticRouter>
                     </Provider>
@@ -780,7 +825,6 @@ routeConfig.forEach((config) => {
                     title,
                     description,
                     markup,
-                    requestPath: req.path,
                     routePath,
                     state,
                     ...localeVars,

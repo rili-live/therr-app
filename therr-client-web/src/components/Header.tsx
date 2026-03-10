@@ -8,14 +8,12 @@ import {
     SvgButton,
 } from 'therr-react/components';
 import { IUserState, INotificationsState, INotification } from 'therr-react/types';
-import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { bindActionCreators } from 'redux';
 import { INavMenuContext } from '../types';
 import withTranslation from '../wrappers/withTranslation';
 import UsersActions from '../redux/actions/UsersActions';
 import ColorSchemeToggle from './ColorSchemeToggle';
 
-const supportedLocales = ['en-us', 'es'] as const;
 const localeLabels: Record<string, string> = { 'en-us': 'EN', es: 'ES' };
 
 const globeIcon = (
@@ -55,7 +53,6 @@ interface IHeaderProps extends IStoreProps {
   isLandingStylePage?: boolean;
   translate: (key: string, params?: any) => string;
   locale: string;
-  dispatch: Function;
 }
 
 interface IHeaderState {
@@ -67,13 +64,10 @@ const mapStateToProps = (state: any) => ({
     user: state.user,
 });
 
-const mapDispatchToProps = (dispatch: any) => ({
-    ...bindActionCreators({
-        logout: UsersActions.logout,
-        updateUser: UsersActions.update,
-    }, dispatch),
-    dispatch,
-});
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    logout: UsersActions.logout,
+    updateUser: UsersActions.update,
+}, dispatch);
 
 export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState> {
     static getDerivedStateFromProps(nextProps: IHeaderProps) {
@@ -93,22 +87,16 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
 
     handleLocaleChange = () => {
         const {
-            dispatch, locale, user, updateUser,
+            user, updateUser,
         } = this.props;
-        const currentIndex = supportedLocales.indexOf(locale as any);
-        const newLocale = supportedLocales[(currentIndex + 1) % supportedLocales.length];
+        const currentPath = window.location.pathname;
+        const isCurrentlySpanish = currentPath.match(/^\/(es)(\/|$)/);
+        const newLocale = isCurrentlySpanish ? 'en-us' : 'es';
 
-        // Update Redux state immediately
-        dispatch({
-            type: SocketClientActionTypes.UPDATE_USER,
-            data: {
-                details: {},
-                settings: { locale: newLocale, settingsLocale: newLocale },
-            },
-        });
+        // Set cookie for API calls and SSR
+        document.cookie = `therr-locale=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
 
-        // Persist to both localStorage and sessionStorage so the update
-        // action response handler doesn't overwrite with stale values
+        // Persist to storage
         try {
             [localStorage, sessionStorage].forEach((storage) => {
                 const storedSettings = JSON.parse(storage.getItem('therrUserSettings') || '{}');
@@ -120,17 +108,21 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
             // Ignore storage errors
         }
 
-        // Set cookie for SSR locale detection
-        document.cookie = `therr-locale=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
-
-        // Update HTML lang attribute for accessibility and client-side SEO
-        const htmlLangMap: Record<string, string> = { 'en-us': 'en-US', es: 'es-MX' };
-        document.documentElement.lang = htmlLangMap[newLocale] || 'en-US';
-
         // Persist to backend for authenticated users
         if (user?.isAuthenticated && user?.details?.id) {
             updateUser(user.details.id, { settingsLocale: newLocale });
         }
+
+        // Navigate to locale-specific URL (full page navigation since basename changes)
+        let newPath: string;
+        if (newLocale === 'es') {
+            // Switching to Spanish: add /es prefix
+            newPath = currentPath === '/' ? '/es' : `/es${currentPath}`;
+        } else {
+            // Switching to English: strip /es prefix
+            newPath = currentPath.replace(/^\/es(\/|$)/, '/') || '/';
+        }
+        window.location.href = newPath + window.location.search;
     };
 
     handleLogout = () => {
