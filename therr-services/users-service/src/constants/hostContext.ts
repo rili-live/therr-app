@@ -32,6 +32,14 @@ interface IBrandConfig {
     emailTemplates: {
         brandBackgroundHexDark: string;
         brandBackgroundLight: string;
+        brandAccentHex?: string;
+        brandAccentHexDark?: string;
+        contentBgDark?: string;
+        textColorLight?: string;
+        textColorDark?: string;
+        footerTextColorLight?: string;
+        warningColorLight?: string;
+        warningColorDark?: string;
         fromEmail: string;
         fromEmailTitle: string;
         homepageLinkUri: string;
@@ -43,6 +51,14 @@ interface IBrandConfig {
         legalBusinessName: string;
         businessCopyrightYear: string;
         shouldIncludeSocialIcons?: string;
+        socialLinks?: {
+            facebook?: string;
+            twitter?: string;
+            instagram?: string;
+            linkedin?: string;
+            youtube?: string;
+            tiktok?: string;
+        };
     }
 }
 
@@ -77,6 +93,8 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#1C7F8A',
             brandBackgroundLight: '#ffffff',
+            brandAccentHex: '#1C7F8A',
+            brandAccentHexDark: '#22A5B4',
             fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@therr.com',
             fromEmailTitle: 'Therr App',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].hostFull,
@@ -84,8 +102,16 @@ const hostContext: IBrandConfigs = {
             logoAltText: 'Therr logo',
             unsubscribeUrl: 'https://therr.com/emails/unsubscribe', // TODO: Build an actual route and page for this
             legalBusinessName: 'Therr Inc.',
-            businessCopyrightYear: '2021',
+            businessCopyrightYear: `${new Date().getFullYear()}`,
             shouldIncludeSocialIcons: 'true',
+            socialLinks: {
+                facebook: 'https://www.facebook.com/therrapp',
+                twitter: 'https://twitter.com/therr_app',
+                instagram: 'https://www.instagram.com/therr.app/',
+                linkedin: 'https://www.linkedin.com/company/therr',
+                youtube: 'https://www.youtube.com/@therrapp',
+                tiktok: 'https://www.tiktok.com/@therr.app',
+            },
         },
     },
     'teem-social.com': {
@@ -114,6 +140,8 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#9748FF',
             brandBackgroundLight: '#ffffff',
+            brandAccentHex: '#9748FF',
+            brandAccentHexDark: '#B070FF',
             fromEmail: 'info@teem-social.com',
             fromEmailTitle: 'Teem App',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].hostFull,
@@ -121,8 +149,13 @@ const hostContext: IBrandConfigs = {
             logoAltText: 'Teem logo',
             unsubscribeUrl: 'https://therr.com/emails/unsubscribe', // TODO: Build an actual route and page for this
             legalBusinessName: 'Teem app by Teem Inc.',
-            businessCopyrightYear: '2021',
+            businessCopyrightYear: `${new Date().getFullYear()}`,
             shouldIncludeSocialIcons: 'true',
+            socialLinks: {
+                facebook: 'https://www.facebook.com/teemapp',
+                twitter: 'https://twitter.com/teem_app',
+                instagram: 'https://www.instagram.com/teem.app/',
+            },
         },
     },
     'dashboard.therr.com': {
@@ -151,6 +184,8 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#1C7F8A',
             brandBackgroundLight: '#ffffff',
+            brandAccentHex: '#1C7F8A',
+            brandAccentHexDark: '#22A5B4',
             fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@therr.com',
             fromEmailTitle: 'Therr for Business',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].dashboardHostFull,
@@ -158,7 +193,7 @@ const hostContext: IBrandConfigs = {
             logoAltText: 'Therr For Business logo',
             unsubscribeUrl: 'https://dashboard.therr.com/emails/unsubscribe',
             legalBusinessName: 'Therr Inc.',
-            businessCopyrightYear: '2021',
+            businessCopyrightYear: `${new Date().getFullYear()}`,
         },
     },
     'adsly.app': {
@@ -187,6 +222,8 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#d45d1c',
             brandBackgroundLight: '#ffffff',
+            brandAccentHex: '#d45d1c',
+            brandAccentHexDark: '#E87A3A',
             fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@therr.com',
             fromEmailTitle: 'Adsly',
             homepageLinkUri: globalConfig[process.env.NODE_ENV].dashboardHostFull,
@@ -194,7 +231,7 @@ const hostContext: IBrandConfigs = {
             logoAltText: 'Adsly logo',
             unsubscribeUrl: 'https://dashboard.therr.com/emails/unsubscribe',
             legalBusinessName: 'Therr Inc.',
-            businessCopyrightYear: '2021',
+            businessCopyrightYear: `${new Date().getFullYear()}`,
         },
     },
     'dashboard.appymeal.com': {
@@ -223,6 +260,8 @@ const hostContext: IBrandConfigs = {
         emailTemplates: {
             brandBackgroundHexDark: '#bf1f2e',
             brandBackgroundLight: '#ffffff',
+            brandAccentHex: '#bf1f2e',
+            brandAccentHexDark: '#E03040',
             fromEmail: 'team@appymeal.com',
             fromEmailTitle: 'AppyMeal',
             homepageLinkUri: 'https://dashboard.appymeal.com',
@@ -230,7 +269,12 @@ const hostContext: IBrandConfigs = {
             logoAltText: 'AppyMeal logo',
             unsubscribeUrl: 'https://dashboard.appymeal.com/emails/unsubscribe', // TODO: Build an actual route and page for this
             legalBusinessName: 'AppyMeal LLC',
-            businessCopyrightYear: '2021',
+            businessCopyrightYear: `${new Date().getFullYear()}`,
+            socialLinks: {
+                facebook: 'https://www.facebook.com/AppyMealApp',
+                twitter: 'https://twitter.com/AppyMealApp',
+                instagram: 'https://www.instagram.com/appy_meal/',
+            },
         },
     },
 };
