@@ -156,6 +156,31 @@
     }
   },
   "pages": {
+    "deleteAccount": {
+      "pageTitle": "Delete Your Account",
+      "description": "We're sorry to see you go. If you'd like to delete your Therr account and all associated data, you can do so using one of the options below.",
+      "optionMobileTitle": "Option 1: Delete via the Mobile App",
+      "steps": {
+        "openApp": "Open the Therr app on your mobile device.",
+        "goToSettings": "Navigate to Settings.",
+        "manageAccount": "Tap \"Manage Account\".",
+        "deleteAccount": "Tap \"Delete Account\".",
+        "confirm": "Confirm the deletion when prompted."
+      },
+      "optionEmailTitle": "Option 2: Request Deletion via Email",
+      "emailInstructions": "Send an email from the address associated with your account to",
+      "dataDeletedTitle": "What Data Will Be Deleted?",
+      "dataDeletedDescription": "When you delete your account, the following data will be permanently removed:",
+      "dataItems": {
+        "profile": "Your profile information (name, email, bio, profile photo)",
+        "posts": "Your posts, moments, and spaces",
+        "connections": "Your connections and friend lists",
+        "messages": "Your direct messages",
+        "notifications": "Your notifications and achievements"
+      },
+      "retentionNote": "Account deletion is permanent and cannot be undone. Some anonymized data may be retained for legal or regulatory purposes as described in our Privacy Policy.",
+      "returnToLogin": "Return to login page"
+    },
     "appFeedback": {
       "pageTitle": "Your Voice Matters",
       "buttons": {

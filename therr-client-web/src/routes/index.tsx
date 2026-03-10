@@ -29,6 +29,7 @@ import ViewMoment from './ViewMoment';
 import ViewUser from './ViewUser';
 import EmailPreferences from './EmailPreferences';
 import AppFeedback from './AppFeedback';
+import DeleteAccount from './DeleteAccount';
 
 export type IRoute = RouteObject & {
     access?: IAccess;
@@ -111,6 +112,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/app-feedback',
         element: <AppFeedback />,
+    },
+    {
+        path: '/delete-account',
+        element: <DeleteAccount />,
     },
     {
         path: '/achievements',

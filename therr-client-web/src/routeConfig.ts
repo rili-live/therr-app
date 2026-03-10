@@ -73,6 +73,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/delete-account',
+        head: {
+            title: 'Delete Your Account',
+            description: 'Request deletion of your Therr account and all associated data.',
+        },
+        view: 'index',
+    },
+    {
         route: '/locations/:pageNumber',
         head: {
             title: 'Business Locations',
