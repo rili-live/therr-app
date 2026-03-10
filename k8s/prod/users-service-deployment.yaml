@@ -4,7 +4,7 @@ metadata:
   name: users-service-deployment
   namespace: default
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       component: server-users
@@ -48,11 +48,11 @@ spec:
               - ALL
         resources:
           requests:
-            memory: "192Mi"
-            cpu: "50m"
+            memory: "96Mi"
+            cpu: "10m"
           limits:
-            memory: "192Mi"
-            cpu: "50m"
+            memory: "256Mi"
+            cpu: "100m"
         ports:
         - containerPort: 7771
         livenessProbe:
@@ -227,12 +227,9 @@ spec:
             # application needs. For details, see
             # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
+          requests:
+            memory: "16Mi"
+            cpu: "5m"
           limits:
-            # The proxy's memory use scales linearly with the number of active
-            # connections. Fewer open connections will use less memory. Adjust
-            # this value based on your application's requirements.
             memory: "64Mi"
-            # The proxy's CPU use scales linearly with the amount of IO between
-            # the database and the application. Adjust this value based on your
-            # application's requirements.
             cpu: "50m"
