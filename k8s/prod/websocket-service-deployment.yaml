@@ -48,7 +48,7 @@ spec:
           httpGet:
             path: /healthcheck
             port: 7743
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 15
           timeoutSeconds: 5
           failureThreshold: 3
@@ -56,7 +56,7 @@ spec:
           httpGet:
             path: /healthcheck
             port: 7743
-          initialDelaySeconds: 10
+          initialDelaySeconds: 20
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 2
