@@ -9,9 +9,9 @@ import {
     Container, Stack, Group, Title, Text, Anchor,
     Divider, Avatar, Skeleton, Breadcrumbs, Button,
 } from '@mantine/core';
-import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 import getUserImageUri from '../utilities/getUserImageUri';
 
 interface IViewUserRouterProps {
@@ -38,6 +38,7 @@ interface IStoreProps extends IViewUserDispatchProps {
 // Regular component props
 interface IViewUserProps extends IViewUserRouterProps, IStoreProps {
     onInitMessaging?: Function;
+    translate: (key: string, params?: any) => string;
 }
 
 interface IViewUserState {
@@ -59,8 +60,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * ViewUser
  */
 export class ViewUserComponent extends React.Component<IViewUserProps, IViewUserState> {
-    private translate: Function;
-
     static getDerivedStateFromProps(nextProps: IViewUserProps) {
         if (!nextProps.routeParams.userId) {
             setTimeout(() => nextProps.navigation.navigate('/'));
@@ -75,8 +74,6 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         this.state = {
             userId: props.routeParams.userId,
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
@@ -170,8 +167,8 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
     renderBreadcrumbs(userInView: any): JSX.Element {
         const fullName = `${userInView.firstName} ${userInView.lastName}`;
         const items = [
-            <Anchor href="/" key="home">Home</Anchor>,
-            <Text key="users" component="span">Users</Text>,
+            <Anchor href="/" key="home">{this.props.translate('pages.navigation.home')}</Anchor>,
+            <Text key="users" component="span">{this.props.translate('pages.navigation.users')}</Text>,
             <Text key="name" component="span">{fullName}</Text>,
         ];
 
@@ -241,7 +238,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                                         variant="filled"
                                         onClick={this.handleChatClick}
                                     >
-                                        {this.translate('pages.viewUser.buttons.chat')}
+                                        {this.props.translate('pages.viewUser.buttons.chat')}
                                     </Button>
                                 </Group>
                             )}
@@ -263,4 +260,4 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(ViewUserComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(ViewUserComponent)));

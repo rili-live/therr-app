@@ -22,6 +22,7 @@ describe('RegisterForm', () => {
     const defaultProps = {
         register: jest.fn(),
         title: 'Register',
+        translate: (key: string) => key,
     };
 
     beforeEach(() => {

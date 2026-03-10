@@ -1,5 +1,7 @@
 import { RequestHandler } from 'express';
-import { AccessLevels, ErrorCodes, UserConnectionTypes } from 'therr-js-utilities/constants';
+import {
+    AccessLevels, ErrorCodes, ReferralRewards, UserConnectionTypes,
+} from 'therr-js-utilities/constants';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import normalizeEmail from 'normalize-email';
 import { parseHeaders } from 'therr-js-utilities/http';
@@ -153,13 +155,38 @@ const createUser: RequestHandler = (req: any, res: any) => {
                 }).then((inviter) => {
                     if (inviter.length) {
                         // TODO: Send confirmation e-mail to inviter
-                        return createOrUpdateAchievement({
+                        createOrUpdateAchievement({
                             'x-userid': inviter[0].id,
                             ...req.headers,
                         }, {
                             achievementClass: 'communityLeader',
                             achievementTier: '1_1',
                             progressCount: 1,
+                        }).catch((err) => {
+                            logSpan({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Error while updating inviter achievement'],
+                                traceArgs: {
+                                    'error.message': err?.message,
+                                },
+                            });
+                        });
+
+                        // Award the inviter coins for the successful referral
+                        Store.users.updateUser({
+                            settingsTherrCoinTotal: ReferralRewards.inviterCoins,
+                        }, {
+                            id: inviter[0].id,
+                        }).catch((err) => {
+                            logSpan({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['Error while awarding inviter referral coins'],
+                                traceArgs: {
+                                    'error.message': err?.message,
+                                },
+                            });
                         });
                     }
                 }).catch((err) => {
@@ -579,6 +606,7 @@ const updateUser = (req, res) => {
                 settingsIsProfilePublic: req.body.settingsIsProfilePublic,
                 settingsPushMarketing: req.body.settingsPushMarketing,
                 settingsPushBackground: req.body.settingsPushBackground,
+                settingsLocale: req.body.settingsLocale,
                 settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
             };

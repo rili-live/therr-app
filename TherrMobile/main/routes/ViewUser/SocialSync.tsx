@@ -457,7 +457,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 />
                                 <Button
                                     containerStyle={[]}
-                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt, spacingStyles.padHorizMd]}
                                     titleStyle={this.themeForms.styles.buttonTitleAlt}
                                     title={this.translate('forms.socialSync.buttons.sync')}
                                     // icon={
@@ -508,7 +508,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 </View>
                                 <Button
                                     containerStyle={[spacingStyles.flexOne]}
-                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt, spacingStyles.padHorizMd]}
                                     titleStyle={this.themeForms.styles.buttonTitleAlt}
                                     title={this.translate('forms.socialSync.buttons.syncTikTok')}
                                     // icon={
@@ -548,7 +548,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 />
                                 <Button
                                     containerStyle={[]}
-                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt, spacingStyles.padHorizMd]}
                                     titleStyle={this.themeForms.styles.buttonTitleAlt}
                                     title={this.translate('forms.socialSync.buttons.sync')}
                                     // icon={
@@ -587,7 +587,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 />
                                 <Button
                                     containerStyle={[]}
-                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt, spacingStyles.padHorizMd]}
                                     titleStyle={this.themeForms.styles.buttonTitleAlt}
                                     title={this.translate('forms.socialSync.buttons.sync')}
                                     // icon={

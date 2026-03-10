@@ -23,6 +23,7 @@ describe('ChangePassword', () => {
                 userName: 'testuser',
             },
         } as any,
+        translate: (key: string) => key,
     };
 
     beforeEach(() => {
@@ -95,7 +96,7 @@ describe('ChangePassword', () => {
         });
         wrapper.update();
 
-        expect(wrapper.text()).toContain('Your password has been updated!');
+        expect(wrapper.text()).toContain('pages.changePassword.successMessage');
     });
 
     it('displays error for incorrect password', () => {
@@ -107,7 +108,7 @@ describe('ChangePassword', () => {
         });
         wrapper.update();
 
-        expect(wrapper.text()).toContain('The password you entered is incorrect.');
+        expect(wrapper.text()).toContain('pages.changePassword.failedMessageIncorrectPassword');
     });
 
     it('displays error for user not found', () => {
@@ -119,7 +120,7 @@ describe('ChangePassword', () => {
         });
         wrapper.update();
 
-        expect(wrapper.text()).toContain('No user found. Logout and try again.');
+        expect(wrapper.text()).toContain('pages.changePassword.failedMessageUserNotFound');
     });
 
     it('clears error when input changes', () => {

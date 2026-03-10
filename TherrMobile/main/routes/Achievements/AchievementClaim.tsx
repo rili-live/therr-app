@@ -1,20 +1,24 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { Pressable, SafeAreaView, View, Text } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import LottieView from 'lottie-react-native';
 import { IUserState } from 'therr-react/types';
 import { achievementsByClass } from 'therr-js-utilities/config';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import SharePromptModal from '../../components/Modals/SharePromptModal';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildButtonStyles } from '../../styles/buttons';
+import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildAchievementStyles } from '../../styles/achievements';
 import textStyles from '../../styles/text';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { ScrollView } from 'react-native-gesture-handler';
+import TherrIcon from '../../components/TherrIcon';
 
 const achievementConfetti = require('../../assets/achievement-confetti-2.json');
 const cardImagesLottie = {
@@ -41,6 +45,7 @@ export interface IAchievementClaimProps extends IStoreProps {
 }
 
 interface IAchievementClaimState {
+    isSharePromptVisible: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -56,6 +61,8 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
     private scrollViewRef;
     private translate: Function;
     private theme = buildStyles();
+    private themeButtons = buildButtonStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
     private themeMenu = buildMenuStyles();
     private themeAchievements = buildAchievementStyles();
 
@@ -63,9 +70,11 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         super(props);
 
         this.state = {
-            isRefreshing: false,
+            isSharePromptVisible: false,
         };
 
+        this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeAchievements = buildAchievementStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
@@ -73,15 +82,34 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
     }
 
     componentDidMount = () => {
+        const { route } = this.props;
+        const { isClaiming } = route.params;
+
         this.props.navigation.setOptions({
             title: this.translate('pages.achievements.headerTitle'),
+            headerLeft: () => (
+                <Pressable
+                    onPress={() => this.props.navigation.navigate('Achievements')}
+                    style={{ marginLeft: 12 }}
+                >
+                    <TherrIcon name="go-back" size={24} />
+                </Pressable>
+            ),
         });
+
+        if (isClaiming) {
+            this.setState({ isSharePromptVisible: true });
+        }
 
         this.handleRefresh();
     };
 
     handleRefresh = () => {
         console.log('refresh');
+    };
+
+    onDismissSharePrompt = () => {
+        this.setState({ isSharePromptVisible: false });
     };
 
     renderDescription = (userAchievement) => {
@@ -189,6 +217,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
 
     render() {
         const { navigation, route, user } = this.props;
+        const { isSharePromptVisible } = this.state;
         // const pageHeaderAchievements = this.translate('pages.achievements.pageHeader');
         const { userAchievement } = route.params;
         // const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
@@ -252,6 +281,18 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                     translate={this.translate}
                     user={user}
                     themeMenu={this.themeMenu}
+                />
+                <SharePromptModal
+                    isVisible={isSharePromptVisible}
+                    headerText={this.translate('modals.sharePrompt.achievementEarned.header')}
+                    message={this.translate('modals.sharePrompt.achievementEarned.message')}
+                    shareMessage={`I just earned the ${userAchievement.achievementClass} achievement on Therr! https://www.therr.com`}
+                    shareUrl="https://www.therr.com"
+                    shareTitle={this.translate('modals.sharePrompt.achievementEarned.header')}
+                    onDismiss={this.onDismissSharePrompt}
+                    translate={this.translate}
+                    themeModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
                 />
             </>
         );

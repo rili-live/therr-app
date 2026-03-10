@@ -125,7 +125,7 @@
         "phoneNumber": "Invalid phone number"
       },
       "text": {
-        "signupForRewards": "Continue signup to earn rewards for you and {userName}!"
+        "signupForRewards": "Sign up with {userName}'s invite code - they earn 10 coins and you earn 5!"
       }
     },
     "userMenu": {
@@ -138,6 +138,7 @@
         "exploreSpaces": "Spaces & Locations",
         "exploreThoughts": "Thoughts",
         "explorePeople": "People",
+        "logout": "Logout",
         "markAllRead": "Mark all as read",
         "viewProfile": "View Profile"
       },
@@ -153,6 +154,10 @@
         "notifications": "Notifications",
         "profileSettings": "Profile Settings"
       }
+    },
+    "messagingContainer": {
+      "panelTitle": "Messaging",
+      "noRecentConversations": "No recent conversations"
     }
   },
   "pages": {
@@ -232,7 +237,33 @@
       "subtitle": "Discover moments, spaces, thoughts, and people in your community",
       "recentContent": "Recent Content",
       "viewAll": "View all",
-      "noResults": "Nothing to show yet. Check back later for new content."
+      "noResults": "Nothing to show yet. Check back later for new content.",
+      "categories": {
+        "momentsTitle": "Moments",
+        "momentsDescription": "Photos, stories, and experiences shared by the community",
+        "spacesTitle": "Spaces",
+        "spacesDescription": "Local businesses, venues, and points of interest",
+        "thoughtsTitle": "Thoughts",
+        "thoughtsDescription": "Ideas, observations, and conversations",
+        "peopleTitle": "People",
+        "peopleDescription": "Discover creators, businesses, and community members"
+      }
+    },
+    "navigation": {
+      "home": "Home",
+      "explore": "Explore",
+      "locations": "Locations",
+      "posts": "Posts",
+      "moments": "Moments",
+      "thoughts": "Thoughts",
+      "spaces": "Spaces",
+      "users": "Users",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {pageNumber}",
+      "search": "Search",
+      "clear": "Clear",
+      "redirectingToSpaces": "Redirecting to spaces directory..."
     },
     "exploreMoments": {
       "pageTitle": "Explore Moments",
@@ -472,6 +503,13 @@
       },
       "ctaHeading": "Unlock the Full Experience",
       "ctaInfo": "Love what you see? The mobile app takes it further — with real-time location discovery, push notifications, rewards, and more. Download for free and never miss what's happening around you."
+    },
+    "inviteLanding": {
+      "title": "{username} invited you to Therr!",
+      "description": "Join the local community and rewards app. Sign up with their invite code and you both earn rewards!",
+      "joinButton": "Join Now & Earn 5 Coins",
+      "appStoreText": "Also available on mobile",
+      "returnHome": "Return to home page"
     },
     "viewSpace": {
       "pageTitle": ""

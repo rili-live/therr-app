@@ -11,12 +11,11 @@ import {
     Text,
     Title,
 } from '@mantine/core';
-import translator from '../../services/translator';
+import useTranslation from '../../hooks/useTranslation';
 import Tile from './Tile';
 
-const translate = (key: string, params?: any) => translator('en-us', key, params);
-
 const Discovered: React.FC = () => {
+    const { t: translate } = useTranslation();
     const dispatch = useDispatch();
     const content = useSelector((state: any) => state.content);
     const user = useSelector((state: any) => state.user);

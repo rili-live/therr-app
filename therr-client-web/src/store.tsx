@@ -24,9 +24,19 @@ function safelyParse(input: any) {
 }
 
 // Get stored user details from session storage if they are already logged in
+const safeParse = (key: string, storage: Storage) => {
+    try {
+        return JSON.parse(storage.getItem(key) as string);
+    } catch (e) {
+        storage.removeItem(key);
+        return null;
+    }
+};
 if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
-    const storedSocketDetails = JSON.parse(localStorage.getItem('therrSession')) || JSON.parse(sessionStorage.getItem('therrSession'));
-    let storedUser = JSON.parse(localStorage.getItem('therrUser')) || JSON.parse(sessionStorage.getItem('therrUser'));
+    const storedSocketDetails = safeParse('therrSession', localStorage) || safeParse('therrSession', sessionStorage);
+    let storedUser = safeParse('therrUser', localStorage) || safeParse('therrUser', sessionStorage);
+    const storedSettings = safeParse('therrUserSettings', localStorage)
+        || safeParse('therrUserSettings', sessionStorage);
     storedUser = storedUser || {};
     const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
     const reloadedState: any = {
@@ -34,7 +44,7 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
             details: storedUser,
             isAuthenticated,
             settings: {
-                locale: 'en-us',
+                locale: storedSettings?.settingsLocale || storedSettings?.locale || 'en-us',
                 mobileThemeName: 'retro',
             },
             socketDetails: {

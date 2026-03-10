@@ -53,8 +53,10 @@ export default ({
     handleJoinGroup,
     user,
 }) => {
+    const [isJoining, setIsJoining] = React.useState(false);
     const membershipStatus = user?.myUserGroups[group.id]?.status || '';
     const onPressJoinGroup = () => {
+        setIsJoining(true);
         handleJoinGroup(group);
     };
     const unreadMsgCount = 0;
@@ -118,6 +120,8 @@ export default ({
                                     ? 'menus.connections.buttons.accept'
                                     : 'menus.connections.buttons.join')
                             }
+                            loading={isJoining}
+                            disabled={isJoining}
                         />
                 }
             </View>

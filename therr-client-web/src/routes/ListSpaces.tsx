@@ -11,8 +11,8 @@ import {
 } from '@mantine/core';
 import { MantineSearchBox } from 'therr-react/components/mantine';
 import { ILocationState } from '../types/redux/location';
-import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 export const DEFAULT_ITEMS_PER_PAGE = 50;
 export const DEFAULT_LATITUDE = 37.1261664; // Middle of U.S. - TODO: Use browser location
@@ -48,6 +48,7 @@ interface IStoreProps extends IListSpacesDispatchProps {
 
 // Regular component props
 interface IListSpacesProps extends IListSpacesRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
 }
 
 interface IListSpacesState {
@@ -72,8 +73,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * ListSpaces
  */
 export class ListSpacesComponent extends React.Component<IListSpacesProps, IListSpacesState> {
-    private translate: Function;
-
     constructor(props: IListSpacesProps) {
         super(props);
 
@@ -82,8 +81,6 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             searchQuery: '',
             isSearching: false,
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
@@ -91,7 +88,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         const { pageNumber: pn } = routeParams;
         const pageNumberStr = pn || '1';
 
-        document.title = `Therr | ${this.translate('pages.spaces.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
 
         const isValidPage = !Number.isNaN(pageNumberStr) && !Number.isNaN(parseInt(pageNumberStr, 10));
         if (!isValidPage) {
@@ -207,7 +204,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
         // For unauthenticated users, all listed spaces are public
         if (!isAuthenticated) {
-            return <Badge variant="light" color="green" size="sm">{this.translate('pages.spaces.public')}</Badge>;
+            return <Badge variant="light" color="green" size="sm">{this.props.translate('pages.spaces.public')}</Badge>;
         }
 
         const isOwner = space.fromUserId && space.fromUserId === user?.details?.id;
@@ -215,17 +212,17 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         if (isOwner) {
             return (
                 <Group gap={4}>
-                    <Badge variant="light" color="blue" size="sm">{this.translate('pages.spaces.yours')}</Badge>
-                    {!space.isPublic && <Badge variant="light" color="orange" size="sm">{this.translate('pages.spaces.private')}</Badge>}
+                    <Badge variant="light" color="blue" size="sm">{this.props.translate('pages.spaces.yours')}</Badge>
+                    {!space.isPublic && <Badge variant="light" color="orange" size="sm">{this.props.translate('pages.spaces.private')}</Badge>}
                 </Group>
             );
         }
 
         if (space.isPublic === false) {
-            return <Badge variant="light" color="orange" size="sm">{this.translate('pages.spaces.private')}</Badge>;
+            return <Badge variant="light" color="orange" size="sm">{this.props.translate('pages.spaces.private')}</Badge>;
         }
 
-        return <Badge variant="light" color="green" size="sm">{this.translate('pages.spaces.public')}</Badge>;
+        return <Badge variant="light" color="green" size="sm">{this.props.translate('pages.spaces.public')}</Badge>;
     }
 
     renderSpaceCard(space: any): JSX.Element {
@@ -285,7 +282,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                 <Stack gap="lg" p="xl" maw={800} mx="auto">
                     <div>
                         <Title order={1} mb="xs">
-                            {this.translate('pages.spaces.header1')}
+                            {this.props.translate('pages.spaces.header1')}
                         </Title>
                         {!isAuthenticated && (
                             <Text size="sm" c="dimmed">
@@ -303,7 +300,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                             value={searchQuery}
                             onChange={this.handleSearchChange}
                             onSearch={this.handleSearch}
-                            placeholder={this.translate('pages.spaces.searchPlaceholder')}
+                            placeholder={this.props.translate('pages.spaces.searchPlaceholder')}
                             style={{ flex: 1 }}
                         />
                         {searchQuery && (
@@ -318,7 +315,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     {!isSearching && spacesArray.length === 0 && (
                         <Paper withBorder p="xl" radius="md">
                             <Text ta="center" c="dimmed">
-                                {this.translate('pages.spaces.noResults')}
+                                {this.props.translate('pages.spaces.noResults')}
                             </Text>
                         </Paper>
                     )}
@@ -332,12 +329,12 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     <Group justify="center" gap="md">
                         {pageNumber > 1 && (
                             <Button component={Link} to={`/locations/${pageNumber - 1}`} variant="outline" size="sm">
-                                {this.translate('pages.spaces.previousPage', { pageNumber: pageNumber - 1 })}
+                                {this.props.translate('pages.spaces.previousPage', { pageNumber: pageNumber - 1 })}
                             </Button>
                         )}
                         {spacesArray.length >= itemsPerPage && (
                             <Button component={Link} to={`/locations/${pageNumber + 1}`} variant="outline" size="sm">
-                                {this.translate('pages.spaces.nextPage', { pageNumber: pageNumber + 1 })}
+                                {this.props.translate('pages.spaces.nextPage', { pageNumber: pageNumber + 1 })}
                             </Button>
                         )}
                     </Group>
@@ -345,7 +342,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     {/* Compact App Download CTA */}
                     <Paper withBorder p="sm" radius="md" mt="md">
                         <Group justify="center" gap="md" wrap="wrap">
-                            <Text size="sm" c="dimmed">{this.translate('pages.home.info')}</Text>
+                            <Text size="sm" c="dimmed">{this.props.translate('pages.home.info')}</Text>
                             <Group gap="xs" className="store-image-links">
                                 <Anchor href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
                                     <Image
@@ -372,4 +369,4 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(ListSpacesComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(ListSpacesComponent)));

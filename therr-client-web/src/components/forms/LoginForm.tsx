@@ -5,7 +5,7 @@ import {
     MantineButton,
     MantineInput,
 } from 'therr-react/components/mantine';
-import translator from '../../services/translator';
+import withTranslation from '../../wrappers/withTranslation';
 
 // Regular component props
 interface ILoginFormProps {
@@ -14,6 +14,7 @@ interface ILoginFormProps {
     login: Function;
     title?: string;
     className?: string;
+    translate: (key: string, params?: any) => string;
 }
 
 interface ILoginFormState {
@@ -26,8 +27,6 @@ interface ILoginFormState {
  * LoginForm
  */
 export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginFormState> {
-    private translate: (key: string, params?: any) => string;
-
     constructor(props: ILoginFormProps) {
         super(props);
 
@@ -38,8 +37,6 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
             prevLoginError: '',
             isSubmitting: false,
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     isLoginFormDisabled() {
@@ -71,20 +68,20 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                         } else if (error.statusCode === 403
                             && error.message === 'One-time password has expired') {
                             this.setState({
-                                prevLoginError: this.translate(
+                                prevLoginError: this.props.translate(
                                     'components.loginForm.oneTimePasswordExpired',
                                 ),
                             });
                         } else if (error.statusCode === 429
                             && error.message === 'Too many login attempts, please try again later.') {
                             this.setState({
-                                prevLoginError: this.translate(
+                                prevLoginError: this.props.translate(
                                     'components.loginForm.tooManyRequests',
                                 ),
                             });
                         } else {
                             this.setState({
-                                prevLoginError: this.translate(
+                                prevLoginError: this.props.translate(
                                     'components.loginForm.backendErrorMessage',
                                 ),
                             });
@@ -131,7 +128,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                 <div className="flex fill max-wide-20">
                     <Stack gap="sm">
                         <h1 className="text-title-medium">
-                            {title || this.translate('components.loginForm.defaultTitle')}
+                            {title || this.props.translate('components.loginForm.defaultTitle')}
                         </h1>
                         {
                             alert && !prevLoginError
@@ -159,9 +156,9 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                             value={this.state.inputs.userName}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
-                            translateFn={this.translate}
+                            translateFn={this.props.translate}
                             validations={['isRequired']}
-                            label={this.translate('components.loginForm.labels.userName')}
+                            label={this.props.translate('components.loginForm.labels.userName')}
                         />
 
                         <MantineInput
@@ -171,15 +168,15 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                             value={this.state.inputs.password}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
-                            label={this.translate('components.loginForm.labels.password')}
-                            translateFn={this.translate}
+                            label={this.props.translate('components.loginForm.labels.password')}
+                            translateFn={this.props.translate}
                             validations={['isRequired']}
                         />
 
                         <div className="form-field text-right" style={{ paddingTop: '.5rem' }}>
                             <MantineButton
                                 id="login_button"
-                                text={this.translate('components.loginForm.buttons.login')}
+                                text={this.props.translate('components.loginForm.buttons.login')}
                                 onClick={this.onSubmit}
                                 disabled={this.isLoginFormDisabled()}
                                 fullWidth
@@ -188,11 +185,11 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
 
                         <div className="text-center" style={{ padding: '1rem 0 0' }}>
                             <Link to="/register">
-                                {this.translate('components.loginForm.buttons.signUp')}
+                                {this.props.translate('components.loginForm.buttons.signUp')}
                             </Link>
                             {' | '}
                             <Link to="/reset-password">
-                                {this.translate('components.loginForm.buttons.forgotPassword')}
+                                {this.props.translate('components.loginForm.buttons.forgotPassword')}
                             </Link>
                         </div>
                     </Stack>
@@ -202,4 +199,4 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
     }
 }
 
-export default LoginFormComponent;
+export default withTranslation(LoginFormComponent);

@@ -61,7 +61,9 @@
     "updated": "Updated!",
     "exitedGroup": "You have left the group",
     "joinedGroup": "You joined the group",
-    "waitlistSuccess": "Registration Success!"
+    "waitlistSuccess": "Registration Success!",
+    "reactionSent": "Reaction Sent!",
+    "reactionFailed": "Reaction Failed"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
@@ -275,6 +277,12 @@
       "noUsersFound": "No users found",
       "title": "All Contacts"
     },
+    "referralStats": {
+      "title": "Your Referrals",
+      "friendsJoined": "{count} friend(s) joined with your invite code",
+      "coinsEarned": "You've earned {count} TherrCoin(s) from referrals",
+      "shareLink": "Share Your Invite Link"
+    },
     "header": {
       "buttons": {
         "login": "Login"
@@ -378,7 +386,7 @@
         "email": "Invitee's E-mail"
       },
       "shareLink": {
-        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 https://www.therr.com/register?invite-code={inviteCode}",
+        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 https://www.therr.com/invite/{inviteCode}",
         "title": "Therr App | Local Community & Rewards App"
       }
     },
@@ -462,6 +470,7 @@
       "buttons": {
         "addImage": "Attach an Image",
         "replaceImage": "Replace Image",
+        "removeImage": "Remove Image",
         "captureNew": "Capture a New Photo",
         "selectExisting": "Select an Existing Photo",
         "back": "Back",
@@ -501,6 +510,7 @@
       "buttons": {
         "addImage": "Attach an Image",
         "replaceImage": "Replace Image",
+        "removeImage": "Remove Image",
         "captureNew": "Capture a New Photo",
         "selectExisting": "Select an Existing Photo",
         "draft": "Draft",
@@ -567,6 +577,7 @@
       "buttons": {
         "addImage": "Attach an Image",
         "replaceImage": "Replace Image",
+        "removeImage": "Remove Image",
         "captureNew": "Capture a New Photo",
         "next": "Next",
         "back": "Back",
@@ -679,7 +690,8 @@
       "backendErrorMessage": "Connection error. Please try again later.",
       "subtitles": {
         "disclaimer": "By creating an account, you agree to our ",
-        "and": " and "
+        "and": " and ",
+        "inviteCodeHint": "Enter a friend's invite code - they earn 10 coins and you earn 5!"
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
@@ -736,6 +748,7 @@
         "hideReportedContent": "Hide Mature Content",
         "showReportedContent": "Show Mature Content",
         "bio": "Your bio...",
+        "bioHeader": "Bio",
         "businessAccount": "Business",
         "creatorAccount": "Creator",
         "personalAccount": "Personal"
@@ -1123,7 +1136,15 @@
       "pageHeaderPicture": "Profile Picture",
       "pageSubHeaderPicture": "Skipping this step defaults to a random robo-image.",
       "pageHeaderInterests": "Choose your interests",
-      "pageSubHeaderInterests": "Your shared interests determine content discovery and friendships"
+      "pageSubHeaderInterests": "Your shared interests determine content discovery and friendships",
+      "pageHeaderInvite": "Invite Friends",
+      "pageSubHeaderInvite": "Invite friends to get started together!",
+      "inviteFriends": {
+        "description": "Invite 3 friends to earn the Socialite achievement and unlock rewards!",
+        "shareLink": "Share a Link",
+        "syncContacts": "Sync Contacts",
+        "skip": "Skip for Now"
+      }
     },
     "cropImage": {
       "headerTitle": "Crop Image"
@@ -1408,11 +1429,30 @@
     "phoneContacts": {
       "headerTitle": "Phone Contacts",
       "pageTitle": "Phone Contacts",
+      "sections": {
+        "onApp": "Friends Already on Therr",
+        "notOnApp": "Invite to Therr"
+      },
+      "buttons": {
+        "connect": "Connect",
+        "invite": "Invite",
+        "inviteSelected": "Invite Selected"
+      },
+      "empty": {
+        "onApp": "None of your contacts are on Therr yet",
+        "notOnApp": "All your contacts are already on Therr!"
+      },
+      "inviteMessage": "Hey! Join me on Therr, a local social network for discovering what's around you. Sign up with my invite link: https://www.therr.com/invite/{{inviteCode}}",
+      "inviteSubject": "Join me on Therr!",
       "alertTitles": {
-        "contactInvitesSent": "Invite Success"
+        "contactInvitesSent": "Invite Success",
+        "connectRequestSent": "Connect Request Sent",
+        "noContactsSelected": "No Contacts Selected"
       },
       "alertMessages": {
-        "contactInvitesSent": "Your invites are on the way"
+        "contactInvitesSent": "Your invites are on the way",
+        "connectRequestSent": "Your connection request has been sent",
+        "noContactsSelected": "Please select at least one contact to invite"
       }
     },
     "register": {
@@ -1638,6 +1678,18 @@
         "map": "Tap anywhere on the map to explore nearby spaces. Check in, share moments, and earn rewards at participating locations!",
         "matchUp": "Ready for something new? \"Match Up\" pairs you with nearby friends and suggests great local spots for your next outing.",
         "menu": "Track your achievements, redeem points for real rewards, and access messages, drafts, and account settings."
+      }
+    },
+    "sharePrompt": {
+      "share": "Share",
+      "notNow": "Not Now",
+      "momentCreated": {
+        "header": "Moment Created!",
+        "message": "Share this moment with friends and invite them to join you on Therr!"
+      },
+      "achievementEarned": {
+        "header": "Achievement Earned!",
+        "message": "Share your achievement with friends!"
       }
     }
   },

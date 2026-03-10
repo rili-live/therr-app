@@ -598,6 +598,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     themeForms={this.themeForms}
                                 />
+                                <Text style={this.theme.styles.sectionTitle}>{this.translate('forms.settings.labels.bioHeader')}</Text>
                                 <RoundTextInput
                                     placeholder={this.translate(
                                         'forms.settings.labels.bio'

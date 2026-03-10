@@ -4,7 +4,7 @@ import {
     MantineButton,
     MantineInput,
 } from 'therr-react/components/mantine';
-import translator from '../../services/translator';
+import withTranslation from '../../wrappers/withTranslation';
 
 // Regular component props
 interface IVerifyPhoneCodeFormProps {
@@ -12,6 +12,7 @@ interface IVerifyPhoneCodeFormProps {
   onSubmit: Function;
   onSubmitVerify: Function;
   title: string;
+  translate: (key: string, params?: any) => string;
 }
 
 interface IVerifyPhoneCodeFormState {
@@ -22,8 +23,6 @@ interface IVerifyPhoneCodeFormState {
  * VerifyPhoneCodeForm
  */
 export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCodeFormProps, IVerifyPhoneCodeFormState> {
-    private translate: (key: string, params?: any) => string;
-
     constructor(props: IVerifyPhoneCodeFormProps) {
         super(props);
 
@@ -32,8 +31,6 @@ export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCo
                 phoneNumber: '',
             },
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     isFormDisabled() {
@@ -82,21 +79,21 @@ export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCo
                             value={this.state.inputs.verificationCode}
                             onChange={this.onInputChange}
                             onEnter={this.onSubmit}
-                            translateFn={this.translate}
+                            translateFn={this.props.translate}
                             validations={['isRequired']}
-                            label={this.translate('components.createProfileForm.labels.verificationCode')}
+                            label={this.props.translate('components.createProfileForm.labels.verificationCode')}
                         />
 
                         <div className="form-field flex-box space-between row">
                             <MantineButton
                                 id="resend_phone"
-                                text={this.translate('components.createProfileForm.buttons.resend')}
+                                text={this.props.translate('components.createProfileForm.buttons.resend')}
                                 onClick={this.onResendCode}
                                 variant="outline"
                             />
                             <MantineButton
                                 id="verify_phone"
-                                text={this.translate('components.createProfileForm.buttons.submit')}
+                                text={this.props.translate('components.createProfileForm.buttons.submit')}
                                 onClick={this.onSubmit}
                                 disabled={this.isFormDisabled()}
                             />
@@ -108,4 +105,4 @@ export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCo
     }
 }
 
-export default VerifyPhoneCodeFormComponent;
+export default withTranslation(VerifyPhoneCodeFormComponent);

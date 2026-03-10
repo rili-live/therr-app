@@ -94,7 +94,7 @@ class UsersActions {
         const userSettingsData: IUserSettings = {
             id, // Included because userSettings persists even after logout. This helps prevent cross-user contamination
             userName, // Included because userSettings persists even after logout. This helps prevent cross-user contamination
-            locale: 'en-us',
+            locale: settingsLocale || 'en-us',
             integrations,
             mobileThemeName: settingsThemeName || 'light',
             rememberMe,
@@ -137,7 +137,7 @@ class UsersActions {
                 blockedUsers,
             } = response && response.data;
             // TODO: Dispatch event to filter blocked users from content display
-            const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
+            const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || '{}');
             const userData: IUser = {
                 ...userDetails,
                 ...response.data,
@@ -443,10 +443,10 @@ class UsersActions {
         } = response?.data || {};
         // TODO: Determine if it is necessary to dispatch anything after user registers
         // set current user?
-        const sessionUserDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
-        const localUserDetails = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || {});
-        const sessionUserSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || {});
-        const localUserSettings = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUserSettings') || {});
+        const sessionUserDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || '{}');
+        const localUserDetails = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUser') || '{}');
+        const sessionUserSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || '{}');
+        const localUserSettings = JSON.parse(await (this.NativeStorage || localStorage).getItem('therrUserSettings') || '{}');
         const userData: IUser = {
             ...localUserDetails,
             ...sessionUserDetails,
@@ -456,7 +456,7 @@ class UsersActions {
         const userSettingsData: IUser = {
             ...localUserSettings,
             ...sessionUserSettings,
-            locale: 'en-us',
+            locale: settingsLocale || 'en-us',
             mobileThemeName: settingsThemeName || 'light',
             settingsBio,
             settingsTherrCoinTotal,
@@ -556,8 +556,8 @@ class UsersActions {
 
     claimMyAchievement = (id: string, coins: number | string) => (dispatch: any) => UsersService
         .claimMyAchievement(id).then(async (response) => {
-            const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
-            const userSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || {});
+            const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || '{}');
+            const userSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || '{}');
             const userData: IUser = {
                 ...userDetails,
                 settingsTherrCoinTotal: parseFloat(coins as string || '0') + parseFloat(userDetails.settingsTherrCoinTotal || '0'),

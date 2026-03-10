@@ -6,9 +6,9 @@ import {
     MantineCheckbox,
 } from 'therr-react/components/mantine';
 import { UsersService } from 'therr-react/services';
-import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 interface IEmailPreferencesRouterProps {
     location: Location;
@@ -21,7 +21,9 @@ interface IEmailPreferencesDispatchProps {
 // Add your dispatcher properties here
 }
 
-interface IEmailPreferencesProps extends IEmailPreferencesRouterProps, IEmailPreferencesDispatchProps {}
+interface IEmailPreferencesProps extends IEmailPreferencesRouterProps, IEmailPreferencesDispatchProps {
+    translate: (key: string, params?: any) => string;
+}
 
 interface IEmailPreferencesState {
     alertMessage: string;
@@ -47,8 +49,6 @@ const envVars = globalConfig[process.env.NODE_ENV];
  * EmailPreferences
  */
 export class EmailPreferencesComponent extends React.Component<IEmailPreferencesProps, IEmailPreferencesState> {
-    private translate: Function;
-
     constructor(props: IEmailPreferencesProps & IEmailPreferencesDispatchProps) {
         super(props);
 
@@ -68,12 +68,10 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                 settingsEmailBackground: true,
             },
         };
-
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.emailPreferences.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.emailPreferences.pageTitle')}`;
         const { location } = this.props;
 
         const urlParams = new URLSearchParams(location?.search);
@@ -106,12 +104,12 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
             .catch((error) => {
                 if (error.message === 'User not found') {
                     this.setState({
-                        alertMessage: this.translate('pages.emailPreferences.failedMessageUserNotFound'),
+                        alertMessage: this.props.translate('pages.emailPreferences.failedMessageUserNotFound'),
                         alertVariation: 'warning',
                     });
                 } else {
                     this.setState({
-                        alertMessage: this.translate('pages.emailPreferences.failedToFetchMessage'),
+                        alertMessage: this.props.translate('pages.emailPreferences.failedToFetchMessage'),
                         alertVariation: 'error',
                     });
                 }
@@ -119,7 +117,7 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                 if (error?.statusCode === 401 || error?.statusCode === 403 || error?.message === 'invalid token') {
                     this.props.navigation.navigate('/login', {
                         state: {
-                            errorMessage: this.translate('pages.emailPreferences.failedTokenMessage'),
+                            errorMessage: this.props.translate('pages.emailPreferences.failedTokenMessage'),
                         },
                     });
                 }
@@ -161,19 +159,19 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
         UsersService.updateSubscriptionPreferences(inputs, urlParams.get('emailToken'))
             .then(() => {
                 this.setState({
-                    alertMessage: this.translate('pages.emailPreferences.successMessage'),
+                    alertMessage: this.props.translate('pages.emailPreferences.successMessage'),
                     alertVariation: 'success',
                 });
             })
             .catch((error) => {
                 if (error.message === 'User not found') {
                     this.setState({
-                        alertMessage: this.translate('pages.emailPreferences.failedMessageUserNotFound'),
+                        alertMessage: this.props.translate('pages.emailPreferences.failedMessageUserNotFound'),
                         alertVariation: 'warning',
                     });
                 } else {
                     this.setState({
-                        alertMessage: this.translate('pages.emailPreferences.failedToUpdateMessage'),
+                        alertMessage: this.props.translate('pages.emailPreferences.failedToUpdateMessage'),
                         alertVariation: 'error',
                     });
                 }
@@ -204,7 +202,7 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                 <div className="register-container">
                     <div className="flex fill max-wide-30">
                         <Stack gap="sm">
-                            <h1 className="text-center">{this.translate('pages.emailPreferences.pageTitle')}</h1>
+                            <h1 className="text-center">{this.props.translate('pages.emailPreferences.pageTitle')}</h1>
                             {
                                 alertMessage
                                 && <Alert
@@ -215,11 +213,11 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                                 </Alert>
                             }
 
-                            <h4>{this.translate('pages.emailPreferences.sectionHeaders.marketing')}:</h4>
+                            <h4>{this.props.translate('pages.emailPreferences.sectionHeaders.marketing')}:</h4>
                             <MantineCheckbox
                                 id="settingsEmailMarketing"
                                 name="settingsEmailMarketing"
-                                label={this.translate('pages.emailPreferences.labels.settingsEmailMarketing')}
+                                label={this.props.translate('pages.emailPreferences.labels.settingsEmailMarketing')}
                                 isChecked={inputs.settingsEmailMarketing}
                                 onChange={this.onCheckboxChange}
                                 disabled={isLoading}
@@ -227,17 +225,17 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                             <MantineCheckbox
                                 id="settingsEmailBusMarketing"
                                 name="settingsEmailBusMarketing"
-                                label={this.translate('pages.emailPreferences.labels.settingsEmailBusMarketing')}
+                                label={this.props.translate('pages.emailPreferences.labels.settingsEmailBusMarketing')}
                                 isChecked={inputs.settingsEmailBusMarketing}
                                 onChange={this.onCheckboxChange}
                                 disabled={isLoading}
                             />
 
-                            <h4>{this.translate('pages.emailPreferences.sectionHeaders.social')}:</h4>
+                            <h4>{this.props.translate('pages.emailPreferences.sectionHeaders.social')}:</h4>
                             <MantineCheckbox
                                 id="settingsEmailLikes"
                                 name="settingsEmailLikes"
-                                label={this.translate('pages.emailPreferences.labels.settingsEmailLikes')}
+                                label={this.props.translate('pages.emailPreferences.labels.settingsEmailLikes')}
                                 isChecked={inputs.settingsEmailLikes}
                                 onChange={this.onCheckboxChange}
                                 disabled={isLoading}
@@ -245,7 +243,7 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                             <MantineCheckbox
                                 id="settingsEmailInvites"
                                 name="settingsEmailInvites"
-                                label={this.translate('pages.emailPreferences.labels.settingsEmailInvites')}
+                                label={this.props.translate('pages.emailPreferences.labels.settingsEmailInvites')}
                                 isChecked={inputs.settingsEmailInvites}
                                 onChange={this.onCheckboxChange}
                                 disabled={isLoading}
@@ -253,7 +251,7 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                             <MantineCheckbox
                                 id="settingsEmailMentions"
                                 name="settingsEmailMentions"
-                                label={this.translate('pages.emailPreferences.labels.settingsEmailMentions')}
+                                label={this.props.translate('pages.emailPreferences.labels.settingsEmailMentions')}
                                 isChecked={inputs.settingsEmailMentions}
                                 onChange={this.onCheckboxChange}
                                 disabled={isLoading}
@@ -261,7 +259,7 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                             <MantineCheckbox
                                 id="settingsEmailMessages"
                                 name="settingsEmailMessages"
-                                label={this.translate('pages.emailPreferences.labels.settingsEmailMessages')}
+                                label={this.props.translate('pages.emailPreferences.labels.settingsEmailMessages')}
                                 isChecked={inputs.settingsEmailMessages}
                                 onChange={this.onCheckboxChange}
                                 disabled={isLoading}
@@ -269,7 +267,7 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                             <MantineCheckbox
                                 id="settingsEmailReminders"
                                 name="settingsEmailReminders"
-                                label={this.translate('pages.emailPreferences.labels.settingsEmailReminders')}
+                                label={this.props.translate('pages.emailPreferences.labels.settingsEmailReminders')}
                                 isChecked={inputs.settingsEmailReminders}
                                 onChange={this.onCheckboxChange}
                                 disabled={isLoading}
@@ -277,7 +275,7 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                             <MantineCheckbox
                                 id="settingsEmailBackground"
                                 name="settingsEmailBackground"
-                                label={this.translate('pages.emailPreferences.labels.settingsEmailBackground')}
+                                label={this.props.translate('pages.emailPreferences.labels.settingsEmailBackground')}
                                 isChecked={inputs.settingsEmailBackground}
                                 onChange={this.onCheckboxChange}
                                 disabled={isLoading}
@@ -286,7 +284,7 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                             <div className="form-field text-right">
                                 <MantineButton
                                     id="email"
-                                    text={this.translate('pages.emailPreferences.buttons.send')}
+                                    text={this.props.translate('pages.emailPreferences.buttons.send')}
                                     onClick={this.onSubmit}
                                     disabled={isLoading}
                                     fullWidth
@@ -294,7 +292,7 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
                             </div>
 
                             <div className="text-center">
-                                <Link to="/login">{this.translate('pages.emailPreferences.returnToLogin')}</Link>
+                                <Link to="/login">{this.props.translate('pages.emailPreferences.returnToLogin')}</Link>
                             </div>
                         </Stack>
                     </div>
@@ -304,4 +302,4 @@ export class EmailPreferencesComponent extends React.Component<IEmailPreferences
     }
 }
 
-export default withNavigation(EmailPreferencesComponent);
+export default withNavigation(withTranslation(EmailPreferencesComponent));

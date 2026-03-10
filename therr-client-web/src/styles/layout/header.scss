@@ -61,6 +61,21 @@ header {
         padding-right: 1rem;
     }
 
+    .locale-switcher.mantine-ActionIcon-root {
+        display: flex;
+        align-items: center;
+        gap: .2rem;
+        width: auto;
+        padding-right: .35rem;
+
+        .locale-label {
+            font-size: rem-calc(12px);
+            font-weight: 600;
+            line-height: 1;
+            padding-right: .5rem;
+        }
+    }
+
     .mantine-ActionIcon-root {
         color: $therr-white;
     }

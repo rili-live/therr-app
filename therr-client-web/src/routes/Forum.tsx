@@ -17,8 +17,8 @@ import {
     IMessagesState,
     IUserState,
 } from 'therr-react/types';
-import translator from '../services/translator';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 
 const userColors: any = {}; // local state
 
@@ -113,6 +113,7 @@ interface IStoreProps extends IForumDispatchProps {
 // Regular component props
 interface IForumProps extends IStoreProps {
     location: any;
+    translate: (key: string, params?: any) => string;
 }
 
 interface IForumState {
@@ -154,8 +155,6 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
     private messageInputRef: any;
 
-    private translate: (key: string, params?: any) => string;
-
     // private sessionToken: string;
 
     constructor(props: IForumProps) {
@@ -168,12 +167,11 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         };
 
         this.messageInputRef = React.createRef();
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() {
         const { isFirstLoad } = this.state;
-        document.title = `Therr | ${this.translate('pages.chatForum.pageTitle')}`;
+        document.title = `Therr | ${this.props.translate('pages.chatForum.pageTitle')}`;
         this.messageInputRef.current?.focus();
         // if (isFirstLoad) {
         //     verifyAndJoinForum(this.props);
@@ -247,7 +245,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                     <Stack gap="md" style={{ minHeight: 'calc(100vh - 200px)' }}>
                         <Card shadow="sm" padding="lg" radius="md" withBorder>
                             <Title order={2} id="forumTitle">
-                                {this.translate('pages.chatForum.pageTitle')}: {roomName}
+                                {this.props.translate('pages.chatForum.pageTitle')}: {roomName}
                             </Title>
                         </Card>
 
@@ -260,7 +258,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                                                 forumMessages.map((msg: IForumMsg, index) => renderMessage(msg, index, user))
                                             }
                                         </div>
-                                        : <Text c="dimmed">{this.translate('pages.chatForum.welcome')}</Text>
+                                        : <Text c="dimmed">{this.props.translate('pages.chatForum.welcome')}</Text>
                                 }
                             </div>
                         </Card>
@@ -277,8 +275,8 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                                         value={this.state.inputs.message}
                                         onChange={this.onInputChange}
                                         onEnter={this.onButtonClick}
-                                        placeholder={this.translate('pages.chatForum.inputPlaceholder')}
-                                        translateFn={this.translate}
+                                        placeholder={this.props.translate('pages.chatForum.inputPlaceholder')}
+                                        translateFn={this.props.translate}
                                     />
                                 </div>
                                 <MantineButton
@@ -296,4 +294,4 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 }
 
-export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(ForumComponent));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(ForumComponent)));

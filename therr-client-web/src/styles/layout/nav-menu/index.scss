@@ -223,6 +223,8 @@ $menu-padding: rem-calc(24px);
                 margin: 0;
                 border-radius: .5rem;
                 transition: background .15s ease;
+                overflow: visible;
+                line-height: 1.5;
 
                 &.right-icon {
                     display: flex;
@@ -232,6 +234,10 @@ $menu-padding: rem-calc(24px);
                         display: none;
                         position: absolute;
                         right: $padding-sides;
+                        background: #fff;
+                        border-radius: 50%;
+                        padding: .25rem;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, .12);
 
                         svg {
                             fill: $therr-primary-2;
@@ -245,7 +251,9 @@ $menu-padding: rem-calc(24px);
 
                     &.right-icon {
                         .inline-svg {
-                            display: inline;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
                         }
                     }
                 }

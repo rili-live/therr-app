@@ -974,18 +974,33 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         return (
             <>
                 <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
-                    {
-                        !!imagePreviewPath &&
-                        <View style={this.themeAreas.styles.mediaContainer}>
-                            <Image
-                                source={{ uri: imagePreviewPath }}
-                                style={[this.themeAreas.styles.mediaImageEvent, {
-                                    width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
-                                }]}
-                                resizeMode="contain"
-                            />
-                        </View>
-                    }
+                    <View style={this.themeAreas.styles.mediaContainer}>
+                        {
+                            imagePreviewPath
+                                ? (
+                                    <Image
+                                        source={{ uri: imagePreviewPath }}
+                                        style={[this.themeAreas.styles.mediaImageEvent, {
+                                            width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                        }]}
+                                        resizeMode="contain"
+                                    />
+                                )
+                                : (
+                                    <LottieView
+                                        source={require('../../assets/missing-image-events.json')}
+                                        resizeMode="contain"
+                                        speed={1}
+                                        autoPlay
+                                        loop={false}
+                                        style={{
+                                            width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
+                                            height: 160,
+                                        }}
+                                    />
+                                )
+                        }
+                    </View>
                     <Button
                         containerStyle={spacingStyles.marginBotMd}
                         buttonStyle={this.themeForms.styles.buttonPrimary}
@@ -1013,6 +1028,24 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                         })}
                         raised={false}
                     />
+                    {
+                        !!imagePreviewPath &&
+                        <Button
+                            containerStyle={spacingStyles.marginBotMd}
+                            buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                            titleStyle={this.themeForms.styles.buttonTitleAlt}
+                            title={this.translate('forms.editEvent.buttons.removeImage')}
+                            icon={
+                                <OctIcon
+                                    name="x"
+                                    size={18}
+                                    style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
+                                />
+                            }
+                            onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                            raised={false}
+                        />
+                    }
                     <Text style={this.theme.styles.sectionDescriptionNote}>
                         {this.translate('forms.editEvent.labels.addImageNote')}
                     </Text>
@@ -1054,15 +1087,17 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                 disableScroll
                             />
                         }
-                        <InputEventName
-                            autoFocus={!!areaId}
-                            translate={this.translate}
-                            onChangeText={(text) =>
-                                this.onInputChange('notificationMsg', text)
-                            }
-                            themeForms={this.themeForms}
-                            value={inputs.notificationMsg}
-                        />
+                        <View style={spacingStyles.marginBotMd}>
+                            <InputEventName
+                                autoFocus={!!areaId}
+                                translate={this.translate}
+                                onChangeText={(text) =>
+                                    this.onInputChange('notificationMsg', text)
+                                }
+                                themeForms={this.themeForms}
+                                value={inputs.notificationMsg}
+                            />
+                        </View>
                         <EventStartEndFormGroup
                             themeForms={this.themeForms}
                             isNightMode={isDarkTheme(user.settings?.mobileThemeName)}
@@ -1071,6 +1106,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             startsAtValue={inputs.scheduleStartAt}
                             stopsAtValue={inputs.scheduleStopAt}
                         />
+                        <View style={spacingStyles.marginBotMd} />
                         <RoundTextInput
                             placeholder={this.translate(
                                 'forms.editEvent.labels.message'

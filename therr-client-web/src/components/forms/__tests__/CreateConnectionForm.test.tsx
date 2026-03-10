@@ -5,7 +5,7 @@ import * as React from 'react';
 import { mount, ReactWrapper } from 'enzyme';
 import { act } from 'react-test-renderer';
 import { MantineProvider } from '@mantine/core';
-import CreateConnectionForm from '../CreateConnectionForm';
+import { CreateConnectionFormComponent as CreateConnectionForm } from '../CreateConnectionForm';
 
 // Mock MantineSelect to avoid Mantine Combobox/Popover hanging in jsdom
 jest.mock('therr-react/components/mantine', () => {
@@ -41,6 +41,7 @@ const getInstance = (wrapper: ReactWrapper) => wrapper.find(CreateConnectionForm
 describe('CreateConnectionForm', () => {
     const defaultProps = {
         createUserConnection: jest.fn().mockResolvedValue({}),
+        translate: (key: string) => key,
         user: {
             details: {
                 id: 'user-123',

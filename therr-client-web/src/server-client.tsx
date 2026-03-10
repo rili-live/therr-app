@@ -165,7 +165,7 @@ app.get('/sitemap.xml', async (req, res) => {
     const today = new Date().toISOString().split('T')[0];
 
     // eslint-disable-next-line max-len
-    const buildUrl = (loc: string, lastmod: string, priority: string) => `  <url>\n    <loc>https://www.therr.com${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n  </url>`;
+    const buildUrl = (loc: string, lastmod: string, priority: string) => `  <url>\n    <loc>https://www.therr.com${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.therr.com${loc}" />\n    <xhtml:link rel="alternate" hreflang="es-MX" href="https://www.therr.com${loc}" />\n    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.therr.com${loc}" />\n  </url>`;
 
     const urls = [
         ...staticUrls.map((u) => buildUrl(u.loc, today, u.priority)),
@@ -173,7 +173,7 @@ app.get('/sitemap.xml', async (req, res) => {
     ];
 
     // eslint-disable-next-line max-len
-    const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
+    const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>`;
 
     sitemapCache = { xml, timestamp: now };
     res.set('Content-Type', 'application/xml');
@@ -200,7 +200,7 @@ app.get('/apple-app-site-association', (req, res) => res.status(200).json(appLin
 const renderMomentView = (req, res, config, {
     markup,
     state,
-}, initialState) => {
+}, initialState, localeVars) => {
     const routePath = config.route;
     const routeView = config.view;
     const title = config.head.title;
@@ -283,13 +283,14 @@ const renderMomentView = (req, res, config, {
         requestPath: req.path,
         routePath,
         state,
+        ...localeVars,
     });
 };
 
 const renderSpaceView = (req, res, config, {
     markup,
     state,
-}, initialState) => {
+}, initialState, localeVars) => {
     const routePath = config.route;
     const routeView = config.view;
     const title = config.head.title;
@@ -449,13 +450,14 @@ const renderSpaceView = (req, res, config, {
         requestPath: req.path,
         routePath,
         state,
+        ...localeVars,
     });
 };
 
 const renderUserView = (req, res, config, {
     markup,
     state,
-}, initialState) => {
+}, initialState, localeVars) => {
     const routePath = config.route;
     const routeView = config.view;
     const title = config.head.title;
@@ -532,13 +534,14 @@ const renderUserView = (req, res, config, {
         requestPath: req.path,
         routePath,
         state,
+        ...localeVars,
     });
 };
 
 const renderLocationsView = (req, res, config, {
     markup,
     state,
-}, initialState) => {
+}, initialState, localeVars) => {
     const routePath = config.route;
     const routeView = config.view;
     const title = config.head.title;
@@ -607,7 +610,49 @@ const renderLocationsView = (req, res, config, {
         requestPath: req.path,
         routePath,
         state,
+        ...localeVars,
     });
+};
+
+const renderInviteView = (req, res, config, {
+    markup,
+    state,
+}, localeVars) => {
+    const routePath = config.route;
+    const routeView = config.view;
+    const rawUsername = req.params?.username || '';
+    const username = rawUsername.replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50);
+    const title = `Join ${username} on Therr App`;
+    const description = `Join the local community & rewards app. Sign up with ${username}'s invite and you both earn rewards!`;
+
+    return res.render(routeView, {
+        title,
+        description,
+        markup,
+        requestPath: req.path,
+        routePath,
+        state,
+        ...localeVars,
+    });
+};
+
+// Locale detection from cookie for SSR
+const localeMap: Record<string, { htmlLang: string; ogLocale: string }> = {
+    'en-us': { htmlLang: 'en-US', ogLocale: 'en_US' },
+    es: { htmlLang: 'es-MX', ogLocale: 'es_MX' },
+};
+const supportedLocales = Object.keys(localeMap);
+
+const getLocaleFromCookie = (cookieHeader?: string): string => {
+    const match = cookieHeader?.match(/therr-locale=([^;]+)/);
+    const locale = match?.[1] || 'en-us';
+    return supportedLocales.includes(locale) ? locale : 'en-us';
+};
+
+const getLocaleVars = (req: express.Request) => {
+    const locale = getLocaleFromCookie(req.headers.cookie);
+    const { htmlLang, ogLocale } = localeMap[locale];
+    return { htmlLang, ogLocale };
 };
 
 // Universal routing and rendering for SEO
@@ -694,32 +739,41 @@ routeConfig.forEach((config) => {
             } else {
                 ReactGA.send({ hitType: 'pageview', page: req.path, title });
 
+                const localeVars = getLocaleVars(req);
+
                 if (routeView === 'moments') {
                     return renderMomentView(req, res, config, {
                         markup,
                         state,
-                    }, initialState);
+                    }, initialState, localeVars);
                 }
 
                 if (routeView === 'locations') {
                     return renderLocationsView(req, res, config, {
                         markup,
                         state,
-                    }, initialState);
+                    }, initialState, localeVars);
                 }
 
                 if (routeView === 'spaces') {
                     return renderSpaceView(req, res, config, {
                         markup,
                         state,
-                    }, initialState);
+                    }, initialState, localeVars);
                 }
 
                 if (routeView === 'users') {
                     return renderUserView(req, res, config, {
                         markup,
                         state,
-                    }, initialState);
+                    }, initialState, localeVars);
+                }
+
+                if (routeView === 'invite') {
+                    return renderInviteView(req, res, config, {
+                        markup,
+                        state,
+                    }, localeVars);
                 }
 
                 return res.render(routeView, {
@@ -729,6 +783,7 @@ routeConfig.forEach((config) => {
                     requestPath: req.path,
                     routePath,
                     state,
+                    ...localeVars,
                 });
             }
         }).catch((err) => {

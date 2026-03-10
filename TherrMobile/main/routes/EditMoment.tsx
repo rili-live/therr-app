@@ -54,6 +54,7 @@ import { sendForegroundNotification, sendTriggerNotification } from '../utilitie
 import { SheetManager } from 'react-native-actions-sheet';
 import TherrIcon from '../components/TherrIcon';
 import ConfirmModal from '../components/Modals/ConfirmModal';
+import SharePromptModal from '../components/Modals/SharePromptModal';
 import SpaceRating from '../components/Input/SpaceRating';
 
 const { width: viewportWidth } = Dimensions.get('window');
@@ -85,6 +86,7 @@ interface IEditMomentState {
     errorMsg: string;
     hashtags: string[];
     isInsufficientFundsModalVisible: boolean;
+    isSharePromptVisible: boolean;
     inputs: any;
     isEditingNearbySpaces: boolean;
     isSliderActive: boolean;
@@ -155,6 +157,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             },
             isEditingNearbySpaces: false,
             isInsufficientFundsModalVisible: false,
+            isSharePromptVisible: false,
             isSliderActive: false,
             isSubmitting: false,
             nearbySpaces: area?.nearbySpacesSnapshot || nearbySpaces || [],
@@ -435,11 +438,18 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         }).catch((err) => console.log(err));
 
                         if (!shouldSkipNavigate) {
-                            setTimeout(() => {
-                                this.props.navigation.navigate('Map', {
-                                    shouldShowPreview: false,
+                            if (!isDraft) {
+                                this.setState({
+                                    isSharePromptVisible: true,
+                                    isSubmitting: false,
                                 });
-                            }, 250);
+                            } else {
+                                setTimeout(() => {
+                                    this.props.navigation.navigate('Map', {
+                                        shouldShowPreview: false,
+                                    });
+                                }, 250);
+                            }
                         } else {
                             this.setState({
                                 areaId: response.id, // so subsequent saves do not create a new area
@@ -639,6 +649,18 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         }));
     };
 
+    onDismissSharePrompt = () => {
+        this.setState({
+            isSharePromptVisible: false,
+        }, () => {
+            setTimeout(() => {
+                this.props.navigation.navigate('Map', {
+                    shouldShowPreview: false,
+                });
+            }, 250);
+        });
+    };
+
     toggleInfoModal = () => {
         this.setState({
             isInsufficientFundsModalVisible: !this.state.isInsufficientFundsModalVisible,
@@ -749,6 +771,24 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         })}
                         raised={false}
                     />
+                    {
+                        !!imagePreviewPath &&
+                        <Button
+                            containerStyle={spacingStyles.marginBotMd}
+                            buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                            titleStyle={this.themeForms.styles.buttonTitleAlt}
+                            title={this.translate('forms.editMoment.buttons.removeImage')}
+                            icon={
+                                <OctIcon
+                                    name="x"
+                                    size={18}
+                                    style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
+                                />
+                            }
+                            onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                            raised={false}
+                        />
+                    }
                     <Text style={this.theme.styles.sectionDescriptionNote}>
                         {this.translate('forms.editMoment.labels.addImageNote')}
                     </Text>
@@ -965,6 +1005,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             previewStyleState,
             isEditingNearbySpaces,
             isInsufficientFundsModalVisible,
+            isSharePromptVisible,
         } = this.state;
         const continueButtonConfig = this.getContinueButtonConfig();
         const iPadDynamicStyles: any = (Platform.OS === 'ios' && Platform.isPad)
@@ -1058,6 +1099,18 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     textConfirm={this.translate('forms.editMoment.buttons.continue')}
                     translate={this.translate}
                     theme={this.theme}
+                    themeModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
+                />
+                <SharePromptModal
+                    isVisible={isSharePromptVisible}
+                    headerText={this.translate('modals.sharePrompt.momentCreated.header')}
+                    message={this.translate('modals.sharePrompt.momentCreated.message')}
+                    shareMessage={this.translate('modals.contentOptions.shareLink.messageMoment', { momentId: this.state.areaId || '' })}
+                    shareUrl={`https://www.therr.com/moments/${this.state.areaId || ''}`}
+                    shareTitle={this.translate('modals.contentOptions.shareLink.titleMoment', { momentTitle: this.state.inputs.notificationMsg || '' })}
+                    onDismiss={this.onDismissSharePrompt}
+                    translate={this.translate}
                     themeModal={this.themeConfirmModal}
                     themeButtons={this.themeButtons}
                 />

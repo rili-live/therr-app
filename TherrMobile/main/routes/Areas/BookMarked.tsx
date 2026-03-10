@@ -228,6 +228,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
                 toggleAreaOptions: this.toggleAreaOptions,
+                translate: this.translate,
             });
         }
     };

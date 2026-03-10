@@ -804,6 +804,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 targetRouteView = 'ViewUser';
             } else if (data.action === PushNotifications.AndroidIntentActions.Therr.UNREAD_NOTIFICATIONS_REMINDER) {
                 targetRouteView = 'Notifications';
+            } else if (data.action === PushNotifications.AndroidIntentActions.Therr.INVITE_FRIENDS_REMINDER) {
+                targetRouteView = 'Invite';
             } else if (data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_INVITE
                 || data.action === PushNotifications.AndroidIntentActions.Therr.NEW_GROUP_MEMBERS) {
                 targetRouteView = 'Groups';
@@ -1396,6 +1398,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         return (
             <NavigationContainer
+                key={this.props.user?.settings?.mobileThemeName || 'light'}
                 theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
                 ref={navigationRef}
                 onReady={() => {

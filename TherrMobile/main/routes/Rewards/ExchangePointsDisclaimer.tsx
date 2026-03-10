@@ -91,12 +91,12 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
     };
 
     isFormDisabled = () => {
-        const { isSubmitting } = this.state;
+        const { inputs, isSubmitting } = this.state;
 
         const dollar = this.getDollarTotal();
 
         // Minimum of $10 exchange
-        return isSubmitting || dollar < DOLLAR_MINIMUM;
+        return isSubmitting || dollar < DOLLAR_MINIMUM || !inputs.giftCardProvider;
     };
 
     onSubmit = () => {

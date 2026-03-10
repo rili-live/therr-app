@@ -75,7 +75,7 @@
     "react-native-blob-util": "^0.19.11",
     "react-native-bootsplash": "^6.3.11",
     "react-native-config": "^1.6.1",
-    "react-native-contacts": "^7.0.8",
+    "react-native-contacts": "^8.0.10",
     "react-native-country-picker-modal": "^2.0.0",
     "react-native-date-picker": "^4.4.2",
     "react-native-device-info": "^10.14.0",

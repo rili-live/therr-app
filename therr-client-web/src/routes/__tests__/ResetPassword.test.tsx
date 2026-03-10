@@ -21,6 +21,7 @@ const getInstance = (wrapper: ReactWrapper) => wrapper.find(ResetPasswordCompone
 describe('ResetPassword', () => {
     const defaultProps = {
         navigation: { navigate: jest.fn() },
+        translate: (key: string) => key,
     };
 
     it('renders without crashing', () => {
@@ -62,7 +63,7 @@ describe('ResetPassword', () => {
         });
         wrapper.update();
 
-        expect(wrapper.text()).toContain('Check your e-mail for a link to reset your password');
+        expect(wrapper.text()).toContain('pages.resetPassword.successMessage');
     });
 
     it('displays error for user not found', () => {
@@ -74,7 +75,7 @@ describe('ResetPassword', () => {
         });
         wrapper.update();
 
-        expect(wrapper.text()).toContain('No user found. Try a different e-mail or create an account to continue.');
+        expect(wrapper.text()).toContain('pages.resetPassword.failedMessageUserNotFound');
     });
 
     it('renders login link', () => {

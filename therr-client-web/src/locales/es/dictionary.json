@@ -1,0 +1,523 @@
+{
+  "branding": {
+    "motto": "Este es nuestro momento, y estos son nuestros espacios. Comparte un momento."
+  },
+  "validations": {
+    "email": "Correo electr\u00f3nico inv\u00e1lido",
+    "isRequired": "Este campo es obligatorio",
+    "password": "La contrase\u00f1a debe contener letra(s), n\u00famero(s) y car\u00e1cter(es) especial(es)",
+    "lettersOnly": "Este campo solo acepta valores alfab\u00e9ticos",
+    "mobilePhoneNumber": "Debe ser un n\u00famero de tel\u00e9fono m\u00f3vil internacional v\u00e1lido que comience con '+'",
+    "numbersOnly": "Este campo solo acepta valores num\u00e9ricos"
+  },
+  "categories": {
+    "uncategorized": "Selecciona una categor\u00eda",
+    "storefront/shop": "Tienda / Comercio",
+    "restaurant/food": "Restaurante / Comida",
+    "bar/drinks": "Bar / Bebidas",
+    "marketplace/festival": "Mercado / Festival",
+    "artwork/expression": "Arte / Expresi\u00f3n",
+    "music/concerts": "M\u00fasica / Conciertos",
+    "nature/parks": "Naturaleza / Parques",
+    "hotels/lodging": "Hoteles / Alojamiento",
+    "event/space": "Espacio de eventos",
+    "art": "Arte",
+    "gaming": "Videojuegos",
+    "geocache": "Geocache",
+    "menu": "Men\u00fa",
+    "music": "M\u00fasica",
+    "deals": "Ofertas / Cupones",
+    "fitness": "Deportes / Fitness",
+    "storefront": "Promoci\u00f3n de tienda",
+    "idea": "Idea / Observaci\u00f3n",
+    "food": "Comida",
+    "nature": "Naturaleza / Parque",
+    "travel": "Viajes / Turismo",
+    "warning": "Advertencia / Alerta",
+    "seasonal": "Temporada / Festividades",
+    "drinks": "Happy Hour / Bebidas",
+    "nightLife": "Vida nocturna / Social",
+    "sports": "Deportes"
+  },
+  "components": {
+    "header": {
+      "buttons": {
+        "login": "Iniciar sesi\u00f3n"
+      }
+    },
+    "footer": {
+      "buttons": {
+        "locations": "Ubicaciones"
+      }
+    },
+    "createProfileForm": {
+      "buttons": {
+        "backToLogin": "Volver al inicio de sesi\u00f3n",
+        "submit": "Continuar",
+        "resend": "Reenviar"
+      },
+      "labels": {
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "mobilePhone": "Tel\u00e9fono m\u00f3vil #",
+        "userName": "Nombre de usuario",
+        "verificationCode": "C\u00f3digo de verificaci\u00f3n"
+      },
+      "validationErrors": {
+        "phoneNumber": "N\u00famero de tel\u00e9fono inv\u00e1lido"
+      }
+    },
+    "loginForm": {
+      "buttons": {
+        "login": "Iniciar sesi\u00f3n",
+        "signUp": "Crear cuenta",
+        "forgotPassword": "\u00bfOlvidaste tu contrase\u00f1a?",
+        "privacyPolicy": "Pol\u00edtica de privacidad",
+        "toc": "T\u00e9rminos y condiciones"
+      },
+      "defaultTitle": "Iniciar sesi\u00f3n",
+      "labels": {
+        "password": "Contrase\u00f1a",
+        "userName": "Usuario / Correo electr\u00f3nico"
+      },
+      "backendErrorMessage": "Error de conexi\u00f3n. Por favor, int\u00e9ntalo de nuevo m\u00e1s tarde.",
+      "oneTimePasswordExpired": "Tu contrase\u00f1a de un solo uso ha expirado.",
+      "tooManyRequests": "Demasiados intentos de inicio de sesi\u00f3n, por favor int\u00e9ntalo de nuevo m\u00e1s tarde."
+    },
+    "messagingContainer": {
+      "conversation": {
+        "to": "Para: {firstName} {lastName}"
+      },
+      "inputPlaceholder": "Escribe un mensaje...",
+      "welcome": "Este es el inicio de una nueva conversaci\u00f3n..."
+    },
+    "messagesMenu": {
+      "buttons": {
+        "createForum": "Crear un chat grupal"
+      },
+      "h2": {
+        "messaging": "Mensajes",
+        "forums": "Chat grupal",
+        "friendRequest": "Solicitud de conexi\u00f3n",
+        "locationMap": "Explorar"
+      },
+      "noActiveConnections": "No hay conexiones activas recientemente"
+    },
+    "registerForm": {
+      "buttons": {
+        "backToLogin": "Volver al inicio de sesi\u00f3n",
+        "register": "Registrarse",
+        "terms": "T\u00e9rminos y condiciones"
+      },
+      "labels": {
+        "newsletter": "\u00bfUnirte a nuestro bolet\u00edn de marketing?",
+        "email": "Correo electr\u00f3nico",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "mobilePhone": "Tel\u00e9fono m\u00f3vil #",
+        "password": "Contrase\u00f1a",
+        "repeatPassword": "Repetir contrase\u00f1a",
+        "termsAndConditions": "Acepto los t\u00e9rminos y condiciones",
+        "userName": "Nombre de usuario",
+        "mySweet": "\u00bfEres dulce?"
+      },
+      "validationErrors": {
+        "phoneNumber": "N\u00famero de tel\u00e9fono inv\u00e1lido"
+      },
+      "text": {
+        "signupForRewards": "Reg\u00edstrate con el c\u00f3digo de invitaci\u00f3n de {userName}: \u00a1ellos ganan 10 monedas y t\u00fa ganas 5!"
+      }
+    },
+    "userMenu": {
+      "buttons": {
+        "changePassword": "Cambiar contrase\u00f1a",
+        "discovered": "Contenido descubierto",
+        "editProfile": "Editar perfil",
+        "explore": "Explorar todo",
+        "exploreMoments": "Momentos",
+        "exploreSpaces": "Espacios y ubicaciones",
+        "exploreThoughts": "Pensamientos",
+        "explorePeople": "Personas",
+        "logout": "Cerrar sesi\u00f3n",
+        "markAllRead": "Marcar todo como le\u00eddo",
+        "viewProfile": "Ver perfil"
+      },
+      "exploreDescriptions": {
+        "moments": "Fotos, historias y experiencias",
+        "spaces": "Negocios y lugares locales",
+        "thoughts": "Ideas y conversaciones",
+        "people": "Creadores y comunidad"
+      },
+      "h2": {
+        "accountSettings": "Configuraci\u00f3n de cuenta",
+        "locationMap": "Explorar",
+        "notifications": "Notificaciones",
+        "profileSettings": "Configuraci\u00f3n de perfil"
+      }
+    },
+    "messagingContainer": {
+      "panelTitle": "Mensajes",
+      "noRecentConversations": "No hay conversaciones recientes"
+    }
+  },
+  "pages": {
+    "childSafety": {
+      "pageTitle": "Est\u00e1ndares de seguridad infantil",
+      "intro": "Therr est\u00e1 comprometido con la seguridad y protecci\u00f3n de todos los usuarios, especialmente los menores de edad. Mantenemos una pol\u00edtica de tolerancia cero hacia el abuso y la explotaci\u00f3n sexual infantil (CSAE) en nuestra plataforma.",
+      "zeroToleranceTitle": "Pol\u00edtica de tolerancia cero",
+      "zeroToleranceDescription": "Therr proh\u00edbe estrictamente cualquier contenido que explote o ponga en peligro a menores, incluyendo material de abuso sexual infantil (CSAM), acoso, sextorsi\u00f3n y cualquier otra forma de explotaci\u00f3n infantil. Cualquier cuenta que cree, comparta o distribuya dicho contenido ser\u00e1 cancelada de inmediato.",
+      "preventionTitle": "Prevenci\u00f3n y cumplimiento",
+      "prevention": {
+        "contentModeration": "Empleamos pr\u00e1cticas de moderaci\u00f3n de contenido para detectar y eliminar contenido prohibido.",
+        "reporting": "Los usuarios pueden reportar problemas de seguridad infantil directamente dentro de la aplicaci\u00f3n usando la funci\u00f3n de reporte.",
+        "accountActions": "Las cuentas que violen nuestras pol\u00edticas de seguridad infantil ser\u00e1n suspendidas de inmediato y bloqueadas permanentemente.",
+        "lawEnforcement": "Cooperamos plenamente con las investigaciones de las autoridades relacionadas con la explotaci\u00f3n infantil.",
+        "ncmec": "Reportamos todo CSAM aparente al Centro Nacional para Ni\u00f1os Desaparecidos y Explotados (NCMEC) seg\u00fan lo exige la ley."
+      },
+      "reportingTitle": "C\u00f3mo reportar",
+      "reportingInApp": "Si encuentras contenido o comportamiento que ponga en peligro a un menor, por favor rep\u00f3rtalo de inmediato usando las herramientas de reporte disponibles en todo el contenido y perfiles de usuario.",
+      "reportingEmail": "Tambi\u00e9n puedes reportar problemas de seguridad infantil directamente por correo electr\u00f3nico a",
+      "complianceTitle": "Cumplimiento legal",
+      "complianceDescription": "Therr cumple con todas las leyes y regulaciones relevantes de seguridad infantil. Reportamos a las autoridades regionales y nacionales, incluido NCMEC, de acuerdo con los requisitos legales aplicables.",
+      "contactTitle": "Cont\u00e1ctanos",
+      "contactDescription": "Para preguntas o inquietudes sobre nuestras pr\u00e1cticas de seguridad infantil, cont\u00e1ctanos en",
+      "returnHome": "Volver a la p\u00e1gina de inicio"
+    },
+    "deleteAccount": {
+      "pageTitle": "Eliminar tu cuenta",
+      "description": "Lamentamos que te vayas. Si deseas eliminar tu cuenta de Therr y todos los datos asociados, puedes hacerlo usando una de las opciones a continuaci\u00f3n.",
+      "optionMobileTitle": "Opci\u00f3n 1: Eliminar desde la aplicaci\u00f3n m\u00f3vil",
+      "steps": {
+        "openApp": "Abre la aplicaci\u00f3n Therr en tu dispositivo m\u00f3vil.",
+        "goToSettings": "Ve a Configuraci\u00f3n.",
+        "manageAccount": "Toca \"Administrar cuenta\".",
+        "deleteAccount": "Toca \"Eliminar cuenta\".",
+        "confirm": "Confirma la eliminaci\u00f3n cuando se te solicite."
+      },
+      "optionEmailTitle": "Opci\u00f3n 2: Solicitar eliminaci\u00f3n por correo electr\u00f3nico",
+      "emailInstructions": "Env\u00eda un correo electr\u00f3nico desde la direcci\u00f3n asociada con tu cuenta a",
+      "dataDeletedTitle": "\u00bfQu\u00e9 datos se eliminar\u00e1n?",
+      "dataDeletedDescription": "Cuando elimines tu cuenta, los siguientes datos se eliminar\u00e1n permanentemente:",
+      "dataItems": {
+        "profile": "Tu informaci\u00f3n de perfil (nombre, correo electr\u00f3nico, biograf\u00eda, foto de perfil)",
+        "posts": "Tus publicaciones, momentos y espacios",
+        "connections": "Tus conexiones y listas de amigos",
+        "messages": "Tus mensajes directos",
+        "notifications": "Tus notificaciones y logros"
+      },
+      "retentionNote": "La eliminaci\u00f3n de la cuenta es permanente y no se puede deshacer. Algunos datos anonimizados pueden conservarse por motivos legales o regulatorios seg\u00fan se describe en nuestra Pol\u00edtica de Privacidad.",
+      "returnToLogin": "Volver a la p\u00e1gina de inicio de sesi\u00f3n"
+    },
+    "appFeedback": {
+      "pageTitle": "Tu opini\u00f3n importa",
+      "buttons": {
+        "send": "Enviar comentarios"
+      },
+      "successMessage": "Tus comentarios fueron enviados. \u00a1Gracias!",
+      "failedToUpdateMessage": "No se pudieron enviar los comentarios. Por favor, int\u00e9ntalo de nuevo m\u00e1s tarde.",
+      "labels": {
+        "email": "Correo electr\u00f3nico",
+        "isSocialHealth": "\u00bfEs importante para ti la salud social?",
+        "isLoyaltyRewards": "\u00bfSon importantes para ti las recompensas de lealtad?",
+        "feedback": "\u00bfQu\u00e9 crees que le falta a la aplicaci\u00f3n Therr?",
+        "missing": "Tu respuesta..."
+      },
+      "returnToLogin": "Volver a la p\u00e1gina de inicio de sesi\u00f3n",
+      "sectionHeaders": {
+        "response": "Una breve encuesta sobre la aplicaci\u00f3n"
+      }
+    },
+    "discovered": {
+      "pageTitle": "Descubierto",
+      "subtitle": "Momentos y espacios compartidos recientemente por la comunidad",
+      "noResults": "Nada que mostrar a\u00fan. Vuelve m\u00e1s tarde para ver nuevo contenido de la comunidad."
+    },
+    "explore": {
+      "pageTitle": "Explorar",
+      "subtitle": "Descubre momentos, espacios, pensamientos y personas en tu comunidad",
+      "recentContent": "Contenido reciente",
+      "viewAll": "Ver todo",
+      "noResults": "Nada que mostrar a\u00fan. Vuelve m\u00e1s tarde para ver nuevo contenido.",
+      "categories": {
+        "momentsTitle": "Momentos",
+        "momentsDescription": "Fotos, historias y experiencias compartidas por la comunidad",
+        "spacesTitle": "Espacios",
+        "spacesDescription": "Negocios locales, lugares y puntos de inter\u00e9s",
+        "thoughtsTitle": "Pensamientos",
+        "thoughtsDescription": "Ideas, observaciones y conversaciones",
+        "peopleTitle": "Personas",
+        "peopleDescription": "Descubre creadores, negocios y miembros de la comunidad"
+      }
+    },
+    "navigation": {
+      "home": "Inicio",
+      "explore": "Explorar",
+      "locations": "Ubicaciones",
+      "posts": "Publicaciones",
+      "moments": "Momentos",
+      "thoughts": "Pensamientos",
+      "spaces": "Espacios",
+      "users": "Usuarios",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "page": "P\u00e1gina {pageNumber}",
+      "search": "Buscar",
+      "clear": "Limpiar",
+      "redirectingToSpaces": "Redirigiendo al directorio de espacios..."
+    },
+    "exploreMoments": {
+      "pageTitle": "Explorar momentos",
+      "subtitle": "Fotos, historias y experiencias compartidas por la comunidad",
+      "noResults": "No se encontraron momentos. Vuelve m\u00e1s tarde.",
+      "loadMore": "Cargar m\u00e1s"
+    },
+    "exploreThoughts": {
+      "pageTitle": "Explorar pensamientos",
+      "subtitle": "Ideas, observaciones y conversaciones de la comunidad",
+      "noResults": "No se encontraron pensamientos. Vuelve m\u00e1s tarde.",
+      "loadMore": "Cargar m\u00e1s",
+      "composePlaceholder": "\u00bfQu\u00e9 tienes en mente?",
+      "hashtagsPlaceholder": "Agrega hashtags (separados por comas)",
+      "postButton": "Publicar",
+      "postingButton": "Publicando...",
+      "loginToPost": "Inicia sesi\u00f3n para compartir tus pensamientos",
+      "categoryLabel": "Categor\u00eda",
+      "visibilityPublic": "P\u00fablico",
+      "visibilityPrivate": "Privado",
+      "postSuccess": "\u00a1Pensamiento publicado!",
+      "postError": "No se pudo publicar el pensamiento. Por favor, int\u00e9ntalo de nuevo.",
+      "messageTooShort": "El mensaje es demasiado corto"
+    },
+    "explorePeople": {
+      "pageTitle": "Buscar personas",
+      "subtitle": "Descubre creadores, negocios y miembros de la comunidad",
+      "noResults": "No se encontraron usuarios. Intenta una b\u00fasqueda diferente.",
+      "searchPlaceholder": "Buscar por nombre de usuario...",
+      "loadMore": "Cargar m\u00e1s"
+    },
+    "chatForum": {
+      "pageTitle": "Chat grupal",
+      "welcome": "\u00a1Bienvenido!",
+      "inputPlaceholder": "Escribe un mensaje"
+    },
+    "changePassword": {
+      "buttons": {
+        "send": "Enviar"
+      },
+      "failedMessage": "Ocurri\u00f3 un error al intentar restablecer tu contrase\u00f1a.",
+      "failedMessageUserNotFound": "No se encontr\u00f3 ning\u00fan usuario. Cierra sesi\u00f3n e int\u00e9ntalo de nuevo.",
+      "failedMessageIncorrectPassword": "La contrase\u00f1a que ingresaste es incorrecta.",
+      "labels": {
+        "oldPassword": "Contrase\u00f1a anterior",
+        "newPassword": "Nueva contrase\u00f1a",
+        "newPasswordRepeat": "Repetir nueva contrase\u00f1a"
+      },
+      "pageTitle": "Cambiar contrase\u00f1a",
+      "successMessage": "\u00a1Tu contrase\u00f1a ha sido actualizada!"
+    },
+    "emailPreferences": {
+      "pageTitle": "Preferencias de suscripci\u00f3n por correo electr\u00f3nico",
+      "buttons": {
+        "send": "Actualizar"
+      },
+      "successMessage": "\u00a1Preferencias de correo electr\u00f3nico actualizadas exitosamente!",
+      "failedToFetchMessage": "Ocurri\u00f3 un error al intentar obtener tus preferencias de correo electr\u00f3nico.",
+      "failedTokenMessage": "El token de correo electr\u00f3nico proporcionado es inv\u00e1lido. Por favor, inicia sesi\u00f3n para actualizar tus preferencias.",
+      "failedToUpdateMessage": "Ocurri\u00f3 un error al intentar actualizar tus preferencias de correo electr\u00f3nico. Por favor, int\u00e9ntalo de nuevo m\u00e1s tarde.",
+      "failedMessageUserNotFound": "No se encontr\u00f3 ning\u00fan usuario.",
+      "labels": {
+        "email": "Correo electr\u00f3nico",
+        "settingsEmailBusMarketing": "Correos de marketing del panel de negocios",
+        "settingsEmailMarketing": "Correos de marketing de salud social",
+        "settingsEmailLikes": "Correos de interacci\u00f3n de la aplicaci\u00f3n social",
+        "settingsEmailInvites": "Correos de invitaciones de usuarios o grupos",
+        "settingsEmailMentions": "Correos de 'menciones' de la aplicaci\u00f3n social",
+        "settingsEmailMessages": "Correos de 'mensajes' de la aplicaci\u00f3n social",
+        "settingsEmailReminders": "Correos de recordatorios de la aplicaci\u00f3n social",
+        "settingsEmailBackground": "Correos automatizados de la aplicaci\u00f3n social"
+      },
+      "returnToLogin": "Volver a la p\u00e1gina de inicio de sesi\u00f3n",
+      "sectionHeaders": {
+        "marketing": "Correos de marketing",
+        "social": "Correos de la aplicaci\u00f3n social"
+      }
+    },
+    "emailVerification": {
+      "buttons": {
+        "send": "Enviar correo electr\u00f3nico"
+      },
+      "failedMessage": "No se pudo verificar tu correo electr\u00f3nico. C\u00f3digo de verificaci\u00f3n inv\u00e1lido.",
+      "failedMessageExpired": "No se pudo verificar tu correo electr\u00f3nico. El c\u00f3digo de verificaci\u00f3n ha expirado.",
+      "failedMessageAlreadyVerified": "Tu correo electr\u00f3nico ya est\u00e1 verificado. Inicia sesi\u00f3n para continuar.",
+      "failedMessageVerificationResent": "Se ha enviado un nuevo c\u00f3digo de verificaci\u00f3n a {email}.",
+      "failedMessageUserNotFound": "No se encontr\u00f3 ning\u00fan usuario. Prueba con otro correo electr\u00f3nico o crea una cuenta para continuar.",
+      "labels": {
+        "email": "Correo electr\u00f3nico"
+      },
+      "pageTitle": "Verificaci\u00f3n de cuenta",
+      "returnToLogin": "Volver a la p\u00e1gina de inicio de sesi\u00f3n",
+      "successMessage": "\u00a1Listo!",
+      "successVerifiedMessage": "Tu cuenta ha sido verificada. Inicia sesi\u00f3n para continuar."
+    },
+    "resetPassword": {
+      "buttons": {
+        "send": "Enviar correo electr\u00f3nico"
+      },
+      "failedMessage": "Ocurri\u00f3 un error al intentar restablecer tu contrase\u00f1a.",
+      "failedMessageUserNotFound": "No se encontr\u00f3 ning\u00fan usuario. Prueba con otro correo electr\u00f3nico o crea una cuenta para continuar.",
+      "instructions": "Ingresa el correo electr\u00f3nico de tu cuenta para restablecer tu contrase\u00f1a.",
+      "labels": {
+        "email": "Correo electr\u00f3nico"
+      },
+      "pageTitle": "Restablecer contrase\u00f1a",
+      "returnToLogin": "Volver a la p\u00e1gina de inicio de sesi\u00f3n",
+      "successMessage": "Revisa tu correo electr\u00f3nico para obtener un enlace para restablecer tu contrase\u00f1a"
+    },
+    "spaces": {
+      "pageTitle": "Ubicaciones de negocios",
+      "header1": "Directorio de negocios locales",
+      "searchPlaceholder": "Buscar espacios por nombre...",
+      "noResults": "No se encontraron espacios. Intenta con un t\u00e9rmino de b\u00fasqueda diferente.",
+      "public": "P\u00fablico",
+      "private": "Privado",
+      "yours": "Tuyo",
+      "previousPage": "Volver a la p\u00e1gina {pageNumber}",
+      "nextPage": "Ir a la p\u00e1gina {pageNumber}"
+    },
+    "home": {
+      "pageTitle": "Crea tu perfil social o negocio",
+      "welcome": "Descubre lo local. Gana recompensas. Haz que te noten.",
+      "apple": "Apple",
+      "android": "Android",
+      "devices": "dispositivos",
+      "eventOrganizers": "Comercios",
+      "freelancers": "Freelancers",
+      "or": "o",
+      "info": "Therr te conecta con las personas, lugares y negocios de tu comunidad. Publica contenido basado en ubicaci\u00f3n, descubre joyas ocultas cercanas y gana recompensas solo por explorar.",
+      "info2": "\u00bfEres un influencer local o creador de contenido? Asoc\u00edate con negocios cercanos, haz crecer tu audiencia y consigue colaboraciones, todo a trav\u00e9s de la aplicaci\u00f3n.",
+      "info3": "Descarga la aplicaci\u00f3n gratuita para desbloquear la experiencia completa."
+    },
+    "createForum": {
+      "buttons": {
+        "submit": "Crear y unirse a la sala"
+      },
+      "labels": {
+        "title": "T\u00edtulo",
+        "subtitle": "Subt\u00edtulo",
+        "hashTags": "Etiquetas",
+        "description": "Descripci\u00f3n",
+        "activeForums": "Total de chats activos"
+      },
+      "placeholders": {
+        "title": "Un t\u00edtulo llamativo...",
+        "subtitle": "Un subt\u00edtulo opcional",
+        "hashTags": "Etiquetas (ej. mi_etiqueta, MiEtiqueta)",
+        "description": "Una breve descripci\u00f3n del chat..."
+      },
+      "noForumsMessage": "No hay chats activos actualmente. Haz clic en 'Crear chat grupal' para iniciar uno nuevo.",
+      "pageTitle": "Chats grupales"
+    },
+    "createProfile": {
+      "pageTitle": "Crear perfil",
+      "pageTitleVerify": "Crear perfil: Verificar tel\u00e9fono",
+      "createProfileSuccess": "\u00a1Perfil actualizado exitosamente!",
+      "createProfileError": "Vaya, algo sali\u00f3 mal",
+      "phoneNumberAlreadyInUseError": "El n\u00famero de tel\u00e9fono ya est\u00e1 en uso para este tipo de cuenta",
+      "tooManyAccounts": "Los usuarios est\u00e1n limitados a uno de cada tipo de cuenta (personal, creador, negocio)",
+      "invalidRegion": "Regi\u00f3n inv\u00e1lida",
+      "invalidCode": "El c\u00f3digo es inv\u00e1lido o ha expirado. Int\u00e9ntalo de nuevo o reenv\u00eda.",
+      "infoTitle": "\u00bfPor qu\u00e9 se requiere tel\u00e9fono?",
+      "info": "Estamos comprometidos con prevenir usuarios falsos, por lo que la autenticaci\u00f3n multifactor es indispensable. Requerir un correo electr\u00f3nico y un n\u00famero de tel\u00e9fono junto con requisitos de publicaci\u00f3n con geoetiqueta limita dr\u00e1sticamente la posibilidad de usuarios falsos."
+    },
+    "login": {
+      "pageTitle": "Iniciar sesi\u00f3n"
+    },
+    "pageNotFound": {
+      "pageTitle": "P\u00e1gina no encontrada"
+    },
+    "register": {
+      "pageTitle": "Registrarse",
+      "registerSuccess": "\u00a1Registro exitoso! Revisa tu correo electr\u00f3nico para la verificaci\u00f3n.",
+      "registerError": "Vaya, algo sali\u00f3 mal",
+      "passwordRequirements1": "Contiene una combinaci\u00f3n de letras y n\u00fameros",
+      "passwordRequirements2": "Al menos una letra may\u00fascula",
+      "passwordRequirements3": "Al menos un car\u00e1cter especial !@#$%^&*",
+      "passwordRequirements4": "Al menos 8 caracteres"
+    },
+    "template": {
+      "pageTitle": "Plantilla",
+      "helloTemplate": "\u00a1Hola, Plantilla!"
+    },
+    "userProfile": {
+      "buttons": {
+        "createAForum": "Crear un chat grupal",
+        "sendRequest": "Enviar solicitud"
+      },
+      "connectionSent": "\u00a1Tu solicitud de conexi\u00f3n est\u00e1 en camino!",
+      "h2": {
+        "accountDetails": "Detalles de la cuenta",
+        "addConnection": "Agregar nueva conexi\u00f3n",
+        "connections": "Conexiones"
+      },
+      "labels": {
+        "email": "Correo electr\u00f3nico",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "phone": "Tel\u00e9fono",
+        "phoneNumber": "N\u00famero de tel\u00e9fono",
+        "userName": "Nombre de usuario"
+      },
+      "pageTitle": "Perfil de usuario",
+      "requestRecommendation": "Env\u00eda una solicitud para hacer conexiones y construir una red",
+      "validationErrors": {
+        "phoneNumber": "N\u00famero de tel\u00e9fono inv\u00e1lido"
+      }
+    },
+    "underConstruction": {
+      "pageTitle": "Obt\u00e9n la app",
+      "welcome": "Obt\u00e9n la aplicaci\u00f3n m\u00f3vil",
+      "info": "\u00a1Parece que buscas la aplicaci\u00f3n m\u00f3vil! Encu\u00e9ntrala a continuaci\u00f3n. Por ahora, la aplicaci\u00f3n de escritorio solo admite funciones b\u00e1sicas como actualizar tu contrase\u00f1a o los detalles de tu cuenta."
+    },
+    "goMobile": {
+      "pageTitle": "Tu centro",
+      "welcome": "Hola Therr",
+      "subtitle": "Descubre personas, lugares y momentos locales directamente desde tu navegador. Explora lo que est\u00e1 pasando a tu alrededor y con\u00e9ctate con tu comunidad. Obt\u00e9n la aplicaci\u00f3n m\u00f3vil para disfrutar de toda la diversi\u00f3n en movimiento",
+      "featuresHeading": "Comienza a explorar",
+      "features": {
+        "explore": {
+          "title": "Explora lo cercano",
+          "description": "Navega por publicaciones populares y descubre lo que la gente comparte en tu zona."
+        },
+        "locations": {
+          "title": "Encuentra ubicaciones",
+          "description": "Busca negocios locales, eventos y joyas ocultas cerca de ti."
+        },
+        "moments": {
+          "title": "Ver momentos",
+          "description": "Mira fotos y videos compartidos por la comunidad."
+        },
+        "connect": {
+          "title": "Conoce personas",
+          "description": "Encuentra y con\u00e9ctate con personas que comparten tus intereses cerca de ti."
+        }
+      },
+      "ctaHeading": "Desbloquea la experiencia completa",
+      "ctaInfo": "\u00bfTe gusta lo que ves? La aplicaci\u00f3n m\u00f3vil va m\u00e1s all\u00e1, con descubrimiento de ubicaci\u00f3n en tiempo real, notificaciones push, recompensas y mucho m\u00e1s. Desc\u00e1rgala gratis y no te pierdas nada de lo que sucede a tu alrededor."
+    },
+    "inviteLanding": {
+      "title": "\u00a1{username} te invit\u00f3 a Therr!",
+      "description": "\u00danete a la comunidad local y la aplicaci\u00f3n de recompensas. \u00a1Reg\u00edstrate con su c\u00f3digo de invitaci\u00f3n y ambos ganar\u00e1n recompensas!",
+      "joinButton": "\u00danete ahora y gana 5 monedas",
+      "appStoreText": "Tambi\u00e9n disponible en m\u00f3vil",
+      "returnHome": "Volver a la p\u00e1gina de inicio"
+    },
+    "viewSpace": {
+      "pageTitle": ""
+    },
+    "viewUser": {
+      "buttons": {
+        "chat": "Chat"
+      }
+    }
+  }
+}

@@ -24,6 +24,7 @@ export enum Types {
     latestPostViewcountStats = 'latest-post-viewcount-stats',
     unreadNotificationsReminder = 'unread-notifications-reminder',
     unclaimedAchievementsReminder = 'unclaimed-achievements-reminder',
+    inviteFriendsReminder = 'invite-friends-reminder',
 
     // HABITS: Pact Lifecycle
     pactInvitation = 'pact-invitation',
@@ -90,6 +91,7 @@ export type IntentActionKey = 'ACHIEVEMENT_COMPLETED'
 | 'NEW_SUPER_LIKE_RECEIVED'
 | 'UNREAD_NOTIFICATIONS_REMINDER'
 | 'UNCLAIMED_ACHIEVEMENTS_REMINDER'
+| 'INVITE_FRIENDS_REMINDER'
 // HABITS
 | 'PACT_INVITATION'
 | 'PACT_ACCEPTED'
@@ -118,6 +120,7 @@ enum TeemAndroidIntentActions {
     NEW_SUPER_LIKE_RECEIVED = 'com.therr.mobile.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
+    INVITE_FRIENDS_REMINDER = 'com.therr.mobile.INVITE_FRIENDS_REMINDER',
 }
 
 enum TherrAndroidIntentActions {
@@ -139,6 +142,7 @@ enum TherrAndroidIntentActions {
     NEW_SUPER_LIKE_RECEIVED = 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER',
+    INVITE_FRIENDS_REMINDER = 'app.therrmobile.INVITE_FRIENDS_REMINDER',
 }
 
 enum HabitsAndroidIntentActions {
@@ -160,6 +164,7 @@ enum HabitsAndroidIntentActions {
     NEW_SUPER_LIKE_RECEIVED = 'com.therr.mobile.habits.NEW_SUPER_LIKE_RECEIVED',
     UNREAD_NOTIFICATIONS_REMINDER = 'com.therr.mobile.habits.UNREAD_NOTIFICATIONS_REMINDER',
     UNCLAIMED_ACHIEVEMENTS_REMINDER = 'com.therr.mobile.habits.UNCLAIMED_ACHIEVEMENTS_REMINDER',
+    INVITE_FRIENDS_REMINDER = 'com.therr.mobile.habits.INVITE_FRIENDS_REMINDER',
     // HABITS-specific
     PACT_INVITATION = 'com.therr.mobile.habits.PACT_INVITATION',
     PACT_ACCEPTED = 'com.therr.mobile.habits.PACT_ACCEPTED',

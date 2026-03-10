@@ -1,7 +1,9 @@
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
-import { AccessLevels, BrandVariations, UserConnectionTypes } from 'therr-js-utilities/constants';
+import {
+    AccessLevels, BrandVariations, ReferralRewards, UserConnectionTypes,
+} from 'therr-js-utilities/constants';
 import isValidPassword from 'therr-js-utilities/is-valid-password';
 import normalizeEmail from 'normalize-email';
 import { internalRestRequest, InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
@@ -318,6 +320,22 @@ const createUserHelper = (
                         level: 'error',
                         messageOrigin: 'API_SERVER',
                         messages: ['Error while crediting new user for invite signup'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    });
+                });
+
+                // Award the new user (invitee) coins for signing up with an invite code
+                Store.users.updateUser({
+                    settingsTherrCoinTotal: ReferralRewards.inviteeCoins,
+                }, {
+                    id: user.id,
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while awarding invitee referral coins'],
                         traceArgs: {
                             'error.message': err?.message,
                         },

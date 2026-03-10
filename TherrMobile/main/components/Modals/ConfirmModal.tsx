@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { Dialog, Portal } from 'react-native-paper';
+import { Dialog, Divider, Portal } from 'react-native-paper';
 import { ScrollView } from 'react-native-gesture-handler';
 import { ITherrThemeColors } from '../../styles/themes';
 import ModalButton from './ModalButton';
@@ -64,7 +64,8 @@ export default ({
                     headerText ?
                         <>
                             <Dialog.Title style={themeModal.styles.headerText}>{headerText}</Dialog.Title>
-                            <Dialog.ScrollArea style={themeModal.styles.body}>
+                            <Divider />
+                            <Dialog.ScrollArea style={[themeModal.styles.body, { borderColor: 'transparent' }]}>
                                 <ScrollView>
                                     <Text style={themeModal.styles.bodyText}>{text}</Text>
                                     {
@@ -73,10 +74,13 @@ export default ({
                                 </ScrollView>
                             </Dialog.ScrollArea>
                         </> :
-                        <Dialog.Content>
-                            <Text style={themeModal.styles.bodyTextBold}>{text}</Text>
-                        </Dialog.Content>
+                        <Dialog.ScrollArea style={{ borderColor: 'transparent' }}>
+                            <ScrollView>
+                                <Text style={themeModal.styles.bodyTextBold}>{text}</Text>
+                            </ScrollView>
+                        </Dialog.ScrollArea>
                 }
+                <Divider />
                 <Dialog.Actions style={themeModal.styles.buttonsContainer}>
                     <ModalButton
                         iconName="close"

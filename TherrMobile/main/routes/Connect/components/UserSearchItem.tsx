@@ -36,7 +36,11 @@ const UserSearchItem: React.FunctionComponent<IUserSearchItemProps> = ({
     themeButtons,
     translate,
 }) => {
-    const handleConnectionRequest = () => onSendConnectRequest(userDetails);
+    const [isConnecting, setIsConnecting] = React.useState(false);
+    const handleConnectionRequest = () => {
+        setIsConnecting(true);
+        onSendConnectRequest(userDetails);
+    };
     const isMe = user.details?.id === userDetails.id;
 
     return (
@@ -70,6 +74,8 @@ const UserSearchItem: React.FunctionComponent<IUserSearchItemProps> = ({
                             buttonStyle={themeButtons.styles.buttonPill}
                             titleStyle={themeButtons.styles.buttonPillTitle}
                             title={translate('menus.connections.buttons.connect')}
+                            loading={isConnecting}
+                            disabled={isConnecting}
                         />
                 }
             </View>

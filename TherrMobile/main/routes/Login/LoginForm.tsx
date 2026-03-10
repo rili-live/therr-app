@@ -332,7 +332,7 @@ export class LoginFormComponent extends React.Component<
                         onPress={() => navigation.navigate('Register')}
                     />
                 </View>
-                <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginBotMd]}>
+                <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginBotMd, spacingStyles.marginTopMd]}>
                     <Button
                         type="clear"
                         titleStyle={themeForms.styles.buttonLink}
