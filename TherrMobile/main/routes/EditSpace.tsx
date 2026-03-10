@@ -15,6 +15,7 @@ import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { Categories, Content, FilePaths, IncentiveRewardKeys, IncentiveRequirementKeys } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
+import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
@@ -878,6 +879,24 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                         })}
                         raised={false}
                     />
+                    {
+                        !!imagePreviewPath &&
+                        <Button
+                            containerStyle={spacingStyles.marginBotMd}
+                            buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                            titleStyle={this.themeForms.styles.buttonTitleAlt}
+                            title={this.translate('forms.editSpace.buttons.removeImage')}
+                            icon={
+                                <OctIcon
+                                    name="x"
+                                    size={18}
+                                    style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
+                                />
+                            }
+                            onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                            raised={false}
+                        />
+                    }
                     <Text style={this.theme.styles.sectionDescriptionNote}>
                         {this.translate('forms.editSpace.labels.addImageNote')}
                     </Text>

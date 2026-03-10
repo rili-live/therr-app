@@ -1,14 +1,11 @@
 import React from 'react';
 import {
-    ActivityIndicator,
     Dimensions,
     SafeAreaView,
-    RefreshControl,
     Text,
     View,
 } from 'react-native';
 import { FAB } from 'react-native-paper';
-import { Image } from '../../components/BaseImage';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -25,7 +22,6 @@ import {
     IUserState,
     IUserConnectionsState,
 } from 'therr-react/types';
-import { ScrollView } from 'react-native-gesture-handler';
 import { TabBar, TabView } from 'react-native-tab-view';
 import { showToast } from '../../utilities/toasts';
 import { ContentActions } from 'therr-react/redux/actions';
@@ -50,13 +46,11 @@ import { isMyContent } from '../../utilities/content';
 import { SheetManager } from 'react-native-actions-sheet';
 import { IContentSelectionType } from '../../components/ActionSheet/ContentOptionsSheet';
 import { handleAreaReaction, handleThoughtReaction, navToViewContent } from '../../utilities/postViewHelpers';
-import ListEmpty from '../../components/ListEmpty';
 import TherrIcon from '../../components/TherrIcon';
 import getDirections from '../../utilities/getDirections';
 import { PEOPLE_CAROUSEL_TABS, PROFILE_CAROUSEL_TABS } from '../../constants';
 
 const { width: viewportWidth } = Dimensions.get('window');
-const imageWidth = viewportWidth / 3;
 
 const renderIdeaIcon = (props: { size: number; color: string }) => (
     <TherrIcon name="idea" size={props.size} color={props.color} />
@@ -152,15 +146,13 @@ class ViewUser extends React.Component<
 
         const { route } = props;
         const { userInView } = route.params;
-        let activeTabIndex = route.params?.activeTab === PROFILE_CAROUSEL_TABS.MEDIA ? 1 : 0;
+        const activeTabIndex = 0;
         const isMe = userInView?.id === props.user.details.id;
         const tabRoutes = [
             { key: PROFILE_CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
-            { key: PROFILE_CAROUSEL_TABS.MEDIA, title: this.translate('menus.headerTabs.media') },
         ];
         if (isMe) {
             tabRoutes.unshift({ key: PROFILE_CAROUSEL_TABS.MOMENTS, title: this.translate('menus.headerTabs.moments') });
-            activeTabIndex = route.params?.activeTab === PROFILE_CAROUSEL_TABS.MEDIA ? 2 : 0;
         }
 
         this.state = {
@@ -204,7 +196,6 @@ class ViewUser extends React.Component<
             const isMe = this.props.route?.params?.userInView?.id === this.props.user.details.id;
             const tabRoutes = [
                 { key: PROFILE_CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
-                { key: PROFILE_CAROUSEL_TABS.MEDIA, title: this.translate('menus.headerTabs.media') },
             ];
             if (isMe) {
                 tabRoutes.unshift({ key: PROFILE_CAROUSEL_TABS.MOMENTS, title: this.translate('menus.headerTabs.moments') });
@@ -375,16 +366,6 @@ class ViewUser extends React.Component<
         this.fetchUser();
     };
 
-    handleUserMediaRefresh = () => {
-        const { getIntegratedMoments, user } = this.props;
-
-        this.setState({ isRefreshingUserMedia: true });
-
-        return user.userInView ? getIntegratedMoments(user.userInView.id).then(() => {
-            this.setState({ isRefreshingUserMedia: false });
-        }) : null;
-    };
-
     handleUserMomentsRefresh = () => {
         const { user } = this.props;
 
@@ -475,6 +456,7 @@ class ViewUser extends React.Component<
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
                 toggleAreaOptions: this.toggleAreaOptions,
+                translate: this.translate,
             });
         }
     };
@@ -486,6 +468,7 @@ class ViewUser extends React.Component<
             user,
             createOrUpdateThoughtReaction,
             toggleThoughtOptions: this.toggleThoughtOptions,
+            translate: this.translate,
         });
     };
 
@@ -632,7 +615,6 @@ class ViewUser extends React.Component<
             content,
             user,
         } = this.props;
-        const userInView = user.userInView || {};
         const isMe = user.userInView?.id === user.details.id;
 
         // TODO: Fetch missing media
@@ -700,45 +682,8 @@ class ViewUser extends React.Component<
                         // viewportWidth={viewportWidth}
                     />
                 );
-            case PROFILE_CAROUSEL_TABS.MEDIA:
-                return (
-                    <ScrollView
-                        contentInsetAdjustmentBehavior="automatic"
-                        style={this.theme.styles.scrollViewFull}
-                        refreshControl={<RefreshControl
-                            refreshing={isRefreshingUserMedia}
-                            onRefresh={this.handleUserMediaRefresh}
-                        />}
-                    >
-                        <View style={this.themeUser.styles.contentPostsContainer}>
-                            {
-                                userInView.externalIntegrations?.length ?
-                                    userInView.externalIntegrations.map((integration) => {
-                                        const mediaUrl = content.media?.[integration.moment?.medias?.[0]?.path];
-                                        return (
-                                            <Image
-                                                key={integration.id}
-                                                source={{ uri: mediaUrl }}
-                                                style={{
-                                                    width: imageWidth,
-                                                    height: imageWidth,
-                                                }}
-                                                // width={imageWidth}
-                                                // height={imageWidth}
-                                                containerStyle={{}}
-                                                PlaceholderContent={<ActivityIndicator size="large" color={this.themeUser.colors.brandingBlueGreen}/>}
-                                                transition={false}
-                                            />
-                                        );
-                                    }) :
-                                    <ListEmpty
-                                        text={this.translate('user.profile.text.noMedia')}
-                                        theme={this.theme}
-                                    />
-                            }
-                        </View>
-                    </ScrollView>
-                );
+            default:
+                return null;
         }
     };
 

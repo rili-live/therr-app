@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { ContentActions } from 'therr-react/redux/actions';
+import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -31,6 +31,7 @@ function getRandomLoaderId(): ILottieId {
 
 interface IMyDraftsDispatchProps {
     deleteDraft: Function;
+    fetchMedia: Function;
     searchMyDrafts: Function;
     createOrUpdateEventReaction: Function;
     createOrUpdateMomentReaction: Function;
@@ -63,6 +64,7 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             deleteDraft: ContentActions.deleteDraft,
+            fetchMedia: MapActions.fetchMedia,
             searchMyDrafts: ContentActions.searchMyDrafts,
             createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
@@ -138,12 +140,21 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
     handleRefresh = (withMedia = true) => {
         const { searchMyDrafts } = this.props;
 
-        searchMyDrafts({
+        return searchMyDrafts({
             withMedia,
             pageNumber: 1,
             itemsPerPage: 50,
             query: 'drafts-only',
         });
+    };
+
+    fetchPrivateMedia = (medias: { path: string; type: string }[]) => {
+        const { fetchMedia, user } = this.props;
+        if (medias.length && user?.details?.id) {
+            return fetchMedia(undefined, medias).catch((err) => {
+                console.log(err);
+            });
+        }
     };
 
     onTabSelect = (tabName: string) => {
@@ -242,8 +253,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
             user,
         } = this.props;
 
-        // TODO: Fetch missing media
-        const fetchMedia = () => {};
+        const fetchMedia = this.fetchPrivateMedia;
 
         const activeData = isLoading ? [] : getActiveCarouselData({
             activeTab,

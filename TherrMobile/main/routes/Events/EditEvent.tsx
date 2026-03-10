@@ -1013,6 +1013,24 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                         })}
                         raised={false}
                     />
+                    {
+                        !!imagePreviewPath &&
+                        <Button
+                            containerStyle={spacingStyles.marginBotMd}
+                            buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                            titleStyle={this.themeForms.styles.buttonTitleAlt}
+                            title={this.translate('forms.editEvent.buttons.removeImage')}
+                            icon={
+                                <OctIcon
+                                    name="x"
+                                    size={18}
+                                    style={{ color: this.theme.colors.accentRed, paddingRight: 8 }}
+                                />
+                            }
+                            onPress={() => this.setState({ selectedImage: undefined, imagePreviewPath: '' })}
+                            raised={false}
+                        />
+                    }
                     <Text style={this.theme.styles.sectionDescriptionNote}>
                         {this.translate('forms.editEvent.labels.addImageNote')}
                     </Text>
@@ -1054,15 +1072,17 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                                 disableScroll
                             />
                         }
-                        <InputEventName
-                            autoFocus={!!areaId}
-                            translate={this.translate}
-                            onChangeText={(text) =>
-                                this.onInputChange('notificationMsg', text)
-                            }
-                            themeForms={this.themeForms}
-                            value={inputs.notificationMsg}
-                        />
+                        <View style={spacingStyles.marginBotMd}>
+                            <InputEventName
+                                autoFocus={!!areaId}
+                                translate={this.translate}
+                                onChangeText={(text) =>
+                                    this.onInputChange('notificationMsg', text)
+                                }
+                                themeForms={this.themeForms}
+                                value={inputs.notificationMsg}
+                            />
+                        </View>
                         <EventStartEndFormGroup
                             themeForms={this.themeForms}
                             isNightMode={isDarkTheme(user.settings?.mobileThemeName)}
@@ -1071,6 +1091,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
                             startsAtValue={inputs.scheduleStartAt}
                             stopsAtValue={inputs.scheduleStopAt}
                         />
+                        <View style={spacingStyles.marginBotMd} />
                         <RoundTextInput
                             placeholder={this.translate(
                                 'forms.editEvent.labels.message'

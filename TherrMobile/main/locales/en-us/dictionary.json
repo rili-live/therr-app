@@ -61,7 +61,9 @@
     "updated": "Updated!",
     "exitedGroup": "You have left the group",
     "joinedGroup": "You joined the group",
-    "waitlistSuccess": "Registration Success!"
+    "waitlistSuccess": "Registration Success!",
+    "reactionSent": "Reaction Sent!",
+    "reactionFailed": "Reaction Failed"
   },
   "alertMessages": {
     "activityCreated": "A new group and event was created. Invites sent to each group member.",
@@ -468,6 +470,7 @@
       "buttons": {
         "addImage": "Attach an Image",
         "replaceImage": "Replace Image",
+        "removeImage": "Remove Image",
         "captureNew": "Capture a New Photo",
         "selectExisting": "Select an Existing Photo",
         "back": "Back",
@@ -507,6 +510,7 @@
       "buttons": {
         "addImage": "Attach an Image",
         "replaceImage": "Replace Image",
+        "removeImage": "Remove Image",
         "captureNew": "Capture a New Photo",
         "selectExisting": "Select an Existing Photo",
         "draft": "Draft",
@@ -573,6 +577,7 @@
       "buttons": {
         "addImage": "Attach an Image",
         "replaceImage": "Replace Image",
+        "removeImage": "Remove Image",
         "captureNew": "Capture a New Photo",
         "next": "Next",
         "back": "Back",
@@ -743,6 +748,7 @@
         "hideReportedContent": "Hide Mature Content",
         "showReportedContent": "Show Mature Content",
         "bio": "Your bio...",
+        "bioHeader": "Bio",
         "businessAccount": "Business",
         "creatorAccount": "Creator",
         "personalAccount": "Personal"

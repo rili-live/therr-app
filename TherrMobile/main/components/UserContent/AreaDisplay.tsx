@@ -300,7 +300,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         return (
             <Button
                 containerStyle={[spacingStyles.marginVertSm, spacingStyles.marginHorizSm]}
-                buttonStyle={[themeForms.styles.buttonRoundAltSmall, spacingStyles.heightMd]}
+                buttonStyle={[themeForms.styles.buttonRoundAltSmall, spacingStyles.heightMd, spacingStyles.padHorizMd]}
                 // disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                 titleStyle={[themeForms.styles.buttonTitleAlt, localStyles.actionLinkTitle]}
                 title={item.title}

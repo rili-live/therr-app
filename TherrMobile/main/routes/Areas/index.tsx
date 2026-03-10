@@ -531,6 +531,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
                 toggleAreaOptions: this.toggleAreaOptions,
+                translate: this.translate,
             });
         }
     };
@@ -542,6 +543,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
             user,
             createOrUpdateThoughtReaction,
             toggleThoughtOptions: this.toggleThoughtOptions,
+            translate: this.translate,
         });
     };
 
