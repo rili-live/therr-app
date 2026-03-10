@@ -38,11 +38,11 @@ spec:
               - ALL
         resources:
           requests:
-            memory: "192Mi"
-            cpu: "50m"
+            memory: "96Mi"
+            cpu: "10m"
           limits:
-            memory: "192Mi"
-            cpu: "50m"
+            memory: "256Mi"
+            cpu: "100m"
         ports:
         - containerPort: 7070
         - containerPort: 7071

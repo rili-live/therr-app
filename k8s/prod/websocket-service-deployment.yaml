@@ -37,11 +37,11 @@ spec:
               - ALL
         resources:
           requests:
-            memory: "192Mi"
-            cpu: "50m"
+            memory: "96Mi"
+            cpu: "10m"
           limits:
             memory: "192Mi"
-            cpu: "50m"
+            cpu: "100m"
         ports:
         - containerPort: 7743
         livenessProbe:
