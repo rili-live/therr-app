@@ -124,7 +124,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user.settings?.locale || 'en-us', key, params);
         this.categoryOptions = Categories.ThoughtCategories.map((category: string, index) => ({
             id: index,
             label: this.translate(category),

@@ -78,7 +78,7 @@ class Notifications extends React.Component<
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeNotification = buildNotificationStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {

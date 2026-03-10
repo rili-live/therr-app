@@ -127,7 +127,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         super(props);
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         const { route } = props;
         const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);
@@ -492,6 +492,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         ListHeaderComponent={
                             <>
                                 <ReferralStats
+                                    locale={this.props.user.settings?.locale || 'en-us'}
                                     referralCount={this.getReferralCount()}
                                     userName={this.props.user.details?.userName || ''}
                                     translate={this.translate}

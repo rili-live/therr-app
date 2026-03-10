@@ -3,8 +3,10 @@ import { Share, Text, View } from 'react-native';
 import { ReferralRewards } from 'therr-js-utilities/constants';
 import { Button } from '../BaseButton';
 import { ITherrThemeColors } from '../../styles/themes';
+import { buildInviteUrl } from '../../utilities/shareUrls';
 
 interface IReferralStatsProps {
+    locale: string;
     referralCount: number;
     userName: string;
     translate: Function;
@@ -19,18 +21,21 @@ interface IReferralStatsProps {
 }
 
 const ReferralStats: React.FC<IReferralStatsProps> = ({
+    locale,
     referralCount,
     userName,
     translate,
     theme,
     themeForms,
 }) => {
+    const shareUrl = buildInviteUrl(locale, userName);
     const onShareLink = () => {
         Share.share({
             message: translate('forms.createConnection.shareLink.message', {
                 inviteCode: userName,
+                shareUrl,
             }),
-            url: `https://www.therr.com/invite/${userName}`,
+            url: shareUrl,
             title: translate('forms.createConnection.shareLink.title'),
         }).catch((err) => console.error(err));
     };

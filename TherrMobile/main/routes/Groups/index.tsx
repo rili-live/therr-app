@@ -131,7 +131,7 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
         super(props);
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         const { route } = props;
         const activeTabIndex = getActiveTabIndex(tabMap, route?.params?.activeTab);

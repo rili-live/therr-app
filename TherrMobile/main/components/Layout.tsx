@@ -74,6 +74,7 @@ import background3 from '../assets/dinner-overhead-2.webp';
 import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { buildGroupUrl } from '../utilities/shareUrls';
 
 // NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
 
@@ -756,7 +757,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     onPressShareGroup = (group: any) => {
         const route = RootNavigation.getCurrentRoute();
         if (route?.name === 'ViewGroup') {
-            Clipboard.setString(`https://www.therr.com/groups/${group.id}`);
+            const locale = this.props.user?.settings?.locale || 'en-us';
+            Clipboard.setString(buildGroupUrl(locale, group.id));
 
         }
 

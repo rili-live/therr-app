@@ -23,6 +23,7 @@ import TherrIcon from '../components/TherrIcon';
 import { ILocationState } from '../types/redux/location';
 import LocationActions from '../redux/actions/LocationActions';
 import translator from '../services/translator';
+import { buildSpaceUrl } from '../utilities/shareUrls';
 import { isDarkTheme } from '../styles/themes';
 import { buildStyles } from '../styles';
 import { buildStyles as buildFormStyles } from '../styles/forms';
@@ -102,8 +103,8 @@ const ViewSpace = ({
     updateLocationDisclosure,
 }: IViewSpaceProps) => {
     const translate = useCallback(
-        (key: string, params?: any) => translator('en-us', key, params),
-        []
+        (key: string, params?: any) => translator(user.settings?.locale || 'en-us', key, params),
+        [user.settings?.locale]
     );
 
     // State
@@ -320,9 +321,10 @@ const ViewSpace = ({
                             title: area.notificationMsg,
                         });
                     } else if (type === 'shareALink') {
+                        const shareUrl = buildSpaceUrl(user.settings?.locale || 'en-us', area.id);
                         Share.share({
-                            message: translate('modals.contentOptions.shareLink.message', { spaceId: area.id }),
-                            url: `https://www.therr.com/spaces/${area.id}`,
+                            message: translate('modals.contentOptions.shareLink.message', { spaceId: area.id, shareUrl }),
+                            url: shareUrl,
                             title: translate('modals.contentOptions.shareLink.title', { spaceTitle: area.notificationMsg }),
                         }).catch((err) => console.error(err));
                     } else {
@@ -332,7 +334,7 @@ const ViewSpace = ({
                 },
             },
         });
-    }, [space, fetchedSpace, translate, themeForms, handleUpdateSpaceReaction]);
+    }, [space, fetchedSpace, translate, themeForms, handleUpdateSpaceReaction, user.settings?.locale]);
 
     const handleEdit = useCallback(() => {
         navigation.navigate('EditSpace', {

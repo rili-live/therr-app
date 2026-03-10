@@ -14,6 +14,7 @@ import isEmail from 'validator/es/lib/isEmail';
 import Alert from '../../../components/Alert';
 import UsersActions from '../../../redux/actions/UsersActions';
 import translator from '../../../services/translator';
+import { buildInviteUrl } from '../../../utilities/shareUrls';
 // import SquareInput from '../../../components/Input/Square';
 import RoundInput from '../../../components/Input/Round';
 import PhoneNumberInput from '../../../components/Input/PhoneNumberInput';
@@ -94,7 +95,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -305,11 +306,14 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
 
     onShareALink = () => {
         const { user } = this.props;
+        const locale = user.settings?.locale || 'en-us';
+        const shareUrl = buildInviteUrl(locale, user.details.userName);
         Share.share({
             message: this.translate('forms.createConnection.shareLink.message', {
                 inviteCode: user.details.userName,
+                shareUrl,
             }),
-            url: `https://www.therr.com/invite/${user.details.userName}`,
+            url: shareUrl,
             title: this.translate('forms.createConnection.shareLink.title'),
         }).then((response) => {
             if (response.action === Share.sharedAction) {

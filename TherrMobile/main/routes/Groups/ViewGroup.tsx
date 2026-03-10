@@ -148,7 +148,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
         super(props);
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         const { route } = props;
         const { hashTags, title } = route.params;

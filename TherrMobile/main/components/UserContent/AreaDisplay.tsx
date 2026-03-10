@@ -34,6 +34,7 @@ import formatDate from '../../utilities/formatDate';
 import MissingImagePlaceholder from './MissingImagePlaceholder';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
 import SpaceRating from '../../components/Input/SpaceRating';
+import { buildSpaceUrl } from '../../utilities/shareUrls';
 
 
 const envConfig = getConfig();
@@ -274,11 +275,14 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         let onPress = () => Linking.openURL(item.url);
 
         if (item.icon === 'share') {
+            const locale = this.props.user?.settings?.locale || 'en-us';
+            const shareUrl = buildSpaceUrl(locale, area.id);
             onPress = () => Share.share({
                 message: translate('modals.contentOptions.shareLink.message', {
                     spaceId: area.id,
+                    shareUrl,
                 }),
-                url: `https://www.therr.com/spaces/${area.id}`,
+                url: shareUrl,
                 title: translate('modals.contentOptions.shareLink.title', {
                     spaceTitle: area.notificationMsg,
                 }),
@@ -393,7 +397,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 title: translate('pages.viewSpace.actionLinks.reserve'),
             },
             {
-                url: isSpace ? `https://www.therr.com/spaces/${area.id}` : undefined,
+                url: isSpace ? buildSpaceUrl(this.props.user?.settings?.locale || 'en-us', area.id) : undefined,
                 icon: 'share',
                 title: translate('pages.viewSpace.actionLinks.share'),
             },

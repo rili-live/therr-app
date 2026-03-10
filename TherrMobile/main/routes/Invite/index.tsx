@@ -74,7 +74,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         super(props);
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         this.state = {
             didIgnoreNameConfirm: false,

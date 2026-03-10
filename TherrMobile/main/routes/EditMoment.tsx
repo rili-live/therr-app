@@ -21,6 +21,7 @@ import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
+import { buildMomentUrl } from '../utilities/shareUrls';
 import { isDarkTheme } from '../styles/themes';
 import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
@@ -174,7 +175,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user.settings?.locale || 'en-us', key, params);
         this.categoryOptions = Categories.MomentCategories.map((category: string, index) => ({
             id: index,
             label: this.translate(category),
@@ -1106,8 +1107,13 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     isVisible={isSharePromptVisible}
                     headerText={this.translate('modals.sharePrompt.momentCreated.header')}
                     message={this.translate('modals.sharePrompt.momentCreated.message')}
-                    shareMessage={this.translate('modals.contentOptions.shareLink.messageMoment', { momentId: this.state.areaId || '' })}
-                    shareUrl={`https://www.therr.com/moments/${this.state.areaId || ''}`}
+                    shareMessage={this.translate('modals.contentOptions.shareLink.messageMoment', {
+                        momentId: this.state.areaId || '',
+                        shareUrl: buildMomentUrl(this.props.user?.settings?.locale || 'en-us', this.state.areaId || ''),
+                    })}
+                    shareUrl={buildMomentUrl(
+                        this.props.user?.settings?.locale || 'en-us', this.state.areaId || ''
+                    )}
                     shareTitle={this.translate('modals.contentOptions.shareLink.titleMoment', { momentTitle: this.state.inputs.notificationMsg || '' })}
                     onDismiss={this.onDismissSharePrompt}
                     translate={this.translate}

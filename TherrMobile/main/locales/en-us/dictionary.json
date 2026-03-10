@@ -386,7 +386,7 @@
         "email": "Invitee's E-mail"
       },
       "shareLink": {
-        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 https://www.therr.com/invite/{inviteCode}",
+        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 {shareUrl}",
         "title": "Therr App | Local Community & Rewards App"
       }
     },
@@ -1442,7 +1442,7 @@
         "onApp": "None of your contacts are on Therr yet",
         "notOnApp": "All your contacts are already on Therr!"
       },
-      "inviteMessage": "Hey! Join me on Therr, a local social network for discovering what's around you. Sign up with my invite link: https://www.therr.com/invite/{{inviteCode}}",
+      "inviteMessage": "Hey! Join me on Therr, a local social network for discovering what's around you. Sign up with my invite link: {shareUrl}",
       "inviteSubject": "Join me on Therr!",
       "alertTitles": {
         "contactInvitesSent": "Invite Success",
@@ -1475,6 +1475,7 @@
       "pageHeaderAdvancedSettings": "Advanced Settings",
       "pageHeaderContentSettings": "Content Settings",
       "pageHeaderNotificationSettings": "Emails & Alert Settings",
+      "pageHeaderLanguageSettings": "Language",
       "labels": {
         "nightMode": "Night Mode?",
         "themeLight": "Light",
@@ -1602,9 +1603,9 @@
         "shareALink": "Share a Link"
       },
       "shareLink": {
-        "message": "You can find this location on Therr App: https://www.therr.com/spaces/{spaceId}",
-        "messageEvent": "You can find this event on Therr App: https://www.therr.com/events/{eventId}",
-        "messageMoment": "You can find this moment on Therr App: https://www.therr.com/moments/{momentId}",
+        "message": "You can find this location on Therr App: {shareUrl}",
+        "messageEvent": "You can find this event on Therr App: {shareUrl}",
+        "messageMoment": "You can find this moment on Therr App: {shareUrl}",
         "title": "{spaceTitle} | Therr App",
         "titleEvent": "{eventTitle} | Therr App",
         "titleMoment": "{momentTitle} | Therr App",

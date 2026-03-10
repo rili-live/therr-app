@@ -63,7 +63,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeAchievements = buildAchievementStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {
