@@ -472,6 +472,10 @@ export default class UsersStore {
             modifiedParams.settingsIsProfilePublic = params.settingsIsProfilePublic;
         }
 
+        if (params.settingsLocale != null) {
+            modifiedParams.settingsLocale = params.settingsLocale;
+        }
+
         if (params.settingsThemeName != null) {
             modifiedParams.settingsThemeName = params.settingsThemeName;
         }
