@@ -45,7 +45,18 @@ src/
 └── interceptors.ts           # Axios config
 ```
 
+## Localization
+
+All user-facing text must use translation keys from `src/locales/`. When adding or modifying UI strings:
+1. Add the key to **both** `en-us/dictionary.json` and `es/dictionary.json`
+2. Use `useTranslation` hook or `withTranslation` HOC — never hardcode strings
+3. URLs are locale-prefixed: English = unprefixed (`/locations`), Spanish = `/es/locations`
+4. The URL prefix is the source of truth for locale — see `server-client.tsx` middleware
+5. All `<Link>` and `navigate()` calls auto-include the locale prefix via React Router's `basename`
+
 ## Key Routes
+
+Routes below are shown without locale prefix. All public routes are also served at `/es/<route>`.
 
 | Route | Component | Auth |
 |-------|-----------|------|
@@ -130,6 +141,7 @@ Multiple SCSS theme bundles:
 - SSR requires both `webpack.app.config.js` and `webpack.server.config.js`
 - Socket.IO middleware for real-time messaging and notifications
 - Brand variation: `BrandVariations.THERR`
+- Locale-prefixed URL routing: see `docs/LOCALE_URL_ROUTING.md` for architecture details
 
 ## Code Quality
 

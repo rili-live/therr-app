@@ -35,16 +35,16 @@ const safeParse = (key: string, storage: Storage) => {
 if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
     const storedSocketDetails = safeParse('therrSession', localStorage) || safeParse('therrSession', sessionStorage);
     let storedUser = safeParse('therrUser', localStorage) || safeParse('therrUser', sessionStorage);
-    const storedSettings = safeParse('therrUserSettings', localStorage)
-        || safeParse('therrUserSettings', sessionStorage);
     storedUser = storedUser || {};
     const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
+    // URL prefix is the source of truth for page locale
+    const localeFromUrl = window.location.pathname.match(/^\/(es)(\/|$)/) ? 'es' : 'en-us';
     const reloadedState: any = {
         user: {
             details: storedUser,
             isAuthenticated,
             settings: {
-                locale: storedSettings?.settingsLocale || storedSettings?.locale || 'en-us',
+                locale: localeFromUrl,
                 mobileThemeName: 'retro',
             },
             socketDetails: {

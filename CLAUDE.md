@@ -102,6 +102,7 @@ Read these files when relevant to the task:
 - `docs/NICHE_APP_DATABASE_GUIDELINES.md` - Schema isolation, migration patterns for niche features
 - `docs/niche-sub-apps/PROJECT_BRIEF.md` - Core Therr App product vision and roadmap
 - `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` - Niche app variant context (see "Project Brief Context" above)
+- `docs/LOCALE_URL_ROUTING.md` - Locale-prefixed URL routing, i18n architecture, SEO strategy
 - `docs/NICHE_APP_SETUP_STEPS.md` - Brand variation setup process
 
 ## Monorepo Structure
@@ -225,6 +226,14 @@ Feature flags will be implemented via:
 - Backend: Service-level configuration
 - Frontend: Redux state or context
 - Mobile: Similar pattern with AsyncStorage persistence
+
+## Localization / i18n
+
+When adding or modifying user-facing text in `therr-client-web`, always maintain translation strings in **both** locale dictionaries:
+- `therr-client-web/src/locales/en-us/dictionary.json`
+- `therr-client-web/src/locales/es/dictionary.json`
+
+Use the `useTranslation` hook (or `withTranslation` HOC for class components) instead of hardcoded strings. Never add a key to one dictionary without adding it to the other.
 
 ## Notes
 
