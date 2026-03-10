@@ -4,7 +4,7 @@ export default [
         route: '/',
         head: {
             title: 'Create your Social Profile or Business',
-            description: 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.',
+            description: 'Discover local businesses, restaurants, events, and connect with your community. Create your free profile on Therr.',
         },
         view: 'index',
     },
@@ -60,9 +60,9 @@ export default [
         route: '/locations',
         head: {
             title: 'Business Locations',
-            description: 'Local business directory of business spaces on Therr App',
+            description: 'Browse local businesses, restaurants, bars, shops, and events near you. Read reviews, see hours, and get directions.',
         },
-        view: 'index',
+        view: 'locations',
     },
     {
         route: '/app-feedback',
@@ -76,9 +76,9 @@ export default [
         route: '/locations/:pageNumber',
         head: {
             title: 'Business Locations',
-            description: 'Local business directory of business spaces on Therr App',
+            description: 'Browse local businesses, restaurants, bars, shops, and events near you. Read reviews, see hours, and get directions.',
         },
-        view: 'index',
+        view: 'locations',
     },
     {
         route: '/spaces/:spaceId',
@@ -97,18 +97,18 @@ export default [
         view: 'users',
     },
     {
-        route: '*',
-        head: {
-            title: 'Not Found',
-            description: 'Navigate social media with movement and earn rewards for upvotes & interactions.',
-        },
-        view: 'index',
-    },
-    {
         route: '/go-mobile',
         head: {
             title: 'Your Hub',
             description: 'Explore local people, places, and moments on Therr. Download the mobile app for the full experience.',
+        },
+        view: 'index',
+    },
+    {
+        route: '*',
+        head: {
+            title: 'Not Found',
+            description: 'Navigate social media with movement and earn rewards for upvotes & interactions.',
         },
         view: 'index',
     },
