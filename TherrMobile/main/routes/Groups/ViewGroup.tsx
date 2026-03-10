@@ -672,6 +672,14 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             spacingStyles.flexRow,
                             (this.hashtags?.length > 0 ? {} : spacingStyles.padBotMd),
                         ]}>
+                            <Pressable
+                                onPress={() => this.props.navigation.navigate('Groups', {
+                                    activeTab: GROUPS_CAROUSEL_TABS.GROUPS,
+                                })}
+                                style={{ marginRight: 8, justifyContent: 'center' }}
+                            >
+                                <TherrIcon name="go-back" size={24} />
+                            </Pressable>
                             {
                                 group.media?.featuredImage &&
                                 <View>

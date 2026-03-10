@@ -254,6 +254,15 @@ const createMessage = (
             });
             baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'UNCLAIMED_ACHIEVEMENTS_REMINDER');
             return baseMessage;
+        case PushNotifications.Types.inviteFriendsReminder:
+            baseMessage = createNotificationMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.inviteFriendsReminder.title'),
+                notificationBody: translate(config.userLocale, 'notifications.inviteFriendsReminder.body'),
+            });
+            baseMessage.android.notification.clickAction = getAppBrandingClickAction(brandVariation, 'INVITE_FRIENDS_REMINDER');
+            return baseMessage;
 
         // Event Driven
         case PushNotifications.Types.achievementCompleted:
@@ -524,6 +533,9 @@ const predictAndSendNotification = (
                 return admin.messaging().send(message);
             }
             if (type === PushNotifications.Types.unclaimedAchievementsReminder) {
+                return admin.messaging().send(message);
+            }
+            if (type === PushNotifications.Types.inviteFriendsReminder) {
                 return admin.messaging().send(message);
             }
 

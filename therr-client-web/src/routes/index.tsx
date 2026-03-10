@@ -31,6 +31,7 @@ import EmailPreferences from './EmailPreferences';
 import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
 import DeleteAccount from './DeleteAccount';
+import InviteLanding from './InviteLanding';
 
 export type IRoute = RouteObject & {
     access?: IAccess;
@@ -133,6 +134,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/register',
         element: <Register />,
+    },
+    {
+        path: '/invite/:username',
+        element: <InviteLanding />,
     },
     {
         path: '/user/profile',

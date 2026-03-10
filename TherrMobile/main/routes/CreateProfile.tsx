@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View, Text, Platform } from 'react-native';
+import { SafeAreaView, Share, View, Text, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -21,10 +21,12 @@ import CreateProfileDetails from '../components/0_First_Time_UI/onboarding-stage
 import CreateProfilePhoneVerify from '../components/0_First_Time_UI/onboarding-stages/CreateProfilePhoneVerify';
 import CreateProfilePicture from '../components/0_First_Time_UI/onboarding-stages/CreateProfilePicture';
 import CreateProfileInterests from '../components/0_First_Time_UI/onboarding-stages/CreateProfileInterests';
+import InviteFriends from '../components/0_First_Time_UI/onboarding-stages/InviteFriends';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
 import { getImagePreviewPath } from '../utilities/areaUtils';
 import { getUserImageUri } from '../utilities/content';
+import { synceMobileContacts } from '../utilities/contacts';
 
 const verifyPhoneLoader = require('../assets/verify-phone-shield.json');
 
@@ -42,7 +44,7 @@ export interface ICreateProfileProps extends IStoreProps {
     navigation: any;
 }
 
-type StageType = 'details' | 'picture' | 'phone' | 'interests';
+type StageType = 'details' | 'picture' | 'phone' | 'interests' | 'invite';
 
 interface ICreateProfileState {
     croppedImageDetails: any;
@@ -279,6 +281,10 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                             this.setState({
                                 stage: 'phone',
                             });
+                        } else if (stage === 'phone') {
+                            this.setState({
+                                stage: 'invite',
+                            });
                         }
                     }
                 })
@@ -359,6 +365,39 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         }, () => this.onInputChange(name, value));
     };
 
+    onFinishOnboarding = () => {
+        const { navigation } = this.props;
+        navigation.navigate('Map');
+    };
+
+    onShareInviteLink = () => {
+        const { user } = this.props;
+        Share.share({
+            message: this.translate('forms.createConnection.shareLink.message', {
+                inviteCode: user.details.userName,
+            }),
+            url: `https://www.therr.com/invite/${user.details.userName}`,
+            title: this.translate('forms.createConnection.shareLink.title'),
+        }).catch((err) => console.error(err));
+    };
+
+    onSyncContacts = () => {
+        const { navigation, user } = this.props;
+        const storePermissions = () => {};
+
+        synceMobileContacts({
+            storePermissions,
+            user,
+        }).then((result) => {
+            navigation.navigate('PhoneContacts', {
+                allContacts: result.contacts,
+                matchedUsers: result.matchedUsers,
+            });
+        }).catch((err) => {
+            console.log('Sync contacts error:', err);
+        });
+    };
+
     render() {
         const { user } = this.props;
         const { isLoadingInterests, interests, croppedImageDetails, errorMsg, inputs, isSubmitting, stage } = this.state;
@@ -427,6 +466,17 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                         </Text>
                                         <Text style={this.themeFTUI.styles.subtitleCenter}>
                                             {pageSubHeaderPhone}
+                                        </Text>
+                                    </>
+                                }
+                                {
+                                    stage === 'invite' &&
+                                    <>
+                                        <Text style={this.themeFTUI.styles.title}>
+                                            {this.translate('pages.createProfile.pageHeaderInvite')}
+                                        </Text>
+                                        <Text style={this.themeFTUI.styles.subtitleCenter}>
+                                            {this.translate('pages.createProfile.pageSubHeaderInvite')}
                                         </Text>
                                     </>
                                 }
@@ -507,6 +557,18 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     translate={this.translate}
                                     theme={this.theme}
                                     themeAlerts={this.themeAlerts}
+                                    themeForms={this.themeForms}
+                                    themeSettingsForm={this.themeSettingsForm}
+                                />
+                            }
+                            {
+                                stage === 'invite' &&
+                                <InviteFriends
+                                    onSkip={this.onFinishOnboarding}
+                                    onShareLink={this.onShareInviteLink}
+                                    onSyncContacts={this.onSyncContacts}
+                                    translate={this.translate}
+                                    theme={this.theme}
                                     themeForms={this.themeForms}
                                     themeSettingsForm={this.themeSettingsForm}
                                 />

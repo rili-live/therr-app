@@ -24,7 +24,8 @@ const ModalButton = ({ color, disabled, loading, title, iconName, onPress, iconR
             icon={iconName}
             textColor={textColor}
             contentStyle={iconRight ? { flexDirection: 'row-reverse' } : undefined}
-            style={{ flex: 1 }}
+            style={{ flex: 1, minWidth: 0 }}
+            labelStyle={{ fontSize: 15 }}
         >
             {title}
         </Button>

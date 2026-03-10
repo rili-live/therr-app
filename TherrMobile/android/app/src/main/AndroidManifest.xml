@@ -132,6 +132,10 @@
         <action android:name="app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER" />
         <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
+      <intent-filter>
+        <action android:name="app.therrmobile.INVITE_FRIENDS_REMINDER" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
     </activity>
 
     <meta-data

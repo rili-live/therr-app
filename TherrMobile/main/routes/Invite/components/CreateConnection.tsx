@@ -38,6 +38,7 @@ interface IStoreProps extends ICreateConnectionDispatchProps {
 
 // Regular component props
 export interface ICreateConnectionProps extends IStoreProps {
+    didIgnoreNameConfirm: boolean;
     shouldLaunchContacts: boolean;
     navigation: any;
     toggleNameConfirmModal: () => any;
@@ -45,7 +46,6 @@ export interface ICreateConnectionProps extends IStoreProps {
 
 interface ICreateConnectionState {
     connectionContext: any;
-    didIgnoreNameConfirm: boolean;
     emailErrorMessage: string;
     inputs: any;
     isPhoneNumberValid: boolean;
@@ -81,7 +81,6 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
 
         this.state = {
             connectionContext: 'email',
-            didIgnoreNameConfirm: false,
             emailErrorMessage: '',
             inputs: {},
             prevConnReqError: '',
@@ -211,8 +210,8 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
     };
 
     onSubmit = () => {
-        const { connectionContext, didIgnoreNameConfirm, inputs, isPhoneNumberValid } = this.state;
-        const { createUserConnection, user } = this.props;
+        const { connectionContext, inputs, isPhoneNumberValid } = this.state;
+        const { createUserConnection, didIgnoreNameConfirm, user } = this.props;
 
         if (!didIgnoreNameConfirm && this.isUserNameAnonymous()) {
             this.onToggleNameConfirmModal();
@@ -281,14 +280,10 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
 
     onToggleNameConfirmModal = () => {
         this.props.toggleNameConfirmModal();
-        this.setState({
-            didIgnoreNameConfirm: true,
-        });
     };
 
     onGetPhoneContacts = () => {
-        const { navigation, user } = this.props;
-        const { didIgnoreNameConfirm } = this.state;
+        const { didIgnoreNameConfirm, navigation, user } = this.props;
         // TODO: Store permissions in redux
         const storePermissions = () => {};
 
@@ -300,9 +295,10 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
         return synceMobileContacts({
             storePermissions,
             user,
-        }).then((contacts) => {
+        }).then((result) => {
             navigation.navigate('PhoneContacts', {
-                allContacts: contacts,
+                allContacts: result.contacts,
+                matchedUsers: result.matchedUsers,
             });
         });
     };
@@ -313,7 +309,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
             message: this.translate('forms.createConnection.shareLink.message', {
                 inviteCode: user.details.userName,
             }),
-            url: `https://www.therr.com/register?invite-code=${user.details.userName}`,
+            url: `https://www.therr.com/invite/${user.details.userName}`,
             title: this.translate('forms.createConnection.shareLink.title'),
         }).then((response) => {
             if (response.action === Share.sharedAction) {

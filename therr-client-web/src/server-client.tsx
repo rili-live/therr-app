@@ -610,6 +610,27 @@ const renderLocationsView = (req, res, config, {
     });
 };
 
+const renderInviteView = (req, res, config, {
+    markup,
+    state,
+}) => {
+    const routePath = config.route;
+    const routeView = config.view;
+    const rawUsername = req.params?.username || '';
+    const username = rawUsername.replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50);
+    const title = `Join ${username} on Therr App`;
+    const description = `Join the local community & rewards app. Sign up with ${username}'s invite and you both earn rewards!`;
+
+    return res.render(routeView, {
+        title,
+        description,
+        markup,
+        requestPath: req.path,
+        routePath,
+        state,
+    });
+};
+
 // Universal routing and rendering for SEO
 routeConfig.forEach((config) => {
     const routePath = config.route;
@@ -720,6 +741,13 @@ routeConfig.forEach((config) => {
                         markup,
                         state,
                     }, initialState);
+                }
+
+                if (routeView === 'invite') {
+                    return renderInviteView(req, res, config, {
+                        markup,
+                        state,
+                    });
                 }
 
                 return res.render(routeView, {

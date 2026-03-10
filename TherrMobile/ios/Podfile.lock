@@ -1949,8 +1949,35 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-contacts (7.0.8):
+  - react-native-contacts (8.0.10):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - react-native-date-picker (4.4.2):
     - boost
     - DoubleConversion
@@ -3732,7 +3759,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: abd0447fc2a02ba07a3ba84517139bfad87dbe0c
   react-native-blob-util: cb758d0b9f17fb67646d56f693d1f7736b8405c9
   react-native-config: 537448b1b2c62ebd4be803b1ef61d90351295965
-  react-native-contacts: cb4f3b823550adbce0802901b9e63bf1526ec0af
+  react-native-contacts: ec5eff2827d6a726689ffff53bfdd356d80192fb
   react-native-date-picker: 400ac43300dec3b5c7f3126ffaf2f9c0958ca65f
   react-native-geolocation-service: 608e1da71a1ac31b4de64d9ef2815f697978c55b
   react-native-google-maps: 7cc1184afe41fbd15a3dffd53c924819f6587b69

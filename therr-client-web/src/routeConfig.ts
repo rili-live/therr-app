@@ -81,6 +81,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/invite/:username',
+        head: {
+            title: 'Join Therr App',
+            description: 'Join the local community & rewards app. Sign up with an invite and you both earn rewards!',
+        },
+        view: 'invite',
+    },
+    {
         route: '/delete-account',
         head: {
             title: 'Delete Your Account',

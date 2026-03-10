@@ -91,6 +91,10 @@
     "unreadNotificationsReminder": {
       "title": "You have unread notifications",
       "body": "You have {notificationsCount} unread notifications"
+    },
+    "inviteFriendsReminder": {
+      "title": "Invite Your Friends",
+      "body": "Your friends are missing out! Share your invite link and earn rewards together."
     }
   },
   "validation": "The required parameters were not provided."

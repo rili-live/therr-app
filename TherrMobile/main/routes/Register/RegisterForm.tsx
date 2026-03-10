@@ -304,6 +304,9 @@ export class RegisterFormComponent extends React.Component<
                     themeForms={themeForms}
                     containerStyle={{ marginBottom: 14 }}
                 />
+                <Text style={[theme.styles.sectionDescription, { fontSize: 12, textAlign: 'center', marginBottom: 10 }]}>
+                    {this.translate('forms.registerForm.subtitles.inviteCodeHint')}
+                </Text>
                 {
                     isPasswordEntryDirty &&
                         <PasswordRequirements translate={this.translate} password={this.state.inputs.password} themeForms={themeForms} />

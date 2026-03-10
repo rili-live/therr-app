@@ -2,9 +2,8 @@ import React from 'react';
 import { ActivityIndicator, GestureResponderEvent, StyleProp, StyleSheet, Text, View, ViewStyle, TextStyle } from 'react-native';
 import { TouchableRipple } from 'react-native-paper';
 
-// Uses a View (visual container) → TouchableRipple (fills container) → View
-// (content layout) structure so the ripple and press target always cover the
-// full button area regardless of buttonStyle dimensions.
+// TouchableRipple is the outermost element so the entire visual button area
+// (including padding) is the press target.
 
 interface IButtonProps {
     title?: React.ReactNode;
@@ -38,25 +37,21 @@ const styles = StyleSheet.create({
     },
     container: {
         overflow: 'hidden',
-        alignItems: 'stretch',
-    },
-    ripple: {
-        flex: 1,
-    },
-    content: {
-        flex: 1,
     },
     contentColumn: {
+        flex: 1,
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
     },
     contentRow: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
     },
     contentRowSpaced: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -120,26 +115,22 @@ export const Button = ({
     };
 
     const button = (
-        <View style={[
-            raised && styles.elevated,
-            buttonStyle as StyleProp<ViewStyle>,
-            disabled && disabledStyle,
-            // Clips ripple to border radius and stretches TouchableRipple
-            // to fill the full width (overriding any alignItems from buttonStyle).
-            styles.container,
-        ]}>
-            <TouchableRipple
-                onPress={onPress}
-                disabled={disabled}
-                style={styles.ripple}
-                accessibilityLabel={accessibilityLabel}
-                testID={testID}
-            >
-                <View style={[styles.content, contentLayout]}>
-                    {renderContent()}
-                </View>
-            </TouchableRipple>
-        </View>
+        <TouchableRipple
+            onPress={onPress}
+            disabled={disabled}
+            style={[
+                raised && styles.elevated,
+                buttonStyle as StyleProp<ViewStyle>,
+                disabled && disabledStyle,
+                styles.container,
+            ]}
+            accessibilityLabel={accessibilityLabel}
+            testID={testID}
+        >
+            <View style={contentLayout}>
+                {renderContent()}
+            </View>
+        </TouchableRipple>
     );
 
     if (containerStyle) {
