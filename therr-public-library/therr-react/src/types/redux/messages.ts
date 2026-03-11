@@ -27,7 +27,7 @@ export interface IMessagesState {
     myDMs: any;
     myDMsPagination?: any;
     forumMsgs: {
-        [key: string]: IForumMsg;
+        [key: string]: IForumMsgList;
     } | {};
     hasUnreadDms: boolean;
 }
@@ -38,5 +38,6 @@ export enum MessageActionTypes {
     GET_MY_DIRECT_MESSAGES = 'GET_MY_DIRECT_MESSAGES',
     GET_MORE_OF_MY_DIRECT_MESSAGES = 'GET_MORE_OF_MY_DIRECT_MESSAGES',
     GET_FORUM_MESSAGES = 'GET_FORUM_MESSAGES',
+    GET_MORE_FORUM_MESSAGES = 'GET_MORE_FORUM_MESSAGES',
     MARK_DMS_READ = 'MARK_DMS_READ',
 }

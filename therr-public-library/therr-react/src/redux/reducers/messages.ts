@@ -26,9 +26,25 @@ const messages = produce((draft: IMessagesState, action: any) => {
                 }
             }
             break;
-        case MessageActionTypes.GET_FORUM_MESSAGES:
-            draft.forumMsgs[action.data.roomId] = action.data.messages || [];
+        case MessageActionTypes.GET_FORUM_MESSAGES: {
+            const initialMsgsList = action.data.messages || [];
+            if (action.data.isLastPage && initialMsgsList.length) {
+                initialMsgsList[initialMsgsList.length - 1].isFirstMessage = true;
+            }
+            draft.forumMsgs[action.data.roomId] = initialMsgsList;
             break;
+        }
+        case MessageActionTypes.GET_MORE_FORUM_MESSAGES: {
+            if (!draft.forumMsgs[action.data.roomId]) {
+                draft.forumMsgs[action.data.roomId] = [] as any;
+            }
+            const prevMsgs = draft.forumMsgs[action.data.roomId] as any[];
+            prevMsgs.push(...(action.data.messages || []));
+            if (action.data.isLastPage && prevMsgs.length) {
+                prevMsgs[prevMsgs.length - 1].isFirstMessage = true;
+            }
+            break;
+        }
 
         // DMS
         case MessageActionTypes.GET_DIRECT_MESSAGES: {
