@@ -207,6 +207,15 @@ const appLinksJson = {
 app.get('/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
 // app.get('/.well-known/apple-app-site-association', (req, res) => res.status(200).json(appLinksJson));
 
+// Redirect bare domain to www (preserves path and query string)
+app.use((req, res, next) => {
+    const host = req.hostname;
+    if (host === 'therr.com') {
+        return res.redirect(301, `https://www.therr.com${req.originalUrl}`);
+    }
+    next();
+});
+
 // Locale URL prefix support
 const prefixToLocale: Record<string, string> = { es: 'es' };
 
