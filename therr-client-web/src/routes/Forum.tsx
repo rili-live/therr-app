@@ -4,9 +4,9 @@ import { bindActionCreators } from 'redux';
 import classnames from 'classnames';
 import randomColor from 'randomcolor';
 import {
-    Card, Container, Flex, Group, Stack, Text, Title,
+    Card, Container, Flex, Stack, Text, Title,
 } from '@mantine/core';
-import { SocketActions } from 'therr-react/redux/actions';
+import { MessageActions, SocketActions } from 'therr-react/redux/actions';
 import {
     MantineButton,
     MantineInput,
@@ -19,6 +19,8 @@ import {
 } from 'therr-react/types';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
+
+const ITEMS_PER_PAGE = 50;
 
 const userColors: any = {}; // local state
 
@@ -37,9 +39,9 @@ const verifyAndJoinForum = (props) => {
     });
 };
 
-const renderMessage = (message: IForumMsg, index, user: IUserState) => {
+const renderMessage = (message: IForumMsg, index) => {
     const senderTitle = !message.isAnnouncement ? message.fromUserName : '';
-    const isYou = message.fromUserName?.toLowerCase().includes('you');
+    const isYou = message.fromUserName?.toLowerCase() === 'you';
     const yourColor = 'green';
     const timeSplit = message.time.split(', ');
     const msgClassNames = classnames({
@@ -70,13 +72,13 @@ const renderMessage = (message: IForumMsg, index, user: IUserState) => {
                 }}
             >
                 <div className="forum-message-user-image">
-                    <img
+                    {message.fromUserImgSrc && <img
                         src={`${message.fromUserImgSrc}?size=50x50`}
-                        alt={`Profile Picture: ${user.details.userName}`}
+                        alt={`Profile: ${message.fromUserName || ''}`}
                         width="50"
                         height="50"
                         loading="lazy"
-                    />
+                    />}
                 </div>
                 <div className="forum-message-content-container">
                     <div className="forum-message-header">
@@ -101,6 +103,7 @@ interface IForumRouterProps {
 interface IForumDispatchProps {
     joinForum: Function;
     leaveForum: Function;
+    searchForumMessages: Function;
     sendForumMessage: Function;
 }
 
@@ -133,6 +136,7 @@ const mapStateToProps = (state: IForumState | any) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     joinForum: SocketActions.joinForum,
     leaveForum: SocketActions.leaveForum,
+    searchForumMessages: MessageActions.searchForumMessages,
     sendForumMessage: SocketActions.sendForumMessage,
 }, dispatch);
 
@@ -170,19 +174,23 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 
     componentDidMount() {
-        const { isFirstLoad } = this.state;
+        const { routeParams, searchForumMessages, user } = this.props;
         document.title = `Therr | ${this.props.translate('pages.chatForum.pageTitle')}`;
         this.messageInputRef.current?.focus();
-        // if (isFirstLoad) {
-        //     verifyAndJoinForum(this.props);
-        // }
-        verifyAndJoinForum(this.props);
+
+        if (routeParams?.roomId) {
+            searchForumMessages(routeParams.roomId, user.details.id, {
+                itemsPerPage: ITEMS_PER_PAGE,
+                pageNumber: 1,
+            });
+        }
     }
 
     componentDidUpdate(prevProps: IForumProps) {
         const currentRoom = this.props.user.socketDetails.currentRoom;
         const messages = this.props.messages.forumMsgs[currentRoom];
-        if (messages && messages.length > 3 && messages.length > prevProps.messages.forumMsgs[currentRoom].length) {
+        const prevMessages = prevProps.messages.forumMsgs[currentRoom];
+        if (messages && messages.length > 3 && prevMessages && messages.length > prevMessages.length) {
             scrollTo(document.body.scrollHeight, 100);
         }
     }
@@ -235,7 +243,8 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
     render() {
         const { location, messages, user } = this.props;
-        const forumMessages = messages.forumMsgs[user.socketDetails.currentRoom];
+        const forumMsgsRaw = messages.forumMsgs[user.socketDetails.currentRoom];
+        const forumMessages = forumMsgsRaw ? [...forumMsgsRaw].reverse() : forumMsgsRaw;
 
         const roomName = (location.state as any)?.roomName || user.socketDetails.currentRoom;
 
@@ -255,7 +264,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                                     forumMessages && forumMessages.length > 0
                                         ? <div className="message-list">
                                             {
-                                                forumMessages.map((msg: IForumMsg, index) => renderMessage(msg, index, user))
+                                                forumMessages.map((msg: IForumMsg, index) => renderMessage(msg, index))
                                             }
                                         </div>
                                         : <Text c="dimmed">{this.props.translate('pages.chatForum.welcome')}</Text>
@@ -281,7 +290,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                                 </div>
                                 <MantineButton
                                     id="enter_message"
-                                    text="Send"
+                                    text={this.props.translate('pages.chatForum.sendBtn')}
                                     onClick={this.onButtonClick}
                                     disabled={this.shouldDisableInput('sendForumMessage')}
                                 />

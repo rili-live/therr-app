@@ -511,10 +511,9 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             <ListEmpty iconName="chat" theme={this.theme} text={this.getEmptyListMessage(GROUP_CAROUSEL_TABS.CHAT)} />
                         </View>
                     }
-                    onContentSizeChange={this.scrollTop}
                     showsVerticalScrollIndicator={false}
-                    // onEndReached={this.tryLoadMore}
-                    // onEndReachedThreshold={0.5}
+                    onEndReached={this.tryLoadMore}
+                    onEndReachedThreshold={0.5}
                 />);
             case GROUP_CAROUSEL_TABS.EVENTS:
                 const noop = () => {};
