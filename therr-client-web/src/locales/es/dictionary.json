@@ -89,7 +89,9 @@
         "to": "Para: {firstName} {lastName}"
       },
       "inputPlaceholder": "Escribe un mensaje...",
-      "welcome": "Este es el inicio de una nueva conversaci\u00f3n..."
+      "welcome": "Este es el inicio de una nueva conversaci\u00f3n...",
+      "panelTitle": "Mensajes",
+      "noRecentConversations": "No hay conversaciones recientes"
     },
     "messagesMenu": {
       "buttons": {
@@ -154,10 +156,6 @@
         "notifications": "Notificaciones",
         "profileSettings": "Configuraci\u00f3n de perfil"
       }
-    },
-    "messagingContainer": {
-      "panelTitle": "Mensajes",
-      "noRecentConversations": "No hay conversaciones recientes"
     }
   },
   "pages": {
@@ -298,7 +296,8 @@
     "chatForum": {
       "pageTitle": "Chat grupal",
       "welcome": "\u00a1Bienvenido!",
-      "inputPlaceholder": "Escribe un mensaje"
+      "inputPlaceholder": "Escribe un mensaje",
+      "sendBtn": "Enviar"
     },
     "changePassword": {
       "buttons": {

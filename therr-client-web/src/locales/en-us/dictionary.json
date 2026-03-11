@@ -89,7 +89,9 @@
         "to": "To: {firstName} {lastName}"
       },
       "inputPlaceholder": "Enter a message...",
-      "welcome": "This is the start of a new conversation..."
+      "welcome": "This is the start of a new conversation...",
+      "panelTitle": "Messaging",
+      "noRecentConversations": "No recent conversations"
     },
     "messagesMenu": {
       "buttons": {
@@ -154,10 +156,6 @@
         "notifications": "Notifications",
         "profileSettings": "Profile Settings"
       }
-    },
-    "messagingContainer": {
-      "panelTitle": "Messaging",
-      "noRecentConversations": "No recent conversations"
     }
   },
   "pages": {
@@ -298,7 +296,8 @@
     "chatForum": {
       "pageTitle": "Hosted Chat",
       "welcome": "Welcome!",
-      "inputPlaceholder": "Enter a message"
+      "inputPlaceholder": "Enter a message",
+      "sendBtn": "Send"
     },
     "changePassword": {
       "buttons": {
