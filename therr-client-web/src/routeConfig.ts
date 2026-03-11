@@ -121,6 +121,30 @@ export default [
         view: 'users',
     },
     {
+        route: '/reset-password',
+        head: {
+            title: 'Reset Password',
+            description: 'Reset your Therr account password. Enter your email to receive a password reset link.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/verify-account',
+        head: {
+            title: 'Account Verification',
+            description: 'Verify your Therr account email address to complete registration.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/emails/unsubscribe',
+        head: {
+            title: 'E-mail Subscription Preferences',
+            description: 'Manage your Therr email subscription preferences and notification settings.',
+        },
+        view: 'index',
+    },
+    {
         route: '/go-mobile',
         head: {
             title: 'Your Hub',
