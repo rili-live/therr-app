@@ -93,7 +93,7 @@ const template = `<!DOCTYPE html>
   <table border="0" cellpadding="0" cellspacing="0" role="presentation" class="body-bg" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background-color: {{brandBackgroundHexDark}};">
     <tr>
       <td>&nbsp;</td>
-      <td class="email-container" style="font-family: ${fontStack}; font-size: 14px; vertical-align: top; display: block; Margin: 0 auto; max-width: 580px; padding: 10px; width: 100%;">
+      <td class="email-container" style="font-family: ${fontStack}; font-size: 14px; vertical-align: top; display: block; Margin: 0 auto; max-width: 580px; padding: 10px; width: 100%; box-sizing: border-box;">
 
         <!-- Logo -->
         <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">

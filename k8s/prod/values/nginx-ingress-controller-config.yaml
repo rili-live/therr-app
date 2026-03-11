@@ -2,7 +2,6 @@
 controller:
   config:
     use-forwarded-headers: "true"
-    allow-snippet-annotations: "true"
   service:
     externalTrafficPolicy: "Local"
   nodeSelector:
