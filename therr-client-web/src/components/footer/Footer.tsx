@@ -37,6 +37,7 @@ interface IFooterProps extends IStoreProps {
     toggleNavMenu: Function;
     toggleMessaging: Function;
     isLandingStylePage?: boolean;
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 
@@ -65,7 +66,9 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
 
     // eslint-disable-next-line class-methods-use-this
     handleInfoClick = () => {
-        window.open('https://www.therr.app/', '_blank');
+        const { locale } = this.props;
+        const localePath = locale && locale !== 'en-us' && locale !== 'en' ? `/${locale}` : '';
+        window.open(`https://www.therr.app${localePath}/`, '_blank');
     };
 
     render() {

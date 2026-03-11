@@ -17,6 +17,7 @@ interface IRegisterFormProps {
   register: Function;
   title: string;
   inviteCode?: string;
+  locale: string;
   translate: (key: string, params?: any) => string;
 }
 
@@ -96,7 +97,8 @@ export class RegisterFormComponent extends React.Component<
     };
 
     public render(): JSX.Element | null {
-        const { inviteCode } = this.props;
+        const { inviteCode, locale } = this.props;
+        const localePath = locale && locale !== 'en-us' && locale !== 'en' ? `/${locale}` : '';
 
         return (
             <div className="register-container">
@@ -217,7 +219,7 @@ export class RegisterFormComponent extends React.Component<
 
                         <div className="text-center margin-top-lg">
                             <a
-                                href="https://www.therr.app/terms-and-conditions.html"
+                                href={`https://www.therr.app${localePath}/terms-and-conditions.html`}
                                 target="_blank"
                                 rel="noreferrer"
                             >
