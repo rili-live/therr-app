@@ -122,6 +122,7 @@ app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
     },
 }));
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
+app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.txt')));
 
 // Dynamic sitemap with cached space URLs
 let sitemapCache: { xml: string; timestamp: number } | null = null;
@@ -483,6 +484,63 @@ const renderSpaceView = (req, res, config, {
         itemListElement: breadcrumbItems,
     };
 
+    // FAQPage schema — auto-generated from structured data
+    const faqEntries: { question: string; answer: string }[] = [];
+    const spaceNameForFaq = space?.notificationMsg || spaceTitle;
+
+    if (spaceAddressReadable || spaceAddressStreet) {
+        faqEntries.push({
+            question: `Where is ${spaceNameForFaq} located?`,
+            answer: spaceAddressReadable || [spaceAddressStreet, spaceAddressLocality, spaceAddressRegion, spacePostalCode].filter(Boolean).join(', '),
+        });
+    }
+
+    if (space?.openingHours?.schema?.length) {
+        faqEntries.push({
+            question: `What are the hours of ${spaceNameForFaq}?`,
+            answer: `The hours are: ${space.openingHours.schema.join('; ')}.`,
+        });
+    }
+
+    if (spaceFoodGenre) {
+        faqEntries.push({
+            question: `What type of food does ${spaceNameForFaq} serve?`,
+            answer: `${spaceNameForFaq} serves ${spaceFoodGenre} cuisine.`,
+        });
+    }
+
+    if (spacePriceRange) {
+        const priceLabel = ['', 'budget-friendly', 'moderate', 'upscale', 'fine dining'][spacePriceRange] || 'moderate';
+        faqEntries.push({
+            question: `What is the price range at ${spaceNameForFaq}?`,
+            answer: `${spaceNameForFaq} is ${priceLabel} (${'$'.repeat(spacePriceRange)}).`,
+        });
+    }
+
+    if (spacePhoneNumber) {
+        faqEntries.push({
+            question: `What is the phone number for ${spaceNameForFaq}?`,
+            answer: `You can reach ${spaceNameForFaq} at ${spacePhoneNumber}.`,
+        });
+    }
+
+    let faqSchemaStr = '';
+    if (faqEntries.length > 0) {
+        const faqSchema = {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faqEntries.map((entry) => ({
+                '@type': 'Question',
+                name: entry.question,
+                acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: entry.answer,
+                },
+            })),
+        };
+        faqSchemaStr = JSON.stringify(faqSchema);
+    }
+
     return res.render(routeView, {
         title: spaceTitle,
         description: spaceDescription,
@@ -500,6 +558,7 @@ const renderSpaceView = (req, res, config, {
         spaceAddressReadable,
         spaceSchema: JSON.stringify(spaceSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        faqSchema: faqSchemaStr,
         markup,
         routePath,
         state,
