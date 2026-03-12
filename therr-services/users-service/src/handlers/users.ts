@@ -1025,6 +1025,7 @@ const deleteUser = (req, res) => {
 
 const createOneTimePassword = (req, res) => {
     const {
+        locale,
         whiteLabelOrigin,
         brandVariation,
     } = parseHeaders(req.headers);
@@ -1050,6 +1051,7 @@ const createOneTimePassword = (req, res) => {
                     email,
                 }))
                 .then(() => sendOneTimePasswordEmail({
+                    locale,
                     toAddresses: [email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
@@ -1153,6 +1155,7 @@ const verifyUserAccount = (req, res) => {
 
 const resendVerification: RequestHandler = (req: any, res: any) => {
     const {
+        locale,
         whiteLabelOrigin,
         brandVariation,
     } = parseHeaders(req.headers);
@@ -1198,6 +1201,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
                     redactUserCreds(user);
 
                     return sendVerificationEmail({
+                        locale,
                         toAddresses: [req.body.email],
                         agencyDomainName: whiteLabelOrigin,
                         brandVariation,
@@ -1222,6 +1226,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
 
 const requestSpace: RequestHandler = (req: any, res: any) => {
     const {
+        locale,
         userId,
         whiteLabelOrigin,
         brandVariation,
@@ -1251,6 +1256,7 @@ const requestSpace: RequestHandler = (req: any, res: any) => {
             return Promise.all([
                 sendClaimPendingReviewEmail({
                     subject: 'Business Space Request in Review',
+                    locale,
                     toAddresses: [users[0].email],
                     agencyDomainName: whiteLabelOrigin,
                     brandVariation,
@@ -1325,6 +1331,7 @@ const approveSpaceRequest: RequestHandler = (req: any, res: any) => {
 
             return sendClaimApprovedEmail({
                 subject: 'Approved: Business Space Request',
+                locale,
                 toAddresses: [users[0].email],
                 agencyDomainName: whiteLabelOrigin,
                 brandVariation,

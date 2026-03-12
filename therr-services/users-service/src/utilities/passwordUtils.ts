@@ -83,6 +83,7 @@ const updatePassword = ({
                         id: userId,
                     })
                     .then(() => sendPasswordChangeEmail({
+                        locale,
                         toAddresses: [emailArgs.email],
                         agencyDomainName: whiteLabelOrigin,
                         brandVariation,

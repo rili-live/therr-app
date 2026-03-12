@@ -361,6 +361,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         otherUserEmails.forEach((contact) => {
             emailSendPromises.push(sendContactInviteEmail({
                 subject: `${requestingUserFirstName} ${requestingUserLastName} invited you to Therr app`,
+                locale,
                 toAddresses: [contact.email],
                 agencyDomainName: whiteLabelOrigin,
                 brandVariation,

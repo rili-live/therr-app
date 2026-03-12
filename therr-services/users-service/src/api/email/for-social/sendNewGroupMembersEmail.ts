@@ -2,9 +2,11 @@
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
 import { getHostContext } from '../../../constants/hostContext';
+import translate from '../../../utilities/translator';
 
 export interface ISendNewGroupMembersEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -22,25 +24,27 @@ export interface ITemplateParams {
     membersList?: string[];
 }
 
-// TODO: Localize email
 export default (emailParams: ISendNewGroupMembersEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     if (!emailParams.recipientIdentifiers.settingsEmailInvites) {
         return Promise.resolve({});
     }
 
+    const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
+    const linkUrl = `${globalConfig[process.env.NODE_ENV].hostFull}/groups/${templateParams.groupId}`;
+    const membersList = templateParams.membersList?.join(', ') || '';
 
     const htmlConfig = {
-        header: 'New Member(s) Joined Your Group!',
+        header: translate(locale, 'emails.newGroupMembers.header'),
         body1: templateParams.membersList?.length
-            ? `Welcome the new member(s): ${templateParams.membersList.join(', ')}`
-            : 'Welcome the new members',
+            ? translate(locale, 'emails.newGroupMembers.body1WithMembers', { membersList })
+            : translate(locale, 'emails.newGroupMembers.body1WithoutMembers'),
         body2: templateParams.membersList?.length
-            ? `New members (${templateParams.membersList.join(', ')}) recently joined your group, ${templateParams.groupName}. Login and review their requests if approval is required to join the group.`
-            : `New members recently joined your group, ${templateParams.groupName}. Login and review their requests if approval is required to join the group.`,
-        buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/groups/${templateParams.groupId}`,
+            ? translate(locale, 'emails.newGroupMembers.body2WithMembers', { membersList, groupName: templateParams.groupName })
+            : translate(locale, 'emails.newGroupMembers.body2WithoutMembers', { groupName: templateParams.groupName }),
+        buttonHref: linkUrl,
         buttonText: contextConfig.brandGoLinkText,
-        postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${globalConfig[process.env.NODE_ENV].hostFull}/groups/${templateParams.groupId}`,
+        postBody1: translate(locale, 'emails.newGroupMembers.postBody1', { linkUrl }),
     };
 
     return sendEmail({

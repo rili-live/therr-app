@@ -1,0 +1,13 @@
+{
+  "validation": "No se proporcionaron los parámetros requeridos.",
+  "momentReactions": {
+    "nonFound": "Momento no encontrado",
+    "momentNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes activar el momento"
+  },
+  "thoughtReactions": {
+    "thoughtNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes activar el pensamiento"
+  },
+  "spaceReactions": {
+    "spaceNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes activar el espacio"
+  }
+}
