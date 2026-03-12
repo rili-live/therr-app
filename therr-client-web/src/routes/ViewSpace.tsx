@@ -471,7 +471,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     {/* App Download CTA */}
                     <Paper withBorder p="sm" radius="md" mt="md">
                         <Group justify="center" gap="md" wrap="wrap">
-                            <Text size="sm" c="dimmed">Get the full experience on the Therr app</Text>
+                            <Text size="sm" c="dimmed">Get the full experience on Therr app</Text>
                             <Group gap="xs" className="store-image-links">
                                 <Anchor href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
                                     <Image
