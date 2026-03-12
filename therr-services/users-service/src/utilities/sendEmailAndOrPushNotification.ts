@@ -112,7 +112,7 @@ export default (
             } else if (retentionEmailType === PushNotifications.Types.newGroupInvite
                     && groupName && groupId) {
                 sendEmail = () => sendNewGroupInviteEmail({
-                    subject: translate(emailLocale, 'emails.sendEmailAndOrPush.newGroupInviteSubject', { userName: fromUser?.userName, groupName }),
+                    subject: translate(emailLocale, 'emails.sendEmailAndOrPush.newGroupInviteSubject', { userName: fromUser?.userName || 'A user', groupName }),
                     locale: emailLocale,
                     toAddresses: [destinationUser.email],
                     agencyDomainName: whiteLabelOrigin,
@@ -130,7 +130,16 @@ export default (
             }
         }
 
-        sendEmail();
+        sendEmail().catch((err) => {
+            logSpan({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Error sending retention email', err?.message],
+                traceArgs: {
+                    issue: 'error with sendEmailAndOrPushNotification email',
+                },
+            });
+        });
 
         const pushNotificationPromise: Promise<any> = config.shouldSendPushNotification
             ? internalRestRequest({

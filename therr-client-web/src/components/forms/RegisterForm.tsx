@@ -98,7 +98,8 @@ export class RegisterFormComponent extends React.Component<
 
     public render(): JSX.Element | null {
         const { inviteCode, locale } = this.props;
-        const localePath = locale && locale !== 'en-us' && locale !== 'en' ? `/${locale}` : '';
+        const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
+        const localePath = localePrefixMap[locale] || '';
 
         return (
             <div className="register-container">
