@@ -68,7 +68,7 @@ const template = `<!DOCTYPE html>
     /* Mobile responsive */
     @media (max-width: 620px) {
       .email-container { width: 100% !important; max-width: 100% !important; }
-      .email-content { padding: 5px !important; }
+      .email-content { padding: 5px !important; max-width: 100% !important; }
       .email-wrapper { padding: 15px !important; }
     }
   </style>
@@ -105,7 +105,7 @@ const template = `<!DOCTYPE html>
           </tr>
         </table>
 
-        <div class="email-content" style="box-sizing: border-box; display: block; Margin: 0 auto; max-width: 580px; padding: 10px; width: 100%;">
+        <div class="email-content" style="box-sizing: border-box; display: block; Margin: 0 auto; max-width: 100%; padding: 10px; width: 100%;">
 
           <!-- START HEADER IMAGE -->
           <div style="clear: both; margin-top: 0px; text-align: center; width: 100%;">
