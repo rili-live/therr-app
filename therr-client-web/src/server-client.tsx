@@ -164,22 +164,25 @@ app.get('/sitemap.xml', async (req, res) => {
 
     const today = new Date().toISOString().split('T')[0];
 
-    // Build URL entries for both English (unprefixed) and Spanish (/es) versions
+    // Build URL entries for English (unprefixed), Spanish (/es), and French Canadian (/fr) versions
     // eslint-disable-next-line max-len
-    const buildUrlPair = (loc: string, lastmod: string, priority: string) => {
+    const buildUrlSet = (loc: string, lastmod: string, priority: string) => {
         const esLoc = loc === '/' ? '/es' : `/es${loc}`;
+        const frLoc = loc === '/' ? '/fr' : `/fr${loc}`;
         // eslint-disable-next-line max-len
-        const hreflangLinks = `    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.therr.com${loc}" />\n    <xhtml:link rel="alternate" hreflang="es-MX" href="https://www.therr.com${esLoc}" />\n    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.therr.com${loc}" />`;
+        const hreflangLinks = `    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.therr.com${loc}" />\n    <xhtml:link rel="alternate" hreflang="es-MX" href="https://www.therr.com${esLoc}" />\n    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://www.therr.com${frLoc}" />\n    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.therr.com${loc}" />`;
         // eslint-disable-next-line max-len
         const enEntry = `  <url>\n    <loc>https://www.therr.com${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n${hreflangLinks}\n  </url>`;
         // eslint-disable-next-line max-len
         const esEntry = `  <url>\n    <loc>https://www.therr.com${esLoc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n${hreflangLinks}\n  </url>`;
-        return `${enEntry}\n${esEntry}`;
+        // eslint-disable-next-line max-len
+        const frEntry = `  <url>\n    <loc>https://www.therr.com${frLoc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n${hreflangLinks}\n  </url>`;
+        return `${enEntry}\n${esEntry}\n${frEntry}`;
     };
 
     const urls = [
-        ...staticUrls.map((u) => buildUrlPair(u.loc, today, u.priority)),
-        ...spaceUrls.map((u) => buildUrlPair(u.loc, u.lastmod || today, '0.7')),
+        ...staticUrls.map((u) => buildUrlSet(u.loc, today, u.priority)),
+        ...spaceUrls.map((u) => buildUrlSet(u.loc, u.lastmod || today, '0.7')),
     ];
 
     // eslint-disable-next-line max-len
@@ -217,7 +220,7 @@ app.use((req, res, next) => {
 });
 
 // Locale URL prefix support
-const prefixToLocale: Record<string, string> = { es: 'es' };
+const prefixToLocale: Record<string, string> = { es: 'es', fr: 'fr-ca' };
 
 // Redirect /en/* to /* (strip unnecessary English prefix)
 app.get('/en', (req, res) => res.redirect(301, '/'));
@@ -226,9 +229,16 @@ app.get('/en/*', (req, res) => {
     res.redirect(301, stripped);
 });
 
+// Redirect /fr-ca/* to /fr/* (canonical French prefix)
+app.get('/fr-ca', (req, res) => res.redirect(301, '/fr'));
+app.get('/fr-ca/*', (req, res) => {
+    const stripped = req.path.replace(/^\/fr-ca/, '/fr');
+    res.redirect(301, stripped);
+});
+
 // Locale prefix middleware: detect and strip /es/ prefix before route matching
 app.use((req: any, res, next) => {
-    const localeMatch = req.path.match(/^\/(es)(\/.*)?$/);
+    const localeMatch = req.path.match(/^\/(es|fr)(\/.*)?$/);
     if (localeMatch) {
         req.localeFromUrl = prefixToLocale[localeMatch[1]];
         req.localePrefix = `/${localeMatch[1]}`;
@@ -681,6 +691,7 @@ const renderInviteView = (req, res, config, {
 const localeMap: Record<string, { htmlLang: string; ogLocale: string }> = {
     'en-us': { htmlLang: 'en-US', ogLocale: 'en_US' },
     es: { htmlLang: 'es-MX', ogLocale: 'es_MX' },
+    'fr-ca': { htmlLang: 'fr-CA', ogLocale: 'fr_CA' },
 };
 
 const getLocaleVars = (req: any) => {
@@ -695,12 +706,13 @@ const getLocaleVars = (req: any) => {
     if (localePrefix) {
         canonicalPath = basePath === '/' ? localePrefix : `${localePrefix}${basePath}`;
     }
-    // hreflang links: English = unprefixed, Spanish = /es prefixed
+    // hreflang links: English = unprefixed, Spanish = /es prefixed, French = /fr prefixed
     const hreflangEn = basePath;
     const hreflangEs = basePath === '/' ? '/es' : `/es${basePath}`;
+    const hreflangFr = basePath === '/' ? '/fr' : `/fr${basePath}`;
 
     return {
-        htmlLang, ogLocale, canonicalPath, hreflangEn, hreflangEs, localePrefix,
+        htmlLang, ogLocale, canonicalPath, hreflangEn, hreflangEs, hreflangFr, localePrefix,
     };
 };
 

@@ -226,12 +226,12 @@ const template = `<!DOCTYPE html>
             <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
               <tr>
                 <td class="text-footer" style="font-family: ${fontStack}; vertical-align: top; padding-bottom: 10px; padding-top: 10px; font-size: 12px; text-align: center; color: {{footerTextColorLight}};">
-                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0; Margin-bottom: 8px;">All rights reserved &copy; <a href="{{homepageLinkUri}}" style="color: {{footerTextColorLight}};">{{legalBusinessName}}</a> {{businessCopyrightYear}}</p>
+                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0; Margin-bottom: 8px;">{{footerAllRightsReserved}} &copy; <a href="{{homepageLinkUri}}" style="color: {{footerTextColorLight}};">{{legalBusinessName}}</a> {{businessCopyrightYear}}</p>
                   {{#if unsubscribeUrl}}
-                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0;">Not interested in these emails? <a href="{{unsubscribeUrl}}" style="text-decoration: underline; color: {{footerTextColorLight}}; font-size: 12px;">Unsubscribe</a></p>
+                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0;">{{footerUnsubscribePrompt}} <a href="{{unsubscribeUrl}}" style="text-decoration: underline; color: {{footerTextColorLight}}; font-size: 12px;">{{footerUnsubscribeLink}}</a></p>
                   {{/if}}
                   {{#unless unsubscribeUrl}}
-                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0;">Reply "Unsubscribe" to stop receiving {{messageCategory}} e-mails</p>
+                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0;">{{footerUnsubscribeReply}}</p>
                   {{/unless}}
                 </td>
               </tr>

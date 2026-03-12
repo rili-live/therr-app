@@ -5,6 +5,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span'; // eslint-disable-l
 import { awsSES } from '../aws';
 import Store from '../../store';
 import { getHostContext } from '../../constants/hostContext';
+import translate from '../../utilities/translator';
 import templateString from './template';
 import { createUserEmailToken } from '../../utilities/userHelpers';
 
@@ -70,6 +71,12 @@ export interface ISendEmailHtmlConfig {
     // HTML lang attribute
     lang?: string;
 
+    // Localized footer text
+    footerAllRightsReserved?: string;
+    footerUnsubscribePrompt?: string;
+    footerUnsubscribeLink?: string;
+    footerUnsubscribeReply?: string;
+
     // E-mail Appearance in Inbox
     fromEmailTitle?: string;
 }
@@ -132,6 +139,16 @@ export default (
         socialLinkedin: htmlConfig.socialLinkedin || socialLinks.linkedin,
         socialYoutube: htmlConfig.socialYoutube || socialLinks.youtube,
         socialTiktok: htmlConfig.socialTiktok || socialLinks.tiktok,
+        footerAllRightsReserved: htmlConfig.footerAllRightsReserved
+            || translate(emailConfig.locale || 'en-us', 'emails.template.allRightsReserved'),
+        footerUnsubscribePrompt: htmlConfig.footerUnsubscribePrompt
+            || translate(emailConfig.locale || 'en-us', 'emails.template.unsubscribePrompt'),
+        footerUnsubscribeLink: htmlConfig.footerUnsubscribeLink
+            || translate(emailConfig.locale || 'en-us', 'emails.template.unsubscribeLink'),
+        footerUnsubscribeReply: htmlConfig.footerUnsubscribeReply
+            || translate(emailConfig.locale || 'en-us', 'emails.template.unsubscribeReply', {
+                messageCategory: htmlConfig.messageCategory || 'marketing',
+            }),
     };
     const renderedHtml = template(sanitizedHtmlConfig);
     const params = {

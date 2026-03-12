@@ -72,7 +72,8 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     public render(): JSX.Element | null {
         const { locale } = this.props;
-        const localePath = locale && locale !== 'en-us' && locale !== 'en' ? `/${locale}` : '';
+        const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
+        const localePath = localePrefixMap[locale] || '';
 
         return (
             <div id="page_home" className="flex-box space-evenly center row wrap-reverse">

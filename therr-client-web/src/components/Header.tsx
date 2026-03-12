@@ -2,7 +2,7 @@ import * as React from 'react';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { ActionIcon } from '@mantine/core';
+import { ActionIcon, Menu } from '@mantine/core';
 import {
     AccessControl,
     SvgButton,
@@ -14,7 +14,13 @@ import withTranslation from '../wrappers/withTranslation';
 import UsersActions from '../redux/actions/UsersActions';
 import ColorSchemeToggle from './ColorSchemeToggle';
 
-const localeLabels: Record<string, string> = { 'en-us': 'EN', es: 'ES' };
+const localeLabels: Record<string, string> = { 'en-us': 'EN', es: 'ES', 'fr-ca': 'FR' };
+
+const localeOptions = [
+    { code: 'en-us', label: 'EN', name: 'English' },
+    { code: 'es', label: 'ES', name: 'Español' },
+    { code: 'fr-ca', label: 'FR', name: 'Français' },
+];
 
 const globeIcon = (
     <svg
@@ -85,13 +91,11 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
         };
     }
 
-    handleLocaleChange = () => {
+    handleLocaleChange = (newLocale: string) => {
         const {
             user, updateUser,
         } = this.props;
         const currentPath = window.location.pathname;
-        const isCurrentlySpanish = currentPath.match(/^\/(es)(\/|$)/);
-        const newLocale = isCurrentlySpanish ? 'en-us' : 'es';
 
         // Set cookie for API calls and SSR
         document.cookie = `therr-locale=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
@@ -113,15 +117,17 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
             updateUser(user.details.id, { settingsLocale: newLocale });
         }
 
-        // Navigate to locale-specific URL (full page navigation since basename changes)
-        let newPath: string;
-        if (newLocale === 'es') {
-            // Switching to Spanish: add /es prefix
-            newPath = currentPath === '/' ? '/es' : `/es${currentPath}`;
-        } else {
-            // Switching to English: strip /es prefix
-            newPath = currentPath.replace(/^\/es(\/|$)/, '/') || '/';
+        // Strip any existing locale prefix from the path
+        const strippedPath = currentPath.replace(/^\/(es|fr)(\/|$)/, '/') || '/';
+
+        // Build new path with locale prefix (English has no prefix)
+        const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
+        const prefix = localePrefixMap[newLocale] || '';
+        let newPath = strippedPath;
+        if (prefix) {
+            newPath = strippedPath === '/' ? prefix : `${prefix}${strippedPath}`;
         }
+
         window.location.href = newPath + window.location.search;
     };
 
@@ -171,20 +177,33 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                     />
                 </div>
                 <div className="header-right">
-                    <ActionIcon
-                        variant="subtle"
-                        color="gray"
-                        className="locale-switcher"
-                        onClick={this.handleLocaleChange}
-                        title="Switch language"
-                        aria-label="Switch language"
-                        style={{ color: 'inherit' }}
-                    >
-                        <span className="locale-label">
-                            {localeLabels[this.props.locale] || 'EN'}
-                        </span>
-                        {globeIcon}
-                    </ActionIcon>
+                    <Menu shadow="md" width={160} position="bottom-end">
+                        <Menu.Target>
+                            <ActionIcon
+                                variant="subtle"
+                                color="gray"
+                                className="locale-switcher"
+                                title="Switch language"
+                                aria-label="Switch language"
+                                style={{ color: 'inherit' }}
+                            >
+                                <span className="locale-label">
+                                    {localeLabels[this.props.locale] || 'EN'}
+                                </span>
+                                {globeIcon}
+                            </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown className="locale-menu">
+                            {localeOptions.map((opt) => (
+                                <Menu.Item
+                                    key={opt.code}
+                                    onClick={() => this.handleLocaleChange(opt.code)}
+                                >
+                                    {opt.label} - {opt.name}
+                                </Menu.Item>
+                            ))}
+                        </Menu.Dropdown>
+                    </Menu>
                     <ColorSchemeToggle />
                     <AccessControl isAuthorized={isAuthorized} publicOnly>
                         <div className="login-link">

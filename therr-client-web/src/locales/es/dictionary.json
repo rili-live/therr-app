@@ -511,7 +511,26 @@
       "returnHome": "Volver a la p\u00e1gina de inicio"
     },
     "viewSpace": {
-      "pageTitle": ""
+      "pageTitle": "",
+      "headings": {
+        "hours": "Horario",
+        "contactAndLocation": "Contacto y ubicación",
+        "events": "Eventos",
+        "whatPeopleAreSaying": "Lo que dice la gente"
+      },
+      "labels": {
+        "website": "Sitio web",
+        "menu": "Menú",
+        "phone": "Teléfono",
+        "orderDelivery": "Pedir a domicilio",
+        "reservations": "Reservaciones",
+        "review": "reseña",
+        "reviews": "reseñas",
+        "anonymous": "Anónimo",
+        "readMore": "Leer más",
+        "viewOnGoogleMaps": "Ver en Google Maps",
+        "getFullExperience": "Obtén la experiencia completa en la app Therr"
+      }
     },
     "viewUser": {
       "buttons": {

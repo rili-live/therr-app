@@ -511,7 +511,26 @@
       "returnHome": "Return to home page"
     },
     "viewSpace": {
-      "pageTitle": ""
+      "pageTitle": "",
+      "headings": {
+        "hours": "Hours",
+        "contactAndLocation": "Contact & Location",
+        "events": "Events",
+        "whatPeopleAreSaying": "What People Are Saying"
+      },
+      "labels": {
+        "website": "Website",
+        "menu": "Menu",
+        "phone": "Phone",
+        "orderDelivery": "Order Delivery",
+        "reservations": "Reservations",
+        "review": "review",
+        "reviews": "reviews",
+        "anonymous": "Anonymous",
+        "readMore": "Read more",
+        "viewOnGoogleMaps": "View on Google Maps",
+        "getFullExperience": "Get the full experience on Therr app"
+      }
     },
     "viewUser": {
       "buttons": {
