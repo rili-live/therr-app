@@ -91,6 +91,17 @@ h4 {
         box-shadow: $box-shadow-tile;
     }
 }
+
+.mantine-Breadcrumbs-root { /* stylelint-disable-line selector-class-pattern */
+    flex-wrap: wrap;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+
+    * {
+        white-space: normal !important;
+    }
+}
+
 hr {
     border-color: $therr-primary-1;
     border-width: rem-calc(2px);

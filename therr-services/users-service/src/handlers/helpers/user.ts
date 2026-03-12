@@ -461,6 +461,7 @@ const createUserHelper = (
 
                         if (isSSO) {
                             return sendSSONewUserEmail({
+                                locale: headers['x-localecode'] || 'en-us',
                                 toAddresses: [userDetails.email],
                                 agencyDomainName: headers['x-therr-origin-host'] || '',
                                 brandVariation: headers['x-brand-variation'] || '',
@@ -472,6 +473,7 @@ const createUserHelper = (
 
                         return sendNewUserInviteEmail({
                             subject: `${userByInviteDetails?.fromName} Invited You to Therr app`,
+                            locale: headers['x-localecode'] || 'en-us',
                             toAddresses: [userByInviteDetails?.toEmail || ''],
                             agencyDomainName: headers['x-therr-origin-host'] || '',
                             brandVariation: headers['x-brand-variation'] || '',
@@ -504,6 +506,7 @@ const createUserHelper = (
             // STANDARD USER REGISTRATION
             // TODO: If this bounces, update user email preferences and notify admin
             return sendVerificationEmail({
+                locale: headers['x-localecode'] || 'en-us',
                 toAddresses: [userDetails.email],
                 agencyDomainName: headers['x-therr-origin-host'] || '',
                 brandVariation: headers['x-brand-variation'] || '',

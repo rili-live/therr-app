@@ -14,6 +14,7 @@ const defaultTherrEmailTemplate = Handlebars.compile(templateString);
 
 export interface ISendEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -66,6 +67,9 @@ export interface ISendEmailHtmlConfig {
     socialYoutube?: string;
     socialTiktok?: string;
 
+    // HTML lang attribute
+    lang?: string;
+
     // E-mail Appearance in Inbox
     fromEmailTitle?: string;
 }
@@ -86,6 +90,7 @@ export default (
     template: Handlebars.TemplateDelegate = defaultTherrEmailTemplate,
 ) => new Promise((resolve, reject) => {
     const contextConfig = getHostContext(emailConfig.agencyDomainName, emailConfig.brandVariation);
+    const lang = htmlConfig.lang || (emailConfig.locale ? emailConfig.locale.split('-')[0] : 'en');
     let unsubscribeUrl = htmlConfig.unsubscribeUrl || contextConfig.emailTemplates.unsubscribeUrl;
     // TODO: Generate user email token based on host context
     const unsubscribeUrlToken = unsubscribeUrl && emailConfig.recipientIdentifiers
@@ -102,6 +107,7 @@ export default (
     const socialLinks = contextConfig.emailTemplates.socialLinks || {};
     const sanitizedHtmlConfig: ISendEmailHtmlConfig = {
         ...htmlConfig,
+        lang,
         messageCategory: htmlConfig.messageCategory || 'marketing',
         brandBackgroundHexDark: htmlConfig.brandBackgroundHexDark || contextConfig.emailTemplates.brandBackgroundHexDark,
         brandAccentHex: htmlConfig.brandAccentHex || contextConfig.emailTemplates.brandAccentHex || '#1C7F8A',

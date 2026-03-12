@@ -2,9 +2,11 @@
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
 import { getHostContext } from '../../../constants/hostContext';
+import translate from '../../../utilities/translator';
 
 export interface ISendNewUserInviteEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -19,19 +21,20 @@ export interface ITemplateParams {
     oneTimePassword: string;
 }
 
-// TODO: Localize email
 export default (emailParams: ISendNewUserInviteEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
+    const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
+    const linkUrl = `${globalConfig[process.env.NODE_ENV].hostFull}/verify-account?token=${templateParams.verificationCodeToken}`;
 
     const htmlConfig = {
-        header: 'Your Profile Awaits!',
-        dearUser: `Hi, ${templateParams.toEmail}!`,
-        body1: `You have been invited to connect with ${templateParams.fromName} on Therr app. You can e-mail them directly at ${templateParams.fromEmail}`,
-        body2: 'Follow the link below to finish creating your profile, and use this one-time password:',
+        header: translate(locale, 'emails.newUserInvite.header'),
+        dearUser: translate(locale, 'emails.newUserInvite.dearUser', { toEmail: templateParams.toEmail }),
+        body1: translate(locale, 'emails.newUserInvite.body1', { fromName: templateParams.fromName, fromEmail: templateParams.fromEmail }),
+        body2: translate(locale, 'emails.newUserInvite.body2'),
         bodyBold: templateParams.oneTimePassword,
-        buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/verify-account?token=${templateParams.verificationCodeToken}`,
+        buttonHref: linkUrl,
         buttonText: contextConfig.brandGoLinkText,
-        postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${globalConfig[process.env.NODE_ENV].hostFull}/verify-account?token=${templateParams.verificationCodeToken}`,
+        postBody1: translate(locale, 'emails.newUserInvite.postBody1', { linkUrl }),
         fromEmailTitle: `${templateParams.fromName}, ${contextConfig.brandName}`,
     };
 

@@ -1,0 +1,31 @@
+{
+  "errorMessages": {
+    "accessDenied": "El acceso a este recurso está denegado",
+    "events": {
+      "toFarFromEvent": "Los usuarios solo pueden crear eventos locales"
+    },
+    "posts": {
+        "duplicatePost": "No se permiten publicaciones duplicadas",
+        "spaceNotFound": "No se encontró el espacio para el ID proporcionado"
+    }
+  },
+  "validation": "No se proporcionaron los parámetros requeridos.",
+  "eventReactions": {
+    "eventNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes unirse al grupo del evento"
+  },
+  "momentReactions": {
+    "momentNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes activar el momento"
+  },
+  "thoughtReactions": {
+    "thoughtNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes activar el pensamiento"
+  },
+  "spaceReactions": {
+    "spaceNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes activar el espacio"
+  },
+  "spaces": {
+    "mustBeOwner": "Debes ser el propietario del espacio para ver las métricas",
+    "noOverlap": "Un nuevo espacio no debe superponerse con espacios existentes. Los espacios son exclusivos por diseño. Muévete a una nueva ubicación e intenta de nuevo.",
+    "notFound": "Espacio no encontrado",
+    "alreadyClaimed": "Ya has reclamado este espacio"
+  }
+}
