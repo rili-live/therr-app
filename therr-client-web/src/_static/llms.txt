@@ -1,0 +1,52 @@
+# Therr App — Local Business Directory & Community Platform
+
+> Therr is a local-first community app and business directory. We help people discover nearby businesses, restaurants, events, and places of interest.
+
+## Site Purpose
+
+Therr.com is a public local business directory with listings across major US cities. Each business listing (called a "space") includes structured data such as:
+
+- Business name and description
+- Street address, city, state, postal code
+- GPS coordinates (latitude/longitude)
+- Phone number, website URL
+- Opening hours
+- Food/cuisine type (for restaurants)
+- Price range (1-4 scale)
+- User ratings and reviews
+- Category (restaurant, bar, cafe, shop, hotel, gym, museum, event venue, etc.)
+
+## Public Pages
+
+- **Space detail pages**: `https://www.therr.com/spaces/{spaceId}` — Full business listing with JSON-LD LocalBusiness schema
+- **Locations directory**: `https://www.therr.com/locations` — Browsable directory of all public spaces
+- **User profiles**: `https://www.therr.com/users/{userId}` — Public user profiles
+
+## Structured Data
+
+All space detail pages include:
+- JSON-LD `LocalBusiness` (or `Restaurant`, `BarOrNightClub`, `Store`, etc.) schema
+- JSON-LD `BreadcrumbList` schema
+- JSON-LD `FAQPage` schema with auto-generated Q&A about hours, location, cuisine, and price
+- Open Graph and Twitter Card meta tags
+- `hreflang` links for English (`/spaces/{id}`), Spanish (`/es/spaces/{id}`), and French (`/fr/spaces/{id}`)
+
+## Languages
+
+Content is available in English (default), Spanish (`/es/` prefix), and French Canadian (`/fr/` prefix).
+
+## Data Licensing
+
+Business listing data is sourced from:
+- User-contributed content (original to Therr)
+- OpenStreetMap (CC BY-SA 2.0) — attributed where applicable
+- Public municipal business license registries
+
+## Sitemap
+
+The XML sitemap is available at `https://www.therr.com/sitemap.xml` and includes all public space pages with `hreflang` alternates.
+
+## Contact
+
+- Website: https://www.therr.com
+- GitHub: https://github.com/rili-live/therr-app
