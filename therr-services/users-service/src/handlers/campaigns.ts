@@ -25,6 +25,7 @@ const campaignTypeToAdGroupGoalMap = {
 const accessAndModifyCampaign = (
     context: {
         campaignId: string;
+        locale: string;
         userActorId: string;
         isAdmin: boolean;
         whiteLabelOrigin: string;
@@ -164,6 +165,7 @@ const accessAndModifyCampaign = (
                                 if (generalizedStatus !== CampaignStatuses.REMOVED) {
                                     sendCampaignPendingReviewEmail({
                                         subject: `Campaign in Review | ${title}`,
+                                        locale: context.locale,
                                         toAddresses: [user.email],
                                         agencyDomainName: context.whiteLabelOrigin,
                                         brandVariation: context.brandVariation,
@@ -538,6 +540,7 @@ const updateCampaign = async (req, res) => {
     return accessAndModifyCampaign(
         {
             campaignId: req.params.id,
+            locale,
             userActorId: userId,
             isAdmin: false,
             whiteLabelOrigin,
@@ -593,6 +596,7 @@ const updateCampaignStatus = async (req, res) => {
         .then((campaignExpanded) => accessAndModifyCampaign(
             {
                 campaignId: req.params.id,
+                locale,
                 userActorId: creatorId,
                 isAdmin: true,
                 whiteLabelOrigin,
@@ -609,6 +613,7 @@ const updateCampaignStatus = async (req, res) => {
                     redactUserCreds(user);
                     sendCampaignApprovedEmail({
                         subject: 'Campaign Update Approved',
+                        locale,
                         toAddresses: [user.email],
                         agencyDomainName: whiteLabelOrigin,
                         brandVariation,

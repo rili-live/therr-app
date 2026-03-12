@@ -31,10 +31,12 @@ const initInterceptors = (
         const token = storedUser && storedUser.details && storedUser.details.idToken;
         const userId = storedUser && storedUser.details && storedUser.details.id;
 
+        const userLocale = storedUser?.settings?.locale || 'en-us';
+        modifiedConfig.headers['x-localecode'] = userLocale;
+
         if (token) {
             modifiedConfig.headers.authorization = `Bearer ${token}`;
             modifiedConfig.headers['x-userid'] = userId;
-            // TODO: Also set user locale
         } else {
             delete modifiedConfig.headers.authorization;
             delete axios.defaults.headers.common.authorization;

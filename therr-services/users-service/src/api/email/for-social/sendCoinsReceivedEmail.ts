@@ -1,9 +1,11 @@
 /* eslint-disable max-len */
 import sendEmail from '../sendEmail';
 // import * as globalConfig from '../../../../../global-config';
+import translate from '../../../utilities/translator';
 
 export interface ISendCoinsReceivedEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -20,16 +22,17 @@ export interface ITemplateParams {
     coinTotal: string;
 }
 
-// TODO: Localize email
 export default (emailParams: ISendCoinsReceivedEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
     if (!emailParams.recipientIdentifiers.settingsEmailReminders) {
         return Promise.resolve({});
     }
 
+    const locale = emailParams.locale || 'en-us';
+
     const htmlConfig = {
-        header: 'You earned TherrCoins!',
-        dearUser: `Congratulations, ${templateParams.userName}!`,
-        body1: `You just claimed ${templateParams.coinTotal} TherrCoin(s) for helping support local businesses! Thanks for being a valuable member of their community.`,
+        header: translate(locale, 'emails.coinsReceived.header'),
+        dearUser: translate(locale, 'emails.coinsReceived.dearUser', { userName: templateParams.userName }),
+        body1: translate(locale, 'emails.coinsReceived.body1', { coinTotal: templateParams.coinTotal }),
         footerImageRelativePath: 'assets/images/email-header-3.jpg',
     };
 

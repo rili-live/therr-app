@@ -3,9 +3,11 @@
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
 import { getHostContext } from '../../../constants/hostContext';
+import translate from '../../../utilities/translator';
 
 export interface ISendClaimApprovedEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -22,15 +24,16 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendClaimApprovedEmailConfig, templateParams: ITemplateParams) => {
+    const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const dearUser = `${contextConfig.brandGreeting},`;
     const htmlConfig = {
-        header: 'Approved! Business space request was reviewed and accepted',
+        header: translate(locale, 'emails.claimApproved.header'),
         dearUser,
-        body1: `The business location you requested ('${templateParams.spaceName}') is now available on Therr app.`,
-        body2: `If you have any questions, don't hesitate to contact support at info@therr.com.`,
-        postBody1: 'Thank you for contributing to Therr app. Users like you make this dream possible!',
+        body1: translate(locale, 'emails.claimApproved.body1', { spaceName: templateParams.spaceName }),
+        body2: translate(locale, 'emails.claimApproved.body2'),
+        postBody1: translate(locale, 'emails.claimApproved.postBody1'),
         buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/spaces/${templateParams.spaceId}`,
         buttonText: contextConfig.brandGoLinkText,
     };

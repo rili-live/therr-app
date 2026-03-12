@@ -107,6 +107,7 @@ const getCurrentExchangeRate = (req, res) => {
 
 const transferCoins = (req, res) => {
     const {
+        locale,
         userId,
         whiteLabelOrigin,
         brandVariation,
@@ -169,6 +170,7 @@ const transferCoins = (req, res) => {
                 if (amount > 0 && userName && email) {
                     sendCoinsReceivedEmail({
                         subject: `[Coins Received] You earned ${amount} TherrCoin(s)!`,
+                        locale,
                         toAddresses: [email],
                         agencyDomainName: whiteLabelOrigin,
                         brandVariation,
