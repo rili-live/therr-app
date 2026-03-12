@@ -169,12 +169,13 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     }
 
     renderActionLinks(space: any): JSX.Element | null {
+        const { translate } = this.props;
         const links = [
-            { url: space.websiteUrl, label: 'Website' },
-            { url: space.menuUrl, label: 'Menu' },
-            { url: space.phoneNumber, label: 'Phone', href: `tel:${space.phoneNumber}` },
-            { url: space.orderUrl, label: 'Order Delivery' },
-            { url: space.reservationUrl, label: 'Reservations' },
+            { url: space.websiteUrl, label: translate('pages.viewSpace.labels.website') },
+            { url: space.menuUrl, label: translate('pages.viewSpace.labels.menu') },
+            { url: space.phoneNumber, label: translate('pages.viewSpace.labels.phone'), href: `tel:${space.phoneNumber}` },
+            { url: space.orderUrl, label: translate('pages.viewSpace.labels.orderDelivery') },
+            { url: space.reservationUrl, label: translate('pages.viewSpace.labels.reservations') },
         ].filter((link) => !!link.url);
 
         if (links.length === 0) return null;
@@ -202,7 +203,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
         return (
             <>
-                <Title order={3} size="h4" mt="lg">Hours</Title>
+                <Title order={3} size="h4" mt="lg">{this.props.translate('pages.viewSpace.headings.hours')}</Title>
                 <div className="space-hours-grid">
                     {hours.map((entry) => (
                         <div key={entry.days} className="space-hours-row">
@@ -224,7 +225,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
         return (
             <>
-                <Title order={3} size="h4" mt="lg">Contact &amp; Location</Title>
+                <Title order={3} size="h4" mt="lg">{this.props.translate('pages.viewSpace.headings.contactAndLocation')}</Title>
                 <address className="space-address">
                     {space.addressStreetAddress && <Text>{space.addressStreetAddress}</Text>}
                     {(space.addressLocality || space.addressRegion) && (
@@ -247,7 +248,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         mt="xs"
                         display="inline-block"
                     >
-                        View on Google Maps
+                        {this.props.translate('pages.viewSpace.labels.viewOnGoogleMaps')}
                     </Anchor>
                 )}
             </>
@@ -273,7 +274,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
         return (
             <>
-                <Title order={2} size="h3" mt="xl">Events</Title>
+                <Title order={2} size="h3" mt="xl">{this.props.translate('pages.viewSpace.headings.events')}</Title>
                 <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" mt="sm">
                     {space.events.map((event: any) => (
                         <Anchor key={event.id} href={`/events/${event.id}`} underline="never" className="space-event-card">
@@ -288,7 +289,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     renderMomentCard(moment: any): JSX.Element {
         const authorName = moment.fromUserFirstName && moment.fromUserLastName
             ? `${moment.fromUserFirstName} ${moment.fromUserLastName}`
-            : moment.fromUserName || 'Anonymous';
+            : moment.fromUserName || this.props.translate('pages.viewSpace.labels.anonymous');
 
         const dateStr = moment.createdAt
             ? new Date(moment.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
@@ -346,7 +347,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     </Group>
                 )}
                 <Anchor href={`/moments/${moment.id}`} size="xs" mt="xs" display="inline-block">
-                    Read more
+                    {this.props.translate('pages.viewSpace.labels.readMore')}
                 </Anchor>
             </Paper>
         );
@@ -358,7 +359,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         if (isMomentsLoading) {
             return (
                 <>
-                    <Title order={2} size="h3" mt="xl">What People Are Saying</Title>
+                    <Title order={2} size="h3" mt="xl">{this.props.translate('pages.viewSpace.headings.whatPeopleAreSaying')}</Title>
                     <Stack gap="md" mt="sm">
                         <Skeleton height={120} radius="md" />
                         <Skeleton height={120} radius="md" />
@@ -371,7 +372,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
         return (
             <>
-                <Title order={2} size="h3" mt="xl">What People Are Saying ({spaceMoments.length})</Title>
+                <Title order={2} size="h3" mt="xl">{this.props.translate('pages.viewSpace.headings.whatPeopleAreSaying')} ({spaceMoments.length})</Title>
                 <Stack gap="md" mt="sm">
                     {spaceMoments.map((moment: any) => this.renderMomentCard(moment))}
                 </Stack>
@@ -437,7 +438,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                             <Group gap="xs" mt="xs">
                                 <MantineRating value={space.rating.avgRating} fractions={2} readOnly />
                                 <Text size="sm" c="dimmed">
-                                    {space.rating.avgRating.toFixed(1)} ({space.rating.totalRatings} {space.rating.totalRatings === 1 ? 'review' : 'reviews'})
+                                    {space.rating.avgRating.toFixed(1)} ({space.rating.totalRatings} {space.rating.totalRatings === 1 ? this.props.translate('pages.viewSpace.labels.review') : this.props.translate('pages.viewSpace.labels.reviews')})
                                 </Text>
                             </Group>
                         )}
@@ -471,7 +472,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     {/* App Download CTA */}
                     <Paper withBorder p="sm" radius="md" mt="md">
                         <Group justify="center" gap="md" wrap="wrap">
-                            <Text size="sm" c="dimmed">Get the full experience on Therr app</Text>
+                            <Text size="sm" c="dimmed">{this.props.translate('pages.viewSpace.labels.getFullExperience')}</Text>
                             <Group gap="xs" className="store-image-links">
                                 <Anchor href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
                                     <Image

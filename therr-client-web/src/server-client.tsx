@@ -229,6 +229,13 @@ app.get('/en/*', (req, res) => {
     res.redirect(301, stripped);
 });
 
+// Redirect /fr-ca/* to /fr/* (canonical French prefix)
+app.get('/fr-ca', (req, res) => res.redirect(301, '/fr'));
+app.get('/fr-ca/*', (req, res) => {
+    const stripped = req.path.replace(/^\/fr-ca/, '/fr');
+    res.redirect(301, stripped);
+});
+
 // Locale prefix middleware: detect and strip /es/ prefix before route matching
 app.use((req: any, res, next) => {
     const localeMatch = req.path.match(/^\/(es|fr)(\/.*)?$/);
