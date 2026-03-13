@@ -11,7 +11,7 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { Pool } from 'pg';
-import { CITIES, BATCH_SIZE, IMPORT_USER_ID } from './config';
+import { CITIES, BATCH_SIZE, IMPORT_USER_ID, OSM_CATEGORY_MAP } from './config';
 import { fetchOsmData } from './sources/osm';
 import { mapOsmToSpace, ISpaceInsertParams } from './transforms/mapToSpace';
 import { findDuplicates, deduplicateWithinBatch } from './utils/deduplicate';
@@ -20,6 +20,43 @@ import { validateSpace } from './utils/validate';
 // Load .env from scripts/import-spaces/ first, fall back to root .env
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
+// ── Help ─────────────────────────────────────────────────────────────────────
+function printHelp() {
+  const cityList = Object.keys(CITIES).join(', ');
+  const categoryList = Object.keys(OSM_CATEGORY_MAP).join(', ');
+
+  console.log(`
+Import Spaces CLI — Bulk-import business listings from OpenStreetMap into Therr.
+
+Usage:
+  npx ts-node scripts/import-spaces [options]
+
+Options:
+  --source <name>      Data source (default: osm)
+                       Available: osm
+  --city <name>        Target city (default: chicago)
+                       Available: ${cityList}, all
+  --category <name>    Business category (default: restaurant)
+                       Available: ${categoryList}
+  --limit <n>          Max total spaces to insert (default: no limit)
+  --user-id <uuid>     Owner user ID for created spaces
+                       (default: ${IMPORT_USER_ID})
+  --dry-run            Preview results without inserting into database
+  --skip-dedup         Skip duplicate checking against existing DB records
+  --help, -h           Show this help message
+
+Examples:
+  npx ts-node scripts/import-spaces --source osm --city chicago --category restaurant --dry-run
+  npx ts-node scripts/import-spaces --city all --category all --limit 500
+  npx ts-node scripts/import-spaces --city seattle --category cafe --skip-dedup --limit 100
+
+Environment:
+  Reads DB credentials from scripts/import-spaces/.env (preferred) or root .env.
+  Required vars: DB_HOST_MAIN_WRITE, DB_USER_MAIN_WRITE, DB_PASSWORD_MAIN_WRITE,
+                 DB_PORT_MAIN_WRITE, MAPS_SERVICE_DATABASE
+`);
+}
 
 interface ICliArgs {
   source: string;
@@ -37,7 +74,10 @@ function parseArgs(): ICliArgs {
   const parsed: Record<string, string> = {};
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--dry-run') {
+    if (args[i] === '--help' || args[i] === '-h') {
+      printHelp();
+      process.exit(0);
+    } else if (args[i] === '--dry-run') {
       parsed.dryRun = 'true';
     } else if (args[i] === '--skip-dedup') {
       parsed.skipDedup = 'true';
@@ -182,7 +222,7 @@ async function main() {
   for (const cityKey of cityKeys) {
     if (remaining <= 0) break;
     const city = CITIES[cityKey];
-    console.log(`\n── ${city.name}, ${city.stateCode} ──────────────────────────`);
+    console.log(`\n── ${city.name}, ${city.regionCode} ──────────────────────────`);
 
     // Fetch from OSM
     const osmElements = await fetchOsmData(city, args.category);

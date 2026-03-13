@@ -56,7 +56,7 @@ function buildAddress(tags: Record<string, string>, city: ICityConfig): string {
     parts.push(street);
   }
   parts.push(tags['addr:city'] || city.name);
-  parts.push(tags['addr:state'] || city.stateCode);
+  parts.push(tags['addr:state'] || city.regionCode);
   if (tags['addr:postcode']) {
     parts.push(tags['addr:postcode']);
   }
@@ -118,10 +118,10 @@ export function mapOsmToSpace(element: IOsmElement, city: ICityConfig, userId: s
     radius: SPACE_RADIUS_METERS,
     category,
     areaType: 'spaces',
-    region: 'US',
+    region: city.countryCode,
     addressReadable: buildAddress(tags, city),
     addressStreetAddress: streetAddress.trim(),
-    addressRegion: tags['addr:state'] || city.stateCode,
+    addressRegion: tags['addr:state'] || city.regionCode,
     addressLocality: tags['addr:city'] || city.name,
     postalCode: tags['addr:postcode'] ? parseInt(tags['addr:postcode'], 10) || null : null,
     phoneNumber: tags.phone || tags['contact:phone'] || '',

@@ -17,6 +17,12 @@ const CITY_TIMEZONE_MAP: Record<string, string> = {
   Seattle: 'America/Los_Angeles',
   Portland: 'America/Los_Angeles',
   Eugene: 'America/Los_Angeles',
+  'Mexico City': 'America/Mexico_City',
+  Guadalajara: 'America/Mexico_City',
+  Monterrey: 'America/Monterrey',
+  Montreal: 'America/Montreal',
+  'Quebec City': 'America/Montreal',
+  Gatineau: 'America/Montreal',
 };
 
 export interface IOpeningHours {

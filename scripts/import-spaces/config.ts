@@ -7,8 +7,10 @@
 export interface ICityConfig {
   name: string;
   slug: string;
-  state: string;
-  stateCode: string;
+  region: string;
+  regionCode: string;
+  country: string;
+  countryCode: string;
   bbox: {
     south: number;
     west: number;
@@ -19,40 +21,107 @@ export interface ICityConfig {
 
 // Bounding boxes for target cities (south, west, north, east)
 export const CITIES: Record<string, ICityConfig> = {
+  // ── United States ────────────────────────────────────────────────────────
   chicago: {
     name: 'Chicago',
     slug: 'chicago-il',
-    state: 'Illinois',
-    stateCode: 'IL',
+    region: 'Illinois',
+    regionCode: 'IL',
+    country: 'United States',
+    countryCode: 'US',
     bbox: { south: 41.6445, west: -87.9401, north: 42.0230, east: -87.5240 },
   },
   'los-angeles': {
     name: 'Los Angeles',
     slug: 'los-angeles-ca',
-    state: 'California',
-    stateCode: 'CA',
+    region: 'California',
+    regionCode: 'CA',
+    country: 'United States',
+    countryCode: 'US',
     bbox: { south: 33.7037, west: -118.6682, north: 34.3373, east: -118.1553 },
   },
   seattle: {
     name: 'Seattle',
     slug: 'seattle-wa',
-    state: 'Washington',
-    stateCode: 'WA',
+    region: 'Washington',
+    regionCode: 'WA',
+    country: 'United States',
+    countryCode: 'US',
     bbox: { south: 47.4919, west: -122.4360, north: 47.7341, east: -122.2360 },
   },
   portland: {
     name: 'Portland',
     slug: 'portland-or',
-    state: 'Oregon',
-    stateCode: 'OR',
+    region: 'Oregon',
+    regionCode: 'OR',
+    country: 'United States',
+    countryCode: 'US',
     bbox: { south: 45.4321, west: -122.8367, north: 45.6528, east: -122.4720 },
   },
   eugene: {
     name: 'Eugene',
     slug: 'eugene-or',
-    state: 'Oregon',
-    stateCode: 'OR',
+    region: 'Oregon',
+    regionCode: 'OR',
+    country: 'United States',
+    countryCode: 'US',
     bbox: { south: 43.9888, west: -123.2087, north: 44.0918, east: -123.0366 },
+  },
+  // ── Mexico ───────────────────────────────────────────────────────────────
+  'mexico-city': {
+    name: 'Mexico City',
+    slug: 'mexico-city-cdmx',
+    region: 'Ciudad de Mexico',
+    regionCode: 'CDMX',
+    country: 'Mexico',
+    countryCode: 'MX',
+    bbox: { south: 19.1887, west: -99.3500, north: 19.5928, east: -98.9603 },
+  },
+  guadalajara: {
+    name: 'Guadalajara',
+    slug: 'guadalajara-jal',
+    region: 'Jalisco',
+    regionCode: 'JAL',
+    country: 'Mexico',
+    countryCode: 'MX',
+    bbox: { south: 20.5800, west: -103.4500, north: 20.7600, east: -103.2500 },
+  },
+  monterrey: {
+    name: 'Monterrey',
+    slug: 'monterrey-nl',
+    region: 'Nuevo Leon',
+    regionCode: 'NL',
+    country: 'Mexico',
+    countryCode: 'MX',
+    bbox: { south: 25.5700, west: -100.4500, north: 25.8200, east: -100.2000 },
+  },
+  // ── Canada (French-speaking) ─────────────────────────────────────────────
+  montreal: {
+    name: 'Montreal',
+    slug: 'montreal-qc',
+    region: 'Quebec',
+    regionCode: 'QC',
+    country: 'Canada',
+    countryCode: 'CA',
+    bbox: { south: 45.4100, west: -73.9742, north: 45.7047, east: -73.4742 },
+  },
+  'quebec-city': {
+    name: 'Quebec City',
+    slug: 'quebec-city-qc',
+    region: 'Quebec',
+    regionCode: 'QC',
+    country: 'Canada',
+    countryCode: 'CA',
+    bbox: { south: 46.7500, west: -71.3500, north: 46.9200, east: -71.1500 },
+  },
+  gatineau: {
+    name: 'Gatineau',
+    slug: 'gatineau-qc',
+    region: 'Quebec',
+    regionCode: 'QC',
+    country: 'Canada',
+    countryCode: 'CA',
+    bbox: { south: 45.4200, west: -75.8500, north: 45.5300, east: -75.5700 },
   },
 };
 
