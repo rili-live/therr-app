@@ -124,15 +124,112 @@ app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.txt')));
 
-// Dynamic sitemap with cached space URLs
-let sitemapCache: { xml: string; timestamp: number } | null = null;
+// Dynamic sitemap index with paginated space sub-sitemaps
 const SITEMAP_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const SPACES_PER_SITEMAP = 1000;
 
+// Cache for sitemap pages: key is page identifier (e.g., 'index', 'static', 'spaces-1')
+const sitemapCaches: Record<string, { xml: string; timestamp: number }> = {};
+
+const getSitemapCache = (key: string): string | null => {
+    const cached = sitemapCaches[key];
+    if (cached && (Date.now() - cached.timestamp) < SITEMAP_CACHE_TTL) {
+        return cached.xml;
+    }
+    return null;
+};
+
+const setSitemapCache = (key: string, xml: string) => {
+    sitemapCaches[key] = { xml, timestamp: Date.now() };
+};
+
+// Build URL entries for English (unprefixed), Spanish (/es), and French Canadian (/fr) versions
+// eslint-disable-next-line max-len
+const buildUrlSet = (loc: string, lastmod: string, priority: string) => {
+    const esLoc = loc === '/' ? '/es' : `/es${loc}`;
+    const frLoc = loc === '/' ? '/fr' : `/fr${loc}`;
+    // eslint-disable-next-line max-len
+    const hreflangLinks = `    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.therr.com${loc}" />\n    <xhtml:link rel="alternate" hreflang="es-MX" href="https://www.therr.com${esLoc}" />\n    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://www.therr.com${frLoc}" />\n    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.therr.com${loc}" />`;
+    // eslint-disable-next-line max-len
+    const enEntry = `  <url>\n    <loc>https://www.therr.com${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n${hreflangLinks}\n  </url>`;
+    // eslint-disable-next-line max-len
+    const esEntry = `  <url>\n    <loc>https://www.therr.com${esLoc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n${hreflangLinks}\n  </url>`;
+    // eslint-disable-next-line max-len
+    const frEntry = `  <url>\n    <loc>https://www.therr.com${frLoc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n${hreflangLinks}\n  </url>`;
+    return `${enEntry}\n${esEntry}\n${frEntry}`;
+};
+
+// Fetch a page of spaces for sitemap generation
+// latitude=0&longitude=0 with a global distanceOverride fetches all spaces regardless of location
+const fetchSpacesPage = async (pageNumber: number): Promise<any[]> => {
+    const response = await axios.post(
+        `/maps-service/spaces/list?itemsPerPage=${SPACES_PER_SITEMAP}&pageNumber=${pageNumber}&latitude=0&longitude=0`,
+        { distanceOverride: 40075 * (1000 / 2) },
+    );
+    return response?.data?.results || [];
+};
+
+// Sitemap index: /sitemap.xml
+// Discovers total pages by fetching spaces until an empty page is returned
 app.get('/sitemap.xml', async (req, res) => {
-    const now = Date.now();
-    if (sitemapCache && (now - sitemapCache.timestamp) < SITEMAP_CACHE_TTL) {
+    const cached = getSitemapCache('index');
+    if (cached) {
         res.set('Content-Type', 'application/xml');
-        return res.send(sitemapCache.xml);
+        return res.send(cached);
+    }
+
+    let totalPages = 0;
+    try {
+        // Fetch pages sequentially until we find one with fewer than SPACES_PER_SITEMAP results
+        let page = 1;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            // eslint-disable-next-line no-await-in-loop
+            const spaces = await fetchSpacesPage(page);
+            if (spaces.length > 0) {
+                totalPages = page;
+            }
+            if (spaces.length < SPACES_PER_SITEMAP) {
+                break;
+            }
+            page += 1;
+        }
+    } catch (err) {
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SERVER_CLIENT',
+            messages: 'Failed to fetch space count for sitemap index',
+            tracer: beeline,
+            traceArgs: { errorMessage: (err as any)?.message },
+        });
+        // Fall back to at least 1 page so the sitemap isn't empty
+        totalPages = Math.max(totalPages, 1);
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const sitemaps = [
+        `  <sitemap>\n    <loc>https://www.therr.com/sitemap-static.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
+        ...Array.from({ length: totalPages }, (_, i) => (
+            // eslint-disable-next-line max-len
+            `  <sitemap>\n    <loc>https://www.therr.com/sitemap-spaces-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
+        )),
+    ];
+
+    // eslint-disable-next-line max-len
+    const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemaps.join('\n')}\n</sitemapindex>`;
+
+    setSitemapCache('index', xml);
+    res.set('Content-Type', 'application/xml');
+    return res.send(xml);
+});
+
+// Static pages sitemap: /sitemap-static.xml
+app.get('/sitemap-static.xml', (req, res) => {
+    const cached = getSitemapCache('static');
+    if (cached) {
+        res.set('Content-Type', 'application/xml');
+        return res.send(cached);
     }
 
     const staticUrls = [
@@ -142,54 +239,59 @@ app.get('/sitemap.xml', async (req, res) => {
         { loc: '/locations', priority: '0.9' },
     ];
 
-    let spaceUrls: { loc: string; lastmod: string }[] = [];
+    const today = new Date().toISOString().split('T')[0];
+    const urls = staticUrls.map((u) => buildUrlSet(u.loc, today, u.priority));
 
+    // eslint-disable-next-line max-len
+    const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>`;
+
+    setSitemapCache('static', xml);
+    res.set('Content-Type', 'application/xml');
+    return res.send(xml);
+});
+
+// Paginated spaces sitemaps: /sitemap-spaces-1.xml, /sitemap-spaces-2.xml, etc.
+app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
+    const page = parseInt(req.params[0], 10);
+    if (page < 1 || Number.isNaN(page)) {
+        return res.status(404).send('Not found');
+    }
+
+    const cacheKey = `spaces-${page}`;
+    const cached = getSitemapCache(cacheKey);
+    if (cached) {
+        res.set('Content-Type', 'application/xml');
+        return res.send(cached);
+    }
+
+    let spaces: any[] = [];
     try {
-        const response = await axios.post('/maps-service/spaces/list?itemsPerPage=1000&pageNumber=1', {
-            distanceOverride: 40075 * (1000 / 2),
-        });
-        const spaces = response?.data?.results || [];
-        spaceUrls = spaces.map((space: any) => ({
-            loc: `/spaces/${space.id}`,
-            lastmod: space.updatedAt ? new Date(space.updatedAt).toISOString().split('T')[0] : '',
-        }));
+        spaces = await fetchSpacesPage(page);
     } catch (err) {
+        console.log(err)
         printLogs({
             level: 'error',
             messageOrigin: 'SERVER_CLIENT',
-            messages: 'Failed to fetch spaces for sitemap',
+            messages: `Failed to fetch spaces for sitemap page ${page}`,
             tracer: beeline,
             traceArgs: { errorMessage: (err as any)?.message },
         });
     }
 
+    if (spaces.length === 0) {
+        return res.status(404).send('Not found');
+    }
+
     const today = new Date().toISOString().split('T')[0];
-
-    // Build URL entries for English (unprefixed), Spanish (/es), and French Canadian (/fr) versions
-    // eslint-disable-next-line max-len
-    const buildUrlSet = (loc: string, lastmod: string, priority: string) => {
-        const esLoc = loc === '/' ? '/es' : `/es${loc}`;
-        const frLoc = loc === '/' ? '/fr' : `/fr${loc}`;
-        // eslint-disable-next-line max-len
-        const hreflangLinks = `    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.therr.com${loc}" />\n    <xhtml:link rel="alternate" hreflang="es-MX" href="https://www.therr.com${esLoc}" />\n    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://www.therr.com${frLoc}" />\n    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.therr.com${loc}" />`;
-        // eslint-disable-next-line max-len
-        const enEntry = `  <url>\n    <loc>https://www.therr.com${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n${hreflangLinks}\n  </url>`;
-        // eslint-disable-next-line max-len
-        const esEntry = `  <url>\n    <loc>https://www.therr.com${esLoc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n${hreflangLinks}\n  </url>`;
-        // eslint-disable-next-line max-len
-        const frEntry = `  <url>\n    <loc>https://www.therr.com${frLoc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>\n${hreflangLinks}\n  </url>`;
-        return `${enEntry}\n${esEntry}\n${frEntry}`;
-    };
-
-    const urls = [
-        ...staticUrls.map((u) => buildUrlSet(u.loc, today, u.priority)),
-        ...spaceUrls.map((u) => buildUrlSet(u.loc, u.lastmod || today, '0.7')),
-    ];
+    const urls = spaces.map((space: any) => {
+        const lastmod = space.updatedAt ? new Date(space.updatedAt).toISOString().split('T')[0] : today;
+        return buildUrlSet(`/spaces/${space.id}`, lastmod, '0.7');
+    });
 
     // eslint-disable-next-line max-len
     const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>`;
 
-    sitemapCache = { xml, timestamp: now };
+    setSitemapCache(cacheKey, xml);
     res.set('Content-Type', 'application/xml');
     return res.send(xml);
 });
