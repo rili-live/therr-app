@@ -26,6 +26,7 @@ interface IStoreProps extends IHomeDispatchProps {
 
 // Regular component props
 interface IHomeProps extends IHomeRouterProps, IStoreProps {
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 
@@ -46,7 +47,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  */
 export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     static getDerivedStateFromProps(nextProps: IHomeProps) {
-        if (!shouldRenderLoginForm(nextProps as ILoginProps)) {
+        if (!shouldRenderLoginForm(nextProps as unknown as ILoginProps)) {
             // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
             // Causes a flicker / Need to investigate further
             setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
@@ -70,6 +71,10 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     login = (credentials: any) => this.props.login(credentials);
 
     public render(): JSX.Element | null {
+        const { locale } = this.props;
+        const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
+        const localePath = localePrefixMap[locale] || '';
+
         return (
             <div id="page_home" className="flex-box space-evenly center row wrap-reverse">
                 <div className="login-container info-container">
@@ -92,7 +97,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                             </a>
                         </div>
                         <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>
-                            <a href="https://www.therr.app/privacy-policy.html" target="_blank" className="link-plain-white">{this.props.translate('components.loginForm.buttons.privacyPolicy')}</a> | <a href="https://www.therr.app/terms-and-conditions.html" target="_blank" className="link-plain-white">{this.props.translate('components.loginForm.buttons.toc')}</a>
+                            <a href={`https://www.therr.app${localePath}/privacy-policy.html`} target="_blank" className="link-plain-white">{this.props.translate('components.loginForm.buttons.privacyPolicy')}</a> | <a href={`https://www.therr.app${localePath}/terms-and-conditions.html`} target="_blank" className="link-plain-white">{this.props.translate('components.loginForm.buttons.toc')}</a>
                         </div>
                     </div>
                 </div>

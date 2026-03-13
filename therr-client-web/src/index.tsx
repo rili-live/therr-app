@@ -30,7 +30,7 @@ const getColorScheme = (): 'light' | 'dark' => {
 
 // Detect locale prefix from URL for BrowserRouter basename
 const getLocaleBasename = (): string | undefined => {
-    const match = window.location.pathname.match(/^\/(es)(\/|$)/);
+    const match = window.location.pathname.match(/^\/(es|fr)(\/|$)/);
     return match ? `/${match[1]}` : undefined;
 };
 const localeBasename = getLocaleBasename();

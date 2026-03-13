@@ -5,6 +5,7 @@ import logSpan from 'therr-js-utilities/log-or-update-span'; // eslint-disable-l
 import { awsSES } from '../aws';
 import Store from '../../store';
 import { getHostContext } from '../../constants/hostContext';
+import translate from '../../utilities/translator';
 import templateString from './template';
 import { createUserEmailToken } from '../../utilities/userHelpers';
 
@@ -14,6 +15,7 @@ const defaultTherrEmailTemplate = Handlebars.compile(templateString);
 
 export interface ISendEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -66,6 +68,15 @@ export interface ISendEmailHtmlConfig {
     socialYoutube?: string;
     socialTiktok?: string;
 
+    // HTML lang attribute
+    lang?: string;
+
+    // Localized footer text
+    footerAllRightsReserved?: string;
+    footerUnsubscribePrompt?: string;
+    footerUnsubscribeLink?: string;
+    footerUnsubscribeReply?: string;
+
     // E-mail Appearance in Inbox
     fromEmailTitle?: string;
 }
@@ -86,6 +97,7 @@ export default (
     template: Handlebars.TemplateDelegate = defaultTherrEmailTemplate,
 ) => new Promise((resolve, reject) => {
     const contextConfig = getHostContext(emailConfig.agencyDomainName, emailConfig.brandVariation);
+    const lang = htmlConfig.lang || (emailConfig.locale ? emailConfig.locale.split('-')[0] : 'en');
     let unsubscribeUrl = htmlConfig.unsubscribeUrl || contextConfig.emailTemplates.unsubscribeUrl;
     // TODO: Generate user email token based on host context
     const unsubscribeUrlToken = unsubscribeUrl && emailConfig.recipientIdentifiers
@@ -102,6 +114,7 @@ export default (
     const socialLinks = contextConfig.emailTemplates.socialLinks || {};
     const sanitizedHtmlConfig: ISendEmailHtmlConfig = {
         ...htmlConfig,
+        lang,
         messageCategory: htmlConfig.messageCategory || 'marketing',
         brandBackgroundHexDark: htmlConfig.brandBackgroundHexDark || contextConfig.emailTemplates.brandBackgroundHexDark,
         brandAccentHex: htmlConfig.brandAccentHex || contextConfig.emailTemplates.brandAccentHex || '#1C7F8A',
@@ -126,6 +139,16 @@ export default (
         socialLinkedin: htmlConfig.socialLinkedin || socialLinks.linkedin,
         socialYoutube: htmlConfig.socialYoutube || socialLinks.youtube,
         socialTiktok: htmlConfig.socialTiktok || socialLinks.tiktok,
+        footerAllRightsReserved: htmlConfig.footerAllRightsReserved
+            || translate(emailConfig.locale || 'en-us', 'emails.template.allRightsReserved'),
+        footerUnsubscribePrompt: htmlConfig.footerUnsubscribePrompt
+            || translate(emailConfig.locale || 'en-us', 'emails.template.unsubscribePrompt'),
+        footerUnsubscribeLink: htmlConfig.footerUnsubscribeLink
+            || translate(emailConfig.locale || 'en-us', 'emails.template.unsubscribeLink'),
+        footerUnsubscribeReply: htmlConfig.footerUnsubscribeReply
+            || translate(emailConfig.locale || 'en-us', 'emails.template.unsubscribeReply', {
+                messageCategory: htmlConfig.messageCategory || 'marketing',
+            }),
     };
     const renderedHtml = template(sanitizedHtmlConfig);
     const params = {

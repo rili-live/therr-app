@@ -1,0 +1,198 @@
+{
+    "errorMessages": {
+        "auth": {
+            "accountNotVerified": "Cuenta no verificada. Revisa tu correo electrónico para la verificación o navega a /verify-account para reenviar",
+            "noUserFound": "No se encontró un usuario con el nombre de usuario/correo electrónico ingresado",
+            "oneTimeExpired": "La contraseña de un solo uso ha expirado",
+            "incorrectUserPass": "Combinación incorrecta de nombre de usuario/contraseña",
+            "invalidPassword": "La contraseña no es válida"
+        },
+        "posts": {
+            "duplicatePost": "No se permiten publicaciones duplicadas"
+        },
+        "user": {
+            "invalidUserNamePassword": "La combinación de usuario/contraseña es incorrecta",
+            "maxOrgs": "Se alcanzó el máximo de organizaciones",
+            "misMatchUserIDs": "Los IDs de usuario no coinciden",
+            "uniqueUserName": "Este nombre de usuario ya está en uso"
+        },
+        "userAchievements": {
+            "invalidAchievementClass": "Clase de logro no válida. No se encontró nada en la configuración.",
+            "invalidAchievementId": "ID de logro no válido. No se encontró nada en la configuración.",
+            "invalidAchievementTier": "Nivel de logro no válido. No se encontró nada en la configuración."
+        },
+        "userConnections": {
+            "alreadyExists": "Esta conexión de usuario ya existe",
+            "noUserFound": "No se encontró un usuario con los criterios proporcionados",
+            "noRequestSelf": "No se puede crear una conexión de usuario consigo mismo",
+            "mismatchTokenUserId": "ID de usuario solicitante no válido",
+            "locationRequired": "La ubicación del usuario es requerida para este endpoint",
+            "noNearbyUserConnectionsFound": "No se encontraron conexiones de usuario cercanas"
+        },
+        "privacy": {
+            "restrictedMedia": "Contenido restringido"
+        }
+    },
+    "metrics": {
+        "mustBeOwner": "Debes ser el propietario del contenido para ver las métricas"
+    },
+    "notifications": {
+        "achievementCompleted": "¡Completaste un logro! Reclama tu recompensa para obtener monedas.",
+        "connectionRequestAccepted": "{firstName} {lastName} aceptó tu solicitud de conexión",
+        "connectionRequestReceived": "Has recibido una nueva solicitud de conexión de {firstName} {lastName}",
+        "reactionLikeReceived": "A {userName} le gustó tu publicación",
+        "reactionSuperLikeReceived": "¡{userName} le dio super me gusta a tu publicación!",
+        "newThoughtReplyReceived": "Tu pensamiento tiene nuevas respuestas",
+        "newDmReceived": "Nuevo mensaje directo de {userName} mientras estabas ausente",
+        "newGroupMembers": "Nuevos miembros {members} se unieron a tu grupo, {groupName}",
+        "newGroupInvite": "{inviterUserName} te invitó a unirte al grupo, {groupName}",
+        "newAreasActivated": "Recientemente activaste {totalAreasActivated} nueva(s) área(s)",
+        "discoveredUniqueMoment": "Revisa el mapa para activar un momento con atributos especiales",
+        "discoveredUniqueSpace": "Revisa el mapa para activar un espacio con atributos especiales"
+    },
+    "invites": {
+        "phone": "{name} te ha invitado a unirte a la app Therr. Regístrate con este enlace para conectar https://therr.com"
+    },
+    "thoughts": {
+        "notFound": "Pensamiento no encontrado"
+    },
+    "thoughtReactions": {
+        "thoughtNotActivated": "Este usuario no tiene permiso para acceder al contenido sin antes activar el pensamiento"
+    },
+    "validation": "No se proporcionaron los parámetros requeridos.",
+    "emails": {
+        "verification": {
+            "subject": "[Verificación de cuenta] Cuenta de usuario de {brandShortName}",
+            "header": "{brandName}: Verificación de cuenta de usuario",
+            "dearUser": "¡Bienvenido/a, {name}!",
+            "body1": "Tu nueva cuenta de usuario fue creada exitosamente. Haz clic en el siguiente enlace para verificar tu cuenta.",
+            "buttonText": "Verificar mi cuenta",
+            "postBody1": "Si no puedes hacer clic en el enlace, copia y pega la siguiente URL en el navegador: {linkUrl}"
+        },
+        "oneTimePassword": {
+            "subject": "[¿Olvidaste tu contraseña?] Contraseña de un solo uso de {brandShortName}",
+            "header": "{brandName}: Contraseña de un solo uso",
+            "dearUser": "Hola {name},",
+            "body1": "Parece que olvidaste tu contraseña y solicitaste un restablecimiento. Usa esta contraseña temporal para acceder a tu cuenta. Después de iniciar sesión, puedes restablecer tu contraseña desde la página de configuración de usuario.",
+            "body2": "Tu contraseña temporal de un solo uso:",
+            "buttonText": "Ir a iniciar sesión"
+        },
+        "passwordChange": {
+            "subject": "[Contraseña cambiada] Configuración de cuenta de {brandShortName}",
+            "header": "{brandName}: Contraseña cambiada",
+            "dearUser": "Hola {userName},",
+            "body1": "Tu contraseña ha sido actualizada exitosamente. Si tú iniciaste este cambio, por favor ignora este correo electrónico.",
+            "body2": "Si no iniciaste este cambio, por favor contáctanos inmediatamente para resolver el problema.",
+            "buttonText": "Ir a iniciar sesión"
+        },
+        "ssoNewUser": {
+            "subject": "[Cuenta creada] Contraseña de un solo uso de {brandShortName}",
+            "header": "{brandName}: Cuenta de usuario creada",
+            "dearUser": "Hola {name},",
+            "body1": "Se creó exitosamente una nueva cuenta de usuario. Haz clic en el siguiente enlace para iniciar sesión, elegir un nombre de usuario y establecer tu contraseña. Puedes iniciar sesión con SSO o directamente con la contraseña de tu cuenta.",
+            "body2": "Tu contraseña temporal de un solo uso:",
+            "postBody1": "Si no puedes hacer clic en el enlace, copia y pega la siguiente URL en el navegador: {linkUrl}"
+        },
+        "subscriberVerification": {
+            "header": "{brandName}: Suscrito a actualizaciones",
+            "dearUser": "¡Bienvenido/a!",
+            "body1": "Te has suscrito exitosamente a nuestro canal de actualizaciones generales. Solo enviaremos actualizaciones para eventos importantes para mantenerte informado/a. Si aún no tienes la app, obtén la versión anticipada en Google Play o la Apple App Store."
+        },
+        "pendingInvite": {
+            "header": "Nueva solicitud de conexión",
+            "body1": "Tienes una nueva solicitud de amistad de {fromName} en {brandName}."
+        },
+        "newGroupInvite": {
+            "header": "Nueva invitación de grupo",
+            "body1": "{fromUserName} te invitó a unirte al grupo, {groupName}",
+            "body2": "Unirte a un grupo te da acceso al chat grupal y próximos eventos. Inicia sesión para revisar tus notificaciones y responder a la invitación.",
+            "postBody1": "Si no puedes hacer clic en el enlace, copia y pega la siguiente URL en el navegador: {linkUrl}"
+        },
+        "newGroupMembers": {
+            "header": "¡Nuevos miembros se unieron a tu grupo!",
+            "body1WithMembers": "Dale la bienvenida a los nuevos miembros: {membersList}",
+            "body1WithoutMembers": "Dale la bienvenida a los nuevos miembros",
+            "body2WithMembers": "Nuevos miembros ({membersList}) se unieron recientemente a tu grupo, {groupName}. Inicia sesión y revisa sus solicitudes si se requiere aprobación para unirse al grupo.",
+            "body2WithoutMembers": "Nuevos miembros se unieron recientemente a tu grupo, {groupName}. Inicia sesión y revisa sus solicitudes si se requiere aprobación para unirse al grupo.",
+            "postBody1": "Si no puedes hacer clic en el enlace, copia y pega la siguiente URL en el navegador: {linkUrl}"
+        },
+        "contactInvite": {
+            "header": "¡Nueva invitación de {fromName}!",
+            "dearUser": "¡Hola, {toEmail}!",
+            "body1": "{fromName} te ha invitado a conectar en la app Therr. Puedes enviarle un correo electrónico directamente a {fromEmail}",
+            "body2": "Sigue el enlace a continuación para registrarte hoy.",
+            "postBody1": "Si no puedes hacer clic en el enlace, copia y pega la siguiente URL en el navegador: {linkUrl}"
+        },
+        "newUserInvite": {
+            "header": "¡Tu perfil te espera!",
+            "dearUser": "¡Hola, {toEmail}!",
+            "body1": "Has sido invitado/a a conectar con {fromName} en la app Therr. Puedes enviarle un correo electrónico directamente a {fromEmail}",
+            "body2": "Sigue el enlace a continuación para terminar de crear tu perfil y usa esta contraseña de un solo uso:",
+            "postBody1": "Si no puedes hacer clic en el enlace, copia y pega la siguiente URL en el navegador: {linkUrl}"
+        },
+        "coinsReceived": {
+            "header": "¡Ganaste TherrCoins!",
+            "dearUser": "¡Felicidades, {userName}!",
+            "body1": "¡Acabas de reclamar {coinTotal} TherrCoin(s) por ayudar a apoyar negocios locales! Gracias por ser un miembro valioso de su comunidad."
+        },
+        "claimApproved": {
+            "header": "¡Aprobado! La solicitud de espacio comercial fue revisada y aceptada",
+            "body1": "La ubicación comercial que solicitaste ('{spaceName}') ya está disponible en la app Therr.",
+            "body2": "Si tienes alguna pregunta, no dudes en contactar a soporte en info@therr.com.",
+            "postBody1": "¡Gracias por contribuir a la app Therr. Usuarios como tú hacen posible este sueño!"
+        },
+        "claimPendingReview": {
+            "header": "Solicitud de espacio comercial en revisión",
+            "body1": "La ubicación comercial que solicitaste ('{spaceName}') está siendo revisada actualmente. Si tu solicitud es aprobada, deberías recibir una confirmación en las próximas 24-72 horas.",
+            "body2": "Busca un correo electrónico de confirmación en los próximos días. Si tienes alguna pregunta, no dudes en contactar a soporte en info@therr.com.",
+            "bodyBold": "También puedes editar esta campaña en cualquier momento durante el proceso de revisión.",
+            "postBody1": "¡Gracias por contribuir a la app Therr. Usuarios como tú hacen posible este sueño!",
+            "buttonText": "Iniciar sesión en la app"
+        },
+        "campaignApproved": {
+            "header": "¡Aprobada! Tu solicitud de campaña publicitaria fue revisada y aceptada",
+            "body1": "Tu campaña, '{campaignName}' comenzará a ejecutarse en las plataformas objetivo ({integrationTargets}) en la fecha y hora programadas.",
+            "body2": "Visita el panel de control para ver un resumen en tiempo real del rendimiento de la campaña.",
+            "body3": "Si tienes alguna pregunta, no dudes en contactar a soporte en info@therr.com."
+        },
+        "campaignPendingReview": {
+            "header": "Campaña en revisión",
+            "body1": "Tu campaña ('{campaignName}') está siendo revisada actualmente. Los anuncios se publicarán en los proveedores objetivo después de una revisión exitosa.",
+            "body2": "Busca un correo electrónico de confirmación en los próximos días y/o revisa el panel de control para estadísticas/métricas. Si tienes alguna pregunta, no dudes en contactar a soporte en info@therr.com.",
+            "bodyWarning": "Esta campaña ha pasado la fecha de finalización programada. Por favor actualiza el horario de tu campaña para continuar ejecutando anuncios.",
+            "bodyBold": "También puedes editar esta campaña en cualquier momento durante el proceso de revisión.",
+            "postBody1": "¡Gracias por usar Therr for Business! Esperamos simplificar, optimizar y mejorar la publicidad y el marketing para nuestros clientes. Comparte tus comentarios mientras continuamos mejorando el servicio con actualizaciones semanales.",
+            "buttonText": "Ir al panel de control"
+        },
+        "dashboardSubscriberIntro": {
+            "header": "{brandName}: Plan de marketing y métricas",
+            "dearUser": "¡Bienvenido/a!",
+            "body1": "Tu negocio ahora está activado para \"{productPlanName}\", y tu suscripción se renovará automáticamente al final del período de prueba gratuito. Si ya tienes una cuenta en el panel de control, inicia sesión para administrar tu espacio comercial.",
+            "body2": "De lo contrario, sigue el enlace para registrarte y comenzar. Reclama tu espacio y actualiza los detalles de tu negocio para obtener los mejores resultados. Nuestras campañas de marketing se adaptan directamente a las necesidades únicas de tu negocio con IA avanzada y automatización.",
+            "body3": "Si tienes preguntas sobre el proceso o deseas actualizar tu plan, no dudes en contactar a soporte en cualquier momento: {feedbackEmail}",
+            "bodyBold": "Es posible que necesites cerrar sesión y volver a iniciar sesión para ver el acceso actualizado de la cuenta.",
+            "buttonText": "Iniciar sesión o registrarse",
+            "postBody1": "Si no puedes hacer clic en el enlace, copia y pega la siguiente URL en el navegador: {linkUrl}"
+        },
+        "dashboardSubscriberUserNotFound": {
+            "header": "Correo electrónico de suscriptor faltante | No encontrado",
+            "dearUser": "Hola,",
+            "body1": "El correo electrónico que proporcionaste al suscribirte a Therr for Business no fue encontrado en nuestra base de datos.",
+            "body2": "Si aún no has creado una cuenta en el panel de control, por favor hazlo ahora y/o infórmanos el correo electrónico que usaste para registrarte.",
+            "body3": "Esto nos permitirá otorgar acceso de suscriptor a tu cuenta. Te notificaremos cuando esté completo para que puedas acceder a todas las funciones de la app.",
+            "buttonText": "Ir al panel de control",
+            "postBody1": "Si no puedes hacer clic en el enlace, copia y pega la siguiente URL en el navegador: {linkUrl}"
+        },
+        "sendEmailAndOrPush": {
+            "connectionRequestSubject": "[Nueva solicitud de conexión] {userName} te envió una solicitud",
+            "newGroupMembersSubject": "¡Nuevos miembros se unieron a tu grupo!",
+            "newGroupInviteSubject": "{userName} te invitó a unirte al grupo, {groupName}"
+        },
+        "template": {
+            "allRightsReserved": "Todos los derechos reservados",
+            "unsubscribePrompt": "¿No te interesan estos correos electrónicos?",
+            "unsubscribeLink": "Cancelar suscripción",
+            "unsubscribeReply": "Responde \"Cancelar suscripción\" para dejar de recibir correos electrónicos de {messageCategory}"
+        }
+    }
+}

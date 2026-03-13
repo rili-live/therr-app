@@ -1,0 +1,9 @@
+{
+  "sms": {
+    "yourVerificationCode": "Tu código de verificación de la app Therr es: {code}"
+  },
+  "validation": {
+    "defaultMessage": "Los siguientes parámetros no son válidos",
+    "notEnoughEnergy": "Energía insuficiente"
+  }
+}

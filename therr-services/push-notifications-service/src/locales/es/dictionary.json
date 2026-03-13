@@ -1,0 +1,101 @@
+{
+  "notifications": {
+    "achievementCompleted": {
+      "title": "Nuevas recompensas sin reclamar",
+      "body": "¡Completaste un logro! Reclama tu recompensa para obtener monedas."
+    },
+    "connectionRequestAccepted": {
+      "title": "Nueva conexión",
+      "body": "¡Tu solicitud de conexión fue aceptada! Revisa la app para iniciar una nueva conversación",
+      "pressActionMessage": "Mensaje",
+      "pressActionView": "Ver"
+    },
+    "createAMomentReminder": {
+      "title": "Crea un momento para hacer conexiones",
+      "body": "El primer paso para hacer nuevas conexiones es compartir un momento mientras estás en movimiento. Puede ser una reseña, observación, dato curioso o algo divertido."
+    },
+    "createYourProfileReminder": {
+      "title": "Inicia sesión para crear tu perfil",
+      "body": "Tu perfil está incompleto. Inicia sesión para elegir tu nombre de usuario y establecer una foto de perfil."
+    },
+    "discoveredUniqueMoment": {
+      "title": "¡Encontraste un momento único!",
+      "body": "Revisa el mapa para activar un momento con atributos especiales"
+    },
+    "discoveredUniqueSpace": {
+      "title": "¡Encontraste un espacio único!",
+      "body": "Revisa el mapa para activar un espacio con atributos especiales"
+    },
+    "latestPostLikesStats": {
+      "title": "Nuevos me gusta",
+      "body": "Tu última publicación tiene {likeCount} me gusta en total. Comparte momentos para obtener logros, hacer conexiones y aumentar tus seguidores."
+    },
+    "latestPostViewcountStats": {
+      "title": "Tu publicación tiene nuevas vistas",
+      "body": "Tu última publicación tiene {viewCount} vistas en total."
+    },
+    "newConnectionRequest": {
+      "title": "Nueva solicitud de conexión",
+      "body": "Tienes una nueva solicitud de conexión de {userName}",
+      "pressActionAccept": "Aceptar",
+      "pressActionView": "Ver"
+    },
+    "newDirectMessage": {
+      "title": "Nuevos mensajes sin leer",
+      "body": "Tienes mensajes sin leer de {userName}",
+      "pressActionReply": "Responder",
+      "pressActionView": "Ver"
+    },
+    "newGroupMessage": {
+      "title": "Nuevos mensajes de grupo",
+      "body": "Tienes mensajes sin leer en el grupo {groupName}",
+      "pressActionReply": "Responder",
+      "pressActionView": "Ver"
+    },
+    "newGroupMembers": {
+      "title": "Nuevos miembros del grupo",
+      "body": "Nuevos miembros {members} se unieron a tu grupo, {groupName}"
+    },
+    "newGroupInvite": {
+      "title": "Nueva invitación de grupo",
+      "body": "{fromUserName} te invitó a unirte al grupo, {groupName}"
+    },
+    "newLikeReceived": {
+      "title": "Nueva reacción",
+      "body": "A {userName} le gustó tu publicación",
+      "pressActionView": "Ver publicación"
+    },
+    "newSuperLikeReceived": {
+      "title": "Nueva reacción",
+      "body": "{userName} le dio super me gusta a tu publicación",
+      "pressActionView": "Ver publicación"
+    },
+    "newThoughtReplyReceived": {
+      "title": "Nueva respuesta a publicación",
+      "body": "{userName} respondió a tu publicación",
+      "pressActionView": "Ver respuesta"
+    },
+    "newAreasActivated": {
+      "title": "Nuevas áreas activadas",
+      "body": "Recientemente activaste {totalAreasActivated} nueva(s) área(s)"
+    },
+    "nudgeSpaceEngagement": {
+      "title": "¿Reclamar recompensas de reembolso?",
+      "body": "Regístrate o completa una acción rápida para reclamar reembolsos y descuentos",
+      "pressActionCheckIn": "¿Registrarse?"
+    },
+    "unclaimedAchievementsReminder": {
+      "title": "Tienes logros sin reclamar",
+      "body": "Tienes {achievementsCount} logros sin reclamar"
+    },
+    "unreadNotificationsReminder": {
+      "title": "Tienes notificaciones sin leer",
+      "body": "Tienes {notificationsCount} notificaciones sin leer"
+    },
+    "inviteFriendsReminder": {
+      "title": "Invita a tus amigos",
+      "body": "¡Tus amigos se lo están perdiendo! Comparte tu enlace de invitación y ganen recompensas juntos."
+    }
+  },
+  "validation": "No se proporcionaron los parámetros requeridos."
+}

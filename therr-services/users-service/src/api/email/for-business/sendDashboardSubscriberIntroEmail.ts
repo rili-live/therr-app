@@ -2,9 +2,11 @@
 import sendEmail from '../sendEmail';
 import * as globalConfig from '../../../../../../global-config';
 import { getHostContext } from '../../../constants/hostContext';
+import translate from '../../../utilities/translator';
 
 export interface ISendDashboardSubscriberIntroEmailConfig {
     charset?: string;
+    locale?: string;
     subject: string;
     toAddresses: string[];
     agencyDomainName: string;
@@ -19,22 +21,22 @@ export interface ITemplateParams {
     productName?: string;
 }
 
-// TODO: Localize email
 export default (emailParams: ISendDashboardSubscriberIntroEmailConfig, templateParams: ITemplateParams) => {
+    const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const linkUrl = `${globalConfig[process.env.NODE_ENV].dashboardHostFull}/login`;
     const productPlanName = templateParams.productName || 'Business Marketing & Customer Metrics';
     const htmlConfig = {
-        header: `${contextConfig.brandName}: Marketing & Metrics Plan`,
-        dearUser: 'Welcome!',
-        body1: `Your business is now activated for "${productPlanName}", and your subscription will auto-renew at the end of the free trial. If you already have a dashboard account, login to manage your business space.`,
-        body2: 'Otherwise, follow the link to register and get started. Claim your space and update your business details for the best results. Our marketing campaigns cater directly to your unique business needs with advance AI and automation.',
-        body3: `If you have questions about the process or wish to update your plan, feel free to contact support at any time: ${process.env.AWS_FEEDBACK_EMAIL_ADDRESS}`,
-        bodyBold: 'You may need to logout and log back in to see the updated account access.',
+        header: translate(locale, 'emails.dashboardSubscriberIntro.header', { brandName: contextConfig.brandName }),
+        dearUser: translate(locale, 'emails.dashboardSubscriberIntro.dearUser'),
+        body1: translate(locale, 'emails.dashboardSubscriberIntro.body1', { productPlanName }),
+        body2: translate(locale, 'emails.dashboardSubscriberIntro.body2'),
+        body3: translate(locale, 'emails.dashboardSubscriberIntro.body3', { feedbackEmail: process.env.AWS_FEEDBACK_EMAIL_ADDRESS }),
+        bodyBold: translate(locale, 'emails.dashboardSubscriberIntro.bodyBold'),
         buttonHref: linkUrl,
-        buttonText: 'Login or Register',
-        postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${linkUrl}`,
+        buttonText: translate(locale, 'emails.dashboardSubscriberIntro.buttonText'),
+        postBody1: translate(locale, 'emails.dashboardSubscriberIntro.postBody1', { linkUrl }),
     };
 
     return sendEmail({

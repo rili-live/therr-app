@@ -2,9 +2,11 @@
 import sendEmail from './sendEmail';
 import * as globalConfig from '../../../../../global-config';
 import { getHostContext } from '../../constants/hostContext';
+import translate from '../../utilities/translator';
 
 export interface ISendVerificationEmailConfig {
     charset?: string;
+    locale?: string;
     toAddresses: string[];
     agencyDomainName: string;
     brandVariation: string;
@@ -29,22 +31,22 @@ const getLinkUrl = (verificationCodeToken: string, host: string, isDashboardRegi
     return `${basePathWithBranding}/verify-account?token=${verificationCodeToken}`;
 };
 
-// TODO: Localize email
 export default (emailParams: ISendVerificationEmailConfig, templateParams: ITemplateParams, isDashboardRegistration = false) => {
+    const locale = emailParams.locale || 'en-us';
     const contextConfig = getHostContext(emailParams.agencyDomainName, emailParams.brandVariation);
 
     const linkUrl = getLinkUrl(templateParams.verificationCodeToken, contextConfig.host, isDashboardRegistration);
     const htmlConfig = {
-        header: `${contextConfig.brandName}: User Account Verification`,
-        dearUser: `Welcome, ${templateParams.name}!`,
-        body1: 'Your new user account was successfully created. Click the following link to verify your account.',
+        header: translate(locale, 'emails.verification.header', { brandName: contextConfig.brandName }),
+        dearUser: translate(locale, 'emails.verification.dearUser', { name: templateParams.name }),
+        body1: translate(locale, 'emails.verification.body1'),
         buttonHref: linkUrl,
-        buttonText: 'Verify My Account',
-        postBody1: `If you are unable to click the link, copy paste the following URL in the browser: ${linkUrl}`,
+        buttonText: translate(locale, 'emails.verification.buttonText'),
+        postBody1: translate(locale, 'emails.verification.postBody1', { linkUrl }),
     };
 
     return sendEmail({
         ...emailParams,
-        subject: `[Account Verification] ${contextConfig.brandShortName} User Account`,
+        subject: translate(locale, 'emails.verification.subject', { brandShortName: contextConfig.brandShortName }),
     }, htmlConfig);
 };

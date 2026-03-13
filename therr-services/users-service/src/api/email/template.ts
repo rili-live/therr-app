@@ -8,9 +8,8 @@ const imagesHost = process.env.NODE_ENV === 'development'
 
 const fontStack = "'Helvetica Neue', Helvetica, Arial, sans-serif";
 
-// TODO: Localize email template
 const template = `<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="{{lang}}" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -69,7 +68,7 @@ const template = `<!DOCTYPE html>
     /* Mobile responsive */
     @media (max-width: 620px) {
       .email-container { width: 100% !important; max-width: 100% !important; }
-      .email-content { padding: 5px !important; }
+      .email-content { padding: 5px !important; max-width: 100% !important; }
       .email-wrapper { padding: 15px !important; }
     }
   </style>
@@ -106,7 +105,7 @@ const template = `<!DOCTYPE html>
           </tr>
         </table>
 
-        <div class="email-content" style="box-sizing: border-box; display: block; Margin: 0 auto; max-width: 580px; padding: 10px; width: 100%;">
+        <div class="email-content" style="box-sizing: border-box; display: block; Margin: 0 auto; max-width: 100%; padding: 10px; width: 100%;">
 
           <!-- START HEADER IMAGE -->
           <div style="clear: both; margin-top: 0px; text-align: center; width: 100%;">
@@ -227,12 +226,12 @@ const template = `<!DOCTYPE html>
             <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
               <tr>
                 <td class="text-footer" style="font-family: ${fontStack}; vertical-align: top; padding-bottom: 10px; padding-top: 10px; font-size: 12px; text-align: center; color: {{footerTextColorLight}};">
-                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0; Margin-bottom: 8px;">All rights reserved &copy; <a href="{{homepageLinkUri}}" style="color: {{footerTextColorLight}};">{{legalBusinessName}}</a> {{businessCopyrightYear}}</p>
+                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0; Margin-bottom: 8px;">{{footerAllRightsReserved}} &copy; <a href="{{homepageLinkUri}}" style="color: {{footerTextColorLight}};">{{legalBusinessName}}</a> {{businessCopyrightYear}}</p>
                   {{#if unsubscribeUrl}}
-                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0;">Not interested in these emails? <a href="{{unsubscribeUrl}}" style="text-decoration: underline; color: {{footerTextColorLight}}; font-size: 12px;">Unsubscribe</a></p>
+                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0;">{{footerUnsubscribePrompt}} <a href="{{unsubscribeUrl}}" style="text-decoration: underline; color: {{footerTextColorLight}}; font-size: 12px;">{{footerUnsubscribeLink}}</a></p>
                   {{/if}}
                   {{#unless unsubscribeUrl}}
-                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0;">Reply "Unsubscribe" to stop receiving {{messageCategory}} e-mails</p>
+                  <p style="color: {{footerTextColorLight}}; font-size: 12px; text-align: center; margin: 0;">{{footerUnsubscribeReply}}</p>
                   {{/unless}}
                 </td>
               </tr>

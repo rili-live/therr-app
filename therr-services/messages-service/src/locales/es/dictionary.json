@@ -1,0 +1,13 @@
+{
+  "errorMessages": {
+    "accessDenied": "El acceso a este recurso está denegado",
+    "forums": {
+        "duplicatePost": "No se permiten publicaciones duplicadas",
+        "forumNotFound": "No se encontró el grupo para el ID proporcionado"
+    }
+  },
+  "validation": "No se proporcionaron los parámetros requeridos.",
+  "errors": {
+    "matureText": "Texto no válido. Por favor intenta de nuevo."
+  }
+}

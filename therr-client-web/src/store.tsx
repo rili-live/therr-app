@@ -38,7 +38,11 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
     storedUser = storedUser || {};
     const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
     // URL prefix is the source of truth for page locale
-    const localeFromUrl = window.location.pathname.match(/^\/(es)(\/|$)/) ? 'es' : 'en-us';
+    const localeUrlMatch = window.location.pathname.match(/^\/(es|fr)(\/|$)/);
+    let localeFromUrl = 'en-us';
+    if (localeUrlMatch) {
+        localeFromUrl = localeUrlMatch[1] === 'fr' ? 'fr-ca' : localeUrlMatch[1];
+    }
     const reloadedState: any = {
         user: {
             details: storedUser,

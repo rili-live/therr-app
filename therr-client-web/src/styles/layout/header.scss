@@ -76,6 +76,10 @@ header {
         }
     }
 
+    .locale-menu.mantine-Menu-dropdown {
+        z-index: 100;
+    }
+
     .mantine-ActionIcon-root {
         color: $therr-white;
     }
