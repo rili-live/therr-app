@@ -65,6 +65,20 @@ describe('SpacesStore - searchPairedSpaces', () => {
         expect(query).to.include('ELSE 0'); // same category
     });
 
+    it('joins spacePairingFeedback to incorporate feedback into catScore', () => {
+        const { mockStore, mockMediaStore } = createMockStores();
+        const store = new SpacesStore(mockStore, mockMediaStore);
+
+        store.searchPairedSpaces('space-123', 40.7128, -74.0060, 'categories.restaurant/food');
+
+        const query = mockStore.read.query.args[0][0];
+        expect(query).to.include('LEFT JOIN');
+        expect(query).to.include('"spacePairingFeedback"');
+        expect(query).to.include('"sourceSpaceId"');
+        expect(query).to.include('"feedbackScore"');
+        expect(query).to.include('COALESCE');
+    });
+
     it('orders by catScore DESC then distInMeters ASC', () => {
         const { mockStore, mockMediaStore } = createMockStores();
         const store = new SpacesStore(mockStore, mockMediaStore);
