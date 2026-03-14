@@ -971,6 +971,71 @@ const deleteSpaces = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
+// PAIRINGS
+const getSpacePairings: RequestHandler = async (req: any, res: any) => {
+    const { locale } = parseHeaders(req.headers);
+    const { spaceId } = req.params;
+
+    return Store.spaces.getByIdSimple(spaceId).then(([space]) => {
+        if (!space) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'spaces.notFound'),
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            });
+        }
+
+        if (space.latitude == null || space.longitude == null) {
+            return res.status(200).send({ pairings: [] });
+        }
+
+        return Store.spaces.searchPairedSpaces(spaceId, space.latitude, space.longitude, space.category || '')
+            .then((candidates) => {
+                // Diversity filter: prefer max 1 result per category, fill remaining
+                const usedCategories = new Set<string>();
+
+                // First pass: pick one per category
+                const diverse = candidates.reduce((acc, candidate) => {
+                    if (acc.length >= 3) return acc;
+                    if (!usedCategories.has(candidate.category)) {
+                        acc.push(candidate);
+                        usedCategories.add(candidate.category);
+                    }
+                    return acc;
+                }, [] as any[]);
+
+                // Second pass: fill remaining slots
+                if (diverse.length < 3) {
+                    const selectedIds = new Set(diverse.map((s) => s.id));
+                    candidates.forEach((candidate) => {
+                        if (diverse.length >= 3) return;
+                        if (!selectedIds.has(candidate.id)) {
+                            diverse.push(candidate);
+                        }
+                    });
+                }
+
+                return res.status(200).send({ pairings: diverse });
+            });
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+};
+
+const submitPairingFeedback: RequestHandler = async (req: any, res: any) => {
+    const { userId } = parseHeaders(req.headers);
+    const { spaceId } = req.params;
+    const { pairedSpaceId, isHelpful } = req.body;
+
+    return Store.spacePairingFeedback.create({
+        sourceSpaceId: spaceId,
+        pairedSpaceId,
+        userId: userId || undefined,
+        isHelpful,
+    })
+        .then((result) => res.status(201).send(result))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+};
+
 export {
     createSpace,
     getSpaceDetails,
@@ -980,6 +1045,8 @@ export {
     requestSpace,
     approveSpaceRequest,
     findSpaces,
+    getSpacePairings,
+    submitPairingFeedback,
     getSignedUrlPrivateBucket,
     getSignedUrlPublicBucket,
     updateSpace,

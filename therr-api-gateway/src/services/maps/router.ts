@@ -10,6 +10,7 @@ import {
     createEventLimiter,
     createMomentLimiter,
     createSpaceLimiter,
+    pairingFeedbackLimiter,
 } from './limitation/map';
 import { createCheckInValidation, getSignedUrlValidation } from './validation';
 import {
@@ -26,7 +27,9 @@ import {
 } from './validation/moments';
 import {
     getSpaceDetailsValidation,
+    getSpacePairingsValidation,
     updateSpaceValidation,
+    submitPairingFeedbackValidation,
 } from './validation/spaces';
 import CacheStore from '../../store';
 import authenticateOptional from '../../middleware/authenticateOptional';
@@ -230,6 +233,24 @@ mapsServiceRouter.put('/spaces/:spaceId', updateSpaceValidation, validate, async
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'put',
 }));
+
+// Space Pairings
+mapsServiceRouter.get('/spaces/:spaceId/pairings', authenticateOptional, getSpacePairingsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}));
+
+mapsServiceRouter.post(
+    '/spaces/:spaceId/pairings/feedback',
+    pairingFeedbackLimiter,
+    authenticateOptional,
+    submitPairingFeedbackValidation,
+    validate,
+    handleServiceRequest({
+        basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+        method: 'post',
+    }),
+);
 
 mapsServiceRouter.post('/spaces/:spaceId/details', authenticateOptional, getSpaceDetailsValidation, validate, async (req, res, next) => {
     const spaceDetails = await CacheStore.mapsService.getAreaDetails('spaces', req.params.spaceId);

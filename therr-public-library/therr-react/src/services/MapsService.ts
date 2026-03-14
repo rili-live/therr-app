@@ -305,6 +305,18 @@ class MapsService {
         });
     };
 
+    // Space Pairings
+    getSpacePairings = (spaceId: string) => axios({
+        method: 'get',
+        url: `/maps-service/spaces/${spaceId}/pairings`,
+    });
+
+    submitPairingFeedback = (spaceId: string, pairedSpaceId: string, isHelpful: boolean) => axios({
+        method: 'post',
+        url: `/maps-service/spaces/${spaceId}/pairings/feedback`,
+        data: { pairedSpaceId, isHelpful },
+    });
+
     // Map Metrics
     getSpaceEngagement = (spaceId: string, args: IGetSpaceEngagementArgs) => {
         const url = `/maps-service/space-metrics/${spaceId}/engagement?startDate=${args.startDate}&endDate=${args.endDate}`;

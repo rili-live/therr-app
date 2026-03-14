@@ -14,6 +14,8 @@ import { ICreateAreaParams, IDeleteAreasParams } from './common/models';
 import { sanitizeNotificationMsg } from './common/utils';
 import { getRatings } from '../utilities/getReactions';
 
+const { ComplementaryCategoriesMap } = Categories;
+
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const SPACES_TABLE_NAME = 'main.spaces';
@@ -719,6 +721,52 @@ export default class SpacesStore {
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    searchPairedSpaces(spaceId: string, latitude: number, longitude: number, category: string, options: { radiusMeters?: number } = {}) {
+        const radiusMeters = options.radiusMeters || 8000;
+        const complementaryCategories = ComplementaryCategoriesMap[category] || [];
+
+        // LEFT JOIN feedback to boost/penalize based on user votes
+        // feedbackScore = SUM(+/-1 * weight), where authenticated votes count 2x anonymous
+        // catScore (0-2) + feedbackScore gives the final ranking
+        const queryString = knexBuilder.raw(`
+            SELECT
+                s.id, s."notificationMsg", s.category, s.medias, s."addressReadable",
+                s.latitude, s.longitude, s."priceRange",
+                s."geomCenter"::geography <-> ST_MakePoint(?, ?)::geography AS "distInMeters",
+                CASE
+                    WHEN s.category = ANY(?) THEN 2
+                    WHEN s.category != ? THEN 1
+                    ELSE 0
+                END
+                + COALESCE(fb."feedbackScore", 0) AS "catScore"
+            FROM main.spaces s
+            LEFT JOIN (
+                SELECT
+                    "pairedSpaceId",
+                    SUM(
+                        (CASE WHEN "isHelpful" THEN 1 ELSE -1 END)
+                        * (CASE WHEN "userId" IS NOT NULL THEN 2 ELSE 1 END)
+                    ) AS "feedbackScore"
+                FROM main."spacePairingFeedback"
+                WHERE "sourceSpaceId" = ?
+                GROUP BY "pairedSpaceId"
+            ) fb ON fb."pairedSpaceId" = s.id
+            WHERE
+                s.id != ?
+                AND s."isPublic" = true
+                AND s."isMatureContent" = false
+                AND s."isClaimPending" = false
+                AND ST_DWithin(s.geom, ST_MakePoint(?, ?)::geography, ?)
+            ORDER BY "catScore" DESC, "distInMeters" ASC
+            LIMIT 6
+        `, [
+            longitude, latitude, complementaryCategories, category,
+            spaceId, spaceId, longitude, latitude, radiusMeters,
+        ]).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     deleteSpaces(params: IDeleteAreasParams) {

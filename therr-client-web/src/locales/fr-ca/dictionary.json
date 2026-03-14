@@ -516,7 +516,9 @@
         "hours": "Heures d'ouverture",
         "contactAndLocation": "Contact et emplacement",
         "events": "Événements",
-        "whatPeopleAreSaying": "Ce que les gens disent"
+        "whatPeopleAreSaying": "Ce que les gens disent",
+        "youMightAlsoLike": "Suggestions locales",
+        "pairingsDescription": "Des endroits parfaits à proximité pour compléter votre sortie à {spaceName}"
       },
       "labels": {
         "website": "Site web",
@@ -529,7 +531,9 @@
         "anonymous": "Anonyme",
         "readMore": "Lire la suite",
         "viewOnGoogleMaps": "Voir sur Google Maps",
-        "getFullExperience": "Profitez de l'expérience complète sur l'application Therr"
+        "getFullExperience": "Profitez de l'expérience complète sur l'application Therr",
+        "helpful": "Utile",
+        "notHelpful": "Pas utile"
       }
     },
     "viewUser": {
