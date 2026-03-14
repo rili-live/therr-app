@@ -280,7 +280,9 @@
     "referralStats": {
       "title": "Your Referrals",
       "friendsJoined": "{count} friend(s) joined with your invite code",
+      "friendsLabel": "Friends Joined",
       "coinsEarned": "You've earned {count} TherrCoin(s) from referrals",
+      "coinsLabel": "Coins Earned",
       "shareLink": "Share Your Invite Link"
     },
     "header": {
@@ -1268,6 +1270,12 @@
           "protip": "Protip: Start a draft with location, then edit later without location"
         },
         "walkCloser": "Walk closer to the space to claim rewards."
+      },
+      "pairings": {
+        "youMightAlsoLike": "Local Pairings",
+        "pairingsDescription": "Perfect spots nearby to complete your outing at {spaceName}",
+        "helpful": "Helpful",
+        "notHelpful": "Not helpful"
       }
     },
     "viewMoment": {

@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     Dimensions,
     Platform,
+    Pressable,
     SafeAreaView,
     Share,
     StyleSheet,
@@ -34,6 +36,7 @@ import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import userContentStyles from '../styles/user-content';
 import spacingStyles from '../styles/layouts/spacing';
 import { youtubeLinkRegex, MAX_DISTANCE_TO_NEARBY_SPACE } from '../constants';
+import { Image } from '../components/BaseImage';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
 import ConfirmModal from '../components/Modals/ConfirmModal';
 import BaseStatusBar from '../components/BaseStatusBar';
@@ -115,6 +118,9 @@ const ViewSpace = ({
     const [moments, setMoments] = useState<any[]>([]);
     const [fetchedSpace, setFetchedSpace] = useState<any>({});
     const [previewStyleState, setPreviewStyleState] = useState<any>({});
+    const [spacePairings, setSpacePairings] = useState<any[]>([]);
+    const [isPairingsLoading, setIsPairingsLoading] = useState(false);
+    const [pairingFeedback, setPairingFeedback] = useState<{ [id: string]: boolean }>({});
 
     // Refs
     const scrollViewRef = useRef<any>(null);
@@ -198,6 +204,16 @@ const ViewSpace = ({
         }).catch((err) => {
             console.log(err);
         });
+
+        setIsPairingsLoading(true);
+        MapsService.getSpacePairings(space.id)
+            .then((response) => {
+                setSpacePairings(response?.data?.pairings || []);
+                setIsPairingsLoading(false);
+            })
+            .catch(() => {
+                setIsPairingsLoading(false);
+            });
 
         navigation.setOptions({ title: notificationMsg });
 
@@ -421,6 +437,119 @@ const ViewSpace = ({
         });
     }, [location, translate, updateLocationDisclosure, updateGpsStatus, user, reactions, map, navigation]);
 
+    const handlePairingFeedback = useCallback((pairedSpaceId: string, isHelpful: boolean) => {
+        setPairingFeedback((prev) => ({ ...prev, [pairedSpaceId]: isHelpful }));
+        // Fire-and-forget
+        MapsService.submitPairingFeedback(space.id, pairedSpaceId, isHelpful).catch(() => {});
+    }, [space.id]);
+
+    const handleGoToViewSpace = useCallback((pairedSpace: any) => {
+        navigation.push('ViewSpace', {
+            space: pairedSpace,
+            isMyContent: pairedSpace?.fromUserId === user.details.id,
+            previousView: 'ViewSpace',
+        });
+    }, [navigation, user.details.id]);
+
+    const formatCategoryLabel = useCallback((category: string): string => {
+        if (!category) return '';
+        const label = category.replace('categories.', '').replace('/', ' & ');
+        return label.charAt(0).toUpperCase() + label.slice(1);
+    }, []);
+
+    const renderPairings = () => {
+        const spaceName = spaceInView.notificationMsg || '';
+
+        if (isPairingsLoading) {
+            return (
+                <View style={localStyles.pairingsSection}>
+                    <Text style={[theme.styles.sectionTitleCenter, localStyles.pairingsTitle]}>
+                        {translate('pages.viewSpace.pairings.youMightAlsoLike')}
+                    </Text>
+                    <Text style={[theme.styles.sectionDescription, localStyles.pairingsDescription]}>
+                        {translate('pages.viewSpace.pairings.pairingsDescription', { spaceName })}
+                    </Text>
+                    <ActivityIndicator size="small" color={brandColor} style={localStyles.pairingsLoader} />
+                </View>
+            );
+        }
+
+        if (!spacePairings.length) return null;
+
+        return (
+            <View style={localStyles.pairingsSection}>
+                <Text style={[theme.styles.sectionTitleCenter, localStyles.pairingsTitle]}>
+                    {translate('pages.viewSpace.pairings.youMightAlsoLike')}
+                </Text>
+                <Text style={[theme.styles.sectionDescription, localStyles.pairingsDescription]}>
+                    {translate('pages.viewSpace.pairings.pairingsDescription', { spaceName })}
+                </Text>
+                {spacePairings.map((pairing: any) => {
+                    const pairingMediaPath = pairing.medias?.[0]?.path;
+                    const pairingMediaType = pairing.medias?.[0]?.type;
+                    const pairingMedia = pairingMediaPath && pairingMediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+                        ? getUserContentUri(pairing.medias[0], 200, 200)
+                        : undefined;
+                    const catLabel = formatCategoryLabel(pairing.category);
+                    const hasFeedback = pairingFeedback[pairing.id] !== undefined;
+
+                    return (
+                        <View key={pairing.id} style={[localStyles.pairingCard, { borderColor: theme.colors.primary3 }]}>
+                            {pairingMedia && (
+                                <Image
+                                    source={{ uri: pairingMedia }}
+                                    style={localStyles.pairingImage}
+                                    height={120}
+                                    resizeMode="cover"
+                                />
+                            )}
+                            <View style={localStyles.pairingContent}>
+                                <Pressable onPress={() => handleGoToViewSpace(pairing)}>
+                                    <Text style={[localStyles.pairingTitle, { color: brandColor }]} numberOfLines={2}>
+                                        {pairing.notificationMsg}
+                                    </Text>
+                                </Pressable>
+                                {catLabel ? (
+                                    <View style={[localStyles.pairingBadge, { backgroundColor: theme.colors.primary3 }]}>
+                                        <Text style={[localStyles.pairingBadgeText, { color: theme.colors.primary4 }]}>{catLabel}</Text>
+                                    </View>
+                                ) : null}
+                                {pairing.addressReadable ? (
+                                    <Text style={[localStyles.pairingAddress, { color: theme.colors.textGray }]} numberOfLines={1}>
+                                        {pairing.addressReadable}
+                                    </Text>
+                                ) : null}
+                                <View style={localStyles.pairingFeedbackRow}>
+                                    {hasFeedback ? (
+                                        <Text style={[localStyles.pairingFeedbackText, { color: theme.colors.textGray }]}>
+                                            {pairingFeedback[pairing.id]
+                                                ? translate('pages.viewSpace.pairings.helpful')
+                                                : translate('pages.viewSpace.pairings.notHelpful')}
+                                        </Text>
+                                    ) : (
+                                        <>
+                                            <Pressable onPress={() => handlePairingFeedback(pairing.id, true)}>
+                                                <Text style={[localStyles.pairingFeedbackLink, { color: brandColor }]}>
+                                                    {translate('pages.viewSpace.pairings.helpful')}
+                                                </Text>
+                                            </Pressable>
+                                            <Text style={[localStyles.pairingFeedbackSeparator, { color: theme.colors.textGray }]}>|</Text>
+                                            <Pressable onPress={() => handlePairingFeedback(pairing.id, false)}>
+                                                <Text style={[localStyles.pairingFeedbackLink, { color: brandColor }]}>
+                                                    {translate('pages.viewSpace.pairings.notHelpful')}
+                                                </Text>
+                                            </Pressable>
+                                        </>
+                                    )}
+                                </View>
+                            </View>
+                        </View>
+                    );
+                })}
+            </View>
+        );
+    };
+
     const renderViewIncentives = () => {
         const stepContainerStyle = [{ width: 50 }, spacingStyles.alignCenter];
 
@@ -562,6 +691,7 @@ const ViewSpace = ({
                             />
                         </View>
                     )}
+                    {!isViewingIncentives && renderPairings()}
                 </KeyboardAwareScrollView>
 
                 {/* Footer */}
@@ -632,6 +762,71 @@ const localStyles = StyleSheet.create({
     },
     incentiveButton: {
         marginTop: 8,
+    },
+    pairingsSection: {
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 8,
+    },
+    pairingsTitle: {
+        marginBottom: 4,
+    },
+    pairingsDescription: {
+        textAlign: 'center',
+        marginBottom: 12,
+        fontSize: 13,
+    },
+    pairingsLoader: {
+        marginVertical: 20,
+    },
+    pairingCard: {
+        borderWidth: 1,
+        borderRadius: 10,
+        marginBottom: 12,
+        overflow: 'hidden',
+    },
+    pairingImage: {
+        width: '100%',
+        height: 120,
+    },
+    pairingContent: {
+        padding: 12,
+    },
+    pairingTitle: {
+        fontSize: 15,
+        fontWeight: '600',
+        marginBottom: 4,
+    },
+    pairingBadge: {
+        alignSelf: 'flex-start',
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        marginTop: 4,
+    },
+    pairingBadgeText: {
+        fontSize: 11,
+        fontWeight: '500',
+    },
+    pairingAddress: {
+        fontSize: 12,
+        marginTop: 4,
+    },
+    pairingFeedbackRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    pairingFeedbackLink: {
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    pairingFeedbackSeparator: {
+        fontSize: 12,
+        marginHorizontal: 6,
+    },
+    pairingFeedbackText: {
+        fontSize: 12,
     },
 });
 

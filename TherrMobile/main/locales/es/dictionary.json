@@ -280,7 +280,9 @@
     "referralStats": {
       "title": "Tus referidos",
       "friendsJoined": "{count} amigo(s) se unieron con tu código de invitación",
+      "friendsLabel": "Amigos unidos",
       "coinsEarned": "Has ganado {count} TherrCoin(s) por referidos",
+      "coinsLabel": "Monedas ganadas",
       "shareLink": "Comparte tu enlace de invitación"
     },
     "header": {
@@ -1265,6 +1267,12 @@
           "protip": "Consejo: Comienza un borrador con ubicación, luego edita después sin ubicación"
         },
         "walkCloser": "Acércate más al espacio para reclamar recompensas."
+      },
+      "pairings": {
+        "youMightAlsoLike": "Lugares complementarios",
+        "pairingsDescription": "Lugares perfectos cerca para completar tu salida en {spaceName}",
+        "helpful": "Útil",
+        "notHelpful": "No útil"
       }
     },
     "viewMoment": {

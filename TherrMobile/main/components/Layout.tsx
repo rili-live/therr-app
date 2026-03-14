@@ -1400,7 +1400,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         return (
             <NavigationContainer
-                key={this.props.user?.settings?.mobileThemeName || 'light'}
+                key={`${this.props.user?.settings?.mobileThemeName || 'light'}-${this.props.user?.settings?.locale || 'en-us'}`}
                 theme={buildNavTheme(this.theme, this.props.user?.settings?.mobileThemeName)}
                 ref={navigationRef}
                 onReady={() => {
