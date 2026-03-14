@@ -298,9 +298,25 @@ const EventCategories = [
     CategoriesMap[12],
 ];
 
+const ComplementaryCategoriesMap: { [key: string]: string[] } = {
+    [CategoriesMap[3]]: [CategoriesMap[4], CategoriesMap[2], CategoriesMap[7], CategoriesMap[26], CategoriesMap[6]], // restaurant → bar, shop, music, nightlife, art
+    [CategoriesMap[4]]: [CategoriesMap[3], CategoriesMap[7], CategoriesMap[26], CategoriesMap[6], CategoriesMap[5]], // bar → restaurant, music, nightlife, art, marketplace
+    [CategoriesMap[2]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[6], CategoriesMap[29]], // shop → restaurant, bar, art, museum
+    [CategoriesMap[7]]: [CategoriesMap[4], CategoriesMap[3], CategoriesMap[26], CategoriesMap[6]], // music → bar, restaurant, nightlife, art
+    [CategoriesMap[6]]: [CategoriesMap[2], CategoriesMap[3], CategoriesMap[29], CategoriesMap[7]], // art → shop, restaurant, museum, music
+    [CategoriesMap[8]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[28]], // nature → restaurant, bar, fitness
+    [CategoriesMap[9]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[29], CategoriesMap[2]], // hotels → restaurant, bar, museum, shop
+    [CategoriesMap[10]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[7], CategoriesMap[26]], // event → restaurant, bar, music, nightlife
+    [CategoriesMap[26]]: [CategoriesMap[4], CategoriesMap[3], CategoriesMap[7], CategoriesMap[6]], // nightlife → bar, restaurant, music, art
+    [CategoriesMap[28]]: [CategoriesMap[3], CategoriesMap[8], CategoriesMap[2]], // fitness → restaurant, nature, shop
+    [CategoriesMap[29]]: [CategoriesMap[3], CategoriesMap[6], CategoriesMap[2], CategoriesMap[9]], // museum → restaurant, art, shop, hotel
+    [CategoriesMap[5]]: [CategoriesMap[3], CategoriesMap[4], CategoriesMap[7], CategoriesMap[6]], // marketplace → restaurant, bar, music, art
+};
+
 export default {
     CategoriesMap,
     CategoryToInterestsMap,
+    ComplementaryCategoriesMap,
     EventCategories,
     MomentCategories,
     SpaceCategories,

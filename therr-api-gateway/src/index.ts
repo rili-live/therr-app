@@ -89,6 +89,8 @@ app.use(authenticate.unless({
         { url: /\/v1\/maps-service\/events\/search/, methods: ['POST'] }, // Optional for public map view
         { url: /\/v1\/maps-service\/moments\/search/, methods: ['POST'] }, // Optional for public map view
         { url: /\/v1\/maps-service\/spaces\/search/, methods: ['POST'] }, // Optional for public map view
+        { url: /\/v1\/maps-service\/spaces\/.*\/pairings$/, methods: ['GET'] }, // Space pairings (optional auth)
+        { url: /\/v1\/maps-service\/spaces\/.*\/pairings\/feedback/, methods: ['POST'] }, // Pairing feedback (optional auth)
     ],
 }));
 
