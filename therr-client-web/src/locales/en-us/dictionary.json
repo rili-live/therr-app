@@ -516,7 +516,9 @@
         "hours": "Hours",
         "contactAndLocation": "Contact & Location",
         "events": "Events",
-        "whatPeopleAreSaying": "What People Are Saying"
+        "whatPeopleAreSaying": "What People Are Saying",
+        "youMightAlsoLike": "Local Pairings",
+        "pairingsDescription": "Perfect spots nearby to complete your outing at {spaceName}"
       },
       "labels": {
         "website": "Website",
@@ -529,7 +531,9 @@
         "anonymous": "Anonymous",
         "readMore": "Read more",
         "viewOnGoogleMaps": "View on Google Maps",
-        "getFullExperience": "Get the full experience on Therr app"
+        "getFullExperience": "Get the full experience on Therr app",
+        "helpful": "Helpful",
+        "notHelpful": "Not helpful"
       }
     },
     "viewUser": {

@@ -61,6 +61,9 @@ interface IViewSpaceState {
     spaceId: string;
     spaceMoments: any[];
     isMomentsLoading: boolean;
+    spacePairings: any[];
+    isPairingsLoading: boolean;
+    pairingFeedback: { [id: string]: boolean };
 }
 
 const mapStateToProps = (state: any) => ({
@@ -92,6 +95,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             spaceId: props.routeParams.spaceId,
             spaceMoments: [],
             isMomentsLoading: false,
+            spacePairings: [],
+            isPairingsLoading: false,
+            pairingFeedback: {},
         };
     }
 
@@ -108,12 +114,14 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             }).then(({ space: fetchedSpace }) => {
                 document.title = `${fetchedSpace?.notificationMsg} | Therr App`;
                 this.fetchSpaceMoments(spaceId);
+                this.fetchSpacePairings(spaceId);
             }).catch(() => {
                 this.props.navigation.navigate('/');
             });
         } else {
             document.title = `${space.notificationMsg} | Therr App`;
             this.fetchSpaceMoments(spaceId);
+            this.fetchSpacePairings(spaceId);
         }
     }
 
@@ -131,6 +139,29 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         }).catch(() => {
             this.setState({ isMomentsLoading: false });
         });
+    };
+
+    fetchSpacePairings = (spaceId: string) => {
+        this.setState({ isPairingsLoading: true });
+        MapsService.getSpacePairings(spaceId)
+            .then((response: any) => {
+                this.setState({
+                    spacePairings: response?.data?.pairings || [],
+                    isPairingsLoading: false,
+                });
+            })
+            .catch(() => {
+                this.setState({ isPairingsLoading: false });
+            });
+    };
+
+    handlePairingFeedback = (pairedSpaceId: string, isHelpful: boolean) => {
+        const { spaceId } = this.state;
+        this.setState((prevState) => ({
+            pairingFeedback: { ...prevState.pairingFeedback, [pairedSpaceId]: isHelpful },
+        }));
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        MapsService.submitPairingFeedback(spaceId, pairedSpaceId, isHelpful).catch(() => {});
     };
 
     login = (credentials: any) => this.props.login(credentials);
@@ -353,6 +384,98 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         );
     }
 
+    renderPairings(): JSX.Element | null {
+        const { map, translate } = this.props;
+        const { spaceId, spacePairings, isPairingsLoading, pairingFeedback } = this.state;
+        const space = map?.spaces[spaceId];
+        const spaceName = space?.notificationMsg || '';
+
+        if (isPairingsLoading) {
+            return (
+                <section>
+                    <Title order={2} size="h3" mt="xl">{translate('pages.viewSpace.headings.youMightAlsoLike')}</Title>
+                    <Text size="sm" c="dimmed" mt={4}>{translate('pages.viewSpace.headings.pairingsDescription', { spaceName })}</Text>
+                    <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" mt="sm">
+                        <Skeleton height={160} radius="md" />
+                        <Skeleton height={160} radius="md" />
+                        <Skeleton height={160} radius="md" />
+                    </SimpleGrid>
+                </section>
+            );
+        }
+
+        if (!spacePairings.length) return null;
+
+        return (
+            <section>
+                <Title order={2} size="h3" mt="xl">{translate('pages.viewSpace.headings.youMightAlsoLike')}</Title>
+                <Text size="sm" c="dimmed" mt={4}>{translate('pages.viewSpace.headings.pairingsDescription', { spaceName })}</Text>
+                <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" mt="sm">
+                    {spacePairings.map((pairing: any) => {
+                        const mediaPath = pairing.medias?.[0]?.path;
+                        const mediaType = pairing.medias?.[0]?.type;
+                        const pairingMedia = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+                            ? getUserContentUri(pairing.medias[0], 200, 200, true)
+                            : undefined;
+                        const catLabel = formatCategoryLabel(pairing.category);
+                        const hasFeedback = pairingFeedback[pairing.id] !== undefined;
+
+                        return (
+                            <Paper key={pairing.id} withBorder p="md" radius="md">
+                                {pairingMedia && (
+                                    <Image
+                                        src={pairingMedia}
+                                        alt={pairing.notificationMsg || 'Space image'}
+                                        height={120}
+                                        fit="cover"
+                                        radius="sm"
+                                        mb="sm"
+                                    />
+                                )}
+                                <Anchor href={`/spaces/${pairing.id}`} fw={600} size="sm">
+                                    {pairing.notificationMsg}
+                                </Anchor>
+                                {catLabel && <Badge variant="light" size="xs" mt={4}>{catLabel}</Badge>}
+                                {pairing.addressReadable && (
+                                    <Text size="xs" c="dimmed" mt={4}>{pairing.addressReadable}</Text>
+                                )}
+                                <Group gap="xs" mt="xs">
+                                    {hasFeedback ? (
+                                        <Text size="xs" c="dimmed">
+                                            {pairingFeedback[pairing.id]
+                                                ? translate('pages.viewSpace.labels.helpful')
+                                                : translate('pages.viewSpace.labels.notHelpful')}
+                                        </Text>
+                                    ) : (
+                                        <>
+                                            <Anchor
+                                                size="xs"
+                                                component="button"
+                                                type="button"
+                                                onClick={() => this.handlePairingFeedback(pairing.id, true)}
+                                            >
+                                                {translate('pages.viewSpace.labels.helpful')}
+                                            </Anchor>
+                                            <Text size="xs" c="dimmed">|</Text>
+                                            <Anchor
+                                                size="xs"
+                                                component="button"
+                                                type="button"
+                                                onClick={() => this.handlePairingFeedback(pairing.id, false)}
+                                            >
+                                                {translate('pages.viewSpace.labels.notHelpful')}
+                                            </Anchor>
+                                        </>
+                                    )}
+                                </Group>
+                            </Paper>
+                        );
+                    })}
+                </SimpleGrid>
+            </section>
+        );
+    }
+
     renderCommunityPosts(): JSX.Element | null {
         const { spaceMoments, isMomentsLoading } = this.state;
 
@@ -468,6 +591,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
                     {/* Community Posts (Moments) */}
                     {this.renderCommunityPosts()}
+
+                    {/* Local (Pairings) */}
+                    {this.renderPairings()}
 
                     {/* App Download CTA */}
                     <Paper withBorder p="sm" radius="md" mt="md">

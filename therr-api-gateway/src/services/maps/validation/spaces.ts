@@ -35,3 +35,13 @@ export const updateSpaceValidation = [
     ...updateAreaValidation,
     param('spaceId'),
 ];
+
+export const getSpacePairingsValidation = [
+    param('spaceId').exists(),
+];
+
+export const submitPairingFeedbackValidation = [
+    param('spaceId').exists(),
+    body('pairedSpaceId').isString().notEmpty(),
+    body('isHelpful').isBoolean(),
+];
