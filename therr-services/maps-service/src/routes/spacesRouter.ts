@@ -8,6 +8,8 @@ import {
     requestSpace,
     approveSpaceRequest,
     findSpaces,
+    getSpacePairings,
+    submitPairingFeedback,
     getSignedUrlPublicBucket,
     getSignedUrlPrivateBucket,
     updateSpace,
@@ -15,6 +17,10 @@ import {
 } from '../handlers/spaces';
 
 const router = express.Router();
+
+// PAIRINGS (must be before /:spaceId catch-all patterns)
+router.get('/:spaceId/pairings', getSpacePairings);
+router.post('/:spaceId/pairings/feedback', submitPairingFeedback);
 
 // WRITE
 router.post('/', createSpace);

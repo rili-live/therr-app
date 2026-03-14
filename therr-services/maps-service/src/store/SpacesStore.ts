@@ -14,6 +14,8 @@ import { ICreateAreaParams, IDeleteAreasParams } from './common/models';
 import { sanitizeNotificationMsg } from './common/utils';
 import { getRatings } from '../utilities/getReactions';
 
+const { ComplementaryCategoriesMap } = Categories;
+
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const SPACES_TABLE_NAME = 'main.spaces';
@@ -719,6 +721,34 @@ export default class SpacesStore {
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    searchPairedSpaces(spaceId: string, latitude: number, longitude: number, category: string, options: { radiusMeters?: number } = {}) {
+        const radiusMeters = options.radiusMeters || 8000;
+        const complementaryCategories = ComplementaryCategoriesMap[category] || [];
+
+        const queryString = knexBuilder.raw(`
+            SELECT
+                id, "notificationMsg", category, medias, "addressReadable",
+                latitude, longitude, "priceRange",
+                "geomCenter"::geography <-> ST_MakePoint(?, ?)::geography AS "distInMeters",
+                CASE
+                    WHEN category = ANY(?) THEN 2
+                    WHEN category != ? THEN 1
+                    ELSE 0
+                END AS "catScore"
+            FROM main.spaces
+            WHERE
+                id != ?
+                AND "isPublic" = true
+                AND "isMatureContent" = false
+                AND "isClaimPending" = false
+                AND ST_DWithin(geom, ST_MakePoint(?, ?)::geography, ?)
+            ORDER BY "catScore" DESC, "distInMeters" ASC
+            LIMIT 6
+        `, [longitude, latitude, complementaryCategories, category, spaceId, longitude, latitude, radiusMeters]).toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     deleteSpaces(params: IDeleteAreasParams) {
