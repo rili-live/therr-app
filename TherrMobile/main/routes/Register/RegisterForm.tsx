@@ -71,7 +71,7 @@ export class RegisterFormComponent extends React.Component<
         };
 
         this.translate = (key: string, params: any) =>
-            translator(props.user.settings?.locale || 'en-us', key, params);
+            translator(props.userSettings?.locale || 'en-us', key, params);
     }
 
     isRegisterFormDisabled = () => {
