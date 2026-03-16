@@ -56,6 +56,8 @@ app.use(compression());
 
 if (process.env.NODE_ENV !== 'development') {
     app.use(helmet({
+        // Allow Google Sign-In popup to communicate back via postMessage
+        crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
@@ -73,11 +75,11 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.analytics.google.com',
                     'https://*.googletagmanager.com',
                     // Google Sign-In
-                    'https://accounts.google.com/gsi/',
+                    'https://accounts.google.com',
                 ],
                 frameSrc: [
                     "'self'",
-                    'https://accounts.google.com/gsi/',
+                    'https://accounts.google.com',
                 ],
                 scriptSrc: [
                     "'self'",
@@ -87,12 +89,14 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://cdn.lr-in-prod.com',
                     'https://cdn.lr-ingest.com',
                     // Google Sign-In
-                    'https://accounts.google.com/gsi/',
+                    'https://accounts.google.com',
                 ],
                 styleSrc: [
                     "'self'",
                     "'unsafe-inline'",
                     'https://fonts.googleapis.com',
+                    // Google Sign-In
+                    'https://accounts.google.com',
                 ],
                 fontSrc: [
                     "'self'",
