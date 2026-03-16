@@ -83,7 +83,7 @@ class DirectMessage extends React.Component<
         this.themeForms = buildFormsStyles(props.user.settings?.mobileThemeName);
         this.themeMessage = buildMessageStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {

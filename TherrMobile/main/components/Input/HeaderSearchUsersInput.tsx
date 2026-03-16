@@ -23,6 +23,7 @@ interface IHeaderSearchUsersInputDispatchProps extends Omit<TextInputProps, 'ref
 
 interface IHeaderSearchUsersInputStoreProps extends IHeaderSearchUsersInputDispatchProps {
     map: IMapReduxState;
+    user: any;
     theme: {
         colors: ITherrThemeColors;
         colorVariations: ITherrThemeColorVariations;
@@ -40,6 +41,7 @@ interface IHeaderSearchUsersInputProps extends IHeaderSearchUsersInputStoreProps
 
 const mapStateToProps = (state: any) => ({
     map: state.map,
+    user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) =>
@@ -62,7 +64,7 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
             inputText: '',
         };
 
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user?.settings?.locale || 'en-us', key, params);
     }
 
     componentWillUnmount = () => {

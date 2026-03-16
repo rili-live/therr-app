@@ -4,6 +4,8 @@ const path = require('path');
 
 const viewFiles = [
     path.join(__dirname, 'src/views/index.hbs'),
+    path.join(__dirname, 'src/views/invite.hbs'),
+    path.join(__dirname, 'src/views/locations.hbs'),
     path.join(__dirname, 'src/views/spaces.hbs'),
     path.join(__dirname, 'src/views/moments.hbs'),
     path.join(__dirname, 'src/views/users.hbs'),

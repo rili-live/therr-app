@@ -2,9 +2,12 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Location, NavigateFunction } from 'react-router-dom';
+import LogRocket from 'logrocket';
 import qs from 'qs';
+import { IUserState } from 'therr-react/types';
 import RegisterForm from '../components/forms/RegisterForm';
 import UsersActions from '../redux/actions/UsersActions';
+import { routeAfterLogin, shouldRenderLoginForm } from './Login';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 
@@ -15,11 +18,14 @@ interface IRegisterRouterProps {
 }
 
 interface IRegisterDispatchProps {
+    login: Function;
     register: Function;
     location: Location;
 }
 
-type IStoreProps = IRegisterDispatchProps
+interface IStoreProps extends IRegisterDispatchProps {
+    user: IUserState;
+}
 
 // Regular component props
 interface IRegisterProps extends IRegisterRouterProps, IStoreProps {
@@ -33,9 +39,11 @@ interface IRegisterState {
 }
 
 const mapStateToProps = (state: any) => ({
+    user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    login: UsersActions.login,
     register: UsersActions.register,
 }, dispatch);
 
@@ -43,6 +51,18 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Login
  */
 export class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
+    static getDerivedStateFromProps(nextProps: IRegisterProps) {
+        if (!shouldRenderLoginForm(nextProps as any)) {
+            LogRocket.identify(nextProps.user.details.id, {
+                name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
+                email: nextProps.user.details.email,
+            });
+            setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
+            return null;
+        }
+        return {};
+    }
+
     constructor(props: IRegisterProps) {
         super(props);
 
@@ -71,6 +91,30 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             }
         }
     }
+
+    registerSSO = (ssoData: any) => {
+        console.log('[RegisterSSO] Dispatching login with SSO data', { // eslint-disable-line no-console
+            isSSO: ssoData.isSSO,
+            ssoProvider: ssoData.ssoProvider,
+            userEmail: ssoData.userEmail,
+            hasIdToken: !!ssoData.idToken,
+        });
+        this.props.login(ssoData, { google: ssoData.idToken })
+            .then((result: any) => {
+                console.log('[RegisterSSO] Login succeeded', result); // eslint-disable-line no-console
+                return result;
+            })
+            .catch((error: any) => {
+                console.error('[RegisterSSO] Login failed', { // eslint-disable-line no-console
+                    statusCode: error?.statusCode,
+                    message: error?.message,
+                    error,
+                });
+                this.setState({
+                    errorMessage: error?.message || this.props.translate('pages.register.registerError'),
+                });
+            });
+    };
 
     register = (credentials: any) => {
         const { inviteCode } = this.state;
@@ -102,7 +146,12 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         return (
             <>
                 <div id="page_register" className="flex-box space-evenly center row wrap-reverse">
-                    <RegisterForm register={this.register} title={this.props.translate('pages.register.pageTitle')} inviteCode={inviteCode} />
+                    <RegisterForm
+                        register={this.register}
+                        onGoogleRegister={this.registerSSO}
+                        title={this.props.translate('pages.register.pageTitle')}
+                        inviteCode={inviteCode}
+                    />
                 </div>
                 {
                     errorMessage

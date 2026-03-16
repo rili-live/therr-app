@@ -94,7 +94,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {

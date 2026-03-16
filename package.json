@@ -180,6 +180,7 @@
     "@mantine/core": "^7.17.8",
     "@mantine/hooks": "^7.17.8",
     "@opentelemetry/auto-instrumentations-node": "^0.39.2",
+    "@react-oauth/google": "^0.13.4",
     "@reduxjs/toolkit": "^2.5.0",
     "@socket.io/redis-adapter": "^8.3.0",
     "@themesberg/react-bootstrap": "^1.4.1",

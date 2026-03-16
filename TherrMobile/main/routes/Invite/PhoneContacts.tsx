@@ -14,6 +14,7 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
+import { buildInviteUrl } from '../../utilities/shareUrls';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import RoundInput from '../../components/Input/Round';
@@ -127,7 +128,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
         this.themeForms = buildFormsStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -205,8 +206,10 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
 
     onInvitePress = (contact: any) => {
         const { user } = this.props;
+        const locale = user.settings?.locale || 'en-us';
         const inviteMessage = this.translate('pages.phoneContacts.inviteMessage', {
             inviteCode: user.details.userName,
+            shareUrl: buildInviteUrl(locale, user.details.userName),
         });
 
         const mobileNumber = contact.phoneNumbers?.find((n) => n.label === 'mobile');
@@ -239,8 +242,10 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
             return;
         }
 
+        const locale = user.settings?.locale || 'en-us';
         const inviteMessage = this.translate('pages.phoneContacts.inviteMessage', {
             inviteCode: user.details.userName,
+            shareUrl: buildInviteUrl(locale, user.details.userName),
         });
 
         // Collect phone numbers for batch SMS

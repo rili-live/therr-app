@@ -187,7 +187,7 @@ class Areas extends React.PureComponent<IAreasProps, IAreasState> {
         super(props);
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         this.state = {
             areCreateActionsVisible: false,

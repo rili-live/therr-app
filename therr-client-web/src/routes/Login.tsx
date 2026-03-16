@@ -82,6 +82,28 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
 
     login = (credentials: any) => this.props.login(credentials);
 
+    loginSSO = (ssoData: any) => {
+        console.log('[LoginSSO] Dispatching login with SSO data', { // eslint-disable-line no-console
+            isSSO: ssoData.isSSO,
+            ssoProvider: ssoData.ssoProvider,
+            userEmail: ssoData.userEmail,
+            hasIdToken: !!ssoData.idToken,
+        });
+        return this.props.login(ssoData, { google: ssoData.idToken })
+            .then((result: any) => {
+                console.log('[LoginSSO] Login succeeded', result); // eslint-disable-line no-console
+                return result;
+            })
+            .catch((error: any) => {
+                console.error('[LoginSSO] Login failed', { // eslint-disable-line no-console
+                    statusCode: error?.statusCode,
+                    message: error?.message,
+                    error,
+                });
+                throw error;
+            });
+    };
+
     public render(): JSX.Element | null {
         const { location } = this.props;
         const alertMessage = (location.state as any)?.successMessage || (location.state as any)?.errorMessage;
@@ -89,7 +111,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
 
         return (
             <div id="page_login" className="flex-box center space-evenly column">
-                <LoginForm className="self-center" login={this.login} alert={alertMessage} alertVariation={alertVariation} />
+                <LoginForm className="self-center" login={this.login} onGoogleLogin={this.loginSSO} alert={alertMessage} alertVariation={alertVariation} />
                 <div className="store-image-links margin-top-lg">
                     <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
                         <img

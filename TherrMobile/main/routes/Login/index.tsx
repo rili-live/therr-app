@@ -66,7 +66,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
         this.cachedUserDetails = props.user?.details;
     }
 

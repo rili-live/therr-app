@@ -91,12 +91,19 @@ export default ({
 
 
     if (isForBookmarks) {
-        // TODO: Add Thought Bookmarks
-        const mapContent = mergeAreas(
+        let mapContent = mergeAreas(
             shouldIncludeMoments ? content.bookmarkedMoments : [],
             shouldIncludeSpaces ? content.bookmarkedSpaces : [],
             sortBy,
         );
+
+        if (shouldIncludeEvents && content.bookmarkedEvents?.length) {
+            mapContent = mergeAreas(mapContent as any, content.bookmarkedEvents, sortBy);
+        }
+
+        if (shouldIncludeThoughts && content.bookmarkedThoughts?.length) {
+            mapContent = mergeSortByCreatedAt(mapContent, content.bookmarkedThoughts, sortBy === 'reaction.createdAt');
+        }
 
         return mapContent;
     }

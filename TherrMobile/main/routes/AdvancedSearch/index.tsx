@@ -60,7 +60,7 @@ const AdvancedSearch = ({
     updateActiveMomentsStream,
 }: IAdvancedSearchProps) => {
     const translate = useCallback(
-        (key: string, params?: any) => translator('en-us', key, params),
+        (key: string, params?: any) => translator(user.settings?.locale || 'en-us', key, params),
         []
     );
 

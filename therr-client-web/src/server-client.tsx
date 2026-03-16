@@ -14,6 +14,7 @@ import LogRocket from 'logrocket';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { MantineProvider } from '@mantine/core';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import printLogs from 'therr-js-utilities/print-logs';
 import serialize from 'serialize-javascript';
 import { BrandVariations, Content } from 'therr-js-utilities/constants';
@@ -417,7 +418,9 @@ const renderMomentView = (req, res, config, {
         {
             '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
         },
-        { '@type': 'ListItem', position: 2, name: 'Moments' },
+        {
+            '@type': 'ListItem', position: 2, name: 'Moments', item: 'https://www.therr.com/explore',
+        },
         { '@type': 'ListItem', position: 3, name: momentTitle },
     ];
 
@@ -574,7 +577,12 @@ const renderSpaceView = (req, res, config, {
         },
     ];
     if (breadcrumbLocality) {
-        breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: breadcrumbLocality });
+        breadcrumbItems.push({
+            '@type': 'ListItem',
+            position: 3,
+            name: breadcrumbLocality,
+            item: `https://www.therr.com/locations?locality=${encodeURIComponent(breadcrumbLocality)}`,
+        });
         breadcrumbItems.push({ '@type': 'ListItem', position: 4, name: spaceTitle });
     } else {
         breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: spaceTitle });
@@ -727,7 +735,9 @@ const renderUserView = (req, res, config, {
         {
             '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
         },
-        { '@type': 'ListItem', position: 2, name: 'Users' },
+        {
+            '@type': 'ListItem', position: 2, name: 'Users', item: 'https://www.therr.com/explore',
+        },
         { '@type': 'ListItem', position: 3, name: userName || title },
     ];
 
@@ -930,14 +940,17 @@ routeConfig.forEach((config) => {
 
         Promise.all(promises).then(() => {
             const localePrefix = req.localePrefix || '';
+            const envVars = globalConfig[process.env.NODE_ENV] || globalConfig.production;
             const markup = ReactDOMServer.renderToString(
-                <MantineProvider theme={mantineTheme} defaultColorScheme={colorScheme}>
-                    <Provider store={store}>
-                        <StaticRouter location={req.url} basename={localePrefix || undefined}>
-                            <Layout />
-                        </StaticRouter>
-                    </Provider>
-                </MantineProvider>,
+                <GoogleOAuthProvider clientId={envVars.googleOAuth2WebClientId}>
+                    <MantineProvider theme={mantineTheme} defaultColorScheme={colorScheme}>
+                        <Provider store={store}>
+                            <StaticRouter location={req.url} basename={localePrefix || undefined}>
+                                <Layout />
+                            </StaticRouter>
+                        </Provider>
+                    </MantineProvider>
+                </GoogleOAuthProvider>,
             );
 
             // This gets the initial state created after all dispatches are called in fetchData

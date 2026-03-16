@@ -5,6 +5,7 @@ import {
     MantineButton,
     MantineInput,
 } from 'therr-react/components/mantine';
+import GoogleSignInButtonWeb from './GoogleSignInButtonWeb';
 import withTranslation from '../../wrappers/withTranslation';
 
 // Regular component props
@@ -12,6 +13,7 @@ interface ILoginFormProps {
     alert?: string;
     alertVariation?: 'success' | 'error';
     login: Function;
+    onGoogleLogin?: Function;
     title?: string;
     className?: string;
     translate: (key: string, params?: any) => string;
@@ -183,6 +185,20 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                                 fullWidth
                             />
                         </div>
+
+                        {this.props.onGoogleLogin && (
+                            <>
+                                <div className="sso-divider" style={{ textAlign: 'center', margin: '0.75rem 0' }}>
+                                    {this.props.translate('components.loginForm.sso.orDivider')}
+                                </div>
+                                <GoogleSignInButtonWeb
+                                    onSuccess={(ssoData) => this.props.onGoogleLogin(ssoData)}
+                                    onError={(msg) => this.setState({ prevLoginError: msg })}
+                                    buttonText="signin_with"
+                                    translate={this.props.translate}
+                                />
+                            </>
+                        )}
 
                         <div className="text-center" style={{ padding: '1rem 0 0' }}>
                             <Link to="/register">

@@ -82,7 +82,11 @@
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "oneTimePasswordExpired": "Your one-time password has expired.",
-      "tooManyRequests": "Too many login attempts, please try again later."
+      "tooManyRequests": "Too many login attempts, please try again later.",
+      "sso": {
+        "orDivider": "or",
+        "googleError": "Google sign-in failed. Please try again."
+      }
     },
     "messagingContainer": {
       "conversation": {
@@ -128,6 +132,10 @@
       },
       "text": {
         "signupForRewards": "Sign up with {userName}'s invite code - they earn 10 coins and you earn 5!"
+      },
+      "sso": {
+        "orDivider": "or",
+        "googleError": "Google sign-up failed. Please try again."
       }
     },
     "userMenu": {

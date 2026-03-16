@@ -133,7 +133,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         this.themeCategory = buildCategoryStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {

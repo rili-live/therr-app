@@ -387,6 +387,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         mapFiltersBadge: {
             backgroundColor: therrTheme.colors.tertiary,
+            color: therrTheme.colors.textWhite,
         },
         recenter: {
             position: 'absolute',

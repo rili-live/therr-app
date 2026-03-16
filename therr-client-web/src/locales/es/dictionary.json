@@ -82,7 +82,11 @@
       },
       "backendErrorMessage": "Error de conexi\u00f3n. Por favor, int\u00e9ntalo de nuevo m\u00e1s tarde.",
       "oneTimePasswordExpired": "Tu contrase\u00f1a de un solo uso ha expirado.",
-      "tooManyRequests": "Demasiados intentos de inicio de sesi\u00f3n, por favor int\u00e9ntalo de nuevo m\u00e1s tarde."
+      "tooManyRequests": "Demasiados intentos de inicio de sesi\u00f3n, por favor int\u00e9ntalo de nuevo m\u00e1s tarde.",
+      "sso": {
+        "orDivider": "o",
+        "googleError": "Error al iniciar sesi\u00f3n con Google. Por favor, int\u00e9ntalo de nuevo."
+      }
     },
     "messagingContainer": {
       "conversation": {
@@ -128,6 +132,10 @@
       },
       "text": {
         "signupForRewards": "Reg\u00edstrate con el c\u00f3digo de invitaci\u00f3n de {userName}: \u00a1ellos ganan 10 monedas y t\u00fa ganas 5!"
+      },
+      "sso": {
+        "orDivider": "o",
+        "googleError": "Error al registrarse con Google. Por favor, int\u00e9ntalo de nuevo."
       }
     },
     "userMenu": {

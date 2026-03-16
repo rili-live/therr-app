@@ -33,7 +33,7 @@ const buildStyles = ({
             paddingVertical: 9,
         },
         itemText: {
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.textWhite,
         },
     });
 
