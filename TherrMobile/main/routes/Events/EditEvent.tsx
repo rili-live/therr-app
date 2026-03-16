@@ -212,7 +212,7 @@ export class EditEvent extends React.Component<IEditEventProps, IEditEventState>
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.themeSearch = buildSearchStyles({ viewPortHeight }, props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user.settings?.locale || 'en-us', key, params);
         this.categoryOptions = Categories.EventCategories.map((category, index) => ({
             id: index,
             label: this.translate(category),

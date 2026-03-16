@@ -318,10 +318,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.primary3,
         },
         buttonDisabled: {
-            backgroundColor: therrTheme.colorVariations.primary3Fade,
+            backgroundColor: therrTheme.colorVariations.primary3Disabled,
         },
         buttonRoundDisabled: {
-            backgroundColor: therrTheme.colorVariations.primary4Fade,
+            backgroundColor: therrTheme.colorVariations.primary3Disabled,
         },
         buttonTitle: {
             fontSize: 18,
@@ -339,7 +339,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.primary3,
         },
         buttonTitleDisabled: {
-            color: therrTheme.colors.textGray,
+            color: therrTheme.colors.brandingWhite,
         },
         buttonIcon: {
             color: therrTheme.colors.brandingWhite,
@@ -347,7 +347,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginLeft: 10,
         },
         buttonIconDisabled: {
-            color: therrTheme.colors.textDarkGray,
+            color: therrTheme.colors.brandingWhite,
             marginRight: 10,
             marginLeft: 10,
         },
@@ -368,7 +368,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         buttonPill: {
             ...buttonPillStyles,
-            borderColor: therrTheme.colors.brandingBlueGreen,
+            borderColor: isDark ? therrTheme.colors.textWhite : therrTheme.colors.brandingBlueGreen,
             backgroundColor: therrTheme.colors.backgroundWhite,
         },
         buttonPillInvert: {
@@ -378,7 +378,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         buttonPillIcon: {
             marginLeft: 8,
-            color: therrTheme.colors.brandingBlueGreen,
+            color: isDark ? therrTheme.colors.textWhite : therrTheme.colors.brandingBlueGreen,
         },
         buttonPillContainer: {
             padding: 0,
@@ -390,7 +390,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         buttonPillTitle: {
             ...buttonPillTitleStyles,
-            color: therrTheme.colors.brandingBlueGreen,
+            color: isDark ? therrTheme.colors.textWhite : therrTheme.colors.brandingBlueGreen,
         },
         buttonPillTitleInvert: {
             ...buttonPillTitleStyles,

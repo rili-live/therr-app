@@ -19,13 +19,7 @@ const buttonStyle: any = {
 };
 
 const getIconStyle = (theme: ITherrTheme) => ({
-    color: theme.colorVariations.backgroundCreamLighten,
-    // textShadowOffset: {
-    //     width: 1,
-    //     height: 1,
-    // },
-    // textShadowColor: '#rgba(27, 74, 105, .75)',
-    // textShadowRadius: 1,
+    color: theme.colors.textWhite,
 });
 
 const getButtonContainerStyle: any = () => ( {

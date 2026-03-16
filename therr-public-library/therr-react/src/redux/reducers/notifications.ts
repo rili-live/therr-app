@@ -15,6 +15,7 @@ const notifications = produce((draft: INotificationsState, action: any) => {
         case SocketServerActionTypes.NOTIFICATION_CREATED:
             draft.messages.unshift(action.data);
             break;
+        case NotificationActionTypes.NOTIFICATION_UPDATED:
         case SocketServerActionTypes.NOTIFICATION_UPDATED: {
             const idx = draft.messages.findIndex((message) => message.id === action.data.id);
             if (idx !== -1) {

@@ -41,6 +41,8 @@
     "backendErrorMessage": "Oops! Something went wrong.",
     "permissionsDenied": "Permissions Denied",
     "phoneNumberAlreadyInUse": "Invalid Phone Number",
+    "loginError": "Login Failed",
+    "registrationError": "Registration Error",
     "errorWithAppleSSO": "Error With Apple SSO",
     "errorWithGoogleSSO": "Error With Google SSO",
     "eventCreatedSuccess": "Event Created  🎉",
@@ -280,7 +282,9 @@
     "referralStats": {
       "title": "Your Referrals",
       "friendsJoined": "{count} friend(s) joined with your invite code",
+      "friendsLabel": "Friends Joined",
       "coinsEarned": "You've earned {count} TherrCoin(s) from referrals",
+      "coinsLabel": "Coins Earned",
       "shareLink": "Share Your Invite Link"
     },
     "header": {
@@ -386,7 +390,7 @@
         "email": "Invitee's E-mail"
       },
       "shareLink": {
-        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 https://www.therr.com/invite/{inviteCode}",
+        "message": "Join Therr app with my link and we'll both earn points to exchange for a gift card 🤝 🎁 {shareUrl}",
         "title": "Therr App | Local Community & Rewards App"
       }
     },
@@ -430,6 +434,8 @@
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "invalidUsernamePassword": "Invalid username/password combination.",
+      "missingEmail": "Please enter a valid email, phone, or username.",
+      "missingPassword": "Please enter your password.",
       "sso": {
         "appleButtonTitle": "Sign in with Apple",
         "googleButtonTitleContinue": "Continue with Google",
@@ -688,6 +694,9 @@
         "inviteCode": "Invite Code (optional)"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
+      "missingEmail": "Please enter a valid email address.",
+      "missingPassword": "Please enter a password.",
+      "missingRepeatPassword": "Please confirm your password.",
       "subtitles": {
         "disclaimer": "By creating an account, you agree to our ",
         "and": " and ",
@@ -1003,7 +1012,7 @@
       },
       "buttons": {
         "generate": "Generate",
-        "scheduleAndInvite": "Schedule & Invite",
+        "scheduleAndInvite": "Next: Schedule",
         "showLess": "Show Less",
         "showMore": "Show More"
       },
@@ -1023,7 +1032,7 @@
         "yourTopInterests": "Your Top Interests"
       },
       "buttons": {
-        "createAndSend": "Create & Send",
+        "createAndSend": "Schedule & Invite",
         "showLess": "Show Less",
         "showMore": "Show More"
       },
@@ -1056,6 +1065,10 @@
         "alreadyClaimed": "You have already claimed rewards for this achievement",
         "unClaimed": "This achievement is complete! Go back and press 'claim rewards' to continue.",
         "inProgressDescription": "You're almost there! Keep on keepin' on!"
+      },
+      "sections": {
+        "unclaimed": "Claim Your Rewards",
+        "inProgress": "In Progress"
       }
     },
     "activeConnections": {
@@ -1200,7 +1213,7 @@
       }
     },
     "managePreferences": {
-      "headerTitle": "Preferences & Algorithm Settings",
+      "headerTitle": "Content Settings",
       "pageHeaderEmailSettings": "Content Preferences & Algorithm Settings",
       "pageSubHeaderInterests": "Your Interests",
       "alertTitles": {
@@ -1268,6 +1281,12 @@
           "protip": "Protip: Start a draft with location, then edit later without location"
         },
         "walkCloser": "Walk closer to the space to claim rewards."
+      },
+      "pairings": {
+        "youMightAlsoLike": "Local Pairings",
+        "pairingsDescription": "Perfect spots nearby to complete your outing at {spaceName}",
+        "helpful": "Helpful",
+        "notHelpful": "Not helpful"
       }
     },
     "viewMoment": {
@@ -1421,7 +1440,8 @@
     "notifications": {
       "headerTitle": "Notifications",
       "pageTitle": "Notifications",
-      "noNotifications": "You have no notifications at this time"
+      "noNotifications": "You have no notifications at this time",
+      "markAllRead": "Mark all read"
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
@@ -1442,7 +1462,7 @@
         "onApp": "None of your contacts are on Therr yet",
         "notOnApp": "All your contacts are already on Therr!"
       },
-      "inviteMessage": "Hey! Join me on Therr, a local social network for discovering what's around you. Sign up with my invite link: https://www.therr.com/invite/{{inviteCode}}",
+      "inviteMessage": "Hey! Join me on Therr, a local social network for discovering what's around you. Sign up with my invite link: {shareUrl}",
       "inviteSubject": "Join me on Therr!",
       "alertTitles": {
         "contactInvitesSent": "Invite Success",
@@ -1475,6 +1495,7 @@
       "pageHeaderAdvancedSettings": "Advanced Settings",
       "pageHeaderContentSettings": "Content Settings",
       "pageHeaderNotificationSettings": "Emails & Alert Settings",
+      "pageHeaderLanguageSettings": "Language",
       "labels": {
         "nightMode": "Night Mode?",
         "themeLight": "Light",
@@ -1602,9 +1623,9 @@
         "shareALink": "Share a Link"
       },
       "shareLink": {
-        "message": "You can find this location on Therr App: https://www.therr.com/spaces/{spaceId}",
-        "messageEvent": "You can find this event on Therr App: https://www.therr.com/events/{eventId}",
-        "messageMoment": "You can find this moment on Therr App: https://www.therr.com/moments/{momentId}",
+        "message": "You can find this location on Therr App: {shareUrl}",
+        "messageEvent": "You can find this event on Therr App: {shareUrl}",
+        "messageMoment": "You can find this moment on Therr App: {shareUrl}",
         "title": "{spaceTitle} | Therr App",
         "titleEvent": "{eventTitle} | Therr App",
         "titleMoment": "{momentTitle} | Therr App",

@@ -76,7 +76,7 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {

@@ -137,7 +137,7 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {
@@ -565,7 +565,7 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
                                                             <AreaDisplayContent
                                                                 key={space?.id}
                                                                 hashtags={space.hashTags ? space.hashTags.split(',') : []}
-                                                                isDarkMode={false}
+                                                                isDarkMode={isDarkTheme(user.settings?.mobileThemeName)}
                                                                 area={space}
                                                                 areaMedia={postMedia}
                                                                 inspectContent={() => this.onSelectSpace(space)}

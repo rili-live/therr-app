@@ -111,7 +111,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {

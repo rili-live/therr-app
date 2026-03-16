@@ -76,80 +76,87 @@ const MarkerIcon = function MarkerIcon({
     area,
     theme,
 }) {
-    if (areaType === 'events') {
+    // Normalize category by stripping 'categories.' prefix from CategoriesMap values
+    const category = area.category?.replace(/^categories\./, '');
+
+    if (areaType === 'events' || category === 'event/space') {
         return (
             <MarkerIconEvent {...getMarkerConfigs(theme).event} />
         );
     }
 
-    // TODO: Add all categories
-    if (area.category === 'art' || area.category?.includes('artwork')) {
+    if (category === 'art' || category === 'artwork/expression' || category?.includes('artwork')) {
         return (
             <MarkerIconArt {...getMarkerConfigs(theme).art} />
         );
     }
-    if (area.category === 'deals') {
+    if (category === 'deals') {
         return (
             <MarkerIconDiscount {...getMarkerConfigs(theme).deals} />
         );
     }
-    if (area.category === 'drinks' || area.category === 'bar/drinks') {
+    if (category === 'drinks' || category === 'bar/drinks') {
         return (
             <MarkerIconDrinks {...getMarkerConfigs(theme).drinks} />
         );
     }
-    if (area.category === 'fitness') {
+    if (category === 'fitness' || category === 'fitness/sports' || category === 'sports') {
         return (
             <MarkerIconFitness {...getMarkerConfigs(theme).fitness} />
         );
     }
-    if (area.category === 'food' || area.category === 'restaurant/food') {
+    if (category === 'food' || category === 'restaurant/food' || category === 'menu') {
         return (
             <MarkerIconFood {...getMarkerConfigs(theme).food} />
         );
     }
-    if (area.category === 'music' || area.category === 'music/concerts') {
+    if (category === 'music' || category === 'music/concerts') {
         return (
             <MarkerIconMusic {...getMarkerConfigs(theme).music} />
         );
     }
-    if (area.category === 'seasonal') {
+    if (category === 'seasonal') {
         return (
             <MarkerIconSeasonal {...getMarkerConfigs(theme).seasonal} />
         );
     }
-    if (area.category === 'storefront' || area.category === 'storefront/shop'
-        || area.category === 'marketplace/festival') {
+    if (category === 'storefront' || category === 'storefront/shop'
+        || category === 'marketplace/festival') {
         return (
             <MarkerIconStorefront {...getMarkerConfigs(theme).storefront} />
         );
     }
-    if (area.category === 'hotels/lodging') {
+    if (category === 'hotels/lodging') {
         return (
             <MarkerIconHotel {...getMarkerConfigs(theme).hotel} />
         );
     }
-    if (area.category === 'idea') {
+    if (category === 'idea') {
         return (
             <MarkerIconThinking {...getMarkerConfigs(theme).thought} />
         );
     }
-    if (area.category === 'geocache') {
+    if (category === 'geocache') {
         return (
             <MarkerIconGeocache {...getMarkerConfigs(theme).geocache} />
         );
     }
-    if (area.category === 'nature' || area.category === 'nature/parks') {
+    if (category === 'nature' || category === 'nature/parks') {
         return (
             <MarkerIconNature {...getMarkerConfigs(theme).nature} />
         );
     }
-    if (area.category === 'nightLife') {
+    if (category === 'nightLife') {
         return (
             <MarkerIconNightLife {...getMarkerConfigs(theme).nightLife} />
         );
     }
-    if (area.category === 'warning') {
+    if (category === 'museum/academia') {
+        return (
+            <MarkerIconArt {...getMarkerConfigs(theme).art} />
+        );
+    }
+    if (category === 'warning') {
         return (
             <MarkerIconWarning {...getMarkerConfigs(theme).warning} />
         );

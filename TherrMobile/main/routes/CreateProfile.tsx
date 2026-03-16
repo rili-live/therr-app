@@ -11,6 +11,7 @@ import LottieView from 'lottie-react-native';
 import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
+import { buildInviteUrl } from '../utilities/shareUrls';
 import { buildStyles } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildFTUIStyles } from '../styles/first-time-ui';
@@ -104,7 +105,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -372,11 +373,14 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
 
     onShareInviteLink = () => {
         const { user } = this.props;
+        const locale = user.settings?.locale || 'en-us';
+        const shareUrl = buildInviteUrl(locale, user.details.userName);
         Share.share({
             message: this.translate('forms.createConnection.shareLink.message', {
                 inviteCode: user.details.userName,
+                shareUrl,
             }),
-            url: `https://www.therr.com/invite/${user.details.userName}`,
+            url: shareUrl,
             title: this.translate('forms.createConnection.shareLink.title'),
         }).catch((err) => console.error(err));
     };

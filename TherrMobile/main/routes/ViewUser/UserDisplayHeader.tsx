@@ -12,6 +12,7 @@ import therrIconConfig from '../../assets/therr-font-config.json';
 import TherrIcon from '../../components/TherrIcon';
 import SuperUserStatusIcon from '../../components/SuperUserStatusIcon';
 import { IUserProfileAction } from '../../components/ActionSheet/UserProfileSheet';
+import { buildUserUrl } from '../../utilities/shareUrls';
 
 const LogoIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -202,10 +203,11 @@ const UserDisplayHeader = ({
             case 'report-user':
                 onReportUser(action, userInView);
                 break;
-            case 'share-a-link':
+            case 'share-a-link': {
+                const userUrl = buildUserUrl(user.settings?.locale || 'en-us', userInView.id);
                 Share.share({
-                    message: Platform.OS === 'ios' ? undefined : `https://www.therr.com/users/${userInView.id}`,
-                    url: `https://www.therr.com/users/${userInView.id}`,
+                    message: Platform.OS === 'ios' ? undefined : userUrl,
+                    url: userUrl,
                     title: translate('modals.contentOptions.shareLink.titleUser', {
                         userName: userInView.userName,
                     }),
@@ -213,6 +215,7 @@ const UserDisplayHeader = ({
                     console.error(err);
                 });
                 break;
+            }
             default:
                 break;
         }

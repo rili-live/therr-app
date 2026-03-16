@@ -16,10 +16,53 @@ const Notification = {
         });
     },
     update: (data: any) => (dispatch: any) => {
+        // Optimistic UI update
+        dispatch({
+            type: NotificationActionTypes.NOTIFICATION_UPDATED,
+            data: data.notification,
+        });
+
+        // Dispatch via socket (works when connected, silently dropped otherwise)
         dispatch({
             type: SocketClientActionTypes.UPDATE_NOTIFICATION,
             data,
         });
+
+        // Also send REST request as reliable backup
+        return NotificationsService.update(data.notification.id, {
+            isUnread: data.notification.isUnread,
+            userConnection: data.notification.userConnection,
+        }).catch(() => {
+            // REST failed; socket may have succeeded
+        });
+    },
+    markAllRead: (notifications: any[]) => (dispatch: any) => {
+        const unreadNotifications = notifications.filter((n) => n.isUnread);
+        const batchSize = 10;
+
+        // Optimistic UI update for all at once
+        unreadNotifications.forEach((notification) => {
+            dispatch({
+                type: NotificationActionTypes.NOTIFICATION_UPDATED,
+                data: { ...notification, isUnread: false },
+            });
+        });
+
+        // Send REST requests in batches to avoid overwhelming the server
+        const processBatch = (startIdx: number) => {
+            const batch = unreadNotifications.slice(startIdx, startIdx + batchSize);
+            if (batch.length === 0) {
+                return Promise.resolve();
+            }
+
+            return Promise.allSettled(
+                batch.map((notification) =>
+                    NotificationsService.update(notification.id, { isUnread: false })
+                )
+            ).then(() => processBatch(startIdx + batchSize));
+        };
+
+        return processBatch(0);
     },
 };
 

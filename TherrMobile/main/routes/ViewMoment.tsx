@@ -15,6 +15,7 @@ import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { Content } from 'therr-js-utilities/constants';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import translator from '../services/translator';
+import { buildMomentUrl } from '../utilities/shareUrls';
 import { isDarkTheme } from '../styles/themes';
 import { buildStyles } from '../styles';
 import { buildStyles as buildFormStyles } from '../styles/forms';
@@ -107,7 +108,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user.settings?.locale || 'en-us', key, params);
 
         this.notificationMsg = (moment.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
         this.hashtags = moment.hashTags ? moment.hashTags.split(',') : [];
@@ -206,11 +207,14 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 title: moment.notificationMsg,
             });
         } else if (type === 'shareALink') {
+            const locale = this.props.user?.settings?.locale || 'en-us';
+            const shareUrl = buildMomentUrl(locale, moment.id);
             Share.share({
                 message: this.translate('modals.contentOptions.shareLink.messageMoment', {
                     momentId: moment.id,
+                    shareUrl,
                 }),
-                url: `https://www.therr.com/moments/${moment.id}`,
+                url: shareUrl,
                 title: this.translate('modals.contentOptions.shareLink.titleMoment', {
                     momentTitle: moment.notificationMsg,
                 }),

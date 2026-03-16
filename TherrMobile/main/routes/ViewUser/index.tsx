@@ -142,7 +142,7 @@ class ViewUser extends React.Component<
         super(props);
 
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         const { route } = props;
         const { userInView } = route.params;
@@ -178,7 +178,7 @@ class ViewUser extends React.Component<
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeUser = buildUserStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {

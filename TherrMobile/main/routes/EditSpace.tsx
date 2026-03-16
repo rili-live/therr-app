@@ -190,7 +190,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.themeSearch = buildSearchStyles({ viewPortHeight }, props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user.settings?.locale || 'en-us', key, params);
 
         // TODO: Make these IDs and values constants from shared config
         this.categoryOptions = Categories.SpaceCategories.map((category: string, index) => ({

@@ -14,13 +14,14 @@ interface IHeaderTherrLogoStoreProps extends IHeaderTherrLogoDispatchProps {}
 
 interface IHeaderTherrLogoProps extends IHeaderTherrLogoStoreProps {
     navigation: any;
+    user: any;
     theme: {
         colors: ITherrThemeColors;
         styles: any;
     }
 }
 
-const mapStateToProps = () => ({});
+const mapStateToProps = (state: any) => ({ user: state.user });
 
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
@@ -35,7 +36,7 @@ export class HeaderTherrLogo extends React.Component<IHeaderTherrLogoProps> {
     constructor(props) {
         super(props);
 
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user?.settings?.locale || 'en-us', key, params);
     }
 
     handlePress = () => {

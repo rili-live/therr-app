@@ -166,7 +166,7 @@ class NearbyWrapper extends React.PureComponent<INearbyWrapperProps, INearbyWrap
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
         this.loaderId = getRandomLoaderId();
     }
 

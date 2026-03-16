@@ -184,7 +184,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         super(props);
 
         this.translate = (key: string, params: any): string =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
 
         this.state = {
             activeSlide: 0,

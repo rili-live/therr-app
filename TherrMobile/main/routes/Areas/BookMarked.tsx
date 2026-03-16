@@ -30,8 +30,10 @@ function getRandomLoaderId(): ILottieId {
 }
 
 interface IBookMarkedDispatchProps {
+    searchBookmarkedEvents: Function;
     searchBookmarkedMoments: Function;
     searchBookmarkedSpaces: Function;
+    searchBookmarkedThoughts: Function;
     createOrUpdateEventReaction: Function;
     createOrUpdateMomentReaction: Function;
     createOrUpdateSpaceReaction: Function;
@@ -62,10 +64,12 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            searchBookmarkedEvents: ContentActions.searchBookmarkedEvents,
             searchBookmarkedMoments: ContentActions.searchBookmarkedMoments,
+            searchBookmarkedSpaces: ContentActions.searchBookmarkedSpaces,
+            searchBookmarkedThoughts: ContentActions.searchBookmarkedThoughts,
             createOrUpdateEventReaction: ContentActions.createOrUpdateEventReaction,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
-            searchBookmarkedSpaces: ContentActions.searchBookmarkedSpaces,
             createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
         },
         dispatch
@@ -97,34 +101,31 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
         this.loaderId = getRandomLoaderId();
     }
 
     componentDidMount() {
-        const { navigation, searchBookmarkedMoments, searchBookmarkedSpaces, user } = this.props;
+        const { navigation, searchBookmarkedEvents, searchBookmarkedMoments, searchBookmarkedSpaces, searchBookmarkedThoughts, user } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.bookmarked.headerTitle'),
         });
 
-        const bookmarkedMomentsPromise = searchBookmarkedMoments({
+        const searchParams = {
             withMedia: true,
             withUser: true,
             offset: 0,
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
+        };
 
-        const bookmarkedSpacesPromise = searchBookmarkedSpaces({
-            withMedia: true,
-            withUser: true,
-            offset: 0,
-            blockedUsers: user.details.blockedUsers,
-            shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
-
-        Promise.all([bookmarkedMomentsPromise, bookmarkedSpacesPromise]).finally(() => {
+        Promise.all([
+            searchBookmarkedEvents(searchParams),
+            searchBookmarkedMoments(searchParams),
+            searchBookmarkedSpaces(searchParams),
+            searchBookmarkedThoughts(searchParams),
+        ]).finally(() => {
             this.setState({
                 isLoading: false,
             });
@@ -133,23 +134,22 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
 
     handleRefresh = () => {
-        const { searchBookmarkedMoments, searchBookmarkedSpaces, user } = this.props;
+        const { searchBookmarkedEvents, searchBookmarkedMoments, searchBookmarkedSpaces, searchBookmarkedThoughts, user } = this.props;
 
-        searchBookmarkedMoments({
+        const searchParams = {
             withMedia: true,
             withUser: true,
             offset: 0,
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
+        };
 
-        searchBookmarkedSpaces({
-            withMedia: true,
-            withUser: true,
-            offset: 0,
-            blockedUsers: user.details.blockedUsers,
-            shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
+        return Promise.all([
+            searchBookmarkedEvents(searchParams),
+            searchBookmarkedMoments(searchParams),
+            searchBookmarkedSpaces(searchParams),
+            searchBookmarkedThoughts(searchParams),
+        ]);
     };
 
     onTabSelect = (tabName: string) => {
@@ -247,7 +247,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             shouldIncludeEvents: true,
             shouldIncludeMoments: true,
             shouldIncludeSpaces: true,
-            // shouldIncludeThoughts: true,
+            shouldIncludeThoughts: true,
             translate: this.translate,
         }, 'createdAt');
 

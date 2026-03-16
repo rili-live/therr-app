@@ -252,7 +252,7 @@ export const paperRetroTheme: ITherrPaperTheme = {
         surfaceDisabled: new Color(retroColors.textWhite).alpha(0.12).rgb().string(),
         background: retroColors.primary,               // #1C7F8A
         onSurface: retroColors.textWhite,              // #fcfeff
-        onSurfaceVariant: retroColors.textDarkGray,    // #728f94
+        onSurfaceVariant: retroColors.textDark,          // #a8d0d4 — better contrast on teal backgrounds
         onSurfaceDisabled: new Color(retroColors.textWhite).alpha(0.38).rgb().string(),
         onBackground: retroColors.textWhite,           // #fcfeff
 

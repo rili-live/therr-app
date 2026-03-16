@@ -80,7 +80,7 @@ interface IHeaderMenuRightState {
     isPointsInfoModalVisible: boolean;
 }
 
-const mapStateToProps = () => ({});
+const mapStateToProps = (state: any) => ({ user: state.user });
 
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
@@ -111,7 +111,7 @@ class HeaderMenuRight extends React.PureComponent<
         };
 
         this.slideAnim = new Animated.Value(Dimensions.get('window').width * 0.75);
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator(props.user?.settings?.locale || 'en-us', key, params);
     }
 
     componentWillUnmount = () => {

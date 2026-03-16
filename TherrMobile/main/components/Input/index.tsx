@@ -89,6 +89,7 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
                 <PaperTextInput
                     mode={mode}
                     label={label}
+                    cursorColor={themeForms.colors.selectionColor as unknown as string}
                     selectionColor={themeForms.colors.selectionColor as unknown as string}
                     underlineColor={underlineColor as string}
                     activeUnderlineColor={activeColor as string}

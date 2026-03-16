@@ -16,6 +16,7 @@ import { ReactionsService } from 'therr-react/services';
 import { Content } from 'therr-js-utilities/constants';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import translator from '../services/translator';
+import { buildEventUrl } from '../utilities/shareUrls';
 import { isDarkTheme } from '../styles/themes';
 import { buildStyles } from '../styles';
 import { buildStyles as buildFormStyles } from '../styles/forms';
@@ -73,8 +74,8 @@ const ViewEvent = ({
     createOrUpdateEventReaction,
 }: IViewEventProps) => {
     const translate = useCallback(
-        (key: string, params?: any) => translator('en-us', key, params),
-        []
+        (key: string, params?: any) => translator(user.settings?.locale || 'en-us', key, params),
+        [user.settings?.locale]
     );
 
     // State
@@ -230,9 +231,10 @@ const ViewEvent = ({
                             title: area.notificationMsg,
                         });
                     } else if (type === 'shareALink') {
+                        const shareUrl = buildEventUrl(user.settings?.locale || 'en-us', area.id);
                         Share.share({
-                            message: translate('modals.contentOptions.shareLink.messageEvent', { eventId: area.id }),
-                            url: `https://www.therr.com/events/${area.id}`,
+                            message: translate('modals.contentOptions.shareLink.messageEvent', { eventId: area.id, shareUrl }),
+                            url: shareUrl,
                             title: translate('modals.contentOptions.shareLink.titleEvent', { eventTitle: area.notificationMsg }),
                         }).catch((err) => console.error(err));
                     } else {
@@ -242,7 +244,7 @@ const ViewEvent = ({
                 },
             },
         });
-    }, [event, fetchedEvent, translate, themeForms, handleUpdateEventReaction]);
+    }, [event, fetchedEvent, translate, themeForms, handleUpdateEventReaction, user.settings?.locale]);
 
     const handleEdit = useCallback(() => {
         navigation.navigate('EditEvent', {

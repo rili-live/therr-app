@@ -320,7 +320,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
         this.initialAuthorFilters = getInitialAuthorFilters(this.translate);
         this.initialCategoryFilters = getInitialCategoryFilters(this.translate);
         this.initialVisibilityFilters = getInitialVisibilityFilters(this.translate);

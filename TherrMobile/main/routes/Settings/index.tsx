@@ -48,6 +48,7 @@ interface ISettingsState {
     croppedImageDetails: any;
     inputs: any;
     isCropping: boolean;
+    selectedLocale: string;
     selectedTheme: IMobileThemeName;
     isOptedInToAds: boolean;
     isProfilePublic: boolean;
@@ -86,6 +87,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 shouldHideMatureContent: props.user.details.shouldHideMatureContent,
             },
             isCropping: false,
+            selectedLocale: props.user.settings.locale || 'en-us',
             selectedTheme: props.user.settings.mobileThemeName || 'light',
             isOptedInToAds: props.user.settings.settingsPushBackground && props.user.settings.settingsPushMarketing,
             isProfilePublic: props.user.settings.settingsIsProfilePublic,
@@ -95,7 +97,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
         this.reloadTheme();
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props.user.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount = () => {
@@ -158,7 +160,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             settingsBio,
             shouldHideMatureContent,
         } = this.state.inputs;
-        const { selectedTheme, isOptedInToAds, isProfilePublic } = this.state;
+        const { selectedTheme, selectedLocale, isOptedInToAds, isProfilePublic } = this.state;
         const { user } = this.props;
 
         if (password && !PasswordRegex.test(password)) {
@@ -179,6 +181,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             lastName,
             userName: userName?.toLowerCase(),
             settingsBio,
+            settingsLocale: selectedLocale,
             settingsThemeName: selectedTheme,
             settingsPushMarketing: isOptedInToAds,
             settingsPushBackground: isOptedInToAds,
@@ -274,6 +277,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         });
     };
 
+    onLocaleChange = (value: string) => {
+        this.setState({
+            selectedLocale: value,
+        });
+    };
+
     onThemeChange = (value: string) => {
         this.setState({
             selectedTheme: value as IMobileThemeName,
@@ -351,6 +360,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const {
             croppedImageDetails,
             inputs,
+            selectedLocale,
             selectedTheme,
             isOptedInToAds,
             isProfilePublic,
@@ -364,6 +374,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const pageHeaderContentSettings = this.translate('pages.settings.pageHeaderContentSettings');
         const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
         const pageHeaderNotificationSettings = this.translate('pages.settings.pageHeaderNotificationSettings');
+        const pageHeaderLanguageSettings = this.translate('pages.settings.pageHeaderLanguageSettings');
         const currentUserImageUri = getUserImageUri(user, 200);
         const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 
@@ -448,6 +459,21 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         { value: 'light', label: this.translate('pages.settings.labels.themeLight'), icon: 'white-balance-sunny' },
                                         { value: 'dark', label: this.translate('pages.settings.labels.themeDark'), icon: 'moon-waning-crescent' },
                                         { value: 'retro', label: this.translate('pages.settings.labels.themeRetro'), icon: 'palette-outline' },
+                                    ]}
+                                />
+                            </View>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
+                                    {pageHeaderLanguageSettings}
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.settingsContainer}>
+                                <SegmentedButtons
+                                    value={selectedLocale}
+                                    onValueChange={this.onLocaleChange}
+                                    buttons={[
+                                        { value: 'en-us', label: 'English', icon: 'translate' },
+                                        { value: 'es', label: 'Espanol', icon: 'translate' },
                                     ]}
                                 />
                             </View>
