@@ -72,6 +72,12 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.google-analytics.com',
                     'https://*.analytics.google.com',
                     'https://*.googletagmanager.com',
+                    // Google Sign-In
+                    'https://accounts.google.com/gsi/',
+                ],
+                frameSrc: [
+                    "'self'",
+                    'https://accounts.google.com/gsi/',
                 ],
                 scriptSrc: [
                     "'self'",
@@ -80,6 +86,8 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://*.google-analytics.com',
                     'https://cdn.lr-in-prod.com',
                     'https://cdn.lr-ingest.com',
+                    // Google Sign-In
+                    'https://accounts.google.com/gsi/',
                 ],
                 styleSrc: [
                     "'self'",
