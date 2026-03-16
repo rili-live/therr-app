@@ -10,11 +10,13 @@ import {
     MantineCheckbox,
     MantineInput,
 } from 'therr-react/components/mantine';
+import GoogleSignInButtonWeb from './GoogleSignInButtonWeb';
 import withTranslation from '../../wrappers/withTranslation';
 
 // Regular component props
 interface IRegisterFormProps {
   register: Function;
+  onGoogleRegister?: Function;
   title: string;
   inviteCode?: string;
   locale: string;
@@ -23,6 +25,7 @@ interface IRegisterFormProps {
 
 interface IRegisterFormState {
     inputs: any;
+    ssoError: string;
 }
 
 /**
@@ -38,6 +41,7 @@ export class RegisterFormComponent extends React.Component<
             inputs: {
                 settingsEmailMarketing: true,
             },
+            ssoError: '',
         };
     }
 
@@ -209,6 +213,23 @@ export class RegisterFormComponent extends React.Component<
                                 fullWidth
                             />
                         </div>
+
+                        {this.props.onGoogleRegister && (
+                            <>
+                                <div className="sso-divider" style={{ textAlign: 'center', margin: '0.75rem 0' }}>
+                                    {this.props.translate('components.registerForm.sso.orDivider')}
+                                </div>
+                                <GoogleSignInButtonWeb
+                                    onSuccess={(ssoData) => this.props.onGoogleRegister(ssoData)}
+                                    onError={(msg) => this.setState({ ssoError: msg })}
+                                    buttonText="signup_with"
+                                    translate={this.props.translate}
+                                />
+                                {this.state.ssoError && (
+                                    <div className="alert-error text-center">{this.state.ssoError}</div>
+                                )}
+                            </>
+                        )}
 
                         <div className="text-left">
                             <Link to="/login">

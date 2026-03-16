@@ -5,10 +5,12 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { MantineProvider } from '@mantine/core';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import store from './store';
 import mantineTheme from './styles/mantine-theme';
+import * as globalConfig from '../../global-config';
 
 // Third Party Styles
 import '@mantine/core/styles.css';
@@ -35,15 +37,19 @@ const getLocaleBasename = (): string | undefined => {
 };
 const localeBasename = getLocaleBasename();
 
+const envVars = globalConfig[process.env.NODE_ENV] || globalConfig.production;
+
 const RootComponent = () => (
-    <MantineProvider theme={mantineTheme} defaultColorScheme={getColorScheme()}>
-        <Provider store={store} serverState={store.preloadedState}>
-            <BrowserRouter basename={localeBasename}>
-                <ScrollToTop />
-                <Layout />
-            </BrowserRouter>
-        </Provider>
-    </MantineProvider>
+    <GoogleOAuthProvider clientId={envVars.googleOAuth2WebClientId}>
+        <MantineProvider theme={mantineTheme} defaultColorScheme={getColorScheme()}>
+            <Provider store={store} serverState={store.preloadedState}>
+                <BrowserRouter basename={localeBasename}>
+                    <ScrollToTop />
+                    <Layout />
+                </BrowserRouter>
+            </Provider>
+        </MantineProvider>
+    </GoogleOAuthProvider>
 );
 
 if (process.env.NODE_ENV === 'development') {

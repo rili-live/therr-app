@@ -445,9 +445,9 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                                         />
                                     }
                                     <Button
+                                        containerStyle={{ marginTop: 20 }}
                                         buttonStyle={this.themeForms.styles.buttonPrimary}
-                                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                        disabledStyle={this.themeForms.styles.buttonDisabled}
                                         disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                         titleStyle={this.themeForms.styles.buttonTitle}
                                         title={this.translate(

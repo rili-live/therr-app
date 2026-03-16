@@ -11,6 +11,12 @@ class NotificationsService {
             url: `/users-service/users/notifications${queryString}`,
         });
     };
+
+    update = (id: string, data: any) => axios({
+        method: 'put',
+        url: `/users-service/users/notifications/${id}`,
+        data,
+    });
 }
 
 export default new NotificationsService();

@@ -41,6 +41,8 @@
     "backendErrorMessage": "Oops! Something went wrong.",
     "permissionsDenied": "Permissions Denied",
     "phoneNumberAlreadyInUse": "Invalid Phone Number",
+    "loginError": "Login Failed",
+    "registrationError": "Registration Error",
     "errorWithAppleSSO": "Error With Apple SSO",
     "errorWithGoogleSSO": "Error With Google SSO",
     "eventCreatedSuccess": "Event Created  🎉",
@@ -432,6 +434,8 @@
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "invalidUsernamePassword": "Invalid username/password combination.",
+      "missingEmail": "Please enter a valid email, phone, or username.",
+      "missingPassword": "Please enter your password.",
       "sso": {
         "appleButtonTitle": "Sign in with Apple",
         "googleButtonTitleContinue": "Continue with Google",
@@ -690,6 +694,9 @@
         "inviteCode": "Invite Code (optional)"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
+      "missingEmail": "Please enter a valid email address.",
+      "missingPassword": "Please enter a password.",
+      "missingRepeatPassword": "Please confirm your password.",
       "subtitles": {
         "disclaimer": "By creating an account, you agree to our ",
         "and": " and ",
@@ -1005,7 +1012,7 @@
       },
       "buttons": {
         "generate": "Generate",
-        "scheduleAndInvite": "Schedule & Invite",
+        "scheduleAndInvite": "Next: Schedule",
         "showLess": "Show Less",
         "showMore": "Show More"
       },
@@ -1025,7 +1032,7 @@
         "yourTopInterests": "Your Top Interests"
       },
       "buttons": {
-        "createAndSend": "Create & Send",
+        "createAndSend": "Schedule & Invite",
         "showLess": "Show Less",
         "showMore": "Show More"
       },
@@ -1058,6 +1065,10 @@
         "alreadyClaimed": "You have already claimed rewards for this achievement",
         "unClaimed": "This achievement is complete! Go back and press 'claim rewards' to continue.",
         "inProgressDescription": "You're almost there! Keep on keepin' on!"
+      },
+      "sections": {
+        "unclaimed": "Claim Your Rewards",
+        "inProgress": "In Progress"
       }
     },
     "activeConnections": {
@@ -1202,7 +1213,7 @@
       }
     },
     "managePreferences": {
-      "headerTitle": "Preferences & Algorithm Settings",
+      "headerTitle": "Content Settings",
       "pageHeaderEmailSettings": "Content Preferences & Algorithm Settings",
       "pageSubHeaderInterests": "Your Interests",
       "alertTitles": {
@@ -1429,7 +1440,8 @@
     "notifications": {
       "headerTitle": "Notifications",
       "pageTitle": "Notifications",
-      "noNotifications": "You have no notifications at this time"
+      "noNotifications": "You have no notifications at this time",
+      "markAllRead": "Mark all read"
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"

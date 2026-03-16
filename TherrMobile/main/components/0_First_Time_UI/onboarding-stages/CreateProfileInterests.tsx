@@ -165,10 +165,13 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                 </View>
                 <View style={themeSettingsForm.styles.submitButtonContainer}>
                     <Button
-                        buttonStyle={themeForms.styles.button}
+                        buttonStyle={themeForms.styles.buttonPrimary}
+                        disabledStyle={themeForms.styles.buttonDisabled}
+                        titleStyle={themeForms.styles.buttonTitle}
+                        disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                         title={submitButtonText}
                         onPress={this.onSubmitInterests}
-                        raised={true}
+                        raised={false}
                         disabled={isDisabled}
                     />
                 </View>

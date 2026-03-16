@@ -127,6 +127,14 @@ npm start             # Start SSR server (requires build)
 npm test              # Run Jest tests
 ```
 
+## CSS Cache Busting (`update-views.js`)
+
+Production builds output CSS with content hashes (e.g., `app.abc123.css`) for cache busting. The Handlebars templates in `src/views/` reference CSS by name (e.g., `/app.css`), so `update-views.js` runs post-build to replace those references with the actual hashed filenames.
+
+**When adding a new `.hbs` view template, you must add it to the `viewFiles` array in `update-views.js`.** Otherwise the template will reference `/app.css` and `/vendor.css` which won't exist in production, causing the page to load without styles on first visit.
+
+This only affects SSR first-load. Client-side navigation appears to work because CSS was already loaded from a different page's correctly-updated template.
+
 ## Theming
 
 Multiple SCSS theme bundles:

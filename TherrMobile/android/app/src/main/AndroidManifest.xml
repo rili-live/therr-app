@@ -28,6 +28,7 @@
     android:roundIcon="@mipmap/ic_launcher_round"
     android:usesCleartextTraffic="true"
     android:allowBackup="false"
+    android:extractNativeLibs="false"
     android:theme="@style/AppTheme">
     <meta-data
       android:name="com.transistorsoft.locationmanager.license"

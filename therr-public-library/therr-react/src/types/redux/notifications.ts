@@ -16,4 +16,5 @@ export interface INotificationsState {
 export enum NotificationActionTypes {
   ADD_NOTIFICATION = 'ADD_NOTIFICATION',
   GET_NOTIFICATIONS = 'GET_NOTIFICATIONS',
+  NOTIFICATION_UPDATED = 'NOTIFICATION_UPDATED',
 }

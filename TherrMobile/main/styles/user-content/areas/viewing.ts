@@ -150,9 +150,11 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         },
         areaReactionButtonContainer: {
             ...buttonContainerStyles,
+            paddingHorizontal: 8,
         },
         areaReactionButton: {
             ...buttonStyle,
+            paddingHorizontal: 4,
         },
         areaReactionButtonTitle: {
             fontSize: 14,

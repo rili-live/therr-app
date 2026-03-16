@@ -70,6 +70,8 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     login = (credentials: any) => this.props.login(credentials);
 
+    loginSSO = (ssoData: any) => this.props.login(ssoData, { google: ssoData.idToken });
+
     public render(): JSX.Element | null {
         const { locale } = this.props;
         const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
@@ -101,7 +103,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                         </div>
                     </div>
                 </div>
-                <LoginForm login={this.login} />
+                <LoginForm login={this.login} onGoogleLogin={this.loginSSO} />
             </div>
         );
     }

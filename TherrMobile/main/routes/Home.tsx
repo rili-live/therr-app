@@ -178,7 +178,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 <View style={this.theme.styles.sectionContainer}>
                                     <Button
                                         buttonStyle={this.themeForms.styles.buttonPrimary}
-                                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                        disabledStyle={this.themeForms.styles.buttonDisabled}
                                         titleStyle={this.themeForms.styles.buttonTitle}
                                         disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                         title={this.translate(

@@ -19,6 +19,11 @@ const notifications = StyleSheet.create({
     container: {
         marginTop: 20,
     },
+    markAllReadContainer: {
+        alignItems: 'flex-end',
+        paddingRight: 14,
+        paddingBottom: 14,
+    },
     firstChildNotification: {
         borderTopWidth: 1,
         display: 'flex',

@@ -41,6 +41,8 @@
     "backendErrorMessage": "¡Ups! Algo salió mal.",
     "permissionsDenied": "Permisos denegados",
     "phoneNumberAlreadyInUse": "Número de teléfono inválido",
+    "loginError": "Error de inicio de sesión",
+    "registrationError": "Error de registro",
     "errorWithAppleSSO": "Error con Apple SSO",
     "errorWithGoogleSSO": "Error con Google SSO",
     "eventCreatedSuccess": "Evento creado  🎉",
@@ -432,6 +434,8 @@
       },
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
       "invalidUsernamePassword": "Combinación de usuario/contraseña inválida.",
+      "missingEmail": "Por favor, ingresa un correo, teléfono o usuario válido.",
+      "missingPassword": "Por favor, ingresa tu contraseña.",
       "sso": {
         "appleButtonTitle": "Iniciar sesión con Apple",
         "googleButtonTitleContinue": "Continuar con Google",
@@ -690,6 +694,9 @@
         "inviteCode": "Código de invitación (opcional)"
       },
       "backendErrorMessage": "Error de conexión. Por favor, inténtalo de nuevo más tarde.",
+      "missingEmail": "Por favor, ingresa una dirección de correo válida.",
+      "missingPassword": "Por favor, ingresa una contraseña.",
+      "missingRepeatPassword": "Por favor, confirma tu contraseña.",
       "subtitles": {
         "disclaimer": "Al crear una cuenta, aceptas nuestros ",
         "and": " y ",
@@ -1002,7 +1009,7 @@
       },
       "buttons": {
         "generate": "Generar",
-        "scheduleAndInvite": "Programar e invitar",
+        "scheduleAndInvite": "Siguiente: Programar",
         "showLess": "Ver menos",
         "showMore": "Ver más"
       },
@@ -1022,7 +1029,7 @@
         "yourTopInterests": "Tus principales intereses"
       },
       "buttons": {
-        "createAndSend": "Crear y enviar",
+        "createAndSend": "Programar e invitar",
         "showLess": "Ver menos",
         "showMore": "Ver más"
       },
@@ -1055,6 +1062,10 @@
         "alreadyClaimed": "Ya has reclamado las recompensas de este logro",
         "unClaimed": "¡Este logro está completo! Regresa y presiona 'reclamar recompensas' para continuar.",
         "inProgressDescription": "¡Ya casi llegas! ¡Sigue adelante!"
+      },
+      "sections": {
+        "unclaimed": "Reclama tus recompensas",
+        "inProgress": "En progreso"
       }
     },
     "activeConnections": {
@@ -1199,7 +1210,7 @@
       }
     },
     "managePreferences": {
-      "headerTitle": "Preferencias y configuración de algoritmo",
+      "headerTitle": "Config. de Contenido",
       "pageHeaderEmailSettings": "Preferencias de contenido y configuración de algoritmo",
       "pageSubHeaderInterests": "Tus intereses",
       "alertTitles": {
@@ -1426,7 +1437,8 @@
     "notifications": {
       "headerTitle": "Notificaciones",
       "pageTitle": "Notificaciones",
-      "noNotifications": "No tienes notificaciones en este momento"
+      "noNotifications": "No tienes notificaciones en este momento",
+      "markAllRead": "Marcar todo leído"
     },
     "pageNotFound": {
       "pageTitle": "Página no encontrada"

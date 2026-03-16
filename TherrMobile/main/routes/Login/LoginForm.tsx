@@ -51,7 +51,6 @@ interface ILoginFormProps {
 
 interface ILoginFormState {
     inputs: any;
-    prevLoginError: string;
     isSubmitting: boolean;
 }
 
@@ -69,7 +68,6 @@ export class LoginFormComponent extends React.Component<
 
         this.state = {
             inputs: {},
-            prevLoginError: '',
             isSubmitting: false,
         };
 
@@ -77,12 +75,8 @@ export class LoginFormComponent extends React.Component<
             translator(props.userSettings?.locale || 'en-us', key, params);
     }
 
-    isLoginFormDisabled() {
-        return (
-            !this.state.inputs.userName ||
-            !this.state.inputs.password ||
-            this.state.isSubmitting
-        );
+    isLoginButtonLoading() {
+        return this.state.isSubmitting;
     }
 
     onSSOLoginError = (err) => {
@@ -137,6 +131,23 @@ export class LoginFormComponent extends React.Component<
     onSubmit = (ssoUserDetails?: ISSOUserDetails) => {
         const { password, rememberMe, userName } = this.state.inputs;
 
+        if (!ssoUserDetails) {
+            if (!userName) {
+                showToast.error({
+                    text1: this.translate('alertTitles.loginError'),
+                    text2: this.translate('forms.loginForm.missingEmail'),
+                });
+                return;
+            }
+            if (!password) {
+                showToast.error({
+                    text1: this.translate('alertTitles.loginError'),
+                    text2: this.translate('forms.loginForm.missingPassword'),
+                });
+                return;
+            }
+        }
+
         let loginArgs: any = {
             userName: userName?.toLowerCase().trim(),
             password,
@@ -163,14 +174,16 @@ export class LoginFormComponent extends React.Component<
                     error.statusCode === 401 ||
                     error.statusCode === 404
                 ) {
-                    this.setState({
-                        prevLoginError: this.translate(
+                    showToast.error({
+                        text1: this.translate('alertTitles.loginError'),
+                        text2: this.translate(
                             'forms.loginForm.invalidUsernamePassword'
                         ),
                     });
                 } else if (error.statusCode >= 500) {
-                    this.setState({
-                        prevLoginError: this.translate(
+                    showToast.error({
+                        text1: this.translate('alertTitles.backendErrorMessage'),
+                        text2: this.translate(
                             'forms.loginForm.backendErrorMessage'
                         ),
                     });
@@ -191,12 +204,11 @@ export class LoginFormComponent extends React.Component<
                 ...this.state.inputs,
                 ...newInputChanges,
             },
-            prevLoginError: '',
         });
     };
 
     public render() {
-        const { isSubmitting, prevLoginError } = this.state;
+        const { isSubmitting } = this.state;
         const {
             navigation,
             themeAlerts,
@@ -273,7 +285,7 @@ export class LoginFormComponent extends React.Component<
                             'forms.loginForm.buttons.login'
                         )}
                         onPress={() => this.onSubmit()}
-                        disabled={this.isLoginFormDisabled()}
+                        disabled={this.isLoginButtonLoading()}
                         loading={isSubmitting}
                         icon={
                             <FontAwesomeIcon
@@ -313,15 +325,6 @@ export class LoginFormComponent extends React.Component<
                         />
                     </View>
                 }
-                <Alert
-                    containerStyles={addMargins({
-                        marginBottom: 24,
-                    })}
-                    isVisible={!!prevLoginError}
-                    message={prevLoginError}
-                    type={'error'}
-                    themeAlerts={themeAlerts}
-                />
                 <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginBotMd]}>
                     <Button
                         type="clear"

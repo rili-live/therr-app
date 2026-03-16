@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable } from 'react-native';
 import { Avatar } from '../../../components/BaseAvatar';
 import { ListItem } from '../../../components/BaseListItem';
 import { Badge } from 'react-native-paper';
@@ -32,7 +32,6 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
 }) => {
     return (
         <ListItem
-            onPress={() => onConnectionPress(connectionDetails)}
             bottomDivider
             containerStyle={theme.styles.listItemCard}
         >
@@ -48,21 +47,26 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
                     size="medium"
                 />
             </Pressable>
-            <View style={spacingStyles.flexOne}>
+            <Pressable
+                style={spacingStyles.flexOne}
+                onPress={() => goToViewUser(connectionDetails.id)}
+            >
                 <ListItem.Title>{connectionDetails.userName}</ListItem.Title>
                 <ListItem.Subtitle>{getConnectionSubtitle(connectionDetails) || translate('pages.userProfile.anonymous')}</ListItem.Subtitle>
-            </View>
-            {
-                isActive ?
-                    <Badge
-                        size={12}
-                        style={{ backgroundColor: theme.colors.accentLime, alignSelf: 'center' }}
-                    /> :
-                    <Badge
-                        size={12}
-                        style={{ backgroundColor: theme.colors.accentDivider, alignSelf: 'center' }}
-                    />
-            }
+            </Pressable>
+            <Pressable onPress={() => onConnectionPress(connectionDetails)}>
+                {
+                    isActive ?
+                        <Badge
+                            size={12}
+                            style={{ backgroundColor: theme.colors.accentLime, alignSelf: 'center' }}
+                        /> :
+                        <Badge
+                            size={12}
+                            style={{ backgroundColor: theme.colors.accentDivider, alignSelf: 'center' }}
+                        />
+                }
+            </Pressable>
         </ListItem>
     );
 };

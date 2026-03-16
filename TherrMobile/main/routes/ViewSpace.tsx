@@ -505,13 +505,15 @@ const ViewSpace = ({
                             )}
                             <View style={localStyles.pairingContent}>
                                 <Pressable onPress={() => handleGoToViewSpace(pairing)}>
-                                    <Text style={[localStyles.pairingTitle, { color: brandColor }]} numberOfLines={2}>
+                                    <Text style={[localStyles.pairingTitle, { color: isDarkMode ? theme.colors.textWhite : brandColor }]} numberOfLines={2}>
                                         {pairing.notificationMsg}
                                     </Text>
                                 </Pressable>
                                 {catLabel ? (
                                     <View style={[localStyles.pairingBadge, { backgroundColor: theme.colors.primary3 }]}>
-                                        <Text style={[localStyles.pairingBadgeText, { color: theme.colors.primary4 }]}>{catLabel}</Text>
+                                        <Text style={[localStyles.pairingBadgeText, {
+                                            color: isDarkMode ? theme.colors.textWhite : theme.colors.primary4,
+                                        }]}>{catLabel}</Text>
                                     </View>
                                 ) : null}
                                 {pairing.addressReadable ? (
@@ -529,13 +531,13 @@ const ViewSpace = ({
                                     ) : (
                                         <>
                                             <Pressable onPress={() => handlePairingFeedback(pairing.id, true)}>
-                                                <Text style={[localStyles.pairingFeedbackLink, { color: brandColor }]}>
+                                                <Text style={[localStyles.pairingFeedbackLink, { color: isDarkMode ? theme.colors.textWhite : brandColor }]}>
                                                     {translate('pages.viewSpace.pairings.helpful')}
                                                 </Text>
                                             </Pressable>
                                             <Text style={[localStyles.pairingFeedbackSeparator, { color: theme.colors.textGray }]}>|</Text>
                                             <Pressable onPress={() => handlePairingFeedback(pairing.id, false)}>
-                                                <Text style={[localStyles.pairingFeedbackLink, { color: brandColor }]}>
+                                                <Text style={[localStyles.pairingFeedbackLink, { color: isDarkMode ? theme.colors.textWhite : brandColor }]}>
                                                     {translate('pages.viewSpace.pairings.notHelpful')}
                                                 </Text>
                                             </Pressable>
@@ -766,7 +768,7 @@ const localStyles = StyleSheet.create({
     pairingsSection: {
         paddingHorizontal: 16,
         paddingTop: 16,
-        paddingBottom: 8,
+        paddingBottom: 80,
     },
     pairingsTitle: {
         marginBottom: 4,

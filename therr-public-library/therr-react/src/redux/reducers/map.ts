@@ -54,7 +54,10 @@ const map = produce((draft: IMapState, action: any) => {
             draft.events = action.data.results.filter((a) => a.longitude && a.latitude)
                 .reduce((acc, item) => ({
                     ...acc,
-                    [item.id]: item,
+                    [item.id]: {
+                        ...item,
+                        reaction: item.reaction || acc[item.id]?.reaction,
+                    },
                 }), modifiedEvents);
             break;
         case ContentActionTypes.SEARCH_ACTIVE_EVENTS_BY_IDS:
@@ -62,17 +65,22 @@ const map = produce((draft: IMapState, action: any) => {
             draft.events = action.data.events.filter((a) => a.longitude && a.latitude)
                 .reduce((acc, item) => ({
                     ...acc,
-                    [item.id]: item,
+                    [item.id]: {
+                        ...item,
+                        reaction: item.reaction || acc[item.id]?.reaction,
+                    },
                 }), modifiedEvents);
             break;
         case MapActionTypes.GET_EVENT_DETAILS:
             if (action.data?.event?.id) {
-                if (!modifiedEvents[action.data.event.id]) {
+                const existingEvent = modifiedEvents[action.data.event.id];
+                if (!existingEvent) {
                     modifiedEvents[action.data.event.id] = action.data.event;
                 } else {
                     modifiedEvents[action.data.event.id] = {
-                        ...modifiedEvents[action.data.event.id],
+                        ...existingEvent,
                         ...action.data.event,
+                        reaction: action.data.event.reaction || existingEvent.reaction,
                     };
                 }
             }
@@ -97,6 +105,15 @@ const map = produce((draft: IMapState, action: any) => {
             delete modifiedEvents[action.data.id];
             draft.events = modifiedEvents;
             break;
+        case ContentActionTypes.UPDATE_ACTIVE_EVENT_REACTION:
+            if (action.data?.eventId && modifiedEvents[action.data.eventId]) {
+                modifiedEvents[action.data.eventId] = {
+                    ...modifiedEvents[action.data.eventId],
+                    reaction: { ...action.data },
+                };
+                draft.events = modifiedEvents;
+            }
+            break;
         // // // // // // // // // // // //
         case MapActionTypes.GET_MOMENTS:
         case MapActionTypes.GET_MY_MOMENTS:
@@ -104,7 +121,10 @@ const map = produce((draft: IMapState, action: any) => {
             draft.moments = action.data.results.filter((a) => a.longitude && a.latitude)
                 .reduce((acc, item) => ({
                     ...acc,
-                    [item.id]: item,
+                    [item.id]: {
+                        ...item,
+                        reaction: item.reaction || acc[item.id]?.reaction,
+                    },
                 }), modifiedMoments);
             break;
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS_BY_IDS:
@@ -112,17 +132,22 @@ const map = produce((draft: IMapState, action: any) => {
             draft.moments = action.data.moments.filter((a) => a.longitude && a.latitude)
                 .reduce((acc, item) => ({
                     ...acc,
-                    [item.id]: item,
+                    [item.id]: {
+                        ...item,
+                        reaction: item.reaction || acc[item.id]?.reaction,
+                    },
                 }), modifiedMoments);
             break;
         case MapActionTypes.GET_MOMENT_DETAILS:
             if (action.data?.moment?.id) {
-                if (!modifiedMoments[action.data.moment.id]) {
+                const existingMoment = modifiedMoments[action.data.moment.id];
+                if (!existingMoment) {
                     modifiedMoments[action.data.moment.id] = action.data.moment;
                 } else {
                     modifiedMoments[action.data.moment.id] = {
-                        ...modifiedMoments[action.data.moment.id],
+                        ...existingMoment,
                         ...action.data.moment,
+                        reaction: action.data.moment.reaction || existingMoment.reaction,
                     };
                 }
             }
@@ -147,12 +172,24 @@ const map = produce((draft: IMapState, action: any) => {
             delete modifiedMoments[action.data.id];
             draft.moments = modifiedMoments;
             break;
+        case ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION:
+            if (action.data?.momentId && modifiedMoments[action.data.momentId]) {
+                modifiedMoments[action.data.momentId] = {
+                    ...modifiedMoments[action.data.momentId],
+                    reaction: { ...action.data },
+                };
+                draft.moments = modifiedMoments;
+            }
+            break;
         // // // // // // // // // // // //
         case MapActionTypes.LIST_SPACES:
             draft.spaces = action.data.results
                 .reduce((acc, item) => ({
                     ...acc,
-                    [item.id]: item,
+                    [item.id]: {
+                        ...item,
+                        reaction: item.reaction || draft.spaces[item.id]?.reaction,
+                    },
                 }), {});
             break;
         case MapActionTypes.GET_SPACES:
@@ -160,7 +197,10 @@ const map = produce((draft: IMapState, action: any) => {
             draft.spaces = action.data.results.filter((a) => a.longitude && a.latitude)
                 .reduce((acc, item) => ({
                     ...acc,
-                    [item.id]: item,
+                    [item.id]: {
+                        ...item,
+                        reaction: item.reaction || acc[item.id]?.reaction,
+                    },
                 }), modifiedSpaces);
             break;
         case ContentActionTypes.SEARCH_ACTIVE_SPACES_BY_IDS:
@@ -168,17 +208,22 @@ const map = produce((draft: IMapState, action: any) => {
             draft.spaces = action.data.spaces.filter((a) => a.longitude && a.latitude)
                 .reduce((acc, item) => ({
                     ...acc,
-                    [item.id]: item,
+                    [item.id]: {
+                        ...item,
+                        reaction: item.reaction || acc[item.id]?.reaction,
+                    },
                 }), modifiedSpaces);
             break;
         case MapActionTypes.GET_SPACE_DETAILS:
             if (action.data.space?.id) {
-                if (!modifiedSpaces[action.data.space.id]) {
+                const existingSpace = modifiedSpaces[action.data.space.id];
+                if (!existingSpace) {
                     modifiedSpaces[action.data.space.id] = action.data.space;
                 } else {
                     modifiedSpaces[action.data.space.id] = {
-                        ...modifiedSpaces[action.data.space.id],
+                        ...existingSpace,
                         ...action.data.space,
+                        reaction: action.data.space.reaction || existingSpace.reaction,
                     };
                 }
             }
@@ -202,6 +247,15 @@ const map = produce((draft: IMapState, action: any) => {
         case MapActionTypes.SPACE_DELETED:
             delete modifiedSpaces[action.data.id];
             draft.spaces = modifiedSpaces;
+            break;
+        case ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION:
+            if (action.data?.spaceId && modifiedSpaces[action.data.spaceId]) {
+                modifiedSpaces[action.data.spaceId] = {
+                    ...modifiedSpaces[action.data.spaceId],
+                    reaction: { ...action.data },
+                };
+                draft.spaces = modifiedSpaces;
+            }
             break;
         case MapActionTypes.UPDATE_RECENT_ENGAGEMENTS:
             draft.recentEngagements = {
