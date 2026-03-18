@@ -86,11 +86,13 @@ app.use(authenticate.unless({
         { url: /\/v1\/maps-service\/moments\/.*\/details/, methods: ['POST'] },
         { url: '/v1/maps-service/spaces/list', methods: ['POST'] },
         { url: /\/v1\/maps-service\/spaces\/.*\/details/, methods: ['POST'] },
+        { url: /\/v1\/maps-service\/events\/.*\/details/, methods: ['POST'] }, // Public event view (uses authenticateOptional)
         { url: /\/v1\/maps-service\/events\/search/, methods: ['POST'] }, // Optional for public map view
         { url: /\/v1\/maps-service\/moments\/search/, methods: ['POST'] }, // Optional for public map view
         { url: /\/v1\/maps-service\/spaces\/search/, methods: ['POST'] }, // Optional for public map view
         { url: /\/v1\/maps-service\/spaces\/.*\/pairings$/, methods: ['GET'] }, // Space pairings (optional auth)
         { url: /\/v1\/maps-service\/spaces\/.*\/pairings\/feedback/, methods: ['POST'] }, // Pairing feedback (optional auth)
+        { url: /\/v1\/messages-service\/forums\/[0-9a-f-]+$/, methods: ['GET'] }, // Public group/forum view (uses authenticateOptional)
     ],
 }));
 

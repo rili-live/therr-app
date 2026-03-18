@@ -4,8 +4,11 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
 import { MapActions } from 'therr-react/redux/actions';
-import { IContentState, IMapState, IUserState } from 'therr-react/types';
+import {
+    IContentState, IForumsState, IMapState, IUserState,
+} from 'therr-react/types';
 import { Content } from 'therr-js-utilities/constants';
+import { ForumsService } from 'therr-react/services';
 import {
     Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs, Paper,
@@ -47,6 +50,7 @@ interface IViewEventDispatchProps {
 
 interface IStoreProps extends IViewEventDispatchProps {
     content: IContentState;
+    forums: IForumsState;
     map: IMapState;
     user: IUserState;
 }
@@ -58,10 +62,14 @@ interface IViewEventProps extends IViewEventRouterProps, IStoreProps {
 
 interface IViewEventState {
     eventId: string;
+    groupDetails: any;
+    accessRestricted: boolean;
+    isGroupPublic: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
+    forums: state.forums,
     map: state.map,
     user: state.user,
 });
@@ -87,11 +95,14 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
 
         this.state = {
             eventId: props.routeParams.eventId,
+            groupDetails: null,
+            accessRestricted: false,
+            isGroupPublic: true,
         };
     }
 
     componentDidMount() {
-        const { getEventDetails, map } = this.props;
+        const { getEventDetails, forums, map } = this.props;
         const { eventId } = this.state;
         const event = map?.events[eventId];
 
@@ -100,14 +111,42 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
                 withMedia: true,
                 withUser: true,
                 withRatings: true,
-            }).then(({ event: fetchedEvent }) => {
-                document.title = `${fetchedEvent?.notificationMsg} | Therr App`;
+            }).then((response) => {
+                const fetchedEvent = response?.event;
+                if (response?.accessRestricted) {
+                    this.setState({
+                        accessRestricted: true,
+                        isGroupPublic: !!response.isGroupPublic,
+                    });
+                }
+                if (fetchedEvent?.notificationMsg) {
+                    document.title = `${fetchedEvent.notificationMsg} | Therr App`;
+                }
+                this.fetchGroupDetails(fetchedEvent?.groupId, forums);
             }).catch(() => {
                 this.props.navigation.navigate('/');
             });
         } else {
             document.title = `${event.notificationMsg} | Therr App`;
+            this.fetchGroupDetails(event.groupId, forums);
         }
+    }
+
+    fetchGroupDetails(groupId: string, forums: IForumsState) {
+        if (!groupId) return;
+
+        // Use cached data from Redux if available
+        const cached = forums?.forumDetails?.[groupId];
+        if (cached) {
+            this.setState({ groupDetails: cached });
+            return;
+        }
+
+        ForumsService.getForum(groupId).then((response: any) => {
+            this.setState({ groupDetails: response?.data });
+        }).catch(() => {
+            // Group may not exist or be inaccessible - silently ignore
+        });
     }
 
     renderSkeleton(): JSX.Element {
@@ -171,26 +210,6 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
         );
     }
 
-    renderOrganizerInfo(event: any): JSX.Element | null {
-        const organizerName = event.fromUserFirstName && event.fromUserLastName
-            ? `${event.fromUserFirstName} ${event.fromUserLastName}`
-            : '';
-        if (!organizerName) return null;
-
-        return (
-            <div>
-                <Title order={3} size="h4" mb="xs">{this.props.translate('pages.viewEvent.headings.organizer')}</Title>
-                <Group gap="xs">
-                    {event.fromUserId ? (
-                        <Anchor href={`/users/${event.fromUserId}`} size="sm">{organizerName}</Anchor>
-                    ) : (
-                        <Text size="sm">{organizerName}</Text>
-                    )}
-                </Group>
-            </div>
-        );
-    }
-
     renderSpaceCard(event: any): JSX.Element | null {
         if (!event.spaceId) return null;
 
@@ -250,13 +269,85 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
         );
     }
 
+    renderGroupCard(event: any): JSX.Element | null {
+        if (!event.groupId) return null;
+
+        const { groupDetails } = this.state;
+        const groupName = groupDetails?.title || this.props.translate('pages.viewEvent.labels.viewGroup');
+        const organizerName = event.fromUserFirstName && event.fromUserLastName
+            ? `${event.fromUserFirstName} ${event.fromUserLastName}`
+            : '';
+
+        return (
+            <div>
+                <Title order={3} size="h4" mb="xs">{this.props.translate('pages.viewEvent.headings.group')}</Title>
+                <Anchor href={`/groups/${event.groupId}`} underline="never" className="event-space-link">
+                    <Paper withBorder p="md" radius="md" className="event-space-card">
+                        <Group gap="md" wrap="nowrap">
+                            <Stack gap={4}>
+                                <Text fw={600}>{groupName}</Text>
+                                {groupDetails?.subtitle && <Text size="sm" c="dimmed">{groupDetails.subtitle}</Text>}
+                            </Stack>
+                        </Group>
+                    </Paper>
+                </Anchor>
+                {organizerName && (
+                    <Group gap="xs" mt="xs">
+                        <Text size="sm" fw={600}>{this.props.translate('pages.viewEvent.headings.organizer')}:</Text>
+                        {event.fromUserId ? (
+                            <Anchor href={`/users/${event.fromUserId}`} size="sm">{organizerName}</Anchor>
+                        ) : (
+                            <Text size="sm">{organizerName}</Text>
+                        )}
+                    </Group>
+                )}
+            </div>
+        );
+    }
+
+    renderLoginLinks(): JSX.Element {
+        return (
+            <Group gap="sm" justify="center">
+                <Anchor href="/login">{this.props.translate('components.header.buttons.login')}</Anchor>
+                <Anchor href="/register">{this.props.translate('pages.login.buttons.signUp')}</Anchor>
+            </Group>
+        );
+    }
+
+    renderPrivateEventMessage(): JSX.Element {
+        return (
+            <Container id="page_view_event" size="md" py="xl">
+                <Stack gap="md" align="center">
+                    <Title order={2}>{this.props.translate('pages.viewEvent.labels.privateEventMessage')}</Title>
+                    <Text c="dimmed" ta="center">{this.props.translate('pages.viewEvent.labels.privateEventCta')}</Text>
+                    {this.renderLoginLinks()}
+                </Stack>
+            </Container>
+        );
+    }
+
+    renderSignUpCta(): JSX.Element {
+        return (
+            <Paper withBorder p="lg" radius="md" className="event-cta-card">
+                <Text fw={600} ta="center">{this.props.translate('pages.viewEvent.labels.signUpPrompt')}</Text>
+                {this.renderLoginLinks()}
+            </Paper>
+        );
+    }
+
     public render(): JSX.Element {
-        const { content, map } = this.props;
-        const { eventId } = this.state;
+        const { content, map, user } = this.props;
+        const { eventId, accessRestricted, isGroupPublic } = this.state;
         const event = map?.events[eventId];
+        const isAuthenticated = !!user?.details?.id;
 
         if (!event) {
             return this.renderSkeleton();
+        }
+
+        // Private group event check for unauthenticated users
+        if (accessRestricted && !isGroupPublic && !isAuthenticated) {
+            return this.renderPrivateEventMessage();
         }
 
         // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
@@ -304,8 +395,8 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
                     {/* Venue / Space Card */}
                     {this.renderSpaceCard(event)}
 
-                    {/* Organizer */}
-                    {this.renderOrganizerInfo(event)}
+                    {/* Group & Organizer */}
+                    {this.renderGroupCard(event)}
 
                     <Divider />
 
@@ -317,6 +408,9 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
                             {this.renderHashTags(event)}
                         </div>
                     )}
+
+                    {/* Login/Signup CTA for unauthenticated users */}
+                    {accessRestricted && !isAuthenticated && this.renderSignUpCta()}
 
                     {/* App Download CTA */}
                     <Paper withBorder p="lg" radius="md" mt="md" className="event-cta-card">
