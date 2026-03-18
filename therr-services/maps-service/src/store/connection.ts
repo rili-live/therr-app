@@ -71,7 +71,11 @@ write.on('error', (err, client) => {
 });
 
 // Graceful shutdown: drain pools on SIGTERM (k8s pod eviction)
+let isShuttingDown = false;
 const shutdownPools = () => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+
     logSpan({
         level: 'info',
         messageOrigin: 'API_SERVER',

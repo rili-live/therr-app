@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
@@ -347,7 +348,7 @@ mapsServiceRouter.post('/spaces/request-approve/:spaceId', validate, authorize(
 // External APIs - Google Places proxy with rate limiting and caching
 mapsServiceRouter.get('/place/*', placesApiLimiter, async (req, res, next) => {
     // Cache GET requests (autocomplete, details) using query string as key
-    const cacheKey = `${req.path}:${JSON.stringify(req.query)}`;
+    const cacheKey = crypto.createHash('sha256').update(`${req.path}:${JSON.stringify(req.query)}`).digest('hex');
     const cached = await CacheStore.mapsService.getPlacesResponse(cacheKey);
 
     if (cached) {
@@ -369,6 +370,11 @@ mapsServiceRouter.use('/place', createProxyMiddleware({
         proxyRes: (proxyRes, req, res) => {
             let body = '';
             proxyRes.on('data', (chunk) => { body += chunk; });
+            proxyRes.on('error', () => {
+                if (!res.headersSent) {
+                    res.status(502).json({ message: 'Upstream connection error' });
+                }
+            });
             proxyRes.on('end', () => {
                 const statusCode = proxyRes.statusCode || 500;
                 res.status(statusCode);
