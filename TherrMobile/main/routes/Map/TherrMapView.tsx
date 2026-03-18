@@ -87,7 +87,9 @@ export interface ITherrMapViewProps extends IStoreProps {
     filteredMoments: any;
     filteredSpaces: any;
     hideCreateActions: () => any;
+    initialPreviewScrollIndex: number;
     isScrollEnabled: boolean;
+    onInitialScrollApplied: () => void;
     onPreviewBottomSheetClose: any;
     onPreviewBottomSheetOpen: any;
     onMapLayout: any;
@@ -150,6 +152,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
     private localeShort = 'en-US'; // TODO: Derive from user locale
     private mapViewRef: any;
+    private scrollViewRef: any;
     private theme = buildStyles();
     private themeBottomSheet = buildBottomSheetStyles();
     private themeViewArea = buildViewAreaStyles();
@@ -585,9 +588,19 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             this.removeAnimation();
         }
 
+        const shouldOpen = modifiedAreasInPreview?.length < 1 ? false : !isPreviewBottomSheetVisible;
         this.setState({
             areasInPreview: modifiedAreasInPreview,
-            isPreviewBottomSheetVisible: modifiedAreasInPreview?.length < 1 ? false : !isPreviewBottomSheetVisible,
+            isPreviewBottomSheetVisible: shouldOpen,
+        }, () => {
+            if (shouldOpen && this.props.initialPreviewScrollIndex > 0) {
+                const scrollToIndex = Math.min(this.props.initialPreviewScrollIndex, modifiedAreasInPreview.length - 1);
+                this.props.onInitialScrollApplied();
+                setTimeout(() => {
+                    const scrollRef = this.scrollViewRef?.getScrollResponder?.() || this.scrollViewRef;
+                    scrollRef?.scrollTo?.({ x: scrollToIndex * CARD_WIDTH, animated: false });
+                }, 100);
+            }
         });
     };
 
@@ -815,15 +828,20 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         // TODO: Activate spaces on click
         this.getAreaDetails(area)
             .then((details) => {
+                const previewScrollIndex = this.previewScrollIndex || 0;
                 if (area?.areaType === 'events') {
                     navigation.navigate('ViewEvent', {
                         isMyContent: isMyContent(area, user),
+                        previousView: 'Map',
+                        previewScrollIndex,
                         event: area,
                         eventDetails: details,
                     });
                 } else if (area?.areaType === 'spaces') {
                     navigation.navigate('ViewSpace', {
                         isMyContent: isMyContent(area, user),
+                        previousView: 'Map',
+                        previewScrollIndex,
                         space: area,
                         spaceDetails: details,
                     });
@@ -1116,6 +1134,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         height: animatedOverlayHeight + 3, // Add for box shadow
                     }]}>
                         <Animated.ScrollView
+                            ref={(ref) => { this.scrollViewRef = ref; }}
                             horizontal
                             removeClippedSubviews={false}
                             scrollEventThrottle={0}
