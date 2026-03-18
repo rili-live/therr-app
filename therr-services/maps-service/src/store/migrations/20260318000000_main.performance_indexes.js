@@ -1,0 +1,50 @@
+exports.up = (knex) => knex.schema.raw(`
+    -- Composite indexes for frequent search filter patterns
+    -- These improve WHERE clause performance on common query combinations
+
+    -- moments: search queries filter by isMatureContent + isPublic frequently
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_moments_mature_public
+        ON main.moments ("isMatureContent", "isPublic");
+
+    -- moments: lookups by fromUserId with ordering by createdAt
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_moments_from_user_created
+        ON main.moments ("fromUserId", "createdAt" DESC);
+
+    -- moments: space moments query filters by spaceId + isPublic + createdAt
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_moments_space_public_created
+        ON main.moments ("spaceId", "isPublic", "createdAt" DESC)
+        WHERE "spaceId" IS NOT NULL;
+
+    -- spaces: search queries filter by isMatureContent + isClaimPending
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_spaces_mature_claim
+        ON main.spaces ("isMatureContent", "isClaimPending");
+
+    -- spaces: lookups by fromUserId with isMatureContent filter
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_spaces_from_user_mature
+        ON main.spaces ("fromUserId", "isMatureContent");
+
+    -- events: search queries filter by isMatureContent + scheduleStartAt
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_mature_schedule
+        ON main.events ("isMatureContent", "scheduleStartAt" DESC);
+
+    -- events: group events query
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_group_schedule
+        ON main.events ("groupId", "scheduleStartAt" DESC)
+        WHERE "groupId" IS NOT NULL;
+
+    -- events: space events query
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_space_public_schedule
+        ON main.events ("spaceId", "isPublic", "scheduleStartAt" DESC)
+        WHERE "spaceId" IS NOT NULL;
+`);
+
+exports.down = (knex) => knex.schema.raw(`
+    DROP INDEX IF EXISTS main.idx_moments_mature_public;
+    DROP INDEX IF EXISTS main.idx_moments_from_user_created;
+    DROP INDEX IF EXISTS main.idx_moments_space_public_created;
+    DROP INDEX IF EXISTS main.idx_spaces_mature_claim;
+    DROP INDEX IF EXISTS main.idx_spaces_from_user_mature;
+    DROP INDEX IF EXISTS main.idx_events_mature_schedule;
+    DROP INDEX IF EXISTS main.idx_events_group_schedule;
+    DROP INDEX IF EXISTS main.idx_events_space_public_schedule;
+`);

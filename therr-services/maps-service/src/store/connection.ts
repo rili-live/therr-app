@@ -12,11 +12,13 @@ const read: Pool = new Pool({
     password: process.env.DB_PASSWORD_MAIN_READ,
     database: process.env.MAPS_SERVICE_DATABASE,
     port: Number(process.env.DB_PORT_MAIN_READ),
-    max: 20, // set pool max size to 20
-    idleTimeoutMillis: 10000, // close idle clients after 10 second
-    connectionTimeoutMillis: 5000, // return an error after 5 second if connection could not be established
-    // maxUses: 7500, // close (and replace) a connection after it has been used 7500 times (see below for discussion)
-});
+    max: 20,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,
+    maxUses: 7500, // recycle connections to prevent memory leaks from long-lived connections
+    statement_timeout: 30000, // kill queries running longer than 30s to prevent runaway geo queries
+    idle_in_transaction_session_timeout: 60000, // kill idle-in-transaction sessions after 60s
+} as any);
 
 const write: Pool = new Pool({
     host: process.env.DB_HOST_MAIN_WRITE,
@@ -24,11 +26,13 @@ const write: Pool = new Pool({
     password: process.env.DB_PASSWORD_MAIN_WRITE,
     database: process.env.MAPS_SERVICE_DATABASE,
     port: Number(process.env.DB_PORT_MAIN_WRITE),
-    max: 20, // set pool max size to 20
-    idleTimeoutMillis: 10000, // close idle clients after 10 second
-    connectionTimeoutMillis: 5000, // return an error after 5 second if connection could not be established
-    // maxUses: 7500, // close (and replace) a connection after it has been used 7500 times (see below for discussion)
-});
+    max: 10, // write pool needs fewer connections than read
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,
+    maxUses: 7500,
+    statement_timeout: 30000,
+    idle_in_transaction_session_timeout: 60000,
+} as any);
 
 read.on('error', (err, client) => {
     logSpan({
