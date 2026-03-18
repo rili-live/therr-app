@@ -51,14 +51,14 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         element: <Home />,
     },
     {
-        path: '/forums/:roomId',
+        path: '/groups/:groupId',
         element: <AuthRoute
             component={Forum}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             })}
-            path={'/forums/:roomId'}
+            path={'/groups/:groupId'}
             redirectPath={'/create-profile'}
         />,
     },

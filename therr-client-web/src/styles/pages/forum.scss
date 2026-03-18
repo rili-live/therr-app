@@ -1,4 +1,81 @@
 #page_chat_forum {
+    .forum-header {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        align-items: flex-start;
+
+        @media (max-width: 576px) {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+    }
+
+    .forum-header-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .forum-description {
+        word-break: break-word;
+    }
+
+    // Inline app download banner
+    .app-banner {
+        background-color: rgba($therr-primary-1, 0.05);
+
+        img {
+            height: rem-calc(36px);
+            width: auto;
+        }
+    }
+
+    // Tabs styling to match app theme
+    .forum-tabs-container {
+        .forum-tabs-list {
+            border-bottom: 2px solid rgba($therr-primary-1, 0.15);
+        }
+
+        .forum-tab {
+            font-weight: 600;
+            font-size: rem-calc(15px);
+            color: rgba($therr-black, 0.55);
+            padding: rem-calc(10px) rem-calc(16px);
+            border-bottom: 3px solid transparent;
+            border-radius: 0;
+            transition: color 0.2s, border-color 0.2s;
+
+            &:hover {
+                color: $therr-secondary-1;
+                background-color: rgba($therr-secondary-1, 0.05);
+            }
+
+            &:focus:not(:focus-visible) {
+                outline: none;
+            }
+
+            &[data-active] {
+                color: $therr-primary-1;
+                border-bottom-color: $therr-primary-1;
+            }
+        }
+    }
+
+    .member-card {
+        transition: background-color 0.15s;
+
+        &:hover {
+            background-color: rgba($therr-secondary-1, 0.06);
+        }
+    }
+
+    .members-list,
+    .events-list {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
     .message-input {
         margin-bottom: 3rem;
         padding: 0 1rem;
@@ -12,6 +89,8 @@
         font-size: rem-calc(17px);
         list-style-type: none;
         margin-bottom: 1.5rem;
+        max-height: 50vh;
+        overflow-y: auto;
 
         li:last-child {
             margin-bottom: 1rem;
@@ -55,12 +134,12 @@
                     flex-direction: row;
                     align-items: flex-end;
                     padding-bottom: rem-calc(5px);
-    
+
                     .sender-text {
                         font-weight: 600;
                         margin-right: rem-calc(4px);
                     }
-    
+
                     .forum-message-time {
                         font-size: rem-calc(14px);
                     }

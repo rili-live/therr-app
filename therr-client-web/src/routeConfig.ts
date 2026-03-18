@@ -9,10 +9,10 @@ export default [
         view: 'index',
     },
     {
-        route: '/forums',
+        route: '/groups',
         head: {
-            title: 'Forums',
-            description: 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.',
+            title: 'Groups',
+            description: 'Join groups on Therr App to connect with your community. Chat, share events, and meet new people.',
         },
         view: 'index',
     },

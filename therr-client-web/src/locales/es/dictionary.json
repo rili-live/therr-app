@@ -302,10 +302,31 @@
       "loadMore": "Cargar m\u00e1s"
     },
     "chatForum": {
-      "pageTitle": "Chat grupal",
+      "pageTitle": "Grupo",
       "welcome": "\u00a1Bienvenido!",
       "inputPlaceholder": "Escribe un mensaje",
-      "sendBtn": "Enviar"
+      "sendBtn": "Enviar",
+      "tabs": {
+        "chat": "Chat",
+        "events": "Eventos",
+        "members": "Miembros"
+      },
+      "noEventsFound": "No se encontraron eventos para este grupo.",
+      "noMembersFound": "No se encontraron miembros.",
+      "membershipRoles": {
+        "creator": "Creador",
+        "admin": "Administrador",
+        "eventHost": "Organizador",
+        "default": "Miembro"
+      },
+      "appBanner": {
+        "message": "Descarga la app para la mejor experiencia",
+        "appStoreAlt": "Descargar en la App Store",
+        "playStoreAlt": "Disponible en Google Play"
+      },
+      "labels": {
+        "subtitle": "Subtítulo"
+      }
     },
     "changePassword": {
       "buttons": {
