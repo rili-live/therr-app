@@ -25,6 +25,7 @@ import ExploreMoments from './Explore/ExploreMoments';
 import ExploreThoughts from './Explore/ExploreThoughts';
 import ExplorePeople from './Explore/ExplorePeople';
 import UnderConstruction from './UnderConstruction';
+import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
 import ViewUser from './ViewUser';
 import EmailPreferences from './EmailPreferences';
@@ -253,12 +254,22 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         })(dispatch),
     },
     {
+        path: '/events/:eventId',
+        element: <ViewEvent />,
+        fetchData: (dispatch: any, params: any) => MapActions.getEventDetails(params.eventId, {
+            withMedia: true,
+            withUser: true,
+            withRatings: true,
+        })(dispatch),
+    },
+    {
         path: '/spaces/:spaceId',
         element: <ViewSpace />,
         fetchData: (dispatch: any, params: any) => MapActions.getSpaceDetails(params.spaceId, {
             withMedia: true,
             withUser: true,
             withRatings: true,
+            withEvents: true,
         })(dispatch),
     },
     {

@@ -4,6 +4,7 @@ import { bindActionCreators } from 'redux';
 import classnames from 'classnames';
 import randomColor from 'randomcolor';
 import {
+    Anchor,
     Avatar,
     Badge,
     Card,
@@ -66,7 +67,7 @@ const renderMessage = (message: IForumMsg, index) => {
         : (userColors[message.fromUserName] || 'blue');
 
     return (
-        <React.Fragment key={message.key}>
+        <React.Fragment key={message.key || index}>
             {
                 (index !== 0 && index % 10 === 0)
                     && <div className="forums-messages-date">{timeSplit[0]}</div>
@@ -99,6 +100,34 @@ const renderMessage = (message: IForumMsg, index) => {
         </React.Fragment>
     );
 };
+
+const renderEventCard = (event: any) => (
+    <Card key={event.id} shadow="sm" padding="md" radius="md" withBorder mb="sm">
+        <Anchor href={`/events/${event.id}`} underline="hover">
+            <Title order={4}>{event.notificationMsg || event.title}</Title>
+        </Anchor>
+        {event.scheduleStartAt && (
+            <Text size="sm" c="dimmed">
+                {new Date(event.scheduleStartAt).toLocaleDateString(undefined, {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                })}
+            </Text>
+        )}
+        {(event.message || event.description) && (
+            <Text size="sm" mt="xs">{event.message || event.description}</Text>
+        )}
+        {event.hashTags && (
+            <MantineGroup gap="xs" mt="xs">
+                {event.hashTags.split(',').map((tag: string) => (
+                    <Badge key={tag} variant="light" size="sm">{tag.trim()}</Badge>
+                ))}
+            </MantineGroup>
+        )}
+    </Card>
+);
 
 // router params
 interface IForumRouterProps {
@@ -347,7 +376,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         const forumMessages = forumMsgsRaw ? [...forumMsgsRaw].reverse() : forumMsgsRaw;
 
         return (
-            <>
+            <div className="forum-chat-tab">
                 <Card shadow="sm" padding="md" radius="md" withBorder style={{ flex: 1 }}>
                     <div id="forums_list">
                         {
@@ -386,7 +415,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                         />
                     </Flex>
                 </Card>
-            </>
+            </div>
         );
     };
 
@@ -401,33 +430,30 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
             );
         }
 
+        const now = new Date();
+        const upcomingEvents = groupEvents
+            .filter((event: any) => new Date(event.scheduleStartAt) >= now)
+            .sort((a: any, b: any) => new Date(a.scheduleStartAt).getTime() - new Date(b.scheduleStartAt).getTime());
+        const pastEvents = groupEvents
+            .filter((event: any) => new Date(event.scheduleStartAt) < now)
+            .sort((a: any, b: any) => new Date(b.scheduleStartAt).getTime() - new Date(a.scheduleStartAt).getTime());
+
         return (
             <div className="events-list">
-                {groupEvents.map((event: any) => (
-                    <Card key={event.id} shadow="sm" padding="md" radius="md" withBorder mb="sm">
-                        <Title order={4}>{event.title}</Title>
-                        {event.startDate && (
-                            <Text size="sm" c="dimmed">
-                                {new Date(event.startDate).toLocaleDateString(undefined, {
-                                    weekday: 'long',
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                })}
-                            </Text>
-                        )}
-                        {event.description && (
-                            <Text size="sm" mt="xs">{event.description}</Text>
-                        )}
-                        {event.hashTags && (
-                            <MantineGroup gap="xs" mt="xs">
-                                {event.hashTags.split(',').map((tag: string) => (
-                                    <Badge key={tag} variant="light" size="sm">{tag.trim()}</Badge>
-                                ))}
-                            </MantineGroup>
-                        )}
-                    </Card>
-                ))}
+                {upcomingEvents.length > 0 && (
+                    <div className="events-section">
+                        <Title order={3} mb="sm">{this.props.translate('pages.chatForum.upcomingEvents')}</Title>
+                        {upcomingEvents.map(renderEventCard)}
+                    </div>
+                )}
+                {pastEvents.length > 0 && (
+                    <div className="events-section" style={{ marginTop: upcomingEvents.length > 0 ? 'var(--mantine-spacing-lg)' : undefined }}>
+                        <Title order={3} mb="sm">
+                            {this.props.translate('pages.chatForum.pastEvents')}
+                        </Title>
+                        {pastEvents.map(renderEventCard)}
+                    </div>
+                )}
             </div>
         );
     };

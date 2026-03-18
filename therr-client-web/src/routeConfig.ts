@@ -105,6 +105,14 @@ export default [
         view: 'locations',
     },
     {
+        route: '/events/:eventId',
+        head: {
+            title: 'Event not Found',
+            description: 'No event was found for the given ID.',
+        },
+        view: 'events',
+    },
+    {
         route: '/spaces/:spaceId',
         head: {
             title: 'Space not Found',

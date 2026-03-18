@@ -258,6 +258,7 @@
     "navigation": {
       "home": "Home",
       "explore": "Explore",
+      "events": "Events",
       "locations": "Locations",
       "posts": "Posts",
       "moments": "Moments",
@@ -312,6 +313,8 @@
         "members": "Members"
       },
       "noEventsFound": "No events found for this group.",
+      "upcomingEvents": "Upcoming Events",
+      "pastEvents": "Past Events",
       "noMembersFound": "No members found.",
       "membershipRoles": {
         "creator": "Creator",
@@ -538,6 +541,21 @@
       "joinButton": "Join Now & Earn 5 Coins",
       "appStoreText": "Also available on mobile",
       "returnHome": "Return to home page"
+    },
+    "viewEvent": {
+      "headings": {
+        "eventDetails": "Event Details",
+        "when": "When",
+        "where": "Where",
+        "about": "About",
+        "organizer": "Organizer"
+      },
+      "labels": {
+        "startDate": "Start",
+        "endDate": "End",
+        "viewSpace": "View Location",
+        "viewOnGoogleMaps": "View on Google Maps"
+      }
     },
     "viewSpace": {
       "pageTitle": "",

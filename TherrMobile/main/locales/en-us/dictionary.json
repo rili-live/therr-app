@@ -606,6 +606,9 @@
       },
       "labels": {
         "address": "Search address...",
+        "additionalDetails": "Add more details (optional)",
+        "addressRequest": "Search for a business nearby...",
+        "requestNote": "Search for a business to request it be added to the map.",
         "addIncentivesNote": "Add incentives to encourage people to visit your space.",
         "addIncentivesNote2": "*Unlock customer metrics from each visit or point-of-sale transaction.",
         "addIncentivesNoteEx": "(ie. free coffee, $2 off, 10% off, etc...)",
@@ -1001,25 +1004,43 @@
   },
   "pages": {
     "activityGenerator": {
-      "headerTitle": "Activity Generator",
-      "pageHeader": "Activity Generator",
+      "headerTitle": "Plan a Hangout",
+      "pageHeader": "Plan a Hangout",
       "headers": {
         "socialRecommendations": "Local Social Recommendations",
-        "topConnections": "Top Connections Nearby",
-        "topSharedInterests": "Top Shared Interests",
-        "topSpaces": "Recommended Spaces for Local Hangouts",
-        "yourTopInterests": "Your Top Interests"
+        "topConnections": "People Nearby",
+        "topSharedInterests": "Shared Interests",
+        "topSpaces": "Pick a Spot",
+        "yourTopInterests": "Your Top Interests",
+        "scheduleDetails": "Schedule Details"
       },
       "buttons": {
         "generate": "Generate",
-        "scheduleAndInvite": "Next: Schedule",
+        "scheduleAndInvite": "Schedule & Invite",
         "showLess": "Show Less",
         "showMore": "Show More"
+      },
+      "placeholders": {
+        "groupName": "Group Name"
+      },
+      "locationPrompt": {
+        "title": "Enable Location",
+        "description": "Turn on location services to find people nearby, discover shared interests, and get spot recommendations for your hangout."
       },
       "messages": {
         "noNearbyConnections": "No connections found nearby. Invite some local friends to get started or try again in a new location.",
         "noSharedInterests": "No shared interests with people nearby. Go to profile settings to select your interests.",
         "noRecommendedSpaces": "No spaces nearby that match your interests. Try requesting new spaces from the map view."
+      },
+      "validation": {
+        "noConnections": "Select at least one person",
+        "noConnectionsDetail": "Choose who you'd like to invite to this hangout.",
+        "noSpace": "Choose a spot",
+        "noSpaceDetail": "Pick a location for your hangout from the list above.",
+        "noGroupName": "Name your group",
+        "noGroupNameDetail": "Give your hangout group a name so everyone knows what it's about.",
+        "noEventName": "Add an event name",
+        "noEventNameDetail": "Give your event a name so invitees know what to expect."
       }
     },
     "activityScheduler": {
