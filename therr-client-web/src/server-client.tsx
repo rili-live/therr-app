@@ -139,7 +139,8 @@ app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.
 
 // Dynamic sitemap index with paginated space sub-sitemaps
 const SITEMAP_CACHE_TTL = 60 * 60 * 1000; // 1 hour
-const SPACES_PER_SITEMAP = 1000;
+const ITEMS_PER_SITEMAP = 1000;
+const SPACES_PER_SITEMAP = ITEMS_PER_SITEMAP;
 
 // Cache for sitemap pages: key is page identifier (e.g., 'index', 'static', 'spaces-1')
 const sitemapCaches: Record<string, { xml: string; timestamp: number }> = {};
@@ -182,6 +183,47 @@ const fetchSpacesPage = async (pageNumber: number): Promise<any[]> => {
     return response?.data?.results || [];
 };
 
+// Fetch a page of events for sitemap generation
+// latitude=0&longitude=0 with a global distanceOverride fetches all events regardless of location
+const fetchEventsPage = async (pageNumber: number): Promise<any[]> => {
+    const response = await axios.post(
+        // eslint-disable-next-line max-len
+        `/maps-service/events/search?itemsPerPage=${ITEMS_PER_SITEMAP}&pageNumber=${pageNumber}&latitude=0&longitude=0`,
+        { distanceOverride: 40075 * (1000 / 2) },
+    );
+    return response?.data?.results || [];
+};
+
+// Fetch a page of public groups/forums for sitemap generation
+const fetchGroupsPage = async (pageNumber: number): Promise<any[]> => {
+    const response = await axios.post(
+        `/messages-service/forums/search?itemsPerPage=${ITEMS_PER_SITEMAP}&pageNumber=${pageNumber}`,
+        {},
+    );
+    return response?.data?.results || [];
+};
+
+// Discover total pages for a given fetch function
+const discoverTotalPages = async (
+    fetchFn: (page: number) => Promise<any[]>,
+): Promise<number> => {
+    let totalPages = 0;
+    let page = 1;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        // eslint-disable-next-line no-await-in-loop
+        const results = await fetchFn(page);
+        if (results.length > 0) {
+            totalPages = page;
+        }
+        if (results.length < ITEMS_PER_SITEMAP) {
+            break;
+        }
+        page += 1;
+    }
+    return totalPages;
+};
+
 // Sitemap index: /sitemap.xml
 // Discovers total pages by fetching spaces until an empty page is returned
 app.get('/sitemap.xml', async (req, res) => {
@@ -191,22 +233,12 @@ app.get('/sitemap.xml', async (req, res) => {
         return res.send(cached);
     }
 
-    let totalPages = 0;
+    let totalSpacePages = 0;
+    let totalEventPages = 0;
+    let totalGroupPages = 0;
+
     try {
-        // Fetch pages sequentially until we find one with fewer than SPACES_PER_SITEMAP results
-        let page = 1;
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-            // eslint-disable-next-line no-await-in-loop
-            const spaces = await fetchSpacesPage(page);
-            if (spaces.length > 0) {
-                totalPages = page;
-            }
-            if (spaces.length < SPACES_PER_SITEMAP) {
-                break;
-            }
-            page += 1;
-        }
+        totalSpacePages = await discoverTotalPages(fetchSpacesPage);
     } catch (err) {
         printLogs({
             level: 'error',
@@ -215,17 +247,48 @@ app.get('/sitemap.xml', async (req, res) => {
             tracer: beeline,
             traceArgs: { errorMessage: (err as any)?.message },
         });
-        // Fall back to at least 1 page so the sitemap isn't empty
-        totalPages = Math.max(totalPages, 1);
+        totalSpacePages = 1;
+    }
+
+    try {
+        totalEventPages = await discoverTotalPages(fetchEventsPage);
+    } catch (err) {
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SERVER_CLIENT',
+            messages: 'Failed to fetch event count for sitemap index',
+            tracer: beeline,
+            traceArgs: { errorMessage: (err as any)?.message },
+        });
+    }
+
+    try {
+        totalGroupPages = await discoverTotalPages(fetchGroupsPage);
+    } catch (err) {
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SERVER_CLIENT',
+            messages: 'Failed to fetch group count for sitemap index',
+            tracer: beeline,
+            traceArgs: { errorMessage: (err as any)?.message },
+        });
     }
 
     const today = new Date().toISOString().split('T')[0];
 
     const sitemaps = [
         `  <sitemap>\n    <loc>https://www.therr.com/sitemap-static.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
-        ...Array.from({ length: totalPages }, (_, i) => (
+        ...Array.from({ length: totalSpacePages }, (_, i) => (
             // eslint-disable-next-line max-len
             `  <sitemap>\n    <loc>https://www.therr.com/sitemap-spaces-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
+        )),
+        ...Array.from({ length: totalEventPages }, (_, i) => (
+            // eslint-disable-next-line max-len
+            `  <sitemap>\n    <loc>https://www.therr.com/sitemap-events-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
+        )),
+        ...Array.from({ length: totalGroupPages }, (_, i) => (
+            // eslint-disable-next-line max-len
+            `  <sitemap>\n    <loc>https://www.therr.com/sitemap-groups-${i + 1}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`
         )),
     ];
 
@@ -308,6 +371,98 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
     res.set('Content-Type', 'application/xml');
     return res.send(xml);
 });
+
+// Paginated events sitemaps: /sitemap-events-1.xml, /sitemap-events-2.xml, etc.
+app.get(/^\/sitemap-events-(\d+)\.xml$/, async (req, res) => {
+    const page = parseInt(req.params[0], 10);
+    if (page < 1 || Number.isNaN(page)) {
+        return res.status(404).send('Not found');
+    }
+
+    const cacheKey = `events-${page}`;
+    const cached = getSitemapCache(cacheKey);
+    if (cached) {
+        res.set('Content-Type', 'application/xml');
+        return res.send(cached);
+    }
+
+    let events: any[] = [];
+    try {
+        events = await fetchEventsPage(page);
+    } catch (err) {
+        console.log(err);
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SERVER_CLIENT',
+            messages: `Failed to fetch events for sitemap page ${page}`,
+            tracer: beeline,
+            traceArgs: { errorMessage: (err as any)?.message },
+        });
+    }
+
+    if (events.length === 0) {
+        return res.status(404).send('Not found');
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const urls = events.map((event: any) => {
+        const lastmod = event.updatedAt ? new Date(event.updatedAt).toISOString().split('T')[0] : today;
+        return buildUrlSet(`/events/${event.id}`, lastmod, '0.7');
+    });
+
+    // eslint-disable-next-line max-len
+    const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>`;
+
+    setSitemapCache(cacheKey, xml);
+    res.set('Content-Type', 'application/xml');
+    return res.send(xml);
+});
+
+// Paginated groups sitemaps: /sitemap-groups-1.xml, /sitemap-groups-2.xml, etc.
+app.get(/^\/sitemap-groups-(\d+)\.xml$/, async (req, res) => {
+    const page = parseInt(req.params[0], 10);
+    if (page < 1 || Number.isNaN(page)) {
+        return res.status(404).send('Not found');
+    }
+
+    const cacheKey = `groups-${page}`;
+    const cached = getSitemapCache(cacheKey);
+    if (cached) {
+        res.set('Content-Type', 'application/xml');
+        return res.send(cached);
+    }
+
+    let groups: any[] = [];
+    try {
+        groups = await fetchGroupsPage(page);
+    } catch (err) {
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SERVER_CLIENT',
+            messages: `Failed to fetch groups for sitemap page ${page}`,
+            tracer: beeline,
+            traceArgs: { errorMessage: (err as any)?.message },
+        });
+    }
+
+    if (groups.length === 0) {
+        return res.status(404).send('Not found');
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const urls = groups.map((group: any) => {
+        const lastmod = group.updatedAt ? new Date(group.updatedAt).toISOString().split('T')[0] : today;
+        return buildUrlSet(`/groups/${group.id}`, lastmod, '0.7');
+    });
+
+    // eslint-disable-next-line max-len
+    const xml = `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>`;
+
+    setSitemapCache(cacheKey, xml);
+    res.set('Content-Type', 'application/xml');
+    return res.send(xml);
+});
+
 app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 
 const appLinksJson = {
@@ -797,7 +952,7 @@ const renderEventView = (req, res, config, {
         eventSchema.organizer = {
             '@type': 'Person',
             name: organizerName,
-            url: event?.fromUserId ? `https://therr.com/users/${event.fromUserId}` : '',
+            url: event?.fromUserId ? `https://www.therr.com/users/${event.fromUserId}` : '',
         };
     }
 
