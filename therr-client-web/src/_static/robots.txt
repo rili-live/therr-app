@@ -2,12 +2,13 @@ User-agent: *
 Allow: /
 Allow: /locations
 Allow: /spaces/
+Allow: /events/
 Allow: /moments/
 Allow: /users/
 Disallow: /user/profile
 Disallow: /create-profile
 Disallow: /create-forum
-Disallow: /forums
+Disallow: /groups
 Disallow: /explore
 Disallow: /discovered
 Disallow: /posts/

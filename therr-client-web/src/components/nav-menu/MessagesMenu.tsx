@@ -113,7 +113,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
             case 'create-forum':
                 return this.props.navigation.navigate('/create-forum');
             case 'forums':
-                return this.props.navigation.navigate(`/forums/${params.roomKey}`, {
+                return this.props.navigation.navigate(`/groups/${params.roomKey}`, {
                     state,
                 });
             default:

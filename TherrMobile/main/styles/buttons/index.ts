@@ -117,6 +117,9 @@ const quickFiltersButtonTitleBase: any = {
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
+    // Use a brighter badge background in dark mode for better contrast
+    // Retro theme has its own distinct palette so only override for 'dark'
+    const badgeBg = themeName === 'dark' ? therrTheme.colors.brandingBlueGreen : therrTheme.colors.tertiary;
 
     const styles = StyleSheet.create({
         buttonGroup: {
@@ -260,7 +263,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 0,
         },
         checkInRewardsBadge: {
-            backgroundColor: therrTheme.colors.tertiary,
+            backgroundColor: badgeBg,
         },
         claimASpace: {
             ...getFloatingBtnContainer(therrTheme),
@@ -299,7 +302,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 0,
         },
         momentRewardsBadge: {
-            backgroundColor: therrTheme.colors.tertiary,
+            backgroundColor: badgeBg,
         },
         addAMoment: {
             ...getFloatingBtnContainer(therrTheme),
@@ -386,7 +389,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 0,
         },
         mapFiltersBadge: {
-            backgroundColor: therrTheme.colors.tertiary,
+            backgroundColor: badgeBg,
             color: therrTheme.colors.textWhite,
         },
         recenter: {

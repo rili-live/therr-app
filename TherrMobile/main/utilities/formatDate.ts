@@ -62,7 +62,7 @@ export default (
 
     if (variation === 'short') {
         return {
-            date: `${date.getMonth() + 1}/${day}/${year.toString().substring(2, 4)}`,
+            date: `${date.getMonth() + 1}/${day}/${year}`,
             time: `${hours}:${minute.padStart(2, '0')} ${amPm}`,
         };
     }

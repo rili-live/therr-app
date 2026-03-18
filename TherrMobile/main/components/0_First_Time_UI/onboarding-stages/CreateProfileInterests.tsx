@@ -135,7 +135,7 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                             const interests = availableInterests[categoryTranslationKey];
                             return (
                                 <View key={categoryTranslationKey} style={theme.styles.sectionContainer}>
-                                    <Text style={[{ marginBottom: 20, color: 'black' }]}>
+                                    <Text style={[{ marginBottom: 20, color: theme.colors.textWhite }]}>
                                         {translate(categoryTranslationKey)}
                                     </Text>
                                     <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
@@ -150,7 +150,7 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                                                         onPress={() => this.onPressInterest(interest)}
                                                         style={[style, { padding: 2, paddingHorizontal: 6, margin: 4 }]}
                                                     >
-                                                        <Text>
+                                                        <Text style={{ color: theme.colors.textWhite }}>
                                                             {interest.emoji} {translate(interest.displayNameKey)}
                                                         </Text>
                                                     </Pressable>

@@ -258,6 +258,7 @@
     "navigation": {
       "home": "Home",
       "explore": "Explore",
+      "events": "Events",
       "locations": "Locations",
       "posts": "Posts",
       "moments": "Moments",
@@ -302,10 +303,33 @@
       "loadMore": "Load More"
     },
     "chatForum": {
-      "pageTitle": "Hosted Chat",
+      "pageTitle": "Group",
       "welcome": "Welcome!",
       "inputPlaceholder": "Enter a message",
-      "sendBtn": "Send"
+      "sendBtn": "Send",
+      "tabs": {
+        "chat": "Chat",
+        "events": "Events",
+        "members": "Members"
+      },
+      "noEventsFound": "No events found for this group.",
+      "upcomingEvents": "Upcoming Events",
+      "pastEvents": "Past Events",
+      "noMembersFound": "No members found.",
+      "membershipRoles": {
+        "creator": "Creator",
+        "admin": "Admin",
+        "eventHost": "Event Host",
+        "default": "Member"
+      },
+      "appBanner": {
+        "message": "Download the app for the best experience",
+        "appStoreAlt": "Download on the App Store",
+        "playStoreAlt": "Get it on Google Play"
+      },
+      "labels": {
+        "subtitle": "Subtitle"
+      }
     },
     "changePassword": {
       "buttons": {
@@ -517,6 +541,21 @@
       "joinButton": "Join Now & Earn 5 Coins",
       "appStoreText": "Also available on mobile",
       "returnHome": "Return to home page"
+    },
+    "viewEvent": {
+      "headings": {
+        "eventDetails": "Event Details",
+        "when": "When",
+        "where": "Where",
+        "about": "About",
+        "organizer": "Organizer"
+      },
+      "labels": {
+        "startDate": "Start",
+        "endDate": "End",
+        "viewSpace": "View Location",
+        "viewOnGoogleMaps": "View on Google Maps"
+      }
     },
     "viewSpace": {
       "pageTitle": "",

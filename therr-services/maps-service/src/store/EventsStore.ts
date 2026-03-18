@@ -434,7 +434,8 @@ export default class EventsStore {
             // .where({
             //     isPublic: true,
             // })
-            .where('scheduleStartAt', '>', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
+            .where('scheduleStartAt', '>', new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000))
+            .orderBy('scheduleStartAt', 'desc');
 
         return this.db.read.query(query.toString()).then(async (response) => {
             const events = response.rows;
