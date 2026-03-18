@@ -201,10 +201,43 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 
     componentDidMount() {
-        const { routeParams, searchForumMessages, user } = this.props;
         document.title = `Therr | ${this.props.translate('pages.chatForum.pageTitle')}`;
         this.messageInputRef.current?.focus();
+        this.fetchGroupData();
+    }
 
+    componentDidUpdate(prevProps: IForumProps) {
+        const { routeParams } = this.props;
+
+        if (prevProps.routeParams?.groupId !== routeParams?.groupId) {
+            this.setState({
+                groupDetails: null,
+                groupEvents: [],
+                groupMembers: [],
+                activeTab: 'chat',
+            }, () => {
+                this.fetchGroupData();
+            });
+        }
+
+        const currentRoom = this.props.user.socketDetails.currentRoom;
+        const messages = this.props.messages.forumMsgs[currentRoom];
+        const prevMessages = prevProps.messages.forumMsgs[currentRoom];
+        if (messages && messages.length > 3 && prevMessages && messages.length > prevMessages.length) {
+            scrollTo(document.body.scrollHeight, 100);
+        }
+    }
+
+    componentWillUnmount() {
+        this.props.leaveForum({
+            roomId: this.props.routeParams?.groupId,
+            userName: this.props.user.details.userName,
+            userImgSrc: `https://robohash.org/${this.props.user.details.id}`,
+        });
+    }
+
+    fetchGroupData = () => {
+        const { routeParams, searchForumMessages, user } = this.props;
         const groupId = routeParams?.groupId;
 
         if (groupId) {
@@ -234,24 +267,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                 console.log('Failed to fetch group members', err); // eslint-disable-line no-console
             });
         }
-    }
-
-    componentDidUpdate(prevProps: IForumProps) {
-        const currentRoom = this.props.user.socketDetails.currentRoom;
-        const messages = this.props.messages.forumMsgs[currentRoom];
-        const prevMessages = prevProps.messages.forumMsgs[currentRoom];
-        if (messages && messages.length > 3 && prevMessages && messages.length > prevMessages.length) {
-            scrollTo(document.body.scrollHeight, 100);
-        }
-    }
-
-    componentWillUnmount() {
-        this.props.leaveForum({
-            roomId: this.props.routeParams?.groupId,
-            userName: this.props.user.details.userName,
-            userImgSrc: `https://robohash.org/${this.props.user.details.id}`,
-        });
-    }
+    };
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
