@@ -263,6 +263,7 @@
       "posts": "Publicaciones",
       "moments": "Momentos",
       "thoughts": "Pensamientos",
+      "groups": "Grupos",
       "spaces": "Espacios",
       "users": "Usuarios",
       "previous": "Anterior",
@@ -461,7 +462,10 @@
       "info": "Estamos comprometidos con prevenir usuarios falsos, por lo que la autenticaci\u00f3n multifactor es indispensable. Requerir un correo electr\u00f3nico y un n\u00famero de tel\u00e9fono junto con requisitos de publicaci\u00f3n con geoetiqueta limita dr\u00e1sticamente la posibilidad de usuarios falsos."
     },
     "login": {
-      "pageTitle": "Iniciar sesi\u00f3n"
+      "pageTitle": "Iniciar sesi\u00f3n",
+      "buttons": {
+        "signUp": "Crear cuenta"
+      }
     },
     "pageNotFound": {
       "pageTitle": "P\u00e1gina no encontrada"
@@ -542,19 +546,43 @@
       "appStoreText": "Tambi\u00e9n disponible en m\u00f3vil",
       "returnHome": "Volver a la p\u00e1gina de inicio"
     },
+    "viewGroup": {
+      "headings": {
+        "about": "Acerca de",
+        "events": "Eventos",
+        "members": "Miembros"
+      },
+      "labels": {
+        "memberCount": "{count} miembros",
+        "joinToChat": "\u00danete a este grupo para participar en el chat",
+        "joinToSeeMembers": "\u00danete a este grupo para ver todos los miembros",
+        "signUpPrompt": "Reg\u00edstrate o inicia sesi\u00f3n para unirte a este grupo y chatear",
+        "privateGroupMessage": "Este grupo es privado",
+        "privateGroupCta": "Reg\u00edstrate o inicia sesi\u00f3n para solicitar acceso a este grupo",
+        "getFullExperience": "Obt\u00e9n la experiencia completa en la app Therr",
+        "upcomingEvents": "Pr\u00f3ximos Eventos",
+        "pastEvents": "Eventos Pasados",
+        "noEvents": "No se encontraron eventos para este grupo."
+      }
+    },
     "viewEvent": {
       "headings": {
         "eventDetails": "Detalles del evento",
         "when": "Cuándo",
         "where": "Dónde",
         "about": "Acerca de",
-        "organizer": "Organizador"
+        "organizer": "Organizador",
+        "group": "Grupo"
       },
       "labels": {
         "startDate": "Inicio",
         "endDate": "Fin",
         "viewSpace": "Ver ubicación",
-        "viewOnGoogleMaps": "Ver en Google Maps"
+        "viewGroup": "Ver grupo",
+        "viewOnGoogleMaps": "Ver en Google Maps",
+        "privateEventMessage": "Este evento pertenece a un grupo privado",
+        "privateEventCta": "Regístrate o inicia sesión para solicitar acceso",
+        "signUpPrompt": "Regístrate o inicia sesión para ver todos los detalles del evento"
       }
     },
     "viewSpace": {

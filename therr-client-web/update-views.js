@@ -10,6 +10,7 @@ const viewFiles = [
     path.join(__dirname, 'src/views/moments.hbs'),
     path.join(__dirname, 'src/views/users.hbs'),
     path.join(__dirname, 'src/views/events.hbs'),
+    path.join(__dirname, 'src/views/groups.hbs'),
 ];
 
 // We need to keep the css file path up to date because we use hashing in the build compilation

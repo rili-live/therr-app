@@ -105,6 +105,14 @@ export default [
         view: 'locations',
     },
     {
+        route: '/groups/:groupId',
+        head: {
+            title: 'Group not Found',
+            description: 'Discover and join community groups on Therr App. Connect with people, chat, and attend local events together.',
+        },
+        view: 'groups',
+    },
+    {
         route: '/events/:eventId',
         head: {
             title: 'Event not Found',

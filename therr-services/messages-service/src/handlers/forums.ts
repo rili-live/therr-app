@@ -174,6 +174,8 @@ const getForum = (req, res) => {
         whiteLabelOrigin,
     } = parseHeaders(req.headers);
     const { forumId } = req.params;
+    const isAuthenticated = !!userId;
+
     if (!forumId || forumId === 'undefined' || forumId === 'null') {
         return handleHttpError({
             res,
@@ -202,33 +204,70 @@ const getForum = (req, res) => {
             groupIds: [forumId],
             withUser: true,
         },
-    }).then((response) => {
-        const events = response?.data?.results || [];
+    }).catch((err) => {
+        console.log('getForum: events fetch failed (may be missing auth for SSR)', err?.message); // eslint-disable-line no-console
+        return { data: { results: [] } };
+    })
+        .then((response) => {
+            const events = response?.data?.results || [];
 
-        return Store.forums.getForum(forumId)
-            .then((forums) => {
-                if (!forums?.length) {
-                    return handleHttpError({
-                        res,
-                        message: 'Forum not found',
-                        statusCode: 404,
+            return Store.forums.getForum(forumId)
+                .then((forums) => {
+                    if (!forums?.length) {
+                        return handleHttpError({
+                            res,
+                            message: 'Forum not found',
+                            statusCode: 404,
+                        });
+                    }
+
+                    const forum = forums[0];
+
+                    // For unauthenticated users viewing private groups, return minimal info
+                    if (!isAuthenticated && !forum.isPublic) {
+                        return res.status(202).send({
+                            id: forum.id,
+                            title: forum.title,
+                            isPublic: forum.isPublic,
+                        });
+                    }
+
+                    // Update forum to mark most recently updated/active
+                    Store.forums.updateForum({
+                        id: forum.id,
+                    }, {}).catch((err) => {
+                        console.log(err);
                     });
-                }
 
-                // Update forum to main most recently updated/active
-                Store.forums.updateForum({
-                    id: forums[0].id,
-                }, {}).catch((err) => {
-                    console.log(err);
-                });
+                    // For unauthenticated users, return public-safe fields only
+                    if (!isAuthenticated) {
+                        return res.status(202).send({
+                            id: forum.id,
+                            authorId: forum.authorId,
+                            title: forum.title,
+                            subtitle: forum.subtitle,
+                            description: forum.description,
+                            hashTags: forum.hashTags,
+                            categoryTags: forum.categoryTags,
+                            iconGroup: forum.iconGroup,
+                            iconId: forum.iconId,
+                            iconColor: forum.iconColor,
+                            isPublic: forum.isPublic,
+                            media: forum.media,
+                            featuredImage: forum.featuredImage,
+                            createdAt: forum.createdAt,
+                            updatedAt: forum.updatedAt,
+                            events,
+                        });
+                    }
 
-                return res.status(202).send({
-                    ...forums[0],
-                    events,
-                });
-            })
-            .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
-    });
+                    return res.status(202).send({
+                        ...forum,
+                        events,
+                    });
+                })
+                .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
+        });
 };
 
 const findForums: RequestHandler = (req: any, res: any) => {
