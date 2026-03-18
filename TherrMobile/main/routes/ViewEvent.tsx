@@ -98,7 +98,7 @@ const ViewEvent = ({
     const themeConfirmModal = buildConfirmModalStyles(user.settings?.mobileThemeName);
     const themeButtons = buildButtonsStyles(user.settings?.mobileThemeName);
     const isDarkMode = isDarkTheme(user.settings?.mobileThemeName);
-    const brandColor = theme.colors.brandingBlueGreen;
+    const brandColor = isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen;
 
     // Derived values
     const { event, isMyContent, previousView } = route.params;

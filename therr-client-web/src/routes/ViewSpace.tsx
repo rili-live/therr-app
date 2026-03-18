@@ -306,12 +306,29 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         return (
             <>
                 <Title order={2} size="h3" mt="xl">{this.props.translate('pages.viewSpace.headings.events')}</Title>
-                <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" mt="sm">
-                    {space.events.map((event: any) => (
-                        <Anchor key={event.id} href={`/events/${event.id}`} underline="never" className="space-event-card">
-                            <Text fw={600}>{event.title || event.notificationMsg}</Text>
-                        </Anchor>
-                    ))}
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md" mt="sm">
+                    {space.events.map((event: any) => {
+                        const startDate = event.scheduleStartAt
+                            ? new Date(event.scheduleStartAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                            : '';
+                        const description = event.message
+                            ? event.message.replace(/\\n/g, ' ').replace(/\\r/g, ' ').substring(0, 120)
+                            : '';
+                        const categoryLabel = formatCategoryLabel(event.category);
+
+                        return (
+                            <Anchor key={event.id} href={`/events/${event.id}`} underline="never">
+                                <Paper withBorder p="md" radius="md" className="space-event-card">
+                                    <Stack gap="xs">
+                                        <Text fw={600} lineClamp={1}>{event.title || event.notificationMsg}</Text>
+                                        {startDate && <Text size="sm" c="dimmed">{startDate}</Text>}
+                                        {categoryLabel && <Badge variant="light" size="xs">{categoryLabel}</Badge>}
+                                        {description && <Text size="sm" c="dimmed" lineClamp={3}>{description}</Text>}
+                                    </Stack>
+                                </Paper>
+                            </Anchor>
+                        );
+                    })}
                 </SimpleGrid>
             </>
         );
@@ -386,7 +403,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
     renderPairings(): JSX.Element | null {
         const { map, translate } = this.props;
-        const { spaceId, spacePairings, isPairingsLoading, pairingFeedback } = this.state;
+        const {
+            spaceId, spacePairings, isPairingsLoading, pairingFeedback,
+        } = this.state;
         const space = map?.spaces[spaceId];
         const spaceName = space?.notificationMsg || '';
 

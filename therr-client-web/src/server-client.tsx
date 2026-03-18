@@ -281,7 +281,7 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
     try {
         spaces = await fetchSpacesPage(page);
     } catch (err) {
-        console.log(err)
+        console.log(err);
         printLogs({
             level: 'error',
             messageOrigin: 'SERVER_CLIENT',
@@ -688,6 +688,147 @@ const renderSpaceView = (req, res, config, {
     });
 };
 
+const renderEventView = (req, res, config, {
+    markup,
+    state,
+}, initialState, localeVars) => {
+    const routePath = config.route;
+    const routeView = config.view;
+    const title = config.head.title;
+    const description = config.head.description
+        // eslint-disable-next-line max-len
+        || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
+
+    const eventId = req.params?.eventId;
+    const content = initialState?.content || {};
+    const event = initialState?.map?.events[eventId];
+    const eventTitle = event ? event?.notificationMsg : title;
+    const eventDescription = (event?.message || description).replace(/\\n/g, ' ')
+        .replace(/\\r/g, ' ').substring(0, 300);
+    const organizerName = event?.fromUserFirstName && event?.fromUserLastName
+        ? `${event?.fromUserFirstName} ${event?.fromUserLastName}` : '';
+
+    let metaImgUrl;
+
+    // Use the cacheable api-gateway media endpoint when image is public otherwise fallback to signed url
+    const mediaPath = (event?.medias?.[0]?.path);
+    const mediaType = (event?.medias?.[0]?.type);
+    const eventMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+        ? getUserContentUri(event.medias[0])
+        : content?.media?.[mediaPath];
+
+    if (eventMediaUri) {
+        if (eventMediaUri.includes('.jpg') || eventMediaUri.includes('.jpeg') || eventMediaUri.includes('.png')) {
+            metaImgUrl = eventMediaUri;
+        }
+    }
+
+    const eventStartTime = event?.scheduleStartAt || '';
+    const eventEndTime = event?.scheduleStopAt || '';
+    const eventLatitude = event?.latitude || event?.space?.latitude || '';
+    const eventLongitude = event?.longitude || event?.space?.longitude || '';
+    const eventAddressReadable = event?.space?.addressReadable || '';
+
+    // schema.org/Event JSON-LD
+    const eventSchema: any = {
+        '@context': 'https://schema.org',
+        '@type': 'Event',
+        name: eventTitle,
+        url: `https://www.therr.com${localeVars.canonicalPath}`,
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    };
+
+    if (eventDescription) {
+        eventSchema.description = eventDescription;
+    }
+    if (eventStartTime) {
+        eventSchema.startDate = eventStartTime;
+    }
+    if (eventEndTime) {
+        eventSchema.endDate = eventEndTime;
+    }
+    if (metaImgUrl) {
+        eventSchema.image = metaImgUrl;
+    }
+
+    // Location from associated space or event lat/lng
+    const space = event?.space;
+    if (space) {
+        eventSchema.location = {
+            '@type': 'Place',
+            name: space.notificationMsg || '',
+            address: {
+                '@type': 'PostalAddress',
+                streetAddress: space.addressStreetAddress || '',
+                addressLocality: space.addressLocality || '',
+                addressRegion: space.addressRegion || '',
+                postalCode: space.postalCode || '',
+                addressCountry: space.region || '',
+            },
+        };
+        if (space.latitude && space.longitude) {
+            eventSchema.location.geo = {
+                '@type': 'GeoCoordinates',
+                latitude: space.latitude,
+                longitude: space.longitude,
+            };
+        }
+    } else if (eventLatitude && eventLongitude) {
+        eventSchema.location = {
+            '@type': 'Place',
+            geo: {
+                '@type': 'GeoCoordinates',
+                latitude: eventLatitude,
+                longitude: eventLongitude,
+            },
+        };
+    }
+
+    if (organizerName) {
+        eventSchema.organizer = {
+            '@type': 'Person',
+            name: organizerName,
+            url: event?.fromUserId ? `https://therr.com/users/${event.fromUserId}` : '',
+        };
+    }
+
+    // Breadcrumb schema
+    const breadcrumbItems: any[] = [
+        {
+            '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+        },
+        {
+            '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
+        },
+        { '@type': 'ListItem', position: 3, name: eventTitle },
+    ];
+
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbItems,
+    };
+
+    return res.render(routeView, {
+        title: eventTitle,
+        description: eventDescription,
+        organizerName,
+        metaImgUrl,
+        eventStartTime,
+        eventEndTime,
+        eventLatitude,
+        eventLongitude,
+        eventAddressReadable,
+        eventSchema: JSON.stringify(eventSchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        markup,
+        routePath,
+        state,
+        ...localeVars,
+    });
+};
+
 const renderUserView = (req, res, config, {
     markup,
     state,
@@ -1002,6 +1143,13 @@ routeConfig.forEach((config) => {
 
                 if (routeView === 'locations') {
                     return renderLocationsView(req, res, config, {
+                        markup,
+                        state,
+                    }, initialState, localeVars);
+                }
+
+                if (routeView === 'events') {
+                    return renderEventView(req, res, config, {
                         markup,
                         state,
                     }, initialState, localeVars);

@@ -1,270 +1,168 @@
 # Claude Code Instructions - TherrMobile
 
-## Package Overview
+## Overview
 
-- **Type**: React Native mobile app (iOS & Android)
-- **Purpose**: Main mobile app for Therr social platform
-- **Has own package.json**: Yes (isolated React Native dependencies)
+React Native 0.80.0 mobile app (iOS + Android) for the Therr social platform. React 19.1.0. Has its own `package.json` isolated from the monorepo root. Android package: `app.therrmobile`, native code in Kotlin.
 
 ## Directory Structure
 
 ```
 TherrMobile/
 ├── main/
-│   ├── components/               # Reusable UI components
-│   │   ├── 0_First_Time_UI/     # Onboarding stages
-│   │   ├── ActionSheet/
-│   │   ├── BottomSheet/
-│   │   ├── ButtonMenu/          # Main navigation
-│   │   ├── Input/               # Form inputs
-│   │   ├── Loaders/
-│   │   ├── LoginButtons/        # OAuth buttons
-│   │   ├── Modals/
-│   │   └── UserContent/         # Content display
-│   ├── routes/                   # Screen components (170+ files)
-│   │   ├── Login/
-│   │   ├── Register/
-│   │   ├── Map/                 # Complex geo features (25+ files)
-│   │   ├── Areas/               # Nearby, Bookmarked, Drafts
-│   │   ├── Connect/
-│   │   ├── DirectMessage/
-│   │   ├── Groups/
-│   │   ├── Achievements/
-│   │   ├── Settings/
-│   │   └── index.tsx            # Route configuration
-│   ├── redux/
-│   │   ├── actions/
-│   │   │   ├── LocationActions.ts
-│   │   │   ├── UIActions.ts
-│   │   │   └── UsersActions.ts
-│   │   └── reducers/
-│   │       └── index.ts         # Extends therr-react reducers
-│   ├── styles/
-│   │   ├── themes/
-│   │   │   ├── light/           # Light theme (default)
-│   │   │   └── retro/           # Retro theme
-│   │   └── [style modules]
-│   ├── utilities/
-│   │   ├── getConfig.ts         # Environment config
-│   │   ├── pushNotifications.ts # FCM setup
-│   │   └── contacts.ts
-│   ├── locales/                  # i18n translations
-│   ├── constants/
-│   ├── App.tsx                   # Root component
-│   ├── Layout.tsx                # Main navigation stack
-│   ├── getStore.tsx              # Redux store setup
-│   ├── socket-io-middleware.ts   # WebSocket
-│   └── interceptors.ts           # Axios config
-├── android/                      # Android native code
-├── ios/                          # iOS native code
-├── index.js                      # Entry point
-└── package.json                  # RN-specific dependencies
+│   ├── App.tsx                    # Root component
+│   ├── Layout.tsx                 # Navigation stack + brand context
+│   ├── getStore.tsx               # Redux store setup
+│   ├── interceptors.ts            # Axios request/response interceptors
+│   ├── socket-io-middleware.ts    # WebSocket via socket.io
+│   ├── components/                # Reusable UI (ButtonMenu, Input, Modals, etc.)
+│   ├── routes/                    # Screen components (~30 route dirs)
+│   │   ├── index.tsx              # Route config with AccessLevel guards
+│   │   ├── Map/                   # Geo features (largest route, 25+ files)
+│   │   ├── Areas/                 # Nearby, Bookmarked, Drafts
+│   │   ├── Connect/               # User discovery
+│   │   ├── DirectMessage/         # 1-on-1 messaging
+│   │   ├── Groups/                # Community features
+│   │   └── ...
+│   ├── redux/                     # Mobile-only actions + reducers (extends therr-react)
+│   ├── styles/themes/             # light (default), dark, retro
+│   ├── locales/                   # i18n: en-us, es
+│   ├── config/brandConfig.ts      # Brand variation selector (THERR, TEEM, HABITS)
+│   ├── constants/                 # App constants (map, carousel, notifications)
+│   └── utilities/                 # getConfig, pushNotifications, contacts
+├── env-config.js                  # Dev/prod API URLs, feature flags, OAuth IDs
+├── metro.config.js                # Module resolution (see gotchas below)
+├── babel.config.js                # Module resolver + deprecated prop types shim
+├── resolver/react-native/         # Proxy for deprecated ViewPropTypes etc.
+├── patches/                       # patch-package patches (applied via postinstall)
+├── android/                       # Native Android (Kotlin)
+├── ios/                           # Native iOS
+└── package.json
 ```
 
-## Key Screens
+## Build & Dev Commands
 
-| Screen | Purpose |
-|--------|---------|
-| Landing | Initial screen |
-| Login/Register | Authentication |
-| Home | Main feed |
-| Map | Location-based discovery |
-| Areas | Nearby, Bookmarked content |
-| Connect | User discovery |
-| DirectMessage | 1-on-1 messaging |
-| Groups | Community features |
-| Settings | User preferences |
+```bash
+# Install deps (always use --legacy-peer-deps)
+npm install --legacy-peer-deps
+
+# Start Metro bundler
+npm start
+
+# iOS
+npm run ios                  # Build + run on simulator (Debug scheme)
+npm run ios:clean            # Nuke Pods, DerivedData, reinstall pods
+npm run ios:pod:install      # Just reinstall CocoaPods
+npm run ios:bundle:release   # Bundle for release
+
+# Android
+npm run android              # Build + run on emulator
+npm run android:device       # Run on physical device (sets up adb reverse)
+npm run android:emulator     # Launch Pixel_9 AVD
+npm run android:clean        # Clean Gradle build dirs
+npm run build:release        # AAB for Play Store
+npm run build:release:apk    # APK for sideloading
+
+# Testing & Linting
+npm test                     # Jest (uses root node_modules jest)
+npm run lint:fix             # ESLint auto-fix
+npm run lint                 # Check for remaining errors
+```
+
+## Environment Config
+
+`env-config.js` holds dev/prod settings:
+- **Dev**: API at `localhost:7770` (iOS) or `10.0.2.2:7770` (Android emulator)
+- **Prod**: API at `api.therr.com`, WebSocket at `websocket-service.therr.com`
+- **Feature flags**: `featureFlags` object toggles nav tabs, content types, social features
+- **`.env` file**: Required for `GOOGLE_APIS_ANDROID_KEY` and `GOOGLE_APIS_IOS_KEY` (loaded via `react-native-dotenv`)
+
+`main/utilities/getConfig.ts` selects dev or prod based on `__DEV__`.
+
+## Module Resolution (Important Gotchas)
+
+The module resolution is complex due to the monorepo. Understanding this prevents hard-to-debug runtime errors:
+
+1. **Metro config** (`metro.config.js`):
+   - `extraNodeModules` maps `therr-react` and `therr-js-utilities` to their compiled `lib/` dirs
+   - React, react-native, Redux packages resolve to TherrMobile's local `node_modules` (not root) to prevent duplicate singletons
+   - Root copies of react/react-native/redux are **blocklisted** via regex
+   - **Axios singleton fix**: All axios imports forced to single CJS file (`axios/dist/browser/axios.cjs`) to avoid dual-singleton bug
+   - **use-latest-callback fix**: Forced to root copy to avoid CJS/ESM mismatch
+
+2. **Babel config** (`babel.config.js`):
+   - `module-resolver` aliases `shared` -> `../node_modules`
+   - Custom `resolvePath` redirects `react-native` imports to `resolver/react-native/` which provides deprecated prop type polyfills (for older libraries)
+   - `react-native-reanimated/plugin` **must be last** in plugins array
+
+3. **TypeScript paths** (`tsconfig.json`):
+   - `therr-react/*`, `therr-js-utilities/*`, `therr-styles/*` -> compiled `lib/` dirs
+   - `shared/*` -> root `node_modules/*`
+
+4. **Patches** (`patches/`, applied via `postinstall`):
+   - `react-native+0.80.0.patch`
+   - `@react-native-community+slider+5.1.2.patch`
+   - `react-native-tab-view+3.5.2.patch`
+
+**When adding a new shared library dependency**: Add it to root `package.json`, then ensure Metro can find it via `extraNodeModules` or the Proxy fallback.
 
 ## Key Patterns
 
-### Redux Integration
+### Redux
 
-Extends therr-react with mobile-specific reducers:
-
+Mobile extends `therr-react` reducers with local ones (location, ui):
 ```typescript
 // main/redux/reducers/index.ts
 import getCombinedReducers from 'therr-react/redux/reducers';
-
-const localReducers = {
-    location: locationReducer,
-    ui: uiReducer,
-};
+const localReducers = { location: locationReducer, ui: uiReducer };
 export default getCombinedReducers(socketIO, localReducers);
 ```
 
+### Navigation
+
+React Navigation 6 with Stack Navigator. Routes defined in `main/routes/index.tsx` with `AccessLevels` guards. Fade transitions.
+
 ### Theming
 
-Runtime theme switching via Redux:
+Three themes: light (default), dark, retro. Selected via `user.settings.mobileThemeName` in Redux. Uses `@callstack/react-theme-provider`.
 
-```typescript
-// main/styles/themes/index.ts
-// Themes: light (default), retro
-// Selected via user.settings.mobileThemeName
-```
+### Push Notifications
 
-### Brand Variation Configuration
+Firebase Cloud Messaging + Notifee. Android channels defined in `main/constants/index.tsx` (default, contentDiscovery, rewardUpdates, reminders). FCM setup in `main/utilities/pushNotifications.ts`.
 
-Brand variation is configured in `main/config/brandConfig.ts`:
+### Brand Variation
 
-```typescript
-// main/config/brandConfig.ts
-import { BrandVariations } from 'therr-js-utilities/constants';
-
-// NICHE: Update this value for each niche app variant
-export const CURRENT_BRAND_VARIATION = BrandVariations.THERR;
-
-export default {
-    brandVariation: CURRENT_BRAND_VARIATION,
-};
-```
-
-This config is consumed by:
-- `main/socket-io-middleware.ts` - WebSocket handshake
-- `main/interceptors.ts` - HTTP request headers
-- `main/Layout.tsx` - Navigation context
-
-### Brand-Conditional Rendering
-
-Use brand variation for conditional UI:
+Configured in `main/config/brandConfig.ts`. Consumed by interceptors (HTTP headers), socket middleware, and Layout. Feature flags in `env-config.js` control which tabs/features are visible.
 
 ```typescript
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { BrandVariations } from 'therr-js-utilities/constants';
 
-// Show component only for specific brand
 if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
     return <HabitsFeature />;
 }
-
-// Feature flags per brand
-const BRAND_FEATURES = {
-    [BrandVariations.THERR]: {
-        showLocation: true,
-        showBusinessAccount: true,
-        showTherrCoin: true,
-        showHabits: false,
-    },
-    [BrandVariations.HABITS]: {
-        showLocation: false,
-        showBusinessAccount: false,
-        showTherrCoin: false,
-        showHabits: true,
-    },
-};
-
-const features = BRAND_FEATURES[CURRENT_BRAND_VARIATION];
 ```
 
-### Navigation Guards (Niche Apps)
+### General vs Niche Branch Files
 
-For brand-specific onboarding flows:
+**`general` branch** (shared by all apps): Components, shared screens, Redux, API services, conditional rendering.
 
-```typescript
-// Example: HABITS requires a pact before accessing main app
-const NavigationGuard = ({ children }) => {
-    if (CURRENT_BRAND_VARIATION === BrandVariations.HABITS) {
-        const hasPacts = useSelector(state => state.pacts.active.length > 0);
-        if (!hasPacts) {
-            return <CreateFirstPactScreen />;
-        }
-    }
-    return children;
-};
-```
+**`niche/<TAG>-general` branch** (app-specific): `brandConfig.ts`, app icons/splash, nav guards, feature toggles, store metadata.
 
-### Files: General Branch vs Niche Branch
+## Common Debugging
 
-**On `general` branch** (shared by all apps):
-- Reusable components in `main/components/`
-- Shared screens that work across brands
-- Redux reducers/actions used by multiple brands
-- API services in therr-react
-- Conditional rendering based on brand config
-
-**On `niche/<TAG>-general` branch** (app-specific):
-- `main/config/brandConfig.ts` - Set CURRENT_BRAND_VARIATION
-- App icons and splash screens in `assets/`
-- Navigation guards specific to the brand
-- Feature toggles that hide/show sections
-- App Store/Play Store metadata
-
-### Navigation
-
-React Navigation 6 with Stack Navigator:
-
-```typescript
-// main/routes/index.tsx
-// Route-based access control via AccessLevels
-// Fade animation transitions
-```
-
-### Push Notifications
-
-Firebase Cloud Messaging + Notifee:
-
-```typescript
-// main/utilities/pushNotifications.ts
-// Android notification channels
-// Data-only notifications from FCM
-```
-
-## Build & Dev
-
-```bash
-# Install dependencies
-npm install
-
-# iOS
-npm run ios:clean      # Clean iOS build
-npx pod-install        # Install CocoaPods
-npm run ios            # Run on iOS simulator
-
-# Android
-npm run android:clean  # Clean Android build
-npm run android        # Run on Android emulator
-
-# General
-npm run clean          # Clean all builds
-npm run lint:fix       # Fix ESLint issues
-npm test               # Run Jest tests
-```
-
-## Niche App Setup
-
-When creating a niche app variant (e.g., HABITS):
-
-1. Create branch: `git checkout general && git checkout -b niche/HABITS-general`
-2. Run: `npx react-native-rename "NewAppName" -b "com.therr.mobile.NewAppName"`
-3. Update `main/config/brandConfig.ts`:
-   ```typescript
-   export const CURRENT_BRAND_VARIATION = BrandVariations.HABITS;
-   ```
-4. Update assets (icons, splash screens) in `assets/`
-5. Update translations in `main/locales/`
-6. Add navigation guards if needed (e.g., mandatory pact creation for HABITS)
-7. Configure feature visibility based on brand
-
-See:
-- `docs/NICHE_APP_SETUP_STEPS.md` - Full setup guide
-- `docs/MULTI_BRAND_ARCHITECTURE.md` - Brand variation system overview
-
-## Important Notes
-
-- **Isolated deps**: Has own package.json (not root)
-- Uses Metro bundler (not Webpack)
-- Path aliases in `tsconfig.json` and `babel.config.js`
-- Platform-specific code: `*.ios.ts`, `*.android.ts`
-- Requires Xcode (iOS) and Android Studio (Android)
-- Google Sign-In requires platform-specific OAuth IDs
-- Background geolocation for location features
+- **"Cannot read property X of undefined" at startup**: Usually a module resolution issue. Check metro.config.js blocklist and extraNodeModules.
+- **Two copies of React**: Metro is resolving React from root node_modules. Verify blockList patterns match.
+- **Axios interceptors not firing**: Dual axios singleton issue. Verify `resolveRequest` in metro.config.js forces single CJS path.
+- **Android emulator can't reach API**: Run `adb reverse tcp:7770 tcp:7770` (or use `npm run android:device`).
+- **Deprecated prop types warning**: The `resolver/react-native/` proxy handles this. If a new library triggers it, the proxy may need updating.
+- **Pod install fails**: `npm run ios:clean` nukes everything and reinstalls.
 
 ## Code Quality
 
-Before completing code changes, run linting and fix all errors:
-
+Before completing changes:
 ```bash
-npm run lint:fix   # Auto-fix issues (runs ESLint on main/**)
-npm run lint       # Verify no errors remain
+npm run lint:fix   # Auto-fix
+npm run lint       # Verify zero errors
 ```
 
-See root `CLAUDE.md` for full code quality requirements.
+See root `CLAUDE.md` for full requirements.

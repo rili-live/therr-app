@@ -179,6 +179,18 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
         });
     };
 
+    onViewUserPress = (contact: any) => {
+        const { navigation } = this.props;
+        const matchedUser = contact.matchedUser;
+        if (!matchedUser) { return; }
+
+        navigation.navigate('ViewUser', {
+            userInView: {
+                id: matchedUser.id,
+            },
+        });
+    };
+
     onConnectPress = (contact: any) => {
         const { createUserConnection, user } = this.props;
         const matchedUser = contact.matchedUser;
@@ -333,7 +345,8 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                 <PhoneContactItem
                     key={contact.recordID}
                     contactDetails={contact}
-                    onPress={() => this.onConnectPress(contact)}
+                    onPress={() => this.onViewUserPress(contact)}
+                    onActionPress={() => this.onConnectPress(contact)}
                     theme={this.theme}
                     actionLabel={this.translate('pages.phoneContacts.buttons.connect')}
                 />
@@ -344,6 +357,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
             <PhoneContactItem
                 key={contact.recordID}
                 contactDetails={contact}
+                isCheckable
                 onPress={this.onContactPress}
                 onActionPress={() => this.onInvitePress(contact)}
                 theme={this.theme}

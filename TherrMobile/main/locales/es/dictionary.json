@@ -606,6 +606,9 @@
       },
       "labels": {
         "address": "Buscar dirección...",
+        "additionalDetails": "Agregar más detalles (opcional)",
+        "addressRequest": "Buscar un negocio cercano...",
+        "requestNote": "Busca un negocio para solicitar que se agregue al mapa.",
         "addIncentivesNote": "Agrega incentivos para animar a la gente a visitar tu espacio.",
         "addIncentivesNote2": "*Desbloquea métricas de clientes de cada visita o transacción en punto de venta.",
         "addIncentivesNoteEx": "(ej. café gratis, $2 de descuento, 10% de descuento, etc...)",
@@ -998,25 +1001,43 @@
   },
   "pages": {
     "activityGenerator": {
-      "headerTitle": "Generador de actividades",
-      "pageHeader": "Generador de actividades",
+      "headerTitle": "Planificar una salida",
+      "pageHeader": "Planificar una salida",
       "headers": {
         "socialRecommendations": "Recomendaciones sociales locales",
-        "topConnections": "Principales conexiones cercanas",
-        "topSharedInterests": "Principales intereses compartidos",
-        "topSpaces": "Espacios recomendados para reuniones locales",
-        "yourTopInterests": "Tus principales intereses"
+        "topConnections": "Personas cercanas",
+        "topSharedInterests": "Intereses compartidos",
+        "topSpaces": "Elige un lugar",
+        "yourTopInterests": "Tus principales intereses",
+        "scheduleDetails": "Detalles del horario"
       },
       "buttons": {
         "generate": "Generar",
-        "scheduleAndInvite": "Siguiente: Programar",
+        "scheduleAndInvite": "Programar e invitar",
         "showLess": "Ver menos",
         "showMore": "Ver más"
+      },
+      "placeholders": {
+        "groupName": "Nombre del grupo"
+      },
+      "locationPrompt": {
+        "title": "Activar ubicación",
+        "description": "Activa los servicios de ubicación para encontrar personas cercanas, descubrir intereses compartidos y obtener recomendaciones de lugares para tu salida."
       },
       "messages": {
         "noNearbyConnections": "No se encontraron conexiones cercanas. Invita a amigos locales para comenzar o inténtalo de nuevo en una nueva ubicación.",
         "noSharedInterests": "No hay intereses compartidos con personas cercanas. Ve a la configuración de perfil para seleccionar tus intereses.",
         "noRecommendedSpaces": "No hay espacios cercanos que coincidan con tus intereses. Intenta solicitar nuevos espacios desde la vista del mapa."
+      },
+      "validation": {
+        "noConnections": "Selecciona al menos una persona",
+        "noConnectionsDetail": "Elige a quién te gustaría invitar a esta salida.",
+        "noSpace": "Elige un lugar",
+        "noSpaceDetail": "Selecciona una ubicación para tu salida de la lista anterior.",
+        "noGroupName": "Nombra tu grupo",
+        "noGroupNameDetail": "Dale un nombre a tu grupo para que todos sepan de qué se trata.",
+        "noEventName": "Agrega un nombre de evento",
+        "noEventNameDetail": "Dale un nombre a tu evento para que los invitados sepan qué esperar."
       }
     },
     "activityScheduler": {

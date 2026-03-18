@@ -258,6 +258,7 @@
     "navigation": {
       "home": "Inicio",
       "explore": "Explorar",
+      "events": "Eventos",
       "locations": "Ubicaciones",
       "posts": "Publicaciones",
       "moments": "Momentos",
@@ -302,10 +303,33 @@
       "loadMore": "Cargar m\u00e1s"
     },
     "chatForum": {
-      "pageTitle": "Chat grupal",
+      "pageTitle": "Grupo",
       "welcome": "\u00a1Bienvenido!",
       "inputPlaceholder": "Escribe un mensaje",
-      "sendBtn": "Enviar"
+      "sendBtn": "Enviar",
+      "tabs": {
+        "chat": "Chat",
+        "events": "Eventos",
+        "members": "Miembros"
+      },
+      "noEventsFound": "No se encontraron eventos para este grupo.",
+      "upcomingEvents": "Próximos Eventos",
+      "pastEvents": "Eventos Pasados",
+      "noMembersFound": "No se encontraron miembros.",
+      "membershipRoles": {
+        "creator": "Creador",
+        "admin": "Administrador",
+        "eventHost": "Organizador",
+        "default": "Miembro"
+      },
+      "appBanner": {
+        "message": "Descarga la app para la mejor experiencia",
+        "appStoreAlt": "Descargar en la App Store",
+        "playStoreAlt": "Disponible en Google Play"
+      },
+      "labels": {
+        "subtitle": "Subtítulo"
+      }
     },
     "changePassword": {
       "buttons": {
@@ -517,6 +541,21 @@
       "joinButton": "\u00danete ahora y gana 5 monedas",
       "appStoreText": "Tambi\u00e9n disponible en m\u00f3vil",
       "returnHome": "Volver a la p\u00e1gina de inicio"
+    },
+    "viewEvent": {
+      "headings": {
+        "eventDetails": "Detalles del evento",
+        "when": "Cuándo",
+        "where": "Dónde",
+        "about": "Acerca de",
+        "organizer": "Organizador"
+      },
+      "labels": {
+        "startDate": "Inicio",
+        "endDate": "Fin",
+        "viewSpace": "Ver ubicación",
+        "viewOnGoogleMaps": "Ver en Google Maps"
+      }
     },
     "viewSpace": {
       "pageTitle": "",

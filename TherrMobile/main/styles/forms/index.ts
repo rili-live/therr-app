@@ -479,7 +479,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 0,
         },
         headerInputBadge: {
-            backgroundColor: therrTheme.colors.tertiary,
+            backgroundColor: themeName === 'dark' ? therrTheme.colors.brandingBlueGreen : therrTheme.colors.tertiary,
         },
         label: {
             fontSize: 16,

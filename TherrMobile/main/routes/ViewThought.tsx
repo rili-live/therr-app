@@ -119,7 +119,7 @@ const ViewThought = ({
         [thought.hashTags]
     );
     const isFormDisabled = !inputMessage || isSubmitting;
-    const brandColor = theme.colors.brandingBlueGreen;
+    const brandColor = isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen;
 
     // Fetch thought details and set up nav listener
     useEffect(() => {

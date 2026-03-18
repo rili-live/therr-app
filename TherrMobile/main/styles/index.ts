@@ -131,6 +131,32 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         areaContainerButton: {
             ...getAreaContainerButtonStyles(),
         },
+        stepSectionHeader: {
+            paddingHorizontal: 15,
+            paddingVertical: 8,
+            gap: 10,
+        },
+        stepCircle: {
+            width: 28,
+            height: 28,
+            borderRadius: 14,
+            backgroundColor: therrTheme.colors.accentDivider,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        stepCircleActive: {
+            width: 28,
+            height: 28,
+            borderRadius: 14,
+            backgroundColor: therrTheme.colors.primary3,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        stepCircleText: {
+            color: '#FFFFFF',
+            fontSize: 14,
+            fontWeight: '600',
+        },
         areaContainerButtonSelected: {
             ...getAreaContainerButtonStyles(),
             borderWidth: 2,

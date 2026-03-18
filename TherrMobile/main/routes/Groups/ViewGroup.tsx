@@ -677,7 +677,7 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                                 })}
                                 style={{ marginRight: 8, justifyContent: 'center' }}
                             >
-                                <TherrIcon name="go-back" size={24} />
+                                <TherrIcon name="go-back" size={24} color={this.theme.colors.textWhite} />
                             </Pressable>
                             {
                                 group.media?.featuredImage &&
@@ -694,11 +694,11 @@ class ViewGroup extends React.Component<IViewGroupProps, IViewGroupState> {
                             <View style={spacingStyles.marginLtMd}>
                                 {
                                     subtitle &&
-                                    <Text>
+                                    <Text style={{ color: this.theme.colors.textWhite }}>
                                         <Text style={{ fontWeight: 'bold' }}>{this.translate('pages.groups.labels.subtitle')}</Text> {subtitle}
                                     </Text>
                                 }
-                                <Text style={spacingStyles.marginBotSm} numberOfLines={7}>
+                                <Text style={[spacingStyles.marginBotSm, { color: this.theme.colors.textWhite }]} numberOfLines={7}>
                                     {description}
                                 </Text>
                                 <HashtagsContainer

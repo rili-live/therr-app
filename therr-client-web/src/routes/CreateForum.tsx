@@ -201,7 +201,7 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
             this.props
                 .createHostedChat(createArgs)
                 .then((response) => {
-                    this.props.navigation.navigate(`/forums/${response.forum.id}`, {
+                    this.props.navigation.navigate(`/groups/${response.forum.id}`, {
                         state: {
                             roomName: response.forum.title,
                         },
