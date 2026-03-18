@@ -1462,6 +1462,13 @@
       "locationDescription2": "Usa los controles deslizantes de percepción e influencia para controlar la distancia del contenido y tu propia visibilidad.",
       "locationDescription3": "Habilita los servicios de ubicación para activar esta función."
     },
+    "activatedAreas": {
+      "headerTitle": "Activados recientemente",
+      "description": "Estos son los momentos y espacios que activaste recientemente.",
+      "noAreasFound": "No se encontraron áreas activadas",
+      "backToNotifications": "Volver a Notificaciones",
+      "discoverMore": "Descubre más momentos y espacios cercanos"
+    },
     "notifications": {
       "headerTitle": "Notificaciones",
       "pageTitle": "Notificaciones",
