@@ -190,7 +190,6 @@ interface IMapState {
         title: string;
         featuredIncentiveRewardValue?: number;
     }[];
-    initialPreviewScrollIndex: number;
     shouldIgnoreSearchThisAreaButton: boolean;
     shouldRenderMapCircles: boolean;
     shouldShowCreateActions: boolean;
@@ -308,7 +307,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             // User exists and was created less than 2 weeks ago
             isUserNewish: props?.user?.details?.createdAt && new Date(props?.user?.details?.createdAt).getTime() > (Date.now() - 1000 * 60 * 60 * 24 * 14),
             nearbySpaces: [],
-            initialPreviewScrollIndex: 0,
             shouldIgnoreSearchThisAreaButton: false,
             shouldRenderMapCircles: false,
             shouldShowCreateActions: false,
@@ -419,10 +417,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     previewScrollIndex: undefined,
                 });
 
-                this.setState({
-                    initialPreviewScrollIndex: restoredScrollIndex,
-                });
-
                 const searchRadiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
                 const latitude = map?.latitude || location?.user?.latitude;
                 const longitude = map?.longitude || location?.user?.longitude;
@@ -436,7 +430,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                     longitude: longitude,
                                 },
                             },
-                        }, true);
+                        }, true, restoredScrollIndex);
                     });
             }
 
@@ -1718,10 +1712,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
-    resetInitialPreviewScrollIndex = () => {
-        this.setState({ initialPreviewScrollIndex: 0 });
-    };
-
     onMapLayout = () => {
         this.setState({ isMapReady: true });
     };
@@ -1834,7 +1824,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isSearchThisLocationBtnVisible,
             isSearchLoading,
             isScrollEnabled,
-            initialPreviewScrollIndex,
             nearbySpaces,
             shouldFollowUserLocation,
             shouldRenderMapCircles,
@@ -1891,8 +1880,6 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 filteredEvents={filteredEvents}
                                 filteredMoments={filteredMoments}
                                 filteredSpaces={filteredSpaces}
-                                initialPreviewScrollIndex={initialPreviewScrollIndex}
-                                onInitialScrollApplied={this.resetInitialPreviewScrollIndex}
                                 mapRef={this.updateMapRef}
                                 navigation={navigation}
                                 onRegionChange={this.onRegionChange}
