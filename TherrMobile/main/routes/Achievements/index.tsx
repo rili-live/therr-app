@@ -236,7 +236,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                     fontWeight: '700',
                     color: this.theme.colors.textWhite,
                 }}>
-                    {section.title} ({section.data.length})
+                    {section.title} ({section.totalCount ?? section.data.length})
                 </Text>
                 <FontAwesome5Icon
                     name={isCollapsed ? 'chevron-down' : 'chevron-up'}
@@ -253,12 +253,12 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         const sections = this.getAchievementSections();
 
         // Apply collapsed state: replace data with empty array for collapsed sections
-        const displaySections = sections.map((section) => {
-            if (section.isCollapsible && collapsedSections[section.title]) {
-                return { ...section, data: [] };
-            }
-            return section;
-        });
+        // Preserve original count so header still shows it when collapsed
+        const displaySections = sections.map((section) => ({
+            ...section,
+            totalCount: section.data.length,
+            data: (section.isCollapsible && collapsedSections[section.title]) ? [] : section.data,
+        }));
 
         return (
             <>

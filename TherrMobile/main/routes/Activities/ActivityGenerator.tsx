@@ -164,7 +164,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
         const themeName = this.props.user.settings?.mobileThemeName;
 
         this.theme = buildStyles(themeName);
-        this.themeViewArea = buildAreaStyles();
+        this.themeViewArea = buildAreaStyles(themeName, themeName !== 'light');
         this.themeButtons = buildButtonStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
         this.themeForms = buildFormStyles(themeName);
@@ -224,6 +224,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
     render() {
         const { content, map, navigation, user, userConnections } = this.props;
         const { isLoading, shouldShowMoreSpaces } = this.state;
+        const themeName = user.settings?.mobileThemeName;
         const pageHeaderUser = this.translate('pages.activityGenerator.headers.socialRecommendations');
         // const currentUserImageUri = getUserImageUri(user, 200);
         const topConnections = (map?.activityGeneration?.topConnections || []).map((connection: any) => ({
@@ -309,7 +310,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
                                                         key={id}
                                                         style={[{ padding: 2, paddingHorizontal: 6, margin: 4 }]}
                                                     >
-                                                        <Text>
+                                                        <Text style={{ color: this.theme.colors.textWhite }}>
                                                             {interest.emoji} {this.translate(interest.displayNameKey)} {interest.ranking}
                                                         </Text>
                                                     </Pressable>
@@ -354,7 +355,7 @@ export class ActivityGenerator extends React.Component<IActivityGeneratorProps, 
                                                             <AreaDisplayContent
                                                                 key={space?.id}
                                                                 hashtags={space.hashTags ? space.hashTags.split(',') : []}
-                                                                isDarkMode={false}
+                                                                isDarkMode={themeName !== 'light'}
                                                                 area={space}
                                                                 areaMedia={postMedia}
                                                                 inspectContent={() => this.goToSpaceDetails(space)}

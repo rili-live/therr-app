@@ -220,7 +220,7 @@ export class ActivityScheduler extends React.Component<IActivitySchedulerProps, 
         const themeName = this.props.user.settings?.mobileThemeName;
 
         this.theme = buildStyles(themeName);
-        this.themeViewArea = buildAreaStyles();
+        this.themeViewArea = buildAreaStyles(themeName, themeName !== 'light');
         this.themeButtons = buildButtonStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
         this.themeForms = buildFormStyles(themeName);

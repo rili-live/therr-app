@@ -85,6 +85,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     private themeForms = buildFormStyles();
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildButtonsStyles();
+    private isDarkMode = false;
 
     constructor(props) {
         super(props);
@@ -108,6 +109,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.isDarkMode = isDarkTheme(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator(props.user.settings?.locale || 'en-us', key, params);
 
         this.notificationMsg = (moment.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
@@ -402,7 +404,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                             mode="outlined"
                             onPress={() => this.goBack()}
                             icon="arrow-left"
-                            textColor={this.theme.colors.brandingBlueGreen}
+                            textColor={this.isDarkMode ? this.theme.colors.textWhite : this.theme.colors.brandingBlueGreen}
                             style={localStyles.footerButton}
                         >
                             {this.translate('forms.editMoment.buttons.back')}

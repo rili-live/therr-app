@@ -147,7 +147,11 @@ export class ManagePreferences extends React.Component<IManagePreferencesProps, 
                     text1: this.translate('pages.managePreferences.alertTitles.preferenceSettingsUpdated'),
                     text2: this.translate('pages.managePreferences.alertMessages.preferenceSettingsUpdated'),
                     onHide: () => {
-                        this.props.navigation.goBack();
+                        if (this.props.navigation.canGoBack()) {
+                            this.props.navigation.goBack();
+                        } else {
+                            this.props.navigation.navigate('Settings');
+                        }
                     },
                 });
             }).catch(() => {

@@ -191,7 +191,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 spacingStyles.justifyCenter,
                 spacingStyles.padHorizMd,
             ]}>
-                <Text>
+                <Text style={themeViewArea.styles.eventText}>
                     {/* eslint-disable-next-line max-len */}
                     {formatDate(event.scheduleStartAt, 'short').date} {formatDate(event.scheduleStartAt).time} - {formatDate(event.scheduleStopAt, 'short').date} {formatDate(event.scheduleStopAt).time}
                 </Text>
