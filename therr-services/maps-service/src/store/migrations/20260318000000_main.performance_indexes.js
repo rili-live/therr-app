@@ -36,6 +36,18 @@ exports.up = (knex) => knex.schema.raw(`
     CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_space_public_schedule
         ON main.events ("spaceId", "isPublic", "scheduleStartAt" DESC)
         WHERE "spaceId" IS NOT NULL;
+
+    -- Geography functional indexes for ST_DWithin distance queries
+    -- These allow the planner to use GiST index scans instead of sequential scans
+    -- when queries cast geometry columns to geography for meter-based distance checks
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_moments_geom_geography
+        ON main.moments USING gist((geom::geography));
+
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_spaces_geom_center_geography
+        ON main.spaces USING gist(("geomCenter"::geography));
+
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_geom_geography
+        ON main.events USING gist((geom::geography));
 `);
 
 exports.down = (knex) => knex.schema.raw(`
@@ -47,4 +59,7 @@ exports.down = (knex) => knex.schema.raw(`
     DROP INDEX IF EXISTS main.idx_events_mature_schedule;
     DROP INDEX IF EXISTS main.idx_events_group_schedule;
     DROP INDEX IF EXISTS main.idx_events_space_public_schedule;
+    DROP INDEX IF EXISTS main.idx_moments_geom_geography;
+    DROP INDEX IF EXISTS main.idx_spaces_geom_center_geography;
+    DROP INDEX IF EXISTS main.idx_events_geom_geography;
 `);

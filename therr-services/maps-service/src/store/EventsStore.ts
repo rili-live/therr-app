@@ -156,7 +156,7 @@ export default class EventsStore {
             .from(EVENTS_TABLE_NAME)
             .count('*')
             // NOTE: Cast to a geography type to search distance within n meters
-            .where(knexBuilder.raw('ST_DWithin(geom, ST_MakePoint(?, ?)::geography, ?)', [params.longitude, params.latitude, proximityMax]));
+            .where(knexBuilder.raw('ST_DWithin(geom::geography, ST_MakePoint(?, ?)::geography, ?)', [params.longitude, params.latitude, proximityMax]));
 
         if ((params.filterBy && params.filterBy !== 'distance')) {
             if (params.filterBy === 'fromUserIds') {
@@ -214,7 +214,7 @@ export default class EventsStore {
             // TODO: Determine a better way to select events that are most relevant to the user
             // .orderBy(`${EVENTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
-            .where(knexBuilder.raw('ST_DWithin(geom, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])) // eslint-disable-line quotes, max-len
+            .where(knexBuilder.raw('ST_DWithin(geom::geography, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])) // eslint-disable-line quotes, max-len
             .where('scheduleStartAt', '>', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000))
             .andWhere({
                 // TODO: Check user settings to determine if content should be included
@@ -299,7 +299,7 @@ export default class EventsStore {
         if (modifiedConditions.longitude && modifiedConditions.latitude) {
             // NOTE // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
-            queryString = queryString.where(knexBuilder.raw('ST_DWithin(geom, ST_MakePoint(?, ?)::geography, ?)', [modifiedConditions.longitude, modifiedConditions.latitude, proximityMax])) // eslint-disable-line max-len
+            queryString = queryString.where(knexBuilder.raw('ST_DWithin(geom::geography, ST_MakePoint(?, ?)::geography, ?)', [modifiedConditions.longitude, modifiedConditions.latitude, proximityMax])) // eslint-disable-line max-len
                 .andWhere(requirements); // eslint-disable-line quotes, max-len
         } else {
             queryString = queryString.where(requirements); // eslint-disable-line quotes, max-len

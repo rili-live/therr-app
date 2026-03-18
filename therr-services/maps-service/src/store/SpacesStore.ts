@@ -293,8 +293,8 @@ export default class SpacesStore {
         let queryString = knexBuilder
             .from(SPACES_TABLE_NAME)
             .count('*')
-            // NOTE: Cast to a geography type to search distance within n meters
-            .where(knexBuilder.raw('ST_DWithin(geom, ST_MakePoint(?, ?)::geography, ?)', [params.longitude, params.latitude, proximityMax]));
+            // Use geomCenter (POINT) instead of geom (POLYGON) for faster proximity checks
+            .where(knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [params.longitude, params.latitude, proximityMax]));
 
         if ((params.filterBy && params.filterBy !== 'distance')) {
             if (params.filterBy === 'fromUserIds') {
@@ -367,7 +367,8 @@ export default class SpacesStore {
             // TODO: Determine a better way to select spaces that are most relevant to the user
             // .orderBy(`${SPACES_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
-            .where(knexBuilder.raw('ST_DWithin(geom, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])) // eslint-disable-line quotes, max-len
+            // Use geomCenter (POINT) instead of geom (POLYGON) for faster proximity checks
+            .where(knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])) // eslint-disable-line quotes, max-len
             .andWhere(firstWhere);
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq
@@ -436,7 +437,7 @@ export default class SpacesStore {
             query = query
                 .andWhere(
                     // eslint-disable-next-line max-len
-                    knexBuilder.raw('ST_DWithin(geom, ST_MakePoint(?, ?)::geography, ?)', [overrides.requestorLongitude, overrides.requestorLatitude, proximityMax]),
+                    knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [overrides.requestorLongitude, overrides.requestorLatitude, proximityMax]),
                 );
         }
 
@@ -759,7 +760,7 @@ export default class SpacesStore {
                 AND s."isPublic" = true
                 AND s."isMatureContent" = false
                 AND s."isClaimPending" = false
-                AND ST_DWithin(s.geom, ST_MakePoint(?, ?)::geography, ?)
+                AND ST_DWithin(s."geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)
             ORDER BY "catScore" DESC, "distInMeters" ASC
             LIMIT 6
         `, [

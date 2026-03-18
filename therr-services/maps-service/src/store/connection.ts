@@ -12,12 +12,12 @@ const read: Pool = new Pool({
     password: process.env.DB_PASSWORD_MAIN_READ,
     database: process.env.MAPS_SERVICE_DATABASE,
     port: Number(process.env.DB_PORT_MAIN_READ),
-    max: 20,
-    idleTimeoutMillis: 10000,
+    max: 12, // right-sized for cloud-sql-proxy limits (20 total across read+write)
+    idleTimeoutMillis: 30000, // keep idle connections longer to reduce reconnect overhead
     connectionTimeoutMillis: 5000,
     maxUses: 7500, // recycle connections to prevent memory leaks from long-lived connections
-    statement_timeout: 30000, // kill queries running longer than 30s to prevent runaway geo queries
-    idle_in_transaction_session_timeout: 60000, // kill idle-in-transaction sessions after 60s
+    statement_timeout: 15000, // fail fast on slow geo queries (15s) to free pool connections
+    idle_in_transaction_session_timeout: 30000, // kill idle-in-transaction sessions after 30s
 } as any);
 
 const write: Pool = new Pool({
@@ -26,12 +26,12 @@ const write: Pool = new Pool({
     password: process.env.DB_PASSWORD_MAIN_WRITE,
     database: process.env.MAPS_SERVICE_DATABASE,
     port: Number(process.env.DB_PORT_MAIN_WRITE),
-    max: 10, // write pool needs fewer connections than read
-    idleTimeoutMillis: 10000,
+    max: 5, // writes are less frequent; keep pool small to avoid proxy bottleneck
+    idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
     maxUses: 7500,
-    statement_timeout: 30000,
-    idle_in_transaction_session_timeout: 60000,
+    statement_timeout: 15000,
+    idle_in_transaction_session_timeout: 30000,
 } as any);
 
 read.on('error', (err, client) => {
@@ -69,6 +69,23 @@ write.on('error', (err, client) => {
         },
     });
 });
+
+// Graceful shutdown: drain pools on SIGTERM (k8s pod eviction)
+const shutdownPools = () => {
+    logSpan({
+        level: 'info',
+        messageOrigin: 'API_SERVER',
+        messages: ['Draining database connection pools'],
+        traceArgs: { source: 'maps-service' },
+    });
+    Promise.all([read.end(), write.end()]).then(() => {
+        process.exit(0);
+    }).catch(() => {
+        process.exit(1);
+    });
+};
+
+process.on('SIGTERM', shutdownPools);
 
 export default {
     read,
