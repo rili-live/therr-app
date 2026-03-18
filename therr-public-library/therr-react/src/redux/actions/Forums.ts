@@ -2,6 +2,14 @@ import { ForumActionTypes } from '../../types/redux/forums';
 import ForumsService, { ICreateForumBody, ISearchForumsArgs } from '../../services/ForumsService';
 
 const Forums = {
+    getForumDetails: (forumId: string) => (dispatch: any) => ForumsService.getForum(forumId).then((response) => {
+        dispatch({
+            type: ForumActionTypes.GET_FORUM_DETAILS,
+            data: { forumId, forum: response?.data },
+        });
+
+        return response?.data;
+    }),
     createForum: (data: ICreateForumBody) => (dispatch: any) => ForumsService.createForum(data).then((response) => {
         dispatch({
             type: ForumActionTypes.CREATE_FORUM,

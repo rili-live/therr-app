@@ -4,10 +4,10 @@ import { AccessCheckType, IAccess } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
 import { MapsService } from 'therr-react/services';
-import { MapActions } from 'therr-react/redux/actions';
+import { ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
-import Forum from './Forum';
 import CreateForum from './CreateForum';
+import ViewGroup from './ViewGroup';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import PageNotFound from './PageNotFound';
@@ -53,15 +53,8 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     },
     {
         path: '/groups/:groupId',
-        element: <AuthRoute
-            component={Forum}
-            isAuthorized={routePropsConfig.isAuthorized({
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            })}
-            path={'/groups/:groupId'}
-            redirectPath={'/create-profile'}
-        />,
+        element: <ViewGroup />,
+        fetchData: (dispatch: any, params: any) => ForumActions.getForumDetails(params.groupId)(dispatch),
     },
     {
         path: '/create-forum',

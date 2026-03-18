@@ -263,6 +263,7 @@
       "posts": "Posts",
       "moments": "Moments",
       "thoughts": "Thoughts",
+      "groups": "Groups",
       "spaces": "Spaces",
       "users": "Users",
       "previous": "Previous",
@@ -461,7 +462,10 @@
       "info": "We are dedicated to preventing fake users, so Multi-Factor Auth is a must. Requiring an e-mail and phone # along with geo-tag post requirements drastically limits the potential for fake users."
     },
     "login": {
-      "pageTitle": "Sign In"
+      "pageTitle": "Sign In",
+      "buttons": {
+        "signUp": "Create Account"
+      }
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
@@ -542,19 +546,43 @@
       "appStoreText": "Also available on mobile",
       "returnHome": "Return to home page"
     },
+    "viewGroup": {
+      "headings": {
+        "about": "About",
+        "events": "Events",
+        "members": "Members"
+      },
+      "labels": {
+        "memberCount": "{count} members",
+        "joinToChat": "Join this group to participate in the chat",
+        "joinToSeeMembers": "Join this group to see all members",
+        "signUpPrompt": "Sign up or log in to join this group and chat",
+        "privateGroupMessage": "This group is private",
+        "privateGroupCta": "Sign up or log in to request access to this group",
+        "getFullExperience": "Get the full experience on Therr app",
+        "upcomingEvents": "Upcoming Events",
+        "pastEvents": "Past Events",
+        "noEvents": "No events found for this group."
+      }
+    },
     "viewEvent": {
       "headings": {
         "eventDetails": "Event Details",
         "when": "When",
         "where": "Where",
         "about": "About",
-        "organizer": "Organizer"
+        "organizer": "Organizer",
+        "group": "Group"
       },
       "labels": {
         "startDate": "Start",
         "endDate": "End",
         "viewSpace": "View Location",
-        "viewOnGoogleMaps": "View on Google Maps"
+        "viewGroup": "View Group",
+        "viewOnGoogleMaps": "View on Google Maps",
+        "privateEventMessage": "This event belongs to a private group",
+        "privateEventCta": "Sign up or log in to request access",
+        "signUpPrompt": "Sign up or log in to see full event details"
       }
     },
     "viewSpace": {

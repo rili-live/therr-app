@@ -5,6 +5,7 @@ import { ForumActionTypes, IForumsState } from '../../types/redux/forums';
 const initialState: IForumsState = {
     activeForums: [],
     forumCategories: [],
+    forumDetails: {},
     myForumsSearchResults: [],
     myForumsPagination: [],
     searchResults: [],
@@ -13,6 +14,9 @@ const initialState: IForumsState = {
 
 const forums = produce((draft: IForumsState, action: any) => {
     switch (action.type) {
+        case ForumActionTypes.GET_FORUM_DETAILS:
+            draft.forumDetails[action.data.forumId] = action.data.forum;
+            break;
         case ForumActionTypes.CREATE_FORUM:
             draft.searchResults.unshift(action.data?.forum || action.data);
             break;

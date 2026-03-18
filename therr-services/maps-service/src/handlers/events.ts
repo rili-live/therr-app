@@ -29,6 +29,7 @@ import { isTextUnsafe } from '../utilities/contentSafety';
 import userMetricsService from '../api/userMetricsService';
 import areaMetricsService from '../api/areaMetricsService';
 import getUserGroup from '../utilities/getUserGroup';
+import getGroupDetails from '../utilities/getGroupDetails';
 import { DEFAULT_RADIUS_MEDIUM } from '../store/SpacesStore';
 import { countReactions } from '../utilities/getReactions';
 import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
@@ -706,6 +707,47 @@ const getEventDetails = (req, res) => {
             // Verify that user has activated event and has access to view it
             return userHasAccessPromise().then((isActivated) => {
                 if (!isActivated) {
+                    // For unauthenticated users, check if the group is public
+                    // and return limited event details accordingly
+                    if (!userId && event.groupId) {
+                        return getGroupDetails(event.groupId, req.headers).then((groupDetails) => {
+                            const isGroupPublic = groupDetails?.isPublic;
+
+                            if (isGroupPublic) {
+                                // Public group: return limited event details
+                                return res.status(200).send({
+                                    event: {
+                                        id: event.id,
+                                        notificationMsg: event.notificationMsg,
+                                        message: event.message,
+                                        category: event.category,
+                                        hashTags: event.hashTags,
+                                        scheduleStartAt: event.scheduleStartAt,
+                                        scheduleStopAt: event.scheduleStopAt,
+                                        groupId: event.groupId,
+                                        spaceId: event.spaceId,
+                                        isPublic: event.isPublic,
+                                    },
+                                    media,
+                                    isGroupPublic: true,
+                                    accessRestricted: true,
+                                });
+                            }
+
+                            // Private group: return minimal info with restricted flag
+                            return res.status(200).send({
+                                event: {
+                                    id: event.id,
+                                    notificationMsg: event.notificationMsg,
+                                    groupId: event.groupId,
+                                    isPublic: event.isPublic,
+                                },
+                                isGroupPublic: false,
+                                accessRestricted: true,
+                            });
+                        });
+                    }
+
                     return handleHttpError({
                         res,
                         message: translate(locale, 'eventReactions.eventNotActivated'),

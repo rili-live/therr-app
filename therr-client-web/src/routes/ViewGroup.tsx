@@ -1,22 +1,27 @@
+/* eslint-disable max-len, react/jsx-no-target-blank, class-methods-use-this */
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { NavigateFunction } from 'react-router-dom';
 import classnames from 'classnames';
 import randomColor from 'randomcolor';
 import {
     Anchor,
     Avatar,
     Badge,
+    Breadcrumbs,
     Card,
     Container,
     Flex,
     Group as MantineGroup,
+    Image,
+    Paper,
     Stack,
     Tabs,
     Text,
     Title,
 } from '@mantine/core';
-import { MessageActions, SocketActions } from 'therr-react/redux/actions';
+import { ForumActions, MessageActions, SocketActions } from 'therr-react/redux/actions';
 import {
     MantineButton,
     MantineInput,
@@ -25,28 +30,19 @@ import scrollTo from 'therr-js-utilities/scroll-to';
 import { GroupMemberRoles, GroupRequestStatuses } from 'therr-js-utilities/constants';
 import {
     IForumMsg,
+    IForumsState,
     IMessagesState,
     IUserState,
 } from 'therr-react/types';
-import { ForumsService, UsersService } from 'therr-react/services';
+import { UsersService } from 'therr-react/services';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 
 const ITEMS_PER_PAGE = 50;
 
-const userColors: any = {}; // local state
+const userColors: any = {};
 
-const verifyAndJoinForum = (props) => {
-    props.joinForum({
-        roomId: props.routeParams?.groupId,
-        roomName: (props.location?.state as any)?.roomName,
-        userId: props.user.details.id,
-        userName: props.user.details.userName,
-        userImgSrc: `https://robohash.org/${props.user.details.id}`,
-    });
-};
-
-const renderMessage = (message: IForumMsg, index) => {
+const renderMessage = (message: IForumMsg, index: number) => {
     const senderTitle = !message.isAnnouncement ? message.fromUserName : '';
     const isYou = message.fromUserName?.toLowerCase() === 'you';
     const yourColor = 'green';
@@ -129,59 +125,6 @@ const renderEventCard = (event: any) => (
     </Card>
 );
 
-// router params
-interface IForumRouterProps {
-    roomName: string;
-    groupId: string;
-}
-
-interface IForumDispatchProps {
-    joinForum: Function;
-    leaveForum: Function;
-    searchForumMessages: Function;
-    sendForumMessage: Function;
-}
-
-interface IStoreProps extends IForumDispatchProps {
-    messages: IMessagesState;
-    user: IUserState;
-    routeParams: IForumRouterProps
-}
-
-// Regular component props
-interface IForumProps extends IStoreProps {
-    location: any;
-    navigation: {
-        navigate: Function;
-    };
-    translate: (key: string, params?: any) => string;
-}
-
-interface IForumState {
-    activeTab: string;
-    inputs: any;
-    isFirstLoad: boolean;
-    previousGroupId: string;
-    groupDetails: any;
-    groupEvents: any[];
-    groupMembers: any[];
-}
-
-// Environment Variables
-// const envVars = globalConfig[process.env.NODE_ENV];
-
-const mapStateToProps = (state: IForumState | any) => ({
-    messages: state.messages,
-    user: state.user,
-});
-
-const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    joinForum: SocketActions.joinForum,
-    leaveForum: SocketActions.leaveForum,
-    searchForumMessages: MessageActions.searchForumMessages,
-    sendForumMessage: SocketActions.sendForumMessage,
-}, dispatch);
-
 const getRoleBadgeColor = (role: string): string => {
     switch (role) {
         case GroupMemberRoles.CREATOR:
@@ -195,34 +138,76 @@ const getRoleBadgeColor = (role: string): string => {
     }
 };
 
-/**
- * Forum
- */
-export class ForumComponent extends React.Component<IForumProps, IForumState> {
-    static getDerivedStateFromProps(nextProps: IForumProps, nextState: IForumState) {
-        if (nextState.isFirstLoad || nextProps.routeParams?.groupId !== nextState.previousGroupId) {
-            verifyAndJoinForum(nextProps);
+interface IViewGroupRouterProps {
+    navigation: {
+        navigate: NavigateFunction;
+    };
+    routeParams: {
+        groupId: string;
+    };
+    location: any;
+}
 
-            return {
-                isFirstLoad: false,
-                previousGroupId: nextProps.routeParams?.groupId,
-            };
+interface IViewGroupDispatchProps {
+    getForumDetails: Function;
+    joinForum: Function;
+    leaveForum: Function;
+    searchForumMessages: Function;
+    sendForumMessage: Function;
+}
+
+interface IStoreProps extends IViewGroupDispatchProps {
+    forums: IForumsState;
+    messages: IMessagesState;
+    user: IUserState;
+}
+
+interface IViewGroupProps extends IViewGroupRouterProps, IStoreProps {
+    translate: (key: string, params?: any) => string;
+}
+
+interface IViewGroupState {
+    groupId: string;
+    activeTab: string;
+    inputs: any;
+    groupMembers: any[];
+}
+
+const mapStateToProps = (state: any) => ({
+    forums: state.forums,
+    messages: state.messages,
+    user: state.user,
+});
+
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    getForumDetails: ForumActions.getForumDetails,
+    joinForum: SocketActions.joinForum,
+    leaveForum: SocketActions.leaveForum,
+    searchForumMessages: MessageActions.searchForumMessages,
+    sendForumMessage: SocketActions.sendForumMessage,
+}, dispatch);
+
+/**
+ * ViewGroup - Public read-only / full interactive group page
+ */
+export class ViewGroupComponent extends React.Component<IViewGroupProps, IViewGroupState> {
+    private messageInputRef: any;
+
+    static getDerivedStateFromProps(nextProps: IViewGroupProps) {
+        if (!nextProps.routeParams.groupId) {
+            setTimeout(() => nextProps.navigation.navigate('/'));
+            return null;
         }
         return {};
     }
 
-    private messageInputRef: any;
-
-    constructor(props: IForumProps) {
+    constructor(props: IViewGroupProps) {
         super(props);
 
         this.state = {
-            activeTab: 'chat',
+            groupId: props.routeParams.groupId,
+            activeTab: 'events',
             inputs: {},
-            isFirstLoad: true,
-            previousGroupId: props.routeParams?.groupId,
-            groupDetails: null,
-            groupEvents: [],
             groupMembers: [],
         };
 
@@ -230,82 +215,96 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 
     componentDidMount() {
-        document.title = `Therr | ${this.props.translate('pages.chatForum.pageTitle')}`;
-        this.messageInputRef.current?.focus();
-        this.fetchGroupData();
-    }
+        const { getForumDetails, forums, user } = this.props;
+        const { groupId } = this.state;
+        const group = forums?.forumDetails?.[groupId];
+        const isAuthenticated = !!user?.details?.id;
 
-    componentDidUpdate(prevProps: IForumProps) {
-        const { routeParams } = this.props;
-
-        if (prevProps.routeParams?.groupId !== routeParams?.groupId) {
-            this.setState({
-                groupDetails: null,
-                groupEvents: [],
-                groupMembers: [],
-                activeTab: 'chat',
-            }, () => {
-                this.fetchGroupData();
+        if (!group) {
+            getForumDetails(groupId).then((fetchedGroup: any) => {
+                if (fetchedGroup?.title) {
+                    document.title = `${fetchedGroup.title} | Therr App`;
+                }
+            }).catch((err: any) => {
+                console.log('Failed to fetch group details', err); // eslint-disable-line no-console
+                this.props.navigation.navigate('/');
             });
+        } else if (group?.title) {
+            document.title = `${group.title} | Therr App`;
         }
 
-        const currentRoom = this.props.user.socketDetails.currentRoom;
-        const messages = this.props.messages.forumMsgs[currentRoom];
-        const prevMessages = prevProps.messages.forumMsgs[currentRoom];
-        if (messages && messages.length > 3 && prevMessages && messages.length > prevMessages.length) {
-            scrollTo(document.body.scrollHeight, 100);
+        if (isAuthenticated) {
+            this.setState({ activeTab: 'chat' });
+            this.initAuthenticatedFeatures();
+        }
+    }
+
+    componentDidUpdate(prevProps: IViewGroupProps) {
+        const { messages, user } = this.props;
+        const isAuthenticated = !!user?.details?.id;
+
+        if (isAuthenticated) {
+            const currentRoom = user.socketDetails.currentRoom;
+            const forumMessages = messages.forumMsgs[currentRoom];
+            const prevMessages = prevProps.messages.forumMsgs[currentRoom];
+            if (forumMessages && forumMessages.length > 3 && prevMessages && forumMessages.length > prevMessages.length) {
+                scrollTo(document.body.scrollHeight, 100);
+            }
         }
     }
 
     componentWillUnmount() {
-        this.props.leaveForum({
-            roomId: this.props.routeParams?.groupId,
-            userName: this.props.user.details.userName,
-            userImgSrc: `https://robohash.org/${this.props.user.details.id}`,
-        });
-    }
+        const { user } = this.props;
+        const isAuthenticated = !!user?.details?.id;
 
-    fetchGroupData = () => {
-        const { routeParams, searchForumMessages, user } = this.props;
-        const groupId = routeParams?.groupId;
-
-        if (groupId) {
-            searchForumMessages(groupId, user.details.id, {
-                itemsPerPage: ITEMS_PER_PAGE,
-                pageNumber: 1,
-            });
-
-            ForumsService.getForum(groupId).then((response) => {
-                const groupDetails = response?.data;
-                this.setState({
-                    groupDetails,
-                    groupEvents: groupDetails?.events || [],
-                });
-                if (groupDetails?.title) {
-                    document.title = `Therr | ${groupDetails.title}`;
-                }
-            }).catch((err) => {
-                console.log('Failed to fetch group details', err); // eslint-disable-line no-console
-            });
-
-            UsersService.getGroupMembers(groupId).then((response) => {
-                this.setState({
-                    groupMembers: response?.data?.userGroups || [],
-                });
-            }).catch((err) => {
-                console.log('Failed to fetch group members', err); // eslint-disable-line no-console
+        if (isAuthenticated) {
+            this.props.leaveForum({
+                roomId: this.state.groupId,
+                userName: user.details.userName,
+                userImgSrc: `https://robohash.org/${user.details.id}`,
             });
         }
+    }
+
+    fetchGroupMembers = () => {
+        const { groupId } = this.state;
+
+        UsersService.getGroupMembers(groupId).then((response: any) => {
+            this.setState({
+                groupMembers: response?.data?.userGroups || [],
+            });
+        }).catch((err: any) => {
+            console.log('Failed to fetch group members', err); // eslint-disable-line no-console
+        });
+    };
+
+    initAuthenticatedFeatures = () => {
+        const { searchForumMessages, user } = this.props;
+        const { groupId } = this.state;
+
+        this.props.joinForum({
+            roomId: groupId,
+            roomName: groupId,
+            userId: user.details.id,
+            userName: user.details.userName,
+            userImgSrc: `https://robohash.org/${user.details.id}`,
+        });
+
+        searchForumMessages(groupId, user.details.id, {
+            itemsPerPage: ITEMS_PER_PAGE,
+            pageNumber: 1,
+        });
+
+        this.fetchGroupMembers();
+
+        this.messageInputRef.current?.focus();
     };
 
     onInputChange = (name: string, value: string) => {
-        const newInputChanges = {
-            [name]: value,
-        };
         this.setState({
             inputs: {
                 ...this.state.inputs,
-                ...newInputChanges,
+                [name]: value,
             },
         });
     };
@@ -370,6 +369,16 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         return this.props.translate('pages.chatForum.membershipRoles.default');
     };
 
+    renderBreadcrumbs(groupTitle: string): JSX.Element {
+        const items = [
+            <Anchor href="/" key="home">{this.props.translate('pages.navigation.home')}</Anchor>,
+            <Text key="groups" component="span">{this.props.translate('pages.navigation.groups')}</Text>,
+            <Text key="title" component="span">{groupTitle}</Text>,
+        ];
+
+        return <Breadcrumbs className="group-breadcrumbs">{items}</Breadcrumbs>;
+    }
+
     renderChatTab = () => {
         const { messages, user } = this.props;
         const forumMsgsRaw = messages.forumMsgs[user.socketDetails.currentRoom];
@@ -419,13 +428,11 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         );
     };
 
-    renderEventsTab = () => {
-        const { groupEvents } = this.state;
-
+    renderEventsTab = (groupEvents: any[]) => {
         if (!groupEvents || groupEvents.length === 0) {
             return (
                 <Card shadow="sm" padding="lg" radius="md" withBorder>
-                    <Text c="dimmed" ta="center">{this.props.translate('pages.chatForum.noEventsFound')}</Text>
+                    <Text c="dimmed" ta="center">{this.props.translate('pages.viewGroup.labels.noEvents')}</Text>
                 </Card>
             );
         }
@@ -442,15 +449,13 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
             <div className="events-list">
                 {upcomingEvents.length > 0 && (
                     <div className="events-section">
-                        <Title order={3} mb="sm">{this.props.translate('pages.chatForum.upcomingEvents')}</Title>
+                        <Title order={3} mb="sm">{this.props.translate('pages.viewGroup.labels.upcomingEvents')}</Title>
                         {upcomingEvents.map(renderEventCard)}
                     </div>
                 )}
                 {pastEvents.length > 0 && (
                     <div className="events-section" style={{ marginTop: upcomingEvents.length > 0 ? 'var(--mantine-spacing-lg)' : undefined }}>
-                        <Title order={3} mb="sm">
-                            {this.props.translate('pages.chatForum.pastEvents')}
-                        </Title>
+                        <Title order={3} mb="sm">{this.props.translate('pages.viewGroup.labels.pastEvents')}</Title>
                         {pastEvents.map(renderEventCard)}
                     </div>
                 )}
@@ -458,7 +463,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         );
     };
 
-    renderMembersTab = () => {
+    renderMembersTabAuthenticated = () => {
         const sortedMembers = this.getSortedMembers();
 
         if (!sortedMembers || sortedMembers.length === 0) {
@@ -513,22 +518,93 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         );
     };
 
-    render() {
-        const { location, user } = this.props;
-        const { activeTab, groupDetails } = this.state;
+    renderLoginLinks(): JSX.Element {
+        return (
+            <MantineGroup gap="sm" justify="center">
+                <Anchor href="/login">{this.props.translate('components.header.buttons.login')}</Anchor>
+                <Anchor href="/register">{this.props.translate('pages.login.buttons.signUp')}</Anchor>
+            </MantineGroup>
+        );
+    }
 
-        const roomName = groupDetails?.title
-            || (location.state as any)?.roomName
-            || user.socketDetails.currentRoom;
-        const subtitle = groupDetails?.subtitle;
-        const description = groupDetails?.description;
-        const hashtags = groupDetails?.hashTags ? groupDetails.hashTags.split(',') : [];
-        const featuredImage = groupDetails?.featuredImage || groupDetails?.media?.[0]?.path;
+    renderMembersTabPublic = () => {
+        const { groupMembers } = this.state;
 
         return (
-            <div id="page_chat_forum">
+            <Card shadow="sm" padding="lg" radius="md" withBorder>
+                <Stack gap="md" align="center">
+                    <Text fw={500}>
+                        {this.props.translate('pages.viewGroup.labels.memberCount', { count: groupMembers.length || '—' })}
+                    </Text>
+                    <Text c="dimmed" ta="center">{this.props.translate('pages.viewGroup.labels.joinToSeeMembers')}</Text>
+                    {this.renderLoginLinks()}
+                </Stack>
+            </Card>
+        );
+    };
+
+    renderPrivateGroupMessage(): JSX.Element {
+        return (
+            <Container id="page_view_group" size="md" py="xl">
+                <Stack gap="md" align="center">
+                    <Title order={2}>{this.props.translate('pages.viewGroup.labels.privateGroupMessage')}</Title>
+                    <Text c="dimmed" ta="center">{this.props.translate('pages.viewGroup.labels.privateGroupCta')}</Text>
+                    {this.renderLoginLinks()}
+                </Stack>
+            </Container>
+        );
+    }
+
+    renderSignUpCta(): JSX.Element {
+        return (
+            <Paper withBorder p="lg" radius="md" className="event-cta-card">
+                <Text fw={600} ta="center">{this.props.translate('pages.viewGroup.labels.signUpPrompt')}</Text>
+                {this.renderLoginLinks()}
+            </Paper>
+        );
+    }
+
+    renderAppDownloadBanner(): JSX.Element {
+        return (
+            <Paper withBorder p="lg" radius="md" mt="md" className="event-cta-card">
+                <Text fw={600} ta="center">{this.props.translate('pages.viewGroup.labels.getFullExperience')}</Text>
+                <MantineGroup justify="center" mt="sm" gap="md">
+                    <Anchor href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
+                        <Image aria-label="apple store link" maw={120} src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
+                    </Anchor>
+                    <Anchor href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
+                        <Image aria-label="play store link" maw={120} src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" />
+                    </Anchor>
+                </MantineGroup>
+            </Paper>
+        );
+    }
+
+    public render(): JSX.Element {
+        const { forums, user } = this.props;
+        const { activeTab, groupId } = this.state;
+        const group = forums?.forumDetails?.[groupId];
+        const isAuthenticated = !!user?.details?.id;
+
+        // Private group check for unauthenticated users
+        if (group && !group.isPublic && !isAuthenticated) {
+            return this.renderPrivateGroupMessage();
+        }
+
+        const groupTitle = group?.title || '';
+        const subtitle = group?.subtitle;
+        const description = group?.description;
+        const hashtags = group?.hashTags ? group.hashTags.split(',') : [];
+        const featuredImage = group?.featuredImage || group?.media?.[0]?.path;
+        const groupEvents = group?.events || [];
+
+        return (
+            <div id="page_view_group">
                 <Container size="md">
                     <Stack gap="md" style={{ minHeight: 'calc(100vh - 200px)' }}>
+                        {/* Breadcrumbs */}
+                        {groupTitle && this.renderBreadcrumbs(groupTitle)}
+
                         {/* Group Info Header */}
                         <Card shadow="sm" padding="lg" radius="md" withBorder>
                             <div className="forum-header">
@@ -538,10 +614,10 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                                     size="xl"
                                     color="blue"
                                 >
-                                    {roomName?.charAt(0)?.toUpperCase() || 'G'}
+                                    {groupTitle?.charAt(0)?.toUpperCase() || 'G'}
                                 </Avatar>
                                 <div className="forum-header-info">
-                                    <Title order={2}>{roomName}</Title>
+                                    <Title order={1} size="h2">{groupTitle}</Title>
                                     {subtitle && <Text size="sm" c="dimmed">{subtitle}</Text>}
                                     {description && (
                                         <Text size="sm" mt="xs" className="forum-description" lineClamp={3}>
@@ -562,61 +638,40 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                         </Card>
 
                         {/* App Download Banner */}
-                        <Card shadow="sm" padding="xs" radius={0} withBorder className="app-banner">
-                            <Flex align="center" justify="center" gap="sm" wrap="wrap">
-                                <Text size="sm" fw={500}>
-                                    {this.props.translate('pages.chatForum.appBanner.message')}
-                                </Text>
-                                <Flex gap="xs">
-                                    <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
-                                        <img
-                                            src="/assets/images/apple-store-download-button.svg"
-                                            alt={this.props.translate('pages.chatForum.appBanner.appStoreAlt')}
-                                            width="110"
-                                            height="36"
-                                            loading="lazy"
-                                        />
-                                    </a>
-                                    <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
-                                        <img
-                                            src="/assets/images/play-store-download-button.svg"
-                                            alt={this.props.translate('pages.chatForum.appBanner.playStoreAlt')}
-                                            width="110"
-                                            height="36"
-                                            loading="lazy"
-                                        />
-                                    </a>
-                                </Flex>
-                            </Flex>
-                        </Card>
+                        {this.renderAppDownloadBanner()}
 
-                        {/* Tabs: Chat / Events / Members */}
+                        {/* Login/Signup CTA for unauthenticated users */}
+                        {!isAuthenticated && this.renderSignUpCta()}
+
+                        {/* Tabs */}
                         <div className="forum-tabs-container">
                             <Tabs
                                 value={activeTab}
-                                onChange={(value) => this.setState({ activeTab: value || 'chat' })}
+                                onChange={(value) => this.setState({ activeTab: value || 'events' })}
                                 classNames={{
                                     tab: 'forum-tab',
                                     list: 'forum-tabs-list',
                                 }}
                             >
                                 <Tabs.List grow>
-                                    <Tabs.Tab value="chat">
-                                        {this.props.translate('pages.chatForum.tabs.chat')}
-                                    </Tabs.Tab>
+                                    {isAuthenticated && (
+                                        <Tabs.Tab value="chat">
+                                            {this.props.translate('pages.chatForum.tabs.chat')}
+                                        </Tabs.Tab>
+                                    )}
                                     <Tabs.Tab value="events">
-                                        {this.props.translate('pages.chatForum.tabs.events')}
+                                        {this.props.translate('pages.viewGroup.headings.events')}
                                     </Tabs.Tab>
                                     <Tabs.Tab value="members">
-                                        {this.props.translate('pages.chatForum.tabs.members')}
+                                        {this.props.translate('pages.viewGroup.headings.members')}
                                     </Tabs.Tab>
                                 </Tabs.List>
                             </Tabs>
                         </div>
 
-                        {activeTab === 'chat' && this.renderChatTab()}
-                        {activeTab === 'events' && this.renderEventsTab()}
-                        {activeTab === 'members' && this.renderMembersTab()}
+                        {isAuthenticated && activeTab === 'chat' && this.renderChatTab()}
+                        {activeTab === 'events' && this.renderEventsTab(groupEvents)}
+                        {activeTab === 'members' && (isAuthenticated ? this.renderMembersTabAuthenticated() : this.renderMembersTabPublic())}
                     </Stack>
                 </Container>
             </div>
@@ -624,4 +679,4 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 }
 
-export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(ForumComponent)));
+export default withNavigation(withTranslation(connect(mapStateToProps, mapDispatchToProps)(ViewGroupComponent)));

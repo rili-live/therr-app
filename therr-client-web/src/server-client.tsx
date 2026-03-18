@@ -785,7 +785,15 @@ const renderEventView = (req, res, config, {
         };
     }
 
-    if (organizerName) {
+    // Organizer: prefer group, fallback to person
+    const groupData = event?.groupId && initialState?.forums?.forumDetails?.[event.groupId];
+    if (groupData?.title) {
+        eventSchema.organizer = {
+            '@type': 'Organization',
+            name: groupData.title,
+            url: `https://www.therr.com/groups/${event.groupId}`,
+        };
+    } else if (organizerName) {
         eventSchema.organizer = {
             '@type': 'Person',
             name: organizerName,
@@ -798,11 +806,19 @@ const renderEventView = (req, res, config, {
         {
             '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
         },
-        {
-            '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
-        },
-        { '@type': 'ListItem', position: 3, name: eventTitle },
     ];
+
+    if (groupData?.title) {
+        breadcrumbItems.push({
+            '@type': 'ListItem', position: 2, name: groupData.title, item: `https://www.therr.com/groups/${event.groupId}`,
+        });
+        breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: eventTitle });
+    } else {
+        breadcrumbItems.push({
+            '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
+        });
+        breadcrumbItems.push({ '@type': 'ListItem', position: 3, name: eventTitle });
+    }
 
     const breadcrumbSchema = {
         '@context': 'https://schema.org',
@@ -990,6 +1006,96 @@ const renderLocationsView = (req, res, config, {
     });
 };
 
+const renderGroupView = (req, res, config, {
+    markup,
+    state,
+}, initialState, localeVars) => {
+    const routePath = config.route;
+    const routeView = config.view;
+    const title = config.head.title;
+    const description = config.head.description
+        // eslint-disable-next-line max-len
+        || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
+
+    const groupId = req.params?.groupId;
+    const group = initialState?.forums?.forumDetails?.[groupId];
+    const groupTitle = group ? group?.title : title;
+    const groupDescription = (group?.description || description).replace(/\\n/g, ' ')
+        .replace(/\\r/g, ' ').substring(0, 300);
+
+    let metaImgUrl;
+
+    const mediaPath = group?.media?.[0]?.path;
+    const mediaType = group?.media?.[0]?.type;
+    const groupMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
+        ? getUserContentUri(group.media[0])
+        : undefined;
+
+    if (groupMediaUri) {
+        if (groupMediaUri.includes('.jpg') || groupMediaUri.includes('.jpeg') || groupMediaUri.includes('.png')) {
+            metaImgUrl = groupMediaUri;
+        }
+    }
+
+    // schema.org/Organization JSON-LD
+    const groupSchema: any = {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: groupTitle,
+        url: `https://www.therr.com${localeVars.canonicalPath}`,
+    };
+
+    if (groupDescription) {
+        groupSchema.description = groupDescription;
+    }
+    if (metaImgUrl) {
+        groupSchema.image = metaImgUrl;
+    }
+
+    if (group?.events?.length) {
+        groupSchema.event = group.events.map((event: any) => {
+            const eventEntry: any = {
+                '@type': 'Event',
+                name: event.notificationMsg || event.title,
+                url: `https://www.therr.com/events/${event.id}`,
+            };
+            if (event.scheduleStartAt) {
+                eventEntry.startDate = event.scheduleStartAt;
+            }
+            return eventEntry;
+        });
+    }
+
+    // Breadcrumb schema
+    const breadcrumbItems: any[] = [
+        {
+            '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+        },
+        {
+            '@type': 'ListItem', position: 2, name: 'Groups', item: 'https://www.therr.com/groups',
+        },
+        { '@type': 'ListItem', position: 3, name: groupTitle },
+    ];
+
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbItems,
+    };
+
+    return res.render(routeView, {
+        title: groupTitle,
+        description: groupDescription,
+        metaImgUrl,
+        groupSchema: JSON.stringify(groupSchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        markup,
+        routePath,
+        state,
+        ...localeVars,
+    });
+};
+
 const renderInviteView = (req, res, config, {
     markup,
     state,
@@ -1143,6 +1249,13 @@ routeConfig.forEach((config) => {
 
                 if (routeView === 'locations') {
                     return renderLocationsView(req, res, config, {
+                        markup,
+                        state,
+                    }, initialState, localeVars);
+                }
+
+                if (routeView === 'groups') {
+                    return renderGroupView(req, res, config, {
                         markup,
                         state,
                     }, initialState, localeVars);
