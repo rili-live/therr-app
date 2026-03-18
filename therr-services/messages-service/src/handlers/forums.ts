@@ -295,8 +295,33 @@ const searchForums: RequestHandler = (req: any, res: any) => {
         itemsPerPage,
         pageNumber,
     } = req.query;
+    const isAuthenticated = !!userId;
     const integerColumns = ['authorId'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
+
+    // For unauthenticated users, return only public forums without user/member enrichment
+    if (!isAuthenticated) {
+        return Store.forums.searchForums(searchArgs[0], searchArgs[1], {
+            usersInvitedForumIds: undefined,
+            categoryTags: req.body.categoryTags,
+            forumIds: req.body.forumIds,
+        }).then((results) => {
+            const response = {
+                results: results.map((result) => ({
+                    ...result,
+                    createdAt: moment(result.createdAt).format('M/D/YY, h:mma'),
+                })),
+                pagination: {
+                    totalItems: 100,
+                    itemsPerPage: Number(itemsPerPage),
+                    pageNumber: Number(pageNumber),
+                },
+            };
+
+            return res.status(200).send(response);
+        }).catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
+    }
+
     const searchPromise = Store.forums.searchForums(searchArgs[0], searchArgs[1], {
         usersInvitedForumIds: req.body.usersInvitedForumIds,
         categoryTags: req.body.categoryTags,

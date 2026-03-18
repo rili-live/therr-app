@@ -64,7 +64,7 @@ messagesServiceRouter.post('/forums/activities', createActivityValidation, valid
     method: 'post',
 }));
 
-messagesServiceRouter.post('/forums/search', searchForumsValidation, validate, handleServiceRequest({
+messagesServiceRouter.post('/forums/search', authenticateOptional, searchForumsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'post',
 }));
