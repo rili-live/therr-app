@@ -182,9 +182,14 @@ class Notifications extends React.Component<
                         momentDetails: {},
                     });
                 }
+            } else if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED
+                && (notification.messageParams?.activatedMomentIds?.length
+                    || notification.messageParams?.activatedSpaceIds?.length)) {
+                navigation.navigate('ActivatedAreas', {
+                    activatedMomentIds: notification.messageParams?.activatedMomentIds || [],
+                    activatedSpaceIds: notification.messageParams?.activatedSpaceIds || [],
+                });
             } else {
-                // NEW_AREAS_ACTIVATED
-                // TODO: Load a page with a list of the newly activated areas
                 navigation.navigate('Nearby');
             }
         } else if (notification.type === NotificationsEmuns.Types.ACHIEVEMENT_COMPLETED) {
