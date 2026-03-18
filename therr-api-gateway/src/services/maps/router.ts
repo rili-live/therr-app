@@ -11,6 +11,7 @@ import {
     createMomentLimiter,
     createSpaceLimiter,
     pairingFeedbackLimiter,
+    placesApiLimiter,
 } from './limitation/map';
 import { createCheckInValidation, getSignedUrlValidation } from './validation';
 import {
@@ -343,13 +344,54 @@ mapsServiceRouter.post('/spaces/request-approve/:spaceId', validate, authorize(
     method: 'post',
 }));
 
-// TODO: Add rate limiter?
-// External APIs
+// External APIs - Google Places proxy with rate limiting and caching
+mapsServiceRouter.get('/place/*', placesApiLimiter, async (req, res, next) => {
+    // Cache GET requests (autocomplete, details) using query string as key
+    const cacheKey = `${req.path}:${JSON.stringify(req.query)}`;
+    const cached = await CacheStore.mapsService.getPlacesResponse(cacheKey);
+
+    if (cached) {
+        return res.status(200).json(cached);
+    }
+
+    // Store cache key on request for the proxy response handler
+    (req as any).placesCacheKey = cacheKey;
+    return next();
+});
+
 mapsServiceRouter.use('/place', createProxyMiddleware({
     target: 'https://maps.googleapis.com',
-    // pathRewrite: { '^/v1/maps-service/place': '/maps/api/place' },
     pathRewrite: (path) => `${path.replace('/v1/maps-service/place', '/maps/api/place')}&key=${process.env.GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY}`,
     changeOrigin: true,
+    proxyTimeout: 10000, // 10s timeout to prevent hanging requests
+    selfHandleResponse: true,
+    on: {
+        proxyRes: (proxyRes, req, res) => {
+            let body = '';
+            proxyRes.on('data', (chunk) => { body += chunk; });
+            proxyRes.on('end', () => {
+                const statusCode = proxyRes.statusCode || 500;
+                res.status(statusCode);
+                Object.keys(proxyRes.headers).forEach((key) => {
+                    if (proxyRes.headers[key]) {
+                        res.setHeader(key, proxyRes.headers[key] as string);
+                    }
+                });
+
+                // Cache successful GET responses
+                if (statusCode === 200 && req.method === 'GET' && (req as any).placesCacheKey) {
+                    try {
+                        const parsed = JSON.parse(body);
+                        CacheStore.mapsService.setPlacesResponse((req as any).placesCacheKey, parsed);
+                    } catch (e) {
+                        // Non-JSON response, skip caching
+                    }
+                }
+
+                res.end(body);
+            });
+        },
+    },
 }));
 
 export default mapsServiceRouter;
