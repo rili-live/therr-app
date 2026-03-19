@@ -149,8 +149,17 @@ class Notifications extends React.Component<
 
     navigateToNotificationContext = (notification) => {
         const { navigation } = this.props;
-        if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED
-            || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
+        if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED) {
+            if (notification.messageParams?.activatedMomentIds?.length
+                || notification.messageParams?.activatedSpaceIds?.length) {
+                navigation.navigate('ActivatedAreas', {
+                    activatedMomentIds: notification.messageParams?.activatedMomentIds || [],
+                    activatedSpaceIds: notification.messageParams?.activatedSpaceIds || [],
+                });
+            } else {
+                navigation.navigate('Nearby');
+            }
+        } else if (notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
             || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED
             || notification.type === NotificationsEmuns.Types.THOUGHT_REPLY) {
             if (notification.messageParams?.thoughtId) {
@@ -182,15 +191,6 @@ class Notifications extends React.Component<
                         momentDetails: {},
                     });
                 }
-            } else if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED
-                && (notification.messageParams?.activatedMomentIds?.length
-                    || notification.messageParams?.activatedSpaceIds?.length)) {
-                navigation.navigate('ActivatedAreas', {
-                    activatedMomentIds: notification.messageParams?.activatedMomentIds || [],
-                    activatedSpaceIds: notification.messageParams?.activatedSpaceIds || [],
-                });
-            } else {
-                navigation.navigate('Nearby');
             }
         } else if (notification.type === NotificationsEmuns.Types.ACHIEVEMENT_COMPLETED) {
             navigation.navigate('Achievements');

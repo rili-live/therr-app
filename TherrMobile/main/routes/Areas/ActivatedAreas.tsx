@@ -65,7 +65,6 @@ class ActivatedAreas extends React.Component<IActivatedAreasProps, IActivatedAre
     private theme = buildStyles();
     private themeForms = buildFormStyles();
     private themeMenu = buildMenuStyles();
-    private themeMoments = buildMomentStyles();
     private themeLoader = buildLoaderStyles();
 
     constructor(props) {
@@ -79,7 +78,6 @@ class ActivatedAreas extends React.Component<IActivatedAreasProps, IActivatedAre
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
-        this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params?: any) =>
             translator(props.user.settings?.locale || 'en-us', key, params);
@@ -114,7 +112,7 @@ class ActivatedAreas extends React.Component<IActivatedAreasProps, IActivatedAre
             promises.push(searchActiveSpacesByIds(searchOptions, activatedSpaceIds));
         }
 
-        Promise.all(promises)
+        return Promise.all(promises)
             .then(() => {
                 this.updateActivatedData();
             })
@@ -272,7 +270,7 @@ class ActivatedAreas extends React.Component<IActivatedAreasProps, IActivatedAre
                         updateSpaceReaction={this.props.createOrUpdateSpaceReaction}
                         emptyListMessage={this.translate('pages.activatedAreas.noAreasFound')}
                         renderHeader={this.renderHeader}
-                        renderFooter={() => this.renderFooter()}
+                        renderFooter={this.renderFooter}
                         renderLoader={() => <LottieLoader id="earth" theme={this.themeLoader} />}
                         user={user}
                         rootStyles={this.theme.styles}
