@@ -16,7 +16,7 @@ const getHighlightValues = (notification: any): string[] => {
     const params = notification.messageParams;
     const type = notification.type;
 
-    // Add dynamic param values (user names, group names, etc.)
+    // Add dynamic param values (user names, group names, counts, etc.)
     if (params) {
         if (params.firstName && params.lastName) {
             values.push(`${params.firstName} ${params.lastName}`);
@@ -29,6 +29,7 @@ const getHighlightValues = (notification: any): string[] => {
         if (params.fromUserName) values.push(params.fromUserName);
         if (params.members) values.push(params.members);
         if (params.groupName) values.push(params.groupName);
+        if (params.totalAreasActivated) values.push(String(params.totalAreasActivated));
     }
 
     // Add type-specific action keywords that indicate routing destination
@@ -43,7 +44,7 @@ const getHighlightValues = (notification: any): string[] => {
     } else if (type === NotificationEnums.Types.NEW_DM_RECEIVED) {
         values.push('direct message', 'mensaje directo');
     } else if (type === NotificationEnums.Types.NEW_AREAS_ACTIVATED) {
-        values.push('new areas', 'nueva');
+        values.push('new areas(s)', 'nueva(s) área(s)');
     } else if (type === NotificationEnums.Types.DISCOVERED_UNIQUE_MOMENT) {
         values.push('activate a moment', 'activar un momento');
     } else if (type === NotificationEnums.Types.DISCOVERED_UNIQUE_SPACE) {
@@ -121,11 +122,11 @@ export default ({
     themeNotification,
 }: INotificationProps) => {
     // Styles
-    let rootStyle = isUnread ? themeNotification.styles.rootUnread : themeNotification.styles.rootRead;
-    let messageContainerStyle = isUnread ? themeNotification.styles.messageContainerUnread : themeNotification.styles.messageContainerRead;
-    let messageStyle = isUnread ? themeNotification.styles.unread : themeNotification.styles.read;
-    let highlightStyle = isUnread ? themeNotification.styles.highlightUnread : themeNotification.styles.highlightRead;
-    let iconStyle = isUnread ? themeNotification.styles.iconUnread : themeNotification.styles.iconRead;
+    const rootStyle = isUnread ? themeNotification.styles.rootUnread : themeNotification.styles.rootRead;
+    const messageContainerStyle = isUnread ? themeNotification.styles.messageContainerUnread : themeNotification.styles.messageContainerRead;
+    const messageStyle = isUnread ? themeNotification.styles.unread : themeNotification.styles.read;
+    const highlightStyle = isUnread ? themeNotification.styles.highlightUnread : themeNotification.styles.highlightRead;
+    const iconStyle = isUnread ? themeNotification.styles.iconUnread : themeNotification.styles.iconRead;
 
     const highlightValues = getHighlightValues(notification);
     const messageSegments = splitMessageByHighlights(notification.message, highlightValues);
