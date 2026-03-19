@@ -12,6 +12,10 @@ const read: Pool = new Pool({
     password: process.env.DB_PASSWORD_MAIN_READ,
     database: process.env.MESSAGES_SERVICE_DATABASE,
     port: Number(process.env.DB_PORT_MAIN_READ),
+    max: 20,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,
+    maxUses: 7500, // recycle connections to prevent memory leaks from long-lived connections
 });
 
 const write: Pool = new Pool({
@@ -20,6 +24,10 @@ const write: Pool = new Pool({
     password: process.env.DB_PASSWORD_MAIN_WRITE,
     database: process.env.MESSAGES_SERVICE_DATABASE,
     port: Number(process.env.DB_PORT_MAIN_WRITE),
+    max: 20,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,
+    maxUses: 7500, // recycle connections to prevent memory leaks from long-lived connections
 });
 
 read.on('error', (err, client) => {
@@ -46,7 +54,7 @@ write.on('error', (err, client) => {
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
         traceArgs: {
-            'db.host': process.env.DB_HOST_MAIN_READ,
+            'db.host': process.env.DB_HOST_MAIN_WRITE,
             'db.name': process.env.MESSAGES_SERVICE_DATABASE,
             'process.id': process.pid,
             'error.isUncaughtException': true,
