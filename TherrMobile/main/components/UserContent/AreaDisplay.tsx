@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
-import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { showToast } from '../../utilities/toasts';
@@ -35,6 +34,8 @@ import MissingImagePlaceholder from './MissingImagePlaceholder';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
 import SpaceRating from '../../components/Input/SpaceRating';
 import { buildSpaceUrl } from '../../utilities/shareUrls';
+import RichText from '../RichText';
+import handleMentionPress from '../../utilities/handleMentionPress';
 
 
 const envConfig = getConfig();
@@ -715,13 +716,13 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         </Text>
                     }
                 </View>
-                <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
-                    <Autolink
-                        text={area.message}
-                        linkStyle={theme.styles.link}
-                        phone="sms"
-                    />
-                </Text>
+                <RichText
+                    style={themeViewArea.styles.areaMessage}
+                    text={area.message}
+                    linkStyle={theme.styles.link}
+                    onMentionPress={!isSpace ? (username) => handleMentionPress(username, goToViewUser) : undefined}
+                    numberOfLines={isExpanded ? undefined : 3}
+                />
                 {
                     isExpanded && isEvent &&
                     <View style={[

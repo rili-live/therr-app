@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
-import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
 // import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -18,6 +17,8 @@ import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import { getUserImageUri } from '../../utilities/content';
 import TherrIcon from '../TherrIcon';
+import RichText from '../RichText';
+import handleMentionPress from '../../utilities/handleMentionPress';
 // import { HAPTIC_FEEDBACK_TYPE } from '../../constants';
 import formatDate from '../../utilities/formatDate';
 import SuperUserStatusIcon from '../SuperUserStatusIcon';
@@ -220,6 +221,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                     onBookmarkPress={this.onBookmarkPress}
                                     onCommentPress={this.onCommentPress}
                                     onLikePress={this.onLikePress}
+                                    goToViewUser={goToViewUser}
                                     theme={theme}
                                     themeForms={themeForms}
                                     themeViewContent={themeViewContent}
@@ -244,6 +246,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                 onBookmarkPress={this.onBookmarkPress}
                                 onCommentPress={this.onCommentPress}
                                 onLikePress={this.onLikePress}
+                                goToViewUser={goToViewUser}
                                 theme={theme}
                                 themeForms={themeForms}
                                 themeViewContent={themeViewContent}
@@ -269,21 +272,24 @@ const ThoughtContent = ({
     onBookmarkPress,
     onCommentPress,
     onLikePress,
+    goToViewUser,
     theme,
     themeForms,
     themeViewContent,
     thought,
 }) => {
+    const onMentionPress = (username: string) => handleMentionPress(username, goToViewUser);
+
     return (
         <Pressable style={themeViewContent.styles.thoughtContentContainer} onPress={() => inspectThought(thought)}>
             <View style={spacingStyles.flexOne}>
-                <Text style={themeViewContent.styles.thoughtMessage} numberOfLines={isExpanded ? undefined : 7}>
-                    <Autolink
-                        text={thought.message}
-                        linkStyle={theme.styles.link}
-                        phone="sms"
-                    />
-                </Text>
+                <RichText
+                    style={themeViewContent.styles.thoughtMessage}
+                    text={thought.message}
+                    linkStyle={theme.styles.link}
+                    onMentionPress={onMentionPress}
+                    numberOfLines={isExpanded ? undefined : 7}
+                />
                 <View>
                     <HashtagsContainer
                         hasIcon={false}
