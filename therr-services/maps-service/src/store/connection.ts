@@ -54,7 +54,7 @@ write.on('error', (err, client) => {
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
         traceArgs: {
-            'db.host': process.env.DB_HOST_MAIN_READ,
+            'db.host': process.env.DB_HOST_MAIN_WRITE,
             'db.name': process.env.MAPS_SERVICE_DATABASE,
             'process.id': process.pid,
             'error.isUncaughtException': true,
