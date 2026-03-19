@@ -16,15 +16,13 @@ interface IRichTextProps {
 const parseMentions = (text: string) => {
     const parts: { type: 'text' | 'mention'; value: string }[] = [];
     let lastIndex = 0;
+    const matches = text.matchAll(mentionRegex);
 
-    const regex = new RegExp(mentionRegex);
-    let match = regex.exec(text);
-
-    while (match !== null) {
+    for (const match of matches) {
         const fullMatch = match[0];
         const prefix = match[1]; // whitespace or paren before @
         const username = match[2];
-        const matchStart = match.index;
+        const matchStart = match.index!;
 
         if (matchStart + prefix.length > lastIndex) {
             parts.push({ type: 'text', value: text.slice(lastIndex, matchStart + prefix.length) });
@@ -32,8 +30,6 @@ const parseMentions = (text: string) => {
 
         parts.push({ type: 'mention', value: username });
         lastIndex = matchStart + fullMatch.length;
-
-        match = regex.exec(text);
     }
 
     if (lastIndex < text.length) {
