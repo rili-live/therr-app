@@ -242,10 +242,10 @@ When frontend or mobile code contains hardcoded strings that are matched against
 Affected locations:
 - `TherrMobile/main/routes/Notifications/Notification.tsx` — `getHighlightValues()` uses keyword matching against translated notification messages
 
-Backend locale dictionaries to reference:
-- `therr-services/users-service/src/locales/en-us/dictionary.json`
-- `therr-services/users-service/src/locales/es/dictionary.json`
-- `therr-services/push-notifications-service/src/locales/en-us/dictionary.json`
+Backend locale dictionaries to reference (in-app notifications use users-service strings; push notifications use push-notifications-service strings):
+- `therr-services/users-service/src/locales/en-us/dictionary.json` (in-app notification list)
+- `therr-services/users-service/src/locales/es/dictionary.json` (in-app notification list)
+- `therr-services/push-notifications-service/src/locales/en-us/dictionary.json` (push notifications only)
 
 ## Notes
 
