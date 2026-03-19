@@ -36,6 +36,10 @@ const getHighlightValues = (notification: any): string[] => {
     // Include both English and Spanish variants for locale support
     if (type === NotificationEnums.Types.ACHIEVEMENT_COMPLETED) {
         values.push('claim your reward', 'Reclama tu recompensa');
+    } else if (type === NotificationEnums.Types.CONNECTION_REQUEST_ACCEPTED) {
+        values.push('connection request', 'solicitud de conexión');
+    } else if (type === NotificationEnums.Types.CONNECTION_REQUEST_RECEIVED) {
+        values.push('connection request', 'solicitud de conexión');
     } else if (type === NotificationEnums.Types.NEW_LIKE_RECEIVED
         || type === NotificationEnums.Types.NEW_SUPER_LIKE_RECEIVED) {
         values.push('your post', 'tu publicación');
@@ -43,6 +47,10 @@ const getHighlightValues = (notification: any): string[] => {
         values.push('new replies', 'nuevas respuestas');
     } else if (type === NotificationEnums.Types.NEW_DM_RECEIVED) {
         values.push('direct message', 'mensaje directo');
+    } else if (type === NotificationEnums.Types.NEW_GROUP_INVITE) {
+        values.push('join the group', 'unirte al grupo');
+    } else if (type === NotificationEnums.Types.NEW_GROUP_MEMBERS) {
+        values.push('joined your group', 'se unieron a tu grupo');
     } else if (type === NotificationEnums.Types.NEW_AREAS_ACTIVATED) {
         values.push('new areas(s)', 'nueva(s) área(s)');
     } else if (type === NotificationEnums.Types.DISCOVERED_UNIQUE_MOMENT) {
@@ -58,10 +66,11 @@ const splitMessageByHighlights = (message: string, highlights: string[]): IMessa
     if (!message) return [{ text: '', highlighted: false }];
     if (!highlights.length) return [{ text: message, highlighted: false }];
 
-    // Find all matches with their positions
+    // Find all matches with their positions (case-insensitive)
+    const messageLower = message.toLowerCase();
     const matches: { start: number; end: number }[] = [];
     for (const highlight of highlights) {
-        const idx = message.indexOf(highlight);
+        const idx = messageLower.indexOf(highlight.toLowerCase());
         if (idx !== -1) {
             matches.push({ start: idx, end: idx + highlight.length });
         }
@@ -149,7 +158,7 @@ export default ({
                     {messageSegments.map((segment, idx) => (
                         segment.highlighted
                             ? <Text key={idx} style={highlightStyle}>{segment.text}</Text>
-                            : segment.text
+                            : <React.Fragment key={idx}>{segment.text}</React.Fragment>
                     ))}
                 </Text>
                 {
