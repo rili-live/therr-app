@@ -96,12 +96,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         highlightUnread: {
             ...notificationStyle,
-            color: therrTheme.colors.brandingOrange,
+            color: therrTheme.colors.hyperlink,
             fontWeight: 'bold' as const,
         },
         highlightRead: {
             ...notificationStyle,
-            color: therrTheme.colors.brandingOrange,
+            color: therrTheme.colors.hyperlink,
             fontWeight: 'bold' as const,
         },
         iconContainerStyle: {
