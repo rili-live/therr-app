@@ -2,7 +2,9 @@ import React from 'react';
 import { Text } from 'react-native';
 import Autolink from 'react-native-autolink';
 
-const mentionRegex = /(^|[\s(])@([a-zA-Z0-9_]+)/g;
+// Supports letters, digits, underscores, and periods (per username sanitizer)
+// Periods are allowed mid-username but stripped from the end to avoid matching trailing punctuation
+const mentionRegex = /(^|[\s(])@([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)*)/g;
 
 interface IRichTextProps {
     text: string;
@@ -75,7 +77,7 @@ const RichText: React.FC<IRichTextProps> = ({
                     return (
                         <Text
                             key={index}
-                            style={linkStyle}
+                            style={onMentionPress ? linkStyle : undefined}
                             onPress={onMentionPress ? () => onMentionPress(part.value) : undefined}
                         >
                             @{part.value}
@@ -89,6 +91,7 @@ const RichText: React.FC<IRichTextProps> = ({
                         text={part.value}
                         linkStyle={linkStyle}
                         phone="sms"
+                        selectable={selectable}
                     />
                 );
             })}
