@@ -32,21 +32,22 @@ const getHighlightValues = (notification: any): string[] => {
     }
 
     // Add type-specific action keywords that indicate routing destination
+    // Include both English and Spanish variants for locale support
     if (type === NotificationEnums.Types.ACHIEVEMENT_COMPLETED) {
-        values.push('claim your reward');
+        values.push('claim your reward', 'Reclama tu recompensa');
     } else if (type === NotificationEnums.Types.NEW_LIKE_RECEIVED
         || type === NotificationEnums.Types.NEW_SUPER_LIKE_RECEIVED) {
-        values.push('your post');
+        values.push('your post', 'tu publicación');
     } else if (type === NotificationEnums.Types.THOUGHT_REPLY) {
-        values.push('new replies');
+        values.push('new replies', 'nuevas respuestas');
     } else if (type === NotificationEnums.Types.NEW_DM_RECEIVED) {
-        values.push('direct message');
+        values.push('direct message', 'mensaje directo');
     } else if (type === NotificationEnums.Types.NEW_AREAS_ACTIVATED) {
-        values.push('new areas');
+        values.push('new areas', 'nueva');
     } else if (type === NotificationEnums.Types.DISCOVERED_UNIQUE_MOMENT) {
-        values.push('activate a moment');
+        values.push('activate a moment', 'activar un momento');
     } else if (type === NotificationEnums.Types.DISCOVERED_UNIQUE_SPACE) {
-        values.push('activate a space');
+        values.push('activate a space', 'activar un espacio');
     }
 
     return values;
