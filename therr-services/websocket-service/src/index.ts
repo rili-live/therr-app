@@ -112,6 +112,23 @@ const startExpressSocketIOServer = () => {
         });
     });
 
+    const fetchAndEmitRoomsList = (emitFn: (roomsList: any) => void) => {
+        (io.of('/').adapter as any).allRooms()
+            .then((allRooms) => getSocketRoomsList(io, allRooms))
+            .then(emitFn)
+            .catch((err) => {
+                logSpan({
+                    level: 'error',
+                    messageOrigin: 'SOCKET_IO_LOGS',
+                    messages: err?.toString(),
+                    traceArgs: {
+                        'error.message': err?.message,
+                        source: 'fetchAndEmitRoomsList',
+                    },
+                });
+            });
+    };
+
     io.on('connection', async (socket: Socket) => {
         logSpan({
             level: 'info',
@@ -145,12 +162,10 @@ const startExpressSocketIOServer = () => {
             switch (action.type) {
                 case SocketClientActionTypes.REQUEST_ROOMS_LIST:
                     if (decodedAuthenticationToken) {
-                        (io.of('/').adapter as any).allRooms().then((allRooms) => (
-                            getSocketRoomsList(io, allRooms)
-                        )).then((freshRoomsList) => {
+                        fetchAndEmitRoomsList((roomsList) => {
                             socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                                 type: SocketServerActionTypes.SEND_ROOMS_LIST,
-                                data: freshRoomsList,
+                                data: roomsList,
                             });
                         });
                     }
@@ -159,12 +174,10 @@ const startExpressSocketIOServer = () => {
                     if (decodedAuthenticationToken) {
                         socketHandlers.joinRoom(internalRestConfig, socket, action.data, decodedAuthenticationToken);
                         // Notify all users with fresh rooms list
-                        (io.of('/').adapter as any).allRooms().then((allRooms) => (
-                            getSocketRoomsList(io, allRooms)
-                        )).then((freshRoomsList) => {
+                        fetchAndEmitRoomsList((roomsList) => {
                             socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
                                 type: SocketServerActionTypes.SEND_ROOMS_LIST,
-                                data: freshRoomsList,
+                                data: roomsList,
                             });
                         });
                     }
@@ -174,12 +187,10 @@ const startExpressSocketIOServer = () => {
                     if (decodedAuthenticationToken) {
                         socketHandlers.leaveRoom(internalRestConfig, socket, action.data, decodedAuthenticationToken);
                         // Notify all users with fresh rooms list
-                        (io.of('/').adapter as any).allRooms().then((allRooms) => (
-                            getSocketRoomsList(io, allRooms)
-                        )).then((freshRoomsList) => {
+                        fetchAndEmitRoomsList((roomsList) => {
                             socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
                                 type: SocketServerActionTypes.SEND_ROOMS_LIST,
-                                data: freshRoomsList,
+                                data: roomsList,
                             });
                         });
                     }

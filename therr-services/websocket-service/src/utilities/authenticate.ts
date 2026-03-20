@@ -25,7 +25,9 @@ export default (socket, { skipCache = false } = {}) => new Promise((resolve) => 
     jwt.verify(socket.handshake.query.token, (process.env.JWT_SECRET || ''), (err, decoded) => {
         if (err) {
             // Clear cached token on verification failure
-            socket.data.decodedToken = undefined;
+            if (socket.data) {
+                socket.data.decodedToken = undefined;
+            }
 
             logSpan({
                 level: 'info',
@@ -45,7 +47,9 @@ export default (socket, { skipCache = false } = {}) => new Promise((resolve) => 
         }
 
         // Cache the decoded token on the socket for subsequent actions
-        socket.data.decodedToken = decoded;
+        if (socket.data) {
+            socket.data.decodedToken = decoded;
+        }
 
         return resolve(decoded);
     });
