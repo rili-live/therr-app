@@ -33,8 +33,11 @@ import {
 import { updateNotificationValidation } from './validation/notifications';
 import {
     feedbackAttemptLimiter,
+    forgotPasswordLimiter,
     loginAttemptLimiter,
+    refreshTokenLimiter,
     registerAttemptLimiter,
+    resendVerificationLimiter,
     rewardRequestAttemptLimiter,
     userConnectionLimiter,
     multiInviteLimiter,
@@ -73,12 +76,41 @@ usersServiceRouter.post('/auth', authenticateOptional, loginAttemptLimiter, auth
     method: 'post',
 }));
 
-usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, handleServiceRequest({
+usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, async (req, res, next) => {
+    // Blacklist the current access token on server-side logout
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (token) {
+            const jwt = await import('jsonwebtoken');
+            const decoded = jwt.default.decode(token) as any;
+            if (decoded?.jti && decoded?.exp) {
+                const { blacklistToken, revokeAllUserRefreshTokens } = await import('../../store/redisClient');
+                const remainingTtl = decoded.exp - Math.floor(Date.now() / 1000);
+                if (remainingTtl > 0) {
+                    await blacklistToken(decoded.jti, remainingTtl);
+                }
+                // Also revoke all refresh tokens for this user
+                if (decoded.id) {
+                    await revokeAllUserRefreshTokens(decoded.id);
+                }
+            }
+        }
+    } catch (err) {
+        // Log but don't block logout if blacklisting fails
+        console.error('Failed to blacklist token on logout:', err);
+    }
+    return next();
+}, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
 
 usersServiceRouter.post('/auth/user-token/validate', authenticateUserTokenValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.post('/auth/token/refresh', refreshTokenLimiter, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
@@ -246,12 +278,12 @@ usersServiceRouter.post('/users/search-pairings', searchUsersValidation, authori
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/forgot-password', forgotPasswordValidation, handleServiceRequest({
+usersServiceRouter.post('/users/forgot-password', forgotPasswordLimiter, forgotPasswordValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/verify/resend', resendVerificationValidation, handleServiceRequest({
+usersServiceRouter.post('/users/verify/resend', resendVerificationLimiter, resendVerificationValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

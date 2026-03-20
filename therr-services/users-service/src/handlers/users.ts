@@ -7,7 +7,7 @@ import normalizeEmail from 'normalize-email';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
-import { hashPassword } from '../utilities/userHelpers';
+import { hashPassword, createUserToken, createRefreshToken } from '../utilities/userHelpers';
 import generateCode from '../utilities/generateCode';
 import { sendVerificationEmail } from '../api/email';
 import generateOneTimePassword from '../utilities/generateOneTimePassword';
@@ -1138,8 +1138,25 @@ const verifyUserAccount = (req, res) => {
                         // Set expire rather than delete (gives a window for user to see if already verified)
                         await Store.verificationCodes.updateCode({ msExpiresAt: Date.now() }, { id: codeResults[0].id });
 
+                        // Generate auth tokens so client can auto-login after verification
+                        const verifiedUser = {
+                            ...userSearchResults[0],
+                            accessLevels: [...userAccessLevels],
+                        };
+                        const userOrgs = await Store.userOrganizations.get({
+                            userId: verifiedUser.id,
+                        }).catch(() => []);
+                        const idToken = createUserToken(verifiedUser, userOrgs);
+                        const refreshTokenData = createRefreshToken(verifiedUser.id);
+
+                        redactUserCreds(verifiedUser);
+
                         return res.status(200).send({
                             message: 'Account successfully verified',
+                            ...verifiedUser,
+                            idToken,
+                            refreshToken: refreshTokenData.token,
+                            userOrganizations: userOrgs,
                         });
                     }
 

@@ -129,6 +129,99 @@ redisEphemeralClient.on('connect', () => {
     console.log('Connected to ephemeral Redis');
 });
 
+// Token blacklist helpers for server-side logout
+const TOKEN_BLACKLIST_PREFIX = 'token-blacklist:';
+
+export const blacklistToken = async (jti: string, expiresInSeconds: number): Promise<void> => {
+    if (!jti || expiresInSeconds <= 0) return;
+
+    try {
+        await redisClient.set(`${TOKEN_BLACKLIST_PREFIX}${jti}`, '1', 'EX', expiresInSeconds);
+    } catch (err) {
+        console.error('Failed to blacklist token:', err);
+    }
+};
+
+export const isTokenBlacklisted = async (jti: string): Promise<boolean> => {
+    if (!jti) return false;
+
+    try {
+        const result = await redisClient.get(`${TOKEN_BLACKLIST_PREFIX}${jti}`);
+        return result !== null;
+    } catch (err) {
+        // Fail open: if Redis is down, don't block authenticated users
+        console.error('Failed to check token blacklist:', err);
+        return false;
+    }
+};
+
+// Refresh token store helpers
+const REFRESH_TOKEN_PREFIX = 'refresh-token:';
+
+export const storeRefreshToken = async (userId: string, jti: string, expiresInSeconds: number): Promise<void> => {
+    if (!userId || !jti || expiresInSeconds <= 0) return;
+
+    try {
+        await redisClient.set(`${REFRESH_TOKEN_PREFIX}${jti}`, userId, 'EX', expiresInSeconds);
+    } catch (err) {
+        console.error('Failed to store refresh token:', err);
+    }
+};
+
+export const getRefreshTokenUserId = async (jti: string): Promise<string | null> => {
+    if (!jti) return null;
+
+    try {
+        return await redisClient.get(`${REFRESH_TOKEN_PREFIX}${jti}`);
+    } catch (err) {
+        console.error('Failed to get refresh token:', err);
+        return null;
+    }
+};
+
+export const revokeRefreshToken = async (jti: string): Promise<void> => {
+    if (!jti) return;
+
+    try {
+        await redisClient.del(`${REFRESH_TOKEN_PREFIX}${jti}`);
+    } catch (err) {
+        console.error('Failed to revoke refresh token:', err);
+    }
+};
+
+export const revokeAllUserRefreshTokens = async (userId: string): Promise<void> => {
+    if (!userId) return;
+
+    try {
+        // Scan for all refresh tokens belonging to this user
+        let cursor = '0';
+        do {
+            const [nextCursor, keys] = await redisClient.scan(
+                cursor, 'MATCH', `api-gateway:${REFRESH_TOKEN_PREFIX}*`, 'COUNT', '100',
+            );
+            cursor = nextCursor;
+            if (keys.length) {
+                const pipeline = redisClient.pipeline();
+                for (const key of keys) {
+                    // Strip the key prefix before getting
+                    const strippedKey = key.replace('api-gateway:', '');
+                    pipeline.get(strippedKey);
+                }
+                const results = await pipeline.exec();
+                const delPipeline = redisClient.pipeline();
+                keys.forEach((key, i) => {
+                    if (results && results[i] && results[i][1] === userId) {
+                        delPipeline.del(key.replace('api-gateway:', ''));
+                    }
+                });
+                await delPipeline.exec();
+            }
+        } while (cursor !== '0');
+    } catch (err) {
+        console.error('Failed to revoke all user refresh tokens:', err);
+    }
+};
+
 export {
     redisEphemeralClient,
 };

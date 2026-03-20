@@ -3,6 +3,7 @@ import axios from 'axios';
 // import { LoaderActions } from './library/loader';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import { NavigateFunction } from 'react-router-dom';
+import UsersService from 'therr-react/services/UsersService';
 import store from './store';
 import * as globalConfig from '../../global-config';
 import UsersActions from './redux/actions/UsersActions';
@@ -12,7 +13,22 @@ const MAX_LOGOUT_ATTEMPTS = 3;
 let timer: any;
 let numLoadings = 0;
 let logoutAttemptCount = 0;
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
 const _timeout = 350; // eslint-disable-line no-underscore-dangle
+
+const subscribeToTokenRefresh = (cb: (token: string) => void) => {
+    refreshSubscribers.push(cb);
+};
+
+const onTokenRefreshed = (newToken: string) => {
+    refreshSubscribers.forEach((cb) => cb(newToken));
+    refreshSubscribers = [];
+};
+
+const onRefreshFailed = () => {
+    refreshSubscribers = [];
+};
 
 const initInterceptors = (
     navigate: NavigateFunction,
@@ -64,23 +80,94 @@ const initInterceptors = (
 
         return response;
     }, (error) => {
+        const originalRequest = error.config;
+
         if (error.response) {
-            if (Number(error.response.status) === 401 || Number(error.response.data.statusCode) === 401) {
-                // store.dispatch(UsersActions.setRedirect(window.location.pathname));
+            const is401 = Number(error.response.status) === 401 || Number(error.response.data?.statusCode) === 401;
+
+            // Attempt token refresh on 401 (but not for refresh requests themselves)
+            if (is401 && !originalRequest._isRetry && !originalRequest.url?.includes('/auth/token/refresh')) {
+                originalRequest._isRetry = true;
+
+                if (!isRefreshing) {
+                    isRefreshing = true;
+
+                    const refreshToken = sessionStorage.getItem('therrRefreshToken')
+                        || localStorage.getItem('therrRefreshToken');
+                    const storedUser = store.getState().user;
+                    const rememberMe = storedUser?.settings?.rememberMe;
+
+                    if (refreshToken) {
+                        UsersService.refreshToken(refreshToken, rememberMe)
+                            .then(async (response) => {
+                                const { idToken: newIdToken, refreshToken: newRefreshToken } = response.data;
+
+                                // Update stored tokens
+                                const userDetails = JSON.parse(
+                                    sessionStorage.getItem('therrUser') || localStorage.getItem('therrUser') || '{}',
+                                );
+                                userDetails.idToken = newIdToken;
+                                sessionStorage.setItem('therrUser', JSON.stringify(userDetails));
+                                sessionStorage.setItem('therrRefreshToken', newRefreshToken);
+                                if (rememberMe) {
+                                    localStorage.setItem('therrUser', JSON.stringify(userDetails));
+                                    localStorage.setItem('therrRefreshToken', newRefreshToken);
+                                }
+
+                                // Update Redux state
+                                store.dispatch({
+                                    type: 'UPDATE_USER',
+                                    data: {
+                                        details: { idToken: newIdToken },
+                                    },
+                                });
+
+                                isRefreshing = false;
+                                onTokenRefreshed(newIdToken);
+                            })
+                            .catch(() => {
+                                isRefreshing = false;
+                                onRefreshFailed();
+
+                                // Refresh failed - logout
+                                if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
+                                    store.dispatch(UsersActions.logout());
+                                    logoutAttemptCount += 1;
+                                }
+                                if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
+                                    navigate('/login');
+                                }
+                            });
+                    } else {
+                        isRefreshing = false;
+                        // No refresh token available - logout immediately
+                        if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
+                            store.dispatch(UsersActions.logout());
+                            logoutAttemptCount += 1;
+                        }
+                        if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
+                            navigate('/login');
+                        }
+                    }
+                }
+
+                // Queue the original request to retry after refresh
+                return new Promise((resolve, reject) => {
+                    subscribeToTokenRefresh((newToken: string) => {
+                        originalRequest.headers.authorization = `Bearer ${newToken}`;
+                        resolve(axios(originalRequest));
+                    });
+                    // If refresh fails, reject will happen via the catch above
+                    // and the error will propagate naturally
+                });
+            }
+
+            // Non-refreshable 401 or already retried
+            if (is401) {
                 if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
                     store.dispatch(UsersActions.logout());
                     logoutAttemptCount += 1;
                 }
-                // store.dispatch(AlertActions.addAlert({
-                //     title: 'Not Authorized',
-                //     message: 'Redirected: You do not have authorization to view this content or your session has expired.
-                // Please login to continue.',
-                //     type: 'error',
-                //     delay: 3000
-                // }));
-
-                // Do not redirect when 401 occurs on a login page
-                // The "home" page is also a login
                 if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
                     navigate('/login');
                 }
@@ -90,21 +177,10 @@ const initInterceptors = (
                 Number(error.statusCode) === 401
                 || Number(error.statusCode) === 403
             ) {
-                // store.dispatch(UsersActions.setRedirect(window.location.pathname));
                 if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
                     store.dispatch(UsersActions.logout());
                     logoutAttemptCount += 1;
                 }
-                // store.dispatch(AlertActions.addAlert({
-                //     title: 'Not Authorized',
-                //     message: 'Redirected: You do not have authorization to view this content or your session has expired.
-                // Please login to continue.',
-                //     type: 'error',
-                //     delay: 3000
-                // }));
-
-                // Do not redirect when 401 occurs on a login page
-                // The "home" page is also a login
                 if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
                     navigate('/login');
                 }

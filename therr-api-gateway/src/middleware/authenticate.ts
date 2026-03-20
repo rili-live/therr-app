@@ -2,14 +2,24 @@ import jwt from 'jsonwebtoken';
 import unless from 'express-unless';
 import handleHttpError from '../utilities/handleHttpError';
 import isBlacklisted from '../utilities/isBlacklisted';
+import { isTokenBlacklisted } from '../store/redisClient';
 
 const authenticate = async (req, res, next) => {
     try {
         if (req.headers.authorization?.split(' ')[0] === 'Bearer') {
             await new Promise((resolve, reject) => {
-                jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '', (err, decoded) => {
+                jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '', async (err, decoded) => {
                     if (err) {
                         return reject(err);
+                    }
+
+                    // Check if token has been revoked (server-side logout)
+                    if (decoded.jti && await isTokenBlacklisted(decoded.jti)) {
+                        return handleHttpError({
+                            res,
+                            message: 'Token has been revoked',
+                            statusCode: 401,
+                        });
                     }
 
                     req['x-userid'] = decoded.id;

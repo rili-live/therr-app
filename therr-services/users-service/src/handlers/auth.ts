@@ -7,7 +7,7 @@ import { parseHeaders } from 'therr-js-utilities/http';
 import normalizeEmail from 'normalize-email';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
-import { createUserToken } from '../utilities/userHelpers';
+import { createUserToken, createRefreshToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 import { redactUserCreds, validateCredentials } from './helpers/user';
 import TherrEventEmitter from '../api/TherrEventEmitter';
@@ -189,6 +189,7 @@ const login: RequestHandler = (req: any, res: any) => {
                     });
 
                     const idToken = createUserToken(user, userOrgs, req.body.rememberMe);
+                    const refreshTokenData = createRefreshToken(user.id, req.body.rememberMe);
                     userHash = basicHash(userNameEmailPhone);
 
                     logSpan({
@@ -274,6 +275,7 @@ const login: RequestHandler = (req: any, res: any) => {
                         return res.status(201).send({
                             ...finalUser,
                             idToken,
+                            refreshToken: refreshTokenData.token,
                             integrations: user.integrations || {},
                             rememberMe: req.body.rememberMe,
                             userOrganizations: userOrgs,
@@ -301,6 +303,7 @@ const login: RequestHandler = (req: any, res: any) => {
 };
 
 // Logout user
+// Token blacklisting is handled at the API gateway layer
 const logout: RequestHandler = (req: any, res: any) => Store.users.getUsers({ userName: req.body.userName })
     .then((results) => {
         if (!results.length) {
@@ -310,10 +313,85 @@ const logout: RequestHandler = (req: any, res: any) => Store.users.getUsers({ us
                 statusCode: 404,
             });
         }
-        // TODO: Invalidate token
         res.status(204).send(req.request);
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' }));
+
+// Refresh access token using a refresh token
+const refreshToken: RequestHandler = async (req: any, res: any) => {
+    const { refreshToken: reqRefreshToken, rememberMe } = req.body;
+
+    if (!reqRefreshToken) {
+        return handleHttpError({
+            res,
+            message: 'Refresh token is required',
+            statusCode: 400,
+        });
+    }
+
+    try {
+        const decoded = jwt.verify(reqRefreshToken, process.env.JWT_SECRET || '') as any;
+
+        if (decoded.type !== 'refresh') {
+            return handleHttpError({
+                res,
+                message: 'Invalid token type',
+                statusCode: 403,
+            });
+        }
+
+        const userResults = await Store.users.getUsers({ id: decoded.id });
+        if (!userResults.length) {
+            return handleHttpError({
+                res,
+                message: 'User not found',
+                statusCode: 404,
+            });
+        }
+
+        const user = userResults[0];
+
+        if (user.isBlocked) {
+            return handleHttpError({
+                res,
+                message: 'User is blocked',
+                statusCode: 403,
+            });
+        }
+
+        const userOrgs = await Store.userOrganizations.get({
+            userId: user.id,
+        }).catch(() => []);
+
+        const newIdToken = createUserToken(user, userOrgs, rememberMe);
+        const newRefreshTokenData = createRefreshToken(user.id, rememberMe);
+
+        redactUserCreds(user);
+
+        return res.status(200).send({
+            ...user,
+            idToken: newIdToken,
+            refreshToken: newRefreshTokenData.token,
+            userOrganizations: userOrgs,
+        });
+    } catch (err: any) {
+        if (err.name === 'TokenExpiredError') {
+            return handleHttpError({
+                res,
+                err,
+                message: 'Refresh token has expired',
+                statusCode: 401,
+            });
+        }
+
+        return handleHttpError({
+            res,
+            err,
+            message: 'Invalid refresh token',
+            statusCode: 403,
+        });
+    }
+};
 
 const verifyToken: RequestHandler = (req: any, res: any) => {
     try {
@@ -336,5 +414,6 @@ const verifyToken: RequestHandler = (req: any, res: any) => {
 export {
     login,
     logout,
+    refreshToken,
     verifyToken,
 };
