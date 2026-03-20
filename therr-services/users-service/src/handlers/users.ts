@@ -19,6 +19,7 @@ import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequest
 import {
     createUserHelper, getUserHelper, isUserProfileIncomplete, redactUserCreds,
 } from './helpers/user';
+import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -1142,6 +1143,10 @@ const verifyUserAccount = (req, res) => {
                         const verifiedUser = {
                             ...userSearchResults[0],
                             accessLevels: [...userAccessLevels],
+                            isSSO: false,
+                            integrations: {
+                                ...decryptIntegrationsAccess(userSearchResults[0]?.integrationsAccess),
+                            },
                         };
                         const userOrgs = await Store.userOrganizations.get({
                             userId: verifiedUser.id,

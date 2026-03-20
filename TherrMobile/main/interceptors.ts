@@ -14,20 +14,21 @@ let timer: any;
 let numLoadings = 0;
 let logoutAttemptCount = 0;
 let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshSubscribers: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];
 const _timeout = 350;
 
-const subscribeToTokenRefresh = (cb: (token: string) => void) => {
-    refreshSubscribers.push(cb);
+const subscribeToTokenRefresh = (resolve: (token: string) => void, reject: (err: any) => void) => {
+    refreshSubscribers.push({ resolve, reject });
 };
 
 const onTokenRefreshed = (newToken: string) => {
-    refreshSubscribers.forEach((cb) => cb(newToken));
+    refreshSubscribers.forEach((sub) => sub.resolve(newToken));
     refreshSubscribers = [];
 };
 
-const onRefreshFailed = () => {
-    refreshSubscribers = [];
+const onRefreshFailed = (err: any) => {
+    refreshSubscribers.forEach((sub) => sub.reject(err));
+    refreshSubscribers = []
 };
 
 const handleLogout = (store) => {
@@ -150,19 +151,24 @@ const initInterceptors = (
                                 isRefreshing = false;
                                 onTokenRefreshed(newIdToken);
                             })
-                            .catch(() => {
+                            .catch((refreshErr) => {
                                 isRefreshing = false;
-                                onRefreshFailed();
+                                onRefreshFailed(refreshErr);
                                 handleLogout(store);
                             });
                     }
 
                     // Queue the original request to retry after refresh
-                    return new Promise((resolve) => {
-                        subscribeToTokenRefresh((newToken: string) => {
-                            originalRequest.headers.authorization = `Bearer ${newToken}`;
-                            resolve(axios(originalRequest));
-                        });
+                    return new Promise((resolve, reject) => {
+                        subscribeToTokenRefresh(
+                            (newToken: string) => {
+                                originalRequest.headers.authorization = `Bearer ${newToken}`;
+                                resolve(axios(originalRequest));
+                            },
+                            (err) => {
+                                reject(err);
+                            },
+                        );
                     });
                 }
 
@@ -181,7 +187,7 @@ const initInterceptors = (
 
             if (numLoadings === 0) {
                 return Promise.reject(
-                    error && error.response && error.response.data
+                    (error && error.response && error.response.data) || error
                 );
             }
 

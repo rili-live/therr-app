@@ -359,17 +359,35 @@ const refreshToken: RequestHandler = async (req: any, res: any) => {
             });
         }
 
+        // Ensure user still has a verified email (consistent with login check)
+        if (!(user.accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)
+            || user.accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES))) {
+            return handleHttpError({
+                res,
+                message: 'Account is not verified',
+                statusCode: 401,
+            });
+        }
+
         const userOrgs = await Store.userOrganizations.get({
             userId: user.id,
         }).catch(() => []);
 
-        const newIdToken = createUserToken(user, userOrgs, rememberMe);
+        const userWithIntegrations = {
+            ...user,
+            isSSO: false,
+            integrations: {
+                ...decryptIntegrationsAccess(user?.integrationsAccess),
+            },
+        };
+
+        const newIdToken = createUserToken(userWithIntegrations, userOrgs, rememberMe);
         const newRefreshTokenData = createRefreshToken(user.id, rememberMe);
 
-        redactUserCreds(user);
+        redactUserCreds(userWithIntegrations);
 
         return res.status(200).send({
-            ...user,
+            ...userWithIntegrations,
             idToken: newIdToken,
             refreshToken: newRefreshTokenData.token,
             userOrganizations: userOrgs,

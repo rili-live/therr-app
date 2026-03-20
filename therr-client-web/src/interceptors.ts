@@ -14,19 +14,20 @@ let timer: any;
 let numLoadings = 0;
 let logoutAttemptCount = 0;
 let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshSubscribers: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];
 const _timeout = 350; // eslint-disable-line no-underscore-dangle
 
-const subscribeToTokenRefresh = (cb: (token: string) => void) => {
-    refreshSubscribers.push(cb);
+const subscribeToTokenRefresh = (resolve: (token: string) => void, reject: (err: any) => void) => {
+    refreshSubscribers.push({ resolve, reject });
 };
 
 const onTokenRefreshed = (newToken: string) => {
-    refreshSubscribers.forEach((cb) => cb(newToken));
+    refreshSubscribers.forEach((sub) => sub.resolve(newToken));
     refreshSubscribers = [];
 };
 
-const onRefreshFailed = () => {
+const onRefreshFailed = (err: any) => {
+    refreshSubscribers.forEach((sub) => sub.reject(err));
     refreshSubscribers = [];
 };
 
@@ -125,9 +126,9 @@ const initInterceptors = (
                                 isRefreshing = false;
                                 onTokenRefreshed(newIdToken);
                             })
-                            .catch(() => {
+                            .catch((refreshErr) => {
                                 isRefreshing = false;
-                                onRefreshFailed();
+                                onRefreshFailed(refreshErr);
 
                                 // Refresh failed - logout
                                 if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
@@ -140,7 +141,8 @@ const initInterceptors = (
                             });
                     } else {
                         isRefreshing = false;
-                        // No refresh token available - logout immediately
+                        // No refresh token available - reject queued requests and logout
+                        onRefreshFailed(error);
                         if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
                             store.dispatch(UsersActions.logout());
                             logoutAttemptCount += 1;
@@ -153,12 +155,15 @@ const initInterceptors = (
 
                 // Queue the original request to retry after refresh
                 return new Promise((resolve, reject) => {
-                    subscribeToTokenRefresh((newToken: string) => {
-                        originalRequest.headers.authorization = `Bearer ${newToken}`;
-                        resolve(axios(originalRequest));
-                    });
-                    // If refresh fails, reject will happen via the catch above
-                    // and the error will propagate naturally
+                    subscribeToTokenRefresh(
+                        (newToken: string) => {
+                            originalRequest.headers.authorization = `Bearer ${newToken}`;
+                            resolve(axios(originalRequest));
+                        },
+                        (err) => {
+                            reject(err);
+                        },
+                    );
                 });
             }
 
@@ -188,7 +193,9 @@ const initInterceptors = (
         }
 
         if (numLoadings === 0) {
-            return Promise.reject(error && error.response && error.response.data);
+            return Promise.reject(
+                (error && error.response && error.response.data) || error,
+            );
         }
 
         if (numLoadings < 2) {
@@ -197,7 +204,9 @@ const initInterceptors = (
         }
         numLoadings -= 1;
 
-        return Promise.reject(error.response.data);
+        return Promise.reject(
+            (error && error.response && error.response.data) || error,
+        );
     });
 };
 

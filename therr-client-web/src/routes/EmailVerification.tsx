@@ -74,6 +74,11 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                         type: SocketClientActionTypes.LOGIN,
                         data: userData,
                     });
+                    // UserActionTypes.LOGIN sets isAuthenticated = true in the user reducer
+                    store.dispatch({
+                        type: 'LOGIN',
+                        data: userData,
+                    });
 
                     this.setState({
                         verificationStatus: 'success',

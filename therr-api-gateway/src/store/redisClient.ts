@@ -192,26 +192,28 @@ export const revokeRefreshToken = async (jti: string): Promise<void> => {
 export const revokeAllUserRefreshTokens = async (userId: string): Promise<void> => {
     if (!userId) return;
 
+    const KEY_PREFIX = 'api-gateway:';
+
     try {
         // Scan for all refresh tokens belonging to this user
         let cursor = '0';
         do {
             const [nextCursor, keys] = await redisClient.scan(
-                cursor, 'MATCH', `api-gateway:${REFRESH_TOKEN_PREFIX}*`, 'COUNT', '100',
+                cursor, 'MATCH', `${KEY_PREFIX}${REFRESH_TOKEN_PREFIX}*`, 'COUNT', '100',
             );
             cursor = nextCursor;
             if (keys.length) {
+                // Strip the ioredis keyPrefix so pipeline commands re-add it correctly
+                const strippedKeys = keys.map((key) => key.replace(KEY_PREFIX, ''));
                 const pipeline = redisClient.pipeline();
-                for (const key of keys) {
-                    // Strip the key prefix before getting
-                    const strippedKey = key.replace('api-gateway:', '');
-                    pipeline.get(strippedKey);
+                for (const key of strippedKeys) {
+                    pipeline.get(key);
                 }
                 const results = await pipeline.exec();
                 const delPipeline = redisClient.pipeline();
-                keys.forEach((key, i) => {
+                strippedKeys.forEach((key, i) => {
                     if (results && results[i] && results[i][1] === userId) {
-                        delPipeline.del(key.replace('api-gateway:', ''));
+                        delPipeline.del(key);
                     }
                 });
                 await delPipeline.exec();

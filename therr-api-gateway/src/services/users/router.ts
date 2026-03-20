@@ -1,8 +1,10 @@
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
+import { blacklistToken, revokeAllUserRefreshTokens } from '../../store/redisClient';
 import { validate } from '../../validation';
 import {
     authenticateUserValidation,
@@ -81,10 +83,8 @@ usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, async (r
     try {
         const token = req.headers.authorization?.split(' ')[1];
         if (token) {
-            const jwt = await import('jsonwebtoken');
-            const decoded = jwt.default.decode(token) as any;
+            const decoded = jwt.decode(token) as { jti?: string; exp?: number; id?: string } | null;
             if (decoded?.jti && decoded?.exp) {
-                const { blacklistToken, revokeAllUserRefreshTokens } = await import('../../store/redisClient');
                 const remainingTtl = decoded.exp - Math.floor(Date.now() / 1000);
                 if (remainingTtl > 0) {
                     await blacklistToken(decoded.jti, remainingTtl);
