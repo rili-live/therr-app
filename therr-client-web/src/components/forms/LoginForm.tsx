@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Alert, Anchor, Button, Stack } from '@mantine/core';
+import {
+    Alert, Anchor, Button, Stack,
+} from '@mantine/core';
 import {
     MantineButton,
     MantineInput,
