@@ -98,18 +98,6 @@ const startExpressSocketIOServer = () => {
         pingTimeout: Number(globalConfig[process.env.NODE_ENV || 'development'].socket.pingTimeout),
     });
 
-    io.on('connect_error', (errorMsg: string) => {
-        logSpan({
-            level: 'error',
-            messageOrigin: 'SOCKET_IO_LOGS',
-            messages: errorMsg,
-            traceArgs: {
-                'error.message': errorMsg,
-                source: 'connect_error',
-            },
-        });
-    });
-
     io.adapter(redisAdapter);
 
     io.of('/').adapter.on('error', (err) => {
@@ -134,27 +122,12 @@ const startExpressSocketIOServer = () => {
             },
         });
 
-        const allRooms = await (io.of('/').adapter as any).allRooms();
-        const roomsList = await getSocketRoomsList(io, allRooms);
-
-        logSpan({
-            level: 'info',
-            messageOrigin: 'SOCKET_IO_LOGS',
-            messages: `All Rooms: ${JSON.stringify(roomsList)}`,
-            traceArgs: {
-                'socket.id': socket.id,
-            },
-        });
-
-        // Send a list of the currently active chat rooms when user connects
-        socket.emit(SOCKET_MIDDLEWARE_ACTION, {
-            type: SocketServerActionTypes.SEND_ROOMS_LIST,
-            data: roomsList,
-        });
-
         // Event sent from socket.io, redux store middleware
         socket.on(SOCKET_MIDDLEWARE_ACTION, async (action: any) => {
-            const decodedAuthenticationToken: any = await authenticate(socket);
+            // Skip JWT cache for actions that may carry a refreshed token
+            const shouldSkipCache = action.type === SocketClientActionTypes.LOGIN
+                || action.type === SocketClientActionTypes.UPDATE_SESSION;
+            const decodedAuthenticationToken: any = await authenticate(socket, { skipCache: shouldSkipCache });
             if (decodedAuthenticationToken) {
                 decodedAuthenticationToken.locale = decodedAuthenticationToken.locale || 'en-us';
             }
@@ -170,13 +143,29 @@ const startExpressSocketIOServer = () => {
             };
 
             switch (action.type) {
+                case SocketClientActionTypes.REQUEST_ROOMS_LIST:
+                    if (decodedAuthenticationToken) {
+                        (io.of('/').adapter as any).allRooms().then((allRooms) => (
+                            getSocketRoomsList(io, allRooms)
+                        )).then((freshRoomsList) => {
+                            socket.emit(SOCKET_MIDDLEWARE_ACTION, {
+                                type: SocketServerActionTypes.SEND_ROOMS_LIST,
+                                data: freshRoomsList,
+                            });
+                        });
+                    }
+                    break;
                 case SocketClientActionTypes.JOIN_ROOM:
                     if (decodedAuthenticationToken) {
                         socketHandlers.joinRoom(internalRestConfig, socket, action.data, decodedAuthenticationToken);
-                        // Notify all users
-                        socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
-                            type: SocketServerActionTypes.SEND_ROOMS_LIST,
-                            data: roomsList,
+                        // Notify all users with fresh rooms list
+                        (io.of('/').adapter as any).allRooms().then((allRooms) => (
+                            getSocketRoomsList(io, allRooms)
+                        )).then((freshRoomsList) => {
+                            socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
+                                type: SocketServerActionTypes.SEND_ROOMS_LIST,
+                                data: freshRoomsList,
+                            });
                         });
                     }
 
@@ -184,10 +173,14 @@ const startExpressSocketIOServer = () => {
                 case SocketClientActionTypes.EXIT_ROOM:
                     if (decodedAuthenticationToken) {
                         socketHandlers.leaveRoom(internalRestConfig, socket, action.data, decodedAuthenticationToken);
-                        // Notify all users
-                        socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
-                            type: SocketServerActionTypes.SEND_ROOMS_LIST,
-                            data: roomsList,
+                        // Notify all users with fresh rooms list
+                        (io.of('/').adapter as any).allRooms().then((allRooms) => (
+                            getSocketRoomsList(io, allRooms)
+                        )).then((freshRoomsList) => {
+                            socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
+                                type: SocketServerActionTypes.SEND_ROOMS_LIST,
+                                data: freshRoomsList,
+                            });
                         });
                     }
 

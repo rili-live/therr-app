@@ -136,6 +136,11 @@ const getUserReducer = (socketIO) => produce((draft: IUserState, action: any) =>
             socketIO.disconnect();
             draft.socketDetails.session = {};
             break;
+        case SocketServerActionTypes.UNAUTHORIZED:
+            // Server rejected JWT - disconnect socket to prevent stale actions
+            socketIO.disconnect();
+            draft.socketDetails.session = {};
+            break;
         case SocketClientActionTypes.UPDATE_USER:
             // Retains existing settings with overwrite
             draft.details = {
