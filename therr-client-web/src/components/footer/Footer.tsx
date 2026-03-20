@@ -109,7 +109,7 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                         type: AccessCheckType.ALL,
                         levels: [AccessLevels.EMAIL_VERIFIED],
                     }, user)} publicOnly>
-                        <div className="footer-nav-item" onClick={this.handleInfoClick} role="button" tabIndex={0}>
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
                             <SvgButton
                                 id="footer_info"
                                 name="info"
@@ -126,7 +126,7 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                 </div>
                 <div className="footer-menu-item">
                     <AccessControl isAuthorized={isAuthorized}>
-                        <div className="footer-nav-item" onClick={() => goTo('/explore')} role="button" tabIndex={0}>
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
                             <SvgButton
                                 id="footer_home"
                                 name="dashboard"
@@ -141,7 +141,7 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                         </div>
                     </AccessControl>
                     <AccessControl publicOnly={true} isAuthorized={isAuthorized}>
-                        <div className="footer-nav-item" onClick={() => goHome()} role="button" tabIndex={0}>
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
                             <SvgButton id="footer_home" name="home" className="home-button" onClick={goHome} buttonType="primary" aria-label="Go home" />
                             <Text size="xs" className="footer-nav-label">
                                 {this.props.translate('components.footer.labels.home')}
@@ -154,7 +154,7 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                         type: AccessCheckType.ALL,
                         levels: [AccessLevels.EMAIL_VERIFIED],
                     }, user)}>
-                        <div className="footer-nav-item" onClick={(e) => toggleNavMenu(e, INavMenuContext.FOOTER_MESSAGES)} role="button" tabIndex={0}>
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
                             <SvgButton
                                 id="footer_messages"
                                 name="forum"
@@ -172,7 +172,7 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                         type: AccessCheckType.ALL,
                         levels: [AccessLevels.EMAIL_VERIFIED],
                     }, user)} publicOnly>
-                        <div className="footer-nav-item" onClick={() => goTo('/locations')} role="button" tabIndex={0}>
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
                             <SvgButton
                                 id="footer_locations_icon"
                                 name="location"
@@ -190,7 +190,7 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                         type: AccessCheckType.ALL,
                         levels: [AccessLevels.EMAIL_VERIFIED],
                     }, user)}>
-                        <div className="footer-nav-item" onClick={() => goTo('/explore')} role="button" tabIndex={0}>
+                        <div className="footer-nav-item" role="button" tabIndex={0}>
                             <SvgButton
                                 id="footer_explore"
                                 name="world"

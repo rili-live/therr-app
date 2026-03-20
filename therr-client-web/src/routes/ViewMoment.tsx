@@ -103,12 +103,12 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
     handleShare = () => {
         const url = window.location.href;
         if (navigator.share) {
-            navigator.share({ url }).catch(() => {});
+            navigator.share({ url }).catch(() => { /* ignore */ });
         } else if (navigator.clipboard) {
             navigator.clipboard.writeText(url).then(() => {
                 this.setState({ isLinkCopied: true });
                 setTimeout(() => this.setState({ isLinkCopied: false }), 2000);
-            }).catch(() => {});
+            }).catch(() => { /* ignore */ });
         }
     };
 
@@ -161,7 +161,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
 
         return (
             <Group gap="xs" mt="xs">
-                <Text size="sm" c="dimmed">Posted by</Text>
+                <Text size="sm" c="dimmed">{this.props.translate('pages.viewMoment.labels.postedBy')}</Text>
                 {moment.fromUserId ? (
                     <Anchor href={`/users/${moment.fromUserId}`} size="sm">{authorName}</Anchor>
                 ) : (
@@ -180,7 +180,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         if (!moment.spaceId) return null;
 
         const space = moment.space;
-        const spaceName = space?.notificationMsg || moment.areaTitle || 'View Location';
+        const spaceName = space?.notificationMsg || moment.areaTitle || this.props.translate('pages.viewMoment.labels.viewLocation');
         const spaceAddress = space?.addressReadable || '';
 
         // Get space media if available

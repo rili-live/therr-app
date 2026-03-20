@@ -95,14 +95,16 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
     handleConnectionClick = (connection) => {
         const connectionDetails = this.getConnectionDetails(connection);
-        this.props.navigation.navigate(`/users/${connectionDetails.id}`);
+        if (connectionDetails) {
+            this.props.navigation.navigate(`/users/${connectionDetails.id}`);
+        }
     };
 
     onCreateForumClick = () => {
         this.props.navigation.navigate('/create-forum');
     };
 
-    renderSkeleton(): JSX.Element {
+    renderSkeleton(): JSX.Element { // eslint-disable-line class-methods-use-this
         return (
             <Container id="page_user_profile" size="sm" py="xl">
                 <Stack align="center" gap="md">
@@ -116,7 +118,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         );
     }
 
-    renderDetailRow(label: string, value: string): JSX.Element {
+    renderDetailRow(label: string, value: string): JSX.Element { // eslint-disable-line class-methods-use-this
         return (
             <Group justify="space-between" wrap="nowrap">
                 <Text size="sm" c="dimmed" fw={500}>{label}</Text>
@@ -197,6 +199,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                             <SimpleGrid cols={{ base: 4, sm: 6, md: 8 }} spacing="sm">
                                 {userConnections.connections.map((connection: any) => {
                                     const connectionDetails = this.getConnectionDetails(connection);
+                                    if (!connectionDetails) return null;
                                     const connImageUri = getUserImageUri({ details: connectionDetails }, 100);
                                     const connInitial = (connectionDetails.firstName || '?').charAt(0).toUpperCase();
 

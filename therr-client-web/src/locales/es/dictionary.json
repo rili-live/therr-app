@@ -635,6 +635,12 @@
         "notHelpful": "No útil"
       }
     },
+    "viewMoment": {
+      "labels": {
+        "postedBy": "Publicado por",
+        "viewLocation": "Ver ubicación"
+      }
+    },
     "viewUser": {
       "buttons": {
         "chat": "Chat"

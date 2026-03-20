@@ -635,6 +635,12 @@
         "notHelpful": "Not helpful"
       }
     },
+    "viewMoment": {
+      "labels": {
+        "postedBy": "Posted by",
+        "viewLocation": "View Location"
+      }
+    },
     "viewUser": {
       "buttons": {
         "chat": "Chat"

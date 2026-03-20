@@ -169,12 +169,12 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     handleShare = () => {
         const url = window.location.href;
         if (navigator.share) {
-            navigator.share({ url }).catch(() => {});
+            navigator.share({ url }).catch(() => { /* ignore */ });
         } else if (navigator.clipboard) {
             navigator.clipboard.writeText(url).then(() => {
                 this.setState({ isLinkCopied: true });
                 setTimeout(() => this.setState({ isLinkCopied: false }), 2000);
-            }).catch(() => {});
+            }).catch(() => { /* ignore */ });
         }
     };
 
