@@ -22,12 +22,27 @@ footer {
 
         &:first-child {
             justify-content: flex-start;
-
-            
         }
 
         &:last-child {
             justify-content: flex-end;
+        }
+    }
+
+    .footer-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        gap: 1px;
+
+        .footer-nav-label {
+            color: $therr-white;
+            font-size: rem-calc(10px);
+            line-height: 1;
+            opacity: 0.85;
+            white-space: nowrap;
+            pointer-events: none;
         }
     }
 

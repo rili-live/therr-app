@@ -7,8 +7,8 @@ import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
 import { Content } from 'therr-js-utilities/constants';
 import {
-    Container, Stack, Group, Title, Text, Badge, Anchor,
-    Divider, Image, Skeleton, Breadcrumbs, Paper,
+    ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
+    Divider, Image, Skeleton, Breadcrumbs, Paper, Tooltip,
 } from '@mantine/core';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
@@ -47,6 +47,7 @@ interface IViewMomentProps extends IViewMomentRouterProps, IStoreProps {
 
 interface IViewMomentState {
     momentId: string;
+    isLinkCopied: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -76,6 +77,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
 
         this.state = {
             momentId: props.routeParams.momentId,
+            isLinkCopied: false,
         };
     }
 
@@ -97,6 +99,18 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
             document.title = `${moment.notificationMsg} | Therr App`;
         }
     }
+
+    handleShare = () => {
+        const url = window.location.href;
+        if (navigator.share) {
+            navigator.share({ url }).catch(() => {});
+        } else if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(() => {
+                this.setState({ isLinkCopied: true });
+                setTimeout(() => this.setState({ isLinkCopied: false }), 2000);
+            }).catch(() => {});
+        }
+    };
 
     login = (credentials: any) => this.props.login(credentials);
 
@@ -246,7 +260,17 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
 
                     {/* Title & Meta */}
                     <div className="moment-title-section">
-                        <Title order={1}>{moment.notificationMsg}</Title>
+                        <Group justify="space-between" align="flex-start" wrap="nowrap">
+                            <Title order={1}>{moment.notificationMsg}</Title>
+                            <Tooltip label={this.state.isLinkCopied ? this.props.translate('common.linkCopied') : this.props.translate('common.share')}>
+                                <ActionIcon variant="subtle" size="lg" onClick={this.handleShare} aria-label="Share">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                                    </svg>
+                                </ActionIcon>
+                            </Tooltip>
+                        </Group>
 
                         <Group gap="sm" mt="xs" wrap="wrap">
                             {categoryLabel && (

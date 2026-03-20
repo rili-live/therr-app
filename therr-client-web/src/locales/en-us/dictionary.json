@@ -39,7 +39,16 @@
     "nightLife": "Night Life / Social",
     "sports": "Sports"
   },
+  "common": {
+    "share": "Share",
+    "linkCopied": "Link copied!"
+  },
   "components": {
+    "layout": {
+      "floatingButton": {
+        "tooltip": "Share a thought"
+      }
+    },
     "header": {
       "buttons": {
         "login": "Sign In"
@@ -48,6 +57,13 @@
     "footer": {
       "buttons": {
         "locations": "Locations"
+      },
+      "labels": {
+        "home": "Home",
+        "messages": "Messages",
+        "explore": "Explore",
+        "locations": "Locations",
+        "info": "Info"
       }
     },
     "createProfileForm": {
@@ -236,13 +252,20 @@
     "discovered": {
       "pageTitle": "Discovered",
       "subtitle": "Recently shared moments and spaces from the community",
-      "noResults": "Nothing to show yet. Check back later for new content from the community."
+      "noResults": "Nothing to show yet. Check back later for new content from the community.",
+      "exploreCta": "Explore spaces nearby",
+      "filters": {
+        "all": "All",
+        "moments": "Moments",
+        "spaces": "Spaces"
+      }
     },
     "explore": {
       "pageTitle": "Explore",
       "subtitle": "Discover moments, spaces, thoughts, and people in your community",
       "recentContent": "Recent Content",
       "viewAll": "View all",
+      "searchPlaceholder": "Search spaces, moments, and more...",
       "noResults": "Nothing to show yet. Check back later for new content.",
       "categories": {
         "momentsTitle": "Moments",
@@ -485,6 +508,7 @@
     },
     "userProfile": {
       "buttons": {
+        "changePassword": "Change Password",
         "createAForum": "Create a Hosted Chat",
         "sendRequest": "Send Request"
       },
