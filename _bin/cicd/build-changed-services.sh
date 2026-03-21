@@ -7,7 +7,6 @@ set -e
 source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
 
-GIT_SHA=${GIT_SHA:-$CIRCLE_SHA1}
 NODE_VERSION=${NODE_VERSION:-"24.12.0"}
 
 HAS_GLOBAL_CONFIG_FILE_CHANGES=false

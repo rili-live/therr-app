@@ -1,6 +1,7 @@
 #!/bin/bash
 # Lint changed TypeScript/JavaScript files on feature branches.
 # Groups changed files by package and runs eslint with the correct config.
+# Runs directly on the host (Node.js executor), not inside Docker.
 
 set -e
 
@@ -9,7 +10,8 @@ source ./_bin/lib/colorize.sh
 # Fetch general branch for comparison
 git fetch origin general
 
-# Get changed .ts and .js files (exclude node_modules, build artifacts, config files)
+# Get changed .ts and .js source files relative to general
+# Exclude build artifacts, config files, and non-source directories
 CHANGED_FILES=$(git diff --name-only origin/general -- '*.ts' '*.tsx' '*.js' '*.jsx' \
   | grep -v node_modules \
   | grep -v '/lib/' \
@@ -24,8 +26,13 @@ if [ -z "$CHANGED_FILES" ]; then
   exit 0
 fi
 
-FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l)
+FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l | tr -d ' ')
 printMessageNeutral "Found ${FILE_COUNT} changed file(s) to lint"
+
+# Install dependencies (eslint and plugins are in root package.json devDependencies)
+printMessageNeutral "Installing dependencies for linting..."
+npm ci --legacy-peer-deps --ignore-scripts
+printMessageSuccess "Dependencies installed"
 
 # Define packages and their root directories
 # Each package has its own .eslintrc.js
@@ -53,16 +60,19 @@ for PKG in "${PACKAGES[@]}"; do
     continue
   fi
 
-  PKG_FILE_COUNT=$(echo "$PKG_FILES" | wc -l)
+  PKG_FILE_COUNT=$(echo "$PKG_FILES" | wc -l | tr -d ' ')
   printMessageNeutral "=== Linting ${PKG_FILE_COUNT} file(s) in ${PKG} ==="
 
-  # Run eslint inside the deps Docker container from the package directory
-  # The base deps image has all source code and node_modules
-  docker run --rm \
-    therrapp/service-dependencies /bin/sh -c "cd ${PKG} && npx eslint $(echo $PKG_FILES | sed "s|${PKG}/||g")" || {
-      printMessageError "Lint errors found in ${PKG}"
-      LINT_ERRORS=$((LINT_ERRORS + 1))
-    }
+  # Convert package-relative paths for eslint (strip package prefix)
+  # Use newline-safe conversion to space-separated args
+  ESLINT_ARGS=$(echo "$PKG_FILES" | sed "s|^${PKG}/||")
+
+  # Run eslint from the package directory so .eslintrc.js resolves correctly
+  # node_modules are in the repo root (hoisted), eslint plugins resolve from there
+  (cd "${PKG}" && npx eslint $ESLINT_ARGS) || {
+    printMessageError "Lint errors found in ${PKG}"
+    LINT_ERRORS=$((LINT_ERRORS + 1))
+  }
 done
 
 if [ $LINT_ERRORS -gt 0 ]; then
