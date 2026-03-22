@@ -129,6 +129,9 @@ spec:
             secretKeyRef:
               name: therrjwtsecret
               key: THERRJWT_SECRET
+        # IndexNow: Must match the same key set on client-web deployment
+        - name: INDEXNOW_API_KEY
+          value: ""
         - name: SIGHTENGINE_API_KEY
           value: "109708716"
         - name: SIGHTENGINE_API_SECRET
