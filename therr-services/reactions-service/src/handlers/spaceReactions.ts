@@ -193,6 +193,29 @@ const findSpaceReactions: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
 };
 
+const getBatchSpaceRatings: RequestHandler = (req: any, res: any) => {
+    const { spaceIds } = req.body;
+
+    if (!spaceIds?.length) {
+        return res.status(200).send({});
+    }
+
+    return Store.spaceReactions.getBatchRatings(spaceIds)
+        .then((rows) => {
+            const ratingsMap = {};
+            rows.forEach((row) => {
+                ratingsMap[row.spaceId] = {
+                    avgRating: row.avgRating ? Math.round(parseFloat(row.avgRating) * 10) / 10 : null,
+                    totalRatings: parseInt(row.totalRatings, 10) || 0,
+                };
+            });
+            res.status(200).send(ratingsMap);
+        })
+        .catch((err) => {
+            handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' });
+        });
+};
+
 const countSpaceReactions: RequestHandler = async (req: any, res: any) => {
     // const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
@@ -211,6 +234,7 @@ const countSpaceReactions: RequestHandler = async (req: any, res: any) => {
 export {
     getSpaceReactions,
     getSpaceRatings,
+    getBatchSpaceRatings,
     getReactionsBySpaceId,
     createOrUpdateSpaceReaction,
     createOrUpdateMultiSpaceReactions,
