@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import logSpan from 'therr-js-utilities/log-or-update-span';
 
 export interface IConnection {
@@ -34,7 +35,7 @@ const write: Pool = new Pool({
     idle_in_transaction_session_timeout: 30000,
 } as any);
 
-read.on('error', (err, client) => {
+read.on('error', (err, _client) => {
     logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
@@ -52,13 +53,13 @@ read.on('error', (err, client) => {
     });
 });
 
-write.on('error', (err, client) => {
+write.on('error', (err, _client) => {
     logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
         messages: ['Uncaught Exception'],
         traceArgs: {
-            'db.host': process.env.DB_HOST_MAIN_READ,
+            'db.host': process.env.DB_HOST_MAIN_WRITE,
             'db.name': process.env.USERS_SERVICE_DATABASE,
             'process.id': process.pid,
             'error.isUncaughtException': true,
