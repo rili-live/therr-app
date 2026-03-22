@@ -366,37 +366,35 @@ mapsServiceRouter.use('/place', createProxyMiddleware({
     changeOrigin: true,
     proxyTimeout: 10000, // 10s timeout to prevent hanging requests
     selfHandleResponse: true,
-    on: {
-        proxyRes: (proxyRes, req, res) => {
-            let body = '';
-            proxyRes.on('data', (chunk) => { body += chunk; });
-            proxyRes.on('error', () => {
-                if (!res.headersSent) {
-                    res.status(502).json({ message: 'Upstream connection error' });
+    onProxyRes: (proxyRes, req, res) => {
+        let body = '';
+        proxyRes.on('data', (chunk) => { body += chunk; });
+        proxyRes.on('error', () => {
+            if (!res.headersSent) {
+                res.status(502).json({ message: 'Upstream connection error' });
+            }
+        });
+        proxyRes.on('end', () => {
+            const statusCode = proxyRes.statusCode || 500;
+            res.status(statusCode);
+            Object.keys(proxyRes.headers).forEach((key) => {
+                if (proxyRes.headers[key]) {
+                    res.setHeader(key, proxyRes.headers[key] as string);
                 }
             });
-            proxyRes.on('end', () => {
-                const statusCode = proxyRes.statusCode || 500;
-                res.status(statusCode);
-                Object.keys(proxyRes.headers).forEach((key) => {
-                    if (proxyRes.headers[key]) {
-                        res.setHeader(key, proxyRes.headers[key] as string);
-                    }
-                });
 
-                // Cache successful GET responses
-                if (statusCode === 200 && req.method === 'GET' && (req as any).placesCacheKey) {
-                    try {
-                        const parsed = JSON.parse(body);
-                        CacheStore.mapsService.setPlacesResponse((req as any).placesCacheKey, parsed);
-                    } catch (e) {
-                        // Non-JSON response, skip caching
-                    }
+            // Cache successful GET responses
+            if (statusCode === 200 && req.method === 'GET' && (req as any).placesCacheKey) {
+                try {
+                    const parsed = JSON.parse(body);
+                    CacheStore.mapsService.setPlacesResponse((req as any).placesCacheKey, parsed);
+                } catch (e) {
+                    // Non-JSON response, skip caching
                 }
+            }
 
-                res.end(body);
-            });
-        },
+            res.end(body);
+        });
     },
 }));
 
