@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import Redis from 'ioredis';
 
