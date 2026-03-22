@@ -5,6 +5,7 @@ import {
     createOrUpdateMultiUserReactions,
     getEventReactions,
     getEventRatings,
+    getBatchEventRatings,
     getReactionsByEventId,
     countEventReactions,
     findEventReactions,
@@ -29,6 +30,7 @@ router.get('/:eventId', getReactionsByEventId);
 router.get('/:eventId/count', countEventReactions);
 
 // POST
+router.post('/ratings/batch', getBatchEventRatings);
 router.post('/find/dynamic', findEventReactions);
 
 export default router;
