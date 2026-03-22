@@ -136,6 +136,14 @@ app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
 }));
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.txt')));
+app.get('/opensearch.xml', express.static(path.join(__dirname, '/../build/static/opensearch.xml')));
+
+// IndexNow key file endpoint for Bing/Yandex verification
+if (process.env.INDEXNOW_API_KEY) {
+    app.get(`/${process.env.INDEXNOW_API_KEY}.txt`, (req, res) => {
+        res.type('text/plain').send(process.env.INDEXNOW_API_KEY);
+    });
+}
 
 // Dynamic sitemap index with paginated space sub-sitemaps
 const SITEMAP_CACHE_TTL = 60 * 60 * 1000; // 1 hour
@@ -1298,6 +1306,9 @@ const getLocaleVars = (req: any) => {
 
     return {
         htmlLang, ogLocale, canonicalPath, hreflangEn, hreflangEs, hreflangFr, localePrefix,
+        googleSiteVerification: process.env.GOOGLE_SITE_VERIFICATION || '',
+        bingSiteVerification: process.env.BING_SITE_VERIFICATION || '',
+        pinterestVerification: process.env.PINTEREST_VERIFICATION || '',
     };
 };
 

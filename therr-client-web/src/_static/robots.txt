@@ -17,4 +17,16 @@ Disallow: /reset-password
 Disallow: /verify-account
 Disallow: /emails/
 
+User-agent: bingbot
+Crawl-delay: 1
+
+User-agent: YandexBot
+Crawl-delay: 2
+
+User-agent: Baiduspider
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+
 Sitemap: https://www.therr.com/sitemap.xml

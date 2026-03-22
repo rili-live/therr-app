@@ -7,6 +7,7 @@ import {
     MetricValueTypes,
 } from 'therr-js-utilities/constants';
 import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
+import submitToIndexNow from 'therr-js-utilities/index-now';
 import { RequestHandler } from 'express';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { storage } from '../api/aws';
@@ -162,10 +163,16 @@ const createSpace = async (req, res) => {
                         featuredIncentiveCurrencyId: spaceIncentive.incentiveCurrencyId,
                     }));
                 }
-            }).then((spaceWithFeaturedIncentive) => res.status(201).send({
-                ...spaceWithFeaturedIncentive,
-                reaction,
-            }));
+            }).then((spaceWithFeaturedIncentive) => {
+                // Fire-and-forget: notify search engines of new content via IndexNow
+                if (process.env.INDEXNOW_API_KEY && space.id) {
+                    submitToIndexNow([`https://www.therr.com/spaces/${space.id}`], process.env.INDEXNOW_API_KEY);
+                }
+                return res.status(201).send({
+                    ...spaceWithFeaturedIncentive,
+                    reaction,
+                });
+            });
         }))
         .catch((err) => {
             if (err?.constraint === 'no_overlaps') {
@@ -954,7 +961,13 @@ const updateSpace = (req, res) => {
         // addressReadable,
         fromUserId: overrideFromUserId || userId,
     })
-        .then(([space]) => res.status(200).send(space))
+        .then(([space]) => {
+            // Fire-and-forget: notify search engines of updated content via IndexNow
+            if (process.env.INDEXNOW_API_KEY && req.params.spaceId) {
+                submitToIndexNow([`https://www.therr.com/spaces/${req.params.spaceId}`], process.env.INDEXNOW_API_KEY);
+            }
+            return res.status(200).send(space);
+        })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
