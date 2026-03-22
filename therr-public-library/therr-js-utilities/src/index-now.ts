@@ -13,7 +13,7 @@ const isValidIndexNowKey = (key: string): boolean => INDEXNOW_KEY_PATTERN.test(k
  * This is a fire-and-forget utility — errors are logged but never thrown.
  */
 const submitToIndexNow = (urls: string[], apiKey: string, host = 'www.therr.com'): Promise<void> => {
-    if (!apiKey || !urls.length || !isValidIndexNowKey(apiKey)) {
+    if (!apiKey || !urls.length || !isValidIndexNowKey(apiKey) || process.env.NODE_ENV !== 'production') {
         return Promise.resolve();
     }
 
