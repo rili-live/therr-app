@@ -215,10 +215,8 @@ describe('LoginForm', () => {
             });
             const instance = component!.getInstance() as LoginForm;
 
-            act(() => {
-                instance.onInputChange('userName', 'testuser');
-                instance.onInputChange('password', 'password123');
-            });
+            act(() => { instance.onInputChange('userName', 'testuser'); });
+            act(() => { instance.onInputChange('password', 'password123'); });
 
             act(() => { instance.onSubmit(); });
 
@@ -234,14 +232,15 @@ describe('LoginForm', () => {
             });
             const instance = component!.getInstance() as LoginForm;
 
-            act(() => {
-                instance.onInputChange('userName', 'testuser');
-                instance.onInputChange('password', 'wrongpassword');
-            });
+            act(() => { instance.onInputChange('userName', 'testuser'); });
+            act(() => { instance.onInputChange('password', 'wrongpassword'); });
 
             await act(async () => {
                 instance.onSubmit();
-                await Promise.resolve(); // Allow promise to settle
+                // Flush microtask queue for .catch to settle
+                await Promise.resolve();
+                await Promise.resolve();
+                await Promise.resolve();
             });
 
             expect(instance.state.isSubmitting).toBe(false);
@@ -257,13 +256,13 @@ describe('LoginForm', () => {
             });
             const instance = component!.getInstance() as LoginForm;
 
-            act(() => {
-                instance.onInputChange('userName', 'testuser');
-                instance.onInputChange('password', 'password123');
-            });
+            act(() => { instance.onInputChange('userName', 'testuser'); });
+            act(() => { instance.onInputChange('password', 'password123'); });
 
             await act(async () => {
                 instance.onSubmit();
+                await Promise.resolve();
+                await Promise.resolve();
                 await Promise.resolve();
             });
 

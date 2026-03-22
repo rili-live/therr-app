@@ -82,3 +82,17 @@ spec:
             value: "info"
           - name: SOCKET_PORT
             value: "7743"
+          # SEO: Search engine verification codes (get from each search console after registering)
+          # Google: https://search.google.com/search-console → Settings → Ownership verification → HTML tag
+          - name: GOOGLE_SITE_VERIFICATION
+            value: ""
+          # Bing: https://www.bing.com/webmasters → Settings → Ownership verification → HTML meta tag
+          - name: BING_SITE_VERIFICATION
+            value: ""
+          # Pinterest: https://business.pinterest.com → Settings → Claim website
+          - name: PINTEREST_VERIFICATION
+            value: "29ef104f87eb1d2c0de01fe5ae9968c9"
+          # IndexNow: Generate a key at https://www.bing.com/indexnow — alphanumeric+hyphens, 8-128 chars
+          # The same key must be set on both client-web (serves key file) and maps-service (submits URLs)
+          - name: INDEXNOW_API_KEY
+            value: "bf9415ba04c845a797fdc30bc27df2d7"
