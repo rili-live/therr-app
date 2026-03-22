@@ -33,8 +33,10 @@ footer {
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         cursor: pointer;
         gap: 1px;
+        padding: 0.25rem 0.5rem;
 
         .footer-nav-label {
             color: $therr-white;
@@ -61,6 +63,9 @@ button {
     &#footer_messages,
     &#footer_explore,
     &#footer_locations_icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: 2.15rem;
         background: transparent;
         box-shadow: none;
@@ -68,7 +73,6 @@ button {
 
     &#footer_close,
     &#footer_messages {
-        margin-right: $messaging-side-margin;
         padding: rem-calc(7px);
     }
 
@@ -94,15 +98,11 @@ button {
         padding: rem-calc(7px);
     }
 
-    &#footer_explore,
-    &#footer_locations_icon {
-        margin-right: $messaging-side-margin;
-    }
 
     &#footer_info {
         display: flex;
         align-items: center;
-        margin-left: $messaging-side-margin-half;
+        justify-content: center;
         background: transparent;
         box-shadow: none;
     }
