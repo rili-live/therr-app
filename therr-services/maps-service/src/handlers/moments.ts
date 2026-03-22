@@ -329,9 +329,10 @@ const createMoment = async (req, res) => {
 
                 updateAchievements(req.headers, req.body);
 
-                // Fire-and-forget: notify search engines of new content via IndexNow
-                if (process.env.INDEXNOW_API_KEY && moment.id) {
-                    submitToIndexNow([`https://www.therr.com/moments/${moment.id}`], process.env.INDEXNOW_API_KEY);
+                // Fire-and-forget: notify search engines of new content via IndexNow (skip drafts)
+                if (process.env.INDEXNOW_API_KEY && moment.id && !moment.isDraft) {
+                    submitToIndexNow([`https://www.therr.com/moments/${moment.id}`], process.env.INDEXNOW_API_KEY)
+                        .catch(() => {}); // already handled internally
                 }
 
                 return res.status(201).send({
@@ -710,9 +711,10 @@ const updateMoment = (req, res) => {
             fromUserId: userId,
         })
             .then(([response]) => {
-                // Fire-and-forget: notify search engines of updated content via IndexNow
-                if (process.env.INDEXNOW_API_KEY && momentId) {
-                    submitToIndexNow([`https://www.therr.com/moments/${momentId}`], process.env.INDEXNOW_API_KEY);
+                // Fire-and-forget: notify search engines of updated content via IndexNow (skip drafts)
+                if (process.env.INDEXNOW_API_KEY && momentId && !response.isDraft) {
+                    submitToIndexNow([`https://www.therr.com/moments/${momentId}`], process.env.INDEXNOW_API_KEY)
+                        .catch(() => {}); // already handled internally
                 }
                 return res.status(201).send({
                     ...response,

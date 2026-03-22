@@ -1,13 +1,19 @@
 import axios from 'axios';
 
 const INDEXNOW_API_URL = 'https://api.indexnow.org/indexnow';
+const INDEXNOW_KEY_PATTERN = /^[a-zA-Z0-9-]{8,128}$/;
+
+/**
+ * Validates that an IndexNow API key is safe to use in URL paths and API requests.
+ */
+const isValidIndexNowKey = (key: string): boolean => INDEXNOW_KEY_PATTERN.test(key);
 
 /**
  * Submits URLs to the IndexNow API for instant indexing by Bing, Yandex, and other participating search engines.
  * This is a fire-and-forget utility — errors are logged but never thrown.
  */
 const submitToIndexNow = (urls: string[], apiKey: string, host = 'www.therr.com'): Promise<void> => {
-    if (!apiKey || !urls.length) {
+    if (!apiKey || !urls.length || !isValidIndexNowKey(apiKey)) {
         return Promise.resolve();
     }
 
@@ -30,4 +36,5 @@ const submitToIndexNow = (urls: string[], apiKey: string, host = 'www.therr.com'
     });
 };
 
+export { isValidIndexNowKey };
 export default submitToIndexNow;

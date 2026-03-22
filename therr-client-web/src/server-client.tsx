@@ -139,9 +139,11 @@ app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.
 app.get('/opensearch.xml', express.static(path.join(__dirname, '/../build/static/opensearch.xml')));
 
 // IndexNow key file endpoint for Bing/Yandex verification
-if (process.env.INDEXNOW_API_KEY) {
-    app.get(`/${process.env.INDEXNOW_API_KEY}.txt`, (req, res) => {
-        res.type('text/plain').send(process.env.INDEXNOW_API_KEY);
+// Key must be alphanumeric/hyphens only (8-128 chars) to prevent route injection
+const indexNowKey = process.env.INDEXNOW_API_KEY;
+if (indexNowKey && /^[a-zA-Z0-9-]{8,128}$/.test(indexNowKey)) {
+    app.get(`/${indexNowKey}.txt`, (req, res) => {
+        res.type('text/plain').send(indexNowKey);
     });
 }
 
