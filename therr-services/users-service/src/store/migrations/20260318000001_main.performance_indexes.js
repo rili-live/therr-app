@@ -64,13 +64,13 @@ exports.up = async (knex) => {
 exports.config = { transaction: false };
 
 exports.down = async (knex) => {
-    await knex.schema.raw('DROP INDEX IF EXISTS main.idx_user_interests_user_enabled;');
-    await knex.schema.raw('DROP INDEX IF EXISTS main.idx_user_connections_active_accepting;');
-    await knex.schema.raw('DROP INDEX IF EXISTS main.idx_user_connections_active_requesting;');
-    await knex.schema.raw('DROP INDEX IF EXISTS main.idx_notifications_type;');
-    await knex.schema.raw('DROP INDEX IF EXISTS main.idx_notifications_association_id;');
-    await knex.schema.raw('DROP INDEX IF EXISTS main.idx_users_user_name_trgm;');
-    await knex.schema.raw('DROP INDEX IF EXISTS main.idx_users_last_name_trgm;');
-    await knex.schema.raw('DROP INDEX IF EXISTS main.idx_users_first_name_trgm;');
+    await knex.schema.raw('DROP INDEX CONCURRENTLY IF EXISTS main.idx_user_interests_user_enabled;');
+    await knex.schema.raw('DROP INDEX CONCURRENTLY IF EXISTS main.idx_user_connections_active_accepting;');
+    await knex.schema.raw('DROP INDEX CONCURRENTLY IF EXISTS main.idx_user_connections_active_requesting;');
+    await knex.schema.raw('DROP INDEX CONCURRENTLY IF EXISTS main.idx_notifications_type;');
+    await knex.schema.raw('DROP INDEX CONCURRENTLY IF EXISTS main.idx_notifications_association_id;');
+    await knex.schema.raw('DROP INDEX CONCURRENTLY IF EXISTS main.idx_users_user_name_trgm;');
+    await knex.schema.raw('DROP INDEX CONCURRENTLY IF EXISTS main.idx_users_last_name_trgm;');
+    await knex.schema.raw('DROP INDEX CONCURRENTLY IF EXISTS main.idx_users_first_name_trgm;');
     // Note: pg_trgm extension is left installed as other code may depend on it
 };
