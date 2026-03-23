@@ -34,6 +34,19 @@ printMessageNeutral "Installing dependencies for linting..."
 npm ci --legacy-peer-deps --ignore-scripts
 printMessageSuccess "Dependencies installed"
 
+# Build shared libraries so eslint can resolve therr-react/* and therr-js-utilities/* imports
+# (lib/ directories are gitignored and must be built before linting consumers)
+printMessageNeutral "Building shared libraries for import resolution..."
+(cd therr-public-library/therr-js-utilities && npm run build) || {
+  printMessageError "Failed to build therr-js-utilities"
+  exit 1
+}
+(cd therr-public-library/therr-react && npm run build) || {
+  printMessageError "Failed to build therr-react"
+  exit 1
+}
+printMessageSuccess "Shared libraries built"
+
 # Define packages and their root directories
 # Each package has its own .eslintrc.js
 declare -a PACKAGES=(

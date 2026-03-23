@@ -146,7 +146,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             case 'view-profile':
                 return this.props.navigation.navigate('/user/profile');
             case 'edit-profile':
-                return this.props.navigation.navigate('/user/profile');
+                return this.props.navigation.navigate('/user/edit-profile');
             case 'discovered':
                 return this.props.navigation.navigate('/discovered');
             case 'explore':

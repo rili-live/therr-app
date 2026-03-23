@@ -30,7 +30,7 @@ fi
 should_test_service()
 {
   SERVICE_DIR=$1
-  has_diff_changes general $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_diff_changes general $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 # =============================================================================
