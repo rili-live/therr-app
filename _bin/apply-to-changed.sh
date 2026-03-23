@@ -92,4 +92,4 @@ for i in "${arr[@]}"; do
   fi
 done
 
-printMessageSuccess "'${COMMAND}' command run on all Libraries, services, and frontend apps with changes or changes to respective dependencies!"${NC}
+printMessageSuccess "'${COMMAND}' command run on all Libraries, services, and frontend apps with changes or changes to respective dependencies!"

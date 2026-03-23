@@ -4,12 +4,24 @@ set -e
 
 source ./_bin/lib/colorize.sh
 
+# Cache fetched branches to avoid redundant network calls
+_FETCHED_BRANCHES=""
+
+_fetch_once()
+{
+    local BRANCH=$1
+    if [[ "$_FETCHED_BRANCHES" != *"|$BRANCH|"* ]]; then
+        git fetch origin "$BRANCH"
+        _FETCHED_BRANCHES="${_FETCHED_BRANCHES}|$BRANCH|"
+    fi
+}
+
 has_diff_changes()
 {
     ORIGIN_BRANCH=$1
     DIR=$2
-    
-    git fetch origin $ORIGIN_BRANCH
+
+    _fetch_once "$ORIGIN_BRANCH"
     NUM_FILES_CHANGED=$(git diff --name-only origin/$ORIGIN_BRANCH -- $DIR | wc -l)
 
     if [[ ${NUM_FILES_CHANGED} -gt 0 ]]; then
@@ -40,7 +52,7 @@ has_prev_diff_changes()
         fi
     fi
 
-    git fetch origin $COMPARE_BRANCH
+    _fetch_once "$COMPARE_BRANCH"
     MERGE_BASE=$(git merge-base HEAD origin/$COMPARE_BRANCH)
     NUM_FILES_CHANGED=$(git diff $MERGE_BASE --name-only -- $DIR | wc -l)
 
