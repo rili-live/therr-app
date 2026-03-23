@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as countryGeo from 'country-reverse-geocoding';
 import { getSearchQueryArgs, getSearchQueryString, parseHeaders } from 'therr-js-utilities/http';
 import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
+import submitToIndexNow from 'therr-js-utilities/index-now';
 import {
     AccessLevels,
     Content,
@@ -327,6 +328,12 @@ const createMoment = async (req, res) => {
                 }
 
                 updateAchievements(req.headers, req.body);
+
+                // Fire-and-forget: notify search engines of new content via IndexNow (skip drafts)
+                if (process.env.INDEXNOW_API_KEY && moment.id && !moment.isDraft) {
+                    submitToIndexNow([`https://www.therr.com/moments/${moment.id}`], process.env.INDEXNOW_API_KEY)
+                        .catch(() => {}); // already handled internally
+                }
 
                 return res.status(201).send({
                     ...moment,
@@ -703,10 +710,17 @@ const updateMoment = (req, res) => {
             locale,
             fromUserId: userId,
         })
-            .then(([response]) => res.status(201).send({
-                ...response,
-                therrCoinRewarded,
-            })))
+            .then(([response]) => {
+                // Fire-and-forget: notify search engines of updated content via IndexNow (skip drafts)
+                if (process.env.INDEXNOW_API_KEY && momentId && !response.isDraft) {
+                    submitToIndexNow([`https://www.therr.com/moments/${momentId}`], process.env.INDEXNOW_API_KEY)
+                        .catch(() => {}); // already handled internally
+                }
+                return res.status(201).send({
+                    ...response,
+                    therrCoinRewarded,
+                });
+            }))
             .catch((err) => {
                 if (err?.message === CurrencyTransactionMessages.INSUFFICIENT_FUNDS) {
                     return handleHttpError({

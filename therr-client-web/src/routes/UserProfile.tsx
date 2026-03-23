@@ -87,6 +87,10 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         this.props.navigation.navigate('/create-forum');
     };
 
+    onEditProfileClick = () => {
+        this.props.navigation.navigate('/user/edit-profile');
+    };
+
     public render(): JSX.Element | null {
         const { createUserConnection, user, userConnections } = this.props;
 
@@ -106,6 +110,15 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                             height="100"
                         />
                     </div>
+                </div>
+                <div className="edit-profile-link">
+                    <MantineButton
+                        id="edit_profile_button"
+                        text={this.props.translate('pages.userProfile.buttons.editProfile')}
+                        onClick={this.onEditProfileClick}
+                        variant="light"
+                        size="sm"
+                    />
                 </div>
                 <div className="flex-box account-sections">
                     <div id="account_details" className="account-section">

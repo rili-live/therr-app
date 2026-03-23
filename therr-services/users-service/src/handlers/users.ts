@@ -246,7 +246,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
 const getMe = (req, res) => {
     const userId = req.headers['x-userid'];
 
-    return Store.users.getUsers({ id: userId, settingsIsAccountSoftDeleted: false })
+    return Store.users.getUserByConditions({ id: userId, settingsIsAccountSoftDeleted: false })
         .then((results) => {
             if (!results.length) {
                 return handleHttpError({
@@ -417,14 +417,17 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
             }))
         : Promise.resolve([]);
 
-    return mightKnowPromise.then((mightKnowResults) => Store.users.searchUsers(userId, {
+    // Run mightKnow and searchUsers in parallel for better latency
+    const searchPromise = Store.users.searchUsers(userId, {
         ids,
         query,
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
-    }, true, true)
-        .then((results) => {
+    }, true, true);
+
+    return Promise.all([mightKnowPromise, searchPromise])
+        .then(([mightKnowResults, results]) => {
             res.status(200).send({
                 results: results.map((user) => {
                     // Remove credentials from object
@@ -440,7 +443,7 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
                     pageNumber: actualOffset + 1,
                 },
             });
-        })).catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+        }).catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
 /**
@@ -1032,7 +1035,7 @@ const createOneTimePassword = (req, res) => {
     } = parseHeaders(req.headers);
     const { email, isDashboardRegistration } = req.body;
 
-    return Store.users.getUsers({ email: normalizeEmail(email) })
+    return Store.users.getUserByConditions({ email: normalizeEmail(email) })
         .then((userDetails) => {
             if (!userDetails.length) {
                 return handleHttpError({
@@ -1079,7 +1082,7 @@ const verifyUserAccount = (req, res) => {
         return handleHttpError({ err: e, res, message: 'SQL:USER_ROUTES:ERROR' });
     }
 
-    return Store.users.getUsers({ email: normalizeEmail(decodedToken.email) })
+    return Store.users.getUserByConditions({ email: normalizeEmail(decodedToken.email) })
         .then((userSearchResults) => {
             if (!userSearchResults.length) {
                 return handleHttpError({
@@ -1186,7 +1189,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
     let userVerificationCodes;
 
-    return Store.users.getUsers({
+    return Store.users.getUserByConditions({
         email: normalizeEmail(req.body.email),
     })
         .then((users) => {

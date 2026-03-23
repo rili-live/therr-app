@@ -173,7 +173,7 @@ const getUserHelper = ({
     requestingUserId,
     targetUserParams,
     res,
-}: IGetUserHelperArgs): Promise<any> => Store.users.getUsers({ ...targetUserParams, settingsIsAccountSoftDeleted: false })
+}: IGetUserHelperArgs): Promise<any> => Store.users.getUserByConditions({ ...targetUserParams, settingsIsAccountSoftDeleted: false })
     .then((results) => {
         if (!results.length) {
             return handleHttpError({
@@ -605,7 +605,7 @@ const validateCredentials = (headers: InternalConfigHeaders, userSearchResults, 
                     fbUserLastName = getMeResponse?.data?.last_name;
                     // TODO: Get user
                     existingUsersFromFBEmail = await Store.users
-                        .getUsers(
+                        .getUserByConditions(
                             { email: normalizeEmail(fbUserEmail) },
                         );
                 }

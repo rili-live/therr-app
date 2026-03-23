@@ -88,8 +88,11 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
     /**
      * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
      * We will probably want to move this to a scheduler to run at a set interval.
+     * Deferred via setImmediate to avoid blocking notification response
      */
-    TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userId], 'updatedAt', 0);
+    setImmediate(() => {
+        TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userId], 'updatedAt', 0);
+    });
 
     // const countPromise = Store.notifications.countRecords({
     //     filterBy,

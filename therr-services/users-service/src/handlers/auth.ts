@@ -73,11 +73,11 @@ const login: RequestHandler = (req: any, res: any) => {
         // TODO: Test security concerns like a DDOS attack
         // We should verify the auth bearer token first
         // Consider making this an optionally authed endpoint in API gateway
-        getUsersPromise = Store.users.getUsers({ id: userId });
+        getUsersPromise = Store.users.getUserByConditions({ id: userId });
     } else {
         getUsersPromise = userNameEmailPhone
             ? Store.users
-                .getUsers(
+                .getUserByConditions(
                     { userName: userNameEmailPhone },
                     { email: userNameEmailPhone },
                     { phoneNumber: userNameEmailPhone },
@@ -93,8 +93,11 @@ const login: RequestHandler = (req: any, res: any) => {
                  * We will probably want to move this to a scheduler to run at a set interval.
                  *
                  * Uses createdAt to target recently created users
+                 * Deferred via setImmediate to avoid blocking login response
                  */
-                TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userSearchResults[0].id], 'createdAt', 10);
+                setImmediate(() => {
+                    TherrEventEmitter.runThoughtDistributorAlgorithm(req.headers, [userSearchResults[0].id], 'createdAt', 10);
+                });
 
                 if (req.body.isDashboard && !userSearchResults[0].isBusinessAccount) {
                     // TODO: Disallow login to dashboard for non-business users
@@ -303,8 +306,7 @@ const login: RequestHandler = (req: any, res: any) => {
 };
 
 // Logout user
-// Token blacklisting is handled at the API gateway layer
-const logout: RequestHandler = (req: any, res: any) => Store.users.getUsers({ userName: req.body.userName })
+const logout: RequestHandler = (req: any, res: any) => Store.users.getUserByConditions({ userName: req.body.userName })
     .then((results) => {
         if (!results.length) {
             return handleHttpError({
