@@ -562,6 +562,7 @@ const renderMomentView = (req, res, config, {
     const momentMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
         ? getUserContentUri(moment.medias[0], 600, 600)
         : content?.media?.[mediaPath];
+
     if (momentMediaUri) {
         if (momentMediaUri.includes('.jpg') || momentMediaUri.includes('.jpeg') || momentMediaUri.includes('.png')) {
             metaImgUrl = momentMediaUri;
@@ -661,6 +662,7 @@ const renderSpaceView = (req, res, config, {
     const spaceMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
         ? getUserContentUri(space?.medias[0], 600, 600)
         : content?.media?.[mediaPath];
+
     if (spaceMediaUri) {
         if (spaceMediaUri.includes('.jpg') || spaceMediaUri.includes('.jpeg') || spaceMediaUri.includes('.png')) {
             metaImgUrl = spaceMediaUri;

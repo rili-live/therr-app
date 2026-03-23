@@ -10,11 +10,6 @@ interface IProgressiveImageProps {
     fetchPriority?: 'high' | 'low' | 'auto';
 }
 
-/**
- * Progressive image component that shows a tiny blurred placeholder
- * while the full-resolution image loads (blur-up effect).
- * Works with ImageKit URLs by appending blur and resize transforms.
- */
 const ProgressiveImage: React.FC<IProgressiveImageProps> = ({
     src,
     alt,
@@ -24,25 +19,16 @@ const ProgressiveImage: React.FC<IProgressiveImageProps> = ({
     fetchPriority,
 }) => {
     const [isLoaded, setIsLoaded] = React.useState(false);
-    const imgRef = React.useRef<HTMLImageElement>(null);
 
     // Build a tiny blurred placeholder URL from the ImageKit source
     const placeholderSrc = React.useMemo(() => {
         if (!src || !src.includes('?tr=')) return undefined;
-        // Replace size params with tiny size + blur
         return src.replace(/\?tr=(.*)/, '?tr=h-40,w-40,bl-30,q-50,f-auto');
     }, [src]);
 
     React.useEffect(() => {
         setIsLoaded(false);
     }, [src]);
-
-    // Check if the image was already cached/loaded before React hydrated
-    React.useEffect(() => {
-        if (imgRef.current?.complete && imgRef.current?.naturalWidth > 0) {
-            setIsLoaded(true);
-        }
-    }, []);
 
     if (!placeholderSrc) {
         return (
@@ -57,24 +43,14 @@ const ProgressiveImage: React.FC<IProgressiveImageProps> = ({
         );
     }
 
+    const borderRadius = radius === 'md'
+        ? 'var(--mantine-radius-md)'
+        : undefined;
+
     return (
-        <div style={{ position: 'relative', overflow: 'hidden', borderRadius: radius === 'md' ? 'var(--mantine-radius-md)' : undefined }}>
-            {/* Blurred placeholder - always rendered, hidden once full image loads */}
-            {!isLoaded && (
-                <Image
-                    src={placeholderSrc}
-                    alt=""
-                    className={className}
-                    radius={radius}
-                    style={{
-                        filter: 'blur(20px)',
-                        transform: 'scale(1.1)',
-                    }}
-                />
-            )}
-            {/* Full resolution image */}
+        <div style={{ position: 'relative', overflow: 'hidden', borderRadius }}>
+            {/* Full resolution image - always in DOM for SSR/SEO */}
             <Image
-                ref={imgRef}
                 src={src}
                 alt={alt}
                 className={className}
@@ -82,14 +58,26 @@ const ProgressiveImage: React.FC<IProgressiveImageProps> = ({
                 radius={radius}
                 fetchPriority={fetchPriority}
                 onLoad={() => setIsLoaded(true)}
-                style={!isLoaded ? {
+            />
+            {/* Blurred placeholder overlay - fades out when full image loads */}
+            <Image
+                src={placeholderSrc}
+                alt=""
+                aria-hidden="true"
+                className={className}
+                radius={radius}
+                style={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     width: '100%',
                     height: '100%',
-                    opacity: 0,
-                } : undefined}
+                    filter: 'blur(20px)',
+                    transform: 'scale(1.1)',
+                    opacity: isLoaded ? 0 : 1,
+                    transition: 'opacity 0.3s ease-out',
+                    pointerEvents: 'none',
+                }}
             />
         </div>
     );
