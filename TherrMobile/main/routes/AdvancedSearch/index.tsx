@@ -61,7 +61,7 @@ const AdvancedSearch = ({
 }: IAdvancedSearchProps) => {
     const translate = useCallback(
         (key: string, params?: any) => translator(user.settings?.locale || 'en-us', key, params),
-        []
+        [user.settings?.locale]
     );
 
     const initialCategoryFilters = useRef(getInitialCategoryFilters(translate, true));

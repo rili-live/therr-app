@@ -296,6 +296,18 @@
       "postError": "Failed to post thought. Please try again.",
       "messageTooShort": "Message is too short"
     },
+    "viewThought": {
+      "headerTitle": "Thought",
+      "reply": "Reply",
+      "replies": "Replies",
+      "noReplies": "No replies yet. Be the first to respond.",
+      "replyPlaceholder": "Write a reply...",
+      "replyButton": "Reply",
+      "replyTooShort": "Reply is too short",
+      "replyError": "Failed to post reply. Please try again.",
+      "loginToReply": "Log in to reply",
+      "backToThoughts": "Back to Thoughts"
+    },
     "explorePeople": {
       "pageTitle": "Search People",
       "subtitle": "Discover creators, businesses, and community members",
