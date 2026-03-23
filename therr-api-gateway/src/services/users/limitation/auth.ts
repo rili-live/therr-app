@@ -5,6 +5,9 @@ import { RateLimiterRedisStore } from '../../../store/redisClient';
 const limitReachedStatusCode = 429;
 const limitReachedMessage = 'Too many login attempts, please try again later.';
 const registerLimitReachedMessage = 'Too many requests to register.';
+const forgotPasswordLimitReachedMessage = 'Too many password reset requests, please try again later.';
+const resendVerificationLimitReachedMessage = 'Too many verification resend requests, please try again later.';
+const refreshTokenLimitReachedMessage = 'Too many token refresh requests, please try again later.';
 const feedbackLimitReachedMessage = 'Too many requests to send feedback.';
 const rewardRequestLimitReachedMessage = 'Too many requests to exchange coins.';
 const userConnectionLimitReachedMessage = 'Too many user connection requests';
@@ -43,6 +46,9 @@ const buildRateLimiter = (msg, count = 1, minutes = 1) => RateLimit({
 });
 
 const registerAttemptLimiter = buildRateLimiter(registerLimitReachedMessage, 5, 60 * 12);
+const forgotPasswordLimiter = buildRateLimiter(forgotPasswordLimitReachedMessage, 3, 15); // 3 requests per 15 minutes
+const resendVerificationLimiter = buildRateLimiter(resendVerificationLimitReachedMessage, 3, 15); // 3 requests per 15 minutes
+const refreshTokenLimiter = buildRateLimiter(refreshTokenLimitReachedMessage, 30, 5); // 30 requests per 5 minutes
 const feedbackAttemptLimiter = buildRateLimiter(feedbackLimitReachedMessage);
 const rewardRequestAttemptLimiter = buildRateLimiter(rewardRequestLimitReachedMessage, 1, 3);
 const userConnectionLimiter = buildRateLimiter(userConnectionLimitReachedMessage, 10, 60); // 10 requests per hour (60 minutes)
@@ -53,6 +59,9 @@ const unsubscribeAttemptLimiter = buildRateLimiter(unsubscribeLimitReachedMessag
 export {
     loginAttemptLimiter,
     registerAttemptLimiter,
+    forgotPasswordLimiter,
+    resendVerificationLimiter,
+    refreshTokenLimiter,
     rewardRequestAttemptLimiter,
     feedbackAttemptLimiter,
     userConnectionLimiter,

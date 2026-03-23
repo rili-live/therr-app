@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { CommonActions } from '@react-navigation/native';
 // import { AlertActions } from './library/alerts';
 // import { LoaderActions } from './library/loader';
+import UsersService from 'therr-react/services/UsersService';
+import SecureStorage from './utilities/SecureStorage';
 import { CURRENT_BRAND_VARIATION } from './config/brandConfig';
 import getConfig from './utilities/getConfig';
 import UsersActions from './redux/actions/UsersActions';
@@ -12,7 +13,37 @@ const MAX_LOGOUT_ATTEMPTS = 3;
 let timer: any;
 let numLoadings = 0;
 let logoutAttemptCount = 0;
+let isRefreshing = false;
+let refreshSubscribers: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];
 const _timeout = 350;
+
+const subscribeToTokenRefresh = (resolve: (token: string) => void, reject: (err: any) => void) => {
+    refreshSubscribers.push({ resolve, reject });
+};
+
+const onTokenRefreshed = (newToken: string) => {
+    refreshSubscribers.forEach((sub) => sub.resolve(newToken));
+    refreshSubscribers = [];
+};
+
+const onRefreshFailed = (err: any) => {
+    refreshSubscribers.forEach((sub) => sub.reject(err));
+    refreshSubscribers = []
+};
+
+const handleLogout = (store) => {
+    if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
+        const storedUser = store.getState().user;
+        if (storedUser?.details?.id) {
+            store.dispatch(UsersActions.updateTour({
+                isTouring: false,
+                isNavigationTouring: false,
+            }, storedUser?.details?.id));
+        }
+        store.dispatch(UsersActions.logout());
+        logoutAttemptCount += 1;
+    }
+};
 
 const initInterceptors = (
     store,
@@ -68,51 +99,81 @@ const initInterceptors = (
             }
             numLoadings -= 1;
 
-            store.dispatch(
-                CommonActions.reset({
-                    index: 1,
-                    routes: [
-                        {
-                            name: 'Login',
-                        },
-                    ],
-                })
-            );
-
             return response;
         },
         (error) => {
+            const originalRequest = error.config;
+
             if (__DEV__) {
                 console.log('[Interceptor Error]', error?.config?.url, error?.response?.status, error?.message);
             }
+
             if (error.response) {
-                if (
-                    Number(error.response.status) === 401 ||
-                    Number(error.response.data.statusCode) === 401 ||
-                    Number(error.response.status) === 403 ||
-                    Number(error.response.data.statusCode) === 403
-                ) {
-                    // store.dispatch(UsersActions.setRedirect(window.location.pathname));
-                    // TODO: This is so BAD. Find a better way, but for now it prevents an infinite loop and ensures that the user idToken is reset
-                    if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
-                        const storedUser = store.getState().user;
-                        if (storedUser?.details?.id) {
-                            // Close the modal to prevent stuck state
-                            store.dispatch(UsersActions.updateTour({
-                                isTouring: false,
-                                isNavigationTouring: false,
-                            }, storedUser?.details?.id));
-                        }
-                        store.dispatch(UsersActions.logout());
-                        logoutAttemptCount += 1;
+                const is401 = Number(error.response.status) === 401 || Number(error.response.data?.statusCode) === 401;
+                const is403 = Number(error.response.status) === 403 || Number(error.response.data?.statusCode) === 403;
+
+                // Attempt token refresh on 401 (but not for refresh requests or 403s)
+                if (is401 && !originalRequest._isRetry && !originalRequest.url?.includes('/auth/token/refresh')) {
+                    originalRequest._isRetry = true;
+
+                    if (!isRefreshing) {
+                        isRefreshing = true;
+
+                        SecureStorage.getItem('therrRefreshToken')
+                            .then((refreshToken) => {
+                                if (!refreshToken) {
+                                    throw new Error('No refresh token available');
+                                }
+
+                                const storedUser = store.getState().user;
+                                const rememberMe = storedUser?.settings?.rememberMe;
+
+                                return UsersService.refreshToken(refreshToken, rememberMe);
+                            })
+                            .then(async (response) => {
+                                const { idToken: newIdToken, refreshToken: newRefreshToken } = response.data;
+
+                                // Update stored tokens
+                                const userDetailsStr = await SecureStorage.getItem('therrUser');
+                                const userDetails = JSON.parse(userDetailsStr || '{}');
+                                userDetails.idToken = newIdToken;
+                                await SecureStorage.setItem('therrUser', JSON.stringify(userDetails));
+                                await SecureStorage.setItem('therrRefreshToken', newRefreshToken);
+
+                                // Update Redux state
+                                store.dispatch({
+                                    type: 'UPDATE_USER',
+                                    data: {
+                                        details: { idToken: newIdToken },
+                                    },
+                                });
+
+                                isRefreshing = false;
+                                onTokenRefreshed(newIdToken);
+                            })
+                            .catch((refreshErr) => {
+                                isRefreshing = false;
+                                onRefreshFailed(refreshErr);
+                                handleLogout(store);
+                            });
                     }
-                    // store.dispatch(AlertActions.addAlert({
-                    //     title: 'Not Authorized',
-                    //     message: 'Redirected: You do not have authorization to view this content or your session has expired.
-                    // Please login to continue.',
-                    //     type: 'error',
-                    //     delay: 3000
-                    // }));;
+
+                    // Queue the original request to retry after refresh
+                    return new Promise((resolve, reject) => {
+                        subscribeToTokenRefresh(
+                            (newToken: string) => {
+                                originalRequest.headers.authorization = `Bearer ${newToken}`;
+                                resolve(axios(originalRequest));
+                            },
+                            (err) => {
+                                reject(err);
+                            },
+                        );
+                    });
+                }
+
+                if (is401 || is403) {
+                    handleLogout(store);
                 }
             } else if (error) {
                 if (
@@ -120,33 +181,13 @@ const initInterceptors = (
                     Number(error.statusCode) === 403
                 ) {
                     socketIO.disconnect();
-                    // store.dispatch(UsersActions.setRedirect(window.location.pathname));
-                    // TODO: This is so BAD. Find a better way, but for now it prevents an infinite loop and ensures that the user idToken is reset
-                    if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
-                        const storedUser = store.getState().user;
-                        if (storedUser?.details?.id) {
-                            // Close the modal to prevent stuck state
-                            store.dispatch(UsersActions.updateTour({
-                                isTouring: false,
-                                isNavigationTouring: false,
-                            }, storedUser?.details?.id));
-                        }
-                        store.dispatch(UsersActions.logout());
-                        logoutAttemptCount += 1;
-                    }
-                    // store.dispatch(AlertActions.addAlert({
-                    //     title: 'Not Authorized',
-                    //     message: 'Redirected: You do not have authorization to view this content or your session has expired.
-                    // Please login to continue.',
-                    //     type: 'error',
-                    //     delay: 3000
-                    // }));;
+                    handleLogout(store);
                 }
             }
 
             if (numLoadings === 0) {
                 return Promise.reject(
-                    error && error.response && error.response.data
+                    (error && error.response && error.response.data) || error
                 );
             }
 
