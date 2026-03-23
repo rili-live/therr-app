@@ -48,15 +48,12 @@ services:
         npm install &&
         echo '=== Building therr-styles ===' &&
         cd therr-public-library/therr-styles &&
-        npm install &&
         npm run build &&
         echo '=== Building therr-js-utilities ===' &&
         cd ../therr-js-utilities &&
-        npm install &&
         npm run build &&
         echo '=== Building therr-react ===' &&
         cd ../therr-react &&
-        npm install &&
         npm run build &&
         echo '=== Libraries built successfully! ==='
       "
