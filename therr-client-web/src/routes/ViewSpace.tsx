@@ -15,6 +15,7 @@ import {
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
+import ProgressiveImage from '../components/ProgressiveImage';
 
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
@@ -385,6 +386,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         radius="sm"
                         mah={200}
                         fit="cover"
+                        loading="lazy"
                     />
                 )}
                 {moment.hashTags && (
@@ -449,6 +451,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                         fit="cover"
                                         radius="sm"
                                         mb="sm"
+                                        loading="lazy"
                                     />
                                 )}
                                 <Anchor href={`/spaces/${pairing.id}`} fw={600} size="sm">
@@ -550,12 +553,13 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     {/* Hero Image */}
                     {spaceMedia && (
                         <div className="space-hero-image-wrapper">
-                            <Image
+                            <ProgressiveImage
                                 src={spaceMedia}
                                 alt={space.notificationMsg}
                                 className="space-hero-image"
                                 fallbackSrc="/assets/images/meta-image-logo.png"
                                 radius="md"
+                                fetchPriority="high"
                             />
                         </div>
                     )}
@@ -625,6 +629,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                         maw={120}
                                         src="/assets/images/apple-store-download-button.svg"
                                         alt="Download Therr on the App Store"
+                                        loading="lazy"
                                     />
                                 </Anchor>
                                 <Anchor href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
@@ -633,6 +638,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                         maw={120}
                                         src="/assets/images/play-store-download-button.svg"
                                         alt="Download Therr on Google Play"
+                                        loading="lazy"
                                     />
                                 </Anchor>
                             </Group>

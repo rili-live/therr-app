@@ -13,6 +13,7 @@ import {
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
+import ProgressiveImage from '../components/ProgressiveImage';
 
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
@@ -192,6 +193,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
                                 h={80}
                                 radius="sm"
                                 fit="cover"
+                                loading="lazy"
                             />
                         )}
                         <Stack gap={4}>
@@ -234,12 +236,13 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
                     {/* Hero Image */}
                     {momentMedia && (
                         <div className="moment-hero-image-wrapper">
-                            <Image
+                            <ProgressiveImage
                                 src={momentMedia}
                                 alt={moment.notificationMsg}
                                 className="moment-hero-image"
                                 fallbackSrc="/assets/images/meta-image-logo.png"
                                 radius="md"
+                                fetchPriority="high"
                             />
                         </div>
                     )}
