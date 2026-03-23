@@ -486,6 +486,7 @@
     "userProfile": {
       "buttons": {
         "createAForum": "Create a Hosted Chat",
+        "editProfile": "Edit Profile",
         "sendRequest": "Send Request"
       },
       "connectionSent": "You connection request is on the way!",

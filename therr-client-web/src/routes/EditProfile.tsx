@@ -11,6 +11,7 @@ import {
     MantineSelect,
 } from 'therr-react/components/mantine';
 import { IUserState } from 'therr-react/types';
+import { sanitizeUserName } from 'therr-js-utilities/sanitizers';
 import UsersActions from '../redux/actions/UsersActions';
 import getUserImageUri from '../utilities/getUserImageUri';
 import withNavigation from '../wrappers/withNavigation';
@@ -76,7 +77,7 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                 userName: user.details?.userName || '',
                 settingsBio: user.settings?.settingsBio || '',
                 settingsIsProfilePublic: user.settings?.settingsIsProfilePublic ?? true,
-                shouldHideMatureContent: user.settings?.shouldHideMatureContent ?? false,
+                shouldHideMatureContent: user.details?.shouldHideMatureContent ?? false,
                 settingsLocale: user.settings?.locale || 'en-us',
                 settingsThemeName: user.settings?.mobileThemeName || 'light',
             },
@@ -96,10 +97,15 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
     };
 
     onInputChange = (name: string, value: string) => {
+        let sanitizedValue = value;
+        if (name === 'userName') {
+            sanitizedValue = sanitizeUserName(value);
+        }
+
         this.setState({
             inputs: {
                 ...this.state.inputs,
-                [name]: value,
+                [name]: sanitizedValue,
             },
             errorReason: '',
             isSuccess: false,
@@ -223,7 +229,7 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                                 <h1>{this.props.translate('pages.editProfile.pageTitle')}</h1>
                             </div>
 
-                            {isSuccess && (
+                            {!errorReason && isSuccess && (
                                 <Alert color="green" variant="light">
                                     {this.props.translate('pages.editProfile.successMessage')}
                                 </Alert>
