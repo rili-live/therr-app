@@ -66,10 +66,17 @@ export const updateSocketToken = (user, shouldConnect?: boolean) => {
 
         if (shouldConnect) {
             socketIO.connect();
-            socketIO.emit(SOCKET_MIDDLEWARE_ACTION, {
-                type: SocketClientActionTypes.UPDATE_SESSION,
-                data: user,
-            });
+            const emitUpdateSession = () => {
+                socketIO.emit(SOCKET_MIDDLEWARE_ACTION, {
+                    type: SocketClientActionTypes.UPDATE_SESSION,
+                    data: user,
+                });
+            };
+            if (socketIO.connected) {
+                emitUpdateSession();
+            } else {
+                socketIO.once('connect', emitUpdateSession);
+            }
         }
     }
 };

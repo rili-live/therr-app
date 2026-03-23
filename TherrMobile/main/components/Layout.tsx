@@ -27,7 +27,7 @@ import notifee, { Event, EventType } from '@notifee/react-native';
 import DeviceInfo from 'react-native-device-info';
 import { MessagesService, UsersService } from 'therr-react/services';
 import { AccessCheckType, IContentState, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
-import { ContentActions, ForumActions, NotificationActions, UserConnectionsActions } from 'therr-react/redux/actions';
+import { ContentActions, ForumActions, NotificationActions, SocketActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import { AccessLevels, FeatureFlags, GroupMemberRoles, PushNotifications, UserConnectionTypes } from 'therr-js-utilities/constants';
 import { CURRENT_BRAND_VARIATION } from '../config/brandConfig';
 import { SheetManager, Sheets } from 'react-native-actions-sheet';
@@ -65,18 +65,15 @@ import HeaderTherrLogo from './HeaderTherrLogo';
 import HeaderSearchInput from './Input/HeaderSearchInput';
 import HeaderLinkRight from './HeaderLinkRight';
 import { AndroidChannelIds, GROUPS_CAROUSEL_TABS, GROUP_CAROUSEL_TABS, getAndroidChannel } from '../constants';
-import { socketIO } from '../socket-io-middleware';
+import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import HeaderSearchUsersInput from './Input/HeaderSearchUsersInput';
 import { DEFAULT_PAGE_SIZE } from '../routes/Connect';
 import background1 from '../assets/dinner-burgers.webp';
 import background2 from '../assets/dinner-overhead.webp';
 import background3 from '../assets/dinner-overhead-2.webp';
-import NativeDevSettings from 'react-native/Libraries/NativeModules/specs/NativeDevSettings';
 import { isUserAuthenticated, isUserEmailVerified } from '../utilities/authUtils';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { buildGroupUrl } from '../utilities/shareUrls';
-
-// NativeDevSettings.setIsDebuggingRemotely(!!__DEV__);
 
 const preLoadImageList = [background1, background2, background3];
 
@@ -117,6 +114,7 @@ interface ILayoutDispatchProps {
     updateUser: Function;
     updateUserConnection: Function;
     updateUserConnectionType: Function;
+    refreshConnection: Function;
     // Prefetch
     beginPrefetchRequest: Function;
     completePrefetchRequest: Function;
@@ -173,6 +171,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateUser: UsersActions.update,
             updateUserConnection: UserConnectionsActions.update,
             updateUserConnectionType: UserConnectionsActions.updateType,
+            refreshConnection: SocketActions.refreshConnection,
             // Prefetch
             beginPrefetchRequest: UIActions.beginPrefetchRequest,
             completePrefetchRequest: UIActions.completePrefetchRequest,
@@ -228,6 +227,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 this.logout(this.props?.user?.details);
             });
         }
+
+        // Socket reconnection handlers (ensure token is refreshed on reconnect)
+        socketIO.on('reconnect_attempt', () => {
+            updateSocketToken(this.props.user);
+        });
+        socketIO.on('reconnect', () => {
+            if (this.props.user && this.props.user.isAuthenticated) {
+                this.props.refreshConnection(this.props.user);
+            }
+        });
 
         DeviceEventEmitter.addListener('locationProviderStatusChange', (status) => { // only trigger when "providerListener" is enabled
             this.props.updateGpsStatus(status);

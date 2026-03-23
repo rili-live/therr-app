@@ -7,6 +7,11 @@ const Socket = {
             data,
         });
     },
+    requestRoomsList: () => (dispatch) => {
+        dispatch({
+            type: SocketClientActionTypes.REQUEST_ROOMS_LIST,
+        });
+    },
     joinForum: (data) => (dispatch) => {
         dispatch({
             type: SocketClientActionTypes.JOIN_ROOM,

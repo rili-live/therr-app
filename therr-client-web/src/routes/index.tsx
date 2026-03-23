@@ -28,6 +28,7 @@ import ExplorePeople from './Explore/ExplorePeople';
 import UnderConstruction from './UnderConstruction';
 import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
+import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 import EmailPreferences from './EmailPreferences';
 import AppFeedback from './AppFeedback';
@@ -215,6 +216,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/user/go-mobile',
         element: <AuthRoute
             component={UnderConstruction}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/thoughts/:thoughtId',
+        element: <AuthRoute
+            component={ViewThought}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

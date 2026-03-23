@@ -5,8 +5,11 @@ import {
     MantineButton,
     MantineInput,
 } from 'therr-react/components/mantine';
+import { AccessLevels, SocketClientActionTypes } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../global-config';
 import VerificationCodesService from '../services/VerificationCodesService';
+import store from '../store';
+import { routeAfterLogin } from './Login';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 
@@ -53,16 +56,53 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
         const queryParams = new URLSearchParams(window.location.search);
         const verificationToken = queryParams.get('token');
         VerificationCodesService.verifyEmail(verificationToken)
-            .then(() => {
-                this.setState({
-                    verificationStatus: 'success',
-                }, () => {
-                    this.props.navigation.navigate('/login', {
-                        state: {
-                            successMessage: this.props.translate('pages.emailVerification.successVerifiedMessage'),
-                        },
+            .then((response) => {
+                const { idToken, refreshToken, id } = response?.data || {};
+
+                if (idToken && id) {
+                    // Auto-login: store tokens and dispatch login
+                    const userData = {
+                        ...response.data,
+                    };
+                    delete userData.message;
+
+                    sessionStorage.setItem('therrUser', JSON.stringify(userData));
+                    if (refreshToken) {
+                        sessionStorage.setItem('therrRefreshToken', refreshToken);
+                    }
+
+                    store.dispatch({
+                        type: SocketClientActionTypes.LOGIN,
+                        data: userData,
                     });
-                });
+                    // UserActionTypes.LOGIN sets isAuthenticated = true in the user reducer
+                    store.dispatch({
+                        type: 'LOGIN',
+                        data: userData,
+                    });
+
+                    const accessLevels = userData.accessLevels || [];
+                    const destination = accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)
+                        && !accessLevels.includes(AccessLevels.EMAIL_VERIFIED)
+                        ? '/create-profile'
+                        : routeAfterLogin;
+                    this.setState({
+                        verificationStatus: 'success',
+                    }, () => {
+                        this.props.navigation.navigate(destination);
+                    });
+                } else {
+                    // Fallback: redirect to login page if no token returned
+                    this.setState({
+                        verificationStatus: 'success',
+                    }, () => {
+                        this.props.navigation.navigate('/login', {
+                            state: {
+                                successMessage: this.props.translate('pages.emailVerification.successVerifiedMessage'),
+                            },
+                        });
+                    });
+                }
             })
             .catch((error) => {
                 if (error.message === 'Token has expired') {

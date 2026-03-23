@@ -12,6 +12,7 @@ const initialState: ILocationState = {
     user: {},
 };
 
+/* eslint-disable no-param-reassign */
 const locations = produce((draft: ILocationState, action: any) => {
     switch (action.type) {
         case LocationActionTypes.LOCATION_DISCLOSURE_UPDATED:
@@ -39,5 +40,6 @@ const locations = produce((draft: ILocationState, action: any) => {
             break;
     }
 }, initialState);
+/* eslint-enable no-param-reassign */
 
 export default locations;
