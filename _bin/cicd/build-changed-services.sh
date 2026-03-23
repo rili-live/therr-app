@@ -29,18 +29,18 @@ fi
 
 should_build_web_app()
 {
-  has_diff_changes general "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_diff_changes general "therr-client-web" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 should_build_web_app_dashboard()
 {
-  has_diff_changes general "therr-client-web-dashboard" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_diff_changes general "therr-client-web-dashboard" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 should_build_service()
 {
   SERVICE_DIR=$1
-  has_diff_changes general $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_diff_changes general $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 SERVICES_BUILT=0

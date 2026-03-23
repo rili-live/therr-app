@@ -16,9 +16,11 @@ const getUserContentUri = (media, height = screenWidth, width = screenWidth, aut
     // Round to 100s increase odds of device overlap being cached
     const minImageHeight = Math.ceil((height * 1.25) / 100) * 100;
     const minImageWidth = Math.ceil((width * 1.25) / 100) * 100;
+    // Use lower quality for small thumbnails where compression artifacts are not visible
+    const quality = (height <= 200 && width <= 200) ? 75 : 85;
 
     let url = `${BASE_ENDPOINT}${media?.path}`;
-    url = `${url}?tr=h-${minImageHeight},w-${minImageWidth}`;
+    url = `${url}?tr=h-${minImageHeight},w-${minImageWidth},f-auto,q-${quality}`;
     if (!autocrop) {
         // Preserve original image dimensions
         url = `${url},c-at_least`;
@@ -32,7 +34,7 @@ const getUserImageUri = (user, size = screenWidth) => {
          * In the max-size crop strategy, whole image content is preserved (no cropping),
          * the aspect ratio is preserved, but one of the dimensions (height or width) is adjusted.
          */
-        return `${BASE_ENDPOINT}${user.details.media.profilePicture.path}?tr=h-${size},w-${size}`;
+        return `${BASE_ENDPOINT}${user.details.media.profilePicture.path}?tr=h-${size},w-${size},f-auto,q-90`;
     }
 
     return `https://robohash.org/${user.details?.id}?set=set5&size=${size}x${size}`;

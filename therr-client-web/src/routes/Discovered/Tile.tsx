@@ -87,6 +87,7 @@ const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
                         alt={area.notificationMsg || area.fromUserName}
                         height={200}
                         fit="cover"
+                        loading="lazy"
                     />
                 </Card.Section>
             )}

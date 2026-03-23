@@ -40,6 +40,11 @@ $profileImgWidth: rem-calc(100px);
         }
     }
 
+    .edit-profile-link {
+        padding: 0.5rem 1rem;
+        text-align: right;
+    }
+
     .account-sections {
         width: 100%;
         flex-direction: column;
