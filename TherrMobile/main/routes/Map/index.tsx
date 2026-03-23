@@ -1,7 +1,7 @@
 import React, { Ref } from 'react';
 import { Dimensions, PermissionsAndroid, Keyboard, Platform, SafeAreaView } from 'react-native';
 import { StackActions } from '@react-navigation/native';
-import MapView from 'react-native-map-clustering';
+import MapView from 'react-native-maps';
 import AnimatedOverlay from 'react-native-modal-overlay';
 import { bindActionCreators } from 'redux';
 import Toast from 'react-native-toast-message';
@@ -1890,9 +1890,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 hideCreateActions={this.hideCreateActions}
                                 isScrollEnabled={isScrollEnabled}
                                 onMapLayout={this.onMapLayout}
-                                // /* react-native-map-clustering */
+                                // /* rn-maps-clustering */
                                 // onClusterPress={this.onClusterPress}
-                                // // preserveClusterPressBehavior={true}
                                 updateCircleCenter={this.updateCircleCenter}
                             />
                             <AnimatedOverlay
