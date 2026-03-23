@@ -136,6 +136,16 @@ app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
 }));
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.txt')));
+app.get('/opensearch.xml', express.static(path.join(__dirname, '/../build/static/opensearch.xml')));
+
+// IndexNow key file endpoint for Bing/Yandex verification
+// Key must be alphanumeric/hyphens only (8-128 chars) to prevent route injection
+const indexNowKey = process.env.INDEXNOW_API_KEY;
+if (indexNowKey && /^[a-zA-Z0-9-]{8,128}$/.test(indexNowKey)) {
+    app.get(`/${indexNowKey}.txt`, (req, res) => {
+        res.type('text/plain').send(indexNowKey);
+    });
+}
 
 // Dynamic sitemap index with paginated space sub-sitemaps
 const SITEMAP_CACHE_TTL = 60 * 60 * 1000; // 1 hour
@@ -550,10 +560,9 @@ const renderMomentView = (req, res, config, {
     const mediaPath = (moment.medias?.[0]?.path);
     const mediaType = (moment.medias?.[0]?.type);
     const momentMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(moment.medias[0])
+        ? getUserContentUri(moment.medias[0], 600, 600)
         : content?.media?.[mediaPath];
 
-    // TODO: Use an image optimized for meta image
     if (momentMediaUri) {
         if (momentMediaUri.includes('.jpg') || momentMediaUri.includes('.jpeg') || momentMediaUri.includes('.png')) {
             metaImgUrl = momentMediaUri;
@@ -651,10 +660,9 @@ const renderSpaceView = (req, res, config, {
     const mediaPath = (space.medias?.[0]?.path);
     const mediaType = (space.medias?.[0]?.type);
     const spaceMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(space?.medias[0])
+        ? getUserContentUri(space?.medias[0], 600, 600)
         : content?.media?.[mediaPath];
 
-    // TODO: Use an image optimized for meta image (ImageKit)
     if (spaceMediaUri) {
         if (spaceMediaUri.includes('.jpg') || spaceMediaUri.includes('.jpeg') || spaceMediaUri.includes('.png')) {
             metaImgUrl = spaceMediaUri;
@@ -869,7 +877,7 @@ const renderEventView = (req, res, config, {
     const mediaPath = (event?.medias?.[0]?.path);
     const mediaType = (event?.medias?.[0]?.type);
     const eventMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(event.medias[0])
+        ? getUserContentUri(event.medias[0], 600, 600)
         : content?.media?.[mediaPath];
 
     if (eventMediaUri) {
@@ -1183,7 +1191,7 @@ const renderGroupView = (req, res, config, {
     const mediaPath = group?.media?.[0]?.path;
     const mediaType = group?.media?.[0]?.type;
     const groupMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(group.media[0])
+        ? getUserContentUri(group.media[0], 600, 600)
         : undefined;
 
     if (groupMediaUri) {
@@ -1297,7 +1305,16 @@ const getLocaleVars = (req: any) => {
     const hreflangFr = basePath === '/' ? '/fr' : `/fr${basePath}`;
 
     return {
-        htmlLang, ogLocale, canonicalPath, hreflangEn, hreflangEs, hreflangFr, localePrefix,
+        htmlLang,
+        ogLocale,
+        canonicalPath,
+        hreflangEn,
+        hreflangEs,
+        hreflangFr,
+        localePrefix,
+        googleSiteVerification: process.env.GOOGLE_SITE_VERIFICATION || '',
+        bingSiteVerification: process.env.BING_SITE_VERIFICATION || '',
+        pinterestVerification: process.env.PINTEREST_VERIFICATION || '',
     };
 };
 
