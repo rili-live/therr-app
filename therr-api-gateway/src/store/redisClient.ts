@@ -189,36 +189,36 @@ export const revokeRefreshToken = async (jti: string): Promise<void> => {
     }
 };
 
+const scanAndRevokeTokens = (userId: string, keyPrefix: string, cursor: string): Promise<void> => redisClient
+    .scan(cursor, 'MATCH', `${keyPrefix}${REFRESH_TOKEN_PREFIX}*`, 'COUNT', '100')
+    .then(([nextCursor, keys]) => {
+        if (!keys.length) {
+            return nextCursor !== '0' ? scanAndRevokeTokens(userId, keyPrefix, nextCursor) : undefined;
+        }
+
+        // Strip the ioredis keyPrefix so pipeline commands re-add it correctly
+        const strippedKeys = keys.map((key) => key.replace(keyPrefix, ''));
+        const getPipeline = redisClient.pipeline();
+        strippedKeys.forEach((key) => getPipeline.get(key));
+
+        return getPipeline.exec().then((results) => {
+            const delPipeline = redisClient.pipeline();
+            strippedKeys.forEach((key, i) => {
+                if (results && results[i] && results[i][1] === userId) {
+                    delPipeline.del(key);
+                }
+            });
+            return delPipeline.exec();
+        }).then(() => (nextCursor !== '0' ? scanAndRevokeTokens(userId, keyPrefix, nextCursor) : undefined));
+    });
+
 export const revokeAllUserRefreshTokens = async (userId: string): Promise<void> => {
     if (!userId) return;
 
     const KEY_PREFIX = 'api-gateway:';
 
     try {
-        // Scan for all refresh tokens belonging to this user
-        let cursor = '0';
-        do {
-            const [nextCursor, keys] = await redisClient.scan(
-                cursor, 'MATCH', `${KEY_PREFIX}${REFRESH_TOKEN_PREFIX}*`, 'COUNT', '100',
-            );
-            cursor = nextCursor;
-            if (keys.length) {
-                // Strip the ioredis keyPrefix so pipeline commands re-add it correctly
-                const strippedKeys = keys.map((key) => key.replace(KEY_PREFIX, ''));
-                const pipeline = redisClient.pipeline();
-                for (const key of strippedKeys) {
-                    pipeline.get(key);
-                }
-                const results = await pipeline.exec();
-                const delPipeline = redisClient.pipeline();
-                strippedKeys.forEach((key, i) => {
-                    if (results && results[i] && results[i][1] === userId) {
-                        delPipeline.del(key);
-                    }
-                });
-                await delPipeline.exec();
-            }
-        } while (cursor !== '0');
+        await scanAndRevokeTokens(userId, KEY_PREFIX, '0');
     } catch (err) {
         console.error('Failed to revoke all user refresh tokens:', err);
     }

@@ -466,7 +466,7 @@ const createEvent = async (req, res) => {
                 // Fire-and-forget: notify search engines of new content via IndexNow (skip drafts)
                 if (process.env.INDEXNOW_API_KEY && event.id && !event.isDraft) {
                     submitToIndexNow([`https://www.therr.com/events/${event.id}`], process.env.INDEXNOW_API_KEY)
-                        .catch(() => {}); // already handled internally
+                        .catch(() => undefined); // already handled internally
                 }
 
                 return res.status(201).send({
@@ -592,7 +592,7 @@ const updateEvent = (req, res) => {
                 // Fire-and-forget: notify search engines of updated content via IndexNow (skip drafts)
                 if (process.env.INDEXNOW_API_KEY && eventId && !response.isDraft) {
                     submitToIndexNow([`https://www.therr.com/events/${eventId}`], process.env.INDEXNOW_API_KEY)
-                        .catch(() => {}); // already handled internally
+                        .catch(() => undefined); // already handled internally
                 }
                 return res.status(201).send({
                     ...response,

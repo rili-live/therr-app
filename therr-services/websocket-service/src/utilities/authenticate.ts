@@ -26,7 +26,7 @@ export default (socket, { skipCache = false } = {}) => new Promise((resolve) => 
         if (err) {
             // Clear cached token on verification failure
             if (socket.data) {
-                socket.data.decodedToken = undefined;
+                socket.data.decodedToken = undefined; // eslint-disable-line no-param-reassign
             }
 
             logSpan({
@@ -48,7 +48,7 @@ export default (socket, { skipCache = false } = {}) => new Promise((resolve) => 
 
         // Cache the decoded token on the socket for subsequent actions
         if (socket.data) {
-            socket.data.decodedToken = decoded;
+            socket.data.decodedToken = decoded; // eslint-disable-line no-param-reassign
         }
 
         return resolve(decoded);

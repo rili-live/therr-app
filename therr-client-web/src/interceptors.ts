@@ -3,7 +3,7 @@ import axios from 'axios';
 // import { LoaderActions } from './library/loader';
 import { BrandVariations } from 'therr-js-utilities/constants';
 import { NavigateFunction } from 'react-router-dom';
-import UsersService from 'therr-react/services/UsersService';
+import { UsersService } from 'therr-react/services';
 import store from './store';
 import * as globalConfig from '../../global-config';
 import UsersActions from './redux/actions/UsersActions';
@@ -87,8 +87,8 @@ const initInterceptors = (
             const is401 = Number(error.response.status) === 401 || Number(error.response.data?.statusCode) === 401;
 
             // Attempt token refresh on 401 (but not for refresh requests themselves)
-            if (is401 && !originalRequest._isRetry && !originalRequest.url?.includes('/auth/token/refresh')) {
-                originalRequest._isRetry = true;
+            if (is401 && !originalRequest.isRetry && !originalRequest.url?.includes('/auth/token/refresh')) {
+                originalRequest.isRetry = true;
 
                 if (!isRefreshing) {
                     isRefreshing = true;

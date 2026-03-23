@@ -206,9 +206,7 @@ describe('Space Pairings - Integration Tests', () => {
                 notificationMsg: 'Test Non-Complementary Hotel',
             });
 
-            const results = await spacesStore.searchPairedSpaces(
-                sourceId, BASE_LAT + 0.2, BASE_LNG, 'categories.restaurant/food',
-            );
+            const results = await spacesStore.searchPairedSpaces(sourceId, BASE_LAT + 0.2, BASE_LNG, 'categories.restaurant/food');
 
             expect(results.length).to.be.greaterThan(0);
 
@@ -239,9 +237,7 @@ describe('Space Pairings - Integration Tests', () => {
                 isPublic: false,
             });
 
-            const results = await spacesStore.searchPairedSpaces(
-                sourceId, BASE_LAT + 0.3, BASE_LNG, 'categories.restaurant/food',
-            );
+            const results = await spacesStore.searchPairedSpaces(sourceId, BASE_LAT + 0.3, BASE_LNG, 'categories.restaurant/food');
 
             const privateSpace = results.find((r: any) => r.notificationMsg === 'Private Space');
             expect(privateSpace).to.be.undefined;
@@ -268,9 +264,7 @@ describe('Space Pairings - Integration Tests', () => {
                 });
             }
 
-            const results = await spacesStore.searchPairedSpaces(
-                sourceId, BASE_LAT + 0.4, BASE_LNG, 'categories.restaurant/food',
-            );
+            const results = await spacesStore.searchPairedSpaces(sourceId, BASE_LAT + 0.4, BASE_LNG, 'categories.restaurant/food');
 
             expect(results.length).to.be.at.most(6);
         });
@@ -292,9 +286,7 @@ describe('Space Pairings - Integration Tests', () => {
                 notificationMsg: 'Test Bar Fields',
             });
 
-            const results = await spacesStore.searchPairedSpaces(
-                sourceId, BASE_LAT + 0.5, BASE_LNG, 'categories.restaurant/food',
-            );
+            const results = await spacesStore.searchPairedSpaces(sourceId, BASE_LAT + 0.5, BASE_LNG, 'categories.restaurant/food');
 
             expect(results.length).to.be.greaterThan(0);
             const result = results[0];
@@ -318,9 +310,7 @@ describe('Space Pairings - Integration Tests', () => {
                 notificationMsg: 'Isolated Restaurant',
             });
 
-            const results = await spacesStore.searchPairedSpaces(
-                sourceId, -45.0, 170.0, 'categories.restaurant/food', { radiusMeters: 100 },
-            );
+            const results = await spacesStore.searchPairedSpaces(sourceId, -45.0, 170.0, 'categories.restaurant/food', { radiusMeters: 100 });
 
             expect(results).to.be.an('array');
             expect(results.length).to.equal(0);

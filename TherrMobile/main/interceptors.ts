@@ -28,7 +28,7 @@ const onTokenRefreshed = (newToken: string) => {
 
 const onRefreshFailed = (err: any) => {
     refreshSubscribers.forEach((sub) => sub.reject(err));
-    refreshSubscribers = []
+    refreshSubscribers = [];
 };
 
 const handleLogout = (store) => {

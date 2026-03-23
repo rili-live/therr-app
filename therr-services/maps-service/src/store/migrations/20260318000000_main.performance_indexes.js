@@ -11,7 +11,10 @@ exports.up = async (knex) => {
     await knex.schema.raw('CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_moments_from_user_created ON main.moments ("fromUserId", "createdAt" DESC)');
 
     // moments: space moments query filters by spaceId + isPublic + createdAt
-    await knex.schema.raw('CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_moments_space_public_created ON main.moments ("spaceId", "isPublic", "createdAt" DESC) WHERE "spaceId" IS NOT NULL');
+    await knex.schema.raw(
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_moments_space_public_created'
+        + ' ON main.moments ("spaceId", "isPublic", "createdAt" DESC) WHERE "spaceId" IS NOT NULL',
+    );
 
     // spaces: search queries filter by isMatureContent + isClaimPending
     await knex.schema.raw('CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_spaces_mature_claim ON main.spaces ("isMatureContent", "isClaimPending")');
@@ -23,10 +26,16 @@ exports.up = async (knex) => {
     await knex.schema.raw('CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_mature_schedule ON main.events ("isMatureContent", "scheduleStartAt" DESC)');
 
     // events: group events query
-    await knex.schema.raw('CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_group_schedule ON main.events ("groupId", "scheduleStartAt" DESC) WHERE "groupId" IS NOT NULL');
+    await knex.schema.raw(
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_group_schedule'
+        + ' ON main.events ("groupId", "scheduleStartAt" DESC) WHERE "groupId" IS NOT NULL',
+    );
 
     // events: space events query
-    await knex.schema.raw('CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_space_public_schedule ON main.events ("spaceId", "isPublic", "scheduleStartAt" DESC) WHERE "spaceId" IS NOT NULL');
+    await knex.schema.raw(
+        'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_space_public_schedule'
+        + ' ON main.events ("spaceId", "isPublic", "scheduleStartAt" DESC) WHERE "spaceId" IS NOT NULL',
+    );
 
     // Geography functional indexes for ST_DWithin distance queries
     // These allow the planner to use GiST index scans instead of sequential scans
