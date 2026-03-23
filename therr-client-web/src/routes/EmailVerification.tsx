@@ -5,10 +5,11 @@ import {
     MantineButton,
     MantineInput,
 } from 'therr-react/components/mantine';
-import { SocketClientActionTypes } from 'therr-js-utilities/constants';
+import { AccessLevels, SocketClientActionTypes } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../global-config';
 import VerificationCodesService from '../services/VerificationCodesService';
 import store from '../store';
+import { routeAfterLogin } from './Login';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 
@@ -80,10 +81,15 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                         data: userData,
                     });
 
+                    const accessLevels = userData.accessLevels || [];
+                    const destination = accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)
+                        && !accessLevels.includes(AccessLevels.EMAIL_VERIFIED)
+                        ? '/create-profile'
+                        : routeAfterLogin;
                     this.setState({
                         verificationStatus: 'success',
                     }, () => {
-                        this.props.navigation.navigate('/explore');
+                        this.props.navigation.navigate(destination);
                     });
                 } else {
                     // Fallback: redirect to login page if no token returned

@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import LogRocket from 'logrocket';
 import { IUserState } from 'therr-react/types';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { Location, NavigateFunction } from 'react-router-dom';
 import LoginForm from '../components/forms/LoginForm';
 import UsersActions from '../redux/actions/UsersActions';
@@ -15,6 +16,15 @@ export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
     || !props.user.details.accessLevels.length;
 
 export const routeAfterLogin = '/explore';
+
+export const getRouteAfterLogin = (user: IUserState) => {
+    const accessLevels = user?.details?.accessLevels || [];
+    if (accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)
+        && !accessLevels.includes(AccessLevels.EMAIL_VERIFIED)) {
+        return '/create-profile';
+    }
+    return routeAfterLogin;
+};
 
 interface ILoginRouterProps {
     location: Location;
@@ -53,16 +63,13 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  */
 export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     static getDerivedStateFromProps(nextProps: ILoginProps) {
-        // TODO: Choose route based on accessLevels
         if (!shouldRenderLoginForm(nextProps)) {
             LogRocket.identify(nextProps.user.details.id, {
                 name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
                 email: nextProps.user.details.email,
-                // Add your own custom user variables below:
             });
-            // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
-            // Causes a flicker / Need to investigate further
-            setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
+            const destination = getRouteAfterLogin(nextProps.user);
+            setTimeout(() => nextProps.navigation.navigate(destination));
             return null;
         }
         return {};

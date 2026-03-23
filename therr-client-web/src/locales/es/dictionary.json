@@ -296,6 +296,18 @@
       "postError": "No se pudo publicar el pensamiento. Por favor, int\u00e9ntalo de nuevo.",
       "messageTooShort": "El mensaje es demasiado corto"
     },
+    "viewThought": {
+      "headerTitle": "Pensamiento",
+      "reply": "Respuesta",
+      "replies": "Respuestas",
+      "noReplies": "A\u00fan no hay respuestas. S\u00e9 el primero en responder.",
+      "replyPlaceholder": "Escribe una respuesta...",
+      "replyButton": "Responder",
+      "replyTooShort": "La respuesta es demasiado corta",
+      "replyError": "No se pudo publicar la respuesta. Por favor, int\u00e9ntalo de nuevo.",
+      "loginToReply": "Inicia sesi\u00f3n para responder",
+      "backToThoughts": "Volver a Pensamientos"
+    },
     "explorePeople": {
       "pageTitle": "Buscar personas",
       "subtitle": "Descubre creadores, negocios y miembros de la comunidad",

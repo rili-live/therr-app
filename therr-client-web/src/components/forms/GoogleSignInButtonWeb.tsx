@@ -43,15 +43,6 @@ const GoogleSignInButtonWeb: React.FC<IGoogleSignInButtonWebProps> = ({
         try {
             const payloadBase64 = credential.split('.')[1];
             const payload = JSON.parse(atob(payloadBase64));
-            console.log('[GoogleSSO] JWT decoded', { // eslint-disable-line no-console
-                email: payload.email,
-                givenName: payload.given_name,
-                familyName: payload.family_name,
-                iss: payload.iss,
-                aud: payload.aud,
-                exp: payload.exp,
-                expDate: new Date(payload.exp * 1000).toISOString(),
-            });
             const ssoData = {
                 isSSO: true,
                 idToken: credential,

@@ -188,12 +188,14 @@ const getUserReducer = (socketIO) => produce((draft: IUserState, action: any) =>
             draft.thoughts = action.data.results;
             break;
         case UserActionTypes.GET_THOUGHT_DETAILS: {
-            const idx = draft.thoughts.findIndex((t) => t.id === action.data.thought?.id);
-            if (idx !== -1) {
-                draft.thoughts[idx] = {
-                    ...draft.thoughts[idx],
-                    ...action.data.thought,
-                };
+            if (draft.thoughts?.length) {
+                const idx = draft.thoughts.findIndex((t) => t.id === action.data.thought?.id);
+                if (idx !== -1) {
+                    draft.thoughts[idx] = {
+                        ...draft.thoughts[idx],
+                        ...action.data.thought,
+                    };
+                }
             }
             break;
         }
