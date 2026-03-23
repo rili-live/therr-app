@@ -253,7 +253,10 @@ export default class UserConnectionsStore {
                 knexBuilder.raw('ST_DWithin("lastKnownLocation", ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax]), // eslint-disable-line quotes, max-len
             );
         } else if (conditions.filterBy && conditions.query) {
-            const operator = conditions.filterOperator || '=';
+            const allowedOperators = ['=', '!=', '<', '>', '<=', '>=', 'ilike', 'like'];
+            const operator = allowedOperators.includes((conditions.filterOperator || '=').toLowerCase())
+                ? (conditions.filterOperator || '=')
+                : '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
             if (shouldCheckReverse === 'true') {
                 queryString = queryString.andWhere(knexBuilder.raw(

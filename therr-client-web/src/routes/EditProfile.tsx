@@ -189,6 +189,7 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
             })
             .finally(() => {
                 this.setState({ isSubmitting: false });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
     };
 

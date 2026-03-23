@@ -60,6 +60,9 @@ exports.up = async (knex) => {
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
+// Disable transaction wrapping so CREATE INDEX CONCURRENTLY can run
+exports.config = { transaction: false };
+
 exports.down = async (knex) => {
     await knex.schema.raw('DROP INDEX IF EXISTS main.idx_user_interests_user_enabled;');
     await knex.schema.raw('DROP INDEX IF EXISTS main.idx_user_connections_active_accepting;');

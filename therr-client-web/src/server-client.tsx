@@ -1305,7 +1305,13 @@ const getLocaleVars = (req: any) => {
     const hreflangFr = basePath === '/' ? '/fr' : `/fr${basePath}`;
 
     return {
-        htmlLang, ogLocale, canonicalPath, hreflangEn, hreflangEs, hreflangFr, localePrefix,
+        htmlLang,
+        ogLocale,
+        canonicalPath,
+        hreflangEn,
+        hreflangEs,
+        hreflangFr,
+        localePrefix,
         googleSiteVerification: process.env.GOOGLE_SITE_VERIFICATION || '',
         bingSiteVerification: process.env.BING_SITE_VERIFICATION || '',
         pinterestVerification: process.env.PINTEREST_VERIFICATION || '',
