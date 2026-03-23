@@ -80,6 +80,9 @@ spec:
             secretKeyRef:
               name: db-password-app
               key: DB_PASSWORD_APP_READ
+        # IndexNow: Must match the same key set on client-web deployment
+        - name: INDEXNOW_API_KEY
+          value: ""
         - name: MAPS_SERVICE_DATABASE
           value: "therr_maps_service_db"
         - name: JWT_SECRET

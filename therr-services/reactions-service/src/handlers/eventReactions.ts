@@ -235,6 +235,29 @@ const findEventReactions: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:EVENT_REACTIONS_ROUTES:ERROR' }));
 };
 
+const getBatchEventRatings: RequestHandler = (req: any, res: any) => {
+    const { eventIds } = req.body;
+
+    if (!eventIds?.length) {
+        return res.status(200).send({});
+    }
+
+    return Store.eventReactions.getBatchRatings(eventIds)
+        .then((rows) => {
+            const ratingsMap = {};
+            rows.forEach((row) => {
+                ratingsMap[row.eventId] = {
+                    avgRating: row.avgRating ? Math.round(parseFloat(row.avgRating) * 10) / 10 : null,
+                    totalRatings: parseInt(row.totalRatings, 10) || 0,
+                };
+            });
+            res.status(200).send(ratingsMap);
+        })
+        .catch((err) => {
+            handleHttpError({ err, res, message: 'SQL:EVENT_REACTIONS_ROUTES:ERROR' });
+        });
+};
+
 const countEventReactions: RequestHandler = async (req: any, res: any) => {
     // const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
@@ -253,6 +276,7 @@ const countEventReactions: RequestHandler = async (req: any, res: any) => {
 export {
     getEventReactions,
     getEventRatings,
+    getBatchEventRatings,
     getReactionsByEventId,
     createOrUpdateEventReaction,
     createOrUpdateMultiEventReactions,

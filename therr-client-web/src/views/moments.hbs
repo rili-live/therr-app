@@ -50,6 +50,10 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@therr_app" />
 
+    {{#if googleSiteVerification}}<meta name="google-site-verification" content="{{googleSiteVerification}}" />{{/if}}
+    {{#if bingSiteVerification}}<meta name="msvalidate.01" content="{{bingSiteVerification}}" />{{/if}}
+    {{#if pinterestVerification}}<meta name="p:domain_verify" content="{{pinterestVerification}}" />{{/if}}
+    <link rel="search" type="application/opensearchdescription+xml" title="Therr" href="/opensearch.xml" />
     <meta name="apple-itunes-app" content="app-id=1569988763">
     <link rel="icon" href="/assets/images/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">

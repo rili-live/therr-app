@@ -82,7 +82,11 @@
       },
       "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard.",
       "oneTimePasswordExpired": "Votre mot de passe à usage unique a expiré.",
-      "tooManyRequests": "Trop de tentatives de connexion, veuillez réessayer plus tard."
+      "tooManyRequests": "Trop de tentatives de connexion, veuillez réessayer plus tard.",
+      "sso": {
+        "orDivider": "ou",
+        "googleError": "Échec de la connexion Google. Veuillez réessayer."
+      }
     },
     "messagingContainer": {
       "conversation": {
