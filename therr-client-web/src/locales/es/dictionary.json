@@ -508,6 +508,39 @@
         "phoneNumber": "N\u00famero de tel\u00e9fono inv\u00e1lido"
       }
     },
+    "editProfile": {
+      "pageTitle": "Editar Perfil",
+      "successMessage": "Tu perfil se ha actualizado correctamente.",
+      "failedMessageBadRequest": "Por favor revisa tu informaci\u00f3n e int\u00e9ntalo de nuevo.",
+      "failedMessageServer": "Ocurri\u00f3 un error inesperado. Por favor int\u00e9ntalo m\u00e1s tarde.",
+      "h2": {
+        "profileInfo": "Informaci\u00f3n del Perfil",
+        "privacy": "Privacidad y Contenido",
+        "display": "Configuraci\u00f3n de Pantalla",
+        "account": "Cuenta"
+      },
+      "labels": {
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "userName": "Nombre de usuario",
+        "email": "Correo electr\u00f3nico",
+        "bio": "Biograf\u00eda",
+        "profilePublic": "Perfil P\u00fablico",
+        "hideMatureContent": "Ocultar Contenido para Adultos",
+        "theme": "Tema",
+        "language": "Idioma"
+      },
+      "buttons": {
+        "save": "Guardar Cambios",
+        "changePassword": "Cambiar Contrase\u00f1a",
+        "viewProfile": "Ver Perfil"
+      },
+      "themeOptions": {
+        "light": "Claro",
+        "dark": "Oscuro",
+        "retro": "Retro"
+      }
+    },
     "underConstruction": {
       "pageTitle": "Obt\u00e9n la app",
       "welcome": "Obt\u00e9n la aplicaci\u00f3n m\u00f3vil",

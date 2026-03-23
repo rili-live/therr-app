@@ -508,6 +508,39 @@
         "phoneNumber": "Invalid phone number"
       }
     },
+    "editProfile": {
+      "pageTitle": "Edit Profile",
+      "successMessage": "Your profile has been updated successfully.",
+      "failedMessageBadRequest": "Please check your input and try again.",
+      "failedMessageServer": "An unexpected error occurred. Please try again later.",
+      "h2": {
+        "profileInfo": "Profile Information",
+        "privacy": "Privacy & Content",
+        "display": "Display Settings",
+        "account": "Account"
+      },
+      "labels": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "userName": "Username",
+        "email": "Email",
+        "bio": "Bio",
+        "profilePublic": "Public Profile",
+        "hideMatureContent": "Hide Mature Content",
+        "theme": "Theme",
+        "language": "Language"
+      },
+      "buttons": {
+        "save": "Save Changes",
+        "changePassword": "Change Password",
+        "viewProfile": "View Profile"
+      },
+      "themeOptions": {
+        "light": "Light",
+        "dark": "Dark",
+        "retro": "Retro"
+      }
+    },
     "underConstruction": {
       "pageTitle": "Go Mobile",
       "welcome": "Get the Mobile App",

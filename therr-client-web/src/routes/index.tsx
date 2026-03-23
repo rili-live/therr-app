@@ -19,6 +19,7 @@ import Login from './Login';
 import ListSpaces, { DEFAULT_ITEMS_PER_PAGE, DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from './ListSpaces';
 import UserProfile from './UserProfile';
 import ChangePassword from './ChangePassword';
+import EditProfile from './EditProfile';
 import Discovered from './Discovered';
 import Explore from './Explore';
 import ExploreMoments from './Explore/ExploreMoments';
@@ -137,6 +138,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/user/profile',
         element: <AuthRoute
             render={() => <UserProfile />}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/user/edit-profile',
+        element: <AuthRoute
+            render={() => <EditProfile />}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
