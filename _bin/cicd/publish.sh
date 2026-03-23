@@ -39,66 +39,63 @@ if has_prev_diff_changes "therr-public-library/therr-js-utilities"; then
   HAS_UTILITIES_LIBRARY_CHANGES=true
 fi
 
-# This is reliant on the previous commit being a single merge commit with all prior changes
 should_publish_web_app()
 {
-  has_prev_diff_changes "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_prev_diff_changes "therr-client-web" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 # NOTE: This is currently included in the web app build (container)
-# This is reliant on the previous commit being a single merge commit with all prior changes
 should_publish_web_app_dashboard()
 {
-  has_prev_diff_changes "therr-client-web-dashboard" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_prev_diff_changes "therr-client-web-dashboard" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
-# This is reliant on the previous commit being a single merge commit with all prior changes
 should_publish_service()
 {
   SERVICE_DIR=$1
-  has_prev_diff_changes $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_prev_diff_changes $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 NUMBER_SERVICES_PUBLISHED=0
 
 # Docker Publish
 if should_publish_web_app || should_publish_web_app_dashboard; then
-  ((NUMBER_SERVICES_PUBLISHED=i+1))
+  ((NUMBER_SERVICES_PUBLISHED+=1))
   docker push therrapp/client-web$SUFFIX:latest
   docker push therrapp/client-web$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-api-gateway"; then
-  ((NUMBER_SERVICES_PUBLISHED=i+1))
+  ((NUMBER_SERVICES_PUBLISHED+=1))
   docker push therrapp/api-gateway$SUFFIX:latest
   docker push therrapp/api-gateway$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/maps-service"; then
-  ((NUMBER_SERVICES_PUBLISHED=i+1))
+  ((NUMBER_SERVICES_PUBLISHED+=1))
   docker push therrapp/maps-service$SUFFIX:latest
   docker push therrapp/maps-service$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/messages-service"; then
-  ((NUMBER_SERVICES_PUBLISHED=i+1))
+  ((NUMBER_SERVICES_PUBLISHED+=1))
   docker push therrapp/messages-service$SUFFIX:latest
   docker push therrapp/messages-service$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/push-notifications-service"; then
-  ((NUMBER_SERVICES_PUBLISHED=i+1))
+  ((NUMBER_SERVICES_PUBLISHED+=1))
   docker push therrapp/push-notifications-service$SUFFIX:latest
   docker push therrapp/push-notifications-service$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/reactions-service"; then
-  ((NUMBER_SERVICES_PUBLISHED=i+1))
+  ((NUMBER_SERVICES_PUBLISHED+=1))
   docker push therrapp/reactions-service$SUFFIX:latest
   docker push therrapp/reactions-service$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/users-service"; then
-  ((NUMBER_SERVICES_PUBLISHED=i+1))
+  ((NUMBER_SERVICES_PUBLISHED+=1))
   docker push therrapp/users-service$SUFFIX:latest
   docker push therrapp/users-service$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/websocket-service"; then
-  ((NUMBER_SERVICES_PUBLISHED=i+1))
+  ((NUMBER_SERVICES_PUBLISHED+=1))
   docker push therrapp/websocket-service$SUFFIX:latest
   docker push therrapp/websocket-service$SUFFIX:$GIT_SHA
 fi
