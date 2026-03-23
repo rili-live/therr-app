@@ -1,4 +1,5 @@
 # Therr Public Library: Javascript Utilities
+
 We have included this set of helper utilities to provide common, Therr javascript functions that were abstracted for re-use.
 
 ## How to Include a utility
