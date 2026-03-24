@@ -16,7 +16,6 @@ export interface ISendUnclaimedSpaceEmailConfig {
 export interface ITemplateParams {
     spaceName: string;
     spaceId: string;
-    addressReadable?: string;
 }
 
 export default (emailParams: ISendUnclaimedSpaceEmailConfig, templateParams: ITemplateParams) => {

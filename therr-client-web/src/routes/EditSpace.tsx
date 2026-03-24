@@ -136,6 +136,7 @@ export class EditSpaceComponent extends React.Component<IEditSpaceProps, IEditSp
                     this.props.navigation.navigate('/user/profile');
                 }
             }).catch(() => {
+                this.setState({ isLoading: false });
                 this.props.navigation.navigate('/user/profile');
             });
         }
