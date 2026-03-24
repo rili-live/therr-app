@@ -459,7 +459,12 @@ async function enrichSpace(
   }
 
   // ── Step 2: Fetch the website once and reuse the HTML ──
-  const html = await fetchPage(normalizeUrl(websiteUrl));
+  const normalizedWebsiteUrl = normalizeUrl(websiteUrl);
+  const html = await fetchPage(normalizedWebsiteUrl);
+
+  if (!html) {
+    console.log(`${progress} Could not fetch website HTML from: ${normalizedWebsiteUrl}`);
+  }
 
   // ── Step 3: Extract email from website ──
   if (!space.businessEmail) {
