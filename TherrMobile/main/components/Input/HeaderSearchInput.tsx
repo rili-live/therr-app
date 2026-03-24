@@ -97,6 +97,11 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
             inputText: text,
         });
 
+        if (invoker === 'input' && text === inputText) {
+            return;
+        }
+        setSearchDropdownVisibility(!!text?.length);
+
         this.throttleTimeoutId = setTimeout(() => {
             getPlacesSearchAutoComplete({
                 longitude: map?.longitude || DEFAULT_LONGITUDE.toString(),
@@ -104,12 +109,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 // radius,
                 input: text,
             });
-        }, 500);
-
-        if (invoker === 'input' && text === inputText) {
-            return;
-        }
-        setSearchDropdownVisibility(!!text?.length);
+        }, 300);
     };
 
     handlePress = (invoker: string) => {
