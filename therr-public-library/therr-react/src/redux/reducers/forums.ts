@@ -41,6 +41,10 @@ const forums = produce((draft: IForumsState, action: any) => {
             draft.searchResults = action.data.results;
             draft.pagination = action.data.pagination;
             break;
+        case ForumActionTypes.SEARCH_MY_FORUMS:
+            draft.myForumsSearchResults = action.data.results;
+            draft.myForumsPagination = action.data.pagination;
+            break;
         case ForumActionTypes.SEARCH_FORUM_CATEGORIES:
             draft.forumCategories = action.data.results;
             break;

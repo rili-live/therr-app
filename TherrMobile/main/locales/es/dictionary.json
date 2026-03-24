@@ -419,7 +419,8 @@
     },
     "groups": {
       "noResultsFound": "No se encontraron resultados...",
-      "searchPlaceholder": "Buscar por nombre..."
+      "searchPlaceholder": "Buscar por nombre...",
+      "cityPlaceholder": "Filtrar por ciudad..."
     },
     "loginForm": {
       "buttons": {
@@ -465,7 +466,9 @@
         "description": "Un breve resumen del grupo...",
         "hashTags": "Etiquetas (ej. mi_etiqueta, miEtiqueta)",
         "maxComments": "Máx. comentarios (por minuto)",
-        "expiresAt": "Cuenta regresiva"
+        "expiresAt": "Cuenta regresiva",
+        "city": "Ciudad (ej. Ciudad de México)",
+        "region": "Estado/Región (ej. CDMX)"
       },
       "archiveSuccess": "Archivado exitosamente",
       "backendSuccessHeader": "¡Éxito!",
@@ -870,10 +873,8 @@
       "tableTopGames": "Juegos de mesa",
       "boardGames": "Juegos de mesa y noche de juegos"
     },
-    "homeGarden": {
-    },
-    "nature": {
-    },
+    "homeGarden": {},
+    "nature": {},
     "sports": {
       "basketball": "Baloncesto",
       "baseball": "Béisbol",
@@ -902,8 +903,7 @@
       "cars": "Autos",
       "bikes": "Motos y motocicletas"
     },
-    "tv": {
-    }
+    "tv": {}
   },
   "interestsCategories": {
     "arts": "Arte y creatividad",
@@ -944,7 +944,8 @@
       "invite": "+",
       "media": "Multimedia",
       "news": "Noticias",
-      "thoughts": "Pensamientos"
+      "thoughts": "Pensamientos",
+      "groupsDiscover": "Descubrir"
     },
     "mapActions": {
       "create": "Crear",
@@ -1213,7 +1214,8 @@
         "description": "Descripción:",
         "subtitle": "Titular:",
         "memberCount": "{count} miembros"
-      }
+      },
+      "noMyGroupsFound": "Aún no te has unido a ningún grupo. Descubre y únete a grupos para verlos aquí."
     },
     "invite": {
       "headerTitle": "Invitar"
