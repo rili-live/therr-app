@@ -4,17 +4,24 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
 import {
-    Alert, Card, Container, Stack, Textarea,
+    Alert, Card, Container, Stack, Textarea, FileInput,
 } from '@mantine/core';
 import {
     MantineButton,
     MantineInput,
+    MantineSelect,
 } from 'therr-react/components/mantine';
 import { IMapState, IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
+import { Categories } from 'therr-js-utilities/constants';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
+
+const categoryOptions = Categories.SpaceCategories.map((cat: string) => ({
+    value: cat,
+    label: cat.replace('categories.', '').replace('/', ' / ').replace(/^\w/, (c) => c.toUpperCase()),
+}));
 
 interface IEditSpaceRouterProps {
     navigation: {
@@ -43,12 +50,15 @@ interface IEditSpaceState {
         notificationMsg: string;
         message: string;
         addressReadable: string;
+        category: string;
+        hashTags: string;
         phoneNumber: string;
         websiteUrl: string;
         menuUrl: string;
         orderUrl: string;
         reservationUrl: string;
     };
+    imageFile: File | null;
     isLoading: boolean;
     isSubmitting: boolean;
     errorReason: string;
@@ -76,12 +86,15 @@ export class EditSpaceComponent extends React.Component<IEditSpaceProps, IEditSp
                 notificationMsg: '',
                 message: '',
                 addressReadable: '',
+                category: '',
+                hashTags: '',
                 phoneNumber: '',
                 websiteUrl: '',
                 menuUrl: '',
                 orderUrl: '',
                 reservationUrl: '',
             },
+            imageFile: null,
             isLoading: true,
             isSubmitting: false,
             errorReason: '',
@@ -134,6 +147,8 @@ export class EditSpaceComponent extends React.Component<IEditSpaceProps, IEditSp
                 notificationMsg: space.notificationMsg || '',
                 message: space.message || '',
                 addressReadable: space.addressReadable || '',
+                category: space.category || '',
+                hashTags: space.hashTags || '',
                 phoneNumber: space.phoneNumber || '',
                 websiteUrl: space.websiteUrl || '',
                 menuUrl: space.menuUrl || '',
@@ -166,6 +181,21 @@ export class EditSpaceComponent extends React.Component<IEditSpaceProps, IEditSp
         });
     };
 
+    onCategoryChange = (value: string | null) => {
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                category: value || '',
+            },
+            errorReason: '',
+            isSuccess: false,
+        });
+    };
+
+    onImageChange = (file: File | null) => {
+        this.setState({ imageFile: file });
+    };
+
     isFormDisabled = () => {
         const { inputs, isSubmitting } = this.state;
         return isSubmitting || !inputs.notificationMsg;
@@ -177,20 +207,48 @@ export class EditSpaceComponent extends React.Component<IEditSpaceProps, IEditSp
         if (this.isFormDisabled()) return;
 
         const { routeParams, updateSpace } = this.props;
-        const { inputs } = this.state;
+        const { inputs, imageFile } = this.state;
+        const { spaceId } = routeParams;
 
         this.setState({ isSubmitting: true, errorReason: '', isSuccess: false });
 
-        updateSpace(routeParams.spaceId, {
+        const updateArgs: any = {
             notificationMsg: inputs.notificationMsg,
             message: inputs.message,
             addressReadable: inputs.addressReadable,
+            category: inputs.category,
+            hashTags: inputs.hashTags,
             phoneNumber: inputs.phoneNumber,
             websiteUrl: inputs.websiteUrl,
             menuUrl: inputs.menuUrl,
             orderUrl: inputs.orderUrl,
             reservationUrl: inputs.reservationUrl,
-        }).then(() => {
+        };
+
+        const imageUploadPromise = imageFile
+            ? MapsService.getSignedUrlPublicBucket({
+                action: 'write',
+                filename: `spaces/${spaceId}/${imageFile.name}`,
+                areaType: 'spaces',
+            }).then((response: any) => {
+                const signedUrl = response?.data?.url;
+                if (signedUrl) {
+                    return fetch(signedUrl, {
+                        method: 'PUT',
+                        body: imageFile,
+                        headers: { 'Content-Type': imageFile.type },
+                    }).then(() => {
+                        updateArgs.medias = [{
+                            type: 'USER_IMAGE_PUBLIC',
+                            path: `spaces/${spaceId}/${imageFile.name}`,
+                        }];
+                    });
+                }
+                return undefined;
+            })
+            : Promise.resolve();
+
+        imageUploadPromise.then(() => updateSpace(spaceId, updateArgs)).then(() => {
             this.setState({ isSuccess: true, errorReason: '' });
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }).catch((error: any) => {
@@ -284,6 +342,32 @@ export class EditSpaceComponent extends React.Component<IEditSpaceProps, IEditSp
                                 onEnter={this.onSubmit}
                                 translateFn={translate}
                                 label={translate('pages.editSpace.labels.address')}
+                            />
+
+                            <MantineSelect
+                                id="edit_space_category"
+                                label={translate('pages.editSpace.labels.category')}
+                                value={inputs.category}
+                                onChange={this.onCategoryChange}
+                                data={categoryOptions}
+                                placeholder={translate('pages.editSpace.labels.selectCategory')}
+                            />
+
+                            <MantineInput
+                                id="edit_space_hashTags"
+                                name="hashTags"
+                                value={inputs.hashTags}
+                                onChange={this.onInputChange}
+                                label={translate('pages.editSpace.labels.hashTags')}
+                                description={translate('pages.editSpace.labels.hashTagsHint')}
+                            />
+
+                            <FileInput
+                                label={translate('pages.editSpace.labels.image')}
+                                accept="image/*"
+                                onChange={this.onImageChange}
+                                placeholder={translate('pages.editSpace.labels.chooseImage')}
+                                clearable
                             />
 
                             <h2 className="edit-profile-section-title">

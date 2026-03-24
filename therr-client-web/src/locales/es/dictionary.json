@@ -775,6 +775,44 @@
         "getFullExperience": "Obtén la experiencia completa en la app Therr",
         "helpful": "Útil",
         "notHelpful": "No útil"
+      },
+      "claimSpace": {
+        "title": "¿Es este tu negocio?",
+        "body": "Reclama este espacio para actualizar la información de tu negocio, agregar fotos y conectar con los clientes que te están buscando.",
+        "claimButton": "Reclamar este espacio",
+        "editButton": "Editar espacio",
+        "alreadyHaveAccount": "¿Ya tienes una cuenta? Inicia sesión",
+        "pendingTitle": "Solicitud de reclamo pendiente",
+        "pendingBody": "Se ha enviado una solicitud de reclamo para este espacio y está siendo revisada.",
+        "successMessage": "Tu solicitud de reclamo ha sido enviada. Serás notificado una vez que sea aprobada.",
+        "errorMessage": "Hubo un error al enviar tu solicitud. Por favor, intenta de nuevo más tarde."
+      }
+    },
+    "editSpace": {
+      "pageTitle": "Editar espacio",
+      "successMessage": "Tu espacio ha sido actualizado exitosamente.",
+      "errorGeneric": "Ocurrió un error al guardar. Por favor, intenta de nuevo.",
+      "headings": {
+        "contactInfo": "Información de contacto"
+      },
+      "labels": {
+        "businessName": "Nombre del negocio",
+        "category": "Categoría",
+        "selectCategory": "Selecciona una categoría",
+        "description": "Descripción",
+        "hashTags": "Etiquetas",
+        "hashTagsHint": "Separadas por comas (ej. café, wifi, terraza)",
+        "image": "Foto del negocio",
+        "chooseImage": "Elegir una imagen",
+        "phoneNumber": "Número de teléfono",
+        "websiteUrl": "Sitio web",
+        "menuUrl": "URL del menú",
+        "orderUrl": "URL de pedidos / entregas",
+        "reservationUrl": "URL de reservaciones"
+      },
+      "buttons": {
+        "save": "Guardar cambios",
+        "backToSpace": "Volver al espacio"
       }
     },
     "viewMoment": {

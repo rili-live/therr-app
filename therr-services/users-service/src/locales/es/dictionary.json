@@ -164,6 +164,17 @@
             "postBody1": "¡Gracias por elegir Therr for Business! Estamos mejorando constantemente nuestras herramientas para ayudarte a llegar a más clientes locales. Tus comentarios siempre son bienvenidos.",
             "buttonText": "Ir al panel de control"
         },
+        "unclaimedSpace": {
+            "subject": "La gente está buscando {spaceName}",
+            "header": "Tu negocio está llamando la atención",
+            "preheaderText": "Tu negocio está siendo descubierto. Reclama tu listado gratuito hoy.",
+            "dearUser": "¡Hola, {spaceName}!",
+            "body1": "Personas en tu área están descubriendo {spaceName} en Therr. Tu negocio ya tiene un listado que los clientes potenciales están viendo ahora mismo. Cualquiera puede ver tu espacio, pero solo tú puedes controlar cómo se ve.",
+            "body2": "Reclama tu página de negocio gratuita para actualizar tus horarios, fotos, información de contacto y más. Destaca entre la competencia y conecta directamente con clientes que están buscando negocios como el tuyo.",
+            "bodyBold": "Solo toma 60 segundos para comenzar.",
+            "buttonText": "Ver tu página de negocio",
+            "postBody1": "¿Ya tienes una cuenta? Simplemente inicia sesión y reclama tu espacio desde la página del negocio."
+        },
         "dashboardSubscriberIntro": {
             "header": "¡Bienvenido/a a {brandName}!",
             "dearUser": "¡Bienvenido/a!",
