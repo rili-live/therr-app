@@ -7,6 +7,7 @@ import { MapsService } from 'therr-react/services';
 import { ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
 import CreateForum from './CreateForum';
+import ListGroups from './ListGroups';
 import ViewGroup from './ViewGroup';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
@@ -52,6 +53,15 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/',
         element: <Home />,
+    },
+    {
+        path: '/groups',
+        element: <ListGroups />,
+        fetchData: (dispatch: any) => ForumActions.searchForums({
+            itemsPerPage: 50,
+            pageNumber: 1,
+            order: 'desc',
+        }, {})(dispatch),
     },
     {
         path: '/groups/:groupId',
