@@ -10,6 +10,8 @@ import router from './routes';
 import reqLogDecorator from './middleware/reqLogDecorator';
 import { version as packageVersion } from '../package.json';
 import authenticate from './middleware/authenticate';
+import restrictApiKeyAccess from './middleware/restrictApiKeyAccess';
+import { apiKeyRequestLimiter } from './services/users/limitation/apiKeys';
 
 tracing.start();
 
@@ -97,6 +99,16 @@ app.use(authenticate.unless({
         { url: '/v1/messages-service/forums/search', methods: ['POST'] }, // Public forum search (uses authenticateOptional)
     ],
 }));
+
+// API key access restrictions and rate limiting (after auth, before routes)
+app.use(restrictApiKeyAccess);
+app.use((req, res, next) => {
+    // Only apply API key rate limiter to API-key-authenticated requests
+    if (req['x-auth-type'] === 'api-key') {
+        return apiKeyRequestLimiter(req, res, next);
+    }
+    return next();
+});
 
 // Configure routes
 app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck

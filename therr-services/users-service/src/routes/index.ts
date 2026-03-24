@@ -1,4 +1,5 @@
 import * as express from 'express';
+import apiKeysRouter from './apiKeysRouter';
 import authRouter from './authRouter';
 import emailsRouter from './emailsRouter';
 import campaignsRouter from './campaignsRouter';
@@ -25,6 +26,7 @@ import streaksRouter from './streaksRouter';
 
 const router = express.Router();
 
+router.use('/api-keys', apiKeysRouter);
 router.use('/auth', authRouter);
 router.use('/emails', emailsRouter);
 router.use('/campaigns', campaignsRouter);

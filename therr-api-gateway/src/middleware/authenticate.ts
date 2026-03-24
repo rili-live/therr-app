@@ -3,6 +3,7 @@ import unless from 'express-unless';
 import handleHttpError from '../utilities/handleHttpError';
 import isBlacklisted from '../utilities/isBlacklisted';
 import { isTokenBlacklisted } from '../store/redisClient';
+import authenticateApiKey from './authenticateApiKey';
 
 const verifyJwt = (token: string, secret: string): Promise<any> => new Promise((resolve, reject) => {
     jwt.verify(token, secret, (err, decoded) => {
@@ -15,6 +16,11 @@ const verifyJwt = (token: string, secret: string): Promise<any> => new Promise((
 
 const authenticate = async (req, res, next) => {
     try {
+        // Support API key authentication via x-api-key header
+        if (req.headers['x-api-key']) {
+            return authenticateApiKey(req, res, next);
+        }
+
         if (req.headers.authorization?.split(' ')[0] === 'Bearer') {
             const decoded = await verifyJwt(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '');
 
