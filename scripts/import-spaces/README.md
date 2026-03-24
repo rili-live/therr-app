@@ -144,6 +144,91 @@ Requires GCS credentials in addition to the standard DB credentials:
 - `MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64` — base64-encoded GCS service account JSON
 - `BUCKET_PUBLIC_USER_DATA` — GCS bucket name for public user media
 
+### 3. Source Emails & Websites
+
+Find business email addresses by crawling websites, and discover websites for spaces that don't have one via web search. Business emails enable future outreach to encourage businesses to claim and manage their own spaces.
+
+```bash
+npx ts-node scripts/import-spaces/source-emails-websites [options]
+```
+
+Run `--help` for full details:
+
+```bash
+npx ts-node scripts/import-spaces/source-emails-websites --help
+```
+
+#### Options
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--city <name>` | Filter by addressLocality | `all` |
+| `--category <name>` | Filter by Therr category string | `all` |
+| `--mode <mode>` | What to find: `email`, `website`, or `both` | `both` |
+| `--limit <n>` | Max spaces to process | no limit |
+| `--delay <ms>` | Delay between requests in ms | `2000` |
+| `--user-id <uuid>` | Override fromUserId for media records | `568bf5d2-...` |
+| `--source-images` | Also source images for spaces with a website but no media | off |
+| `--dry-run` | Crawl and log without updating | off |
+
+#### Modes
+
+- **`email`**: Crawls existing `websiteUrl` for email addresses (mailto links, contact pages, plaintext patterns)
+- **`website`**: Searches the web (DuckDuckGo) to discover websites for spaces that lack one. Only saves when confidence is high (business name matches domain/page title).
+- **`both`**: Runs email extraction first, then website discovery
+
+#### Email Extraction Strategy
+
+Emails are extracted in priority order:
+
+1. **`mailto:` links** on the homepage
+2. **Plaintext email patterns** in the page body
+3. **Contact/About page** — if no emails found on the homepage, follows `/contact`, `/about` links and repeats
+
+Emails are filtered to reject noreply addresses, social media domains, and false positives. Emails matching the website's own domain are ranked highest.
+
+#### Website Discovery
+
+Uses DuckDuckGo HTML search with the business name + city + region. Confidence checks:
+
+1. The search result domain or title must match the business name (fuzzy word matching)
+2. The actual page `<title>` is fetched to double-check the match
+
+Only high-confidence matches are saved to avoid associating wrong websites with spaces.
+
+#### Examples
+
+Preview email extraction for Eugene spaces:
+
+```bash
+npx ts-node scripts/import-spaces/source-emails-websites --mode email --city eugene --dry-run --limit 5
+```
+
+Find websites for spaces without one:
+
+```bash
+npx ts-node scripts/import-spaces/source-emails-websites --mode website --city chicago --limit 20
+```
+
+Full pipeline — emails, websites, and images:
+
+```bash
+npx ts-node scripts/import-spaces/source-emails-websites --mode both --source-images --limit 100
+```
+
+#### Idempotency
+
+- Email mode targets spaces where `businessEmail IS NULL` and `websiteUrl` exists
+- Website mode targets spaces where `websiteUrl IS NULL` or empty
+
+Already-processed spaces are never re-processed. Safe to re-run.
+
+#### Environment
+
+Standard DB credentials required. If `--source-images` is used, GCS credentials are also needed:
+- `MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64` — base64-encoded GCS service account JSON
+- `BUCKET_PUBLIC_USER_DATA` — GCS bucket name for public user media
+
 ## Data Source
 
 Data comes from the [OpenStreetMap Overpass API](https://overpass-api.de/) (free, no API key required). OSM data is licensed under [ODbL](https://opendatacommons.org/licenses/odbl/).
@@ -151,7 +236,7 @@ Data comes from the [OpenStreetMap Overpass API](https://overpass-api.de/) (free
 The script queries OSM by city bounding box and amenity/shop/tourism tags, then maps the results to Therr's space schema including:
 
 - Name, address, city, state, postal code
-- Phone number, website URL
+- Phone number, business email, website URL
 - Opening hours (converted to Therr JSON format)
 - Category mapping (OSM amenity tags -> Therr categories)
 - Geospatial data (PostGIS geometry)
@@ -162,10 +247,13 @@ The script queries OSM by city bounding box and amenity/shop/tourism tags, then 
 scripts/import-spaces/
 ├── index.ts                 # Import entry point — CLI arg parsing, DB insert
 ├── source-images.ts         # Source images entry point — crawl, upload, update
+├── source-emails-websites.ts # Source emails/websites — email extraction, web search
 ├── config.ts                # City bounding boxes, category mappings
 ├── sources/
 │   ├── osm.ts               # Overpass API fetcher (with 429 retry)
-│   └── crawl.ts             # Website crawling + image extraction
+│   ├── crawl.ts             # Website crawling + image extraction
+│   ├── crawlEmails.ts       # Website crawling + email extraction
+│   └── searchWeb.ts         # DuckDuckGo web search for business websites
 ├── transforms/
 │   ├── mapToSpace.ts         # OSM element -> Therr space params
 │   └── parseHours.ts         # OSM opening_hours -> Therr JSON
