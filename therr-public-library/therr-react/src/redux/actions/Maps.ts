@@ -407,18 +407,29 @@ const Maps = {
         }),
 
     // Google API
-    getPlacesSearchAutoComplete: (args: IPlacesAutoCompleteArgs) => (dispatch: any) => MapsService.getPlacesSearchAutoComplete(args)
-        .then((response) => {
-            dispatch({
-                type: MapActionTypes.AUTOCOMPLETE_UPDATE,
-                data: {
-                    predictions: response.data?.predictions || [],
-                },
+    getPlacesSearchAutoComplete: (args: IPlacesAutoCompleteArgs) => (dispatch: any) => {
+        dispatch({
+            type: MapActionTypes.AUTOCOMPLETE_SEARCHING,
+        });
+        return MapsService.getPlacesSearchAutoComplete(args)
+            .then((response) => {
+                dispatch({
+                    type: MapActionTypes.AUTOCOMPLETE_UPDATE,
+                    data: {
+                        predictions: response.data?.predictions || [],
+                    },
+                });
+            })
+            .catch((error) => {
+                console.log(error);
+                dispatch({
+                    type: MapActionTypes.AUTOCOMPLETE_UPDATE,
+                    data: {
+                        predictions: [],
+                    },
+                });
             });
-        })
-        .catch((error) => {
-            console.log(error);
-        }),
+    },
     setSearchDropdownVisibility: (isVisible: boolean) => (dispatch: any) => {
         dispatch({
             type: MapActionTypes.SET_DROPDOWN_VISIBILITY,
