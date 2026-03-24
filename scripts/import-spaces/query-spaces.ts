@@ -121,32 +121,35 @@ async function main() {
     await db.query('SELECT 1');
   } catch (err: any) {
     log(`Database connection failed: ${err.message}`);
+    await db.end();
     process.exit(1);
   }
 
-  const spaces = await querySpaces(db, args);
-  log(`Found ${spaces.length} spaces.`);
+  try {
+    const spaces = await querySpaces(db, args);
+    log(`Found ${spaces.length} spaces.`);
 
-  // Output clean JSON to stdout (no secrets, no connection info)
-  const output = spaces.map((s) => ({
-    id: s.id,
-    name: s.notificationMsg,
-    category: s.category,
-    websiteUrl: s.websiteUrl || null,
-    businessEmail: s.businessEmail || null,
-    phoneNumber: s.phoneNumber || null,
-    hasMedia: !!(s.mediaIds && s.mediaIds !== '') || !!(s.medias && s.medias.length > 0),
-    address: {
-      street: s.addressStreetAddress || null,
-      city: s.addressLocality || null,
-      region: s.addressRegion || null,
-      postalCode: s.postalCode || null,
-    },
-  }));
+    // Output clean JSON to stdout (no secrets, no connection info)
+    const output = spaces.map((s) => ({
+      id: s.id,
+      name: s.notificationMsg,
+      category: s.category,
+      websiteUrl: s.websiteUrl || null,
+      businessEmail: s.businessEmail || null,
+      phoneNumber: s.phoneNumber || null,
+      hasMedia: !!(s.mediaIds && s.mediaIds !== '') || !!(s.medias && s.medias.length > 0),
+      address: {
+        street: s.addressStreetAddress || null,
+        city: s.addressLocality || null,
+        region: s.addressRegion || null,
+        postalCode: s.postalCode || null,
+      },
+    }));
 
-  console.log(JSON.stringify(output, null, 2));
-
-  await db.end();
+    console.log(JSON.stringify(output, null, 2));
+  } finally {
+    await db.end();
+  }
 }
 
 main().catch((err) => {

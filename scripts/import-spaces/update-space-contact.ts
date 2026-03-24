@@ -97,107 +97,110 @@ async function main() {
     await db.query('SELECT 1');
   } catch (err: any) {
     log(`Database connection failed: ${err.message}`);
-    process.exit(1);
-  }
-
-  const result: IUpdateResult = {
-    spaceId: args.id,
-    emailUpdated: false,
-    websiteUpdated: false,
-    imageSourced: false,
-    imagePath: null,
-  };
-
-  // Verify space exists and get current data
-  const spaceResult = await db.query(
-    `SELECT id, "notificationMsg", "fromUserId", "websiteUrl", "businessEmail", "mediaIds", medias
-     FROM main.spaces WHERE id = $1`,
-    [args.id],
-  );
-
-  if (spaceResult.rows.length === 0) {
-    log(`Error: Space ${args.id} not found.`);
-    console.log(JSON.stringify({ error: 'Space not found', spaceId: args.id }));
     await db.end();
     process.exit(1);
   }
 
-  const space = spaceResult.rows[0];
+  try {
+    const result: IUpdateResult = {
+      spaceId: args.id,
+      emailUpdated: false,
+      websiteUpdated: false,
+      imageSourced: false,
+      imagePath: null,
+    };
 
-  // Update email
-  if (args.email && !space.businessEmail) {
-    await db.query(
-      `UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2`,
-      [args.email, args.id],
+    // Verify space exists and get current data
+    const spaceResult = await db.query(
+      `SELECT id, "notificationMsg", "fromUserId", "websiteUrl", "businessEmail", "mediaIds", medias
+       FROM main.spaces WHERE id = $1`,
+      [args.id],
     );
-    result.emailUpdated = true;
-    log(`Updated email: ${args.email}`);
-  }
 
-  // Update website
-  if (args.website && (!space.websiteUrl || space.websiteUrl === '')) {
-    await db.query(
-      `UPDATE main.spaces SET "websiteUrl" = $1, "updatedAt" = NOW() WHERE id = $2`,
-      [args.website, args.id],
-    );
-    result.websiteUpdated = true;
-    log(`Updated website: ${args.website}`);
-  }
+    if (spaceResult.rows.length === 0) {
+      log(`Error: Space ${args.id} not found.`);
+      console.log(JSON.stringify({ error: 'Space not found', spaceId: args.id }));
+      process.exit(1);
+    }
 
-  // Source image
-  if (args.sourceImage) {
-    const websiteUrl = args.website || space.websiteUrl;
-    const hasMedia = (space.mediaIds && space.mediaIds !== '') || (space.medias && space.medias.length > 0);
+    const space = spaceResult.rows[0];
 
-    if (!websiteUrl) {
-      log('Skipping image sourcing: no website URL available.');
-    } else if (hasMedia) {
-      log('Skipping image sourcing: space already has media.');
-    } else {
-      log(`Sourcing image from: ${websiteUrl}`);
-      const candidates = await crawlForImages(websiteUrl);
+    // Update email
+    if (args.email && !space.businessEmail) {
+      await db.query(
+        `UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2`,
+        [args.email, args.id],
+      );
+      result.emailUpdated = true;
+      log(`Updated email: ${args.email}`);
+    }
 
-      for (const candidate of candidates) {
-        const validImage = await downloadAndValidateImage(candidate.imageUrl);
-        if (!validImage) continue;
+    // Update website
+    if (args.website && (!space.websiteUrl || space.websiteUrl === '')) {
+      await db.query(
+        `UPDATE main.spaces SET "websiteUrl" = $1, "updatedAt" = NOW() WHERE id = $2`,
+        [args.website, args.id],
+      );
+      result.websiteUpdated = true;
+      log(`Updated website: ${args.website}`);
+    }
 
-        const userId = space.fromUserId || args.userId;
-        const storagePath = await uploadImage(userId, args.id, validImage.buffer, validImage.contentType);
+    // Source image
+    if (args.sourceImage) {
+      const websiteUrl = args.website || space.websiteUrl;
+      const hasMedia = (space.mediaIds && space.mediaIds !== '') || (space.medias && space.medias.length > 0);
 
-        // Insert media record
-        const mediaResult = await db.query(
-          `INSERT INTO main.media ("fromUserId", "altText", type, path)
-           VALUES ($1, $2, $3, $4)
-           RETURNING id`,
-          [userId, space.notificationMsg, 'user-image-public', storagePath],
-        );
-        const mediaId = mediaResult.rows[0].id;
+      if (!websiteUrl) {
+        log('Skipping image sourcing: no website URL available.');
+      } else if (hasMedia) {
+        log('Skipping image sourcing: space already has media.');
+      } else {
+        log(`Sourcing image from: ${websiteUrl}`);
+        const candidates = await crawlForImages(websiteUrl);
 
-        // Update space with media references
-        const medias = JSON.stringify([{ path: storagePath, type: 'user-image-public' }]);
-        await db.query(
-          `UPDATE main.spaces
-           SET "mediaIds" = $1::text,
-               medias = $2::jsonb,
-               "updatedAt" = NOW()
-           WHERE id = $3`,
-          [String(mediaId), medias, args.id],
-        );
+        for (const candidate of candidates) {
+          const validImage = await downloadAndValidateImage(candidate.imageUrl);
+          if (!validImage) continue;
 
-        result.imageSourced = true;
-        result.imagePath = storagePath;
-        log(`Uploaded image: ${storagePath}`);
-        break;
-      }
+          const userId = space.fromUserId || args.userId;
+          const storagePath = await uploadImage(userId, args.id, validImage.buffer, validImage.contentType);
 
-      if (!result.imageSourced) {
-        log('No valid image found on website.');
+          // Insert media record
+          const mediaResult = await db.query(
+            `INSERT INTO main.media ("fromUserId", "altText", type, path)
+             VALUES ($1, $2, $3, $4)
+             RETURNING id`,
+            [userId, space.notificationMsg, 'user-image-public', storagePath],
+          );
+          const mediaId = mediaResult.rows[0].id;
+
+          // Update space with media references
+          const medias = JSON.stringify([{ path: storagePath, type: 'user-image-public' }]);
+          await db.query(
+            `UPDATE main.spaces
+             SET "mediaIds" = $1::text,
+                 medias = $2::jsonb,
+                 "updatedAt" = NOW()
+             WHERE id = $3`,
+            [String(mediaId), medias, args.id],
+          );
+
+          result.imageSourced = true;
+          result.imagePath = storagePath;
+          log(`Uploaded image: ${storagePath}`);
+          break;
+        }
+
+        if (!result.imageSourced) {
+          log('No valid image found on website.');
+        }
       }
     }
-  }
 
-  console.log(JSON.stringify(result, null, 2));
-  await db.end();
+    console.log(JSON.stringify(result, null, 2));
+  } finally {
+    await db.end();
+  }
 }
 
 main().catch((err) => {
