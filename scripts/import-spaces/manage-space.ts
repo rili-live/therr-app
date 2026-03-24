@@ -36,9 +36,10 @@ import { validateSpace } from './utils/validate';
 import { crawlForEmails } from './sources/crawlEmails';
 import { searchForWebsite } from './sources/searchWeb';
 import { crawlForImages } from './sources/crawl';
-import { crawlForDetails } from './sources/crawlDetails';
+import { crawlForDetails, fetchPage } from './sources/crawlDetails';
 import { downloadAndValidateImage } from './utils/imageValidation';
 import { uploadImage } from './utils/gcs';
+import { CITY_TIMEZONE_MAP } from './transforms/parseHours';
 
 // Load .env from scripts/import-spaces/ first, fall back to root .env
 dotenv.config({ path: path.resolve(__dirname, '.env') });
@@ -130,6 +131,9 @@ function parseArgs(): ICliArgs {
     }
   }
 
+  // --id implies --enrich-existing
+  const enrichExisting = parsed.enrichExisting === 'true' || !!parsed.id;
+
   return {
     source: parsed.source || 'osm',
     city: parsed.city || 'chicago',
@@ -137,7 +141,7 @@ function parseArgs(): ICliArgs {
     dryRun: parsed.dryRun === 'true',
     skipDedup: parsed.skipDedup === 'true',
     skipEnrich: parsed.skipEnrich === 'true',
-    enrichExisting: parsed.enrichExisting === 'true',
+    enrichExisting,
     singleId: parsed.id || null,
     limit: parsed.limit ? parseInt(parsed.limit, 10) : 0,
     delay: parsed.delay ? parseInt(parsed.delay, 10) : 2000,
@@ -286,11 +290,11 @@ async function querySpacesForEnrichment(db: Pool, args: ICliArgs): Promise<ISpac
     params.push(args.singleId);
     paramIdx++;
   } else {
-    // Spaces missing at least one of: website, email, image, or description
+    // Spaces missing at least one of: website, email, or image
     conditions.push(`(
-      "businessEmail" IS NULL
-      OR "websiteUrl" IS NULL OR "websiteUrl" = ''
-      OR ("mediaIds" = '' OR "mediaIds" IS NULL) AND medias IS NULL
+      ("businessEmail" IS NULL)
+      OR ("websiteUrl" IS NULL OR "websiteUrl" = '')
+      OR (("mediaIds" = '' OR "mediaIds" IS NULL) AND medias IS NULL)
     )`);
 
     if (args.city !== 'all') {
@@ -389,6 +393,31 @@ async function sourceImageForSpace(
   return false;
 }
 
+/**
+ * Resolve timezone for a space based on its addressLocality.
+ * Falls back to America/Chicago if no match is found.
+ */
+function resolveTimezone(addressLocality: string): string {
+  if (!addressLocality) return 'America/Chicago';
+
+  for (const [cityName, tz] of Object.entries(CITY_TIMEZONE_MAP)) {
+    if (addressLocality.toLowerCase().includes(cityName.toLowerCase())) {
+      return tz;
+    }
+  }
+  return 'America/Chicago';
+}
+
+/**
+ * Normalize a website URL, ensuring it has a protocol prefix.
+ */
+function normalizeUrl(url: string): string {
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
+  }
+  return url;
+}
+
 // ── Enrich a single space with all available info ────────────────────────────
 async function enrichSpace(
   db: Pool,
@@ -424,8 +453,13 @@ async function enrichSpace(
     }
   }
 
-  // ── Step 2: Crawl website for email ──
+  // ── Step 2: Fetch the website once and reuse the HTML ──
+  const html = await fetchPage(normalizeUrl(websiteUrl));
+
+  // ── Step 3: Extract email from website ──
   if (!space.businessEmail) {
+    // crawlForEmails handles its own fetch + contact page traversal,
+    // so we call it separately (it may follow contact/about links)
     const emailResults = await crawlForEmails(websiteUrl);
     if (emailResults.length > 0) {
       const bestEmail = emailResults[0];
@@ -441,52 +475,55 @@ async function enrichSpace(
     }
   }
 
-  // ── Step 3: Crawl website for details (description, hours, phone) ──
-  const details = await crawlForDetails(websiteUrl);
+  // ── Step 4: Extract details from pre-fetched HTML (no redundant fetch) ──
+  if (html) {
+    const details = await crawlForDetails(websiteUrl, html);
 
-  if (details.description && (!space.message || space.message === space.notificationMsg)) {
-    const newMessage = `${space.notificationMsg} - ${details.description}`;
-    console.log(`${progress} DESCRIPTION: ${details.description.substring(0, 80)}...`);
+    if (details.description && (!space.message || space.message === space.notificationMsg)) {
+      const newMessage = `${space.notificationMsg} - ${details.description}`;
+      console.log(`${progress} DESCRIPTION: ${details.description.substring(0, 80)}...`);
 
-    if (!args.dryRun) {
-      await db.query(
-        `UPDATE main.spaces SET message = $1, "updatedAt" = NOW() WHERE id = $2`,
-        [newMessage, space.id],
-      );
+      if (!args.dryRun) {
+        await db.query(
+          `UPDATE main.spaces SET message = $1, "updatedAt" = NOW() WHERE id = $2`,
+          [newMessage, space.id],
+        );
+      }
+      counters.descriptionsFound++;
     }
-    counters.descriptionsFound++;
+
+    if (details.openingHours && !space.openingHours) {
+      const timezone = resolveTimezone(space.addressLocality || '');
+      const hoursJson = JSON.stringify({
+        schema: details.openingHours,
+        timezone,
+        isConfirmed: false,
+      });
+      console.log(`${progress} HOURS: ${details.openingHours.length} rule(s) found (${timezone})`);
+
+      if (!args.dryRun) {
+        await db.query(
+          `UPDATE main.spaces SET "openingHours" = $1::jsonb, "updatedAt" = NOW() WHERE id = $2`,
+          [hoursJson, space.id],
+        );
+      }
+      counters.hoursFound++;
+    }
+
+    if (details.phoneNumber && !space.phoneNumber) {
+      console.log(`${progress} PHONE: ${details.phoneNumber}`);
+
+      if (!args.dryRun) {
+        await db.query(
+          `UPDATE main.spaces SET "phoneNumber" = $1, "updatedAt" = NOW() WHERE id = $2`,
+          [details.phoneNumber, space.id],
+        );
+      }
+      counters.phonesFound++;
+    }
   }
 
-  if (details.openingHours && !space.openingHours) {
-    const hoursJson = JSON.stringify({
-      schema: details.openingHours,
-      timezone: 'America/Chicago', // Default; can be refined later
-      isConfirmed: false,
-    });
-    console.log(`${progress} HOURS: ${details.openingHours.length} rule(s) found`);
-
-    if (!args.dryRun) {
-      await db.query(
-        `UPDATE main.spaces SET "openingHours" = $1::jsonb, "updatedAt" = NOW() WHERE id = $2`,
-        [hoursJson, space.id],
-      );
-    }
-    counters.hoursFound++;
-  }
-
-  if (details.phoneNumber && !space.phoneNumber) {
-    console.log(`${progress} PHONE: ${details.phoneNumber}`);
-
-    if (!args.dryRun) {
-      await db.query(
-        `UPDATE main.spaces SET "phoneNumber" = $1, "updatedAt" = NOW() WHERE id = $2`,
-        [details.phoneNumber, space.id],
-      );
-    }
-    counters.phonesFound++;
-  }
-
-  // ── Step 4: Crawl website for image ──
+  // ── Step 5: Source image from website ──
   if (spaceNeedsImages(space)) {
     if (args.dryRun) {
       console.log(`${progress} Would source image from ${websiteUrl}`);
@@ -621,12 +658,13 @@ function printSummary(args: ICliArgs, counters: ICounters) {
     console.log('──────────────────────────────────────');
   }
 
-  console.log(`Websites found:           ${counters.websitesFound}`);
-  console.log(`Emails found:             ${counters.emailsFound}`);
-  console.log(`Images sourced:           ${counters.imagesFound}`);
-  console.log(`Descriptions found:       ${counters.descriptionsFound}`);
-  console.log(`Hours found:              ${counters.hoursFound}`);
-  console.log(`Phones found:             ${counters.phonesFound}`);
+  const dryLabel = args.dryRun ? ' (dry run)' : '';
+  console.log(`Websites found${dryLabel}:   ${counters.websitesFound}`);
+  console.log(`Emails found${dryLabel}:     ${counters.emailsFound}`);
+  console.log(`Images sourced${dryLabel}:   ${counters.imagesFound}`);
+  console.log(`Descriptions found${dryLabel}: ${counters.descriptionsFound}`);
+  console.log(`Hours found${dryLabel}:      ${counters.hoursFound}`);
+  console.log(`Phones found${dryLabel}:     ${counters.phonesFound}`);
   console.log(`Enrichment errors:        ${counters.enrichErrors}`);
   console.log('══════════════════════════════════════\n');
 }
@@ -658,6 +696,7 @@ async function main() {
   } catch (err: any) {
     console.error(`Database connection failed: ${err.message}`);
     console.error('Make sure .env is configured with DB_HOST_MAIN_WRITE, DB_USER_MAIN_WRITE, etc.');
+    await db.end();
     process.exit(1);
   }
 
