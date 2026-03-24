@@ -1,0 +1,258 @@
+/**
+ * Lightweight web search to find a business website given its name and location.
+ * Uses DuckDuckGo HTML search (no API key required).
+ *
+ * Only returns a result when confidence is high — the discovered page title or
+ * domain must clearly match the business name, so we don't associate the wrong
+ * website with a space.
+ */
+
+// Social media, directory, and review sites that are never a business's own website
+const REJECT_DOMAINS = [
+  'facebook.com',
+  'instagram.com',
+  'twitter.com',
+  'x.com',
+  'linkedin.com',
+  'yelp.com',
+  'tripadvisor.com',
+  'foursquare.com',
+  'yellowpages.com',
+  'bbb.org',
+  'mapquest.com',
+  'google.com',
+  'apple.com',
+  'grubhub.com',
+  'doordash.com',
+  'ubereats.com',
+  'opentable.com',
+  'seamless.com',
+  'postmates.com',
+  'wikipedia.org',
+  'wikidata.org',
+  'pinterest.com',
+  'tiktok.com',
+  'youtube.com',
+  'nextdoor.com',
+  'menulog.com',
+  'zomato.com',
+  'allmenus.com',
+  'chamberofcommerce.com',
+  'manta.com',
+  'superpages.com',
+  'whitepages.com',
+  'duckduckgo.com',
+];
+
+/**
+ * Clean and validate a discovered URL — ensure it looks like a real business website.
+ */
+function isLikelyBusinessWebsite(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./, '');
+    return !REJECT_DOMAINS.some((d) => hostname === d || hostname.endsWith(`.${d}`));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Normalize a string for fuzzy matching: lowercase, remove punctuation, collapse whitespace.
+ */
+function normalize(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[''`]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Check if the business name is a confident match against a domain or page title.
+ * We require that a substantial portion of the business name words appear in the target.
+ */
+function isConfidentMatch(businessName: string, domain: string, pageTitle?: string): boolean {
+  const nameNorm = normalize(businessName);
+  const nameWords = nameNorm.split(' ').filter((w) => w.length > 2); // skip tiny words like "of", "the", "a"
+
+  if (nameWords.length === 0) return false;
+
+  // Check 1: Does the domain contain the business name (collapsed)?
+  // e.g., "Joe's Pizza" → "joespizza" vs domain "joespizza.com"
+  const nameCollapsed = nameNorm.replace(/\s+/g, '');
+  const domainBase = domain.replace(/^www\./, '').split('.')[0].toLowerCase();
+  if (domainBase.includes(nameCollapsed) || nameCollapsed.includes(domainBase)) {
+    return true;
+  }
+
+  // Check 2: Do most business name words appear in the domain?
+  const domainNorm = domain.toLowerCase().replace(/[^a-z0-9]/g, '');
+  let domainHits = 0;
+  for (const word of nameWords) {
+    if (domainNorm.includes(word)) domainHits++;
+  }
+  if (domainHits >= Math.ceil(nameWords.length * 0.6)) {
+    return true;
+  }
+
+  // Check 3: Does the page title contain most of the business name words?
+  if (pageTitle) {
+    const titleNorm = normalize(pageTitle);
+    let titleHits = 0;
+    for (const word of nameWords) {
+      if (titleNorm.includes(word)) titleHits++;
+    }
+    if (titleHits >= Math.ceil(nameWords.length * 0.6)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+interface IDdgResult {
+  url: string;
+  title: string;
+}
+
+/**
+ * Extract URLs and titles from DuckDuckGo HTML search results.
+ */
+function extractDdgResults(html: string): IDdgResult[] {
+  const results: IDdgResult[] = [];
+
+  // DuckDuckGo HTML results: <a class="result__a" href="...">Title</a>
+  const resultRegex = /class="result__a"[^>]*href=["']([^"']+)["'][^>]*>([^<]*)</gi;
+  let match: RegExpExecArray | null;
+
+  // eslint-disable-next-line no-cond-assign
+  while ((match = resultRegex.exec(html)) !== null) {
+    let href = match[1];
+    const title = match[2].trim();
+
+    // DDG wraps results in a redirect: //duckduckgo.com/l/?uddg=<url>&...
+    if (href.includes('uddg=')) {
+      const uddgMatch = href.match(/uddg=([^&]+)/);
+      if (uddgMatch) {
+        href = decodeURIComponent(uddgMatch[1]);
+      }
+    }
+
+    if (href.startsWith('http://') || href.startsWith('https://')) {
+      results.push({ url: href, title });
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Fetch the <title> tag from a URL for secondary verification.
+ */
+async function fetchPageTitle(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(8000),
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; TherSpaceBot/1.0)',
+        Accept: 'text/html',
+      },
+    });
+
+    if (!response.ok) return null;
+
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) return null;
+
+    const html = await response.text();
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    return titleMatch?.[1]?.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+export interface IWebSearchResult {
+  websiteUrl: string;
+  confidence: 'high' | 'medium';
+  matchedOn: string;
+}
+
+/**
+ * Search for a business website using DuckDuckGo HTML search.
+ * Only returns a result when we have high confidence the URL belongs to this business.
+ *
+ * Confidence checks:
+ * 1. The search result's domain or title must match the business name
+ * 2. The actual page <title> is fetched to double-check (avoids stale/wrong search snippets)
+ *
+ * @param businessName - The name of the business
+ * @param city - The city (for location context)
+ * @param region - The state/region (for location context)
+ */
+export async function searchForWebsite(
+  businessName: string,
+  city: string,
+  region: string,
+): Promise<IWebSearchResult | null> {
+  try {
+    const query = `${businessName} ${city} ${region} official website`;
+    const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+
+    const response = await fetch(searchUrl, {
+      signal: AbortSignal.timeout(10000),
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; TherSpaceBot/1.0)',
+        Accept: 'text/html',
+      },
+    });
+
+    if (!response.ok) return null;
+
+    const html = await response.text();
+    const ddgResults = extractDdgResults(html);
+
+    // Only check the top 3 results to avoid false positives from lower-ranked results
+    const candidateResults = ddgResults.filter((r) => isLikelyBusinessWebsite(r.url)).slice(0, 3);
+
+    for (const candidate of candidateResults) {
+      let domain = '';
+      try {
+        domain = new URL(candidate.url).hostname;
+      } catch {
+        continue;
+      }
+
+      // Check 1: Does the search result title/domain match the business name?
+      if (isConfidentMatch(businessName, domain, candidate.title)) {
+        // Check 2: Verify by fetching the actual page title
+        const pageTitle = await fetchPageTitle(candidate.url);
+        if (pageTitle && isConfidentMatch(businessName, domain, pageTitle)) {
+          return {
+            websiteUrl: candidate.url,
+            confidence: 'high',
+            matchedOn: `domain+title: ${domain} / "${pageTitle}"`,
+          };
+        }
+
+        // If page title fetch failed but domain strongly matches, still accept
+        const nameCollapsed = normalize(businessName).replace(/\s+/g, '');
+        const domainBase = domain.replace(/^www\./, '').split('.')[0].toLowerCase();
+        if (domainBase.includes(nameCollapsed) || nameCollapsed.includes(domainBase)) {
+          return {
+            websiteUrl: candidate.url,
+            confidence: 'medium',
+            matchedOn: `domain: ${domain}`,
+          };
+        }
+      }
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}

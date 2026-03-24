@@ -39,6 +39,7 @@ export interface ICreateSpaceParams extends ICreateAreaParams {
     featuredIncentiveRewardValue?: number;
     featuredIncentiveCurrencyId?: string;
     phoneNumber?: string;
+    businessEmail?: string;
     websiteUrl?: string;
     menuUrl?: string;
     orderUrl?: string;
@@ -572,6 +573,7 @@ export default class SpacesStore {
                 featuredIncentiveRewardValue: params.featuredIncentiveRewardValue,
                 featuredIncentiveCurrencyId: params.featuredIncentiveCurrencyId,
                 phoneNumber: params.phoneNumber,
+                businessEmail: params.businessEmail,
                 websiteUrl: params.websiteUrl,
                 menuUrl: params.menuUrl,
                 orderUrl: params.orderUrl,
@@ -662,6 +664,7 @@ export default class SpacesStore {
                 incentiveCurrencyId: params.incentiveCurrencyId,
                 mediaIds: mediaIds || params.mediaIds || undefined,
                 phoneNumber: params.phoneNumber,
+                businessEmail: params.businessEmail,
                 websiteUrl: params.websiteUrl,
                 menuUrl: params.menuUrl,
                 orderUrl: params.orderUrl,
