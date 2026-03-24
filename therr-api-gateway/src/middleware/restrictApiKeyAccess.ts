@@ -47,8 +47,9 @@ const restrictApiKeyAccess = (req, res, next) => {
         return next();
     }
 
+    // Use req.path (not req.originalUrl) to avoid query string breaking regex anchors
     const isAllowed = ALLOWED_PATTERNS.some(
-        (entry) => entry.method === req.method && entry.pattern.test(req.originalUrl),
+        (entry) => entry.method === req.method && entry.pattern.test(req.path),
     );
 
     if (!isAllowed) {

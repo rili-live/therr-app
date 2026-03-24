@@ -65,15 +65,31 @@ const createApiKey = async (req, res) => {
             });
         }
 
-        const { rawKey, hashedKey, keyPrefix } = generateApiKey();
+        // Retry on keyPrefix collision (unique constraint violation)
+        let rawKey = '';
+        let apiKeyRecord: any;
+        const MAX_RETRIES = 3;
 
-        const [apiKeyRecord] = await Store.apiKeys.create({
-            userId,
-            hashedKey,
-            keyPrefix,
-            name,
-            accessLevels: keyAccessLevels,
-        });
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
+            const generated = generateApiKey();
+            rawKey = generated.rawKey;
+            try {
+                const [record] = await Store.apiKeys.create({ // eslint-disable-line no-await-in-loop
+                    userId,
+                    hashedKey: generated.hashedKey,
+                    keyPrefix: generated.keyPrefix,
+                    name,
+                    accessLevels: keyAccessLevels,
+                });
+                apiKeyRecord = record;
+                break;
+            } catch (createErr: any) {
+                // Retry only on unique constraint violation (PostgreSQL error code 23505)
+                if (createErr?.code !== '23505' || attempt === MAX_RETRIES - 1) {
+                    throw createErr;
+                }
+            }
+        }
 
         logSpan({
             level: 'info',
@@ -81,7 +97,7 @@ const createApiKey = async (req, res) => {
             messages: ['API key created'],
             traceArgs: {
                 'apiKey.id': apiKeyRecord.id,
-                'apiKey.keyPrefix': keyPrefix,
+                'apiKey.keyPrefix': apiKeyRecord.keyPrefix,
                 'user.id': userId,
             },
         });
@@ -172,7 +188,10 @@ const revokeAllApiKeys = async (req, res) => {
             },
         });
 
-        return res.status(200).send({ revokedCount: result.length });
+        return res.status(200).send({
+            revokedCount: result.length,
+            revokedKeyPrefixes: result.map((r) => r.keyPrefix),
+        });
     } catch (err: any) {
         return handleHttpError({
             err,
@@ -234,7 +253,7 @@ const validateApiKey = async (req, res) => {
         }
 
         // Load user data for context headers
-        const userResults = await Store.users.getUsers({ id: keyRecord.userId }, {}, {}, [
+        const userResults = await Store.users.getUserById(keyRecord.userId, [
             'id', 'userName', 'accessLevels', 'isBlocked',
         ]);
 

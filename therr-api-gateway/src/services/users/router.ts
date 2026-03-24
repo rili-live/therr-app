@@ -4,7 +4,7 @@ import { AccessLevels } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
-import { blacklistToken, revokeAllUserRefreshTokens } from '../../store/redisClient';
+import { blacklistToken, invalidateApiKeyCache, revokeAllUserRefreshTokens } from '../../store/redisClient';
 import { validate } from '../../validation';
 import {
     authenticateUserValidation,
@@ -46,7 +46,7 @@ import {
     subscribeAttemptLimiter,
     unsubscribeAttemptLimiter,
 } from './limitation/auth';
-import { createApiKeyValidation } from './validation/apiKeys';
+import { createApiKeyValidation, revokeApiKeyValidation } from './validation/apiKeys';
 import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
 import {
     createThoughtValidation,
@@ -73,14 +73,24 @@ usersServiceRouter.get('/api-keys', handleServiceRequest({
     method: 'get',
 }));
 
-usersServiceRouter.delete('/api-keys/:id', handleServiceRequest({
+usersServiceRouter.delete('/api-keys/:id', revokeApiKeyValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
+}, (response) => {
+    // Invalidate cached API key context on revocation
+    if (response?.keyPrefix) {
+        invalidateApiKeyCache(response.keyPrefix);
+    }
 }));
 
 usersServiceRouter.delete('/api-keys', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
+}, (response) => {
+    // Invalidate all cached API key contexts on bulk revocation
+    if (response?.revokedKeyPrefixes?.length) {
+        response.revokedKeyPrefixes.forEach((prefix) => invalidateApiKeyCache(prefix));
+    }
 }));
 
 // Achievements
