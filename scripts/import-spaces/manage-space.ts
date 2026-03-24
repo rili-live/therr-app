@@ -134,10 +134,15 @@ function parseArgs(): ICliArgs {
   // --id implies --enrich-existing
   const enrichExisting = parsed.enrichExisting === 'true' || !!parsed.id;
 
+  // Default city/category to 'all' in enrich-existing mode since DB categories
+  // differ from import short names (e.g. "categories.restaurant/food" vs "restaurant")
+  const defaultCity = enrichExisting ? 'all' : 'chicago';
+  const defaultCategory = enrichExisting ? 'all' : 'restaurant';
+
   return {
     source: parsed.source || 'osm',
-    city: parsed.city || 'chicago',
-    category: parsed.category || 'restaurant',
+    city: parsed.city || defaultCity,
+    category: parsed.category || defaultCategory,
     dryRun: parsed.dryRun === 'true',
     skipDedup: parsed.skipDedup === 'true',
     skipEnrich: parsed.skipEnrich === 'true',
