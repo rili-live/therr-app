@@ -46,6 +46,7 @@ export interface ICreateSpaceParams extends ICreateAreaParams {
     reservationUrl?: string;
     businessTransactionId?: string;
     businessTransactionName?: string;
+    businessEmail?: string;
     isPointOfInterest?: boolean;
     addressStreetAddress?: string;
     addressRegion?: string;
@@ -215,6 +216,8 @@ export default class SpacesStore {
             .toString();
 
         return this.db.read.query(queryString).then((response) => {
+            // Strip internal-only fields from API responses
+            response.rows.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
             const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
             return configuredResponse;
         });
@@ -418,6 +421,8 @@ export default class SpacesStore {
             .toString();
 
         return this.db.read.query(queryString).then((response) => {
+            // Strip internal-only fields from API responses
+            response.rows.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
             const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
             return configuredResponse;
         });
@@ -462,7 +467,11 @@ export default class SpacesStore {
         query = query.orderBy('dist')
             .limit(5);
 
-        return this.db.read.query(query.toString()).then((response) => response.rows);
+        return this.db.read.query(query.toString()).then((response) => {
+            // Strip internal-only fields from API responses
+            response.rows.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
+            return response.rows;
+        });
     }
 
     findSpaces(internalReqHeaders: InternalConfigHeaders, spaceIds, filters, options: any = {}) {
@@ -488,6 +497,9 @@ export default class SpacesStore {
         }
 
         return this.db.read.query(query.toString()).then(async ({ rows: spaces }) => {
+            // Strip internal-only fields from API responses
+            spaces.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
+
             if (options.withMedia || options.withUser || options.withRatings) {
                 const mediaIds: string[] = [];
                 const userIds: string[] = [];
@@ -592,6 +604,7 @@ export default class SpacesStore {
                 reservationUrl: params.reservationUrl,
                 businessTransactionId: params.businessTransactionId,
                 businessTransactionName: params.businessTransactionName,
+                businessEmail: params.businessEmail,
                 isPointOfInterest: params.isPointOfInterest,
                 addressStreetAddress: params.addressStreetAddress,
                 addressRegion: params.addressRegion,
@@ -683,6 +696,7 @@ export default class SpacesStore {
                 reservationUrl: params.reservationUrl,
                 businessTransactionId: params.businessTransactionId,
                 businessTransactionName: params.businessTransactionName,
+                businessEmail: params.businessEmail,
                 isPointOfInterest: params.isPointOfInterest,
                 addressStreetAddress: params.addressStreetAddress,
                 addressRegion: params.addressRegion,
