@@ -181,6 +181,13 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                             <Button
                                 variant="subtle"
                                 size="sm"
+                                onClick={this.onEditProfileClick}
+                            >
+                                {this.props.translate('pages.userProfile.buttons.editProfile')}
+                            </Button>
+                            <Button
+                                variant="subtle"
+                                size="sm"
                                 onClick={() => this.props.navigation.navigate('/users/change-password')}
                             >
                                 {this.props.translate('pages.userProfile.buttons.changePassword')}
