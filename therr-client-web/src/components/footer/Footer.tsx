@@ -131,12 +131,12 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                                 id="footer_home"
                                 name="dashboard"
                                 className="home-button"
-                                onClick={() => goTo('/explore')}
+                                onClick={() => goTo('/discovered')}
                                 buttonType="primary"
-                                aria-label="Explore"
+                                aria-label="Discovered"
                             />
                             <Text size="xs" className="footer-nav-label">
-                                {this.props.translate('components.footer.labels.home')}
+                                {this.props.translate('components.footer.labels.discovered')}
                             </Text>
                         </div>
                     </AccessControl>
