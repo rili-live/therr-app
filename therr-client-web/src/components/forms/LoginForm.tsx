@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Alert, Stack } from '@mantine/core';
+import {
+    Alert, Anchor, Button, Stack,
+} from '@mantine/core';
 import {
     MantineButton,
     MantineInput,
@@ -209,15 +211,19 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                             </>
                         )}
 
-                        <div className="text-center" style={{ padding: '1rem 0 0' }}>
-                            <Link to="/register">
+                        <Stack gap="xs" align="center" mt="xs">
+                            <Button
+                                variant="subtle"
+                                component={Link}
+                                to="/register"
+                                fullWidth
+                            >
                                 {this.props.translate('components.loginForm.buttons.signUp')}
-                            </Link>
-                            {' | '}
-                            <Link to="/reset-password">
+                            </Button>
+                            <Anchor component={Link} to="/reset-password" size="sm">
                                 {this.props.translate('components.loginForm.buttons.forgotPassword')}
-                            </Link>
-                        </div>
+                            </Anchor>
+                        </Stack>
                     </Stack>
                 </div>
             </div>

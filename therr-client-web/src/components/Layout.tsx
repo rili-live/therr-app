@@ -4,6 +4,7 @@ import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { Link, Location, NavigateFunction } from 'react-router-dom';
 import { TransitionGroup } from 'react-transition-group';
+import { Tooltip } from '@mantine/core';
 import ReactGA from 'react-ga4';
 import { IMessagesState, IUserState, AccessCheckType } from 'therr-react/types';
 import {
@@ -27,6 +28,7 @@ import { IMessagingContext } from './footer/MessagingContainer';
 import UsersActions from '../redux/actions/UsersActions';
 import { routeAfterLogin } from '../routes/Login';
 import withNavigation from '../wrappers/withNavigation';
+import withTranslation from '../wrappers/withTranslation';
 import AppRoutes from './AppRoutes';
 
 interface ILayoutRouterProps {
@@ -51,7 +53,7 @@ interface IStoreProps extends ILayoutDispatchProps {
 }
 
 interface ILayoutProps extends ILayoutRouterProps, IStoreProps {
-    // Add your regular properties here
+    translate: (key: string, params?: any) => string;
 }
 
 interface ILayoutState {
@@ -404,19 +406,21 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                     {/* <Loader></Loader> */}
 
                     <AccessControl isAuthorized={UsersService.isAuthorized({ type: AccessCheckType.ALL, levels: ['user.default'] }, this.props.user)}>
-                        <Link
-                            to="/posts/thoughts"
-                            className="floating-create-button"
-                            aria-label="Create a thought"
-                            onClick={(e) => {
-                                if (this.props.location?.pathname === '/posts/thoughts') {
-                                    e.preventDefault();
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }
-                            }}
-                        >
-                            <InlineSvg name="lightbulb" />
-                        </Link>
+                        <Tooltip label={this.props.translate('components.layout.floatingButton.tooltip')} position="left" withArrow>
+                            <Link
+                                to="/posts/thoughts"
+                                className="floating-create-button"
+                                aria-label="Create a thought"
+                                onClick={(e) => {
+                                    if (this.props.location?.pathname === '/posts/thoughts') {
+                                        e.preventDefault();
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }
+                                }}
+                            >
+                                <InlineSvg name="lightbulb" />
+                            </Link>
+                        </Tooltip>
                     </AccessControl>
 
                     { this.renderFooter(isLandingStylePage) }
@@ -433,4 +437,4 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 }
 
 // export default Layout;
-export default withNavigation(connect<any, IStoreProps, {}>(mapStateToProps, mapDispatchToProps)(LayoutComponent as any));
+export default withNavigation(withTranslation(connect<any, IStoreProps, {}>(mapStateToProps, mapDispatchToProps)(LayoutComponent as any)));

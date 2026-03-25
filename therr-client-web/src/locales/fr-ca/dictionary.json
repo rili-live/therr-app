@@ -39,7 +39,16 @@
     "nightLife": "Vie nocturne / Sorties",
     "sports": "Sports"
   },
+  "common": {
+    "share": "Partager",
+    "linkCopied": "Lien copié!"
+  },
   "components": {
+    "layout": {
+      "floatingButton": {
+        "tooltip": "Partager une pensée"
+      }
+    },
     "header": {
       "buttons": {
         "login": "Se connecter"
@@ -48,6 +57,13 @@
     "footer": {
       "buttons": {
         "locations": "Emplacements"
+      },
+      "labels": {
+        "info": "Info",
+        "home": "Accueil",
+        "messages": "Messages",
+        "locations": "Lieux",
+        "explore": "Explorer"
       }
     },
     "createProfileForm": {
@@ -244,7 +260,13 @@
     "discovered": {
       "pageTitle": "Découvertes",
       "subtitle": "Moments et espaces récemment partagés par la communauté",
-      "noResults": "Rien à afficher pour le moment. Revenez plus tard pour du nouveau contenu de la communauté."
+      "noResults": "Rien à afficher pour le moment. Revenez plus tard pour du nouveau contenu de la communauté.",
+      "exploreCta": "Explorer les espaces à proximité",
+      "filters": {
+        "all": "Tout",
+        "moments": "Moments",
+        "spaces": "Espaces"
+      }
     },
     "explore": {
       "pageTitle": "Explorer",
@@ -252,6 +274,7 @@
       "recentContent": "Contenu récent",
       "viewAll": "Voir tout",
       "noResults": "Rien à afficher pour le moment. Revenez plus tard pour du nouveau contenu.",
+      "searchPlaceholder": "Rechercher des espaces, moments et plus...",
       "categories": {
         "momentsTitle": "Moments",
         "momentsDescription": "Photos, récits et expériences partagés par la communauté",
@@ -509,6 +532,7 @@
     },
     "userProfile": {
       "buttons": {
+        "changePassword": "Changer le mot de passe",
         "createAForum": "Créer un clavardage hébergé",
         "editProfile": "Modifier le profil",
         "sendRequest": "Envoyer la demande",
@@ -741,6 +765,12 @@
         "privateEventMessage": "Cet événement appartient à un groupe privé",
         "privateEventCta": "Inscrivez-vous ou connectez-vous pour demander l'accès",
         "signUpPrompt": "Inscrivez-vous ou connectez-vous pour voir tous les détails de l'événement"
+      }
+    },
+    "viewMoment": {
+      "labels": {
+        "postedBy": "Publié par",
+        "viewLocation": "Voir l'emplacement"
       }
     },
     "viewUser": {

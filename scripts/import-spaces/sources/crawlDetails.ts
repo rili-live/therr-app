@@ -9,6 +9,9 @@ export interface IBusinessDetails {
   phoneNumber: string | null;
 }
 
+// Realistic browser User-Agent to avoid bot blocking by websites and search engines
+const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
 /**
  * Fetch a page and return its HTML, or null on failure.
  */
@@ -18,21 +21,31 @@ export async function fetchPage(url: string): Promise<string | null> {
       signal: AbortSignal.timeout(10000),
       redirect: 'follow',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; TherSpaceBot/1.0)',
-        Accept: 'text/html',
+        'User-Agent': BROWSER_UA,
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
       },
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn(`  [fetchPage] HTTP ${response.status} for ${url}`);
+      return null;
+    }
 
     const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) return null;
+    if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) {
+      console.warn(`  [fetchPage] Non-HTML content-type (${contentType}) for ${url}`);
+      return null;
+    }
 
     return response.text();
-  } catch {
+  } catch (err: any) {
+    console.warn(`  [fetchPage] Error fetching ${url}: ${err.message}`);
     return null;
   }
 }
+
+export { BROWSER_UA };
 
 /**
  * Extract meta description or og:description from HTML.
