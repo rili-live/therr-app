@@ -368,6 +368,9 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
         return res.status(404).send('Not found');
     }
 
+    // Filter out non-public spaces (e.g. businesses marked as closed).
+    // The API does not filter by isPublic, so we must do it client-side.
+    // This may result in some sitemap pages having fewer entries than SPACES_PER_SITEMAP.
     const publicSpaces = spaces.filter((space: any) => space.isPublic !== false);
 
     if (publicSpaces.length === 0) {
@@ -416,6 +419,7 @@ app.get(/^\/sitemap-events-(\d+)\.xml$/, async (req, res) => {
         });
     }
 
+    // Filter out non-public events (API does not filter by isPublic)
     const publicEvents = events.filter((event: any) => event.isPublic !== false);
 
     if (publicEvents.length === 0) {
@@ -463,6 +467,7 @@ app.get(/^\/sitemap-groups-(\d+)\.xml$/, async (req, res) => {
         });
     }
 
+    // Filter out non-public groups (API does not filter by isPublic)
     const publicGroups = groups.filter((group: any) => group.isPublic !== false);
 
     if (publicGroups.length === 0) {

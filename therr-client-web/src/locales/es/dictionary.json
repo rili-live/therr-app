@@ -39,7 +39,16 @@
     "nightLife": "Vida nocturna / Social",
     "sports": "Deportes"
   },
+  "common": {
+    "share": "Compartir",
+    "linkCopied": "\u00a1Enlace copiado!"
+  },
   "components": {
+    "layout": {
+      "floatingButton": {
+        "tooltip": "Comparte un pensamiento"
+      }
+    },
     "header": {
       "buttons": {
         "login": "Iniciar sesi\u00f3n"
@@ -48,6 +57,13 @@
     "footer": {
       "buttons": {
         "locations": "Ubicaciones"
+      },
+      "labels": {
+        "home": "Inicio",
+        "messages": "Mensajes",
+        "explore": "Explorar",
+        "locations": "Lugares",
+        "info": "Info"
       }
     },
     "createProfileForm": {
@@ -236,13 +252,20 @@
     "discovered": {
       "pageTitle": "Descubierto",
       "subtitle": "Momentos y espacios compartidos recientemente por la comunidad",
-      "noResults": "Nada que mostrar a\u00fan. Vuelve m\u00e1s tarde para ver nuevo contenido de la comunidad."
+      "noResults": "Nada que mostrar a\u00fan. Vuelve m\u00e1s tarde para ver nuevo contenido de la comunidad.",
+      "exploreCta": "Explorar espacios cercanos",
+      "filters": {
+        "all": "Todo",
+        "moments": "Momentos",
+        "spaces": "Espacios"
+      }
     },
     "explore": {
       "pageTitle": "Explorar",
       "subtitle": "Descubre momentos, espacios, pensamientos y personas en tu comunidad",
       "recentContent": "Contenido reciente",
       "viewAll": "Ver todo",
+      "searchPlaceholder": "Buscar espacios, momentos y m\u00e1s...",
       "noResults": "Nada que mostrar a\u00fan. Vuelve m\u00e1s tarde para ver nuevo contenido.",
       "categories": {
         "momentsTitle": "Momentos",
@@ -497,6 +520,7 @@
     },
     "userProfile": {
       "buttons": {
+        "changePassword": "Cambiar contrase\u00f1a",
         "createAForum": "Crear un chat grupal",
         "editProfile": "Editar Perfil",
         "sendRequest": "Enviar solicitud"
@@ -655,6 +679,12 @@
         "getFullExperience": "Obtén la experiencia completa en la app Therr",
         "helpful": "Útil",
         "notHelpful": "No útil"
+      }
+    },
+    "viewMoment": {
+      "labels": {
+        "postedBy": "Publicado por",
+        "viewLocation": "Ver ubicación"
       }
     },
     "viewUser": {
