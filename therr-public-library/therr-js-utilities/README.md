@@ -9,5 +9,3 @@ import { configureTranslator } from 'therr-public-library/therr-js-utilities/loc
 import * as scrollTo from 'therr-public-library/therr-js-utilities/scroll-to';
 etc.
 ```
-
-*Last updated: 2026-03-23*

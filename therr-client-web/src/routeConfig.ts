@@ -57,6 +57,30 @@ export default [
         view: 'index',
     },
     {
+        route: '/spaces/manage',
+        head: {
+            title: 'Manage Locations',
+            description: 'Manage your business locations on Therr.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/spaces/new',
+        head: {
+            title: 'Create Location',
+            description: 'Create a new business location on Therr.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/spaces/:spaceId/edit',
+        head: {
+            title: 'Edit Location',
+            description: 'Edit your business location details on Therr.',
+        },
+        view: 'index',
+    },
+    {
         route: '/moments/:momentId',
         head: {
             title: 'Moment not Found',

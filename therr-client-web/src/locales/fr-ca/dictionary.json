@@ -77,7 +77,12 @@
         "lastName": "Nom de famille",
         "mobilePhone": "No de téléphone mobile",
         "userName": "Nom d'utilisateur",
-        "verificationCode": "Code de vérification"
+        "verificationCode": "Code de vérification",
+        "accountType": "Type de compte",
+        "personal": "Personnel",
+        "business": "Entreprise",
+        "businessName": "Nom de l'entreprise",
+        "businessSuffix": "Suffixe d'entreprise (ex. Inc., LTÉE, etc.)"
       },
       "validationErrors": {
         "phoneNumber": "Numéro de téléphone invalide"
@@ -141,13 +146,19 @@
         "repeatPassword": "Répéter le mot de passe",
         "termsAndConditions": "J'accepte les conditions d'utilisation",
         "userName": "Nom d'utilisateur",
-        "mySweet": "Êtes-vous sympathique?"
+        "mySweet": "Êtes-vous sympathique?",
+        "inviteCode": "Code d'invitation"
       },
       "validationErrors": {
         "phoneNumber": "Numéro de téléphone invalide"
       },
       "text": {
-        "signupForRewards": "Inscrivez-vous avec le code d'invitation de {userName} — il gagne 10 pièces et vous en gagnez 5!"
+        "signupForRewards": "Inscrivez-vous avec le code d'invitation de {userName} — il gagne 10 pièces et vous en gagnez 5!",
+        "inviteCodeHint": "Entrez le code d'invitation d'un ami pour gagner des pièces bonus"
+      },
+      "sso": {
+        "orDivider": "ou",
+        "googleError": "Échec de l'inscription Google. Veuillez réessayer."
       }
     },
     "userMenu": {
@@ -175,7 +186,8 @@
         "locationMap": "Explorer",
         "notifications": "Notifications",
         "profileSettings": "Paramètres du profil"
-      }
+      },
+      "noNotifications": "Vous n'avez aucune notification pour le moment."
     }
   },
   "pages": {
@@ -282,6 +294,8 @@
       "moments": "Moments",
       "thoughts": "Pensées",
       "spaces": "Espaces",
+      "events": "Événements",
+      "groups": "Groupes",
       "users": "Utilisateurs",
       "previous": "Précédent",
       "next": "Suivant",
@@ -320,11 +334,46 @@
       "searchPlaceholder": "Rechercher par nom d'utilisateur...",
       "loadMore": "Charger plus"
     },
+    "viewThought": {
+      "headerTitle": "Pensée",
+      "reply": "Répondre",
+      "replies": "Réponses",
+      "noReplies": "Aucune réponse pour le moment. Soyez le premier à réagir.",
+      "replyPlaceholder": "Écrire une réponse...",
+      "replyButton": "Répondre",
+      "replyTooShort": "La réponse est trop courte",
+      "replyError": "Échec de la publication de la réponse. Veuillez réessayer.",
+      "loginToReply": "Connectez-vous pour répondre",
+      "backToThoughts": "Retour aux pensées"
+    },
     "chatForum": {
       "pageTitle": "Clavardage hébergé",
       "welcome": "Bienvenue!",
       "inputPlaceholder": "Écrivez un message",
-      "sendBtn": "Envoyer"
+      "sendBtn": "Envoyer",
+      "tabs": {
+        "chat": "Clavardage",
+        "events": "Événements",
+        "members": "Membres"
+      },
+      "noEventsFound": "Aucun événement trouvé pour ce groupe.",
+      "upcomingEvents": "Événements à venir",
+      "pastEvents": "Événements passés",
+      "noMembersFound": "Aucun membre trouvé.",
+      "membershipRoles": {
+        "creator": "Créateur",
+        "admin": "Administrateur",
+        "eventHost": "Hôte d'événement",
+        "default": "Membre"
+      },
+      "appBanner": {
+        "message": "Téléchargez l'application pour la meilleure expérience",
+        "appStoreAlt": "Télécharger sur l'App Store",
+        "playStoreAlt": "Disponible sur Google Play"
+      },
+      "labels": {
+        "subtitle": "Sous-titre"
+      }
     },
     "changePassword": {
       "buttons": {
@@ -448,6 +497,10 @@
       "pageTitleVerify": "Créer le profil : Vérifier le téléphone",
       "createProfileSuccess": "Profil mis à jour avec succès!",
       "createProfileError": "Oups, une erreur est survenue",
+      "updateProfileError": "Échec de la mise à jour du profil. Veuillez réessayer.",
+      "verifyPhoneError": "Échec de l'envoi du code de vérification. Veuillez réessayer.",
+      "authError": "Votre session a expiré. Veuillez vous reconnecter.",
+      "phoneRegionNotSupportedError": "La vérification par SMS n'est pas disponible pour votre région. Veuillez utiliser un autre numéro de téléphone.",
       "phoneNumberAlreadyInUseError": "Ce numéro de téléphone est déjà utilisé pour ce type de compte",
       "tooManyAccounts": "Les utilisateurs sont limités à un seul compte de chaque type (personnel, créateur, entreprise)",
       "invalidRegion": "Région invalide",
@@ -456,7 +509,10 @@
       "info": "Nous nous engageons à prévenir les faux utilisateurs, donc l'authentification multifacteur est essentielle. Exiger un courriel et un numéro de téléphone, combiné aux exigences de géolocalisation des publications, limite considérablement le potentiel de faux utilisateurs."
     },
     "login": {
-      "pageTitle": "Connexion"
+      "pageTitle": "Connexion",
+      "buttons": {
+        "signUp": "Créer un compte"
+      }
     },
     "pageNotFound": {
       "pageTitle": "Page non trouvée"
@@ -479,13 +535,19 @@
         "changePassword": "Changer le mot de passe",
         "createAForum": "Créer un clavardage hébergé",
         "editProfile": "Modifier le profil",
-        "sendRequest": "Envoyer la demande"
+        "sendRequest": "Envoyer la demande",
+        "manageSpaces": "Gérer les emplacements",
+        "editSpace": "Modifier",
+        "postUpdate": "Publier une mise à jour"
       },
       "connectionSent": "Votre demande de connexion est en route!",
       "h2": {
         "accountDetails": "Détails du compte",
         "addConnection": "Ajouter une nouvelle connexion",
-        "connections": "Connexions"
+        "connections": "Connexions",
+        "myLocations": "Mes emplacements",
+        "myEvents": "Mes événements",
+        "myUpdates": "Mes mises à jour"
       },
       "labels": {
         "email": "Courriel",
@@ -493,7 +555,11 @@
         "lastName": "Nom de famille",
         "phone": "Téléphone",
         "phoneNumber": "Numéro de téléphone",
-        "userName": "Nom d'utilisateur"
+        "userName": "Nom d'utilisateur",
+        "businessName": "Nom de l'entreprise",
+        "noLocations": "Aucun emplacement ajouté. Créez votre premier espace pour commencer.",
+        "noEvents": "Aucun événement à venir",
+        "noUpdates": "Aucune mise à jour publiée"
       },
       "pageTitle": "Profil de l'utilisateur",
       "requestRecommendation": "Envoyez une demande pour créer des connexions et bâtir un réseau",
@@ -510,18 +576,24 @@
         "profileInfo": "Informations du profil",
         "privacy": "Confidentialité et contenu",
         "display": "Paramètres d'affichage",
-        "account": "Compte"
+        "account": "Compte",
+        "businessInfo": "Informations d'entreprise"
       },
       "labels": {
         "firstName": "Prénom",
         "lastName": "Nom de famille",
+        "businessSuffix": "Suffixe commercial (ex. Inc., SARL, etc.)",
         "userName": "Nom d'utilisateur",
         "email": "Courriel",
         "bio": "Biographie",
         "profilePublic": "Profil public",
         "hideMatureContent": "Masquer le contenu pour adultes",
         "theme": "Thème",
-        "language": "Langue"
+        "language": "Langue",
+        "businessName": "Nom de l'entreprise",
+        "isBusinessAccount": "Compte entreprise",
+        "organizationDescription": "Description de l'organisation",
+        "businessType": "Type d'entreprise"
       },
       "buttons": {
         "save": "Enregistrer les modifications",
@@ -532,6 +604,73 @@
         "light": "Clair",
         "dark": "Sombre",
         "retro": "Rétro"
+      },
+      "businessTypeOptions": {
+        "small-business": "Petite entreprise",
+        "restaurant-services": "Restaurant / Services alimentaires",
+        "retail": "Commerce de détail",
+        "health-wellness": "Santé et bien-être",
+        "professional-services": "Services professionnels",
+        "entertainment": "Divertissement",
+        "other": "Autre"
+      }
+    },
+    "editSpace": {
+      "pageTitle": "Modifier l'emplacement",
+      "successMessage": "Votre emplacement a été mis à jour avec succès.",
+      "failedMessageBadRequest": "Veuillez vérifier vos informations et réessayer.",
+      "failedMessageServer": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
+      "h2": {
+        "basicInfo": "Informations de base",
+        "contactLinks": "Contact et liens"
+      },
+      "labels": {
+        "name": "Nom de l'emplacement",
+        "description": "Description",
+        "address": "Adresse",
+        "phoneNumber": "Numéro de téléphone",
+        "websiteUrl": "URL du site web",
+        "menuUrl": "URL du menu",
+        "orderUrl": "URL de commande / livraison",
+        "reservationUrl": "URL de réservation"
+      },
+      "buttons": {
+        "save": "Enregistrer les modifications",
+        "backToProfile": "Retour au profil"
+      }
+    },
+    "manageSpaces": {
+      "pageTitle": "G\u00e9rer les emplacements",
+      "noLocations": "Vous n'avez pas encore cr\u00e9\u00e9 d'emplacement.",
+      "buttons": {
+        "createNew": "Cr\u00e9er un nouvel emplacement",
+        "createFirst": "Cr\u00e9ez votre premier emplacement",
+        "backToProfile": "Retour au profil"
+      }
+    },
+    "createSpace": {
+      "pageTitle": "Créer un emplacement",
+      "failedMessageBadRequest": "Veuillez vérifier vos informations et réessayer.",
+      "failedMessageServer": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
+      "h2": {
+        "basicInfo": "Informations de base",
+        "contactLinks": "Contact et liens"
+      },
+      "labels": {
+        "name": "Nom de l'emplacement",
+        "description": "Description",
+        "address": "Adresse",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "phoneNumber": "Numéro de téléphone",
+        "websiteUrl": "URL du site web",
+        "menuUrl": "URL du menu",
+        "orderUrl": "URL de commande / livraison",
+        "reservationUrl": "URL de réservation"
+      },
+      "buttons": {
+        "create": "Créer l'emplacement",
+        "cancel": "Annuler"
       }
     },
     "underConstruction": {
@@ -598,6 +737,45 @@
         "notHelpful": "Pas utile"
       }
     },
+    "viewGroup": {
+      "headings": {
+        "about": "À propos",
+        "events": "Événements",
+        "members": "Membres"
+      },
+      "labels": {
+        "memberCount": "{count} membres",
+        "joinToChat": "Rejoignez ce groupe pour participer au clavardage",
+        "joinToSeeMembers": "Rejoignez ce groupe pour voir tous les membres",
+        "signUpPrompt": "Inscrivez-vous ou connectez-vous pour rejoindre ce groupe et clavarder",
+        "privateGroupMessage": "Ce groupe est privé",
+        "privateGroupCta": "Inscrivez-vous ou connectez-vous pour demander l'accès à ce groupe",
+        "getFullExperience": "Profitez de l'expérience complète sur l'application Therr",
+        "upcomingEvents": "Événements à venir",
+        "pastEvents": "Événements passés",
+        "noEvents": "Aucun événement trouvé pour ce groupe."
+      }
+    },
+    "viewEvent": {
+      "headings": {
+        "eventDetails": "Détails de l'événement",
+        "when": "Quand",
+        "where": "Où",
+        "about": "À propos",
+        "organizer": "Organisateur",
+        "group": "Groupe"
+      },
+      "labels": {
+        "startDate": "Début",
+        "endDate": "Fin",
+        "viewSpace": "Voir l'emplacement",
+        "viewGroup": "Voir le groupe",
+        "viewOnGoogleMaps": "Voir sur Google Maps",
+        "privateEventMessage": "Cet événement appartient à un groupe privé",
+        "privateEventCta": "Inscrivez-vous ou connectez-vous pour demander l'accès",
+        "signUpPrompt": "Inscrivez-vous ou connectez-vous pour voir tous les détails de l'événement"
+      }
+    },
     "viewMoment": {
       "labels": {
         "postedBy": "Publié par",
@@ -606,7 +784,20 @@
     },
     "viewUser": {
       "buttons": {
-        "chat": "Clavarder"
+        "chat": "Clavarder",
+        "follow": "Suivre",
+        "viewAll": "Voir tout"
+      },
+      "headings": {
+        "about": "À propos",
+        "locations": "Nos emplacements",
+        "upcomingEvents": "Événements à venir",
+        "latestUpdates": "Dernières mises à jour"
+      },
+      "labels": {
+        "noLocations": "Aucun emplacement répertorié",
+        "noEvents": "Aucun événement à venir",
+        "noUpdates": "Aucune mise à jour récente"
       }
     }
   }

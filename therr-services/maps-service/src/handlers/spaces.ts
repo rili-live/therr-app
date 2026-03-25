@@ -390,6 +390,10 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
     let fromUserIds: any[] = [];
     if (query === 'me') {
         fromUserIds = [userId];
+        searchArgs[0].filterBy = 'fromUserIds';
+    } else if (query === 'user' && req.body.targetUserId) {
+        fromUserIds = [req.body.targetUserId];
+        searchArgs[0].filterBy = 'fromUserIds';
     } else if (query === 'connections') {
         let queryString = getSearchQueryString({
             filterBy: 'acceptingUserId',
@@ -419,6 +423,7 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
         fromUserIds = connections
             .map((connection: any) => connection.users.filter((user: any) => user.id !== userId)?.[0]?.id || undefined)
             .filter((id) => !!id); // eslint-disable-line eqeqeq
+        searchArgs[0].filterBy = 'fromUserIds';
     }
     const searchPromise = Store.spaces.searchSpaces(
         searchArgs[0],
