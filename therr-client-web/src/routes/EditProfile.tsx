@@ -47,6 +47,9 @@ interface IEditProfileState {
         shouldHideMatureContent?: boolean;
         settingsLocale?: string;
         settingsThemeName?: string;
+        isBusinessAccount?: boolean;
+        organizationDescription?: string;
+        businessType?: string;
     };
     errorReason: string;
     isSuccess: boolean;
@@ -60,6 +63,16 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     updateUser: UsersActions.update,
 }, dispatch);
+
+const BUSINESS_TYPE_OPTIONS = [
+    { value: 'small-business', label: 'Small Business' },
+    { value: 'restaurant-services', label: 'Restaurant / Food Services' },
+    { value: 'retail', label: 'Retail' },
+    { value: 'health-wellness', label: 'Health & Wellness' },
+    { value: 'professional-services', label: 'Professional Services' },
+    { value: 'entertainment', label: 'Entertainment' },
+    { value: 'other', label: 'Other' },
+];
 
 /**
  * EditProfile
@@ -80,6 +93,9 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                 shouldHideMatureContent: user.details?.shouldHideMatureContent ?? false,
                 settingsLocale: user.settings?.locale || 'en-us',
                 settingsThemeName: user.settings?.mobileThemeName || 'light',
+                isBusinessAccount: user.details?.isBusinessAccount ?? false,
+                organizationDescription: user.details?.userOrganizations?.[0]?.description || '',
+                businessType: user.details?.userOrganizations?.[0]?.settingsGeneralBusinessType || 'small-business',
             },
             errorReason: '',
             isSuccess: false,
@@ -93,7 +109,14 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
 
     isFormDisabled = () => {
         const { inputs, isSubmitting } = this.state;
-        return isSubmitting || !inputs.firstName || !inputs.lastName || !inputs.userName;
+        if (isSubmitting || !inputs.firstName || !inputs.userName) {
+            return true;
+        }
+        // Business accounts don't require lastName
+        if (!inputs.isBusinessAccount && !inputs.lastName) {
+            return true;
+        }
+        return false;
     };
 
     onInputChange = (name: string, value: string) => {
@@ -160,14 +183,22 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
 
         const updateArgs: any = {
             firstName: inputs.firstName,
-            lastName: inputs.lastName,
+            lastName: inputs.lastName || '',
             userName: inputs.userName,
             settingsBio: inputs.settingsBio,
             settingsIsProfilePublic: inputs.settingsIsProfilePublic,
             shouldHideMatureContent: inputs.shouldHideMatureContent,
             settingsLocale: inputs.settingsLocale,
             settingsThemeName: inputs.settingsThemeName,
+            isBusinessAccount: inputs.isBusinessAccount,
         };
+
+        if (inputs.isBusinessAccount) {
+            updateArgs.organization = {
+                description: inputs.organizationDescription || '',
+                settingsGeneralBusinessType: inputs.businessType || 'small-business',
+            };
+        }
 
         updateUser(user.details.id, updateArgs)
             .then(() => {
@@ -212,6 +243,7 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
         }
 
         const bioCharCount = inputs.settingsBio?.length || 0;
+        const isBusiness = inputs.isBusinessAccount;
 
         return (
             <div id="page_edit_profile">
@@ -255,6 +287,12 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                                 {this.props.translate('pages.editProfile.h2.profileInfo')}
                             </h2>
 
+                            <Switch
+                                label={this.props.translate('pages.editProfile.labels.isBusinessAccount')}
+                                checked={isBusiness}
+                                onChange={this.onSwitchChange('isBusinessAccount')}
+                            />
+
                             <MantineInput
                                 id="first_name"
                                 name="firstName"
@@ -263,7 +301,9 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                                 onEnter={this.onSubmit}
                                 translateFn={this.props.translate}
                                 validations={['isRequired']}
-                                label={this.props.translate('pages.editProfile.labels.firstName')}
+                                label={isBusiness
+                                    ? this.props.translate('pages.editProfile.labels.businessName')
+                                    : this.props.translate('pages.editProfile.labels.firstName')}
                             />
                             <MantineInput
                                 id="last_name"
@@ -272,7 +312,7 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                                 onChange={this.onInputChange}
                                 onEnter={this.onSubmit}
                                 translateFn={this.props.translate}
-                                validations={['isRequired']}
+                                validations={isBusiness ? [] : ['isRequired']}
                                 label={this.props.translate('pages.editProfile.labels.lastName')}
                             />
                             <MantineInput
@@ -309,6 +349,40 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                                     {bioCharCount}/{MAX_BIO_LENGTH}
                                 </span>
                             </div>
+
+                            {/* Business Information Section */}
+                            {isBusiness && (
+                                <>
+                                    <h2 className="edit-profile-section-title">
+                                        {this.props.translate('pages.editProfile.h2.businessInfo')}
+                                    </h2>
+
+                                    <Textarea
+                                        id="organization_description"
+                                        label={this.props.translate('pages.editProfile.labels.organizationDescription')}
+                                        value={inputs.organizationDescription}
+                                        onChange={(e) => this.setState({
+                                            inputs: {
+                                                ...this.state.inputs,
+                                                organizationDescription: e.target.value,
+                                            },
+                                            errorReason: '',
+                                            isSuccess: false,
+                                        })}
+                                        autosize
+                                        minRows={2}
+                                        maxRows={4}
+                                    />
+
+                                    <MantineSelect
+                                        id="business_type"
+                                        label={this.props.translate('pages.editProfile.labels.businessType')}
+                                        value={inputs.businessType || 'small-business'}
+                                        onChange={this.onSelectChange('businessType')}
+                                        data={BUSINESS_TYPE_OPTIONS}
+                                    />
+                                </>
+                            )}
 
                             <h2 className="edit-profile-section-title">
                                 {this.props.translate('pages.editProfile.h2.privacy')}

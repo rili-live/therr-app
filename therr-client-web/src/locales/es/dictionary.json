@@ -57,7 +57,11 @@
         "resend": "Reenviar"
       },
       "labels": {
+        "accountType": "Tipo de cuenta",
+        "personal": "Personal",
+        "business": "Negocio",
         "firstName": "Nombre",
+        "businessName": "Nombre del negocio",
         "lastName": "Apellido",
         "mobilePhone": "Tel\u00e9fono m\u00f3vil #",
         "userName": "Nombre de usuario",
@@ -499,18 +503,27 @@
       "buttons": {
         "createAForum": "Crear un chat grupal",
         "editProfile": "Editar Perfil",
+        "manageSpaces": "Administrar ubicaciones",
+        "postUpdate": "Publicar actualizaci\u00f3n",
         "sendRequest": "Enviar solicitud"
       },
       "connectionSent": "\u00a1Tu solicitud de conexi\u00f3n est\u00e1 en camino!",
       "h2": {
         "accountDetails": "Detalles de la cuenta",
         "addConnection": "Agregar nueva conexi\u00f3n",
-        "connections": "Conexiones"
+        "connections": "Conexiones",
+        "myLocations": "Mis ubicaciones",
+        "myEvents": "Mis eventos",
+        "myUpdates": "Mis actualizaciones"
       },
       "labels": {
+        "businessName": "Nombre del negocio",
         "email": "Correo electr\u00f3nico",
         "firstName": "Nombre",
         "lastName": "Apellido",
+        "noLocations": "A\u00fan no se han agregado ubicaciones. Crea tu primer espacio para comenzar.",
+        "noEvents": "No hay eventos pr\u00f3ximos",
+        "noUpdates": "A\u00fan no se han publicado actualizaciones",
         "phone": "Tel\u00e9fono",
         "phoneNumber": "N\u00famero de tel\u00e9fono",
         "userName": "Nombre de usuario"
@@ -528,12 +541,17 @@
       "failedMessageServer": "Ocurri\u00f3 un error inesperado. Por favor int\u00e9ntalo m\u00e1s tarde.",
       "h2": {
         "profileInfo": "Informaci\u00f3n del Perfil",
+        "businessInfo": "Informaci\u00f3n del Negocio",
         "privacy": "Privacidad y Contenido",
         "display": "Configuraci\u00f3n de Pantalla",
         "account": "Cuenta"
       },
       "labels": {
         "firstName": "Nombre",
+        "businessName": "Nombre del negocio",
+        "isBusinessAccount": "Cuenta de negocio",
+        "organizationDescription": "Descripci\u00f3n de la organizaci\u00f3n",
+        "businessType": "Tipo de negocio",
         "lastName": "Apellido",
         "userName": "Nombre de usuario",
         "email": "Correo electr\u00f3nico",
@@ -659,7 +677,20 @@
     },
     "viewUser": {
       "buttons": {
-        "chat": "Chat"
+        "chat": "Chat",
+        "follow": "Seguir",
+        "viewAll": "Ver todo"
+      },
+      "headings": {
+        "about": "Acerca de",
+        "locations": "Nuestras ubicaciones",
+        "upcomingEvents": "Pr\u00f3ximos eventos",
+        "latestUpdates": "\u00daltimas actualizaciones"
+      },
+      "labels": {
+        "noLocations": "A\u00fan no hay ubicaciones listadas",
+        "noEvents": "No hay pr\u00f3ximos eventos",
+        "noUpdates": "No hay actualizaciones recientes"
       }
     }
   }

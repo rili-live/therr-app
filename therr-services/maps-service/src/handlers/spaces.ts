@@ -390,6 +390,8 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
     let fromUserIds: any[] = [];
     if (query === 'me') {
         fromUserIds = [userId];
+    } else if (query === 'user' && req.body.targetUserId) {
+        fromUserIds = [req.body.targetUserId];
     } else if (query === 'connections') {
         let queryString = getSearchQueryString({
             filterBy: 'acceptingUserId',

@@ -57,7 +57,11 @@
         "resend": "Resend"
       },
       "labels": {
+        "accountType": "Account Type",
+        "personal": "Personal",
+        "business": "Business",
         "firstName": "First Name",
+        "businessName": "Business Name",
         "lastName": "Last Name",
         "mobilePhone": "Mobile Phone #",
         "userName": "Username",
@@ -499,18 +503,27 @@
       "buttons": {
         "createAForum": "Create a Hosted Chat",
         "editProfile": "Edit Profile",
+        "manageSpaces": "Manage Locations",
+        "postUpdate": "Post Update",
         "sendRequest": "Send Request"
       },
       "connectionSent": "You connection request is on the way!",
       "h2": {
         "accountDetails": "Account Details",
         "addConnection": "Add New Connection",
-        "connections": "Connections"
+        "connections": "Connections",
+        "myLocations": "My Locations",
+        "myEvents": "My Events",
+        "myUpdates": "My Updates"
       },
       "labels": {
+        "businessName": "Business Name",
         "email": "E-mail",
         "firstName": "Firstname",
         "lastName": "Lastname",
+        "noLocations": "No locations added yet. Create your first space to get started.",
+        "noEvents": "No upcoming events",
+        "noUpdates": "No updates posted yet",
         "phone": "Phone",
         "phoneNumber": "Phone Number",
         "userName": "Username"
@@ -528,12 +541,17 @@
       "failedMessageServer": "An unexpected error occurred. Please try again later.",
       "h2": {
         "profileInfo": "Profile Information",
+        "businessInfo": "Business Information",
         "privacy": "Privacy & Content",
         "display": "Display Settings",
         "account": "Account"
       },
       "labels": {
         "firstName": "First Name",
+        "businessName": "Business Name",
+        "isBusinessAccount": "Business Account",
+        "organizationDescription": "Organization Description",
+        "businessType": "Business Type",
         "lastName": "Last Name",
         "userName": "Username",
         "email": "Email",
@@ -659,7 +677,20 @@
     },
     "viewUser": {
       "buttons": {
-        "chat": "Chat"
+        "chat": "Chat",
+        "follow": "Follow",
+        "viewAll": "View All"
+      },
+      "headings": {
+        "about": "About",
+        "locations": "Our Locations",
+        "upcomingEvents": "Upcoming Events",
+        "latestUpdates": "Latest Updates"
+      },
+      "labels": {
+        "noLocations": "No locations listed yet",
+        "noEvents": "No upcoming events",
+        "noUpdates": "No recent updates"
       }
     }
   }

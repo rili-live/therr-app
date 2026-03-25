@@ -74,8 +74,14 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
 
         const argsWithoutPhone = { ...updateArgs };
         delete argsWithoutPhone.phoneNumber;
+        // Extract isBusinessAccount to send to the API
+        const { isBusinessAccount, ...profileArgs } = argsWithoutPhone;
+        const updatePayload = {
+            ...profileArgs,
+            isBusinessAccount: !!isBusinessAccount,
+        };
 
-        updateUser(user.details.id, argsWithoutPhone).then((response: any) => {
+        updateUser(user.details.id, updatePayload).then(() => {
             ApiService.verifyPhone(updateArgs.phoneNumber).then(() => {
                 ReactGA.event({
                     category: 'Registering',

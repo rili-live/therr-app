@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Stack } from '@mantine/core';
+import { SegmentedControl, Stack } from '@mantine/core';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import flags from 'react-phone-number-input/flags'; // eslint-disable-line import/extensions
 import {
@@ -31,13 +31,22 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
         this.state = {
             inputs: {
                 phoneNumber: '',
+                isBusinessAccount: false,
             },
             isPhoneNumberValid: false,
         };
     }
 
     isFormDisabled() {
-        return this.props.isSubmitting || !this.state.inputs.userName || !this.isFormValid();
+        const { inputs } = this.state;
+        if (this.props.isSubmitting || !inputs.userName || !this.isFormValid()) {
+            return true;
+        }
+        // Business accounts only require firstName; personal accounts require both
+        if (inputs.isBusinessAccount) {
+            return !inputs.firstName;
+        }
+        return !inputs.firstName || !inputs.lastName;
     }
 
     isFormValid() {
@@ -54,7 +63,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
     };
 
     onInputChange = (name: string, value: string) => {
-        const newInputChanges = {
+        const newInputChanges: any = {
             [name]: value,
         };
 
@@ -70,6 +79,15 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
         });
     };
 
+    onAccountTypeChange = (value: string) => {
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                isBusinessAccount: value === 'business',
+            },
+        });
+    };
+
     onPhoneInputChange = (value: string) => {
         this.setState({
             inputs: {
@@ -81,13 +99,36 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
     };
 
     public render(): JSX.Element | null {
-        const { isPhoneNumberValid } = this.state;
+        const { isPhoneNumberValid, inputs } = this.state;
+        const isBusiness = inputs.isBusinessAccount;
 
         return (
             <div className="register-container">
                 <div className="flex fill">
                     <Stack gap="sm">
                         <h1 className="text-center">{this.props.title}</h1>
+
+                        <div className="form-field">
+                            <label htmlFor="account_type">
+                                {this.props.translate('components.createProfileForm.labels.accountType')}
+                            </label>
+                            <SegmentedControl
+                                id="account_type"
+                                fullWidth
+                                value={isBusiness ? 'business' : 'personal'}
+                                onChange={this.onAccountTypeChange}
+                                data={[
+                                    {
+                                        label: this.props.translate('components.createProfileForm.labels.personal'),
+                                        value: 'personal',
+                                    },
+                                    {
+                                        label: this.props.translate('components.createProfileForm.labels.business'),
+                                        value: 'business',
+                                    },
+                                ]}
+                            />
+                        </div>
 
                         <MantineInput
                             type="text"
@@ -110,20 +151,38 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             onEnter={this.onSubmit}
                             translateFn={this.props.translate}
                             validations={['isRequired']}
-                            label={this.props.translate('components.createProfileForm.labels.firstName')}
+                            label={isBusiness
+                                ? this.props.translate('components.createProfileForm.labels.businessName')
+                                : this.props.translate('components.createProfileForm.labels.firstName')}
                         />
 
-                        <MantineInput
-                            type="text"
-                            id="last_name"
-                            name="lastName"
-                            value={this.state.inputs.lastName}
-                            onChange={this.onInputChange}
-                            onEnter={this.onSubmit}
-                            translateFn={this.props.translate}
-                            validations={['isRequired']}
-                            label={this.props.translate('components.createProfileForm.labels.lastName')}
-                        />
+                        {!isBusiness && (
+                            <MantineInput
+                                type="text"
+                                id="last_name"
+                                name="lastName"
+                                value={this.state.inputs.lastName}
+                                onChange={this.onInputChange}
+                                onEnter={this.onSubmit}
+                                translateFn={this.props.translate}
+                                validations={['isRequired']}
+                                label={this.props.translate('components.createProfileForm.labels.lastName')}
+                            />
+                        )}
+
+                        {isBusiness && (
+                            <MantineInput
+                                type="text"
+                                id="last_name"
+                                name="lastName"
+                                value={this.state.inputs.lastName}
+                                onChange={this.onInputChange}
+                                onEnter={this.onSubmit}
+                                translateFn={this.props.translate}
+                                validations={[]}
+                                label={this.props.translate('components.createProfileForm.labels.lastName')}
+                            />
+                        )}
 
                         <label className="required" htmlFor="phone_number">{this.props.translate('components.createProfileForm.labels.mobilePhone')}:</label>
                         <div className="form-field">
