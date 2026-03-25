@@ -39,6 +39,14 @@ import { buildSpaceUrl } from '../../utilities/shareUrls';
 
 const envConfig = getConfig();
 const { width: viewportWidth } = Dimensions.get('window');
+
+const formatCategoryLabel = (category: string): string => {
+    if (!category) return '';
+    const label = category.replace('categories.', '').replace('/', ' & ');
+    return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
+const formatPriceRange = (priceRange: number): string => '$'.repeat(priceRange);
 // const hapticFeedbackOptions = {
 //     enableVibrateFallback: false,
 //     ignoreAndroidSystemSettings: false,
@@ -677,26 +685,26 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 }
                 {
                     isSpace && isExpanded && (area.category || area.priceRange > 0) &&
-                    <View style={[spacingStyles.flexRow, spacingStyles.alignCenter, spacingStyles.padHorizSm, spacingStyles.padVertSm, localStyles.metaRow]}>
+                    <View style={[spacingStyles.flexRow, spacingStyles.alignCenter, spacingStyles.padHorizMd, spacingStyles.padVertSm, localStyles.metaRow]}>
                         {area.category ? (
                             <View style={[localStyles.categoryBadge, { backgroundColor: theme.colors.primary3 }]}>
                                 <Text style={[localStyles.categoryBadgeText, {
                                     color: isDarkMode ? theme.colors.textWhite : theme.colors.primary4,
                                 }]}>
-                                    {area.category.replace('categories.', '').replace('/', ' & ').replace(/^\w/, (c) => c.toUpperCase())}
+                                    {formatCategoryLabel(area.category)}
                                 </Text>
                             </View>
                         ) : null}
                         {area.priceRange > 0 ? (
                             <Text style={[localStyles.priceRangeText, { color: theme.colors.textGray }]}>
-                                {'$'.repeat(area.priceRange)}
+                                {formatPriceRange(area.priceRange)}
                             </Text>
                         ) : null}
                     </View>
                 }
                 {
                     isSpace && isExpanded && area.addressReadable &&
-                    <View style={[spacingStyles.padHorizSm, localStyles.addressSection]}>
+                    <View style={[spacingStyles.padHorizMd, localStyles.addressSection]}>
                         <View style={[spacingStyles.flexRow, spacingStyles.alignCenter]}>
                             <Icon name="place" size={16} color={theme.colors.textGray} />
                             <Text style={[localStyles.addressText, { color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark }]}>
