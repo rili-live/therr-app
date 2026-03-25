@@ -60,6 +60,7 @@
       },
       "labels": {
         "home": "Home",
+        "discovered": "Discovered",
         "messages": "Messages",
         "explore": "Explore",
         "locations": "Locations",
