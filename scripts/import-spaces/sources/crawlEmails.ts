@@ -148,18 +148,23 @@ async function fetchPage(url: string): Promise<string | null> {
       signal: AbortSignal.timeout(10000),
       redirect: 'follow',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; TherSpaceBot/1.0)',
-        Accept: 'text/html',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
       },
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn(`  [crawlEmails] HTTP ${response.status} for ${url}`);
+      return null;
+    }
 
     const contentType = response.headers.get('content-type') || '';
     if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) return null;
 
     return response.text();
-  } catch {
+  } catch (err: any) {
+    console.warn(`  [crawlEmails] Error fetching ${url}: ${err.message}`);
     return null;
   }
 }
