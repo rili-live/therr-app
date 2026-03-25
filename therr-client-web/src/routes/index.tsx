@@ -33,6 +33,7 @@ import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
 import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
+import UserLocations from './UserLocations';
 import EmailPreferences from './EmailPreferences';
 import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
@@ -324,6 +325,11 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             withRatings: true,
             withEvents: true,
         })(dispatch),
+    },
+    {
+        path: '/users/:userId/locations',
+        element: <UserLocations />,
+        fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
     },
     {
         path: '/users/:userId',
