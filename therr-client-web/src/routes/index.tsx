@@ -327,13 +327,13 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         })(dispatch),
     },
     {
-        path: '/users/:userId',
-        element: <ViewUser onInitMessaging={routePropsConfig.onInitMessaging} />,
+        path: '/users/:userId/locations',
+        element: <UserLocations />,
         fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
     },
     {
-        path: '/users/:userId/locations',
-        element: <UserLocations />,
+        path: '/users/:userId',
+        element: <ViewUser onInitMessaging={routePropsConfig.onInitMessaging} />,
         fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
     },
 

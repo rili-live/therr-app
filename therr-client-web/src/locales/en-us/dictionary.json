@@ -802,7 +802,7 @@
     },
     "userLocations": {
       "pageTitle": "Locations",
-      "headingWithName": "{{name}}'s Locations"
+      "headingWithName": "{name}'s Locations"
     }
   }
 }

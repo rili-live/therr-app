@@ -802,7 +802,7 @@
     },
     "userLocations": {
       "pageTitle": "Ubicaciones",
-      "headingWithName": "Ubicaciones de {{name}}"
+      "headingWithName": "Ubicaciones de {name}"
     }
   }
 }

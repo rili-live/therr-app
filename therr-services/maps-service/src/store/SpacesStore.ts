@@ -373,10 +373,11 @@ export default class SpacesStore {
         if (hasGeoCoordinates && !isUserIdFilter) {
             // NOTE: Cast to a geography type to search distance within n meters
             // Use geomCenter (POINT) instead of geom (POLYGON) for faster proximity checks
-            queryString = queryString.where(knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])); // eslint-disable-line quotes, max-len
+            queryString = queryString.where(knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])) // eslint-disable-line quotes, max-len
+                .andWhere(firstWhere);
+        } else {
+            queryString = queryString.where(firstWhere);
         }
-
-        queryString = queryString.andWhere(firstWhere);
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq
             const operator = conditions.filterOperator || '=';
