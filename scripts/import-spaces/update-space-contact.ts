@@ -8,7 +8,8 @@
  *     --id <space-uuid> \
  *     --email "info@business.com" \
  *     --website "https://business.com" \
- *     --source-image
+ *     --source-image \
+ *     --closed
  *
  * All arguments are optional except --id. Only provided fields are updated.
  * Output: JSON result to stdout. Logging goes to stderr.
@@ -33,6 +34,7 @@ interface ICliArgs {
   email: string | null;
   website: string | null;
   sourceImage: boolean;
+  closed: boolean;
   userId: string;
 }
 
@@ -43,6 +45,8 @@ function parseArgs(): ICliArgs {
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--source-image') {
       parsed.sourceImage = 'true';
+    } else if (args[i] === '--closed') {
+      parsed.closed = 'true';
     } else if (args[i].startsWith('--') && i + 1 < args.length) {
       parsed[args[i].replace('--', '')] = args[i + 1];
       i++;
@@ -54,8 +58,8 @@ function parseArgs(): ICliArgs {
     process.exit(1);
   }
 
-  if (!parsed.email && !parsed.website && parsed.sourceImage !== 'true') {
-    log('Error: At least one of --email, --website, or --source-image must be provided.');
+  if (!parsed.email && !parsed.website && parsed.sourceImage !== 'true' && parsed.closed !== 'true') {
+    log('Error: At least one of --email, --website, --source-image, or --closed must be provided.');
     process.exit(1);
   }
 
@@ -64,6 +68,7 @@ function parseArgs(): ICliArgs {
     email: parsed.email || null,
     website: parsed.website || null,
     sourceImage: parsed.sourceImage === 'true',
+    closed: parsed.closed === 'true',
     userId: parsed['user-id'] || IMPORT_USER_ID,
   };
 }
@@ -87,6 +92,7 @@ interface IUpdateResult {
   websiteUpdated: boolean;
   imageSourced: boolean;
   imagePath: string | null;
+  closedMarked: boolean;
 }
 
 async function main() {
@@ -108,6 +114,7 @@ async function main() {
       websiteUpdated: false,
       imageSourced: false,
       imagePath: null,
+      closedMarked: false,
     };
 
     // Verify space exists and get current data
@@ -143,6 +150,16 @@ async function main() {
       );
       result.websiteUpdated = true;
       log(`Updated website: ${args.website}`);
+    }
+
+    // Mark as closed/defunct
+    if (args.closed) {
+      await db.query(
+        `UPDATE main.spaces SET "isPublic" = false, "updatedAt" = NOW() WHERE id = $1`,
+        [args.id],
+      );
+      result.closedMarked = true;
+      log(`Marked space as closed (isPublic=false): ${args.id}`);
     }
 
     // Source image
