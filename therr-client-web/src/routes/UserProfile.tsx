@@ -471,7 +471,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                             />
                         </Group>
                         {userConnections.connections.length > 0 ? (
-                            <SimpleGrid cols={{ base: 4, sm: 6, md: 8 }} spacing="sm">
+                            <SimpleGrid cols={{ base: 3, xs: 4, sm: 5, md: 6 }} spacing="sm" verticalSpacing="md">
                                 {userConnections.connections.map((connection: any) => {
                                     const connectionDetails = this.getConnectionDetails(connection);
                                     if (!connectionDetails) return null;
@@ -480,18 +480,23 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
                                     return (
                                         <Tooltip label={connectionDetails.firstName} key={connectionDetails.id}>
-                                            <UnstyledButton onClick={() => this.handleConnectionClick(connection)}>
+                                            <UnstyledButton
+                                                onClick={() => this.handleConnectionClick(connection)}
+                                                style={{ overflow: 'hidden', width: '100%' }}
+                                            >
                                                 <Stack align="center" gap={4}>
                                                     <Avatar
                                                         src={connImageUri}
                                                         alt={connectionDetails.firstName}
-                                                        size={56}
-                                                        radius={56}
+                                                        size={48}
+                                                        radius={48}
                                                         color="teal"
                                                     >
                                                         {connInitial}
                                                     </Avatar>
-                                                    <Text size="xs" lineClamp={1} ta="center">{connectionDetails.firstName}</Text>
+                                                    <Text size="xs" lineClamp={1} ta="center" style={{ maxWidth: '100%' }}>
+                                                        {connectionDetails.firstName}
+                                                    </Text>
                                                 </Stack>
                                             </UnstyledButton>
                                         </Tooltip>

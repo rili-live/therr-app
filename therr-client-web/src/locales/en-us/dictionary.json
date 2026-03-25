@@ -60,6 +60,7 @@
       },
       "labels": {
         "home": "Home",
+        "discovered": "Discovered",
         "messages": "Messages",
         "explore": "Explore",
         "locations": "Locations",
@@ -799,6 +800,10 @@
         "noEvents": "No upcoming events",
         "noUpdates": "No recent updates"
       }
+    },
+    "userLocations": {
+      "pageTitle": "Locations",
+      "headingWithName": "{name}'s Locations"
     }
   }
 }
