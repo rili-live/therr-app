@@ -1,7 +1,8 @@
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
 
-const saltRounds = 10;
+const saltRounds = 12;
 
 export const hashPassword = (password: string) => bcrypt.hash(password, saltRounds);
 
@@ -22,9 +23,12 @@ export const createUserToken = (user: any, userOrgs: any[], rememberMe?: boolean
             acc[cur.organizationId] = cur.accessLevels;
             return acc;
         }, {});
+    const jti = uuidv4();
+
     // Sign the JWT
     return jwt.sign(
         {
+            jti,
             id,
             userName,
             email,
@@ -38,9 +42,28 @@ export const createUserToken = (user: any, userOrgs: any[], rememberMe?: boolean
         (process.env.JWT_SECRET || ''),
         {
             algorithm: 'HS256',
-            expiresIn: rememberMe ? '30d' : '10d',
+            expiresIn: rememberMe ? '7d' : '1d',
         },
     );
+};
+
+export const createRefreshToken = (userId: string, rememberMe?: boolean) => {
+    const jti = uuidv4();
+
+    const token = jwt.sign(
+        {
+            jti,
+            id: userId,
+            type: 'refresh',
+        },
+        (process.env.JWT_SECRET || ''),
+        {
+            algorithm: 'HS256',
+            expiresIn: rememberMe ? '30d' : '7d',
+        },
+    );
+
+    return { token, jti };
 };
 
 export const createUserEmailToken = (user: { id: string, email: string }) => {
@@ -58,6 +81,7 @@ export const createUserEmailToken = (user: { id: string, email: string }) => {
         (process.env.JWT_EMAIL_SECRET || ''),
         {
             algorithm: 'HS256',
+            expiresIn: '24h',
         },
     );
 };

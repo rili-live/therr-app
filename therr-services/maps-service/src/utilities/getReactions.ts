@@ -39,7 +39,28 @@ export const getRating = (areaType: 'space' | 'event', areaId: string, headers: 
         throw err;
     });
 
-// TODO: This would be more performance as a single request to reactions-service
-export const getRatings = (areaType: 'space' | 'event', areaIds: string[], headers: InternalConfigHeaders) => Promise.all(
-    areaIds.map((id) => getRating(areaType, id, headers)),
-);
+// Batch ratings: single request to reactions-service instead of N+1
+export const getBatchRatings = (areaType: 'space' | 'event', areaIds: string[], headers: InternalConfigHeaders) => {
+    if (!areaIds?.length) {
+        return Promise.resolve({});
+    }
+
+    const idsKey = areaType === 'space' ? 'spaceIds' : 'eventIds';
+
+    return internalRestRequest({
+        headers,
+    }, {
+        method: 'post',
+        url: `${baseReactionsServiceRoute}/${areaType}-reactions/ratings/batch`,
+        data: { [idsKey]: areaIds },
+    })
+        .then(({ data: ratingsMap }) => ratingsMap)
+        .catch((err) => {
+            console.log(`getBatchRatings error for ${areaType}:`, err?.message);
+            return {};
+        });
+};
+
+// Converts batch ratings map to ordered array matching input areaIds
+export const getRatings = (areaType: 'space' | 'event', areaIds: string[], headers: InternalConfigHeaders) => getBatchRatings(areaType, areaIds, headers)
+    .then((ratingsMap) => areaIds.map((id) => ratingsMap[id] || { avgRating: null, totalRatings: 0 }));

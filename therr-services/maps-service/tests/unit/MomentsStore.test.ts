@@ -6,7 +6,7 @@ import MomentsStore from '../../src/store/MomentsStore';
 describe('MomentsStore', () => {
     describe('countRecords', () => {
         it('queries for total records', () => {
-            const expected = `select count(*) from "main"."moments" where ST_DWithin(geom, ST_MakePoint(1235.3034, -12.12314)::geography, 1000)`;
+            const expected = `select count(*) from "main"."moments" where ST_DWithin(geom::geography, ST_MakePoint(1235.3034, -12.12314)::geography, 1000)`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
@@ -30,7 +30,7 @@ describe('MomentsStore', () => {
 
     describe('searchMoments', () => {
         it('queries with postgis functions', () => {
-            const expected = `select "id", "areaType", "locale", "category", "notificationMsg", "medias", "mediaIds", "hashTags", "latitude", "longitude", "radius", "isMatureContent", "isModeratorApproved", "createdAt", "updatedAt", "interestsKeys", "spaceId" from "main"."moments" where ST_DWithin(geom, ST_MakePoint(15.3034, -1.12314)::geography, 5) and "isMatureContent" = false limit 100 offset 100`;
+            const expected = `select "id", "areaType", "locale", "category", "notificationMsg", "medias", "mediaIds", "hashTags", "latitude", "longitude", "radius", "isMatureContent", "isModeratorApproved", "createdAt", "updatedAt", "interestsKeys", "spaceId" from "main"."moments" where ST_DWithin(geom::geography, ST_MakePoint(15.3034, -1.12314)::geography, 5) and "isMatureContent" = false limit 100 offset 100`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),

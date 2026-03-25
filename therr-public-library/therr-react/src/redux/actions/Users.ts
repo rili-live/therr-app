@@ -233,6 +233,7 @@ class UsersActions {
             const {
                 id,
                 idToken,
+                refreshToken,
             } = response.data;
             const responseData = {
                 ...response.data,
@@ -289,9 +290,15 @@ class UsersActions {
             this.socketIO.connect();
             (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
             (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
+            if (refreshToken) {
+                (this.NativeStorage || sessionStorage).setItem('therrRefreshToken', refreshToken);
+            }
             if (data.rememberMe && !this.NativeStorage) {
                 localStorage.setItem('therrUser', JSON.stringify(userData));
                 localStorage.setItem('therrUserSettings', JSON.stringify(userSettingsData));
+                if (refreshToken) {
+                    localStorage.setItem('therrRefreshToken', refreshToken);
+                }
             }
         });
     };
@@ -348,10 +355,12 @@ class UsersActions {
         if (!this.NativeStorage) {
             localStorage.removeItem('therrSession');
             localStorage.removeItem('therrUser');
+            localStorage.removeItem('therrRefreshToken');
             sessionStorage.removeItem('therrSession');
             sessionStorage.removeItem('therrUser');
+            sessionStorage.removeItem('therrRefreshToken');
         } else {
-            await this.NativeStorage.multiRemove(['therrSession', 'therrUser', 'therrUserSettings']);
+            await this.NativeStorage.multiRemove(['therrSession', 'therrUser', 'therrUserSettings', 'therrRefreshToken']);
             await (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify({
                 id: userSettings?.id,
             }));

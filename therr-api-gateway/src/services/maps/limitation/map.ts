@@ -38,6 +38,9 @@ const createSpaceLimiter = buildRateLimiter(spacesLimitReachedMessage, 100, 60 *
 
 const pairingFeedbackLimiter = buildRateLimiter(pairingFeedbackLimitReachedMessage, 20, 60); // 20 per hour per IP
 
+const placesApiLimitReachedMessage = 'Places search is limited. Try again later.';
+const placesApiLimiter = buildRateLimiter(placesApiLimitReachedMessage, 60, 1); // 60 per minute per IP
+
 export {
     createCheckInLimiter,
     createActivityLimiter,
@@ -45,4 +48,5 @@ export {
     createMomentLimiter,
     createSpaceLimiter,
     pairingFeedbackLimiter,
+    placesApiLimiter,
 };

@@ -1,4 +1,5 @@
 # Therr Public Library: Javascript Utilities
+
 We have included this set of helper utilities to provide common, Therr javascript functions that were abstracted for re-use.
 
 ## How to Include a utility
@@ -8,3 +9,5 @@ import { configureTranslator } from 'therr-public-library/therr-js-utilities/loc
 import * as scrollTo from 'therr-public-library/therr-js-utilities/scroll-to';
 etc.
 ```
+
+*Last updated: 2026-03-23*

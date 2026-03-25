@@ -25,5 +25,3 @@ Follow below steps with provided commands to configure database locally
 
 6. Now Run the migration script found in package.json.
 `npm run migrations:run`
-
-..

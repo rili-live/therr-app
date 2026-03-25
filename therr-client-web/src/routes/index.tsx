@@ -19,6 +19,7 @@ import Login from './Login';
 import ListSpaces, { DEFAULT_ITEMS_PER_PAGE, DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from './ListSpaces';
 import UserProfile from './UserProfile';
 import ChangePassword from './ChangePassword';
+import EditProfile from './EditProfile';
 import Discovered from './Discovered';
 import Explore from './Explore';
 import ExploreMoments from './Explore/ExploreMoments';
@@ -27,6 +28,7 @@ import ExplorePeople from './Explore/ExplorePeople';
 import UnderConstruction from './UnderConstruction';
 import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
+import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
 import EmailPreferences from './EmailPreferences';
 import AppFeedback from './AppFeedback';
@@ -145,6 +147,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
+        path: '/user/edit-profile',
+        element: <AuthRoute
+            render={() => <EditProfile />}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
         path: '/explore',
         element: <AuthRoute
             component={Explore}
@@ -203,6 +216,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/user/go-mobile',
         element: <AuthRoute
             component={UnderConstruction}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/thoughts/:thoughtId',
+        element: <AuthRoute
+            component={ViewThought}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
