@@ -155,6 +155,10 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         this.props.navigation.navigate(`/spaces/${spaceId}`);
     };
 
+    handleEditSpaceClick = (spaceId: string) => {
+        this.props.navigation.navigate(`/spaces/${spaceId}/edit`);
+    };
+
     onCreateForumClick = () => {
         this.props.navigation.navigate('/create-forum');
     };
@@ -164,7 +168,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     };
 
     onCreateSpaceClick = () => {
-        this.props.navigation.navigate('/create-space');
+        this.props.navigation.navigate('/spaces/manage');
     };
 
     renderBusinessProfile(): JSX.Element {
@@ -237,6 +241,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                             space={space}
                                             translate={this.props.translate}
                                             onSpaceClick={this.handleSpaceClick}
+                                            onEditClick={this.handleEditSpaceClick}
                                         />
                                     ))}
                                 </SimpleGrid>

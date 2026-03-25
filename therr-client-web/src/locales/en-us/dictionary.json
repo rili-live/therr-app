@@ -62,6 +62,7 @@
         "business": "Business",
         "firstName": "First Name",
         "businessName": "Business Name",
+        "businessSuffix": "Business Suffix (ex. Inc., LLC, etc.)",
         "lastName": "Last Name",
         "mobilePhone": "Mobile Phone #",
         "userName": "Username",
@@ -129,13 +130,15 @@
         "repeatPassword": "Repeat Password",
         "termsAndConditions": "I agree to the terms & conditions",
         "userName": "Username",
-        "mySweet": "Are you Sweet?"
+        "mySweet": "Are you Sweet?",
+        "inviteCode": "Invite Code"
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
       },
       "text": {
-        "signupForRewards": "Sign up with {userName}'s invite code - they earn 10 coins and you earn 5!"
+        "signupForRewards": "Sign up with {userName}'s invite code - they earn 10 coins and you earn 5!",
+        "inviteCodeHint": "Enter a friend's invite code to earn bonus coins"
       },
       "sso": {
         "orDivider": "or",
@@ -167,7 +170,8 @@
         "locationMap": "Explore",
         "notifications": "Notifications",
         "profileSettings": "Profile Settings"
-      }
+      },
+      "noNotifications": "You have no notifications yet."
     }
   },
   "pages": {
@@ -470,12 +474,16 @@
       "pageTitleVerify": "Create Profile: Verify Phone",
       "createProfileSuccess": "Profile successfully updated!",
       "createProfileError": "Oops, something went wrong",
+      "updateProfileError": "Failed to update profile. Please try again.",
+      "verifyPhoneError": "Failed to send verification code. Please try again.",
+      "authError": "Your session has expired. Please log in again.",
       "phoneNumberAlreadyInUseError": "Phone number is already in use for this account type",
+      "phoneRegionNotSupportedError": "SMS verification is not available for your region. Please use a different phone number.",
       "tooManyAccounts": "Users are limited to one of each account type (personal, creator, business)",
       "invalidRegion": "Invalid region",
       "invalidCode": "Code is invalid or expired. Try again or resend.",
-      "infoTitle": "Why Require Phone #?",
-      "info": "We are dedicated to preventing fake users, so Multi-Factor Auth is a must. Requiring an e-mail and phone # along with geo-tag post requirements drastically limits the potential for fake users."
+      "infoTitle": "Why We Verify Your Phone Number",
+      "info": "Your security matters to us. Phone verification helps us keep the community authentic and free from fake accounts. Combined with email and location-based safeguards, it ensures you're connecting with real people in a trusted environment."
     },
     "login": {
       "pageTitle": "Sign In",
@@ -504,6 +512,7 @@
         "createAForum": "Create a Hosted Chat",
         "editProfile": "Edit Profile",
         "manageSpaces": "Manage Locations",
+        "editSpace": "Edit",
         "postUpdate": "Post Update",
         "sendRequest": "Send Request"
       },
@@ -553,6 +562,7 @@
         "organizationDescription": "Organization Description",
         "businessType": "Business Type",
         "lastName": "Last Name",
+        "businessSuffix": "Business Suffix (ex. Inc., LLC, etc.)",
         "userName": "Username",
         "email": "Email",
         "bio": "Bio",
@@ -570,6 +580,64 @@
         "light": "Light",
         "dark": "Dark",
         "retro": "Retro"
+      }
+    },
+    "editSpace": {
+      "pageTitle": "Edit Location",
+      "successMessage": "Your location has been updated successfully.",
+      "failedMessageBadRequest": "Please check your input and try again.",
+      "failedMessageServer": "An unexpected error occurred. Please try again later.",
+      "h2": {
+        "basicInfo": "Basic Information",
+        "contactLinks": "Contact & Links"
+      },
+      "labels": {
+        "name": "Location Name",
+        "description": "Description",
+        "address": "Address",
+        "phoneNumber": "Phone Number",
+        "websiteUrl": "Website URL",
+        "menuUrl": "Menu URL",
+        "orderUrl": "Order / Delivery URL",
+        "reservationUrl": "Reservation URL"
+      },
+      "buttons": {
+        "save": "Save Changes",
+        "backToProfile": "Back to Profile"
+      }
+    },
+    "manageSpaces": {
+      "pageTitle": "Manage Locations",
+      "noLocations": "You haven't created any locations yet.",
+      "buttons": {
+        "createNew": "Create New Location",
+        "createFirst": "Create Your First Location",
+        "backToProfile": "Back to Profile"
+      }
+    },
+    "createSpace": {
+      "pageTitle": "Create Location",
+      "failedMessageBadRequest": "Please check your input and try again.",
+      "failedMessageServer": "An unexpected error occurred. Please try again later.",
+      "h2": {
+        "basicInfo": "Basic Information",
+        "contactLinks": "Contact & Links"
+      },
+      "labels": {
+        "name": "Location Name",
+        "description": "Description",
+        "address": "Address",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "phoneNumber": "Phone Number",
+        "websiteUrl": "Website URL",
+        "menuUrl": "Menu URL",
+        "orderUrl": "Order / Delivery URL",
+        "reservationUrl": "Reservation URL"
+      },
+      "buttons": {
+        "create": "Create Location",
+        "cancel": "Cancel"
       }
     },
     "underConstruction": {

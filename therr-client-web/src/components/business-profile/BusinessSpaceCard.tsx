@@ -2,18 +2,29 @@ import * as React from 'react';
 import {
     Paper, Image, Text, Group, Badge, Anchor, Stack,
 } from '@mantine/core';
+import { MantineButton } from 'therr-react/components/mantine';
 
 interface IBusinessSpaceCardProps {
     space: any;
     translate: (key: string, params?: any) => string;
     onSpaceClick?: (spaceId: string) => void;
+    onEditClick?: (spaceId: string) => void;
 }
 
-const BusinessSpaceCard: React.FC<IBusinessSpaceCardProps> = ({ space, translate, onSpaceClick }) => {
+const BusinessSpaceCard: React.FC<IBusinessSpaceCardProps> = ({
+    space, translate, onSpaceClick, onEditClick,
+}) => {
     const mediaUrl = space.media?.[0]?.path || '';
     const handleClick = () => {
         if (onSpaceClick) {
             onSpaceClick(space.id);
+        }
+    };
+
+    const handleEditClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (onEditClick) {
+            onEditClick(space.id);
         }
     };
 
@@ -37,9 +48,20 @@ const BusinessSpaceCard: React.FC<IBusinessSpaceCardProps> = ({ space, translate
                 />
             )}
             <Stack gap="xs" p="sm">
-                <Text fw={600} size="lg" lineClamp={1}>
-                    {space.notificationMsg || space.message}
-                </Text>
+                <Group justify="space-between" align="flex-start" wrap="nowrap">
+                    <Text fw={600} size="lg" lineClamp={1} style={{ flex: 1 }}>
+                        {space.notificationMsg || space.message}
+                    </Text>
+                    {onEditClick && (
+                        <MantineButton
+                            id={`edit_space_${space.id}`}
+                            text={translate('pages.userProfile.buttons.editSpace')}
+                            onClick={handleEditClick}
+                            variant="subtle"
+                            size="xs"
+                        />
+                    )}
+                </Group>
                 {space.addressReadable && (
                     <Text size="sm" c="dimmed" lineClamp={2}>
                         {space.addressReadable}
