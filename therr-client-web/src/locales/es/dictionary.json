@@ -73,7 +73,12 @@
         "resend": "Reenviar"
       },
       "labels": {
+        "accountType": "Tipo de cuenta",
+        "personal": "Personal",
+        "business": "Negocio",
         "firstName": "Nombre",
+        "businessName": "Nombre del negocio",
+        "businessSuffix": "Sufijo comercial (ej. S.A., S.L., etc.)",
         "lastName": "Apellido",
         "mobilePhone": "Tel\u00e9fono m\u00f3vil #",
         "userName": "Nombre de usuario",
@@ -141,13 +146,15 @@
         "repeatPassword": "Repetir contrase\u00f1a",
         "termsAndConditions": "Acepto los t\u00e9rminos y condiciones",
         "userName": "Nombre de usuario",
-        "mySweet": "\u00bfEres dulce?"
+        "mySweet": "\u00bfEres dulce?",
+        "inviteCode": "C\u00f3digo de invitaci\u00f3n"
       },
       "validationErrors": {
         "phoneNumber": "N\u00famero de tel\u00e9fono inv\u00e1lido"
       },
       "text": {
-        "signupForRewards": "Reg\u00edstrate con el c\u00f3digo de invitaci\u00f3n de {userName}: \u00a1ellos ganan 10 monedas y t\u00fa ganas 5!"
+        "signupForRewards": "Reg\u00edstrate con el c\u00f3digo de invitaci\u00f3n de {userName}: \u00a1ellos ganan 10 monedas y t\u00fa ganas 5!",
+        "inviteCodeHint": "Introduce el c\u00f3digo de invitaci\u00f3n de un amigo para ganar monedas extra"
       },
       "sso": {
         "orDivider": "o",
@@ -179,7 +186,8 @@
         "locationMap": "Explorar",
         "notifications": "Notificaciones",
         "profileSettings": "Configuraci\u00f3n de perfil"
-      }
+      },
+      "noNotifications": "Aún no tienes notificaciones."
     }
   },
   "pages": {
@@ -489,12 +497,16 @@
       "pageTitleVerify": "Crear perfil: Verificar tel\u00e9fono",
       "createProfileSuccess": "\u00a1Perfil actualizado exitosamente!",
       "createProfileError": "Vaya, algo sali\u00f3 mal",
+      "updateProfileError": "No se pudo actualizar el perfil. Por favor, int\u00e9ntalo de nuevo.",
+      "verifyPhoneError": "No se pudo enviar el c\u00f3digo de verificaci\u00f3n. Por favor, int\u00e9ntalo de nuevo.",
+      "authError": "Tu sesi\u00f3n ha expirado. Por favor, inicia sesi\u00f3n de nuevo.",
       "phoneNumberAlreadyInUseError": "El n\u00famero de tel\u00e9fono ya est\u00e1 en uso para este tipo de cuenta",
+      "phoneRegionNotSupportedError": "La verificaci\u00f3n por SMS no est\u00e1 disponible para tu regi\u00f3n. Por favor, usa un n\u00famero de tel\u00e9fono diferente.",
       "tooManyAccounts": "Los usuarios est\u00e1n limitados a uno de cada tipo de cuenta (personal, creador, negocio)",
       "invalidRegion": "Regi\u00f3n inv\u00e1lida",
       "invalidCode": "El c\u00f3digo es inv\u00e1lido o ha expirado. Int\u00e9ntalo de nuevo o reenv\u00eda.",
-      "infoTitle": "\u00bfPor qu\u00e9 se requiere tel\u00e9fono?",
-      "info": "Estamos comprometidos con prevenir usuarios falsos, por lo que la autenticaci\u00f3n multifactor es indispensable. Requerir un correo electr\u00f3nico y un n\u00famero de tel\u00e9fono junto con requisitos de publicaci\u00f3n con geoetiqueta limita dr\u00e1sticamente la posibilidad de usuarios falsos."
+      "infoTitle": "\u00bfPor qu\u00e9 verificamos tu n\u00famero de tel\u00e9fono?",
+      "info": "Tu seguridad es nuestra prioridad. La verificaci\u00f3n telef\u00f3nica nos ayuda a mantener una comunidad aut\u00e9ntica y libre de cuentas falsas. Junto con el correo electr\u00f3nico y las protecciones basadas en ubicaci\u00f3n, garantizamos que te conectes con personas reales en un entorno de confianza."
     },
     "login": {
       "pageTitle": "Iniciar sesi\u00f3n",
@@ -523,18 +535,28 @@
         "changePassword": "Cambiar contrase\u00f1a",
         "createAForum": "Crear un chat grupal",
         "editProfile": "Editar Perfil",
+        "manageSpaces": "Administrar ubicaciones",
+        "editSpace": "Editar",
+        "postUpdate": "Publicar actualizaci\u00f3n",
         "sendRequest": "Enviar solicitud"
       },
       "connectionSent": "\u00a1Tu solicitud de conexi\u00f3n est\u00e1 en camino!",
       "h2": {
         "accountDetails": "Detalles de la cuenta",
         "addConnection": "Agregar nueva conexi\u00f3n",
-        "connections": "Conexiones"
+        "connections": "Conexiones",
+        "myLocations": "Mis ubicaciones",
+        "myEvents": "Mis eventos",
+        "myUpdates": "Mis actualizaciones"
       },
       "labels": {
+        "businessName": "Nombre del negocio",
         "email": "Correo electr\u00f3nico",
         "firstName": "Nombre",
         "lastName": "Apellido",
+        "noLocations": "A\u00fan no se han agregado ubicaciones. Crea tu primer espacio para comenzar.",
+        "noEvents": "No hay eventos pr\u00f3ximos",
+        "noUpdates": "A\u00fan no se han publicado actualizaciones",
         "phone": "Tel\u00e9fono",
         "phoneNumber": "N\u00famero de tel\u00e9fono",
         "userName": "Nombre de usuario"
@@ -552,13 +574,19 @@
       "failedMessageServer": "Ocurri\u00f3 un error inesperado. Por favor int\u00e9ntalo m\u00e1s tarde.",
       "h2": {
         "profileInfo": "Informaci\u00f3n del Perfil",
+        "businessInfo": "Informaci\u00f3n del Negocio",
         "privacy": "Privacidad y Contenido",
         "display": "Configuraci\u00f3n de Pantalla",
         "account": "Cuenta"
       },
       "labels": {
         "firstName": "Nombre",
+        "businessName": "Nombre del negocio",
+        "isBusinessAccount": "Cuenta de negocio",
+        "organizationDescription": "Descripci\u00f3n de la organizaci\u00f3n",
+        "businessType": "Tipo de negocio",
         "lastName": "Apellido",
+        "businessSuffix": "Sufijo comercial (ej. Inc., LLC, etc.)",
         "userName": "Nombre de usuario",
         "email": "Correo electr\u00f3nico",
         "bio": "Biograf\u00eda",
@@ -576,6 +604,73 @@
         "light": "Claro",
         "dark": "Oscuro",
         "retro": "Retro"
+      },
+      "businessTypeOptions": {
+        "small-business": "Peque\u00f1o negocio",
+        "restaurant-services": "Restaurante / Servicios de comida",
+        "retail": "Comercio minorista",
+        "health-wellness": "Salud y bienestar",
+        "professional-services": "Servicios profesionales",
+        "entertainment": "Entretenimiento",
+        "other": "Otro"
+      }
+    },
+    "editSpace": {
+      "pageTitle": "Editar ubicaci\u00f3n",
+      "successMessage": "Tu ubicaci\u00f3n se ha actualizado correctamente.",
+      "failedMessageBadRequest": "Por favor revisa tu informaci\u00f3n e int\u00e9ntalo de nuevo.",
+      "failedMessageServer": "Ocurri\u00f3 un error inesperado. Por favor int\u00e9ntalo m\u00e1s tarde.",
+      "h2": {
+        "basicInfo": "Informaci\u00f3n b\u00e1sica",
+        "contactLinks": "Contacto y enlaces"
+      },
+      "labels": {
+        "name": "Nombre de la ubicaci\u00f3n",
+        "description": "Descripci\u00f3n",
+        "address": "Direcci\u00f3n",
+        "phoneNumber": "N\u00famero de tel\u00e9fono",
+        "websiteUrl": "URL del sitio web",
+        "menuUrl": "URL del men\u00fa",
+        "orderUrl": "URL de pedido / entrega",
+        "reservationUrl": "URL de reservaci\u00f3n"
+      },
+      "buttons": {
+        "save": "Guardar cambios",
+        "backToProfile": "Volver al perfil"
+      }
+    },
+    "manageSpaces": {
+      "pageTitle": "Administrar ubicaciones",
+      "noLocations": "A\u00fan no has creado ninguna ubicaci\u00f3n.",
+      "buttons": {
+        "createNew": "Crear nueva ubicaci\u00f3n",
+        "createFirst": "Crea tu primera ubicaci\u00f3n",
+        "backToProfile": "Volver al perfil"
+      }
+    },
+    "createSpace": {
+      "pageTitle": "Crear ubicaci\u00f3n",
+      "failedMessageBadRequest": "Por favor revisa tu informaci\u00f3n e int\u00e9ntalo de nuevo.",
+      "failedMessageServer": "Ocurri\u00f3 un error inesperado. Por favor int\u00e9ntalo m\u00e1s tarde.",
+      "h2": {
+        "basicInfo": "Informaci\u00f3n b\u00e1sica",
+        "contactLinks": "Contacto y enlaces"
+      },
+      "labels": {
+        "name": "Nombre de la ubicaci\u00f3n",
+        "description": "Descripci\u00f3n",
+        "address": "Direcci\u00f3n",
+        "latitude": "Latitud",
+        "longitude": "Longitud",
+        "phoneNumber": "N\u00famero de tel\u00e9fono",
+        "websiteUrl": "URL del sitio web",
+        "menuUrl": "URL del men\u00fa",
+        "orderUrl": "URL de pedido / entrega",
+        "reservationUrl": "URL de reservaci\u00f3n"
+      },
+      "buttons": {
+        "create": "Crear ubicaci\u00f3n",
+        "cancel": "Cancelar"
       }
     },
     "underConstruction": {
@@ -689,7 +784,20 @@
     },
     "viewUser": {
       "buttons": {
-        "chat": "Chat"
+        "chat": "Chat",
+        "follow": "Seguir",
+        "viewAll": "Ver todo"
+      },
+      "headings": {
+        "about": "Acerca de",
+        "locations": "Nuestras ubicaciones",
+        "upcomingEvents": "Pr\u00f3ximos eventos",
+        "latestUpdates": "\u00daltimas actualizaciones"
+      },
+      "labels": {
+        "noLocations": "A\u00fan no hay ubicaciones listadas",
+        "noEvents": "No hay pr\u00f3ximos eventos",
+        "noUpdates": "No hay actualizaciones recientes"
       }
     }
   }

@@ -400,7 +400,9 @@ export default class SpacesStore {
             }
         }
 
+        // Sort by distance from the user's location so nearby results appear first
         queryString = queryString
+            .orderByRaw('ST_Distance("geomCenter"::geography, ST_MakePoint(?, ?)::geography) ASC', [conditions.longitude, conditions.latitude])
             .limit(limit)
             .offset(offset)
             .toString();

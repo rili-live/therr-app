@@ -100,7 +100,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             userEmail: ssoData.userEmail,
             hasIdToken: !!ssoData.idToken,
         });
-        this.props.login(ssoData, { google: ssoData.idToken })
+        return this.props.login(ssoData, { google: ssoData.idToken })
             .then((result: any) => {
                 console.log('[RegisterSSO] Login succeeded', result); // eslint-disable-line no-console
                 return result;
@@ -121,7 +121,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         const { inviteCode } = this.state;
         this.props.register({
             ...credentials,
-            inviteCode,
+            inviteCode: credentials.inviteCode || inviteCode,
         }).then((response: any) => {
             this.props.navigation.navigate('/login', {
                 state: {
