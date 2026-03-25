@@ -5,14 +5,16 @@ import { bindActionCreators } from 'redux';
 import { Link, NavigateFunction } from 'react-router-dom';
 import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
+import { Content } from 'therr-js-utilities/constants';
 import {
     Stack, Group, Title, Text, Badge, Anchor,
-    Paper, Skeleton, Button, Image,
+    Paper, Skeleton, Button, Image, Avatar,
 } from '@mantine/core';
 import { MantineSearchBox } from 'therr-react/components/mantine';
 import { ILocationState } from '../types/redux/location';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
+import getUserContentUri from '../utilities/getUserContentUri';
 
 export const DEFAULT_ITEMS_PER_PAGE = 50;
 export const DEFAULT_LATITUDE = 37.1261664; // Middle of U.S. - TODO: Use browser location
@@ -227,19 +229,40 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
     renderSpaceCard(space: any): JSX.Element {
         const categoryLabel = formatCategoryLabel(space.category);
+        const mediaPath = space.medias?.[0]?.path;
+        const mediaType = space.medias?.[0]?.type;
+        let spaceImage: string | undefined;
+        if (mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC) {
+            spaceImage = getUserContentUri(space.medias[0], 80, 80, true);
+        }
 
         return (
-            <Paper key={space.id} withBorder p="md" radius="md">
-                <Group justify="space-between" wrap="nowrap" align="flex-start">
-                    <Stack gap={4} style={{ flex: 1 }}>
+            <Paper key={space.id} withBorder p="md" radius="md" className="space-card">
+                <Group wrap="nowrap" align="flex-start" gap="md">
+                    {spaceImage ? (
+                        <Image
+                            src={spaceImage}
+                            alt={space.notificationMsg}
+                            w={72}
+                            h={72}
+                            radius="md"
+                            fit="cover"
+                            style={{ flexShrink: 0 }}
+                        />
+                    ) : (
+                        <Avatar size={72} radius="md" color="teal">
+                            {(space.notificationMsg || '?').charAt(0).toUpperCase()}
+                        </Avatar>
+                    )}
+                    <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
                         <Group gap="sm" wrap="wrap">
-                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="lg">
+                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="lg" style={{ lineHeight: 1.3 }}>
                                 {space.notificationMsg}
                             </Anchor>
                             {this.renderVisibilityBadge(space)}
                         </Group>
                         {space.addressReadable && (
-                            <Text size="sm" c="dimmed">{space.addressReadable}</Text>
+                            <Text size="sm" c="dimmed" lineClamp={1}>{space.addressReadable}</Text>
                         )}
                         <Group gap="xs" wrap="wrap">
                             {categoryLabel && (
