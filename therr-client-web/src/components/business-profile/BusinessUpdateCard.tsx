@@ -5,6 +5,7 @@ import {
 
 interface IBusinessUpdateCardProps {
     thought: any;
+    onThoughtClick?: (thoughtId: string) => void;
 }
 
 const formatDate = (dateStr: string): string => {
@@ -17,11 +18,19 @@ const formatDate = (dateStr: string): string => {
     });
 };
 
-const BusinessUpdateCard: React.FC<IBusinessUpdateCardProps> = ({ thought }) => {
+const BusinessUpdateCard: React.FC<IBusinessUpdateCardProps> = ({ thought, onThoughtClick }) => {
     const hashTags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
 
     return (
-        <Paper className="business-update-card" shadow="xs" radius="md" withBorder p="sm">
+        <Paper
+            className={`business-update-card${onThoughtClick ? ' business-update-card-clickable' : ''}`}
+            shadow="xs"
+            radius="md"
+            withBorder
+            p="sm"
+            onClick={onThoughtClick ? () => onThoughtClick(thought.id) : undefined}
+            style={onThoughtClick ? { cursor: 'pointer' } : undefined}
+        >
             <Stack gap="xs">
                 <Group justify="space-between" align="center">
                     <Text size="xs" c="dimmed">

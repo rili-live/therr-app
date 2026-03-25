@@ -112,6 +112,8 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
 
             if (fetchedUser?.isBusinessAccount) {
                 this.fetchBusinessData();
+            } else {
+                this.fetchUserThoughts();
             }
         }).catch(() => {
             this.props.navigation.navigate('/');
@@ -185,6 +187,25 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         });
     };
 
+    fetchUserThoughts = () => {
+        const { userId } = this.state;
+
+        UsersService.searchThoughts(
+            {
+                query: 'user',
+                itemsPerPage: 10,
+                pageNumber: 1,
+            },
+            { targetUserId: userId },
+        ).then((response: any) => {
+            this.setState({
+                userThoughts: response?.data?.results || [],
+            });
+        }).catch(() => {
+            // Silently fail - thoughts section just won't show
+        });
+    };
+
     getConnectionDetails = () => {
         const { user, userConnections } = this.props;
         const { userId } = this.state;
@@ -216,6 +237,10 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
 
     handleSpaceClick = (spaceId: string) => {
         this.props.navigation.navigate(`/spaces/${spaceId}`);
+    };
+
+    handleThoughtClick = (thoughtId: string) => {
+        this.props.navigation.navigate(`/thoughts/${thoughtId}`);
     };
 
     renderSkeleton(): JSX.Element {
@@ -388,7 +413,11 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                                 {!isBusinessDataLoading && (
                                     <Stack gap="sm">
                                         {userThoughts.slice(0, 5).map((thought: any) => (
-                                            <BusinessUpdateCard key={thought.id} thought={thought} />
+                                            <BusinessUpdateCard
+                                                key={thought.id}
+                                                thought={thought}
+                                                onThoughtClick={this.handleThoughtClick}
+                                            />
                                         ))}
                                     </Stack>
                                 )}
@@ -402,6 +431,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
 
     renderPersonalProfile(userInView: any): JSX.Element {
         const { user } = this.props;
+        const { userThoughts } = this.state;
 
         const isOwnProfile = user.isAuthenticated && user.details?.id === userInView.id;
         const isConnected = !isOwnProfile && !!this.getConnectionDetails();
@@ -451,6 +481,27 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                             <Title order={3} size="h4">{this.props.translate('pages.viewUser.headings.about')}</Title>
                             <Text mt="xs" style={{ whiteSpace: 'pre-wrap' }}>{userInView.settingsBio}</Text>
                         </div>
+                    )}
+
+                    {/* Updates Section (Thoughts) */}
+                    {userThoughts.length > 0 && (
+                        <>
+                            <Divider />
+                            <div className="business-updates-section">
+                                <Title order={2} size="h3" mb="md">
+                                    {this.props.translate('pages.viewUser.headings.latestUpdates')}
+                                </Title>
+                                <Stack gap="sm">
+                                    {userThoughts.slice(0, 5).map((thought: any) => (
+                                        <BusinessUpdateCard
+                                            key={thought.id}
+                                            thought={thought}
+                                            onThoughtClick={this.handleThoughtClick}
+                                        />
+                                    ))}
+                                </Stack>
+                            </div>
+                        </>
                     )}
                 </Stack>
             </Container>
