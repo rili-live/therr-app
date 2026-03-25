@@ -362,15 +362,21 @@ export default class SpacesStore {
         if (conditions.filterBy !== 'isClaimPending') {
             firstWhere.isClaimPending = false; // hide pending claim requests
         }
+        const hasGeoCoordinates = conditions.longitude != null && conditions.latitude != null; // eslint-disable-line eqeqeq
+        const isUserIdFilter = conditions.filterBy === 'fromUserIds' && fromUserIds.length > 0;
+
         let queryString: any = knexBuilder
             .select(returningMod)
-            .from(SPACES_TABLE_NAME)
-            // TODO: Determine a better way to select spaces that are most relevant to the user
-            // .orderBy(`${SPACES_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
+            .from(SPACES_TABLE_NAME);
+
+        // Skip geospatial filter when searching for a specific user's spaces (no coordinates needed)
+        if (hasGeoCoordinates && !isUserIdFilter) {
             // NOTE: Cast to a geography type to search distance within n meters
             // Use geomCenter (POINT) instead of geom (POLYGON) for faster proximity checks
-            .where(knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])) // eslint-disable-line quotes, max-len
-            .andWhere(firstWhere);
+            queryString = queryString.where(knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])); // eslint-disable-line quotes, max-len
+        }
+
+        queryString = queryString.andWhere(firstWhere);
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq
             const operator = conditions.filterOperator || '=';
@@ -400,9 +406,16 @@ export default class SpacesStore {
             }
         }
 
-        // Sort by distance from the user's location so nearby results appear first
+        // Sort by distance when geo coordinates are available, otherwise by creation date
+        if (hasGeoCoordinates && !isUserIdFilter) {
+            queryString = queryString
+                .orderByRaw('ST_Distance("geomCenter"::geography, ST_MakePoint(?, ?)::geography) ASC', [conditions.longitude, conditions.latitude]);
+        } else {
+            queryString = queryString
+                .orderBy('createdAt', 'desc');
+        }
+
         queryString = queryString
-            .orderByRaw('ST_Distance("geomCenter"::geography, ST_MakePoint(?, ?)::geography) ASC', [conditions.longitude, conditions.latitude])
             .limit(limit)
             .offset(offset)
             .toString();

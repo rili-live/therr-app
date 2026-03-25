@@ -799,6 +799,10 @@
         "noEvents": "No hay pr\u00f3ximos eventos",
         "noUpdates": "No hay actualizaciones recientes"
       }
+    },
+    "userLocations": {
+      "pageTitle": "Ubicaciones",
+      "headingWithName": "Ubicaciones de {{name}}"
     }
   }
 }
