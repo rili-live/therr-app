@@ -67,8 +67,10 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                     delete userData.message;
 
                     sessionStorage.setItem('therrUser', JSON.stringify(userData));
+                    localStorage.setItem('therrUser', JSON.stringify(userData));
                     if (refreshToken) {
                         sessionStorage.setItem('therrRefreshToken', refreshToken);
+                        localStorage.setItem('therrRefreshToken', refreshToken);
                     }
 
                     store.dispatch({
@@ -105,14 +107,21 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                 }
             })
             .catch((error) => {
-                if (error.message === 'Token has expired') {
+                if (error.message === 'Email already verified') {
+                    this.setState({
+                        errorReason: 'AlreadyVerified',
+                        verificationStatus: 'failed',
+                    });
+                } else if (error.message === 'Token has expired') {
                     this.setState({
                         errorReason: 'TokenExpired',
+                        verificationStatus: 'failed',
+                    });
+                } else {
+                    this.setState({
+                        verificationStatus: 'failed',
                     });
                 }
-                this.setState({
-                    verificationStatus: 'failed',
-                });
             });
     }
 
@@ -170,6 +179,10 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                                 && <Alert color="green" variant="light">{this.props.translate('pages.emailVerification.successMessage')}</Alert>
                             }
                             {
+                                verificationStatus === 'failed' && errorReason === 'AlreadyVerified'
+                                && <Alert color="blue" variant="light">{this.props.translate('pages.emailVerification.failedMessageAlreadyVerified')}</Alert>
+                            }
+                            {
                                 verificationStatus === 'failed' && errorReason === 'TokenExpired'
                                 && <Alert color="red" variant="light">{this.props.translate('pages.emailVerification.failedMessageExpired')}</Alert>
                             }
@@ -178,7 +191,10 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                                 && <Alert color="red" variant="light">{this.props.translate('pages.emailVerification.failedMessageUserNotFound')}</Alert>
                             }
                             {
-                                verificationStatus === 'failed' && errorReason !== 'TokenExpired' && errorReason !== 'UserNotFound'
+                                verificationStatus === 'failed'
+                                && errorReason !== 'AlreadyVerified'
+                                && errorReason !== 'TokenExpired'
+                                && errorReason !== 'UserNotFound'
                                 && <Alert color="red" variant="light">{this.props.translate('pages.emailVerification.failedMessage')}</Alert>
                             }
                             <div className="text-center">
@@ -186,7 +202,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                             </div>
 
                             {
-                                verificationStatus === 'failed'
+                                verificationStatus === 'failed' && errorReason !== 'AlreadyVerified'
                                 && <>
                                     <MantineInput
                                         type="text"

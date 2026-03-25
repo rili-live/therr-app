@@ -3,16 +3,21 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
-import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
+import { MapsService, UsersService } from 'therr-react/services';
 import {
     Container, Stack, Group, Title, Text, Anchor,
     Divider, Avatar, Skeleton, Breadcrumbs, Button,
+    SimpleGrid,
 } from '@mantine/core';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserImageUri from '../utilities/getUserImageUri';
+import BusinessSpaceCard from '../components/business-profile/BusinessSpaceCard';
+import BusinessEventCard from '../components/business-profile/BusinessEventCard';
+import BusinessUpdateCard from '../components/business-profile/BusinessUpdateCard';
 
 interface IViewUserRouterProps {
     navigation: {
@@ -24,13 +29,11 @@ interface IViewUserRouterProps {
 }
 
 interface IViewUserDispatchProps {
-    login: Function;
     getUser: Function;
     searchUserConnections: Function;
 }
 
 interface IStoreProps extends IViewUserDispatchProps {
-    content: IContentState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -43,10 +46,13 @@ interface IViewUserProps extends IViewUserRouterProps, IStoreProps {
 
 interface IViewUserState {
     userId: string;
+    userSpaces: any[];
+    userEvents: any[];
+    userThoughts: any[];
+    isBusinessDataLoading: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
-    content: state.content,
     user: state.user,
     userConnections: state.userConnections,
 });
@@ -73,6 +79,10 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
 
         this.state = {
             userId: props.routeParams.userId,
+            userSpaces: [],
+            userEvents: [],
+            userThoughts: [],
+            isBusinessDataLoading: false,
         };
     }
 
@@ -94,8 +104,15 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
             getUser, searchUserConnections, user, userConnections,
         } = this.props;
 
-        getUser(this.state.userId).then((fetchedUser) => {
-            document.title = `${fetchedUser?.firstName} ${fetchedUser?.lastName} | Therr App`;
+        getUser(this.state.userId).then((fetchedUser: any) => {
+            const displayName = fetchedUser?.isBusinessAccount
+                ? fetchedUser.firstName
+                : `${fetchedUser?.firstName} ${fetchedUser?.lastName}`;
+            document.title = `${displayName} | Therr App`;
+
+            if (fetchedUser?.isBusinessAccount) {
+                this.fetchBusinessData();
+            }
         }).catch(() => {
             this.props.navigation.navigate('/');
         });
@@ -114,6 +131,60 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         }
     };
 
+    fetchBusinessData = () => {
+        const { userId } = this.state;
+
+        this.setState({ isBusinessDataLoading: true });
+
+        const spacesPromise = MapsService.searchSpaces(
+            {
+                query: 'user',
+                itemsPerPage: 20,
+                pageNumber: 1,
+            },
+            { targetUserId: userId } as any,
+        ).then((response: any) => response?.data?.results || []).catch(() => []);
+
+        const thoughtsPromise = UsersService.searchThoughts(
+            {
+                query: 'user',
+                itemsPerPage: 10,
+                pageNumber: 1,
+            },
+            { targetUserId: userId },
+        ).then((response: any) => response?.data?.results || []).catch(() => []);
+
+        Promise.all([spacesPromise, thoughtsPromise]).then(([spaces, thoughts]) => {
+            // Collect events from spaces that have them
+            const events: any[] = [];
+            spaces.forEach((space: any) => {
+                if (space.events?.length) {
+                    space.events.forEach((event: any) => {
+                        events.push({
+                            ...event,
+                            spaceName: space.notificationMsg || space.message,
+                        });
+                    });
+                }
+            });
+            // Sort events by start date
+            events.sort((a, b) => {
+                const dateA = new Date(a.scheduleStartAt || 0).getTime();
+                const dateB = new Date(b.scheduleStartAt || 0).getTime();
+                return dateA - dateB;
+            });
+
+            this.setState({
+                userSpaces: spaces,
+                userEvents: events,
+                userThoughts: thoughts,
+                isBusinessDataLoading: false,
+            });
+        }).catch(() => {
+            this.setState({ isBusinessDataLoading: false });
+        });
+    };
+
     getConnectionDetails = () => {
         const { user, userConnections } = this.props;
         const { userId } = this.state;
@@ -127,7 +198,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         return connection.users.find((u: any) => u.id !== user.details.id);
     };
 
-    handleChatClick = (e) => {
+    handleChatClick = (e: any) => {
         const { onInitMessaging, user } = this.props;
 
         if (!user.isAuthenticated) {
@@ -143,7 +214,9 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         }
     };
 
-    login = (credentials: any) => this.props.login(credentials);
+    handleSpaceClick = (spaceId: string) => {
+        this.props.navigation.navigate(`/spaces/${spaceId}`);
+    };
 
     renderSkeleton(): JSX.Element {
         return (
@@ -165,11 +238,13 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
     }
 
     renderBreadcrumbs(userInView: any): JSX.Element {
-        const fullName = `${userInView.firstName} ${userInView.lastName}`;
+        const displayName = userInView.isBusinessAccount
+            ? userInView.firstName
+            : `${userInView.firstName} ${userInView.lastName}`;
         const items = [
             <Anchor href="/" key="home">{this.props.translate('pages.navigation.home')}</Anchor>,
             <Text key="users" component="span">{this.props.translate('pages.navigation.users')}</Text>,
-            <Text key="name" component="span">{fullName}</Text>,
+            <Text key="name" component="span">{displayName}</Text>,
         ];
 
         return <Breadcrumbs className="user-breadcrumbs">{items}</Breadcrumbs>;
@@ -196,13 +271,137 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         );
     }
 
-    public render(): JSX.Element {
+    renderBusinessProfile(userInView: any): JSX.Element {
         const { user } = this.props;
-        const userInView = user.userInView;
+        const {
+            userSpaces, userEvents, userThoughts, isBusinessDataLoading,
+        } = this.state;
 
-        if (!userInView) {
-            return this.renderSkeleton();
-        }
+        const isOwnProfile = user.isAuthenticated && user.details?.id === userInView.id;
+        const isConnected = !isOwnProfile && !!this.getConnectionDetails();
+        const showChatButton = !isOwnProfile && (isConnected || !user.isAuthenticated);
+        const userImageUri = getUserImageUri({ details: userInView }, 480);
+
+        return (
+            <Container id="page_view_user" className="business-profile" size="lg" py="xl">
+                <Stack gap="lg">
+                    {this.renderBreadcrumbs(userInView)}
+
+                    {/* Business Header */}
+                    <Group gap="lg" align="flex-start" className="user-profile-header" wrap="wrap">
+                        <Avatar
+                            src={userImageUri}
+                            alt={userInView.firstName}
+                            size={120}
+                            radius="50%"
+                            className="user-avatar"
+                        />
+                        <Stack gap="xs" style={{ flex: 1, minWidth: 200 }}>
+                            <Title order={1}>{userInView.firstName}</Title>
+                            {userInView.userName && (
+                                <Text size="lg" c="dimmed">@{userInView.userName}</Text>
+                            )}
+                            {userInView.settingsBio && (
+                                <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{userInView.settingsBio}</Text>
+                            )}
+                            {this.renderSocialLinks(userInView)}
+                            <Group mt="xs" gap="sm">
+                                {showChatButton && (
+                                    <Button variant="filled" onClick={this.handleChatClick}>
+                                        {this.props.translate('pages.viewUser.buttons.chat')}
+                                    </Button>
+                                )}
+                            </Group>
+                        </Stack>
+                    </Group>
+
+                    <Divider />
+
+                    {/* Spaces Section - Hero Content */}
+                    <div className="business-spaces-section">
+                        <Title order={2} size="h3" mb="md">
+                            {this.props.translate('pages.viewUser.headings.locations')}
+                        </Title>
+                        {isBusinessDataLoading && (
+                            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                                {[1, 2, 3].map((i) => <Skeleton key={i} height={240} radius="md" />)}
+                            </SimpleGrid>
+                        )}
+                        {!isBusinessDataLoading && userSpaces.length === 0 && (
+                            <Text c="dimmed" fs="italic">{this.props.translate('pages.viewUser.labels.noLocations')}</Text>
+                        )}
+                        {!isBusinessDataLoading && userSpaces.length > 0 && (
+                            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                                {userSpaces.map((space: any) => (
+                                    <BusinessSpaceCard
+                                        key={space.id}
+                                        space={space}
+                                        translate={this.props.translate}
+                                        onSpaceClick={this.handleSpaceClick}
+                                    />
+                                ))}
+                            </SimpleGrid>
+                        )}
+                    </div>
+
+                    {/* Events Section */}
+                    {(isBusinessDataLoading || userEvents.length > 0) && (
+                        <>
+                            <Divider />
+                            <div className="business-events-section">
+                                <Title order={2} size="h3" mb="md">
+                                    {this.props.translate('pages.viewUser.headings.upcomingEvents')}
+                                </Title>
+                                {isBusinessDataLoading && (
+                                    <Stack gap="sm">
+                                        {[1, 2].map((i) => <Skeleton key={i} height={80} radius="md" />)}
+                                    </Stack>
+                                )}
+                                {!isBusinessDataLoading && (
+                                    <Stack gap="sm">
+                                        {userEvents.slice(0, 4).map((event: any) => (
+                                            <BusinessEventCard
+                                                key={event.id}
+                                                event={event}
+                                                spaceName={event.spaceName}
+                                            />
+                                        ))}
+                                    </Stack>
+                                )}
+                            </div>
+                        </>
+                    )}
+
+                    {/* Updates Section (Thoughts) */}
+                    {(isBusinessDataLoading || userThoughts.length > 0) && (
+                        <>
+                            <Divider />
+                            <div className="business-updates-section">
+                                <Title order={2} size="h3" mb="md">
+                                    {this.props.translate('pages.viewUser.headings.latestUpdates')}
+                                </Title>
+                                {isBusinessDataLoading && (
+                                    <Stack gap="sm">
+                                        {[1, 2].map((i) => <Skeleton key={i} height={100} radius="md" />)}
+                                    </Stack>
+                                )}
+                                {!isBusinessDataLoading && (
+                                    <Stack gap="sm">
+                                        {userThoughts.slice(0, 5).map((thought: any) => (
+                                            <BusinessUpdateCard key={thought.id} thought={thought} />
+                                        ))}
+                                    </Stack>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </Stack>
+            </Container>
+        );
+    }
+
+    renderPersonalProfile(userInView: any): JSX.Element {
+        const { user } = this.props;
 
         const isOwnProfile = user.isAuthenticated && user.details?.id === userInView.id;
         const isConnected = !isOwnProfile && !!this.getConnectionDetails();
@@ -214,7 +413,6 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         return (
             <Container id="page_view_user" size="lg" py="xl">
                 <Stack gap="md">
-                    {/* Breadcrumbs */}
                     {this.renderBreadcrumbs(userInView)}
 
                     {/* Profile Header */}
@@ -250,13 +448,28 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                     {/* Bio */}
                     {userInView.settingsBio && (
                         <div className="user-bio">
-                            <Title order={3} size="h4">About</Title>
+                            <Title order={3} size="h4">{this.props.translate('pages.viewUser.headings.about')}</Title>
                             <Text mt="xs" style={{ whiteSpace: 'pre-wrap' }}>{userInView.settingsBio}</Text>
                         </div>
                     )}
                 </Stack>
             </Container>
         );
+    }
+
+    public render(): JSX.Element {
+        const { user } = this.props;
+        const userInView = user.userInView;
+
+        if (!userInView) {
+            return this.renderSkeleton();
+        }
+
+        if (userInView.isBusinessAccount) {
+            return this.renderBusinessProfile(userInView);
+        }
+
+        return this.renderPersonalProfile(userInView);
     }
 }
 
