@@ -166,3 +166,47 @@
 .thought-card-reactions {
   padding-top: 4px;
 }
+
+.thought-card-clickable {
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  [data-mantine-color-scheme="dark"] & {
+    &:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+  }
+}
+
+// View thought detail page
+#page_view_thought {
+  min-height: calc(100vh - 200px);
+}
+
+.view-thought-main {
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+
+  [data-mantine-color-scheme="dark"] & {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.view-thought-reply-input {
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+
+  [data-mantine-color-scheme="dark"] & {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}

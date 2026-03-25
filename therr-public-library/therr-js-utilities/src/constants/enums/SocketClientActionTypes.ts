@@ -10,6 +10,7 @@ enum SocketClientActionTypes {
     // ROOMS
     EXIT_ROOM = 'CLIENT:EXIT_ROOM',
     JOIN_ROOM = 'CLIENT:JOIN_ROOM',
+    REQUEST_ROOMS_LIST = 'CLIENT:REQUEST_ROOMS_LIST',
 
     // MAPS
 

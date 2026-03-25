@@ -78,6 +78,37 @@ jobs:
           root: ~/
           paths:
             - project
+  build_and_test_changed_services:
+    docker:
+      - image: cimg/go:1.24.4
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
+    environment:
+      CICD_BRANCH: << pipeline.git.branch >>
+      GIT_SHA: << pipeline.git.revision >>
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - attach_workspace:
+          at: ~/
+      - load_deps_image:
+          for: building and testing
+      - run:
+          name: Build Docker images for changed services
+          command: ./_bin/cicd/build-changed-services.sh
+      - run:
+          name: Run unit tests for changed services
+          command: ./_bin/cicd/test-changed-services-unit.sh
+  lint_changed_files:
+    docker:
+      - image: cimg/node:24.12.0
+    steps:
+      - checkout
+      - run:
+          name: Lint changed files
+          command: ./_bin/cicd/lint-changed-files.sh
   docker_build_test_publish_images:
     docker:
       - image: cimg/go:1.24.4
@@ -184,6 +215,22 @@ workflows:
           filters:
             branches:
               ignore:
+                - stage
+                - main
+      - build_and_test_changed_services:
+          requires:
+          - docker_build_base_image
+          filters:
+            branches:
+              ignore:
+                - general
+                - stage
+                - main
+      - lint_changed_files:
+          filters:
+            branches:
+              ignore:
+                - general
                 - stage
                 - main
       - docker_build_test_publish_images:

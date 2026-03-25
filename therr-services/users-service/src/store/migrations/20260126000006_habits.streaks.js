@@ -4,13 +4,16 @@ exports.up = (knex) => knex.schema.withSchema('habits').createTable('streaks', (
     // References
     table.uuid('userId').notNullable()
         .references('id').inTable('main.users')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('habitGoalId').notNullable()
         .references('id').inTable('habits.habit_goals')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('pactId')
         .references('id').inTable('habits.pacts')
-        .onUpdate('CASCADE').onDelete('SET NULL');
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL');
 
     // Current Streak
     table.integer('currentStreak').notNullable().defaultTo(0);

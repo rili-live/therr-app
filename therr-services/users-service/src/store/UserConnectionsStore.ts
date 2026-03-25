@@ -200,24 +200,30 @@ export default class UserConnectionsStore {
             .innerJoin(USERS_TABLE_NAME, function () {
                 if (conditions?.userId) {
                     this.on(function () {
-                        this.on(knexBuilder.raw(`("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != '${conditions.userId}')`));
-                        this.orOn(knexBuilder.raw(`("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != '${conditions.userId}')`));
+                        // eslint-disable-next-line max-len
+                        this.on(knexBuilder.raw('("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != ?)', [conditions.userId]));
+                        // eslint-disable-next-line max-len
+                        this.orOn(knexBuilder.raw('("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != ?)', [conditions.userId]));
                     });
                 } else if (conditions.filterBy === 'acceptingUserId' && conditions.query && (!conditions.filterOperator || conditions.filterOperator === '=')) {
                     // NOTE: This is a backwards compatibility implementation due to gross usage of this method
                     this.on(function () {
-                        this.on(knexBuilder.raw(`("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != '${conditions.query}')`));
+                        // eslint-disable-next-line max-len
+                        this.on(knexBuilder.raw('("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != ?)', [conditions.query]));
                         if (shouldCheckReverse) {
-                            this.orOn(knexBuilder.raw(`("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != '${conditions.query}')`));
+                            // eslint-disable-next-line max-len
+                            this.orOn(knexBuilder.raw('("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != ?)', [conditions.query]));
                         }
                     });
                 // eslint-disable-next-line max-len
                 } else if (conditions.filterBy === 'requestingUserId' && conditions.query && (!conditions.filterOperator || conditions.filterOperator === '=')) {
                     // NOTE: This is a backwards compatibility implementation due to gross usage of this method
                     this.on(function () {
-                        this.on(knexBuilder.raw(`("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != '${conditions.query}')`));
+                        // eslint-disable-next-line max-len
+                        this.on(knexBuilder.raw('("userConnections"."requestingUserId" = "users".id AND "requestingUserId" != ?)', [conditions.query]));
                         if (shouldCheckReverse) {
-                            this.orOn(knexBuilder.raw(`("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != '${conditions.query}')`));
+                            // eslint-disable-next-line max-len
+                            this.orOn(knexBuilder.raw('("userConnections"."acceptingUserId" = "users".id AND "acceptingUserId" != ?)', [conditions.query]));
                         }
                     });
                 } else {
@@ -236,26 +242,33 @@ export default class UserConnectionsStore {
         if (conditions.userId) {
             queryString = queryString.andWhere(knexBuilder.raw(
                 // eslint-disable-next-line max-len
-                `("userConnections"."requestingUserId" = '${conditions.userId}' OR "userConnections"."acceptingUserId" = '${conditions.userId}')`,
+                '("userConnections"."requestingUserId" = ? OR "userConnections"."acceptingUserId" = ?)',
+                [conditions.userId, conditions.userId],
             ));
         }
 
         // TODO: Compare query performance and consider using `findUserConnections` method instead
         if (conditions.filterBy === 'lastKnownLocation' && conditions.latitude && conditions.longitude) {
             queryString = queryString.where(
-                knexBuilder.raw(`ST_DWithin("lastKnownLocation", ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`), // eslint-disable-line quotes, max-len
+                knexBuilder.raw('ST_DWithin("lastKnownLocation", ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax]), // eslint-disable-line quotes, max-len
             );
         } else if (conditions.filterBy && conditions.query) {
-            const operator = conditions.filterOperator || '=';
+            const allowedOperators = ['=', '!=', '<', '>', '<=', '>=', 'ilike', 'like'];
+            const operator = allowedOperators.includes((conditions.filterOperator || '=').toLowerCase())
+                ? (conditions.filterOperator || '=')
+                : '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
-            let rawQuery = `("userConnections"."requestingUserId" ${operator} '${query}'`;
             if (shouldCheckReverse === 'true') {
-                rawQuery = `${rawQuery} OR "userConnections"."acceptingUserId" ${operator} '${query}')`;
+                queryString = queryString.andWhere(knexBuilder.raw(
+                    `("userConnections"."requestingUserId" ${operator} ? OR "userConnections"."acceptingUserId" ${operator} ?)`,
+                    [query, query],
+                ));
+            } else {
+                queryString = queryString.andWhere(knexBuilder.raw(
+                    `"userConnections"."requestingUserId" ${operator} ?`,
+                    [query],
+                ));
             }
-            queryString = queryString.andWhere(knexBuilder.raw(
-                // eslint-disable-next-line max-len
-                rawQuery,
-            ));
         }
 
         // if (groupBy) {

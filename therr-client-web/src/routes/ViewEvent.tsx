@@ -16,6 +16,7 @@ import {
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
+import ProgressiveImage from '../components/ProgressiveImage';
 
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
@@ -242,6 +243,7 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
                                     h={80}
                                     radius="sm"
                                     fit="cover"
+                                    loading="lazy"
                                 />
                             )}
                             <Stack gap={4}>
@@ -368,12 +370,13 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
                     {/* Hero Image */}
                     {eventMedia && (
                         <div className="event-hero-image-wrapper">
-                            <Image
+                            <ProgressiveImage
                                 src={eventMedia}
                                 alt={event.notificationMsg}
                                 className="event-hero-image"
                                 fallbackSrc="/assets/images/meta-image-logo.png"
                                 radius="md"
+                                fetchPriority="high"
                             />
                         </div>
                     )}
@@ -417,10 +420,10 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
                         <Text fw={600} ta="center">{this.props.translate('pages.viewSpace.labels.getFullExperience')}</Text>
                         <Group justify="center" mt="sm" gap="md">
                             <Anchor href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
-                                <Image aria-label="apple store link" maw={120} src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
+                                <Image aria-label="apple store link" maw={120} src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" loading="lazy" />
                             </Anchor>
                             <Anchor href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
-                                <Image aria-label="play store link" maw={120} src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" />
+                                <Image aria-label="play store link" maw={120} src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" loading="lazy" />
                             </Anchor>
                         </Group>
                     </Paper>

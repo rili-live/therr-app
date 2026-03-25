@@ -5,7 +5,7 @@ import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
 import { IUserState } from 'therr-react/types';
 import LoginForm from '../components/forms/LoginForm';
-import { shouldRenderLoginForm, ILoginProps, routeAfterLogin } from './Login';
+import { shouldRenderLoginForm, ILoginProps, getRouteAfterLogin } from './Login';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
@@ -48,9 +48,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     static getDerivedStateFromProps(nextProps: IHomeProps) {
         if (!shouldRenderLoginForm(nextProps as unknown as ILoginProps)) {
-            // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
-            // Causes a flicker / Need to investigate further
-            setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
+            const destination = getRouteAfterLogin(nextProps.user);
+            setTimeout(() => nextProps.navigation.navigate(destination));
             return null;
         }
         return {};
