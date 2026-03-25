@@ -27,7 +27,7 @@ import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import BusinessSpaceCard from '../components/business-profile/BusinessSpaceCard';
 import BusinessEventCard from '../components/business-profile/BusinessEventCard';
-import BusinessUpdateCard from '../components/business-profile/BusinessUpdateCard';
+import ThoughtCard from '../components/business-profile/ThoughtCard';
 
 interface IUserProfileRouterProps {
     navigation: {
@@ -353,7 +353,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                     {!isBusinessDataLoading && (
                                         <Stack gap="sm">
                                             {myThoughts.slice(0, 5).map((thought: any) => (
-                                                <BusinessUpdateCard key={thought.id} thought={thought} />
+                                                <ThoughtCard key={thought.id} thought={thought} />
                                             ))}
                                         </Stack>
                                     )}
@@ -497,7 +497,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         {!isThoughtsLoading && myThoughts.length > 0 && (
                             <Stack gap="sm">
                                 {myThoughts.map((thought: any) => (
-                                    <BusinessUpdateCard key={thought.id} thought={thought} />
+                                    <ThoughtCard key={thought.id} thought={thought} />
                                 ))}
                             </Stack>
                         )}

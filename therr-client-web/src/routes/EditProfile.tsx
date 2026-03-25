@@ -92,8 +92,12 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
     }
 
     isFormDisabled = () => {
+        const { user } = this.props;
         const { inputs, isSubmitting } = this.state;
-        if (isSubmitting || !inputs.firstName || !inputs.userName || !inputs.lastName) {
+        if (isSubmitting || !inputs.firstName || !inputs.userName) {
+            return true;
+        }
+        if (!user.details?.isBusinessAccount && !inputs.lastName) {
             return true;
         }
         return false;
@@ -215,6 +219,7 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
         }
 
         const bioCharCount = inputs.settingsBio?.length || 0;
+        const isBusiness = user.details.isBusinessAccount;
 
         return (
             <div id="page_edit_profile">
@@ -266,7 +271,9 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                                 onEnter={this.onSubmit}
                                 translateFn={this.props.translate}
                                 validations={['isRequired']}
-                                label={this.props.translate('pages.editProfile.labels.firstName')}
+                                label={isBusiness
+                                    ? this.props.translate('pages.editProfile.labels.businessName')
+                                    : this.props.translate('pages.editProfile.labels.firstName')}
                             />
                             <MantineInput
                                 id="last_name"
@@ -275,8 +282,10 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                                 onChange={this.onInputChange}
                                 onEnter={this.onSubmit}
                                 translateFn={this.props.translate}
-                                validations={['isRequired']}
-                                label={this.props.translate('pages.editProfile.labels.lastName')}
+                                validations={isBusiness ? [] : ['isRequired']}
+                                label={isBusiness
+                                    ? this.props.translate('pages.editProfile.labels.businessSuffix')
+                                    : this.props.translate('pages.editProfile.labels.lastName')}
                             />
                             <MantineInput
                                 id="user_name"
