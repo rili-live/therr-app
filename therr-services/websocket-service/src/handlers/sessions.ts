@@ -51,8 +51,8 @@ const update = (internalConfig: IInternalConfig, {
             app: appName,
             socketId: socket.id,
             ip: (socket.handshake.headers as any).host.split(':')[0],
-            // 30 minutes
-            ttl: 60 * 1000 * 30,
+            // 30 minutes (in seconds, matching Redis setex)
+            ttl: 60 * 30,
             data: {
                 id: user.id,
                 socketId: socket.id,

@@ -4,6 +4,7 @@ import {
     createOrUpdateMultiSpaceReactions,
     getSpaceReactions,
     getSpaceRatings,
+    getBatchSpaceRatings,
     getReactionsBySpaceId,
     countSpaceReactions,
     findSpaceReactions,
@@ -26,6 +27,7 @@ router.get('/:spaceId', getReactionsBySpaceId);
 router.get('/:spaceId/count', countSpaceReactions);
 
 // POST
+router.post('/ratings/batch', getBatchSpaceRatings);
 router.post('/find/dynamic', findSpaceReactions);
 
 export default router;

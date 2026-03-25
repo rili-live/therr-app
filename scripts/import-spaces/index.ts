@@ -130,7 +130,7 @@ async function insertSpaces(db: Pool, spaces: ISpaceInsertParams[]): Promise<num
              "isForSale", "isHirable", "isPromotional", "isExclusiveToGroups",
              category, "areaType", valuation, region,
              "addressReadable", "addressStreetAddress", "addressRegion", "addressLocality", "postalCode",
-             "phoneNumber", "websiteUrl", "isPointOfInterest", "openingHours",
+             "phoneNumber", "businessEmail", "websiteUrl", "isPointOfInterest", "openingHours",
              geom, "geomCenter")
           VALUES
             ($1, $2, $3, $4, $5,
@@ -140,8 +140,8 @@ async function insertSpaces(db: Pool, spaces: ISpaceInsertParams[]): Promise<num
              $18, $19, $20, $21,
              $22, $23, $24, $25,
              $26, $27, $28, $29, $30::integer,
-             $31, $32, $33, $34::jsonb,
-             ST_SetSRID(ST_Buffer(ST_MakePoint($11::float8, $10::float8)::geography, $35::float8)::geometry, 4326),
+             $31, $32, $33, $34, $35::jsonb,
+             ST_SetSRID(ST_Buffer(ST_MakePoint($11::float8, $10::float8)::geography, $36::float8)::geometry, 4326),
              ST_SetSRID(ST_MakePoint($11::float8, $10::float8), 4326))
           ON CONFLICT DO NOTHING
           RETURNING id`,
@@ -153,8 +153,8 @@ async function insertSpaces(db: Pool, spaces: ISpaceInsertParams[]): Promise<num
             space.isForSale, space.isHirable, space.isPromotional, space.isExclusiveToGroups,
             space.category, space.areaType, space.valuation, space.region,
             space.addressReadable, space.addressStreetAddress, space.addressRegion, space.addressLocality, space.postalCode,
-            space.phoneNumber, space.websiteUrl, space.isPointOfInterest, space.openingHours,
-            space.radius, // $35: separate param for ST_Buffer to avoid type ambiguity
+            space.phoneNumber, space.businessEmail, space.websiteUrl, space.isPointOfInterest, space.openingHours,
+            space.radius, // $36: separate param for ST_Buffer to avoid type ambiguity
           ],
         );
         if (result.rowCount && result.rowCount > 0) {

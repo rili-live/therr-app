@@ -7,7 +7,7 @@ import qs from 'qs';
 import { IUserState } from 'therr-react/types';
 import RegisterForm from '../components/forms/RegisterForm';
 import UsersActions from '../redux/actions/UsersActions';
-import { routeAfterLogin, shouldRenderLoginForm } from './Login';
+import { getRouteAfterLogin, shouldRenderLoginForm } from './Login';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 
@@ -57,7 +57,8 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
                 name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
                 email: nextProps.user.details.email,
             });
-            setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
+            const destination = getRouteAfterLogin(nextProps.user);
+            setTimeout(() => nextProps.navigation.navigate(destination));
             return null;
         }
         return {};

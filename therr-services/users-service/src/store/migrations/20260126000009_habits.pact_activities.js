@@ -4,13 +4,16 @@ exports.up = (knex) => knex.schema.withSchema('habits').createTable('pact_activi
     // References
     table.uuid('pactId').notNullable()
         .references('id').inTable('habits.pacts')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('userId').notNullable()
         .references('id').inTable('main.users')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('targetUserId')
         .references('id').inTable('main.users')
-        .onUpdate('CASCADE').onDelete('SET NULL');
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL');
 
     // Activity Type
     table.string('activityType', 30).notNullable();
@@ -20,7 +23,8 @@ exports.up = (knex) => knex.schema.withSchema('habits').createTable('pact_activi
     // Related entities
     table.uuid('checkinId')
         .references('id').inTable('habits.habit_checkins')
-        .onUpdate('CASCADE').onDelete('SET NULL');
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL');
 
     // Activity Data
     table.jsonb('data'); // { message, streakDays, milestoneReached, etc. }
