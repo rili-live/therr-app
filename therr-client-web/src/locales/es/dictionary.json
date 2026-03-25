@@ -319,6 +319,18 @@
       "postError": "No se pudo publicar el pensamiento. Por favor, int\u00e9ntalo de nuevo.",
       "messageTooShort": "El mensaje es demasiado corto"
     },
+    "viewThought": {
+      "headerTitle": "Pensamiento",
+      "reply": "Respuesta",
+      "replies": "Respuestas",
+      "noReplies": "A\u00fan no hay respuestas. S\u00e9 el primero en responder.",
+      "replyPlaceholder": "Escribe una respuesta...",
+      "replyButton": "Responder",
+      "replyTooShort": "La respuesta es demasiado corta",
+      "replyError": "No se pudo publicar la respuesta. Por favor, int\u00e9ntalo de nuevo.",
+      "loginToReply": "Inicia sesi\u00f3n para responder",
+      "backToThoughts": "Volver a Pensamientos"
+    },
     "explorePeople": {
       "pageTitle": "Buscar personas",
       "subtitle": "Descubre creadores, negocios y miembros de la comunidad",
@@ -510,6 +522,7 @@
       "buttons": {
         "changePassword": "Cambiar contrase\u00f1a",
         "createAForum": "Crear un chat grupal",
+        "editProfile": "Editar Perfil",
         "sendRequest": "Enviar solicitud"
       },
       "connectionSent": "\u00a1Tu solicitud de conexi\u00f3n est\u00e1 en camino!",
@@ -530,6 +543,39 @@
       "requestRecommendation": "Env\u00eda una solicitud para hacer conexiones y construir una red",
       "validationErrors": {
         "phoneNumber": "N\u00famero de tel\u00e9fono inv\u00e1lido"
+      }
+    },
+    "editProfile": {
+      "pageTitle": "Editar Perfil",
+      "successMessage": "Tu perfil se ha actualizado correctamente.",
+      "failedMessageBadRequest": "Por favor revisa tu informaci\u00f3n e int\u00e9ntalo de nuevo.",
+      "failedMessageServer": "Ocurri\u00f3 un error inesperado. Por favor int\u00e9ntalo m\u00e1s tarde.",
+      "h2": {
+        "profileInfo": "Informaci\u00f3n del Perfil",
+        "privacy": "Privacidad y Contenido",
+        "display": "Configuraci\u00f3n de Pantalla",
+        "account": "Cuenta"
+      },
+      "labels": {
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "userName": "Nombre de usuario",
+        "email": "Correo electr\u00f3nico",
+        "bio": "Biograf\u00eda",
+        "profilePublic": "Perfil P\u00fablico",
+        "hideMatureContent": "Ocultar Contenido para Adultos",
+        "theme": "Tema",
+        "language": "Idioma"
+      },
+      "buttons": {
+        "save": "Guardar Cambios",
+        "changePassword": "Cambiar Contrase\u00f1a",
+        "viewProfile": "Ver Perfil"
+      },
+      "themeOptions": {
+        "light": "Claro",
+        "dark": "Oscuro",
+        "retro": "Retro"
       }
     },
     "underConstruction": {

@@ -98,7 +98,11 @@
       },
       "backendErrorMessage": "Erreur de connexion. Veuillez réessayer plus tard.",
       "oneTimePasswordExpired": "Votre mot de passe à usage unique a expiré.",
-      "tooManyRequests": "Trop de tentatives de connexion, veuillez réessayer plus tard."
+      "tooManyRequests": "Trop de tentatives de connexion, veuillez réessayer plus tard.",
+      "sso": {
+        "orDivider": "ou",
+        "googleError": "Échec de la connexion Google. Veuillez réessayer."
+      }
     },
     "messagingContainer": {
       "conversation": {
@@ -474,6 +478,7 @@
       "buttons": {
         "changePassword": "Changer le mot de passe",
         "createAForum": "Créer un clavardage hébergé",
+        "editProfile": "Modifier le profil",
         "sendRequest": "Envoyer la demande"
       },
       "connectionSent": "Votre demande de connexion est en route!",
@@ -494,6 +499,39 @@
       "requestRecommendation": "Envoyez une demande pour créer des connexions et bâtir un réseau",
       "validationErrors": {
         "phoneNumber": "Numéro de téléphone invalide"
+      }
+    },
+    "editProfile": {
+      "pageTitle": "Modifier le profil",
+      "successMessage": "Votre profil a été mis à jour avec succès.",
+      "failedMessageBadRequest": "Veuillez vérifier vos informations et réessayer.",
+      "failedMessageServer": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
+      "h2": {
+        "profileInfo": "Informations du profil",
+        "privacy": "Confidentialité et contenu",
+        "display": "Paramètres d'affichage",
+        "account": "Compte"
+      },
+      "labels": {
+        "firstName": "Prénom",
+        "lastName": "Nom de famille",
+        "userName": "Nom d'utilisateur",
+        "email": "Courriel",
+        "bio": "Biographie",
+        "profilePublic": "Profil public",
+        "hideMatureContent": "Masquer le contenu pour adultes",
+        "theme": "Thème",
+        "language": "Langue"
+      },
+      "buttons": {
+        "save": "Enregistrer les modifications",
+        "changePassword": "Changer le mot de passe",
+        "viewProfile": "Voir le profil"
+      },
+      "themeOptions": {
+        "light": "Clair",
+        "dark": "Sombre",
+        "retro": "Rétro"
       }
     },
     "underConstruction": {

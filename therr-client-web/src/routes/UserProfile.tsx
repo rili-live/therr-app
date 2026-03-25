@@ -127,6 +127,10 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         );
     }
 
+    onEditProfileClick = () => {
+        this.props.navigation.navigate('/user/edit-profile');
+    };
+
     public render(): JSX.Element | null {
         const { createUserConnection, user, userConnections } = this.props;
 

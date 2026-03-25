@@ -194,6 +194,12 @@ class UsersService {
         data,
     });
 
+    refreshToken = (refreshToken: string, rememberMe?: boolean) => axios({
+        method: 'post',
+        url: '/users-service/auth/token/refresh',
+        data: { refreshToken, rememberMe },
+    });
+
     // Subscribers
     getSubscriptionPreferences = (emailToken: string) => axios({
         method: 'get',

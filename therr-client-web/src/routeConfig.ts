@@ -49,6 +49,14 @@ export default [
         view: 'index',
     },
     {
+        route: '/user/edit-profile',
+        head: {
+            title: 'Edit Profile',
+            description: 'Edit your profile settings',
+        },
+        view: 'index',
+    },
+    {
         route: '/moments/:momentId',
         head: {
             title: 'Moment not Found',

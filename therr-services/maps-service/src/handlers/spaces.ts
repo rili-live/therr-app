@@ -167,7 +167,7 @@ const createSpace = async (req, res) => {
                 // Fire-and-forget: notify search engines of new content via IndexNow (skip drafts)
                 if (process.env.INDEXNOW_API_KEY && space.id && !space.isDraft) {
                     submitToIndexNow([`https://www.therr.com/spaces/${space.id}`], process.env.INDEXNOW_API_KEY)
-                        .catch(() => {}); // already handled internally
+                        .catch(() => undefined); // already handled internally
                 }
                 return res.status(201).send({
                     ...spaceWithFeaturedIncentive,
@@ -966,7 +966,7 @@ const updateSpace = (req, res) => {
             // Fire-and-forget: notify search engines of updated content via IndexNow
             if (process.env.INDEXNOW_API_KEY && req.params.spaceId && !space.isDraft) {
                 submitToIndexNow([`https://www.therr.com/spaces/${req.params.spaceId}`], process.env.INDEXNOW_API_KEY)
-                    .catch(() => {}); // already handled internally
+                    .catch(() => undefined); // already handled internally
             }
             return res.status(200).send(space);
         })
