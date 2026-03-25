@@ -113,12 +113,16 @@ export async function crawlForImages(url: string): Promise<ICrawlResult[]> {
       signal: AbortSignal.timeout(10000),
       redirect: 'follow',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; TherSpaceBot/1.0)',
-        'Accept': 'text/html',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
       },
     });
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      console.warn(`  [crawlImages] HTTP ${response.status} for ${normalizedUrl}`);
+      return [];
+    }
 
     const contentType = response.headers.get('content-type') || '';
     if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) return [];
@@ -150,7 +154,8 @@ export async function crawlForImages(url: string): Promise<ICrawlResult[]> {
     }
 
     return candidates;
-  } catch {
+  } catch (err: any) {
+    console.warn(`  [crawlImages] Error: ${err.message}`);
     return [];
   }
 }
