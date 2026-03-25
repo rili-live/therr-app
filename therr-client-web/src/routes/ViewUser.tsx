@@ -193,7 +193,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
         UsersService.searchThoughts(
             {
                 query: 'user',
-                itemsPerPage: 10,
+                itemsPerPage: 5,
                 pageNumber: 1,
             },
             { targetUserId: userId },

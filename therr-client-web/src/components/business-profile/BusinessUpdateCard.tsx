@@ -23,12 +23,20 @@ const BusinessUpdateCard: React.FC<IBusinessUpdateCardProps> = ({ thought, onTho
 
     return (
         <Paper
-            className={`business-update-card${onThoughtClick ? ' business-update-card-clickable' : ''}`}
+            className="business-update-card"
             shadow="xs"
             radius="md"
             withBorder
             p="sm"
             onClick={onThoughtClick ? () => onThoughtClick(thought.id) : undefined}
+            onKeyDown={onThoughtClick ? (e: React.KeyboardEvent) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onThoughtClick(thought.id);
+                }
+            } : undefined}
+            role={onThoughtClick ? 'button' : undefined}
+            tabIndex={onThoughtClick ? 0 : undefined}
             style={onThoughtClick ? { cursor: 'pointer' } : undefined}
         >
             <Stack gap="xs">
