@@ -79,6 +79,11 @@ export class RegisterFormComponent extends React.Component<
         return this.state.inputs.password === this.state.inputs.repeatPassword;
     };
 
+    isRegisterFormDisabled = () => {
+        const { inputs, isSubmitting } = this.state;
+        return !inputs.email || !inputs.password || !inputs.repeatPassword || !this.isFormValid() || isSubmitting;
+    };
+
     onSubmit = () => {
         const { inputs, isSubmitting } = this.state;
 

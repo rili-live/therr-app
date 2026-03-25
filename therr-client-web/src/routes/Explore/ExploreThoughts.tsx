@@ -63,12 +63,17 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
     const isBookmarked = thought.reaction?.userBookmarkCategory;
     const hashtags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
 
-    const handleUserClick = useCallback(() => {
+    const handleUserClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
         navigate(`/users/${thought.fromUserId}`);
     }, [navigate, thought.fromUserId]);
 
+    const handleCardClick = useCallback(() => {
+        navigate(`/thoughts/${thought.id}`);
+    }, [navigate, thought.id]);
+
     return (
-        <div className="thought-card">
+        <div className="thought-card thought-card-clickable" onClick={handleCardClick}>
             <div className="thought-card-content">
                 <Group gap="xs" align="center" mb={4}>
                     <Text
@@ -112,7 +117,7 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({
                     </Group>
                 )}
 
-                <Group gap="md" className="thought-card-reactions">
+                <Group gap="md" className="thought-card-reactions" onClick={(e) => e.stopPropagation()}>
                     <Tooltip label={isLiked ? 'Unlike' : 'Like'}>
                         <ActionIcon
                             variant="subtle"

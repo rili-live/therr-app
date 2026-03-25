@@ -118,6 +118,23 @@ export default class EventReactionsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
+    getBatchRatings(eventIds: string[]) {
+        if (!eventIds?.length) {
+            return Promise.resolve([]);
+        }
+
+        const queryString = knexBuilder
+            .select('eventId')
+            .avg('rating as avgRating')
+            .count('rating as totalRatings')
+            .from(EVENT_REACTIONS_TABLE_NAME)
+            .whereIn('eventId', eventIds)
+            .whereNotNull('rating')
+            .groupBy('eventId');
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
+    }
+
     create(params: ICreateEventReactionParams | ICreateEventReactionParams[]) {
         const queryString = knexBuilder(EVENT_REACTIONS_TABLE_NAME)
             .insert(params)

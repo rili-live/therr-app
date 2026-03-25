@@ -196,7 +196,7 @@ describe('LoginForm', () => {
     });
 
     it('sets isSubmitting during login request', () => {
-        const loginFn = jest.fn().mockReturnValue(new Promise(() => {}));
+        const loginFn = jest.fn().mockReturnValue(new Promise(() => { /* noop */ }));
         const wrapper = mountWithProviders(
             <LoginFormComponent {...defaultProps} login={loginFn} />,
         );

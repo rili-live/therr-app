@@ -4,15 +4,18 @@ exports.up = (knex) => knex.schema.withSchema('habits').createTable('pacts', (ta
     // Participants
     table.uuid('creatorUserId').notNullable()
         .references('id').inTable('main.users')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('partnerUserId')
         .references('id').inTable('main.users')
-        .onUpdate('CASCADE').onDelete('SET NULL');
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL');
 
     // Habit Goal
     table.uuid('habitGoalId').notNullable()
         .references('id').inTable('habits.habit_goals')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
 
     // Pact Configuration
     table.string('pactType', 20).notNullable().defaultTo('accountability'); // accountability, challenge, support
@@ -29,7 +32,9 @@ exports.up = (knex) => knex.schema.withSchema('habits').createTable('pacts', (ta
 
     // Completion
     table.string('endReason', 30); // completed, abandoned_creator, abandoned_partner, mutual, expired
-    table.uuid('winnerId').references('id').inTable('main.users').onUpdate('CASCADE').onDelete('SET NULL');
+    table.uuid('winnerId').references('id').inTable('main.users')
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL');
     table.decimal('creatorCompletionRate', 5, 2);
     table.decimal('partnerCompletionRate', 5, 2);
 

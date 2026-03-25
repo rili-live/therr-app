@@ -4,13 +4,16 @@ exports.up = (knex) => knex.schema.withSchema('habits').createTable('streak_hist
     // References
     table.uuid('streakId').notNullable()
         .references('id').inTable('habits.streaks')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('userId').notNullable()
         .references('id').inTable('main.users')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('checkinId')
         .references('id').inTable('habits.habit_checkins')
-        .onUpdate('CASCADE').onDelete('SET NULL');
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL');
 
     // Event
     table.string('eventType', 30).notNullable(); // completed, missed, reset, grace_used, milestone_reached
