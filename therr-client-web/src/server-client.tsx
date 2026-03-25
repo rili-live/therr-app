@@ -368,8 +368,14 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
         return res.status(404).send('Not found');
     }
 
+    const publicSpaces = spaces.filter((space: any) => space.isPublic !== false);
+
+    if (publicSpaces.length === 0) {
+        return res.status(404).send('Not found');
+    }
+
     const today = new Date().toISOString().split('T')[0];
-    const urls = spaces.map((space: any) => {
+    const urls = publicSpaces.map((space: any) => {
         const lastmod = space.updatedAt ? new Date(space.updatedAt).toISOString().split('T')[0] : today;
         return buildUrlSet(`/spaces/${space.id}`, lastmod, '0.7');
     });
@@ -410,12 +416,14 @@ app.get(/^\/sitemap-events-(\d+)\.xml$/, async (req, res) => {
         });
     }
 
-    if (events.length === 0) {
+    const publicEvents = events.filter((event: any) => event.isPublic !== false);
+
+    if (publicEvents.length === 0) {
         return res.status(404).send('Not found');
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const urls = events.map((event: any) => {
+    const urls = publicEvents.map((event: any) => {
         const lastmod = event.updatedAt ? new Date(event.updatedAt).toISOString().split('T')[0] : today;
         return buildUrlSet(`/events/${event.id}`, lastmod, '0.7');
     });
@@ -455,12 +463,14 @@ app.get(/^\/sitemap-groups-(\d+)\.xml$/, async (req, res) => {
         });
     }
 
-    if (groups.length === 0) {
+    const publicGroups = groups.filter((group: any) => group.isPublic !== false);
+
+    if (publicGroups.length === 0) {
         return res.status(404).send('Not found');
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const urls = groups.map((group: any) => {
+    const urls = publicGroups.map((group: any) => {
         const lastmod = group.updatedAt ? new Date(group.updatedAt).toISOString().split('T')[0] : today;
         return buildUrlSet(`/groups/${group.id}`, lastmod, '0.7');
     });

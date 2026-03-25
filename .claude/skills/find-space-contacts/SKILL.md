@@ -62,12 +62,13 @@ For each space in the results, use `WebSearch` and `WebFetch` to find the busine
 For each space where you found contact info with sufficient confidence, run the update script:
 
 ```
-npx ts-node scripts/import-spaces/update-space-contact --id <space-uuid> [--email "found@email.com"] [--website "https://found-website.com"] [--source-image]
+npx ts-node scripts/import-spaces/update-space-contact --id <space-uuid> [--email "found@email.com"] [--website "https://found-website.com"] [--source-image] [--closed]
 ```
 
 - Only pass `--email` if you found a business email
 - Only pass `--website` if the space didn't have one and you found it
 - Add `--source-image` if the space has no media and you found/confirmed a website
+- Add `--closed` if web research indicates the business is permanently closed or defunct (sets `isPublic=false`)
 
 The script updates the database and returns a JSON result confirming what was changed.
 
@@ -78,6 +79,7 @@ After processing all spaces, give a summary:
 - How many emails found
 - How many websites found
 - How many images sourced
+- How many spaces marked as closed (with IDs)
 - Any spaces you skipped and why (low confidence, couldn't find info, etc.)
 
 ## Important rules

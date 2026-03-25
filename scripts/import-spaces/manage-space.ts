@@ -134,10 +134,15 @@ function parseArgs(): ICliArgs {
   // --id implies --enrich-existing
   const enrichExisting = parsed.enrichExisting === 'true' || !!parsed.id;
 
+  // Default city/category to 'all' in enrich-existing mode since DB categories
+  // differ from import short names (e.g. "categories.restaurant/food" vs "restaurant")
+  const defaultCity = enrichExisting ? 'all' : 'chicago';
+  const defaultCategory = enrichExisting ? 'all' : 'restaurant';
+
   return {
     source: parsed.source || 'osm',
-    city: parsed.city || 'chicago',
-    category: parsed.category || 'restaurant',
+    city: parsed.city || defaultCity,
+    category: parsed.category || defaultCategory,
     dryRun: parsed.dryRun === 'true',
     skipDedup: parsed.skipDedup === 'true',
     skipEnrich: parsed.skipEnrich === 'true',
@@ -454,7 +459,12 @@ async function enrichSpace(
   }
 
   // ── Step 2: Fetch the website once and reuse the HTML ──
-  const html = await fetchPage(normalizeUrl(websiteUrl));
+  const normalizedWebsiteUrl = normalizeUrl(websiteUrl);
+  const html = await fetchPage(normalizedWebsiteUrl);
+
+  if (!html) {
+    console.log(`${progress} Could not fetch website HTML from: ${normalizedWebsiteUrl}`);
+  }
 
   // ── Step 3: Extract email from website ──
   if (!space.businessEmail) {
