@@ -40,6 +40,10 @@ export class RegisterFormComponent extends React.Component<
 
         this.state = {
             inputs: {
+                email: '',
+                password: '',
+                repeatPassword: '',
+                hasAgreedToTerms: false,
                 settingsEmailMarketing: true,
                 inviteCode: props.inviteCode || '',
             },
