@@ -331,16 +331,28 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                             <Text c="dimmed" fs="italic">{this.props.translate('pages.viewUser.labels.noLocations')}</Text>
                         )}
                         {!isBusinessDataLoading && userSpaces.length > 0 && (
-                            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                                {userSpaces.map((space: any) => (
-                                    <BusinessSpaceCard
-                                        key={space.id}
-                                        space={space}
-                                        translate={this.props.translate}
-                                        onSpaceClick={this.handleSpaceClick}
-                                    />
-                                ))}
-                            </SimpleGrid>
+                            <>
+                                <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                                    {userSpaces.slice(0, 3).map((space: any) => (
+                                        <BusinessSpaceCard
+                                            key={space.id}
+                                            space={space}
+                                            translate={this.props.translate}
+                                            onSpaceClick={this.handleSpaceClick}
+                                        />
+                                    ))}
+                                </SimpleGrid>
+                                {userSpaces.length > 3 && (
+                                    <Group justify="center" mt="md">
+                                        <Button
+                                            variant="subtle"
+                                            onClick={() => this.props.navigation.navigate(`/users/${this.state.userId}/locations`)}
+                                        >
+                                            {this.props.translate('pages.viewUser.buttons.viewAll')} ({userSpaces.length})
+                                        </Button>
+                                    </Group>
+                                )}
+                            </>
                         )}
                     </div>
 

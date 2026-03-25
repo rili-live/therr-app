@@ -425,12 +425,13 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
             .filter((id) => !!id); // eslint-disable-line eqeqeq
         searchArgs[0].filterBy = 'fromUserIds';
     }
+    const includePublicResults = query !== 'me' && query !== 'user';
     const searchPromise = Store.spaces.searchSpaces(
         searchArgs[0],
         searchArgs[1],
         fromUserIds,
         { distanceOverride, shouldLimitDetail, isRequestAuthorized },
-        query !== 'me',
+        includePublicResults,
     );
     // const countPromise = Store.spaces.countRecords({
     //     filterBy,
