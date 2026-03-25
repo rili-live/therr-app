@@ -313,7 +313,9 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                                 onEnter={this.onSubmit}
                                 translateFn={this.props.translate}
                                 validations={isBusiness ? [] : ['isRequired']}
-                                label={this.props.translate('pages.editProfile.labels.lastName')}
+                                label={isBusiness
+                                    ? this.props.translate('pages.editProfile.labels.businessSuffix')
+                                    : this.props.translate('pages.editProfile.labels.lastName')}
                             />
                             <MantineInput
                                 id="user_name"

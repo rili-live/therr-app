@@ -23,6 +23,7 @@ interface ILoginFormState {
     inputs: any;
     prevLoginError: string;
     isSubmitting: boolean;
+    isGoogleSubmitting: boolean;
 }
 
 /**
@@ -38,6 +39,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
             },
             prevLoginError: '',
             isSubmitting: false,
+            isGoogleSubmitting: false,
         };
     }
 
@@ -192,8 +194,15 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                                     {this.props.translate('components.loginForm.sso.orDivider')}
                                 </div>
                                 <GoogleSignInButtonWeb
-                                    onSuccess={(ssoData) => this.props.onGoogleLogin(ssoData)}
-                                    onError={(msg) => this.setState({ prevLoginError: msg })}
+                                    isLoading={this.state.isGoogleSubmitting}
+                                    onSuccess={(ssoData) => {
+                                        this.setState({ isGoogleSubmitting: true, prevLoginError: '' });
+                                        this.props.onGoogleLogin(ssoData)
+                                            .catch(() => {
+                                                this.setState({ isGoogleSubmitting: false });
+                                            });
+                                    }}
+                                    onError={(msg) => this.setState({ prevLoginError: msg, isGoogleSubmitting: false })}
                                     buttonText="signin_with"
                                     translate={this.props.translate}
                                 />

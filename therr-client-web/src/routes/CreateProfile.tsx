@@ -64,10 +64,17 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
         document.title = `Therr | ${this.props.translate('pages.createProfile.pageTitle')}`;
     }
 
+    setError = (errorMessage: string) => {
+        this.setState({ errorMessage, isSubmitting: false }, () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    };
+
     onSubmitVerifyPhone = (updateArgs: any) => {
         const { user, updateUser } = this.props;
 
         this.setState({
+            errorMessage: '',
             isSubmitting: true,
             phoneNumber: updateArgs.phoneNumber,
         });
@@ -89,35 +96,28 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                 });
                 this.setState({
                     isVerifyingPhone: true,
+                    isSubmitting: false,
                 });
             }).catch((error) => {
                 if (error?.errorCode === ErrorCodes.USER_EXISTS) {
-                    this.setState({
-                        errorMessage: this.props.translate('pages.createProfile.phoneNumberAlreadyInUseError'),
-                    });
+                    this.setError(this.props.translate('pages.createProfile.phoneNumberAlreadyInUseError'));
+                } else if (error?.errorCode === ErrorCodes.INVALID_REGION) {
+                    this.setError(this.props.translate('pages.createProfile.phoneRegionNotSupportedError'));
                 } else {
                     ReactGA.event({
                         category: 'Registering',
                         action: 'verify_phone_error_desktop',
                     });
-                    this.setState({
-                        errorMessage: this.props.translate('pages.createProfile.createProfileError'),
-                    });
+                    this.setError(this.props.translate('pages.createProfile.verifyPhoneError'));
                 }
-            }).finally(() => {
-                this.setState({
-                    isSubmitting: false,
-                });
             });
         }).catch((error: any) => {
             if (error.statusCode === 400) {
-                this.setState({
-                    errorMessage: error.message,
-                });
+                this.setError(error.message);
+            } else if (error.statusCode === 403) {
+                this.setError(this.props.translate('pages.createProfile.authError'));
             } else {
-                this.setState({
-                    errorMessage: this.props.translate('pages.createProfile.createProfileError'),
-                });
+                this.setError(this.props.translate('pages.createProfile.updateProfileError'));
             }
         });
     };
@@ -125,6 +125,7 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
     onSubmitCode = (updateArgs: any) => {
         const { navigation, updateUser, user } = this.props;
         this.setState({
+            errorMessage: '',
             isSubmitting: true,
         });
         ApiService.validateCode(updateArgs.verificationCode)
@@ -139,32 +140,20 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                     });
                 }).catch((error: any) => {
                     if (error.statusCode === 400) {
-                        this.setState({
-                            errorMessage: error.message,
-                        });
+                        this.setError(error.message);
+                    } else if (error.statusCode === 403) {
+                        this.setError(this.props.translate('pages.createProfile.authError'));
                     } else {
-                        this.setState({
-                            errorMessage: this.props.translate('pages.createProfile.createProfileError'),
-                        });
+                        this.setError(this.props.translate('pages.createProfile.updateProfileError'));
                     }
                 });
             })
             .catch((error) => {
-                if (
-                    error.statusCode === 400
-                ) {
-                    this.setState({
-                        errorMessage: this.props.translate('pages.createProfile.invalidCode'),
-                    });
+                if (error.statusCode === 400) {
+                    this.setError(this.props.translate('pages.createProfile.invalidCode'));
                 } else {
-                    this.setState({
-                        errorMessage: this.props.translate('pages.createProfile.createProfileError'),
-                    });
+                    this.setError(this.props.translate('pages.createProfile.verifyPhoneError'));
                 }
-
-                this.setState({
-                    isSubmitting: false,
-                });
             });
     };
 
@@ -177,33 +166,29 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
         } = this.state;
 
         return (
-            <>
-                <div id="page_create_profile" className="flex-box space-evenly center row wrap-reverse">
-                    {
-                        isVerifyingPhone
-                            && <VerifyPhoneCodeForm
-                                onSubmit={this.onSubmitCode}
-                                onSubmitVerify={() => this.onSubmitVerifyPhone({
-                                    phoneNumber,
-                                })}
-                                isSubmitting={isSubmitting}
-                                title={this.props.translate('pages.createProfile.pageTitleVerify')}
-                            />
-                    }
-                    {
-                        !isVerifyingPhone
-                            && <CreateProfileForm
-                                onSubmit={this.onSubmitVerifyPhone}
-                                isSubmitting={isSubmitting}
-                                title={this.props.translate('pages.createProfile.pageTitle')}
-                            />
-                    }
-                </div>
+            <div id="page_create_profile" className="flex-box space-evenly center row wrap-reverse">
                 {
-                    errorMessage
-                    && <div className="alert-error text-center">{errorMessage}</div>
+                    isVerifyingPhone
+                        && <VerifyPhoneCodeForm
+                            errorMessage={errorMessage}
+                            onSubmit={this.onSubmitCode}
+                            onSubmitVerify={() => this.onSubmitVerifyPhone({
+                                phoneNumber,
+                            })}
+                            isSubmitting={isSubmitting}
+                            title={this.props.translate('pages.createProfile.pageTitleVerify')}
+                        />
                 }
-            </>
+                {
+                    !isVerifyingPhone
+                        && <CreateProfileForm
+                            errorMessage={errorMessage}
+                            onSubmit={this.onSubmitVerifyPhone}
+                            isSubmitting={isSubmitting}
+                            title={this.props.translate('pages.createProfile.pageTitle')}
+                        />
+                }
+            </div>
         );
     }
 }

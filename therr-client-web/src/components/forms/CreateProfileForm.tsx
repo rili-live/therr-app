@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SegmentedControl, Stack } from '@mantine/core';
+import { Alert, SegmentedControl, Stack } from '@mantine/core';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import flags from 'react-phone-number-input/flags'; // eslint-disable-line import/extensions
 import {
@@ -10,6 +10,7 @@ import withTranslation from '../../wrappers/withTranslation';
 
 // Regular component props
 interface ICreateProfileFormProps {
+  errorMessage?: string;
   isSubmitting: boolean;
   onSubmit: Function;
   title: string;
@@ -25,6 +26,8 @@ interface ICreateProfileFormState {
  * CreateProfileForm
  */
 export class CreateProfileFormComponent extends React.Component<ICreateProfileFormProps, ICreateProfileFormState> {
+    private formRef = React.createRef<HTMLDivElement>();
+
     constructor(props: ICreateProfileFormProps) {
         super(props);
 
@@ -99,14 +102,20 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
     };
 
     public render(): JSX.Element | null {
+        const { errorMessage } = this.props;
         const { isPhoneNumberValid, inputs } = this.state;
         const isBusiness = inputs.isBusinessAccount;
 
         return (
-            <div className="register-container">
+            <div className="register-container" ref={this.formRef}>
                 <div className="flex fill">
                     <Stack gap="sm">
                         <h1 className="text-center">{this.props.title}</h1>
+                        {errorMessage && (
+                            <Alert color="red" variant="light">
+                                {errorMessage}
+                            </Alert>
+                        )}
 
                         <div className="form-field">
                             <label htmlFor="account_type">
@@ -180,7 +189,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                                 onEnter={this.onSubmit}
                                 translateFn={this.props.translate}
                                 validations={[]}
-                                label={this.props.translate('components.createProfileForm.labels.lastName')}
+                                label={this.props.translate('components.createProfileForm.labels.businessSuffix')}
                             />
                         )}
 
