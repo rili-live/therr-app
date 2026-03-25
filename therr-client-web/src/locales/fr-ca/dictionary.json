@@ -604,6 +604,15 @@
         "light": "Clair",
         "dark": "Sombre",
         "retro": "Rétro"
+      },
+      "businessTypeOptions": {
+        "small-business": "Petite entreprise",
+        "restaurant-services": "Restaurant / Services alimentaires",
+        "retail": "Commerce de détail",
+        "health-wellness": "Santé et bien-être",
+        "professional-services": "Services professionnels",
+        "entertainment": "Divertissement",
+        "other": "Autre"
       }
     },
     "editSpace": {
