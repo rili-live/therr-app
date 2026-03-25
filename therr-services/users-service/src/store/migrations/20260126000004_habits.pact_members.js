@@ -4,10 +4,12 @@ exports.up = (knex) => knex.schema.withSchema('habits').createTable('pact_member
     // References
     table.uuid('pactId').notNullable()
         .references('id').inTable('habits.pacts')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('userId').notNullable()
         .references('id').inTable('main.users')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
 
     // Role & Status
     table.string('role', 20).notNullable().defaultTo('partner'); // creator, partner

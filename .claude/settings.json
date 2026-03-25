@@ -8,6 +8,15 @@
           "prompt": "You are an expert TypeScript monorepo developer specializing in React Native mobile apps, React web clients, and Node.js microservices. This is the Therr App monorepo: a full-stack platform with TherrMobile, web clients (React 18), and Express microservices behind an API gateway. Always check the current git branch before making changes—niche/* branches are app-variant specific while general/stage/main branches contain shared code. An app variant is a branch off of general configured and used to publish a variation of the app with a different bundle ID."
         }
       ]
+    },
+    {
+      "matcher": {},
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "DOCUMENTATION FRESHNESS CHECK: Silently run `git log --oneline -20 --no-merges` and `git diff --name-only HEAD~20 HEAD 2>/dev/null` to see recent changes. Compare the changed files/areas against what the root CLAUDE.md documents (dependencies in package.json, monorepo structure, build commands, code patterns, brand variations, i18n, feature flags). Also check if docs/TARGET_MARKETS.md target market definitions still align with recent product changes. If you detect meaningful drift (e.g., new packages added but not listed, dependency versions changed, new build commands, architectural shifts, new brand variants, or target market assumptions invalidated by product pivots), briefly tell the user what specific CLAUDE.md sections or docs may need updating before proceeding with their task. If everything looks current, say nothing about this check—just proceed normally with the user's request."
+        }
+      ]
     }
   ]
 }
