@@ -1287,8 +1287,13 @@
       "h2": {
         "claimRewards": "Reclama tus recompensas",
         "requirements": "Pasos",
+        "hours": "Horario",
+        "contactAndLocation": "Contacto y ubicación",
         "events": "Próximos eventos",
         "moments": "Publicaciones de invitados"
+      },
+      "labels": {
+        "viewOnGoogleMaps": "Ver en Google Maps"
       },
       "info": {
         "shareAMoment": {

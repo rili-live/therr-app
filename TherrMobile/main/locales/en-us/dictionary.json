@@ -1290,8 +1290,13 @@
       "h2": {
         "claimRewards": "Claim Your Rewards",
         "requirements": "Steps",
+        "hours": "Hours",
+        "contactAndLocation": "Contact & Location",
         "events": "Upcoming Events",
         "moments": "Guest Posts"
+      },
+      "labels": {
+        "viewOnGoogleMaps": "View on Google Maps"
       },
       "info": {
         "shareAMoment": {
