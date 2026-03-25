@@ -64,14 +64,14 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     updateUser: UsersActions.update,
 }, dispatch);
 
-const BUSINESS_TYPE_OPTIONS = [
-    { value: 'small-business', label: 'Small Business' },
-    { value: 'restaurant-services', label: 'Restaurant / Food Services' },
-    { value: 'retail', label: 'Retail' },
-    { value: 'health-wellness', label: 'Health & Wellness' },
-    { value: 'professional-services', label: 'Professional Services' },
-    { value: 'entertainment', label: 'Entertainment' },
-    { value: 'other', label: 'Other' },
+const BUSINESS_TYPE_KEYS = [
+    'small-business',
+    'restaurant-services',
+    'retail',
+    'health-wellness',
+    'professional-services',
+    'entertainment',
+    'other',
 ];
 
 /**
@@ -371,6 +371,7 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                                             errorReason: '',
                                             isSuccess: false,
                                         })}
+                                        maxLength={MAX_BIO_LENGTH}
                                         autosize
                                         minRows={2}
                                         maxRows={4}
@@ -381,7 +382,10 @@ export class EditProfileComponent extends React.Component<IEditProfileProps, IEd
                                         label={this.props.translate('pages.editProfile.labels.businessType')}
                                         value={inputs.businessType || 'small-business'}
                                         onChange={this.onSelectChange('businessType')}
-                                        data={BUSINESS_TYPE_OPTIONS}
+                                        data={BUSINESS_TYPE_KEYS.map((key) => ({
+                                            value: key,
+                                            label: this.props.translate(`pages.editProfile.businessTypeOptions.${key}`),
+                                        }))}
                                     />
                                 </>
                             )}

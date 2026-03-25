@@ -3,7 +3,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
-import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { MapsService, UsersService } from 'therr-react/services';
 import {
@@ -29,13 +29,11 @@ interface IViewUserRouterProps {
 }
 
 interface IViewUserDispatchProps {
-    login: Function;
     getUser: Function;
     searchUserConnections: Function;
 }
 
 interface IStoreProps extends IViewUserDispatchProps {
-    content: IContentState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -55,7 +53,6 @@ interface IViewUserState {
 }
 
 const mapStateToProps = (state: any) => ({
-    content: state.content,
     user: state.user,
     userConnections: state.userConnections,
 });
@@ -150,11 +147,11 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
 
         const thoughtsPromise = UsersService.searchThoughts(
             {
-                query: userId,
-                filterBy: 'fromUserId',
+                query: 'user',
                 itemsPerPage: 10,
                 pageNumber: 1,
             },
+            { targetUserId: userId },
         ).then((response: any) => response?.data?.results || []).catch(() => []);
 
         Promise.all([spacesPromise, thoughtsPromise]).then(([spaces, thoughts]) => {
@@ -183,6 +180,8 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                 userThoughts: thoughts,
                 isBusinessDataLoading: false,
             });
+        }).catch(() => {
+            this.setState({ isBusinessDataLoading: false });
         });
     };
 
@@ -218,8 +217,6 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
     handleSpaceClick = (spaceId: string) => {
         this.props.navigation.navigate(`/spaces/${spaceId}`);
     };
-
-    login = (credentials: any) => this.props.login(credentials);
 
     renderSkeleton(): JSX.Element {
         return (

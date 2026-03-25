@@ -76,6 +76,8 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
             user,
             userConnections,
         } = this.props;
+        if (!user.details) return;
+
         document.title = `Therr | ${this.props.translate('pages.userProfile.pageTitle')} | ${user.details.userName}`;
         if (!userConnections.connections.length) {
             this.props.searchUserConnections({
@@ -137,6 +139,8 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                 myThoughts: thoughts,
                 isBusinessDataLoading: false,
             });
+        }).catch(() => {
+            this.setState({ isBusinessDataLoading: false });
         });
     };
 
@@ -148,7 +152,9 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
     handleConnectionClick = (connection: any) => {
         const connectionDetails = this.getConnectionDetails(connection);
-        this.props.navigation.navigate(`/users/${connectionDetails.id}`);
+        if (connectionDetails?.id) {
+            this.props.navigation.navigate(`/users/${connectionDetails.id}`);
+        }
     };
 
     handleSpaceClick = (spaceId: string) => {
@@ -311,6 +317,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                     userConnections.connections.length
                                         ? userConnections.connections.slice(0, 10).map((connection: any) => {
                                             const connectionDetails = this.getConnectionDetails(connection);
+                                            if (!connectionDetails) return null;
 
                                             return (
                                                 <div className="user-connection-icon" key={connectionDetails.id}>

@@ -580,6 +580,15 @@
         "light": "Claro",
         "dark": "Oscuro",
         "retro": "Retro"
+      },
+      "businessTypeOptions": {
+        "small-business": "Peque\u00f1o negocio",
+        "restaurant-services": "Restaurante / Servicios de comida",
+        "retail": "Comercio minorista",
+        "health-wellness": "Salud y bienestar",
+        "professional-services": "Servicios profesionales",
+        "entertainment": "Entretenimiento",
+        "other": "Otro"
       }
     },
     "editSpace": {

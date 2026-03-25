@@ -580,6 +580,15 @@
         "light": "Light",
         "dark": "Dark",
         "retro": "Retro"
+      },
+      "businessTypeOptions": {
+        "small-business": "Small Business",
+        "restaurant-services": "Restaurant / Food Services",
+        "retail": "Retail",
+        "health-wellness": "Health & Wellness",
+        "professional-services": "Professional Services",
+        "entertainment": "Entertainment",
+        "other": "Other"
       }
     },
     "editSpace": {

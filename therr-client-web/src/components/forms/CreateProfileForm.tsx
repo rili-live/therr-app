@@ -83,10 +83,13 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
     };
 
     onAccountTypeChange = (value: string) => {
+        const isBusiness = value === 'business';
         this.setState({
             inputs: {
                 ...this.state.inputs,
-                isBusinessAccount: value === 'business',
+                isBusinessAccount: isBusiness,
+                // Clear lastName when switching to business to avoid stale data
+                lastName: isBusiness ? '' : this.state.inputs.lastName,
             },
         });
     };

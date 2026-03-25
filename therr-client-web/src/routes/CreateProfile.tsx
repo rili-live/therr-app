@@ -72,6 +72,7 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
 
     onSubmitVerifyPhone = (updateArgs: any) => {
         const { user, updateUser } = this.props;
+        const isResend = !updateArgs.userName; // Resend only passes phoneNumber
 
         this.setState({
             errorMessage: '',
@@ -88,7 +89,12 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
             isBusinessAccount: !!isBusinessAccount,
         };
 
-        updateUser(user.details.id, updatePayload).then(() => {
+        // Skip profile update on resend (only re-trigger phone verification)
+        const updatePromise = isResend
+            ? Promise.resolve()
+            : updateUser(user.details.id, updatePayload);
+
+        updatePromise.then(() => {
             ApiService.verifyPhone(updateArgs.phoneNumber).then(() => {
                 ReactGA.event({
                     category: 'Registering',
