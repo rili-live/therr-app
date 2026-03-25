@@ -156,8 +156,9 @@ async function fetchPageTitle(url: string): Promise<string | null> {
       signal: AbortSignal.timeout(8000),
       redirect: 'follow',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; TherSpaceBot/1.0)',
-        Accept: 'text/html',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
       },
     });
 
@@ -205,12 +206,16 @@ export async function searchForWebsite(
       signal: AbortSignal.timeout(10000),
       redirect: 'follow',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; TherSpaceBot/1.0)',
-        Accept: 'text/html',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
       },
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn(`  [searchWeb] DuckDuckGo returned HTTP ${response.status}`);
+      return null;
+    }
 
     const html = await response.text();
     const ddgResults = extractDdgResults(html);

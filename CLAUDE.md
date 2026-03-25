@@ -104,6 +104,7 @@ Read these files when relevant to the task:
 - `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` - Niche app variant context (see "Project Brief Context" above)
 - `docs/LOCALE_URL_ROUTING.md` - Locale-prefixed URL routing, i18n architecture, SEO strategy
 - `docs/NICHE_APP_SETUP_STEPS.md` - Brand variation setup process
+- `docs/TARGET_MARKETS.md` - Consumer and business target market definitions (core Therr App)
 
 ## Monorepo Structure
 
