@@ -77,6 +77,7 @@ const BusinessSpaceCard: React.FC<IBusinessSpaceCardProps> = ({
                         <Anchor
                             href={space.websiteUrl}
                             target="_blank"
+                            rel="noopener noreferrer"
                             size="xs"
                             onClick={(e) => e.stopPropagation()}
                         >
@@ -96,6 +97,7 @@ const BusinessSpaceCard: React.FC<IBusinessSpaceCardProps> = ({
                         <Anchor
                             href={space.menuUrl}
                             target="_blank"
+                            rel="noopener noreferrer"
                             size="xs"
                             onClick={(e) => e.stopPropagation()}
                         >
