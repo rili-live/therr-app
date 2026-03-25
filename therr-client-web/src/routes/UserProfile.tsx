@@ -55,6 +55,7 @@ interface IUserProfileState {
     myEvents: any[];
     myThoughts: any[];
     isBusinessDataLoading: boolean;
+    isThoughtsLoading: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -79,6 +80,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
             myEvents: [],
             myThoughts: [],
             isBusinessDataLoading: false,
+            isThoughtsLoading: false,
         };
     }
 
@@ -104,6 +106,8 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
         if (user.details.isBusinessAccount) {
             this.fetchBusinessData();
+        } else {
+            this.fetchThoughts();
         }
     }
 
@@ -152,6 +156,23 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
             });
         }).catch(() => {
             this.setState({ isBusinessDataLoading: false });
+        });
+    };
+
+    fetchThoughts = () => {
+        this.setState({ isThoughtsLoading: true });
+
+        UsersService.searchThoughts({
+            query: 'me',
+            itemsPerPage: 5,
+            pageNumber: 1,
+        }).then((response: any) => {
+            this.setState({
+                myThoughts: response?.data?.results || [],
+                isThoughtsLoading: false,
+            });
+        }).catch(() => {
+            this.setState({ isThoughtsLoading: false });
         });
     };
 
@@ -393,6 +414,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
     public render(): JSX.Element | null {
         const { createUserConnection, user, userConnections } = this.props;
+        const { myThoughts, isThoughtsLoading } = this.state;
 
         if (!user.details) {
             return this.renderSkeleton();
@@ -459,6 +481,28 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         </Group>
                     </Card>
 
+                    {/* Recent Thoughts / Updates */}
+                    <Card withBorder radius="md" p="lg">
+                        <Title order={4} mb="md">{this.props.translate('pages.userProfile.h2.myUpdates')}</Title>
+                        {isThoughtsLoading && (
+                            <Stack gap="sm">
+                                {[1, 2].map((i) => <Skeleton key={i} height={80} radius="md" />)}
+                            </Stack>
+                        )}
+                        {!isThoughtsLoading && myThoughts.length === 0 && (
+                            <Text size="sm" c="dimmed" fs="italic">
+                                {this.props.translate('pages.userProfile.labels.noUpdates')}
+                            </Text>
+                        )}
+                        {!isThoughtsLoading && myThoughts.length > 0 && (
+                            <Stack gap="sm">
+                                {myThoughts.map((thought: any) => (
+                                    <BusinessUpdateCard key={thought.id} thought={thought} />
+                                ))}
+                            </Stack>
+                        )}
+                    </Card>
+
                     {/* Connections */}
                     <Card withBorder radius="md" p="lg">
                         <Group justify="space-between" mb="md">
@@ -471,7 +515,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                             />
                         </Group>
                         {userConnections.connections.length > 0 ? (
-                            <SimpleGrid cols={{ base: 3, xs: 4, sm: 5, md: 6 }} spacing="sm" verticalSpacing="md">
+                            <SimpleGrid cols={{ base: 3, xs: 4, sm: 5, md: 6 }} spacing="md" verticalSpacing="lg">
                                 {userConnections.connections.map((connection: any) => {
                                     const connectionDetails = this.getConnectionDetails(connection);
                                     if (!connectionDetails) return null;
@@ -484,12 +528,12 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                                 onClick={() => this.handleConnectionClick(connection)}
                                                 style={{ overflow: 'hidden', width: '100%' }}
                                             >
-                                                <Stack align="center" gap={4}>
+                                                <Stack align="center" gap={6}>
                                                     <Avatar
                                                         src={connImageUri}
                                                         alt={connectionDetails.firstName}
-                                                        size={48}
-                                                        radius={48}
+                                                        size={64}
+                                                        radius={64}
                                                         color="teal"
                                                     >
                                                         {connInitial}
