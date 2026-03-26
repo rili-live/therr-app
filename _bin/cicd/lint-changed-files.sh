@@ -11,8 +11,9 @@ source ./_bin/lib/colorize.sh
 git fetch origin general
 
 # Get changed .ts and .js source files relative to general
+# --diff-filter=d excludes deleted files (which don't exist in the working tree)
 # Exclude build artifacts, config files, and non-source directories
-CHANGED_FILES=$(git diff --name-only origin/general -- '*.ts' '*.tsx' '*.js' '*.jsx' \
+CHANGED_FILES=$(git diff --name-only --diff-filter=d origin/general -- '*.ts' '*.tsx' '*.js' '*.jsx' \
   | grep -v node_modules \
   | grep -v '/lib/' \
   | grep -v '/build/' \
@@ -85,8 +86,7 @@ for PKG in "${PACKAGES[@]}"; do
 
   # Run eslint from the package directory so .eslintrc.js resolves correctly
   # node_modules are in the repo root (hoisted), eslint plugins resolve from there
-  # --quiet matches local lint scripts (report errors only, suppress warnings)
-  (cd "${PKG}" && npx eslint --quiet $ESLINT_ARGS) || {
+  (cd "${PKG}" && npx eslint $ESLINT_ARGS) || {
     printMessageError "Lint errors found in ${PKG}"
     LINT_ERRORS=$((LINT_ERRORS + 1))
   }
