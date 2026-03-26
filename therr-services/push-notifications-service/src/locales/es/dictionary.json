@@ -41,14 +41,14 @@
       "pressActionView": "Ver"
     },
     "newDirectMessage": {
-      "title": "Nuevo mensaje de {userName}",
-      "body": "Tienes mensajes sin leer — toca para responder",
+      "title": "Nuevo mensaje",
+      "body": "Tienes mensajes sin leer de {userName} — toca para responder",
       "pressActionReply": "Responder",
       "pressActionView": "Ver"
     },
     "newGroupMessage": {
-      "title": "Nuevo en {groupName}",
-      "body": "Tu grupo tiene mensajes nuevos — únete a la conversación",
+      "title": "Nuevo mensaje de grupo",
+      "body": "Tienes mensajes sin leer en {groupName} — únete a la conversación",
       "pressActionReply": "Responder",
       "pressActionView": "Ver"
     },

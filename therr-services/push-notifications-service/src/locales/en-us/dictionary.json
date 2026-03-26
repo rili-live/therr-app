@@ -41,14 +41,14 @@
       "pressActionView": "View"
     },
     "newDirectMessage": {
-      "title": "New Message from {userName}",
-      "body": "You have unread messages — tap to reply",
+      "title": "New Message",
+      "body": "You have unread messages from {userName} — tap to reply",
       "pressActionReply": "Reply",
       "pressActionView": "View"
     },
     "newGroupMessage": {
-      "title": "New in {groupName}",
-      "body": "Your group has new messages — jump in and join the conversation",
+      "title": "New Group Message",
+      "body": "You have unread messages in {groupName} — jump in and join the conversation",
       "pressActionReply": "Reply",
       "pressActionView": "View"
     },
