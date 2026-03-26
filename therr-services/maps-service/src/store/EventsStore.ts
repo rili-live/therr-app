@@ -231,7 +231,6 @@ export default class EventsStore {
                     }
                 });
             } else {
-                queryString = queryString.andWhere(conditions.filterBy, operator, query);
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
                     builder.where(conditions.filterBy, operator, query);
                     if (includePublicResults) {
