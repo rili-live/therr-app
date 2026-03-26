@@ -3,13 +3,14 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 import { expect } from 'chai';
 import sinon from 'sinon';
-import * as globalConfig from '../../../../global-config';
-import sendUnclaimedSpaceEmail from '../../src/api/email/for-business/sendUnclaimedSpaceEmail';
+import sendUnclaimedSpaceEmail, { hasAlreadySentEmail } from '../../src/api/email/for-business/sendUnclaimedSpaceEmail';
 import { awsSES } from '../../src/api/aws';
 import Store from '../../src/store';
 
 describe('sendUnclaimedSpaceEmail', () => {
     let sesStub: sinon.SinonStub;
+    let metricsGetStub: sinon.SinonStub;
+    let metricsCreateStub: sinon.SinonStub;
 
     beforeEach(() => {
         // Stub AWS SES to prevent actual email sending
@@ -20,6 +21,10 @@ describe('sendUnclaimedSpaceEmail', () => {
         // Stub Store methods to prevent DB calls during blacklist check
         sinon.stub(Store.blacklistedEmails, 'get').resolves([]);
         sinon.stub(Store.users, 'getUserByEmail').resolves([]);
+
+        // Stub userMetrics for tracking
+        metricsGetStub = sinon.stub(Store.userMetrics, 'get').resolves([]);
+        metricsCreateStub = sinon.stub(Store.userMetrics, 'create').resolves([{ id: 'metric-1' }]);
     });
 
     afterEach(() => {
@@ -102,5 +107,72 @@ describe('sendUnclaimedSpaceEmail', () => {
         expect(sesStub.calledOnce).to.be.true;
         const htmlBody = sesStub.args[0][0].Content.Simple.Body.Html.Data;
         expect(htmlBody).to.include('Test Coffee Shop');
+    });
+
+    describe('email tracking', () => {
+        it('logs a metric after sending the email', async () => {
+            await sendUnclaimedSpaceEmail(baseEmailParams, baseTemplateParams);
+
+            expect(metricsCreateStub.calledOnce).to.be.true;
+            const createArgs = metricsCreateStub.args[0][0];
+            expect(createArgs.name).to.equal('space.marketing.unclaimedEmailSent');
+            expect(createArgs.value).to.equal('1');
+            const dims = JSON.parse(createArgs.dimensions);
+            expect(dims.spaceId).to.equal('space-123');
+            expect(dims.businessEmail).to.equal('business@example.com');
+        });
+
+        it('skips sending and returns alreadySent if email was previously sent for this space', async () => {
+            metricsGetStub.resolves([{
+                dimensions: JSON.stringify({ spaceId: 'space-123', businessEmail: 'business@example.com' }),
+            }]);
+
+            const result = await sendUnclaimedSpaceEmail(baseEmailParams, baseTemplateParams);
+
+            expect(result).to.deep.equal({ alreadySent: true });
+            expect(sesStub.called).to.be.false;
+            expect(metricsCreateStub.called).to.be.false;
+        });
+
+        it('sends email when metrics exist but for a different spaceId', async () => {
+            metricsGetStub.resolves([{
+                dimensions: JSON.stringify({ spaceId: 'other-space', businessEmail: 'other@example.com' }),
+            }]);
+
+            await sendUnclaimedSpaceEmail(baseEmailParams, baseTemplateParams);
+
+            expect(sesStub.calledOnce).to.be.true;
+            expect(metricsCreateStub.calledOnce).to.be.true;
+        });
+    });
+
+    describe('hasAlreadySentEmail', () => {
+        it('returns false when no metrics exist', async () => {
+            metricsGetStub.resolves([]);
+            const result = await hasAlreadySentEmail('space-123');
+            expect(result).to.be.false;
+        });
+
+        it('returns true when a matching metric exists', async () => {
+            metricsGetStub.resolves([{
+                dimensions: JSON.stringify({ spaceId: 'space-123' }),
+            }]);
+            const result = await hasAlreadySentEmail('space-123');
+            expect(result).to.be.true;
+        });
+
+        it('returns false when metrics exist but for different spaces', async () => {
+            metricsGetStub.resolves([{
+                dimensions: JSON.stringify({ spaceId: 'other-space' }),
+            }]);
+            const result = await hasAlreadySentEmail('space-123');
+            expect(result).to.be.false;
+        });
+
+        it('returns false when the metrics query fails', async () => {
+            metricsGetStub.rejects(new Error('DB error'));
+            const result = await hasAlreadySentEmail('space-123');
+            expect(result).to.be.false;
+        });
     });
 });
