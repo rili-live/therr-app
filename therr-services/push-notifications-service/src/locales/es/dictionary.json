@@ -1,100 +1,100 @@
 {
   "notifications": {
     "achievementCompleted": {
-      "title": "Nuevas recompensas sin reclamar",
-      "body": "¡Completaste un logro! Reclama tu recompensa para obtener monedas."
+      "title": "¡Ganaste una recompensa!",
+      "body": "¡Buen trabajo! Acabas de completar un logro. Toca para reclamar tus monedas antes de que expiren."
     },
     "connectionRequestAccepted": {
-      "title": "Nueva conexión",
-      "body": "¡Tu solicitud de conexión fue aceptada! Revisa la app para iniciar una nueva conversación",
+      "title": "¡Estás conectado/a!",
+      "body": "{userName} aceptó tu solicitud — ¡saluda e inicia una conversación!",
       "pressActionMessage": "Mensaje",
       "pressActionView": "Ver"
     },
     "createAMomentReminder": {
-      "title": "Crea un momento para hacer conexiones",
-      "body": "El primer paso para hacer nuevas conexiones es compartir un momento mientras estás en movimiento. Puede ser una reseña, observación, dato curioso o algo divertido."
+      "title": "Comparte lo que estás haciendo",
+      "body": "Deja un momento en tu lugar favorito — una reseña, una foto o algo divertido. ¡Tus amigos cercanos lo descubrirán después!"
     },
     "createYourProfileReminder": {
-      "title": "Inicia sesión para crear tu perfil",
-      "body": "Tu perfil está incompleto. Inicia sesión para elegir tu nombre de usuario y establecer una foto de perfil."
+      "title": "Termina de configurar tu perfil",
+      "body": "¡Ya casi! Elige un nombre de usuario y agrega una foto para que las personas de tu zona te encuentren."
     },
     "discoveredUniqueMoment": {
-      "title": "¡Encontraste un momento único!",
-      "body": "Revisa el mapa para activar un momento con atributos especiales"
+      "title": "¡Encontraste algo especial!",
+      "body": "Hay un momento único cerca — abre el mapa para verlo."
     },
     "discoveredUniqueSpace": {
-      "title": "¡Encontraste un espacio único!",
-      "body": "Revisa el mapa para activar un espacio con atributos especiales"
+      "title": "¡Alerta de joya oculta!",
+      "body": "Estás cerca de un espacio único — toca para explorar qué lo hace especial."
     },
     "latestPostLikesStats": {
-      "title": "Nuevos me gusta",
-      "body": "Tu última publicación tiene {likeCount} me gusta en total. Comparte momentos para obtener logros, hacer conexiones y aumentar tus seguidores."
+      "title": "Tu publicación está recibiendo amor",
+      "body": "Tu última publicación alcanzó {likeCount} me gusta. ¡Sigue compartiendo para hacer crecer tu comunidad local!"
     },
     "latestPostViewcountStats": {
-      "title": "Tu publicación tiene nuevas vistas",
-      "body": "Tu última publicación tiene {viewCount} vistas en total."
+      "title": "La gente está viendo tu contenido",
+      "body": "Tu última publicación alcanzó {viewCount} vistas — tu comunidad te está prestando atención."
     },
     "newConnectionRequest": {
-      "title": "Nueva solicitud de conexión",
-      "body": "Tienes una nueva solicitud de conexión de {userName}",
+      "title": "Alguien quiere conectar contigo",
+      "body": "{userName} te envió una solicitud de conexión",
       "pressActionAccept": "Aceptar",
       "pressActionView": "Ver"
     },
     "newDirectMessage": {
-      "title": "Nuevos mensajes sin leer",
-      "body": "Tienes mensajes sin leer de {userName}",
+      "title": "Nuevo mensaje",
+      "body": "Tienes mensajes sin leer de {userName} — toca para responder",
       "pressActionReply": "Responder",
       "pressActionView": "Ver"
     },
     "newGroupMessage": {
-      "title": "Nuevos mensajes de grupo",
-      "body": "Tienes mensajes sin leer en el grupo {groupName}",
+      "title": "Nuevo mensaje de grupo",
+      "body": "Tienes mensajes sin leer en {groupName} — únete a la conversación",
       "pressActionReply": "Responder",
       "pressActionView": "Ver"
     },
     "newGroupMembers": {
-      "title": "Nuevos miembros del grupo",
-      "body": "Nuevos miembros {members} se unieron a tu grupo, {groupName}"
+      "title": "¡Tu grupo está creciendo!",
+      "body": "{members} se unió a {groupName} — ¡dale la bienvenida!"
     },
     "newGroupInvite": {
-      "title": "Nueva invitación de grupo",
-      "body": "{fromUserName} te invitó a unirte al grupo, {groupName}"
+      "title": "¡Estás invitado/a!",
+      "body": "{fromUserName} te invitó a unirte a {groupName} — toca para verlo"
     },
     "newLikeReceived": {
-      "title": "Nueva reacción",
+      "title": "A alguien le gustó tu publicación",
       "body": "A {userName} le gustó tu publicación",
       "pressActionView": "Ver publicación"
     },
     "newSuperLikeReceived": {
-      "title": "Nueva reacción",
-      "body": "{userName} le dio super me gusta a tu publicación",
+      "title": "¡Recibiste un super me gusta!",
+      "body": "{userName} le dio super me gusta a tu publicación — ¡realmente les encantó!",
       "pressActionView": "Ver publicación"
     },
     "newThoughtReplyReceived": {
-      "title": "Nueva respuesta a publicación",
-      "body": "{userName} respondió a tu publicación",
+      "title": "Nueva respuesta a tu publicación",
+      "body": "{userName} respondió a tu publicación — mira lo que dijo",
       "pressActionView": "Ver respuesta"
     },
     "newAreasActivated": {
-      "title": "Nuevas áreas activadas",
-      "body": "Recientemente activaste {totalAreasActivated} nueva(s) área(s)"
+      "title": "¡Nuevos lugares desbloqueados!",
+      "body": "Acabas de desbloquear {totalAreasActivated} nueva(s) área(s) — explora lo que se ha compartido cerca"
     },
     "nudgeSpaceEngagement": {
-      "title": "¿Reclamar recompensas de reembolso?",
-      "body": "Regístrate o completa una acción rápida para reclamar reembolsos y descuentos",
-      "pressActionCheckIn": "¿Registrarse?"
+      "title": "Gana recompensas ahora mismo",
+      "body": "Estás cerca de un lugar con recompensas — ¡regístrate para reclamar reembolsos y descuentos!",
+      "pressActionCheckIn": "Registrarse"
     },
     "unclaimedAchievementsReminder": {
-      "title": "Tienes logros sin reclamar",
-      "body": "Tienes {achievementsCount} logros sin reclamar"
+      "title": "Recompensas esperándote",
+      "body": "Tienes {achievementsCount} recompensa(s) sin reclamar — ¡no las dejes pasar!"
     },
     "unreadNotificationsReminder": {
-      "title": "Tienes notificaciones sin leer",
-      "body": "Tienes {notificationsCount} notificaciones sin leer"
+      "title": "Tienes novedades",
+      "body": "Tienes {notificationsCount} nueva(s) notificación(es) — toca para ponerte al día"
     },
     "inviteFriendsReminder": {
-      "title": "Invita a tus amigos",
-      "body": "¡Tus amigos se lo están perdiendo! Comparte tu enlace de invitación y ganen recompensas juntos."
+      "title": "Trae a tus amigos",
+      "body": "¡Comparte tu enlace de invitación y ambos ganarán recompensas cuando tus amigos se unan!"
     }
   },
   "validation": "No se proporcionaron los parámetros requeridos."

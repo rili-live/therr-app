@@ -37,21 +37,21 @@
         "mustBeOwner": "Must be content owner to view metrics"
     },
     "notifications": {
-        "achievementCompleted": "You completed an achievement! Go claim your reward to collect coins.",
+        "achievementCompleted": "You earned a reward! Tap to claim your coins.",
         "connectionRequestAccepted": "{firstName} {lastName} accepted your connection request",
-        "connectionRequestReceived": "You have received a new connection request from {firstName} {lastName}",
+        "connectionRequestReceived": "You have a new connection request from {firstName} {lastName}",
         "reactionLikeReceived": "{userName} liked your post",
         "reactionSuperLikeReceived": "{userName} super-liked your post!",
-        "newThoughtReplyReceived": "Your thought has new replies",
-        "newDmReceived": "New direct message from {userName} while you were away",
-        "newGroupMembers": "New member(s) {members} joined your group, {groupName}",
-        "newGroupInvite": "{inviterUserName} invited you to join the group, {groupName}",
-        "newAreasActivated": "You recently activated {totalAreasActivated} new areas(s)",
-        "discoveredUniqueMoment": "Check the map to activate a moment with special attributes",
-        "discoveredUniqueSpace": "Check the map to activate a space with special attributes"
+        "newThoughtReplyReceived": "{userName} replied to your post",
+        "newDmReceived": "New message from {userName} while you were away",
+        "newGroupMembers": "{members} just joined your group, {groupName}",
+        "newGroupInvite": "{inviterUserName} invited you to join {groupName}",
+        "newAreasActivated": "You just unlocked {totalAreasActivated} new area(s) — explore what's nearby!",
+        "discoveredUniqueMoment": "You found something special! Open the map to check it out.",
+        "discoveredUniqueSpace": "Hidden gem alert — you're near a unique space!"
     },
     "invites": {
-        "phone": "{name} has invited you to join Therr app. Sign up with this link to connect https://therr.com"
+        "phone": "{name} invited you to Therr — the local community and rewards app. Sign up here to connect: https://therr.com"
     },
     "thoughts": {
         "notFound": "Thought not found"
@@ -62,137 +62,137 @@
     "validation": "The required parameters were not provided.",
     "emails": {
         "verification": {
-            "subject": "[Account Verification] {brandShortName} User Account",
-            "header": "{brandName}: User Account Verification",
-            "dearUser": "Welcome, {name}!",
-            "body1": "Your new user account was successfully created. Click the following link to verify your account.",
+            "subject": "Verify Your {brandShortName} Account",
+            "header": "Welcome to {brandName}!",
+            "dearUser": "Hey {name},",
+            "body1": "Your account is ready to go! Just click the link below to verify your email and start exploring your local community.",
             "buttonText": "Verify My Account",
-            "postBody1": "If you are unable to click the link, copy paste the following URL in the browser: {linkUrl}"
+            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}"
         },
         "oneTimePassword": {
-            "subject": "[Forgot Password?] {brandShortName} One-Time Password",
-            "header": "{brandName}: One-time Password",
-            "dearUser": "Hi {name},",
-            "body1": "Looks like you forgot your password and requested a reset. Use this temporary password to access your account. After login, you can reset your password from the user settings page.",
-            "body2": "Your temporary, one time password:",
+            "subject": "Your {brandShortName} Password Reset",
+            "header": "{brandName}: Password Reset",
+            "dearUser": "Hey {name},",
+            "body1": "No worries — it happens to the best of us! Use the temporary password below to log back in, then head to settings to create a new one.",
+            "body2": "Your temporary password:",
             "buttonText": "Go to Login"
         },
         "passwordChange": {
-            "subject": "[Password Changed] {brandShortName} Account Settings",
-            "header": "{brandName}: Password Changed",
-            "dearUser": "Hi {userName},",
-            "body1": "Your password has been successfully updated. If you initiated this change, please disregard this e-mail.",
-            "body2": "If you did not initiate this change, please contact us immediately to resolve the issue.",
+            "subject": "Your {brandShortName} Password Was Updated",
+            "header": "{brandName}: Password Updated",
+            "dearUser": "Hey {userName},",
+            "body1": "Your password was just changed. If this was you, you're all set — no action needed.",
+            "body2": "Didn't make this change? Contact us right away so we can secure your account.",
             "buttonText": "Go to Login"
         },
         "ssoNewUser": {
-            "subject": "[Account Created] {brandShortName} One-Time Password",
-            "header": "{brandName}: User Account Created",
-            "dearUser": "Hi {name},",
-            "body1": "A new user account was successfully created. Click the following link to login, choose a username, and set your password. You can login with SSO or directly with your account password.",
-            "body2": "Your temporary, one time password:",
-            "postBody1": "If you are unable to click the link, copy paste the following URL in the browser: {linkUrl}"
+            "subject": "Welcome to {brandShortName} — Your Account Is Ready",
+            "header": "Welcome to {brandName}!",
+            "dearUser": "Hey {name},",
+            "body1": "Your account has been created! Click below to log in, pick a username, and set your password. You can also continue signing in with SSO.",
+            "body2": "Your temporary password:",
+            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}"
         },
         "subscriberVerification": {
-            "header": "{brandName}: Subscribed to Updates",
+            "header": "You're In! Welcome to {brandName}",
             "dearUser": "Welcome!",
-            "body1": "You were successfully subscribed to our general updates channel. We'll only send updates for big events to keep you in the loop. If don't have the app yet, get the early release on Google Play or the Apple App Store."
+            "body1": "You're now subscribed to updates from {brandName}. We'll only reach out for the big stuff — new features, community highlights, and can't-miss events. If you don't have the app yet, grab it on Google Play or the Apple App Store."
         },
         "pendingInvite": {
-            "header": "New Connection Request",
-            "body1": "You have a new friend request from {fromName} on {brandName}."
+            "header": "You Have a New Friend Request",
+            "body1": "{fromName} wants to connect with you on {brandName}. Tap below to respond!"
         },
         "newGroupInvite": {
-            "header": "New Group Invite",
-            "body1": "{fromUserName} invited you to join the group, {groupName}",
-            "body2": "Joining a group grants access to group chat and upcoming events. Login to check your notifications and reply to the invite.",
-            "postBody1": "If you are unable to click the link, copy paste the following URL in the browser: {linkUrl}"
+            "header": "You're Invited to {groupName}!",
+            "body1": "{fromUserName} invited you to join the group {groupName}.",
+            "body2": "Join to unlock group chat and stay in the loop on upcoming events. Log in to check your invite.",
+            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}"
         },
         "newGroupMembers": {
-            "header": "New Member(s) Joined Your Group!",
+            "header": "New Members Just Joined Your Group!",
             "body1WithMembers": "Welcome the new member(s): {membersList}",
-            "body1WithoutMembers": "Welcome the new members",
-            "body2WithMembers": "New members ({membersList}) recently joined your group, {groupName}. Login and review their requests if approval is required to join the group.",
-            "body2WithoutMembers": "New members recently joined your group, {groupName}. Login and review their requests if approval is required to join the group.",
-            "postBody1": "If you are unable to click the link, copy paste the following URL in the browser: {linkUrl}"
+            "body1WithoutMembers": "Welcome the new members!",
+            "body2WithMembers": "{membersList} recently joined your group {groupName}. Log in to review their requests if your group requires approval.",
+            "body2WithoutMembers": "New members recently joined your group {groupName}. Log in to review their requests if your group requires approval.",
+            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}"
         },
         "contactInvite": {
-            "header": "New invite from {fromName}!",
-            "dearUser": "Hi, {toEmail}!",
-            "body1": "{fromName} has invited you to connect on Therr app. You can e-mail them directly at {fromEmail}",
-            "body2": "Follow the link below to sign up today.",
-            "postBody1": "If you are unable to click the link, copy paste the following URL in the browser: {linkUrl}"
+            "header": "{fromName} Invited You to Connect!",
+            "dearUser": "Hey {toEmail}!",
+            "body1": "{fromName} wants you on {brandName}! You can also reach them directly at {fromEmail}.",
+            "body2": "Click below to sign up and start exploring your local community.",
+            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}"
         },
         "newUserInvite": {
-            "header": "Your Profile Awaits!",
-            "dearUser": "Hi, {toEmail}!",
-            "body1": "You have been invited to connect with {fromName} on Therr app. You can e-mail them directly at {fromEmail}",
-            "body2": "Follow the link below to finish creating your profile, and use this one-time password:",
-            "postBody1": "If you are unable to click the link, copy paste the following URL in the browser: {linkUrl}"
+            "header": "Your Profile Is Waiting!",
+            "dearUser": "Hey {toEmail}!",
+            "body1": "{fromName} invited you to connect on {brandName}. You can reach them directly at {fromEmail}.",
+            "body2": "Click below to finish setting up your profile. Use this one-time password to get started:",
+            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}"
         },
         "coinsReceived": {
-            "header": "You earned TherrCoins!",
-            "dearUser": "Congratulations, {userName}!",
-            "body1": "You just claimed {coinTotal} TherrCoin(s) for helping support local businesses! Thanks for being a valuable member of their community."
+            "header": "You Earned Coins!",
+            "dearUser": "Nice work, {userName}!",
+            "body1": "You just claimed {coinTotal} TherrCoin(s) for supporting local businesses. Thanks for being an awesome part of the community!"
         },
         "claimApproved": {
-            "header": "Approved! Business space request was reviewed and accepted",
-            "body1": "The business location you requested ('{spaceName}') is now available on Therr app.",
-            "body2": "If you have any questions, don't hesitate to contact support at info@therr.com.",
-            "postBody1": "Thank you for contributing to Therr app. Users like you make this dream possible!"
+            "header": "Your Business Space Is Live!",
+            "body1": "Great news — your business location ('{spaceName}') has been approved and is now visible to nearby users on {brandName}.",
+            "body2": "Questions? Reach out to us anytime at info@therr.com.",
+            "postBody1": "Thank you for being part of the {brandName} community. Local businesses like yours make it all possible!"
         },
         "claimPendingReview": {
-            "header": "Business Space Request in Review",
-            "body1": "The business location you requested ('{spaceName}') is currently being reviewed. If your claim is approved, you should receive a confirmation in the next 24-72 hours.",
-            "body2": "Look for a confirmation e-mail in the next few days. If you have any questions, don't hesitate to contact support at info@therr.com.",
-            "bodyBold": "Also, you may edit this campaign at any time during the review process.",
-            "postBody1": "Thank you for contributing to Therr app. Users like you make this dream possible!",
-            "buttonText": "Login to App"
+            "header": "Your Business Space Is Under Review",
+            "body1": "We've received your request for '{spaceName}' and it's currently being reviewed. You should hear back within 24–72 hours.",
+            "body2": "Keep an eye on your inbox for a confirmation email. Questions? Contact us at info@therr.com.",
+            "bodyBold": "You can edit your listing anytime while it's in review.",
+            "postBody1": "Thank you for being part of the {brandName} community. Local businesses like yours make it all possible!",
+            "buttonText": "Go to App"
         },
         "campaignApproved": {
-            "header": "Approved! Your ads campaign request was reviewed and accepted",
-            "body1": "Your campaign, '{campaignName}' will beginning running on the target platforms ({integrationTargets}) on the scheduled time and date.",
-            "body2": "Visit the dashboard for a real-time summary of campaign performance.",
-            "body3": "If you have any questions, don't hesitate to contact support at info@therr.com."
+            "header": "Your Campaign Is Approved and Ready to Go!",
+            "body1": "Your campaign '{campaignName}' has been approved and will begin running on {integrationTargets} at your scheduled time.",
+            "body2": "Head to your dashboard for real-time performance insights.",
+            "body3": "Questions? Reach out to us anytime at info@therr.com."
         },
         "campaignPendingReview": {
-            "header": "Campaign in Review",
-            "body1": "Your campaign ('{campaignName}') is currently being reviewed. Ads will be published to target providers after successful review.",
-            "body2": "Look for a confirmation e-mail in the next few days and/or check the dashboard for insights/metrics. If you have any questions, don't hesitate to contact support at info@therr.com.",
-            "bodyWarning": "This campaign is past the scheduled end date. Please update your campaign schedule to continue running ads.",
-            "bodyBold": "Also, you may edit this campaign at any time during the review process.",
-            "postBody1": "Thank you for using Therr for Business! We hope to simplify, streamline, and optimize ads & marketing for our customers! Reach out for feedback while we continue to improve the service offering with weekly updates.",
+            "header": "Your Campaign Is Under Review",
+            "body1": "We've received your campaign '{campaignName}' and it's being reviewed. Ads will go live on target platforms once approved.",
+            "body2": "Check your inbox for a confirmation email or visit the dashboard for updates. Questions? Contact us at info@therr.com.",
+            "bodyWarning": "Heads up: This campaign is past its scheduled end date. Update your schedule to keep your ads running.",
+            "bodyBold": "You can edit your campaign anytime while it's in review.",
+            "postBody1": "Thanks for choosing Therr for Business! We're constantly improving our tools to help you reach more local customers. Your feedback is always welcome.",
             "buttonText": "Go to Dashboard"
         },
         "dashboardSubscriberIntro": {
-            "header": "{brandName}: Marketing & Metrics Plan",
+            "header": "Welcome to {brandName}!",
             "dearUser": "Welcome!",
-            "body1": "Your business is now activated for \"{productPlanName}\", and your subscription will auto-renew at the end of the free trial. If you already have a dashboard account, login to manage your business space.",
-            "body2": "Otherwise, follow the link to register and get started. Claim your space and update your business details for the best results. Our marketing campaigns cater directly to your unique business needs with advance AI and automation.",
-            "body3": "If you have questions about the process or wish to update your plan, feel free to contact support at any time: {feedbackEmail}",
-            "bodyBold": "You may need to logout and log back in to see the updated account access.",
-            "buttonText": "Login or Register",
-            "postBody1": "If you are unable to click the link, copy paste the following URL in the browser: {linkUrl}"
+            "body1": "Your business is now set up on the \"{productPlanName}\" plan, and your subscription will auto-renew after the free trial. If you already have a dashboard account, log in to manage your listing.",
+            "body2": "New here? Click below to register and get started. Complete your business profile for the best results — our AI-powered campaigns are designed to drive local customers to your door.",
+            "body3": "Have questions or want to change your plan? Reach out anytime: {feedbackEmail}",
+            "bodyBold": "You may need to log out and back in to see your updated account access.",
+            "buttonText": "Get Started",
+            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}"
         },
         "dashboardSubscriberUserNotFound": {
-            "header": "Subscriber Missing Email | Not Found",
+            "header": "We Couldn't Find Your Account",
             "dearUser": "Hello,",
-            "body1": "The e-mail you provided when subscribing to Therr for Business was not found in our database.",
-            "body2": "If you have not yet created a dashboard account, please do so now and/or let us know the e-mail you used to sign up.",
-            "body3": "This will allow us to grant subscriber access to your account. We will notify you when this is complete so you can access the full features of the app.",
-            "buttonText": "Go To Dashboard",
-            "postBody1": "If you are unable to click the link, copy paste the following URL in the browser: {linkUrl}"
+            "body1": "The email you used to subscribe to Therr for Business doesn't match any account in our system.",
+            "body2": "If you haven't created a dashboard account yet, please do so now — or let us know the email you signed up with.",
+            "body3": "Once we link your subscription, we'll notify you so you can access all the features right away.",
+            "buttonText": "Go to Dashboard",
+            "postBody1": "If the button doesn't work, copy and paste this link into your browser: {linkUrl}"
         },
         "sendEmailAndOrPush": {
-            "connectionRequestSubject": "[New Connection Request] {userName} sent you a request",
-            "newGroupMembersSubject": "New Member(s) Joined Your Group!",
-            "newGroupInviteSubject": "{userName} invited you to join the Group, {groupName}"
+            "connectionRequestSubject": "{userName} wants to connect with you",
+            "newGroupMembersSubject": "New members just joined your group!",
+            "newGroupInviteSubject": "{userName} invited you to join {groupName}"
         },
         "template": {
             "allRightsReserved": "All rights reserved",
-            "unsubscribePrompt": "Not interested in these emails?",
+            "unsubscribePrompt": "Don't want these emails?",
             "unsubscribeLink": "Unsubscribe",
-            "unsubscribeReply": "Reply \"Unsubscribe\" to stop receiving {messageCategory} e-mails"
+            "unsubscribeReply": "Reply \"Unsubscribe\" to stop receiving {messageCategory} emails"
         }
     }
 }
