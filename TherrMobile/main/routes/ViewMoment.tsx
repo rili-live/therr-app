@@ -485,7 +485,10 @@ const localStyles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingVertical: 16,
+        marginTop: 8,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: 'rgba(0,0,0,0.1)',
     },
     validationButton: {
         flex: 1,

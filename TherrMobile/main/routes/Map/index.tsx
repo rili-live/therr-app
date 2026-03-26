@@ -2019,6 +2019,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             createMoment={createMoment}
                             navigation={navigation}
                             nearbySpaces={nearbySpaces}
+                            onClose={this.onBottomSheetClose}
                             theme={this.theme}
                             themeBottomSheet={this.themeBottomSheet}
                             themeViewArea={this.themeViewArea}

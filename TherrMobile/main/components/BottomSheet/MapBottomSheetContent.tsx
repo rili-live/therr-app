@@ -11,6 +11,7 @@ interface IMapBottomSheetContent {
     createMoment?: (data: any) => Promise<any>;
     navigation: any;
     nearbySpaces?: { id: string; title: string }[];
+    onClose?: () => void;
     theme: {
         colors: ITherrThemeColors;
         styles: any;
@@ -30,6 +31,7 @@ const MapBottomSheetContent = ({
     createMoment,
     navigation,
     nearbySpaces,
+    onClose,
     theme,
     translate,
 }: IMapBottomSheetContent) => {
@@ -39,6 +41,7 @@ const MapBottomSheetContent = ({
                 circleCenter={circleCenter}
                 createMoment={createMoment}
                 nearbySpaces={nearbySpaces || []}
+                onClose={onClose}
                 translate={translate}
                 theme={theme}
             />

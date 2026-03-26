@@ -340,18 +340,6 @@ export default ({
                     </View>
                 </>
             }
-            <View style={[
-                themeButtons.styles.createEvent,
-            ]}>
-                <FAB
-                    icon={renderCalendarIcon}
-                    label={shouldShowCreateActions ? translate('menus.mapActions.createEvent') : undefined}
-                    variant="secondary"
-                    size="small"
-                    style={fabStyle}
-                    onPress={() => handleCreate('event')}
-                />
-            </View>
             {
                 shouldShowCreateActions &&
                 <View style={themeButtons.styles.quickReport}>
@@ -365,6 +353,18 @@ export default ({
                     />
                 </View>
             }
+            <View style={[
+                themeButtons.styles.createEvent,
+            ]}>
+                <FAB
+                    icon={renderCalendarIcon}
+                    label={shouldShowCreateActions ? translate('menus.mapActions.createEvent') : undefined}
+                    variant="secondary"
+                    size="small"
+                    style={fabStyle}
+                    onPress={() => handleCreate('event')}
+                />
+            </View>
             {
                 shouldShowCreateActions &&
                 <View style={themeButtons.styles.claimASpace}>

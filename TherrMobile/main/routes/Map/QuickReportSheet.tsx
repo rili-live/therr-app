@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, Text, TextInput, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, Text, TextInput, View, StyleSheet } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Categories } from 'therr-js-utilities/constants';
@@ -28,6 +28,7 @@ interface IQuickReportSheetProps {
     circleCenter: { latitude: number; longitude: number };
     createMoment: (data: any) => Promise<any>;
     nearbySpaces: { id: string; title: string }[];
+    onClose?: () => void;
     translate: Function;
     theme: {
         colors: ITherrThemeColors;
@@ -38,11 +39,17 @@ interface IQuickReportSheetProps {
 const styles = StyleSheet.create({
     container: {
         paddingHorizontal: 16,
-        paddingTop: 8,
+        paddingTop: 12,
+        paddingBottom: 16,
     },
     title: {
         fontSize: 18,
         fontWeight: '600',
+        marginBottom: 4,
+        textAlign: 'center',
+    },
+    nearbySpaceLabel: {
+        fontSize: 12,
         marginBottom: 12,
         textAlign: 'center',
     },
@@ -55,11 +62,14 @@ const styles = StyleSheet.create({
         width: '48%',
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
+        paddingVertical: 14,
         paddingHorizontal: 12,
         marginBottom: 10,
         borderRadius: 12,
         borderWidth: 1,
+    },
+    reportButtonDisabled: {
+        opacity: 0.5,
     },
     reportButtonIcon: {
         marginRight: 10,
@@ -74,14 +84,15 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 8,
-        marginTop: 8,
-        marginBottom: 4,
+        marginTop: 12,
         fontSize: 14,
     },
-    nearbySpaceLabel: {
-        fontSize: 12,
-        marginTop: 4,
-        marginBottom: 8,
+    loadingOverlay: {
+        position: 'absolute',
+        right: 8,
+        top: 0,
+        bottom: 0,
+        justifyContent: 'center',
     },
 });
 
@@ -89,6 +100,7 @@ const QuickReportSheet = ({
     circleCenter,
     createMoment,
     nearbySpaces,
+    onClose,
     translate,
     theme,
 }: IQuickReportSheetProps) => {
@@ -121,6 +133,9 @@ const QuickReportSheet = ({
                         : translate(option.labelKey),
                 });
                 setDetails('');
+                if (onClose) {
+                    onClose();
+                }
             })
             .catch(() => {
                 showToast.error({
@@ -133,7 +148,7 @@ const QuickReportSheet = ({
     };
 
     const renderIcon = (option: IQuickReportOption) => {
-        const iconColor = theme.colors.primary3;
+        const iconColor = isSubmitting ? theme.colors.textGray : theme.colors.primary3;
         if (option.iconSet === 'ionicons') {
             return <Ionicons name={option.icon} size={22} color={iconColor} style={styles.reportButtonIcon} />;
         }
@@ -150,25 +165,18 @@ const QuickReportSheet = ({
                     {`@ ${nearestSpace.title}`}
                 </Text>
             )}
-            <TextInput
-                style={[styles.detailsInput, {
-                    borderColor: theme.colors.textGray,
-                    color: theme.colors.textBlack,
-                }]}
-                placeholder={translate('quickReports.addDetails')}
-                placeholderTextColor={theme.colors.textGray}
-                value={details}
-                onChangeText={setDetails}
-                maxLength={140}
-            />
             <View style={styles.grid}>
                 {quickReportOptions.map((option) => (
                     <Pressable
                         key={option.category}
-                        style={[styles.reportButton, {
-                            borderColor: theme.colors.primary3,
-                            backgroundColor: theme.colors.brandingWhite,
-                        }]}
+                        style={[
+                            styles.reportButton,
+                            {
+                                borderColor: theme.colors.primary3,
+                                backgroundColor: theme.colors.backgroundWhite,
+                            },
+                            isSubmitting && styles.reportButtonDisabled,
+                        ]}
                         onPress={() => handleSubmitReport(option)}
                         disabled={isSubmitting}
                     >
@@ -179,6 +187,24 @@ const QuickReportSheet = ({
                     </Pressable>
                 ))}
             </View>
+            <TextInput
+                style={[styles.detailsInput, {
+                    borderColor: theme.colors.textGray,
+                    color: theme.colors.textBlack,
+                    backgroundColor: theme.colors.backgroundWhite,
+                }]}
+                placeholder={translate('quickReports.addDetails')}
+                placeholderTextColor={theme.colors.textGray}
+                value={details}
+                onChangeText={setDetails}
+                maxLength={140}
+                editable={!isSubmitting}
+            />
+            {isSubmitting && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="small" color={theme.colors.primary3} />
+                </View>
+            )}
         </View>
     );
 };
