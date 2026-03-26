@@ -341,7 +341,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         {(isBusinessDataLoading || myThoughts.length > 0) && (
                             <>
                                 <Divider />
-                                <div className="business-updates-section">
+                                <div className="updates-section">
                                     <Title order={2} size="h3" mb="md">
                                         {this.props.translate('pages.userProfile.h2.myUpdates')}
                                     </Title>

@@ -413,7 +413,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                     {(isBusinessDataLoading || userThoughts.length > 0) && (
                         <>
                             <Divider />
-                            <div className="business-updates-section">
+                            <div className="updates-section">
                                 <Title order={2} size="h3" mb="md">
                                     {this.props.translate('pages.viewUser.headings.latestUpdates')}
                                 </Title>
@@ -499,7 +499,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                     {userThoughts.length > 0 && (
                         <>
                             <Divider />
-                            <div className="business-updates-section">
+                            <div className="updates-section">
                                 <Title order={2} size="h3" mb="md">
                                     {this.props.translate('pages.viewUser.headings.latestUpdates')}
                                 </Title>
