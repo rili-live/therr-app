@@ -187,9 +187,6 @@ export default class SpacesStore {
         let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(SPACES_TABLE_NAME)
-            // TODO: Determine a better way to select spaces that are most relevant to the user
-            // .orderBy(`${SPACES_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
-            // NOTE: Cast to a geography type to search distance within n meters
             .where({
                 fromUserId: userId,
                 isMatureContent: false, // content that has been blocked
@@ -199,7 +196,6 @@ export default class SpacesStore {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
 
-            queryString = queryString.andWhere(conditions.filterBy, operator, query);
             queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
                 builder.where(conditions.filterBy, operator, query);
                 if (includePublicResults) {
@@ -213,6 +209,7 @@ export default class SpacesStore {
         }
 
         queryString = queryString
+            .orderBy('createdAt', 'desc')
             .limit(limit)
             .offset(offset)
             .toString();
@@ -397,7 +394,6 @@ export default class SpacesStore {
                     }
                 });
             } else {
-                queryString = queryString.andWhere(conditions.filterBy, operator, query);
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
                     builder.where(conditions.filterBy, operator, query);
                     if (includePublicResults) {
@@ -408,7 +404,7 @@ export default class SpacesStore {
         }
 
         // Sort by distance when geo coordinates are available, otherwise by creation date
-        if (hasGeoCoordinates && !isUserIdFilter) {
+        if (hasGeoCoordinates) {
             queryString = queryString
                 .orderByRaw('ST_Distance("geomCenter"::geography, ST_MakePoint(?, ?)::geography) ASC', [conditions.longitude, conditions.latitude]);
         } else {
