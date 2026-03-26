@@ -241,15 +241,9 @@ export default class EventsStore {
             }
         }
 
-        // Sort by distance (nearest first) when not filtering by specific user
-        const isUserIdFilter = conditions.filterBy === 'fromUserIds' && fromUserIds.length > 0;
-        if (!isUserIdFilter) {
-            queryString = queryString
-                .orderByRaw('ST_Distance(geom::geography, ST_MakePoint(?, ?)::geography) ASC', [conditions.longitude, conditions.latitude]);
-        } else {
-            queryString = queryString
-                .orderBy('createdAt', 'desc');
-        }
+        // Sort by distance (nearest first) since geo coordinates are always required by ST_DWithin
+        queryString = queryString
+            .orderByRaw('ST_Distance(geom::geography, ST_MakePoint(?, ?)::geography) ASC', [conditions.longitude, conditions.latitude]);
 
         queryString = queryString
             .limit(limit)
