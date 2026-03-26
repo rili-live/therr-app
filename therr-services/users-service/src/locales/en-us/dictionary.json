@@ -167,10 +167,10 @@
         "unclaimedSpace": {
             "subject": "People are searching for {spaceName}",
             "header": "Your Business Is Getting Noticed",
-            "preheaderText": "Your business is being discovered. Claim your free listing today.",
+            "preheaderText": "Customers are discovering and talking about your business. Claim your free listing today.",
             "dearUser": "Hello, {spaceName}!",
-            "body1": "People in your area are discovering {spaceName} on Therr. Your business already has a listing that potential customers are viewing right now. Anyone can see your space — but only you can control how it looks.",
-            "body2": "Claim your free business page to update your hours, photos, contact info, and more. Stand out from the competition and connect directly with customers who are actively searching for businesses like yours.",
+            "body1": "People in your area are discovering {spaceName} on Therr — and they're sharing what's happening at your business in real time. Customers are posting about their experiences, flagging deals, and letting others know when things are busy or when the vibe is great. Your business already has a listing. The question is: who's controlling the story?",
+            "body2": "When you claim your page, you unlock tools Google can't offer: see real-time customer reports about your business, get paired with complementary local spots that send you foot traffic, and reward customers who spread the word. This isn't just a listing — it's a living, community-powered presence.",
             "bodyBold": "It only takes 60 seconds to get started.",
             "buttonText": "See Your Business Page",
             "postBody1": "Already have an account? Simply log in and claim your space from the business page.",

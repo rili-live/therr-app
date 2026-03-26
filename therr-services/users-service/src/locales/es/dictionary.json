@@ -167,10 +167,10 @@
         "unclaimedSpace": {
             "subject": "La gente está buscando {spaceName}",
             "header": "Tu negocio está llamando la atención",
-            "preheaderText": "Tu negocio está siendo descubierto. Reclama tu listado gratuito hoy.",
+            "preheaderText": "Los clientes están descubriendo y hablando de tu negocio. Reclama tu listado gratuito hoy.",
             "dearUser": "¡Hola, {spaceName}!",
-            "body1": "Personas en tu área están descubriendo {spaceName} en Therr. Tu negocio ya tiene un listado que los clientes potenciales están viendo ahora mismo. Cualquiera puede ver tu espacio, pero solo tú puedes controlar cómo se ve.",
-            "body2": "Reclama tu página de negocio gratuita para actualizar tus horarios, fotos, información de contacto y más. Destaca entre la competencia y conecta directamente con clientes que están buscando negocios como el tuyo.",
+            "body1": "Personas en tu área están descubriendo {spaceName} en Therr — y están compartiendo lo que pasa en tu negocio en tiempo real. Los clientes publican sobre sus experiencias, señalan ofertas y avisan a otros cuando hay mucha gente o cuando el ambiente es genial. Tu negocio ya tiene un listado. La pregunta es: ¿quién controla la historia?",
+            "body2": "Cuando reclamas tu página, desbloqueas herramientas que Google no puede ofrecer: ve reportes de clientes en tiempo real sobre tu negocio, conéctate con negocios locales complementarios que te envían clientes, y recompensa a quienes difunden tu negocio. Esto no es solo un listado — es una presencia viva impulsada por la comunidad.",
             "bodyBold": "Solo toma 60 segundos para comenzar.",
             "buttonText": "Ver tu página de negocio",
             "postBody1": "¿Ya tienes una cuenta? Simplemente inicia sesión y reclama tu espacio desde la página del negocio.",
