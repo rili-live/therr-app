@@ -1,6 +1,6 @@
 {
   "branding": {
-    "motto": "C'est notre moment, et ce sont nos espaces. Partagez un instant."
+    "motto": "Explorez votre quartier. Connectez-vous avec votre communauté. Gagnez des récompenses."
   },
   "validations": {
     "email": "Adresse courriel invalide",
@@ -403,19 +403,19 @@
       "failedMessageUserNotFound": "Aucun utilisateur trouvé.",
       "labels": {
         "email": "Courriel",
-        "settingsEmailBusMarketing": "Courriels marketing du tableau de bord d'entreprise",
-        "settingsEmailMarketing": "Courriels marketing sur la santé sociale",
-        "settingsEmailLikes": "Courriels d'engagement de l'application sociale",
-        "settingsEmailInvites": "Courriels d'invitation d'utilisateur ou de groupe",
-        "settingsEmailMentions": "Courriels de « mentions » de l'application sociale",
-        "settingsEmailMessages": "Courriels de « messages » de l'application sociale",
-        "settingsEmailReminders": "Courriels de rappel de l'application sociale",
-        "settingsEmailBackground": "Courriels automatisés de l'application sociale"
+        "settingsEmailBusMarketing": "Conseils et nouveautés du tableau de bord",
+        "settingsEmailMarketing": "Nouveautés communautaires et nouvelles fonctions",
+        "settingsEmailLikes": "J'aime et interactions sur vos publications",
+        "settingsEmailInvites": "Demandes d'amitié et invitations de groupe",
+        "settingsEmailMentions": "Mentions et identifications",
+        "settingsEmailMessages": "Nouveaux messages",
+        "settingsEmailReminders": "Rappels et notifications",
+        "settingsEmailBackground": "Mises à jour automatiques d'activité"
       },
       "returnToLogin": "Retour à la page de connexion",
       "sectionHeaders": {
         "marketing": "Courriels marketing",
-        "social": "Courriels de l'application sociale"
+        "social": "Courriels d'activité"
       }
     },
     "emailVerification": {
@@ -461,16 +461,16 @@
       "nextPage": "Vers la page {pageNumber}"
     },
     "home": {
-      "pageTitle": "Créez votre profil social ou d'entreprise",
-      "welcome": "Découvrez le local. Gagnez des récompenses. Faites-vous remarquer.",
+      "pageTitle": "Votre app de communauté locale et récompenses",
+      "welcome": "Découvrez le local. Gagnez des récompenses. Créez de vraies connexions.",
       "apple": "Apple",
       "android": "Android",
       "devices": "appareils",
       "eventOrganizers": "Vitrines",
       "freelancers": "Pigistes",
       "or": "ou",
-      "info": "Therr vous connecte avec les gens, les lieux et les entreprises de votre communauté. Publiez des messages géolocalisés, découvrez des trésors cachés à proximité et gagnez des récompenses simplement en explorant.",
-      "info2": "Vous êtes un influenceur local ou un créateur de contenu? Associez-vous avec des entreprises locales, développez votre audience et décrochez des collaborations — le tout via l'application.",
+      "info": "Therr vous connecte avec les gens, les lieux et les entreprises de votre quartier. Publiez des messages géolocalisés, découvrez des trésors cachés à proximité et gagnez des récompenses simplement en explorant votre communauté.",
+      "info2": "Influenceur local ou créateur de contenu? Associez-vous avec des entreprises locales, développez votre audience et décrochez des collaborations payantes — le tout via l'application.",
       "info3": "Téléchargez l'application gratuite pour profiter de l'expérience complète."
     },
     "createForum": {
@@ -680,34 +680,34 @@
       "info": "Vous cherchez sûrement l'application mobile! Trouvez-la ci-dessous. Pour l'instant, l'application de bureau ne prend en charge que les fonctions de base comme la mise à jour de votre mot de passe ou les détails de votre compte."
     },
     "goMobile": {
-      "pageTitle": "Votre carrefour",
+      "pageTitle": "Votre carrefour local",
       "welcome": "Bonjour Therr",
-      "subtitle": "Découvrez les gens, les lieux et les moments locaux — directement depuis votre navigateur. Explorez ce qui se passe autour de vous et connectez-vous avec votre communauté. Obtenez l'application mobile pour profiter de tout le plaisir en déplacement",
+      "subtitle": "Découvrez les gens, les lieux et les moments locaux — directement depuis votre navigateur. Voyez ce qui se passe autour de vous et connectez-vous avec votre communauté. Obtenez l'application mobile pour l'expérience complète en déplacement.",
       "featuresHeading": "Commencez à explorer",
       "features": {
         "explore": {
           "title": "Explorer les environs",
-          "description": "Parcourez les publications tendance et découvrez ce que les gens partagent dans votre quartier."
+          "description": "Consultez les publications tendance et découvrez ce que les gens partagent dans votre quartier."
         },
         "locations": {
-          "title": "Trouver des emplacements",
-          "description": "Recherchez des entreprises locales, des événements et des trésors cachés près de chez vous."
+          "title": "Trouver des lieux locaux",
+          "description": "Découvrez des entreprises locales, des événements et des trésors cachés près de chez vous."
         },
         "moments": {
           "title": "Voir les moments",
-          "description": "Consultez les moments en photos et vidéos partagés par la communauté."
+          "description": "Explorez les photos et récits partagés par votre communauté."
         },
         "connect": {
-          "title": "Rencontrer des gens",
-          "description": "Trouvez et connectez-vous avec des gens qui partagent vos intérêts à proximité."
+          "title": "Rencontrer des gens à proximité",
+          "description": "Connectez-vous avec des gens qui partagent vos intérêts dans votre quartier."
         }
       },
-      "ctaHeading": "Débloquez l'expérience complète",
-      "ctaInfo": "Vous aimez ce que vous voyez? L'application mobile va encore plus loin — avec la découverte de lieux en temps réel, les notifications poussées, les récompenses et plus encore. Téléchargez gratuitement et ne manquez jamais ce qui se passe autour de vous."
+      "ctaHeading": "Obtenez l'expérience complète",
+      "ctaInfo": "Vous aimez ce que vous voyez? L'application mobile va encore plus loin — avec la découverte en temps réel, les récompenses d'enregistrement et les notifications d'offres à proximité. Téléchargez gratuitement et ne manquez jamais ce qui se passe autour de vous."
     },
     "inviteLanding": {
       "title": "{username} vous a invité sur Therr!",
-      "description": "Rejoignez l'application communautaire locale et de récompenses. Inscrivez-vous avec leur code d'invitation et vous gagnez tous les deux des récompenses!",
+      "description": "Rejoignez l'application de communauté locale et de récompenses. Inscrivez-vous avec leur code d'invitation et vous gagnez tous les deux des pièces!",
       "joinButton": "Rejoindre et gagner 5 pièces",
       "appStoreText": "Aussi disponible sur mobile",
       "returnHome": "Retour à la page d'accueil"
