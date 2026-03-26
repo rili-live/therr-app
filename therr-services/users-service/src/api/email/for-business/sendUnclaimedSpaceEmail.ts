@@ -16,18 +16,29 @@ export interface ISendUnclaimedSpaceEmailConfig {
 export interface ITemplateParams {
     spaceName: string;
     spaceId: string;
+    missingFields?: string[];
 }
 
 export default (emailParams: ISendUnclaimedSpaceEmailConfig, templateParams: ITemplateParams) => {
     const locale = emailParams.locale || 'en-us';
 
     const spaceUrl = `${globalConfig[process.env.NODE_ENV].hostFull}/spaces/${templateParams.spaceId}?claim=true`;
-    const htmlConfig = {
+    let body3: string | undefined;
+    if (templateParams.missingFields?.length) {
+        const intro = translate(locale, 'emails.unclaimedSpace.missingFieldsIntro');
+        const fieldLabels = templateParams.missingFields.map(
+            (field) => translate(locale, `emails.unclaimedSpace.missingFieldLabels.${field}`) || field,
+        );
+        body3 = `${intro} ${fieldLabels.join(', ')}.`;
+    }
+
+    const htmlConfig: any = {
         header: translate(locale, 'emails.unclaimedSpace.header'),
         preheaderText: translate(locale, 'emails.unclaimedSpace.preheaderText'),
         dearUser: translate(locale, 'emails.unclaimedSpace.dearUser', { spaceName: templateParams.spaceName }),
         body1: translate(locale, 'emails.unclaimedSpace.body1', { spaceName: templateParams.spaceName }),
         body2: translate(locale, 'emails.unclaimedSpace.body2'),
+        body3,
         bodyBold: translate(locale, 'emails.unclaimedSpace.bodyBold'),
         postBody1: translate(locale, 'emails.unclaimedSpace.postBody1'),
         buttonHref: spaceUrl,

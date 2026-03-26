@@ -173,7 +173,16 @@
             "body2": "Claim your free business page to update your hours, photos, contact info, and more. Stand out from the competition and connect directly with customers who are actively searching for businesses like yours.",
             "bodyBold": "It only takes 60 seconds to get started.",
             "buttonText": "See Your Business Page",
-            "postBody1": "Already have an account? Simply log in and claim your space from the business page."
+            "postBody1": "Already have an account? Simply log in and claim your space from the business page.",
+            "missingFieldsIntro": "Your listing is still missing some key details:",
+            "missingFieldLabels": {
+                "openingHours": "business hours",
+                "phoneNumber": "phone number",
+                "websiteUrl": "website",
+                "menuUrl": "menu",
+                "photos": "photos",
+                "description": "a detailed description"
+            }
         },
         "dashboardSubscriberIntro": {
             "header": "Welcome to {brandName}!",

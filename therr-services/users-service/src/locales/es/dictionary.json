@@ -173,7 +173,16 @@
             "body2": "Reclama tu página de negocio gratuita para actualizar tus horarios, fotos, información de contacto y más. Destaca entre la competencia y conecta directamente con clientes que están buscando negocios como el tuyo.",
             "bodyBold": "Solo toma 60 segundos para comenzar.",
             "buttonText": "Ver tu página de negocio",
-            "postBody1": "¿Ya tienes una cuenta? Simplemente inicia sesión y reclama tu espacio desde la página del negocio."
+            "postBody1": "¿Ya tienes una cuenta? Simplemente inicia sesión y reclama tu espacio desde la página del negocio.",
+            "missingFieldsIntro": "A tu listado todavía le faltan algunos detalles clave:",
+            "missingFieldLabels": {
+                "openingHours": "horario de atención",
+                "phoneNumber": "número de teléfono",
+                "websiteUrl": "sitio web",
+                "menuUrl": "menú",
+                "photos": "fotos",
+                "description": "una descripción detallada"
+            }
         },
         "dashboardSubscriberIntro": {
             "header": "¡Bienvenido/a a {brandName}!",
