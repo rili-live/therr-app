@@ -49,6 +49,9 @@ printMessageSuccess "Shared libraries built"
 
 # Define packages and their root directories
 # Each package has its own .eslintrc.js
+# NOTE: therr-client-web-dashboard is excluded because its local lint script
+# is a no-op (linting not yet configured for that package).
+# TherrMobile is included to match the local lint:changed behavior.
 declare -a PACKAGES=(
   "therr-api-gateway"
   "therr-services/push-notifications-service"
@@ -60,7 +63,7 @@ declare -a PACKAGES=(
   "therr-public-library/therr-js-utilities"
   "therr-public-library/therr-react"
   "therr-client-web"
-  "therr-client-web-dashboard"
+  "TherrMobile"
 )
 
 LINT_ERRORS=0
@@ -82,7 +85,8 @@ for PKG in "${PACKAGES[@]}"; do
 
   # Run eslint from the package directory so .eslintrc.js resolves correctly
   # node_modules are in the repo root (hoisted), eslint plugins resolve from there
-  (cd "${PKG}" && npx eslint $ESLINT_ARGS) || {
+  # --quiet matches local lint scripts (report errors only, suppress warnings)
+  (cd "${PKG}" && npx eslint --quiet $ESLINT_ARGS) || {
     printMessageError "Lint errors found in ${PKG}"
     LINT_ERRORS=$((LINT_ERRORS + 1))
   }
