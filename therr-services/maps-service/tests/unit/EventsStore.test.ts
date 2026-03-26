@@ -1,7 +1,7 @@
 /* eslint-disable quotes, max-len */
 import { expect } from 'chai';
 import sinon from 'sinon';
-import MomentsStore from '../../src/store/MomentsStore';
+import EventsStore from '../../src/store/EventsStore';
 
 // Use a never-resolving promise to avoid triggering .then() handlers that access undefined overrides
 const createMockStore = () => ({
@@ -29,47 +29,12 @@ const baseConditions = {
     latitude: 40.7484,
 };
 
-describe('MomentsStore', () => {
-    describe('countRecords', () => {
-        it('queries for total records', () => {
-            const expected = `select count(*) from "main"."moments" where ST_DWithin(geom::geography, ST_MakePoint(1235.3034, -12.12314)::geography, 1000)`;
+describe('EventsStore', () => {
+    describe('searchEvents', () => {
+        it('always includes ORDER BY ST_Distance ASC', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.countRecords({
-                longitude: 1235.3034,
-                latitude: -12.12314,
-                fromUserIds: 'fromUserIds',
-            }, [5, 9]);
-
-            expect(mockStore.read.query.args[0][0]).to.be.equal(expected);
-        });
-    });
-
-    describe('searchMoments', () => {
-        it('queries with postgis functions and distance sort', () => {
-            const expected = `select "id", "areaType", "locale", "category", "notificationMsg", "medias", "mediaIds", "hashTags", "latitude", "longitude", "radius", "isMatureContent", "isModeratorApproved", "createdAt", "updatedAt", "interestsKeys", "spaceId" from "main"."moments" where ST_DWithin(geom::geography, ST_MakePoint(15.3034, -1.12314)::geography, 5) and "isMatureContent" = false order by ST_Distance(geom::geography, ST_MakePoint(15.3034, -1.12314)::geography) ASC limit 100 offset 100`;
-            const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMoments(mockHeaders, {
-                pagination: {
-                    itemsPerPage: 100,
-                    pageNumber: 2,
-                },
-                filterBy: 'distance',
-                filterOperator: '>',
-                query: 5,
-                longitude: 15.3034,
-                latitude: -1.12314,
-                order: 'desc',
-            }, []);
-
-            expect(mockStore.read.query.args[0][0]).to.be.equal(expected);
-        });
-
-        it('always includes ORDER BY ST_Distance ASC regardless of filter type', () => {
-            const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMoments(mockHeaders, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchEvents(mockHeaders, {
                 ...baseConditions,
                 filterBy: 'distance',
                 query: 5000,
@@ -82,8 +47,8 @@ describe('MomentsStore', () => {
 
         it('sorts by distance even when filterBy is fromUserIds (mobile map use case)', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMoments(mockHeaders, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchEvents(mockHeaders, {
                 ...baseConditions,
                 filterBy: 'fromUserIds',
                 query: 'connections',
@@ -97,8 +62,8 @@ describe('MomentsStore', () => {
 
         it('includes fromUserIds filter with public results OR condition', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMoments(mockHeaders, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchEvents(mockHeaders, {
                 ...baseConditions,
                 filterBy: 'fromUserIds',
                 query: 'connections',
@@ -111,8 +76,8 @@ describe('MomentsStore', () => {
 
         it('excludes public results when includePublicResults is false', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMoments(mockHeaders, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchEvents(mockHeaders, {
                 ...baseConditions,
                 filterBy: 'fromUserIds',
                 query: 'connections',
@@ -125,42 +90,37 @@ describe('MomentsStore', () => {
 
         it('applies non-fromUserIds filter without duplicate condition', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMoments(mockHeaders, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchEvents(mockHeaders, {
                 ...baseConditions,
                 filterBy: 'category',
                 filterOperator: '=',
-                query: 'food',
+                query: 'music',
             }, []);
 
             const query = mockStore.read.query.args[0][0];
-            // Should have the grouped condition with OR isPublic
             expect(query).to.include('"isPublic" = true');
-            // Should NOT have a duplicate bare andWhere before the grouped condition
-            // The filter should appear exactly once in the main clause (inside the grouped condition)
-            const categoryMatches = query.match(/"category" = 'food'/g);
+            const categoryMatches = query.match(/"category" = 'music'/g);
             expect(categoryMatches).to.have.lengthOf(1);
         });
 
-        it('applies ilike operator for text search filters', () => {
+        it('includes scheduleStartAt filter for recent events', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMoments(mockHeaders, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchEvents(mockHeaders, {
                 ...baseConditions,
-                filterBy: 'notificationMsg',
-                filterOperator: 'ilike',
-                query: 'coffee',
+                filterBy: 'distance',
+                query: 5000,
             }, []);
 
             const query = mockStore.read.query.args[0][0];
-            expect(query).to.include('%coffee%');
-            expect(query).to.include('ilike');
+            expect(query).to.include('"scheduleStartAt" >');
         });
 
         it('uses distanceOverride when provided', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMoments(mockHeaders, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchEvents(mockHeaders, {
                 ...baseConditions,
             }, [], [], { distanceOverride: 32000 });
 
@@ -170,8 +130,8 @@ describe('MomentsStore', () => {
 
         it('calculates correct offset from pagination', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMoments(mockHeaders, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchEvents(mockHeaders, {
                 ...baseConditions,
                 pagination: { itemsPerPage: 25, pageNumber: 3 },
                 filterBy: 'distance',
@@ -183,15 +143,29 @@ describe('MomentsStore', () => {
             expect(query).to.include('offset 50');
         });
 
+        it('applies ilike operator for text search filters', () => {
+            const mockStore = createMockStore();
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchEvents(mockHeaders, {
+                ...baseConditions,
+                filterBy: 'notificationMsg',
+                filterOperator: 'ilike',
+                query: 'concert',
+            }, []);
+
+            const query = mockStore.read.query.args[0][0];
+            expect(query).to.include('%concert%');
+            expect(query).to.include('ilike');
+        });
     });
 
-    describe('searchMyMoments', () => {
+    describe('searchMyEvents', () => {
         const requirements = { fromUserId: 'user-123', isMatureContent: false };
 
         it('sorts by distance when coordinates are provided', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMyMoments(mockHeaders, 'user-123', requirements, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchMyEvents(mockHeaders, 'user-123', requirements, {
                 ...baseConditions,
             }, '*', {});
 
@@ -203,8 +177,8 @@ describe('MomentsStore', () => {
 
         it('falls back to createdAt desc when no coordinates provided', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMyMoments(mockHeaders, 'user-123', requirements, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchMyEvents(mockHeaders, 'user-123', requirements, {
                 pagination: { itemsPerPage: 20, pageNumber: 1 },
             }, '*', {});
 
@@ -215,8 +189,8 @@ describe('MomentsStore', () => {
 
         it('applies ST_DWithin geo filter when coordinates are provided', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMyMoments(mockHeaders, 'user-123', requirements, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchMyEvents(mockHeaders, 'user-123', requirements, {
                 ...baseConditions,
             }, '*', {});
 
@@ -226,8 +200,8 @@ describe('MomentsStore', () => {
 
         it('skips ST_DWithin geo filter when no coordinates', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMyMoments(mockHeaders, 'user-123', requirements, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchMyEvents(mockHeaders, 'user-123', requirements, {
                 pagination: { itemsPerPage: 20, pageNumber: 1 },
             }, '*', {});
 
@@ -237,8 +211,8 @@ describe('MomentsStore', () => {
 
         it('uses default limit of 50 when limit is not set', () => {
             const mockStore = createMockStore();
-            const store = new MomentsStore(mockStore, createMockMediaStore());
-            store.searchMyMoments(mockHeaders, 'user-123', requirements, {
+            const store = new EventsStore(mockStore, createMockMediaStore());
+            store.searchMyEvents(mockHeaders, 'user-123', requirements, {
                 pagination: { itemsPerPage: 0, pageNumber: 1 },
             }, '*', {});
 
