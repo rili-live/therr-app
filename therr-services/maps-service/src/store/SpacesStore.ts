@@ -408,7 +408,7 @@ export default class SpacesStore {
         }
 
         // Sort by distance when geo coordinates are available, otherwise by creation date
-        if (hasGeoCoordinates && !isUserIdFilter) {
+        if (hasGeoCoordinates) {
             queryString = queryString
                 .orderByRaw('ST_Distance("geomCenter"::geography, ST_MakePoint(?, ?)::geography) ASC', [conditions.longitude, conditions.latitude]);
         } else {
