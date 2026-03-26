@@ -3,7 +3,7 @@ import {
     Paper, Text, Group, Badge, Stack,
 } from '@mantine/core';
 
-interface IBusinessUpdateCardProps {
+interface IThoughtCardProps {
     thought: any;
     onThoughtClick?: (thoughtId: string) => void;
 }
@@ -18,12 +18,12 @@ const formatDate = (dateStr: string): string => {
     });
 };
 
-const BusinessUpdateCard: React.FC<IBusinessUpdateCardProps> = ({ thought, onThoughtClick }) => {
+const ThoughtCard: React.FC<IThoughtCardProps> = ({ thought, onThoughtClick }) => {
     const hashTags = thought.hashTags ? thought.hashTags.split(',').filter(Boolean) : [];
 
     return (
         <Paper
-            className="business-update-card"
+            className="thought-card"
             shadow="xs"
             radius="md"
             withBorder
@@ -67,4 +67,4 @@ const BusinessUpdateCard: React.FC<IBusinessUpdateCardProps> = ({ thought, onTho
     );
 };
 
-export default BusinessUpdateCard;
+export default ThoughtCard;

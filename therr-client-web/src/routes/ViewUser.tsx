@@ -17,7 +17,7 @@ import withTranslation from '../wrappers/withTranslation';
 import getUserImageUri from '../utilities/getUserImageUri';
 import BusinessSpaceCard from '../components/business-profile/BusinessSpaceCard';
 import BusinessEventCard from '../components/business-profile/BusinessEventCard';
-import BusinessUpdateCard from '../components/business-profile/BusinessUpdateCard';
+import ThoughtCard from '../components/business-profile/ThoughtCard';
 
 interface IViewUserRouterProps {
     navigation: {
@@ -413,7 +413,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                     {(isBusinessDataLoading || userThoughts.length > 0) && (
                         <>
                             <Divider />
-                            <div className="business-updates-section">
+                            <div className="updates-section">
                                 <Title order={2} size="h3" mb="md">
                                     {this.props.translate('pages.viewUser.headings.latestUpdates')}
                                 </Title>
@@ -425,7 +425,7 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                                 {!isBusinessDataLoading && (
                                     <Stack gap="sm">
                                         {userThoughts.slice(0, 5).map((thought: any) => (
-                                            <BusinessUpdateCard
+                                            <ThoughtCard
                                                 key={thought.id}
                                                 thought={thought}
                                                 onThoughtClick={this.handleThoughtClick}
@@ -499,13 +499,13 @@ export class ViewUserComponent extends React.Component<IViewUserProps, IViewUser
                     {userThoughts.length > 0 && (
                         <>
                             <Divider />
-                            <div className="business-updates-section">
+                            <div className="updates-section">
                                 <Title order={2} size="h3" mb="md">
                                     {this.props.translate('pages.viewUser.headings.latestUpdates')}
                                 </Title>
                                 <Stack gap="sm">
                                     {userThoughts.slice(0, 5).map((thought: any) => (
-                                        <BusinessUpdateCard
+                                        <ThoughtCard
                                             key={thought.id}
                                             thought={thought}
                                             onThoughtClick={this.handleThoughtClick}
