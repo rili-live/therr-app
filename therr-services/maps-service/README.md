@@ -1,4 +1,5 @@
 # maps-service
+<!-- Updated: 2026-03-26 -->
 Provides endpoints to query data from maps database, including moments and spaces
 
 ## Setting up therr_dev_maps database
