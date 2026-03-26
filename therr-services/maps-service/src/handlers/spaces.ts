@@ -1057,9 +1057,18 @@ const submitPairingFeedback: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 
+const getSpaceReportsSummary = (req, res) => {
+    const { spaceId } = req.params;
+
+    return Store.moments.getQuickReportsSummary(spaceId)
+        .then((summary) => res.status(200).send(summary))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+};
+
 export {
     createSpace,
     getSpaceDetails,
+    getSpaceReportsSummary,
     searchSpaces,
     searchMySpaces,
     claimSpace,

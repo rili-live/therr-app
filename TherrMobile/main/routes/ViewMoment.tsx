@@ -12,7 +12,7 @@ import { Button as PaperButton } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
-import { Content } from 'therr-js-utilities/constants';
+import { Categories, Content } from 'therr-js-utilities/constants';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import translator from '../services/translator';
 import { buildMomentUrl } from '../utilities/shareUrls';
@@ -397,6 +397,33 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 />
                             </View>
                         }
+                        {
+                            Categories.QuickReportCategories.includes(momentInView.category) && !isMyContent &&
+                            <View style={localStyles.validationContainer}>
+                                <PaperButton
+                                    mode={momentInView.reaction?.userHasLiked ? 'contained' : 'outlined'}
+                                    onPress={() => this.onUpdateMomentReaction(momentInView.id, { userHasLiked: true, userHasDisliked: false })}
+                                    icon="thumb-up"
+                                    buttonColor={momentInView.reaction?.userHasLiked ? this.theme.colors.brandingBlueGreen : undefined}
+                                    textColor={momentInView.reaction?.userHasLiked ? this.theme.colors.brandingWhite : this.theme.colors.brandingBlueGreen}
+                                    style={localStyles.validationButton}
+                                    compact
+                                >
+                                    {this.translate('quickReports.stillTrue')}
+                                </PaperButton>
+                                <PaperButton
+                                    mode={momentInView.reaction?.userHasDisliked ? 'contained' : 'outlined'}
+                                    onPress={() => this.onUpdateMomentReaction(momentInView.id, { userHasDisliked: true, userHasLiked: false })}
+                                    icon="thumb-down"
+                                    buttonColor={momentInView.reaction?.userHasDisliked ? this.theme.colors.accentRed : undefined}
+                                    textColor={momentInView.reaction?.userHasDisliked ? this.theme.colors.brandingWhite : this.theme.colors.accentRed}
+                                    style={localStyles.validationButton}
+                                    compact
+                                >
+                                    {this.translate('quickReports.notAnymore')}
+                                </PaperButton>
+                            </View>
+                        }
                     </KeyboardAwareScrollView>
                     {/* Footer */}
                     <View style={[this.themeAccentLayout.styles.footer, localStyles.footer]}>
@@ -453,6 +480,16 @@ const localStyles = StyleSheet.create({
     footerButton: {
         flex: 1,
         marginHorizontal: 4,
+    },
+    validationContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    validationButton: {
+        flex: 1,
+        marginHorizontal: 6,
     },
 });
 

@@ -5,6 +5,7 @@ import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import submitToIndexNow from 'therr-js-utilities/index-now';
 import {
     AccessLevels,
+    Categories,
     Content,
     CurrencyTransactionMessages,
     ErrorCodes,
@@ -223,6 +224,16 @@ const createMoment = async (req, res) => {
 
         const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
 
+        // Auto-set expiry and visibility for quick report moments
+        const isQuickReport = Categories.QuickReportCategories.includes(req.body.category);
+        if (isQuickReport && !req.body.expiresAt) {
+            const expiryHours = Categories.QuickReportExpiryHoursMap[req.body.category] || 2;
+            req.body.expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000).toISOString();
+        }
+        if (isQuickReport) {
+            req.body.isPublic = true;
+        }
+
         return Store.moments.createMoment({
             ...req.body,
             locale,
@@ -328,6 +339,43 @@ const createMoment = async (req, res) => {
                 }
 
                 updateAchievements(req.headers, req.body);
+
+                // Fire-and-forget: notify group members when a quick report is shared to a group
+                if (isQuickReport && req.body.groupId) {
+                    internalRestRequest({
+                        headers: req.headers,
+                    }, {
+                        method: 'post',
+                        url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/notifications`,
+                        headers: {
+                            authorization,
+                            'x-localecode': locale,
+                            'x-userid': userId,
+                        },
+                        data: {
+                            userId,
+                            type: 'new-group-message',
+                            groupId: req.body.groupId,
+                            associationId: moment.id,
+                            isUnread: true,
+                            messageParams: {
+                                momentId: moment.id,
+                                category: moment.category,
+                                userName,
+                            },
+                        },
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Failed to send group quick report notification'],
+                            traceArgs: {
+                                'error.message': err?.message,
+                                'group.id': req.body.groupId,
+                            },
+                        });
+                    });
+                }
 
                 // Fire-and-forget: notify search engines of new content via IndexNow (skip drafts)
                 if (process.env.INDEXNOW_API_KEY && moment.id && !moment.isDraft) {

@@ -270,6 +270,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 20,
             bottom: 180 + buttonMenuHeight - collapseOffset,
         },
+        quickReport: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 20,
+            bottom: 360 + buttonMenuHeight - collapseOffset,
+        },
         createEvent: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,

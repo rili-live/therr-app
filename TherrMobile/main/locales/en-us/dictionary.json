@@ -260,7 +260,28 @@
     "seasonal": "Seasonal / Holidays",
     "drinks": "Happy Hour / Drinks",
     "nightLife": "Night Life / Social",
-    "sports": "Sports"
+    "sports": "Sports",
+    "happeningNow": "Happening Now",
+    "longWait": "Long Wait",
+    "liveEntertainment": "Live Entertainment",
+    "crowdAlert": "Crowded",
+    "hiddenGem": "Hidden Gem",
+    "localDeal": "Great Deal"
+  },
+  "quickReports": {
+    "title": "What's happening here?",
+    "happeningNow": "Happening Now",
+    "longWait": "Long Wait",
+    "liveEntertainment": "Live Entertainment",
+    "crowdAlert": "Crowded",
+    "hiddenGem": "Hidden Gem",
+    "localDeal": "Great Deal",
+    "addDetails": "Add details (optional)",
+    "submitSuccess": "Report submitted!",
+    "submitError": "Failed to submit report",
+    "stillTrue": "Still true",
+    "notAnymore": "Not anymore",
+    "confirmCount": "{{count}} confirmed"
   },
   "components": {
     "activeConnections": {
@@ -956,6 +977,7 @@
       "claimASpace": "Claim a Space",
       "createEvent": "Create an Event",
       "addACheckIn": "Check In",
+      "quickReport": "Quick Report",
       "requestASpace": "Request a Space",
       "shareAThought": "Share a Thought",
       "uploadAMoment": "Create a Moment",
