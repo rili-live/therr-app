@@ -59,8 +59,20 @@ should_deploy_service()
   has_prev_diff_changes $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
-# Kubectl Apply
-kubectl apply -f k8s/prod
+# Kubectl Apply - Apply non-cert-manager resources first
+for f in k8s/prod/*.yaml; do
+  case "$f" in
+    *certificate*.yaml|*issuer.yaml) ;; # cert-manager resources applied separately below
+    *) kubectl apply -f "$f" ;;
+  esac
+done
+
+# Apply cert-manager resources separately, allowing failure if cert-manager webhook is unavailable
+for f in k8s/prod/issuer.yaml k8s/prod/certificate*.yaml; do
+  if [ -f "$f" ] && ! kubectl apply -f "$f"; then
+    echo "WARNING: Failed to apply $f (cert-manager webhook may be unavailable). Skipping..."
+  fi
+done
 
 # Short circuit if GIT_SHA is empty
 if [ -z "$GIT_SHA" ]; then
