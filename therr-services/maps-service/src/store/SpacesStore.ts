@@ -46,7 +46,6 @@ export interface ICreateSpaceParams extends ICreateAreaParams {
     reservationUrl?: string;
     businessTransactionId?: string;
     businessTransactionName?: string;
-    businessEmail?: string;
     isPointOfInterest?: boolean;
     addressStreetAddress?: string;
     addressRegion?: string;
@@ -604,7 +603,6 @@ export default class SpacesStore {
                 reservationUrl: params.reservationUrl,
                 businessTransactionId: params.businessTransactionId,
                 businessTransactionName: params.businessTransactionName,
-                businessEmail: params.businessEmail,
                 isPointOfInterest: params.isPointOfInterest,
                 addressStreetAddress: params.addressStreetAddress,
                 addressRegion: params.addressRegion,
@@ -696,7 +694,6 @@ export default class SpacesStore {
                 reservationUrl: params.reservationUrl,
                 businessTransactionId: params.businessTransactionId,
                 businessTransactionName: params.businessTransactionName,
-                businessEmail: params.businessEmail,
                 isPointOfInterest: params.isPointOfInterest,
                 addressStreetAddress: params.addressStreetAddress,
                 addressRegion: params.addressRegion,
