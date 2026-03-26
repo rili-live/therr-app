@@ -3,7 +3,7 @@ export default [
     {
         route: '/',
         head: {
-            title: 'Your Local Community & Rewards App',
+            title: 'Create your Social Profile or Business',
             description: 'Discover local businesses, earn rewards for check-ins, and connect with your community. Create your free profile on Therr.',
         },
         view: 'index',
