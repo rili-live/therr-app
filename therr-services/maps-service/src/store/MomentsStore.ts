@@ -202,8 +202,6 @@ export default class MomentsStore {
         let queryString: any = knexBuilder
             .select(returningMod)
             .from(MOMENTS_TABLE_NAME)
-            // TODO: Determine a better way to select moments that are most relevant to the user
-            // .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knexBuilder.raw('ST_DWithin(geom::geography, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])) // eslint-disable-line quotes, max-len
             .andWhere({
@@ -231,6 +229,16 @@ export default class MomentsStore {
                     }
                 });
             }
+        }
+
+        // Sort by distance (nearest first) when not filtering by specific user
+        const isUserIdFilter = conditions.filterBy === 'fromUserIds' && fromUserIds.length > 0;
+        if (!isUserIdFilter) {
+            queryString = queryString
+                .orderByRaw('ST_Distance(geom::geography, ST_MakePoint(?, ?)::geography) ASC', [conditions.longitude, conditions.latitude]);
+        } else {
+            queryString = queryString
+                .orderBy('createdAt', 'desc');
         }
 
         queryString = queryString
@@ -287,12 +295,13 @@ export default class MomentsStore {
             .from(MOMENTS_TABLE_NAME);
 
         if (modifiedConditions.longitude && modifiedConditions.latitude) {
-            // NOTE // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
             queryString = queryString.where(knexBuilder.raw('ST_DWithin(geom::geography, ST_MakePoint(?, ?)::geography, ?)', [modifiedConditions.longitude, modifiedConditions.latitude, proximityMax])) // eslint-disable-line max-len
-                .andWhere(requirements); // eslint-disable-line quotes, max-len
+                .andWhere(requirements) // eslint-disable-line quotes, max-len
+                .orderByRaw('ST_Distance(geom::geography, ST_MakePoint(?, ?)::geography) ASC', [modifiedConditions.longitude, modifiedConditions.latitude]);
         } else {
-            queryString = queryString.where(requirements); // eslint-disable-line quotes, max-len
+            queryString = queryString.where(requirements) // eslint-disable-line quotes, max-len
+                .orderBy('createdAt', 'desc');
         }
 
         queryString = queryString
