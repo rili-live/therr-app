@@ -16,6 +16,19 @@ _fetch_once()
     fi
 }
 
+is_in_deploy_profile()
+{
+    local DIR=$1
+    local PROFILE_FILE="DEPLOY_PROFILE.txt"
+    if [ -f "$PROFILE_FILE" ]; then
+        if grep -qx "$DIR" "$PROFILE_FILE" 2>/dev/null; then
+            printMessageWarning "Service '$DIR' found in DEPLOY_PROFILE.txt (forced deploy)"
+            return 0
+        fi
+    fi
+    return 1
+}
+
 has_diff_changes()
 {
     ORIGIN_BRANCH=$1

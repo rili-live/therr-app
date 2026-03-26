@@ -41,19 +41,19 @@ fi
 
 should_publish_web_app()
 {
-  has_prev_diff_changes "therr-client-web" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
+  is_in_deploy_profile "therr-client-web" || has_prev_diff_changes "therr-client-web" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 # NOTE: This is currently included in the web app build (container)
 should_publish_web_app_dashboard()
 {
-  has_prev_diff_changes "therr-client-web-dashboard" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
+  is_in_deploy_profile "therr-client-web-dashboard" || has_prev_diff_changes "therr-client-web-dashboard" || [ "$HAS_ANY_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 should_publish_service()
 {
   SERVICE_DIR=$1
-  has_prev_diff_changes $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
+  is_in_deploy_profile $SERVICE_DIR || has_prev_diff_changes $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
 NUMBER_SERVICES_PUBLISHED=0
