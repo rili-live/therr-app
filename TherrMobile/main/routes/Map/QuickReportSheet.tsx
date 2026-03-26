@@ -3,10 +3,10 @@ import { Pressable, Text, TextInput, View, StyleSheet } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Categories } from 'therr-js-utilities/constants';
-import showToast from '../../components/ToastConfig';
+import { showToast } from '../../utilities/toasts';
 import { ITherrThemeColors } from '../../styles/themes';
 
-const { CategoriesMap, QuickReportCategories } = Categories;
+const { CategoriesMap } = Categories;
 
 interface IQuickReportOption {
     category: string;

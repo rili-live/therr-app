@@ -134,6 +134,7 @@ interface IMapDispatchProps {
     searchSpaces: Function;
     setInitialUserLocation: Function;
     setSearchDropdownVisibility: Function;
+    createMoment: Function;
     deleteMoment: Function;
     createSpaceCheckInMetrics: Function;
     updateGpsStatus: Function;

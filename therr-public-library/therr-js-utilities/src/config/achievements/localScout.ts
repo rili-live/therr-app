@@ -7,7 +7,7 @@ const localScoutAchievements = {
         title: 'First Report',
         description: 'Submit 1 Quick Report',
         bonusAbilityId: '',
-        prerequisite: (userAchievements: { [key: string]: any }) => true, // eslint-disable-line @typescript-eslint/no-unused-vars
+        prerequisite: (userAchievements: { [key: string]: any }) => true,
         countToComplete: 1,
         xp: 5,
         pointReward: 0.25,
