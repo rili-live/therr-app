@@ -459,8 +459,8 @@
       "yours": "Les vôtres",
       "previousPage": "Retour à la page {pageNumber}",
       "nextPage": "Vers la page {pageNumber}",
-      "showMap": "Afficher la carte",
-      "hideMap": "Masquer la carte"
+      "expandMap": "Agrandir la carte",
+      "collapseMap": "Réduire la carte"
     },
     "home": {
       "pageTitle": "Créez votre profil social ou d'entreprise",
@@ -812,6 +812,8 @@
         "viewSpace": "Voir l'emplacement",
         "viewGroup": "Voir le groupe",
         "viewOnGoogleMaps": "Voir sur Google Maps",
+        "showMap": "Afficher la carte",
+        "hideMap": "Masquer la carte",
         "privateEventMessage": "Cet événement appartient à un groupe privé",
         "privateEventCta": "Inscrivez-vous ou connectez-vous pour demander l'accès",
         "signUpPrompt": "Inscrivez-vous ou connectez-vous pour voir tous les détails de l'événement"
@@ -821,7 +823,9 @@
       "labels": {
         "postedBy": "Publié par",
         "viewLocation": "Voir l'emplacement",
-        "viewOnGoogleMaps": "Voir sur Google Maps"
+        "viewOnGoogleMaps": "Voir sur Google Maps",
+        "showMap": "Afficher la carte",
+        "hideMap": "Masquer la carte"
       }
     },
     "viewUser": {
