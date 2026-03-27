@@ -383,29 +383,31 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
     renderAddress(space: any): JSX.Element | null {
         const hasAddress = space.addressStreetAddress || space.addressLocality || space.addressRegion;
-        if (!hasAddress && !space.phoneNumber) return null;
-
         const lat = space.latitude;
         const lng = space.longitude;
+
+        if (!hasAddress && !space.phoneNumber && !lat && !lng) return null;
 
         return (
             <>
                 <Title order={3} size="h4" mt="lg">{this.props.translate('pages.viewSpace.headings.contactAndLocation')}</Title>
-                <address className="space-address">
-                    {space.addressStreetAddress && <Text>{space.addressStreetAddress}</Text>}
-                    {(space.addressLocality || space.addressRegion) && (
-                        <Text>
-                            {[space.addressLocality, space.addressRegion].filter(Boolean).join(', ')}
-                            {space.postalCode ? ` ${space.postalCode}` : ''}
-                        </Text>
-                    )}
-                    {space.region && <Text>{space.region}</Text>}
-                    {space.phoneNumber && (
-                        <Text mt="xs">
-                            <Anchor href={`tel:${space.phoneNumber}`}>{space.phoneNumber}</Anchor>
-                        </Text>
-                    )}
-                </address>
+                {hasAddress && (
+                    <address className="space-address">
+                        {space.addressStreetAddress && <Text>{space.addressStreetAddress}</Text>}
+                        {(space.addressLocality || space.addressRegion) && (
+                            <Text>
+                                {[space.addressLocality, space.addressRegion].filter(Boolean).join(', ')}
+                                {space.postalCode ? ` ${space.postalCode}` : ''}
+                            </Text>
+                        )}
+                        {space.region && <Text>{space.region}</Text>}
+                    </address>
+                )}
+                {space.phoneNumber && (
+                    <Text mt="xs">
+                        <Anchor href={`tel:${space.phoneNumber}`}>{space.phoneNumber}</Anchor>
+                    </Text>
+                )}
                 {lat && lng && (
                     <>
                         <React.Suspense fallback={<Skeleton height={250} radius="md" mt="sm" />}>
