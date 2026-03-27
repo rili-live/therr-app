@@ -458,7 +458,9 @@
       "private": "Privé",
       "yours": "Les vôtres",
       "previousPage": "Retour à la page {pageNumber}",
-      "nextPage": "Vers la page {pageNumber}"
+      "nextPage": "Vers la page {pageNumber}",
+      "showMap": "Afficher la carte",
+      "hideMap": "Masquer la carte"
     },
     "home": {
       "pageTitle": "Créez votre profil social ou d'entreprise",

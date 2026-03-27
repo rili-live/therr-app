@@ -458,7 +458,9 @@
       "private": "Private",
       "yours": "Yours",
       "previousPage": "Back To Page {pageNumber}",
-      "nextPage": "To Page {pageNumber}"
+      "nextPage": "To Page {pageNumber}",
+      "showMap": "Show Map",
+      "hideMap": "Hide Map"
     },
     "home": {
       "pageTitle": "Create your Social Profile or Business",
