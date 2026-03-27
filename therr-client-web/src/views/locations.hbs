@@ -16,6 +16,10 @@
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="dns-prefetch" href="https://ik.imagekit.io">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://a.tile.openstreetmap.org">
+    <link rel="dns-prefetch" href="https://b.tile.openstreetmap.org">
+    <link rel="dns-prefetch" href="https://c.tile.openstreetmap.org">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Lexend:wght@200;400;600;800&display=swap">
@@ -48,6 +52,10 @@
     <link rel="next" href="https://www.therr.com{{nextPage}}" />
     {{/if}}
 
+    {{#if googleSiteVerification}}<meta name="google-site-verification" content="{{googleSiteVerification}}" />{{/if}}
+    {{#if bingSiteVerification}}<meta name="msvalidate.01" content="{{bingSiteVerification}}" />{{/if}}
+    {{#if pinterestVerification}}<meta name="p:domain_verify" content="{{pinterestVerification}}" />{{/if}}
+    <link rel="search" type="application/opensearchdescription+xml" title="Therr" href="/opensearch.xml" />
     <meta name="apple-itunes-app" content="app-id=1569988763">
     <link rel="icon" href="/assets/images/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
@@ -61,6 +69,9 @@
     <script type="application/ld+json">{{{itemListSchema}}}</script>
     <script type="application/ld+json">{{{breadcrumbSchema}}}</script>
     <script type="application/ld+json">{{{searchActionSchema}}}</script>
+    {{#if localDirectorySchema}}
+    <script type="application/ld+json">{{{localDirectorySchema}}}</script>
+    {{/if}}
 </head>
 
 <body>

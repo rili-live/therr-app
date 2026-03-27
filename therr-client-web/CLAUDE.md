@@ -48,9 +48,9 @@ src/
 ## Localization
 
 All user-facing text must use translation keys from `src/locales/`. When adding or modifying UI strings:
-1. Add the key to **both** `en-us/dictionary.json` and `es/dictionary.json`
+1. Add the key to **all three** dictionaries: `en-us/dictionary.json`, `es/dictionary.json`, and `fr-ca/dictionary.json`
 2. Use `useTranslation` hook or `withTranslation` HOC — never hardcode strings
-3. URLs are locale-prefixed: English = unprefixed (`/locations`), Spanish = `/es/locations`
+3. URLs are locale-prefixed: English = unprefixed (`/locations`), Spanish = `/es/locations`, French = `/fr-ca/locations`
 4. The URL prefix is the source of truth for locale — see `server-client.tsx` middleware
 5. All `<Link>` and `navigate()` calls auto-include the locale prefix via React Router's `basename`
 

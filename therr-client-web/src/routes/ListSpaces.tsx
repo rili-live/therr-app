@@ -5,14 +5,21 @@ import { bindActionCreators } from 'redux';
 import { Link, NavigateFunction } from 'react-router-dom';
 import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
+import { Content } from 'therr-js-utilities/constants';
 import {
     Stack, Group, Title, Text, Badge, Anchor,
-    Paper, Skeleton, Button, Image,
+    Paper, Skeleton, Button, Image, Avatar,
 } from '@mantine/core';
 import { MantineSearchBox } from 'therr-react/components/mantine';
 import { ILocationState } from '../types/redux/location';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
+import getUserContentUri from '../utilities/getUserContentUri';
+
+// Only lazy-load on client (Leaflet requires window/document)
+const SpacesMap = typeof window !== 'undefined'
+    ? React.lazy(() => import('../components/SpacesMap'))
+    : (() => null) as any;
 
 export const DEFAULT_ITEMS_PER_PAGE = 50;
 export const DEFAULT_LATITUDE = 37.1261664; // Middle of U.S. - TODO: Use browser location
@@ -34,7 +41,6 @@ interface IListSpacesRouterProps {
 }
 
 interface IListSpacesDispatchProps {
-    login: Function;
     listSpaces: Function;
     updateUserCoordinates: Function;
 }
@@ -48,6 +54,7 @@ interface IStoreProps extends IListSpacesDispatchProps {
 
 // Regular component props
 interface IListSpacesProps extends IListSpacesRouterProps, IStoreProps {
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 
@@ -55,6 +62,7 @@ interface IListSpacesState {
     itemsPerPage: number;
     searchQuery: string;
     isSearching: boolean;
+    isMapExpanded: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -80,6 +88,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
             searchQuery: '',
             isSearching: false,
+            isMapExpanded: false,
         };
     }
 
@@ -196,7 +205,9 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         });
     };
 
-    login = (credentials: any) => this.props.login(credentials);
+    handleToggleMap = () => {
+        this.setState((prevState) => ({ isMapExpanded: !prevState.isMapExpanded }));
+    };
 
     renderVisibilityBadge(space: any): JSX.Element | null {
         const { user } = this.props;
@@ -227,26 +238,47 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
     renderSpaceCard(space: any): JSX.Element {
         const categoryLabel = formatCategoryLabel(space.category);
+        const mediaPath = space.medias?.[0]?.path;
+        const mediaType = space.medias?.[0]?.type;
+        let spaceImage: string | undefined;
+        if (mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC) {
+            spaceImage = getUserContentUri(space.medias[0], 80, 80, true);
+        }
 
         return (
-            <Paper key={space.id} withBorder p="md" radius="md">
-                <Group justify="space-between" wrap="nowrap" align="flex-start">
-                    <Stack gap={4} style={{ flex: 1 }}>
-                        <Group gap="sm" wrap="wrap">
-                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="lg">
+            <Paper key={space.id} withBorder p="md" radius="md" className="space-card">
+                <Group wrap="nowrap" align="flex-start" gap="sm">
+                    {spaceImage ? (
+                        <Image
+                            src={spaceImage}
+                            alt={space.notificationMsg}
+                            w={56}
+                            h={56}
+                            radius="md"
+                            fit="cover"
+                            style={{ flexShrink: 0 }}
+                        />
+                    ) : (
+                        <Avatar size={56} radius="md" color="teal">
+                            {(space.notificationMsg || '?').charAt(0).toUpperCase()}
+                        </Avatar>
+                    )}
+                    <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+                        <Group gap="xs" wrap="wrap">
+                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="md" style={{ lineHeight: 1.3, wordBreak: 'break-word' }}>
                                 {space.notificationMsg}
                             </Anchor>
                             {this.renderVisibilityBadge(space)}
                         </Group>
                         {space.addressReadable && (
-                            <Text size="sm" c="dimmed">{space.addressReadable}</Text>
+                            <Text size="xs" c="dimmed" lineClamp={1}>{space.addressReadable}</Text>
                         )}
                         <Group gap="xs" wrap="wrap">
                             {categoryLabel && (
                                 <Badge variant="outline" size="xs">{categoryLabel}</Badge>
                             )}
                             {space.websiteUrl && (
-                                <Anchor href={space.websiteUrl} target="_blank" size="xs">website</Anchor>
+                                <Anchor href={space.websiteUrl} target="_blank" size="xs">{this.props.translate('pages.spaces.website')}</Anchor>
                             )}
                         </Group>
                     </Stack>
@@ -270,24 +302,32 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     }
 
     public render(): JSX.Element | null {
-        const { routeParams, map, user } = this.props;
+        const {
+            locale, location, routeParams, map, user,
+        } = this.props;
         const { pageNumber: pageNumberStr } = routeParams;
-        const { itemsPerPage, searchQuery, isSearching } = this.state;
-        const spacesArray = Object.values(map?.spaces || {});
+        const {
+            itemsPerPage, searchQuery, isSearching, isMapExpanded,
+        } = this.state;
+        const spacesArray = Object.values(map?.spaces || {}) as any[];
         const pageNumber = parseInt(pageNumberStr || '1', 10);
         const isAuthenticated = user?.isAuthenticated;
+        const centerLat = location?.user?.latitude || DEFAULT_LATITUDE;
+        const centerLng = location?.user?.longitude || DEFAULT_LONGITUDE;
+        const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
+        const localePrefix = localePrefixMap[locale] || '';
 
         return (
             <div id="page_view_spaces">
-                <Stack gap="lg" p="xl" maw={800} mx="auto">
+                <Stack gap="lg" p={{ base: 'sm', sm: 'xl' }} maw={800} mx="auto">
                     <div>
                         <Title order={1} mb="xs">
                             {this.props.translate('pages.spaces.header1')}
                         </Title>
                         {!isAuthenticated && (
                             <Text size="sm" c="dimmed">
-                                <Anchor component={Link} to="/login" size="sm">Sign in</Anchor>
-                                {' '}to see your private spaces and manage listings.
+                                <Anchor component={Link} to="/login" size="sm">{this.props.translate('components.header.buttons.login')}</Anchor>
+                                {' '}{this.props.translate('pages.spaces.signInPrompt')}
                             </Text>
                         )}
                     </div>
@@ -308,7 +348,28 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                                 Clear
                             </Button>
                         )}
+                        <Button variant="outline" size="sm" onClick={this.handleToggleMap}>
+                            {isMapExpanded
+                                ? this.props.translate('pages.spaces.collapseMap')
+                                : this.props.translate('pages.spaces.expandMap')}
+                        </Button>
                     </Group>
+
+                    {/* Map View - always visible in compact mode, expandable to full size */}
+                    {/* key forces Leaflet remount so interactive/height changes take effect */}
+                    {spacesArray.length > 0 && (
+                        <React.Suspense fallback={<Skeleton height={isMapExpanded ? 300 : 200} radius="md" />}>
+                            <SpacesMap
+                                key={isMapExpanded ? 'expanded' : 'compact'}
+                                spaces={spacesArray}
+                                centerLat={centerLat}
+                                centerLng={centerLng}
+                                localePrefix={localePrefix}
+                                height={isMapExpanded ? 300 : 200}
+                                interactive={isMapExpanded}
+                            />
+                        </React.Suspense>
+                    )}
 
                     {/* Results */}
                     {isSearching && this.renderSkeleton()}

@@ -52,6 +52,7 @@ interface ILoginFormProps {
 interface ILoginFormState {
     inputs: any;
     isSubmitting: boolean;
+    prevLoginError: string;
 }
 
 /**
@@ -69,11 +70,17 @@ export class LoginFormComponent extends React.Component<
         this.state = {
             inputs: {},
             isSubmitting: false,
+            prevLoginError: '',
         };
 
         this.translate = (key: string, params: any) =>
             translator(props.userSettings?.locale || 'en-us', key, params);
     }
+
+    isLoginFormDisabled = () => {
+        const { inputs, isSubmitting } = this.state;
+        return !inputs.userName || !inputs.password || isSubmitting;
+    };
 
     isLoginButtonLoading() {
         return this.state.isSubmitting;
@@ -174,18 +181,22 @@ export class LoginFormComponent extends React.Component<
                     error.statusCode === 401 ||
                     error.statusCode === 404
                 ) {
+                    const msg = this.translate(
+                        'forms.loginForm.invalidUsernamePassword'
+                    );
+                    this.setState({ prevLoginError: msg });
                     showToast.error({
                         text1: this.translate('alertTitles.loginError'),
-                        text2: this.translate(
-                            'forms.loginForm.invalidUsernamePassword'
-                        ),
+                        text2: msg,
                     });
                 } else if (error.statusCode >= 500) {
+                    const msg = this.translate(
+                        'forms.loginForm.backendErrorMessage'
+                    );
+                    this.setState({ prevLoginError: msg });
                     showToast.error({
                         text1: this.translate('alertTitles.backendErrorMessage'),
-                        text2: this.translate(
-                            'forms.loginForm.backendErrorMessage'
-                        ),
+                        text2: msg,
                     });
                 }
                 this.setState({
@@ -204,6 +215,7 @@ export class LoginFormComponent extends React.Component<
                 ...this.state.inputs,
                 ...newInputChanges,
             },
+            prevLoginError: '',
         });
     };
 

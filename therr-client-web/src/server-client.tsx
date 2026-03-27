@@ -110,6 +110,9 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://robohash.org',
                     'https://*.google-analytics.com',
                     'https://*.googletagmanager.com',
+                    // Leaflet map tiles and marker icons
+                    'https://*.tile.openstreetmap.org',
+                    'https://unpkg.com',
                 ],
                 workerSrc: ["'self'", 'blob:'],
             },
@@ -136,6 +139,16 @@ app.use(expressStaticGzip(path.join(__dirname, '/../build/static/'), {
 }));
 app.get('/robots.txt', express.static(path.join(__dirname, '/../build/static/robots.txt')));
 app.get('/llms.txt', express.static(path.join(__dirname, '/../build/static/llms.txt')));
+app.get('/opensearch.xml', express.static(path.join(__dirname, '/../build/static/opensearch.xml')));
+
+// IndexNow key file endpoint for Bing/Yandex verification
+// Key must be alphanumeric/hyphens only (8-128 chars) to prevent route injection
+const indexNowKey = process.env.INDEXNOW_API_KEY;
+if (indexNowKey && /^[a-zA-Z0-9-]{8,128}$/.test(indexNowKey)) {
+    app.get(`/${indexNowKey}.txt`, (req, res) => {
+        res.type('text/plain').send(indexNowKey);
+    });
+}
 
 // Dynamic sitemap index with paginated space sub-sitemaps
 const SITEMAP_CACHE_TTL = 60 * 60 * 1000; // 1 hour
@@ -358,8 +371,17 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
         return res.status(404).send('Not found');
     }
 
+    // Filter out non-public spaces (e.g. businesses marked as closed).
+    // The API does not filter by isPublic, so we must do it client-side.
+    // This may result in some sitemap pages having fewer entries than SPACES_PER_SITEMAP.
+    const publicSpaces = spaces.filter((space: any) => space.isPublic !== false);
+
+    if (publicSpaces.length === 0) {
+        return res.status(404).send('Not found');
+    }
+
     const today = new Date().toISOString().split('T')[0];
-    const urls = spaces.map((space: any) => {
+    const urls = publicSpaces.map((space: any) => {
         const lastmod = space.updatedAt ? new Date(space.updatedAt).toISOString().split('T')[0] : today;
         return buildUrlSet(`/spaces/${space.id}`, lastmod, '0.7');
     });
@@ -400,12 +422,15 @@ app.get(/^\/sitemap-events-(\d+)\.xml$/, async (req, res) => {
         });
     }
 
-    if (events.length === 0) {
+    // Filter out non-public events (API does not filter by isPublic)
+    const publicEvents = events.filter((event: any) => event.isPublic !== false);
+
+    if (publicEvents.length === 0) {
         return res.status(404).send('Not found');
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const urls = events.map((event: any) => {
+    const urls = publicEvents.map((event: any) => {
         const lastmod = event.updatedAt ? new Date(event.updatedAt).toISOString().split('T')[0] : today;
         return buildUrlSet(`/events/${event.id}`, lastmod, '0.7');
     });
@@ -445,12 +470,15 @@ app.get(/^\/sitemap-groups-(\d+)\.xml$/, async (req, res) => {
         });
     }
 
-    if (groups.length === 0) {
+    // Filter out non-public groups (API does not filter by isPublic)
+    const publicGroups = groups.filter((group: any) => group.isPublic !== false);
+
+    if (publicGroups.length === 0) {
         return res.status(404).send('Not found');
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const urls = groups.map((group: any) => {
+    const urls = publicGroups.map((group: any) => {
         const lastmod = group.updatedAt ? new Date(group.updatedAt).toISOString().split('T')[0] : today;
         return buildUrlSet(`/groups/${group.id}`, lastmod, '0.7');
     });
@@ -550,10 +578,9 @@ const renderMomentView = (req, res, config, {
     const mediaPath = (moment.medias?.[0]?.path);
     const mediaType = (moment.medias?.[0]?.type);
     const momentMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(moment.medias[0])
+        ? getUserContentUri(moment.medias[0], 600, 600)
         : content?.media?.[mediaPath];
 
-    // TODO: Use an image optimized for meta image
     if (momentMediaUri) {
         if (momentMediaUri.includes('.jpg') || momentMediaUri.includes('.jpeg') || momentMediaUri.includes('.png')) {
             metaImgUrl = momentMediaUri;
@@ -651,10 +678,9 @@ const renderSpaceView = (req, res, config, {
     const mediaPath = (space.medias?.[0]?.path);
     const mediaType = (space.medias?.[0]?.type);
     const spaceMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(space?.medias[0])
+        ? getUserContentUri(space?.medias[0], 600, 600)
         : content?.media?.[mediaPath];
 
-    // TODO: Use an image optimized for meta image (ImageKit)
     if (spaceMediaUri) {
         if (spaceMediaUri.includes('.jpg') || spaceMediaUri.includes('.jpeg') || spaceMediaUri.includes('.png')) {
             metaImgUrl = spaceMediaUri;
@@ -869,7 +895,7 @@ const renderEventView = (req, res, config, {
     const mediaPath = (event?.medias?.[0]?.path);
     const mediaType = (event?.medias?.[0]?.type);
     const eventMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(event.medias[0])
+        ? getUserContentUri(event.medias[0], 600, 600)
         : content?.media?.[mediaPath];
 
     if (eventMediaUri) {
@@ -1128,6 +1154,37 @@ const renderLocationsView = (req, res, config, {
         },
     };
 
+    // Geographic structured data for local directory SEO
+    const geoSpaces = spaces.filter((s: any) => s.latitude && s.longitude).slice(0, 20);
+    const localBusinessSchemas = geoSpaces.map((space: any) => ({
+        '@type': 'LocalBusiness',
+        name: space.notificationMsg || space.id,
+        url: `https://www.therr.com${lp}/spaces/${space.id}`,
+        ...(space.addressReadable && { address: space.addressReadable }),
+        geo: {
+            '@type': 'GeoCoordinates',
+            latitude: space.latitude,
+            longitude: space.longitude,
+        },
+    }));
+
+    const localDirectorySchema = localBusinessSchemas.length > 0
+        ? {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Local Business Directory',
+            description,
+            mainEntity: {
+                '@type': 'ItemList',
+                itemListElement: localBusinessSchemas.map((biz: any, i: number) => ({
+                    '@type': 'ListItem',
+                    position: i + 1,
+                    item: biz,
+                })),
+            },
+        }
+        : null;
+
     // Breadcrumb schema
     const breadcrumbItems: any[] = [
         {
@@ -1152,6 +1209,7 @@ const renderLocationsView = (req, res, config, {
         itemListSchema: JSON.stringify(itemListSchema),
         searchActionSchema: JSON.stringify(searchActionSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        localDirectorySchema: localDirectorySchema ? JSON.stringify(localDirectorySchema) : '',
         prevPage,
         nextPage,
         markup,
@@ -1183,7 +1241,7 @@ const renderGroupView = (req, res, config, {
     const mediaPath = group?.media?.[0]?.path;
     const mediaType = group?.media?.[0]?.type;
     const groupMediaUri = mediaPath && mediaType === Content.mediaTypes.USER_IMAGE_PUBLIC
-        ? getUserContentUri(group.media[0])
+        ? getUserContentUri(group.media[0], 600, 600)
         : undefined;
 
     if (groupMediaUri) {
@@ -1297,7 +1355,16 @@ const getLocaleVars = (req: any) => {
     const hreflangFr = basePath === '/' ? '/fr' : `/fr${basePath}`;
 
     return {
-        htmlLang, ogLocale, canonicalPath, hreflangEn, hreflangEs, hreflangFr, localePrefix,
+        htmlLang,
+        ogLocale,
+        canonicalPath,
+        hreflangEn,
+        hreflangEs,
+        hreflangFr,
+        localePrefix,
+        googleSiteVerification: process.env.GOOGLE_SITE_VERIFICATION || '',
+        bingSiteVerification: process.env.BING_SITE_VERIFICATION || '',
+        pinterestVerification: process.env.PINTEREST_VERIFICATION || '',
     };
 };
 

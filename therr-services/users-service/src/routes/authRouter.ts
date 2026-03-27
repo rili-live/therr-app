@@ -2,6 +2,7 @@ import * as express from 'express';
 import {
     login,
     logout,
+    refreshToken,
     verifyToken,
 } from '../handlers/auth';
 
@@ -12,6 +13,9 @@ router.post('/', login);
 
 // Logout user
 router.post('/logout', logout);
+
+// Refresh access token
+router.post('/token/refresh', refreshToken);
 
 // Verify user token (after login)
 router.post('/user-token/validate', verifyToken);

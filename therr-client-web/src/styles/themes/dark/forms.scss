@@ -16,6 +16,18 @@ label {
     color: var(--therr-label-color, $therr-label-color);
 }
 
+// Remove therr-styles global margin-bottom on inputs inside Mantine wrappers
+// (Mantine handles its own spacing via Stack gap; the global rule reserves space for legacy validation messages)
+.mantine-TextInput-root,
+.mantine-PasswordInput-root,
+.mantine-Select-root {
+    min-width: 0;
+
+    input {
+        margin-bottom: 0;
+    }
+}
+
 // Ensure Mantine inputs use theme colors
 .mantine-TextInput-input,
 .mantine-PasswordInput-input,

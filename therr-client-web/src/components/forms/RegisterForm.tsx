@@ -26,6 +26,7 @@ interface IRegisterFormProps {
 interface IRegisterFormState {
     inputs: any;
     ssoError: string;
+    isGoogleSubmitting: boolean;
 }
 
 /**
@@ -39,9 +40,15 @@ export class RegisterFormComponent extends React.Component<
 
         this.state = {
             inputs: {
+                email: '',
+                password: '',
+                repeatPassword: '',
+                hasAgreedToTerms: false,
                 settingsEmailMarketing: true,
+                inviteCode: props.inviteCode || '',
             },
             ssoError: '',
+            isGoogleSubmitting: false,
         };
     }
 
@@ -182,6 +189,23 @@ export class RegisterFormComponent extends React.Component<
                             translate={this.props.translate}
                         />
 
+                        <MantineInput
+                            type="text"
+                            id="invite_code"
+                            name="inviteCode"
+                            value={this.state.inputs.inviteCode}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translateFn={this.props.translate}
+                            validations={[]}
+                            label={this.props.translate(
+                                'components.registerForm.labels.inviteCode',
+                            )}
+                        />
+                        <p className="text-center" style={{ fontSize: '0.75rem', margin: '0 0 0.5rem' }}>
+                            {this.props.translate('components.registerForm.text.inviteCodeHint')}
+                        </p>
+
                         <MantineCheckbox
                             id="newsletter"
                             name="settingsEmailMarketing"
@@ -220,8 +244,15 @@ export class RegisterFormComponent extends React.Component<
                                     {this.props.translate('components.registerForm.sso.orDivider')}
                                 </div>
                                 <GoogleSignInButtonWeb
-                                    onSuccess={(ssoData) => this.props.onGoogleRegister(ssoData)}
-                                    onError={(msg) => this.setState({ ssoError: msg })}
+                                    isLoading={this.state.isGoogleSubmitting}
+                                    onSuccess={(ssoData) => {
+                                        this.setState({ isGoogleSubmitting: true, ssoError: '' });
+                                        this.props.onGoogleRegister(ssoData)
+                                            .catch(() => {
+                                                this.setState({ isGoogleSubmitting: false });
+                                            });
+                                    }}
+                                    onError={(msg) => this.setState({ ssoError: msg, isGoogleSubmitting: false })}
                                     buttonText="signup_with"
                                     translate={this.props.translate}
                                 />

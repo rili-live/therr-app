@@ -19,6 +19,10 @@ import Login from './Login';
 import ListSpaces, { DEFAULT_ITEMS_PER_PAGE, DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from './ListSpaces';
 import UserProfile from './UserProfile';
 import ChangePassword from './ChangePassword';
+import EditProfile from './EditProfile';
+import EditSpace from './EditSpace';
+import CreateSpace from './CreateSpace';
+import ManageSpaces from './ManageSpaces';
 import Discovered from './Discovered';
 import Explore from './Explore';
 import ExploreMoments from './Explore/ExploreMoments';
@@ -27,7 +31,9 @@ import ExplorePeople from './Explore/ExplorePeople';
 import UnderConstruction from './UnderConstruction';
 import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
+import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
+import UserLocations from './UserLocations';
 import EmailPreferences from './EmailPreferences';
 import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
@@ -145,6 +151,50 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
+        path: '/user/edit-profile',
+        element: <AuthRoute
+            render={() => <EditProfile />}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/spaces/manage',
+        element: <AuthRoute
+            component={ManageSpaces}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/spaces/new',
+        element: <AuthRoute
+            component={CreateSpace}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/spaces/:spaceId/edit',
+        element: <AuthRoute
+            component={EditSpace}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
         path: '/explore',
         element: <AuthRoute
             component={Explore}
@@ -211,6 +261,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
+        path: '/thoughts/:thoughtId',
+        element: <AuthRoute
+            component={ViewThought}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
         path: '/moments/:momentId',
         element: <ViewMoment />,
         fetchData: (dispatch: any, params: any) => MapActions.getMomentDetails(params.momentId, {
@@ -264,6 +325,11 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             withRatings: true,
             withEvents: true,
         })(dispatch),
+    },
+    {
+        path: '/users/:userId/locations',
+        element: <UserLocations />,
+        fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
     },
     {
         path: '/users/:userId',

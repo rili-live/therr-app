@@ -7,6 +7,7 @@ import {
     MetricValueTypes,
 } from 'therr-js-utilities/constants';
 import { internalRestRequest } from 'therr-js-utilities/internal-rest-request';
+import submitToIndexNow from 'therr-js-utilities/index-now';
 import { RequestHandler } from 'express';
 import logSpan from 'therr-js-utilities/log-or-update-span';
 import { storage } from '../api/aws';
@@ -162,10 +163,17 @@ const createSpace = async (req, res) => {
                         featuredIncentiveCurrencyId: spaceIncentive.incentiveCurrencyId,
                     }));
                 }
-            }).then((spaceWithFeaturedIncentive) => res.status(201).send({
-                ...spaceWithFeaturedIncentive,
-                reaction,
-            }));
+            }).then((spaceWithFeaturedIncentive) => {
+                // Fire-and-forget: notify search engines of new content via IndexNow (skip drafts)
+                if (process.env.INDEXNOW_API_KEY && space.id && !space.isDraft) {
+                    submitToIndexNow([`https://www.therr.com/spaces/${space.id}`], process.env.INDEXNOW_API_KEY)
+                        .catch(() => undefined); // already handled internally
+                }
+                return res.status(201).send({
+                    ...spaceWithFeaturedIncentive,
+                    reaction,
+                });
+            });
         }))
         .catch((err) => {
             if (err?.constraint === 'no_overlaps') {
@@ -313,6 +321,7 @@ const getSpaceDetails = (req, res) => {
             const serializedSpace = {
                 ...space,
                 message: space.message?.replace(/"/g, '\\"'),
+                isUnclaimed: space.fromUserId === SUPER_ADMIN_ID && !space.requestedByUserId,
             };
 
             const promises = [
@@ -382,6 +391,10 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
     let fromUserIds: any[] = [];
     if (query === 'me') {
         fromUserIds = [userId];
+        searchArgs[0].filterBy = 'fromUserIds';
+    } else if (query === 'user' && req.body.targetUserId) {
+        fromUserIds = [req.body.targetUserId];
+        searchArgs[0].filterBy = 'fromUserIds';
     } else if (query === 'connections') {
         let queryString = getSearchQueryString({
             filterBy: 'acceptingUserId',
@@ -411,13 +424,15 @@ const searchSpaces: RequestHandler = async (req: any, res: any) => {
         fromUserIds = connections
             .map((connection: any) => connection.users.filter((user: any) => user.id !== userId)?.[0]?.id || undefined)
             .filter((id) => !!id); // eslint-disable-line eqeqeq
+        searchArgs[0].filterBy = 'fromUserIds';
     }
+    const includePublicResults = query !== 'me' && query !== 'user';
     const searchPromise = Store.spaces.searchSpaces(
         searchArgs[0],
         searchArgs[1],
         fromUserIds,
         { distanceOverride, shouldLimitDetail, isRequestAuthorized },
-        query !== 'me',
+        includePublicResults,
     );
     // const countPromise = Store.spaces.countRecords({
     //     filterBy,
@@ -954,7 +969,14 @@ const updateSpace = (req, res) => {
         // addressReadable,
         fromUserId: overrideFromUserId || userId,
     })
-        .then(([space]) => res.status(200).send(space))
+        .then(([space]) => {
+            // Fire-and-forget: notify search engines of updated content via IndexNow
+            if (process.env.INDEXNOW_API_KEY && req.params.spaceId && !space.isDraft) {
+                submitToIndexNow([`https://www.therr.com/spaces/${req.params.spaceId}`], process.env.INDEXNOW_API_KEY)
+                    .catch(() => undefined); // already handled internally
+            }
+            return res.status(200).send(space);
+        })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
 };
 

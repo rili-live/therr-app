@@ -7,7 +7,7 @@ import normalizeEmail from 'normalize-email';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
-import { hashPassword } from '../utilities/userHelpers';
+import { hashPassword, createUserToken, createRefreshToken } from '../utilities/userHelpers';
 import generateCode from '../utilities/generateCode';
 import { sendVerificationEmail } from '../api/email';
 import generateOneTimePassword from '../utilities/generateOneTimePassword';
@@ -19,6 +19,7 @@ import sendSpaceClaimRequestEmail from '../api/email/admin/sendSpaceClaimRequest
 import {
     createUserHelper, getUserHelper, isUserProfileIncomplete, redactUserCreds,
 } from './helpers/user';
+import decryptIntegrationsAccess from '../utilities/decryptIntegrationsAccess';
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 import { checkIsMediaSafeForWork } from './helpers';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -245,7 +246,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
 const getMe = (req, res) => {
     const userId = req.headers['x-userid'];
 
-    return Store.users.getUsers({ id: userId, settingsIsAccountSoftDeleted: false })
+    return Store.users.getUserByConditions({ id: userId, settingsIsAccountSoftDeleted: false })
         .then((results) => {
             if (!results.length) {
                 return handleHttpError({
@@ -416,14 +417,17 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
             }))
         : Promise.resolve([]);
 
-    return mightKnowPromise.then((mightKnowResults) => Store.users.searchUsers(userId, {
+    // Run mightKnow and searchUsers in parallel for better latency
+    const searchPromise = Store.users.searchUsers(userId, {
         ids,
         query,
         queryColumnName,
         limit: actualLimit,
         offset: actualOffset,
-    }, true, true)
-        .then((results) => {
+    }, true, true);
+
+    return Promise.all([mightKnowPromise, searchPromise])
+        .then(([mightKnowResults, results]) => {
             res.status(200).send({
                 results: results.map((user) => {
                     // Remove credentials from object
@@ -439,7 +443,7 @@ const searchUsers: RequestHandler = (req: any, res: any) => {
                     pageNumber: actualOffset + 1,
                 },
             });
-        })).catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+        }).catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
 /**
@@ -1031,7 +1035,7 @@ const createOneTimePassword = (req, res) => {
     } = parseHeaders(req.headers);
     const { email, isDashboardRegistration } = req.body;
 
-    return Store.users.getUsers({ email: normalizeEmail(email) })
+    return Store.users.getUserByConditions({ email: normalizeEmail(email) })
         .then((userDetails) => {
             if (!userDetails.length) {
                 return handleHttpError({
@@ -1078,7 +1082,7 @@ const verifyUserAccount = (req, res) => {
         return handleHttpError({ err: e, res, message: 'SQL:USER_ROUTES:ERROR' });
     }
 
-    return Store.users.getUsers({ email: normalizeEmail(decodedToken.email) })
+    return Store.users.getUserByConditions({ email: normalizeEmail(decodedToken.email) })
         .then((userSearchResults) => {
             if (!userSearchResults.length) {
                 return handleHttpError({
@@ -1087,6 +1091,17 @@ const verifyUserAccount = (req, res) => {
                     statusCode: 404,
                 });
             }
+
+            const existingAccessLevels = userSearchResults[0].accessLevels || [];
+            if (existingAccessLevels.includes(AccessLevels.EMAIL_VERIFIED)
+                || existingAccessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
+                return handleHttpError({
+                    res,
+                    message: 'Email already verified',
+                    statusCode: 400,
+                });
+            }
+
             const userVerificationCodes = userSearchResults[0].verificationCodes;
             return Store.verificationCodes.getCode({
                 code: decodedToken.code,
@@ -1138,8 +1153,29 @@ const verifyUserAccount = (req, res) => {
                         // Set expire rather than delete (gives a window for user to see if already verified)
                         await Store.verificationCodes.updateCode({ msExpiresAt: Date.now() }, { id: codeResults[0].id });
 
+                        // Generate auth tokens so client can auto-login after verification
+                        const verifiedUser = {
+                            ...userSearchResults[0],
+                            accessLevels: [...userAccessLevels],
+                            isSSO: false,
+                            integrations: {
+                                ...decryptIntegrationsAccess(userSearchResults[0]?.integrationsAccess),
+                            },
+                        };
+                        const userOrgs = await Store.userOrganizations.get({
+                            userId: verifiedUser.id,
+                        }).catch(() => []);
+                        const idToken = createUserToken(verifiedUser, userOrgs);
+                        const refreshTokenData = createRefreshToken(verifiedUser.id);
+
+                        redactUserCreds(verifiedUser);
+
                         return res.status(200).send({
                             message: 'Account successfully verified',
+                            ...verifiedUser,
+                            idToken,
+                            refreshToken: refreshTokenData.token,
+                            userOrganizations: userOrgs,
                         });
                     }
 
@@ -1164,7 +1200,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
     let userVerificationCodes;
 
-    return Store.users.getUsers({
+    return Store.users.getUserByConditions({
         email: normalizeEmail(req.body.email),
     })
         .then((users) => {

@@ -1,6 +1,6 @@
 {
   "branding": {
-    "motto": "This is our time, and these are our spaces. Share a moment."
+    "motto": "Explore your neighborhood. Connect with your community. Earn rewards."
   },
   "validations": {
     "email": "Invalid email address",
@@ -39,7 +39,16 @@
     "nightLife": "Night Life / Social",
     "sports": "Sports"
   },
+  "common": {
+    "share": "Share",
+    "linkCopied": "Link copied!"
+  },
   "components": {
+    "layout": {
+      "floatingButton": {
+        "tooltip": "Share a thought"
+      }
+    },
     "header": {
       "buttons": {
         "login": "Sign In"
@@ -48,6 +57,14 @@
     "footer": {
       "buttons": {
         "locations": "Locations"
+      },
+      "labels": {
+        "home": "Home",
+        "discovered": "Discovered",
+        "messages": "Messages",
+        "explore": "Explore",
+        "locations": "Locations",
+        "info": "Info"
       }
     },
     "createProfileForm": {
@@ -57,7 +74,12 @@
         "resend": "Resend"
       },
       "labels": {
+        "accountType": "Account Type",
+        "personal": "Personal",
+        "business": "Business",
         "firstName": "First Name",
+        "businessName": "Business Name",
+        "businessSuffix": "Business Suffix (ex. Inc., LLC, etc.)",
         "lastName": "Last Name",
         "mobilePhone": "Mobile Phone #",
         "userName": "Username",
@@ -125,13 +147,15 @@
         "repeatPassword": "Repeat Password",
         "termsAndConditions": "I agree to the terms & conditions",
         "userName": "Username",
-        "mySweet": "Are you Sweet?"
+        "mySweet": "Are you Sweet?",
+        "inviteCode": "Invite Code"
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
       },
       "text": {
-        "signupForRewards": "Sign up with {userName}'s invite code - they earn 10 coins and you earn 5!"
+        "signupForRewards": "Use {userName}'s invite code — they get 10 coins and you get 5!",
+        "inviteCodeHint": "Have a friend's invite code? Enter it to earn bonus coins"
       },
       "sso": {
         "orDivider": "or",
@@ -163,7 +187,8 @@
         "locationMap": "Explore",
         "notifications": "Notifications",
         "profileSettings": "Profile Settings"
-      }
+      },
+      "noNotifications": "You have no notifications yet."
     }
   },
   "pages": {
@@ -236,13 +261,20 @@
     "discovered": {
       "pageTitle": "Discovered",
       "subtitle": "Recently shared moments and spaces from the community",
-      "noResults": "Nothing to show yet. Check back later for new content from the community."
+      "noResults": "Nothing to show yet. Check back later for new content from the community.",
+      "exploreCta": "Explore spaces nearby",
+      "filters": {
+        "all": "All",
+        "moments": "Moments",
+        "spaces": "Spaces"
+      }
     },
     "explore": {
       "pageTitle": "Explore",
       "subtitle": "Discover moments, spaces, thoughts, and people in your community",
       "recentContent": "Recent Content",
       "viewAll": "View all",
+      "searchPlaceholder": "Search spaces, moments, and more...",
       "noResults": "Nothing to show yet. Check back later for new content.",
       "categories": {
         "momentsTitle": "Moments",
@@ -295,6 +327,18 @@
       "postSuccess": "Thought posted!",
       "postError": "Failed to post thought. Please try again.",
       "messageTooShort": "Message is too short"
+    },
+    "viewThought": {
+      "headerTitle": "Thought",
+      "reply": "Reply",
+      "replies": "Replies",
+      "noReplies": "No replies yet. Be the first to respond.",
+      "replyPlaceholder": "Write a reply...",
+      "replyButton": "Reply",
+      "replyTooShort": "Reply is too short",
+      "replyError": "Failed to post reply. Please try again.",
+      "loginToReply": "Log in to reply",
+      "backToThoughts": "Back to Thoughts"
     },
     "explorePeople": {
       "pageTitle": "Search People",
@@ -359,19 +403,19 @@
       "failedMessageUserNotFound": "No user found.",
       "labels": {
         "email": "E-mail",
-        "settingsEmailBusMarketing": "Business Dashboard marketing e-mails",
-        "settingsEmailMarketing": "Social Health marketing e-mails",
-        "settingsEmailLikes": "Social App engagement e-mails",
-        "settingsEmailInvites": "Social App user or group invite e-mails",
-        "settingsEmailMentions": "Social App 'mentions' e-mails",
-        "settingsEmailMessages": "Social App 'messages' e-mails",
-        "settingsEmailReminders": "Social App reminder e-mails",
-        "settingsEmailBackground": "Social App automated e-mails"
+        "settingsEmailBusMarketing": "Business dashboard tips & updates",
+        "settingsEmailMarketing": "Community highlights & new features",
+        "settingsEmailLikes": "Likes and engagement on your posts",
+        "settingsEmailInvites": "Friend requests & group invites",
+        "settingsEmailMentions": "Mentions & tags",
+        "settingsEmailMessages": "New messages",
+        "settingsEmailReminders": "Reminders & nudges",
+        "settingsEmailBackground": "Automated activity updates"
       },
       "returnToLogin": "Return to login page",
       "sectionHeaders": {
-        "marketing": "Marketing E-mails",
-        "social": "Social App E-mails"
+        "marketing": "Marketing Emails",
+        "social": "Activity Emails"
       }
     },
     "emailVerification": {
@@ -414,19 +458,23 @@
       "private": "Private",
       "yours": "Yours",
       "previousPage": "Back To Page {pageNumber}",
-      "nextPage": "To Page {pageNumber}"
+      "nextPage": "To Page {pageNumber}",
+      "expandMap": "Expand Map",
+      "collapseMap": "Collapse Map",
+      "signInPrompt": "to see your private spaces and manage listings.",
+      "website": "website"
     },
     "home": {
       "pageTitle": "Create your Social Profile or Business",
-      "welcome": "Discover Local. Earn Rewards. Get Noticed.",
+      "welcome": "Discover Local. Earn Rewards. Make Real Connections.",
       "apple": "Apple",
       "android": "Android",
       "devices": "devices",
       "eventOrganizers": "Storefronts",
       "freelancers": "Freelancers",
       "or": "or",
-      "info": "Therr connects you with the people, places, and businesses in your community. Drop location-based posts, discover hidden gems nearby, and earn rewards just for exploring.",
-      "info2": "Are you a local influencer or content creator? Partner with nearby businesses, grow your audience, and land collaborations — all through the app.",
+      "info": "Therr connects you with the people, places, and businesses in your neighborhood. Share location-based posts, discover hidden gems nearby, and earn rewards just for exploring your community.",
+      "info2": "Local influencer or content creator? Partner with nearby businesses, grow your audience, and land paid collaborations — all through the app.",
       "info3": "Download the free app to unlock the full experience."
     },
     "createForum": {
@@ -454,12 +502,16 @@
       "pageTitleVerify": "Create Profile: Verify Phone",
       "createProfileSuccess": "Profile successfully updated!",
       "createProfileError": "Oops, something went wrong",
+      "updateProfileError": "Failed to update profile. Please try again.",
+      "verifyPhoneError": "Failed to send verification code. Please try again.",
+      "authError": "Your session has expired. Please log in again.",
       "phoneNumberAlreadyInUseError": "Phone number is already in use for this account type",
+      "phoneRegionNotSupportedError": "SMS verification is not available for your region. Please use a different phone number.",
       "tooManyAccounts": "Users are limited to one of each account type (personal, creator, business)",
       "invalidRegion": "Invalid region",
       "invalidCode": "Code is invalid or expired. Try again or resend.",
-      "infoTitle": "Why Require Phone #?",
-      "info": "We are dedicated to preventing fake users, so Multi-Factor Auth is a must. Requiring an e-mail and phone # along with geo-tag post requirements drastically limits the potential for fake users."
+      "infoTitle": "Why We Verify Your Phone Number",
+      "info": "Your security matters to us. Phone verification helps us keep the community authentic and free from fake accounts. Combined with email and location-based safeguards, it ensures you're connecting with real people in a trusted environment."
     },
     "login": {
       "pageTitle": "Sign In",
@@ -485,19 +537,31 @@
     },
     "userProfile": {
       "buttons": {
+        "changePassword": "Change Password",
         "createAForum": "Create a Hosted Chat",
+        "editProfile": "Edit Profile",
+        "manageSpaces": "Manage Locations",
+        "editSpace": "Edit",
+        "postUpdate": "Post Update",
         "sendRequest": "Send Request"
       },
       "connectionSent": "You connection request is on the way!",
       "h2": {
         "accountDetails": "Account Details",
         "addConnection": "Add New Connection",
-        "connections": "Connections"
+        "connections": "Connections",
+        "myLocations": "My Locations",
+        "myEvents": "My Events",
+        "myUpdates": "My Updates"
       },
       "labels": {
+        "businessName": "Business Name",
         "email": "E-mail",
         "firstName": "Firstname",
         "lastName": "Lastname",
+        "noLocations": "No locations added yet. Create your first space to get started.",
+        "noEvents": "No upcoming events",
+        "noUpdates": "No updates posted yet",
         "phone": "Phone",
         "phoneNumber": "Phone Number",
         "userName": "Username"
@@ -508,40 +572,146 @@
         "phoneNumber": "Invalid phone number"
       }
     },
+    "editProfile": {
+      "pageTitle": "Edit Profile",
+      "successMessage": "Your profile has been updated successfully.",
+      "failedMessageBadRequest": "Please check your input and try again.",
+      "failedMessageServer": "An unexpected error occurred. Please try again later.",
+      "h2": {
+        "profileInfo": "Profile Information",
+        "businessInfo": "Business Information",
+        "privacy": "Privacy & Content",
+        "display": "Display Settings",
+        "account": "Account"
+      },
+      "labels": {
+        "firstName": "First Name",
+        "businessName": "Business Name",
+        "isBusinessAccount": "Business Account",
+        "organizationDescription": "Organization Description",
+        "businessType": "Business Type",
+        "lastName": "Last Name",
+        "businessSuffix": "Business Suffix (ex. Inc., LLC, etc.)",
+        "userName": "Username",
+        "email": "Email",
+        "bio": "Bio",
+        "profilePublic": "Public Profile",
+        "hideMatureContent": "Hide Mature Content",
+        "theme": "Theme",
+        "language": "Language"
+      },
+      "buttons": {
+        "save": "Save Changes",
+        "changePassword": "Change Password",
+        "viewProfile": "View Profile"
+      },
+      "themeOptions": {
+        "light": "Light",
+        "dark": "Dark",
+        "retro": "Retro"
+      },
+      "businessTypeOptions": {
+        "small-business": "Small Business",
+        "restaurant-services": "Restaurant / Food Services",
+        "retail": "Retail",
+        "health-wellness": "Health & Wellness",
+        "professional-services": "Professional Services",
+        "entertainment": "Entertainment",
+        "other": "Other"
+      }
+    },
+    "editSpace": {
+      "pageTitle": "Edit Location",
+      "successMessage": "Your location has been updated successfully.",
+      "failedMessageBadRequest": "Please check your input and try again.",
+      "failedMessageServer": "An unexpected error occurred. Please try again later.",
+      "h2": {
+        "basicInfo": "Basic Information",
+        "contactLinks": "Contact & Links"
+      },
+      "labels": {
+        "name": "Location Name",
+        "description": "Description",
+        "address": "Address",
+        "phoneNumber": "Phone Number",
+        "websiteUrl": "Website URL",
+        "menuUrl": "Menu URL",
+        "orderUrl": "Order / Delivery URL",
+        "reservationUrl": "Reservation URL"
+      },
+      "buttons": {
+        "save": "Save Changes",
+        "backToProfile": "Back to Profile"
+      }
+    },
+    "manageSpaces": {
+      "pageTitle": "Manage Locations",
+      "noLocations": "You haven't created any locations yet.",
+      "buttons": {
+        "createNew": "Create New Location",
+        "createFirst": "Create Your First Location",
+        "backToProfile": "Back to Profile"
+      }
+    },
+    "createSpace": {
+      "pageTitle": "Create Location",
+      "failedMessageBadRequest": "Please check your input and try again.",
+      "failedMessageServer": "An unexpected error occurred. Please try again later.",
+      "h2": {
+        "basicInfo": "Basic Information",
+        "contactLinks": "Contact & Links"
+      },
+      "labels": {
+        "name": "Location Name",
+        "description": "Description",
+        "address": "Address",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "phoneNumber": "Phone Number",
+        "websiteUrl": "Website URL",
+        "menuUrl": "Menu URL",
+        "orderUrl": "Order / Delivery URL",
+        "reservationUrl": "Reservation URL"
+      },
+      "buttons": {
+        "create": "Create Location",
+        "cancel": "Cancel"
+      }
+    },
     "underConstruction": {
       "pageTitle": "Go Mobile",
       "welcome": "Get the Mobile App",
       "info": "You must be looking for the mobile app! Find it below. For now, the desktop app only supports basic features like updating your password or account details."
     },
     "goMobile": {
-      "pageTitle": "Your Hub",
+      "pageTitle": "Your Local Hub",
       "welcome": "Hey Therr",
-      "subtitle": "Discover local people, places, and moments — right from your browser. Explore what's happening around you and connect with your community. Get the mobile app to enjoy all the fun on the go",
+      "subtitle": "Discover local people, places, and moments — right from your browser. See what's happening around you and connect with your community. Get the mobile app for the full experience on the go.",
       "featuresHeading": "Start Exploring",
       "features": {
         "explore": {
           "title": "Explore Nearby",
-          "description": "Browse trending posts and discover what people are sharing in your area."
+          "description": "See trending posts and discover what people are sharing in your neighborhood."
         },
         "locations": {
-          "title": "Find Locations",
-          "description": "Search local businesses, events, and hidden gems near you."
+          "title": "Find Local Spots",
+          "description": "Discover local businesses, events, and hidden gems near you."
         },
         "moments": {
           "title": "View Moments",
-          "description": "See photo and video moments shared by the community."
+          "description": "Browse photos and stories shared by your community."
         },
         "connect": {
-          "title": "Meet People",
-          "description": "Find and connect with people who share your interests nearby."
+          "title": "Meet People Nearby",
+          "description": "Connect with people who share your interests in your area."
         }
       },
-      "ctaHeading": "Unlock the Full Experience",
-      "ctaInfo": "Love what you see? The mobile app takes it further — with real-time location discovery, push notifications, rewards, and more. Download for free and never miss what's happening around you."
+      "ctaHeading": "Get the Full Experience",
+      "ctaInfo": "Like what you see? The mobile app goes further — with real-time location discovery, check-in rewards, and notifications for nearby deals. Download for free and never miss what's happening around you."
     },
     "inviteLanding": {
       "title": "{username} invited you to Therr!",
-      "description": "Join the local community and rewards app. Sign up with their invite code and you both earn rewards!",
+      "description": "Join the local community and rewards app. Sign up with their invite code and you both earn coins!",
       "joinButton": "Join Now & Earn 5 Coins",
       "appStoreText": "Also available on mobile",
       "returnHome": "Return to home page"
@@ -580,6 +750,8 @@
         "viewSpace": "View Location",
         "viewGroup": "View Group",
         "viewOnGoogleMaps": "View on Google Maps",
+        "showMap": "Show Map",
+        "hideMap": "Hide Map",
         "privateEventMessage": "This event belongs to a private group",
         "privateEventCta": "Sign up or log in to request access",
         "signUpPrompt": "Sign up or log in to see full event details"
@@ -609,12 +781,79 @@
         "getFullExperience": "Get the full experience on Therr app",
         "helpful": "Helpful",
         "notHelpful": "Not helpful"
+      },
+      "claimSpace": {
+        "title": "Is this your business?",
+        "body": "Claim this space to see real-time customer activity, get paired with complementary local businesses, and reward customers who spread the word. Update your info, add photos, and take control of your presence.",
+        "subtleCTA": "Is this your business? Claim it",
+        "emailTitle": "Welcome! Claim Your Business",
+        "emailBody": "People are discovering your business on Therr. Claim this space to see real-time customer activity, manage your listing, and start engaging with your audience today.",
+        "claimButton": "Claim This Space",
+        "editButton": "Edit Space",
+        "alreadyHaveAccount": "Already have an account? Sign in",
+        "pendingTitle": "Claim Request Pending",
+        "pendingBody": "A claim request for this space has been submitted and is currently under review.",
+        "successMessage": "Your claim request has been submitted. You will be notified once it is approved.",
+        "errorMessage": "There was an error submitting your claim. Please try again later."
+      }
+    },
+    "editSpace": {
+      "pageTitle": "Edit Space",
+      "successMessage": "Your space has been updated successfully.",
+      "errorGeneric": "An error occurred while saving. Please try again.",
+      "headings": {
+        "contactInfo": "Contact Information"
+      },
+      "labels": {
+        "businessName": "Business Name",
+        "category": "Category",
+        "selectCategory": "Select a category",
+        "description": "Description",
+        "hashTags": "Tags",
+        "hashTagsHint": "Comma-separated (e.g. coffee, wifi, outdoor seating)",
+        "image": "Business Photo",
+        "chooseImage": "Choose an image",
+        "phoneNumber": "Phone Number",
+        "websiteUrl": "Website",
+        "menuUrl": "Menu URL",
+        "orderUrl": "Order / Delivery URL",
+        "reservationUrl": "Reservation URL"
+      },
+      "buttons": {
+        "save": "Save Changes",
+        "backToSpace": "Back to Space"
+      }
+    },
+    "viewMoment": {
+      "labels": {
+        "postedBy": "Posted by",
+        "viewLocation": "View Location",
+        "viewOnGoogleMaps": "View on Google Maps",
+        "showMap": "Show Map",
+        "hideMap": "Hide Map"
       }
     },
     "viewUser": {
       "buttons": {
-        "chat": "Chat"
+        "chat": "Chat",
+        "follow": "Follow",
+        "viewAll": "View All"
+      },
+      "headings": {
+        "about": "About",
+        "locations": "Our Locations",
+        "upcomingEvents": "Upcoming Events",
+        "latestUpdates": "Latest Updates"
+      },
+      "labels": {
+        "noLocations": "No locations listed yet",
+        "noEvents": "No upcoming events",
+        "noUpdates": "No recent updates"
       }
+    },
+    "userLocations": {
+      "pageTitle": "Locations",
+      "headingWithName": "{name}'s Locations"
     }
   }
 }

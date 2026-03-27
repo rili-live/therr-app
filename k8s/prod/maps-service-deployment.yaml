@@ -5,6 +5,8 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       component: server-maps
@@ -23,7 +25,7 @@ spec:
               matchExpressions:
               - key: cloud.google.com/gke-preemptible
                 operator: Exists
-            weight: 100
+            weight: 80
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
@@ -35,8 +37,6 @@ spec:
                   values:
                   - server-maps
               topologyKey: kubernetes.io/hostname
-      nodeSelector:
-        cloud.google.com/gke-preemptible: "true"
       containers:
       - name: server-maps
         image: therrapp/maps-service:latest
@@ -50,11 +50,11 @@ spec:
               - ALL
         resources:
           requests:
-            memory: "96Mi"
-            cpu: "10m"
+            memory: "128Mi"
+            cpu: "50m"
           limits:
-            memory: "192Mi"
-            cpu: "100m"
+            memory: "256Mi"
+            cpu: "200m"
         ports:
         - containerPort: 7773
         livenessProbe:
@@ -129,6 +129,9 @@ spec:
             secretKeyRef:
               name: therrjwtsecret
               key: THERRJWT_SECRET
+        # IndexNow: Must match the same key set on client-web deployment
+        - name: INDEXNOW_API_KEY
+          value: "bf9415ba04c845a797fdc30bc27df2d7"
         - name: SIGHTENGINE_API_KEY
           value: "109708716"
         - name: SIGHTENGINE_API_SECRET
@@ -150,6 +153,7 @@ spec:
 
           # Replace DB_PORT with the port the proxy should listen on
           - "--port=5432"
+          - "--max-connections=20"
           - "therr-app:us-central1:therr-db-main-prod-14"
         securityContext:
           # The default Cloud SQL proxy image runs as the
@@ -162,8 +166,8 @@ spec:
             # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
           requests:
-            memory: "16Mi"
-            cpu: "5m"
+            memory: "32Mi"
+            cpu: "10m"
           limits:
-            memory: "64Mi"
-            cpu: "50m"
+            memory: "96Mi"
+            cpu: "100m"
