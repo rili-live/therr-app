@@ -58,5 +58,5 @@ export {
     getMyAccounts,
     getMyAdAccounts,
     getMyIGAccounts,
-    getCampaignResults
+    getCampaignResults,
 };

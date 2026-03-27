@@ -14,12 +14,19 @@ module.exports = {
         '@typescript-eslint',
     ],
     parser: '@typescript-eslint/parser',
+    ignorePatterns: ['**/.eslintrc.js'],
     rules: {
         indent: [2, 4, { SwitchCase: 1 }],
         'max-len': [2, { code: 160 }],
+        'no-shadow': 'off',
+        'no-use-before-define': 'off',
+        'no-unused-expressions': 'off', // Allow chai assertions like expect().to.be.eq(true)
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/interface-name-prefix': 0,
+        '@typescript-eslint/no-empty-interface': 'off',
+        '@typescript-eslint/no-shadow': 'error',
+        '@typescript-eslint/no-use-before-define': ['error'],
+        '@typescript-eslint/no-unused-expressions': 'off',
         'consistent-return': 'off',
         'prefer-destructuring': 'off',
         'import/prefer-default-export': 'off',
@@ -43,13 +50,20 @@ module.exports = {
         ],
         'import/no-relative-packages': 'off',
     },
+    overrides: [
+        {
+            files: ['tests/**/*.ts', 'tests/**/*.tsx'],
+            rules: {
+                '@typescript-eslint/no-empty-function': 'off',
+            },
+        },
+    ],
     settings: {
         'import/external-module-folders': ['../../node_modules', '../../node_modules/@types'],
         'import/parsers': {
             '@typescript-eslint/parser': ['.ts'],
         },
         'import/resolver': {
-            // NOTE: These aliases must match aliases in webpack.config.js
             alias: {
                 map: [
                     ['therr-public-library/therr-styles/*', path.join(__dirname, '../../therr-public-library/therr-styles')],

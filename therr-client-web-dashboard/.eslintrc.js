@@ -16,7 +16,7 @@ module.exports = {
         'jsx-a11y',
     ],
     parser: '@typescript-eslint/parser',
-    ignorePatterns: ["**/.eslintrc.js"],
+    ignorePatterns: ['**/.eslintrc.js'],
     rules: {
         'jsx-a11y/label-has-associated-control': [2, {
             labelComponents: ['CustomInputLabel'],
@@ -26,6 +26,9 @@ module.exports = {
         }],
         'react/jsx-indent': [2, 4],
         'react/jsx-indent-props': [2, 4],
+        'react/prop-types': 'off',
+        'react/display-name': 'off',
+        'react/no-unescaped-entities': 'off',
         'react/sort-comp': [
             2,
             {
@@ -34,10 +37,14 @@ module.exports = {
         ],
         indent: [2, 4, { SwitchCase: 1 }],
         'max-len': [2, { code: 160 }],
+        'no-shadow': 'off',
+        'no-use-before-define': 'off',
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/interface-name-prefix': 0,
-        '@typescript-eslint/no-empty-interface': 0,
+        '@typescript-eslint/no-empty-interface': 'off',
+        '@typescript-eslint/no-shadow': 'error',
+        '@typescript-eslint/no-use-before-define': ['error'],
+        '@typescript-eslint/ban-types': 'off',
         'consistent-return': 'off',
         'prefer-destructuring': 'off',
         'import/prefer-default-export': 'off',
@@ -61,18 +68,26 @@ module.exports = {
                 ],
             },
         ],
-        'no-use-before-define': 'off',
         'import/no-relative-packages': 'off',
-        '@typescript-eslint/no-use-before-define': ['error'],
-        '@typescript-eslint/ban-types': 'off',
+        'import/no-unresolved': ['error', {
+            ignore: ['\\.(jpg|jpeg|png|gif|svg|webp|css|scss)$'],
+        }],
     },
+    overrides: [
+        {
+            files: ['**/__tests__/**', '**/*.test.*'],
+            rules: {
+                '@typescript-eslint/no-var-requires': 'off',
+                '@typescript-eslint/no-empty-function': 'off',
+            },
+        },
+    ],
     settings: {
         'import/external-module-folders': ['../node_modules', '../node_modules/@types'],
         'import/parsers': {
             '@typescript-eslint/parser': ['.ts', '.tsx'],
         },
         'import/resolver': {
-            // NOTE: These aliases must match aliases in webpack.config.js
             alias: {
                 map: [
                     ['therr-react/*', path.join(__dirname, '../therr-public-library/therr-react/lib')],

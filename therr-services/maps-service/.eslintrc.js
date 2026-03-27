@@ -18,9 +18,13 @@ module.exports = {
     rules: {
         indent: [2, 4, { SwitchCase: 1 }],
         'max-len': [2, { code: 160 }],
+        'no-shadow': 'off',
+        'no-use-before-define': 'off',
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/interface-name-prefix': 0,
+        '@typescript-eslint/no-empty-interface': 'off',
+        '@typescript-eslint/no-shadow': 'error',
+        '@typescript-eslint/no-use-before-define': ['error'],
         'consistent-return': 'off',
         'prefer-destructuring': 'off',
         'import/prefer-default-export': 'off',
@@ -44,6 +48,16 @@ module.exports = {
         ],
         'import/no-relative-packages': 'off',
     },
+    overrides: [
+        {
+            files: ['tests/**/*.ts', 'tests/**/*.tsx'],
+            rules: {
+                'no-unused-expressions': 'off',
+                '@typescript-eslint/no-unused-expressions': 'off',
+                '@typescript-eslint/no-empty-function': 'off',
+            },
+        },
+    ],
     settings: {
         'import/external-module-folders': ['../../node_modules', '../../node_modules/@types'],
         'import/parsers': {
