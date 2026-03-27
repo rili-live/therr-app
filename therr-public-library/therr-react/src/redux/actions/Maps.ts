@@ -427,6 +427,14 @@ const Maps = {
             },
         });
     },
+
+    // Geocoding (Nominatim via server-side proxy)
+    geocodeLocation: (query: string) => () => MapsService.geocodeLocation(query)
+        .then((response) => response.data)
+        .catch((error) => {
+            console.log(error);
+            return { results: [] };
+        }),
 };
 
 export default Maps;

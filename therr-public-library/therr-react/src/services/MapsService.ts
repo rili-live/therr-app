@@ -471,6 +471,13 @@ class MapsService {
         });
     };
 
+    // Geocoding (Nominatim via server-side proxy)
+    geocodeLocation = (query: string) => axios({
+        method: 'get',
+        url: `/maps-service/geocode?q=${encodeURIComponent(query)}`,
+        headers: {},
+    });
+
     // Activities
     generateActivity = ({
         distanceMeters,

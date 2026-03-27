@@ -1,5 +1,6 @@
 import express from 'express';
 import crypto from 'crypto';
+import axios from 'axios';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../../global-config';
@@ -13,6 +14,7 @@ import {
     createSpaceLimiter,
     pairingFeedbackLimiter,
     placesApiLimiter,
+    geocodeApiLimiter,
 } from './limitation/map';
 import { createCheckInValidation, getSignedUrlValidation } from './validation';
 import {
@@ -344,6 +346,62 @@ mapsServiceRouter.post('/spaces/request-approve/:spaceId', validate, authorize(
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));
+
+// External APIs - Nominatim geocoding proxy with rate limiting and caching
+mapsServiceRouter.get('/geocode', geocodeApiLimiter, async (req, res) => {
+    const { q } = req.query;
+
+    if (!q || typeof q !== 'string' || !q.trim()) {
+        return res.status(400).json({ message: 'Query parameter "q" is required' });
+    }
+
+    const cacheKey = crypto.createHash('sha256').update(`geocode:${q.trim().toLowerCase()}`).digest('hex');
+    const cached = await CacheStore.mapsService.getGeocodingResponse(cacheKey);
+
+    if (cached) {
+        return res.status(200).json(cached);
+    }
+
+    try {
+        const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+            params: {
+                q: q.trim(),
+                format: 'json',
+                limit: 1,
+                addressdetails: 1,
+            },
+            headers: {
+                'User-Agent': 'Therr App (https://www.therr.com)',
+            },
+            timeout: 5000,
+        });
+
+        const results = response.data;
+
+        if (!results || results.length === 0) {
+            return res.status(200).json({ results: [] });
+        }
+
+        const result = results[0];
+        const data = {
+            results: [{
+                latitude: parseFloat(result.lat),
+                longitude: parseFloat(result.lon),
+                displayName: result.display_name,
+                boundingBox: result.boundingbox?.map(parseFloat) || [],
+                type: result.type,
+                class: result.class,
+            }],
+        };
+
+        CacheStore.mapsService.setGeocodingResponse(cacheKey, data);
+
+        return res.status(200).json(data);
+    } catch (err) {
+        console.error('Geocoding proxy error:', err);
+        return res.status(502).json({ message: 'Geocoding service unavailable' });
+    }
+});
 
 // External APIs - Google Places proxy with rate limiting and caching
 mapsServiceRouter.get('/place/*', placesApiLimiter, async (req, res, next) => {
