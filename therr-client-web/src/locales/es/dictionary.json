@@ -748,6 +748,8 @@
         "viewSpace": "Ver ubicación",
         "viewGroup": "Ver grupo",
         "viewOnGoogleMaps": "Ver en Google Maps",
+        "showMap": "Mostrar mapa",
+        "hideMap": "Ocultar mapa",
         "privateEventMessage": "Este evento pertenece a un grupo privado",
         "privateEventCta": "Regístrate o inicia sesión para solicitar acceso",
         "signUpPrompt": "Regístrate o inicia sesión para ver todos los detalles del evento"
@@ -821,7 +823,9 @@
       "labels": {
         "postedBy": "Publicado por",
         "viewLocation": "Ver ubicación",
-        "viewOnGoogleMaps": "Ver en Google Maps"
+        "viewOnGoogleMaps": "Ver en Google Maps",
+        "showMap": "Mostrar mapa",
+        "hideMap": "Ocultar mapa"
       }
     },
     "viewUser": {
