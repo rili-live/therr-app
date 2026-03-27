@@ -820,7 +820,8 @@
     "viewMoment": {
       "labels": {
         "postedBy": "Posted by",
-        "viewLocation": "View Location"
+        "viewLocation": "View Location",
+        "viewOnGoogleMaps": "View on Google Maps"
       }
     },
     "viewUser": {

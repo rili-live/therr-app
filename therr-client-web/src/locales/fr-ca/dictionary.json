@@ -820,7 +820,8 @@
     "viewMoment": {
       "labels": {
         "postedBy": "Publié par",
-        "viewLocation": "Voir l'emplacement"
+        "viewLocation": "Voir l'emplacement",
+        "viewOnGoogleMaps": "Voir sur Google Maps"
       }
     },
     "viewUser": {

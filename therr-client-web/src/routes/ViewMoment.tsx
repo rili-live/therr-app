@@ -15,6 +15,11 @@ import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 import ProgressiveImage from '../components/ProgressiveImage';
 
+// Only lazy-load on client (Leaflet requires window/document)
+const SpacesMap = typeof window !== 'undefined'
+    ? React.lazy(() => import('../components/SpacesMap'))
+    : (() => null) as any;
+
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
     const label = category.replace('categories.', '').replace('/', ' & ');
@@ -223,6 +228,48 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         );
     }
 
+    renderLocationMap(moment: any): JSX.Element | null {
+        const space = moment.space;
+        const lat = space?.latitude || moment.latitude;
+        const lng = space?.longitude || moment.longitude;
+
+        if (!lat || !lng) return null;
+
+        const mapLabel = space?.notificationMsg || moment.notificationMsg || '';
+        const mapAddress = space?.addressReadable || '';
+
+        return (
+            <>
+                <React.Suspense fallback={<Skeleton height={200} radius="md" mt="sm" />}>
+                    <SpacesMap
+                        spaces={[{
+                            id: moment.spaceId || moment.id,
+                            notificationMsg: mapLabel,
+                            addressReadable: mapAddress,
+                            latitude: lat,
+                            longitude: lng,
+                        }]}
+                        centerLat={lat}
+                        centerLng={lng}
+                        localePrefix=""
+                        zoom={15}
+                        height={200}
+                        interactive={false}
+                    />
+                </React.Suspense>
+                <Anchor
+                    href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    size="sm"
+                    mt="xs"
+                >
+                    {this.props.translate('pages.viewMoment.labels.viewOnGoogleMaps')}
+                </Anchor>
+            </>
+        );
+    }
+
     public render(): JSX.Element {
         const { content, map } = this.props;
         const { momentId } = this.state;
@@ -287,6 +334,9 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
 
                     {/* Space Card */}
                     {this.renderSpaceCard(moment)}
+
+                    {/* Location Map */}
+                    {this.renderLocationMap(moment)}
 
                     <Divider />
 
