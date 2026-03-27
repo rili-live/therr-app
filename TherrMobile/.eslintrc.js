@@ -1,5 +1,8 @@
 const path = require('path');
+const baseConfig = require('../eslint-config/base');
 
+// TherrMobile uses @react-native instead of airbnb-base,
+// so it only uses base rules (not base extends).
 module.exports = {
     env: {
         jest: true,
@@ -9,6 +12,7 @@ module.exports = {
     plugins: ['@typescript-eslint', 'jest'],
     ignorePatterns: ['**/.eslintrc.js'],
     rules: {
+        ...baseConfig.rules,
         'react/jsx-indent': [2, 4],
         'react/jsx-indent-props': [2, 4],
         'react/sort-comp': [
@@ -17,22 +21,7 @@ module.exports = {
                 order: ['static-variables', 'static-methods', 'instance-variables', 'constructor', 'lifecycle', 'everything-else', 'render'],
             },
         ],
-        indent: [2, 4, {
-            SwitchCase: 1,
-        }],
-        'max-len': [2, {
-            code: 160,
-        }],
-        'no-shadow': 'off',
-        'no-use-before-define': 'off',
         'prettier/prettier': 'off',
-        '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/no-empty-interface': 'off',
-        '@typescript-eslint/no-shadow': 'error',
-        '@typescript-eslint/no-use-before-define': ['error'],
-        'consistent-return': 'off',
-        'prefer-destructuring': 'off',
         'import/prefer-default-export': 'off',
         semi: 'error',
         'comma-dangle': ['error', 'always-multiline'],
