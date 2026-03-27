@@ -1,3 +1,4 @@
+// Trigger deployment pipeline
 import * as React from 'react';
 import LogRocket from 'logrocket';
 import setupLogRocketReact from 'logrocket-react';
