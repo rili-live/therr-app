@@ -1,4 +1,3 @@
-// Trigger deployment pipeline
 /* eslint-disable import/no-import-module-exports */
 import tracing from './tracing'; // eslint-disable-line import/order
 import express from 'express';
