@@ -11,11 +11,17 @@ import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs, Tooltip,
     SimpleGrid, Rating as MantineRating, Paper, Avatar,
+    Button, Alert,
 } from '@mantine/core';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 import ProgressiveImage from '../components/ProgressiveImage';
+
+// Only lazy-load on client (Leaflet requires window/document)
+const SpacesMap = typeof window !== 'undefined'
+    ? React.lazy(() => import('../components/SpacesMap'))
+    : (() => null) as any;
 
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
@@ -66,6 +72,9 @@ interface IViewSpaceState {
     isPairingsLoading: boolean;
     pairingFeedback: { [id: string]: boolean };
     isLinkCopied: boolean;
+    isClaimLoading: boolean;
+    claimMessage: string;
+    claimMessageType: 'success' | 'error' | '';
 }
 
 const mapStateToProps = (state: any) => ({
@@ -101,6 +110,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isPairingsLoading: false,
             pairingFeedback: {},
             isLinkCopied: false,
+            isClaimLoading: false,
+            claimMessage: '',
+            claimMessageType: '',
         };
     }
 
@@ -180,6 +192,113 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     };
 
     login = (credentials: any) => this.props.login(credentials);
+
+    handleClaimSpace = () => {
+        const { user, translate } = this.props;
+        const { spaceId } = this.state;
+
+        if (!user?.isAuthenticated) {
+            this.props.navigation.navigate(`/register?returnTo=/spaces/${spaceId}`);
+            return;
+        }
+
+        this.setState({ isClaimLoading: true, claimMessage: '', claimMessageType: '' });
+        MapsService.claimSpace(spaceId)
+            .then(() => {
+                this.setState({
+                    isClaimLoading: false,
+                    claimMessage: translate('pages.viewSpace.claimSpace.successMessage'),
+                    claimMessageType: 'success',
+                });
+            })
+            .catch(() => {
+                this.setState({
+                    isClaimLoading: false,
+                    claimMessage: translate('pages.viewSpace.claimSpace.errorMessage'),
+                    claimMessageType: 'error',
+                });
+            });
+    };
+
+    renderClaimCTA(space: any): JSX.Element | null {
+        const { user, translate } = this.props;
+        const { isClaimLoading, claimMessage, claimMessageType } = this.state;
+        const isAuthenticated = user?.isAuthenticated;
+        const isOwner = isAuthenticated && user?.details?.id === space.fromUserId;
+
+        if (claimMessageType === 'success') {
+            return (
+                <Alert color="green" radius="md" mt="md">
+                    <Text fw={500}>{claimMessage}</Text>
+                </Alert>
+            );
+        }
+
+        if (space.isClaimPending || space.requestedByUserId) {
+            return (
+                <Paper withBorder p="lg" radius="md" mt="md" style={{ borderColor: '#fbbf24', backgroundColor: '#fffbeb' }}>
+                    <Text fw={600} size="lg">{translate('pages.viewSpace.claimSpace.pendingTitle')}</Text>
+                    <Text size="sm" mt="xs" c="dimmed">{translate('pages.viewSpace.claimSpace.pendingBody')}</Text>
+                </Paper>
+            );
+        }
+
+        if (!space.isUnclaimed) {
+            if (isOwner) {
+                return (
+                    <Group mt="md">
+                        <Button
+                            component="a"
+                            href={`/spaces/${space.id}/edit`}
+                            variant="filled"
+                            size="md"
+                        >
+                            {translate('pages.viewSpace.claimSpace.editButton')}
+                        </Button>
+                    </Group>
+                );
+            }
+            return null;
+        }
+
+        return (
+            <Paper withBorder p="lg" radius="md" mt="md" style={{ borderColor: '#1C7F8A', backgroundColor: '#f0fdfa' }}>
+                <Title order={3} size="h4">{translate('pages.viewSpace.claimSpace.title')}</Title>
+                <Text size="sm" mt="xs">{translate('pages.viewSpace.claimSpace.body')}</Text>
+                {claimMessage && claimMessageType === 'error' && (
+                    <Text size="sm" c="red" mt="xs">{claimMessage}</Text>
+                )}
+                <Group mt="md" gap="md">
+                    {isAuthenticated ? (
+                        <Button
+                            onClick={this.handleClaimSpace}
+                            loading={isClaimLoading}
+                            variant="filled"
+                            size="md"
+                            color="teal"
+                        >
+                            {translate('pages.viewSpace.claimSpace.claimButton')}
+                        </Button>
+                    ) : (
+                        <>
+                            <Button
+                                component="a"
+                                href={`/register?returnTo=/spaces/${space.id}`}
+                                variant="filled"
+                                size="md"
+                                color="teal"
+                            >
+                                {translate('pages.viewSpace.claimSpace.claimButton')}
+                            </Button>
+                            <Anchor href={`/login?returnTo=/spaces/${space.id}`} size="sm">
+                                {translate('pages.viewSpace.claimSpace.alreadyHaveAccount')}
+                            </Anchor>
+                        </>
+                    )}
+                </Group>
+            </Paper>
+        );
+    }
 
     renderSkeleton(): JSX.Element {
         return (
@@ -288,14 +407,33 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     )}
                 </address>
                 {lat && lng && (
-                    <Anchor
-                        href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
-                        target="_blank"
-                        mt="xs"
-                        display="inline-block"
-                    >
-                        {this.props.translate('pages.viewSpace.labels.viewOnGoogleMaps')}
-                    </Anchor>
+                    <>
+                        <React.Suspense fallback={<Skeleton height={250} radius="md" mt="sm" />}>
+                            <SpacesMap
+                                spaces={[{
+                                    id: space.id,
+                                    notificationMsg: space.notificationMsg,
+                                    addressReadable: space.addressReadable,
+                                    latitude: lat,
+                                    longitude: lng,
+                                }]}
+                                centerLat={lat}
+                                centerLng={lng}
+                                localePrefix=""
+                                zoom={15}
+                                height={250}
+                                interactive={false}
+                            />
+                        </React.Suspense>
+                        <Anchor
+                            href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                            target="_blank"
+                            mt="xs"
+                            display="inline-block"
+                        >
+                            {this.props.translate('pages.viewSpace.labels.viewOnGoogleMaps')}
+                        </Anchor>
+                    </>
                 )}
             </>
         );
@@ -616,6 +754,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
                     {/* Action Links */}
                     {this.renderActionLinks(space)}
+
+                    {/* Claim This Space CTA */}
+                    {this.renderClaimCTA(space)}
 
                     <Divider />
 

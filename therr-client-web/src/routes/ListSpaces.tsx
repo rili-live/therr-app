@@ -16,6 +16,11 @@ import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 
+// Only lazy-load on client (Leaflet requires window/document)
+const SpacesMap = typeof window !== 'undefined'
+    ? React.lazy(() => import('../components/SpacesMap'))
+    : (() => null) as any;
+
 export const DEFAULT_ITEMS_PER_PAGE = 50;
 export const DEFAULT_LATITUDE = 37.1261664; // Middle of U.S. - TODO: Use browser location
 export const DEFAULT_LONGITUDE = -106.2447206; // Middle of U.S. - TODO: Use browser location
@@ -50,6 +55,7 @@ interface IStoreProps extends IListSpacesDispatchProps {
 
 // Regular component props
 interface IListSpacesProps extends IListSpacesRouterProps, IStoreProps {
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 
@@ -57,6 +63,7 @@ interface IListSpacesState {
     itemsPerPage: number;
     searchQuery: string;
     isSearching: boolean;
+    isMapVisible: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -82,6 +89,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
             searchQuery: '',
             isSearching: false,
+            isMapVisible: false,
         };
     }
 
@@ -198,6 +206,10 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         });
     };
 
+    handleToggleMap = () => {
+        this.setState((prevState) => ({ isMapVisible: !prevState.isMapVisible }));
+    };
+
     login = (credentials: any) => this.props.login(credentials);
 
     renderVisibilityBadge(space: any): JSX.Element | null {
@@ -293,12 +305,20 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     }
 
     public render(): JSX.Element | null {
-        const { routeParams, map, user } = this.props;
+        const {
+            locale, location, routeParams, map, user,
+        } = this.props;
         const { pageNumber: pageNumberStr } = routeParams;
-        const { itemsPerPage, searchQuery, isSearching } = this.state;
-        const spacesArray = Object.values(map?.spaces || {});
+        const {
+            itemsPerPage, searchQuery, isSearching, isMapVisible,
+        } = this.state;
+        const spacesArray = Object.values(map?.spaces || {}) as any[];
         const pageNumber = parseInt(pageNumberStr || '1', 10);
         const isAuthenticated = user?.isAuthenticated;
+        const centerLat = location?.user?.latitude || DEFAULT_LATITUDE;
+        const centerLng = location?.user?.longitude || DEFAULT_LONGITUDE;
+        const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
+        const localePrefix = localePrefixMap[locale] || '';
 
         return (
             <div id="page_view_spaces">
@@ -331,7 +351,24 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                                 Clear
                             </Button>
                         )}
+                        <Button variant="outline" size="sm" onClick={this.handleToggleMap}>
+                            {isMapVisible
+                                ? this.props.translate('pages.spaces.hideMap')
+                                : this.props.translate('pages.spaces.showMap')}
+                        </Button>
                     </Group>
+
+                    {/* Map View */}
+                    {isMapVisible && spacesArray.length > 0 && (
+                        <React.Suspense fallback={<Skeleton height={400} radius="md" />}>
+                            <SpacesMap
+                                spaces={spacesArray}
+                                centerLat={centerLat}
+                                centerLng={centerLng}
+                                localePrefix={localePrefix}
+                            />
+                        </React.Suspense>
+                    )}
 
                     {/* Results */}
                     {isSearching && this.renderSkeleton()}

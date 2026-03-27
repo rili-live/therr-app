@@ -11,8 +11,9 @@ source ./_bin/lib/colorize.sh
 git fetch origin general
 
 # Get changed .ts and .js source files relative to general
+# --diff-filter=d excludes deleted files (which don't exist in the working tree)
 # Exclude build artifacts, config files, and non-source directories
-CHANGED_FILES=$(git diff --name-only origin/general -- '*.ts' '*.tsx' '*.js' '*.jsx' \
+CHANGED_FILES=$(git diff --name-only --diff-filter=d origin/general -- '*.ts' '*.tsx' '*.js' '*.jsx' \
   | grep -v node_modules \
   | grep -v '/lib/' \
   | grep -v '/build/' \
@@ -49,6 +50,9 @@ printMessageSuccess "Shared libraries built"
 
 # Define packages and their root directories
 # Each package has its own .eslintrc.js
+# NOTE: therr-client-web-dashboard is excluded because its local lint script
+# is a no-op (linting not yet configured for that package).
+# TherrMobile is included to match the local lint:changed behavior.
 declare -a PACKAGES=(
   "therr-api-gateway"
   "therr-services/push-notifications-service"
@@ -60,7 +64,7 @@ declare -a PACKAGES=(
   "therr-public-library/therr-js-utilities"
   "therr-public-library/therr-react"
   "therr-client-web"
-  "therr-client-web-dashboard"
+  "TherrMobile"
 )
 
 LINT_ERRORS=0

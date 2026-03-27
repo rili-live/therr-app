@@ -458,7 +458,9 @@
       "private": "Privé",
       "yours": "Les vôtres",
       "previousPage": "Retour à la page {pageNumber}",
-      "nextPage": "Vers la page {pageNumber}"
+      "nextPage": "Vers la page {pageNumber}",
+      "showMap": "Afficher la carte",
+      "hideMap": "Masquer la carte"
     },
     "home": {
       "pageTitle": "Créez votre profil social ou d'entreprise",
@@ -736,6 +738,44 @@
         "getFullExperience": "Profitez de l'expérience complète sur l'application Therr",
         "helpful": "Utile",
         "notHelpful": "Pas utile"
+      },
+      "claimSpace": {
+        "title": "C'est votre entreprise?",
+        "body": "Réclamez cet espace pour voir l'activité de vos clients en temps réel, être jumelé avec des entreprises locales complémentaires et récompenser les clients qui parlent de vous. Mettez à jour vos informations, ajoutez des photos et prenez le contrôle de votre présence.",
+        "claimButton": "Réclamer cet espace",
+        "editButton": "Modifier l'espace",
+        "alreadyHaveAccount": "Vous avez déjà un compte? Connectez-vous",
+        "pendingTitle": "Demande de réclamation en attente",
+        "pendingBody": "Une demande de réclamation pour cet espace a été soumise et est en cours de révision.",
+        "successMessage": "Votre demande de réclamation a été soumise. Vous serez notifié une fois qu'elle sera approuvée.",
+        "errorMessage": "Une erreur s'est produite lors de la soumission de votre demande. Veuillez réessayer plus tard."
+      }
+    },
+    "editSpace": {
+      "pageTitle": "Modifier l'espace",
+      "successMessage": "Votre espace a été mis à jour avec succès.",
+      "errorGeneric": "Une erreur s'est produite lors de la sauvegarde. Veuillez réessayer.",
+      "headings": {
+        "contactInfo": "Coordonnées"
+      },
+      "labels": {
+        "businessName": "Nom de l'entreprise",
+        "category": "Catégorie",
+        "selectCategory": "Sélectionner une catégorie",
+        "description": "Description",
+        "hashTags": "Étiquettes",
+        "hashTagsHint": "Séparées par des virgules (ex. café, wifi, terrasse)",
+        "image": "Photo de l'entreprise",
+        "chooseImage": "Choisir une image",
+        "phoneNumber": "Numéro de téléphone",
+        "websiteUrl": "Site web",
+        "menuUrl": "URL du menu",
+        "orderUrl": "URL de commande / livraison",
+        "reservationUrl": "URL de réservation"
+      },
+      "buttons": {
+        "save": "Enregistrer les modifications",
+        "backToSpace": "Retour à l'espace"
       }
     },
     "viewGroup": {

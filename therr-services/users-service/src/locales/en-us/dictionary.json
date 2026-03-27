@@ -164,6 +164,26 @@
             "postBody1": "Thanks for choosing Therr for Business! We're constantly improving our tools to help you reach more local customers. Your feedback is always welcome.",
             "buttonText": "Go to Dashboard"
         },
+        "unclaimedSpace": {
+            "subject": "People are searching for {spaceName}",
+            "header": "Your Business Is Getting Noticed",
+            "preheaderText": "Customers are discovering and talking about your business. Claim your free listing today.",
+            "dearUser": "Hello, {spaceName}!",
+            "body1": "People in your area are discovering {spaceName} on Therr — and they're sharing what's happening at your business in real time. Customers are posting about their experiences, flagging deals, and letting others know when things are busy or when the vibe is great. Your business already has a listing. The question is: who's controlling the story?",
+            "body2": "When you claim your page, you unlock tools Google can't offer: see real-time customer reports about your business, get paired with complementary local spots that send you foot traffic, and reward customers who spread the word. This isn't just a listing — it's a living, community-powered presence.",
+            "bodyBold": "It only takes 60 seconds to get started.",
+            "buttonText": "See Your Business Page",
+            "postBody1": "Already have an account? Simply log in and claim your space from the business page.",
+            "missingFieldsIntro": "Your listing is still missing some key details:",
+            "missingFieldLabels": {
+                "openingHours": "business hours",
+                "phoneNumber": "phone number",
+                "websiteUrl": "website",
+                "menuUrl": "menu",
+                "photos": "photos",
+                "description": "a detailed description"
+            }
+        },
         "dashboardSubscriberIntro": {
             "header": "Welcome to {brandName}!",
             "dearUser": "Welcome!",
