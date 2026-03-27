@@ -127,21 +127,18 @@ $profileImgWidth: rem-calc(100px);
 
     .spaces-map {
         width: 100%;
-        height: 400px;
+        min-height: 200px;
         border-radius: 0.5rem;
         border: 1px solid var(--mantine-color-default-border);
         z-index: 1;
         overflow: hidden;
         isolation: isolate;
-
-        @media (max-width: 48em) {
-            height: 300px;
-        }
     }
 }
 
 .spaces-map {
     width: 100%;
+    min-height: 200px;
     border-radius: 0.5rem;
     border: 1px solid var(--mantine-color-default-border);
     z-index: 1;

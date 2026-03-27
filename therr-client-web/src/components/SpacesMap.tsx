@@ -28,13 +28,17 @@ const escapeHtml = (str: string): string => {
 const LEAFLET_CSS_ID = 'leaflet-css';
 const ICON_CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
 
-const loadLeafletCss = () => {
-    if (document.getElementById(LEAFLET_CSS_ID)) return;
-    const link = document.createElement('link');
-    link.id = LEAFLET_CSS_ID;
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(link);
+const loadLeafletCss = (): Promise<void> => {
+    if (document.getElementById(LEAFLET_CSS_ID)) return Promise.resolve();
+    return new Promise((resolve) => {
+        const link = document.createElement('link');
+        link.id = LEAFLET_CSS_ID;
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        link.onload = () => resolve();
+        link.onerror = () => resolve(); // resolve anyway so map still initializes
+        document.head.appendChild(link);
+    });
 };
 
 const SpacesMap: React.FC<ISpacesMapProps> = ({
@@ -91,9 +95,10 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
 
         let cancelled = false;
 
-        loadLeafletCss();
-
-        import('leaflet').then((leafletModule) => {
+        Promise.all([
+            loadLeafletCss(),
+            import('leaflet'),
+        ]).then(([, leafletModule]) => {
             if (cancelled || !mapRef.current) return;
 
             const L = leafletModule.default || leafletModule;
@@ -128,6 +133,13 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
             }).addTo(map);
 
             leafletMapRef.current = map;
+
+            // Force Leaflet to recalculate container size after CSS is loaded
+            requestAnimationFrame(() => {
+                if (map && !cancelled) {
+                    map.invalidateSize();
+                }
+            });
 
             // Add markers immediately with current spaces data
             const currentSpaces = spacesRef.current;
@@ -176,13 +188,13 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
         }
     }, [spaces, localePrefix, revision, updateMarkers, zoom]);
 
-    const style = height ? { height: `${height}px` } : undefined;
+    const mapHeight = height || 400;
 
     return (
         <div
             ref={mapRef}
             className="spaces-map"
-            style={style}
+            style={{ height: `${mapHeight}px` }}
             role="application"
             aria-label="Map of business locations"
         />
