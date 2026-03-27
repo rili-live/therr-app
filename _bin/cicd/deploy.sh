@@ -11,12 +11,15 @@ echo "Current branch is $CURRENT_BRANCH"
 DESTINATION_BRANCH="main"
 echo "Destination branch is $DESTINATION_BRANCH"
 
-# GKE cluster scaling configuration
+# GKE cluster and autoscaler configuration
 GKE_CLUSTER="cluster-1"
 GKE_ZONE="us-central1-a"
 GKE_NODE_POOL="main-pool"
-GKE_DEPLOY_NODE_COUNT=4
-GKE_IDLE_NODE_COUNT=1
+GKE_MIN_NODES_PER_ZONE=0
+GKE_MAX_NODES_PER_ZONE=1
+GKE_TOTAL_MAX_NODES=4
+GKE_DEPLOY_TOTAL_MIN_NODES=4
+GKE_IDLE_TOTAL_MIN_NODES=1
 
 # This should get us the SHA of the stage branch prior to main that last built and published docker images
 export $(cat VERSIONS.txt)
@@ -66,31 +69,39 @@ should_deploy_service()
   has_prev_diff_changes $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
-# Scale up the node pool before deploying to ensure enough capacity for pod placement
+# Scale up: raise the autoscaler's total-min-nodes to force provisioning
 scale_up_nodes() {
-  echo "Scaling up node pool '$GKE_NODE_POOL' to $GKE_DEPLOY_NODE_COUNT nodes..."
-  gcloud container clusters resize "$GKE_CLUSTER" \
+  echo "Setting autoscaler total-min-nodes to $GKE_DEPLOY_TOTAL_MIN_NODES for deploy..."
+  gcloud container clusters update "$GKE_CLUSTER" \
     --node-pool "$GKE_NODE_POOL" \
-    --num-nodes "$GKE_DEPLOY_NODE_COUNT" \
     --zone "$GKE_ZONE" \
+    --enable-autoscaling \
+    --min-nodes "$GKE_MIN_NODES_PER_ZONE" \
+    --max-nodes "$GKE_MAX_NODES_PER_ZONE" \
+    --total-min-nodes "$GKE_DEPLOY_TOTAL_MIN_NODES" \
+    --total-max-nodes "$GKE_TOTAL_MAX_NODES" \
     --quiet
   echo "Waiting for nodes to become ready..."
   kubectl wait --for=condition=Ready nodes --all --timeout=300s
   echo "Node pool scaled up successfully."
 }
 
-# Scale down the node pool after deploying to save costs
+# Scale down: restore the autoscaler's total-min-nodes so it can scale back
 scale_down_nodes() {
-  echo "Scaling down node pool '$GKE_NODE_POOL' to $GKE_IDLE_NODE_COUNT node(s)..."
-  if ! gcloud container clusters resize "$GKE_CLUSTER" \
+  echo "Restoring autoscaler total-min-nodes to $GKE_IDLE_TOTAL_MIN_NODES..."
+  if ! gcloud container clusters update "$GKE_CLUSTER" \
     --node-pool "$GKE_NODE_POOL" \
-    --num-nodes "$GKE_IDLE_NODE_COUNT" \
     --zone "$GKE_ZONE" \
+    --enable-autoscaling \
+    --min-nodes "$GKE_MIN_NODES_PER_ZONE" \
+    --max-nodes "$GKE_MAX_NODES_PER_ZONE" \
+    --total-min-nodes "$GKE_IDLE_TOTAL_MIN_NODES" \
+    --total-max-nodes "$GKE_TOTAL_MAX_NODES" \
     --quiet; then
-    echo "WARNING: Failed to scale down node pool. Manual intervention may be required."
+    echo "WARNING: Failed to restore autoscaler settings. Manual intervention may be required."
     return
   fi
-  echo "Node pool scaled down successfully."
+  echo "Autoscaler restored. Idle nodes will scale down automatically."
 }
 
 # Track deployments that need rollout completion before scaling down
