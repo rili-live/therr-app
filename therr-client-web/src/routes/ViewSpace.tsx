@@ -137,6 +137,10 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 document.title = `${fetchedSpace?.notificationMsg} | Therr App`;
                 this.fetchSpaceMoments(spaceId);
                 this.fetchSpacePairings(spaceId);
+                if (this.state.isFromClaimEmail) {
+                    // Allow a render cycle for the claim section to mount
+                    requestAnimationFrame(() => this.scrollToClaimSection());
+                }
             }).catch(() => {
                 this.props.navigation.navigate('/');
             });
@@ -144,12 +148,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             document.title = `${space.notificationMsg} | Therr App`;
             this.fetchSpaceMoments(spaceId);
             this.fetchSpacePairings(spaceId);
-        }
-
-        if (this.state.isFromClaimEmail) {
-            setTimeout(() => {
-                document.getElementById('claim-space-section')?.scrollIntoView({ behavior: 'smooth' });
-            }, 500);
+            if (this.state.isFromClaimEmail) {
+                requestAnimationFrame(() => this.scrollToClaimSection());
+            }
         }
     }
 
@@ -206,6 +207,10 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
     login = (credentials: any) => this.props.login(credentials);
 
+    scrollToClaimSection = () => {
+        document.getElementById('claim-space-section')?.scrollIntoView({ behavior: 'smooth' });
+    };
+
     handleClaimSpace = () => {
         const { user, translate } = this.props;
         const { spaceId } = this.state;
@@ -256,8 +261,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             if (isFromClaimEmail) {
                 return (
                     <Button
-                        component="a"
-                        href="#claim-space-section"
+                        onClick={this.scrollToClaimSection}
                         variant="light"
                         size="compact-sm"
                         color="teal"
@@ -268,7 +272,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             }
 
             return (
-                <Anchor href="#claim-space-section" size="xs" c="dimmed">
+                <Anchor onClick={this.scrollToClaimSection} size="xs" c="dimmed" style={{ cursor: 'pointer' }}>
                     {translate('pages.viewSpace.claimSpace.subtleCTA')}
                 </Anchor>
             );
@@ -325,7 +329,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 {claimMessage && claimMessageType === 'error' && (
                     <Text size="sm" c="red" mt="xs">{claimMessage}</Text>
                 )}
-                <Group mt="md" gap="md">
+                <Group mt="md" gap="md" wrap="wrap">
                     {isAuthenticated ? (
                         <Button
                             onClick={this.handleClaimSpace}
@@ -778,7 +782,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     {/* Title & Meta */}
                     <div className="space-title-section">
                         <Group justify="space-between" align="flex-start" wrap="nowrap">
-                            <div>
+                            <div style={{ minWidth: 0 }}>
                                 <Title order={1}>{space.notificationMsg}</Title>
                                 {this.renderClaimSubtleCTA(space)}
                             </div>
