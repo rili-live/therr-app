@@ -401,6 +401,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
             const { map, location, route: inScopeRoute } = this.props;
+            const restoredScrollIndex = inScopeRoute?.params?.previewScrollIndex || 0;
             this.expandBottomSheet(-1);
             this.setState({
                 areButtonsVisible: true,
@@ -413,6 +414,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 ((map?.latitude && map?.longitude) || (location?.user?.latitude && location?.user?.longitude))) {
                 navigation.setParams({
                     shouldShowPreview: false,
+                    previewScrollIndex: undefined,
                 });
 
                 const searchRadiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
@@ -428,7 +430,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                     longitude: longitude,
                                 },
                             },
-                        }, true);
+                        }, true, restoredScrollIndex);
                     });
             }
 
