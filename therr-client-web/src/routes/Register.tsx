@@ -7,7 +7,7 @@ import qs from 'qs';
 import { IUserState } from 'therr-react/types';
 import RegisterForm from '../components/forms/RegisterForm';
 import UsersActions from '../redux/actions/UsersActions';
-import { routeAfterLogin, shouldRenderLoginForm } from './Login';
+import { getReturnTo, getRouteAfterLogin, shouldRenderLoginForm } from './Login';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 
@@ -57,7 +57,9 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
                 name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
                 email: nextProps.user.details.email,
             });
-            setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
+            const returnTo = getReturnTo(nextProps.location?.search);
+            const destination = getRouteAfterLogin(nextProps.user, returnTo);
+            setTimeout(() => nextProps.navigation.navigate(destination));
             return null;
         }
         return {};
@@ -99,7 +101,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             userEmail: ssoData.userEmail,
             hasIdToken: !!ssoData.idToken,
         });
-        this.props.login(ssoData, { google: ssoData.idToken })
+        return this.props.login(ssoData, { google: ssoData.idToken })
             .then((result: any) => {
                 console.log('[RegisterSSO] Login succeeded', result); // eslint-disable-line no-console
                 return result;
@@ -120,9 +122,11 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         const { inviteCode } = this.state;
         this.props.register({
             ...credentials,
-            inviteCode,
+            inviteCode: credentials.inviteCode || inviteCode,
         }).then((response: any) => {
-            this.props.navigation.navigate('/login', {
+            const returnTo = getReturnTo(this.props.location?.search);
+            const returnToParam = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
+            this.props.navigation.navigate(`/login${returnToParam}`, {
                 state: {
                     successMessage: this.props.translate('pages.register.registerSuccess'),
                 },

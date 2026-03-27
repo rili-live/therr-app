@@ -625,7 +625,7 @@ const ViewSpace = ({
                         mode="contained"
                         onPress={handleCreateMoment}
                         icon="map-clock"
-                        buttonColor={brandColor}
+                        buttonColor={theme.colors.brandingBlueGreen}
                         textColor={theme.colors.brandingWhite}
                         style={localStyles.incentiveButton}
                     >

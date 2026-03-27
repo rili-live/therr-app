@@ -29,16 +29,23 @@ export const updateSocketToken = (user, shouldConnect?: boolean) => {
             userName: user.details.userName,
             locale: user.settings.locale,
             token: user.details.idToken,
-            platform: 'mobile',
+            platform: 'web',
             brandVariation: BrandVariations.THERR,
         };
 
         if (shouldConnect) {
             socketIO.connect();
-            socketIO.emit(SOCKET_MIDDLEWARE_ACTION, {
-                type: SocketClientActionTypes.UPDATE_SESSION,
-                data: user,
-            });
+            const emitUpdateSession = () => {
+                socketIO.emit(SOCKET_MIDDLEWARE_ACTION, {
+                    type: SocketClientActionTypes.UPDATE_SESSION,
+                    data: user,
+                });
+            };
+            if (socketIO.connected) {
+                emitUpdateSession();
+            } else {
+                socketIO.once('connect', emitUpdateSession);
+            }
         }
     }
 };

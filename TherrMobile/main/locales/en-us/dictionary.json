@@ -756,6 +756,8 @@
         "repeatPassword": "Repeat Password",
         "firstName": "Firstname",
         "lastName": "Lastname",
+        "businessName": "Business Name",
+        "businessSuffix": "Business Suffix (ex. Inc., LLC)",
         "userName": "Username",
         "hideReportedContent": "Hide Mature Content",
         "showReportedContent": "Show Mature Content",

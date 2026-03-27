@@ -27,7 +27,9 @@ export interface ISpaceInsertParams {
   addressLocality: string;
   postalCode: number | null;
   phoneNumber: string;
+  businessEmail: string;
   websiteUrl: string;
+  businessEmail: string;
   isPointOfInterest: boolean;
   openingHours: string | null;
   isMatureContent: boolean;
@@ -125,7 +127,9 @@ export function mapOsmToSpace(element: IOsmElement, city: ICityConfig, userId: s
     addressLocality: tags['addr:city'] || city.name,
     postalCode: tags['addr:postcode'] ? parseInt(tags['addr:postcode'], 10) || null : null,
     phoneNumber: tags.phone || tags['contact:phone'] || '',
+    businessEmail: tags.email || tags['contact:email'] || '',
     websiteUrl: tags.website || tags['contact:website'] || '',
+    businessEmail: tags.email || tags['contact:email'] || '',
     isPointOfInterest: true,
     openingHours: openingHours ? JSON.stringify(openingHours) : null,
     isMatureContent: false,

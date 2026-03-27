@@ -146,7 +146,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             case 'view-profile':
                 return this.props.navigation.navigate('/user/profile');
             case 'edit-profile':
-                return this.props.navigation.navigate('/user/profile');
+                return this.props.navigation.navigate('/user/edit-profile');
             case 'discovered':
                 return this.props.navigation.navigate('/discovered');
             case 'explore':
@@ -221,14 +221,18 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 </div>
                 <div className="notifications">
                     {
-                        notifications.messages.map((n: INotification) => (
-                            <Notification
-                                key={n.id}
-                                handleSetRead={this.toggleNotificationRead}
-                                handleConnectionRequestAction={this.handleConnectionRequestAction}
-                                notification={n}
-                            />
-                        ))
+                        notifications.messages.length
+                            ? notifications.messages.map((n: INotification) => (
+                                <Notification
+                                    key={n.id}
+                                    handleSetRead={this.toggleNotificationRead}
+                                    handleConnectionRequestAction={this.handleConnectionRequestAction}
+                                    notification={n}
+                                />
+                            ))
+                            : <p className="notifications-empty-text">
+                                {this.props.translate('components.userMenu.noNotifications')}
+                            </p>
                     }
                 </div>
             </>

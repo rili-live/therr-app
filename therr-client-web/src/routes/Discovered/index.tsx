@@ -1,15 +1,21 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+    useCallback, useEffect, useMemo, useState,
+} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { ContentActions } from 'therr-react/redux/actions';
 import {
-    Alert,
+    Button,
     Container,
     Group,
+    SegmentedControl,
     Skeleton,
     SimpleGrid,
     Stack,
     Text,
+    ThemeIcon,
     Title,
+    Paper,
 } from '@mantine/core';
 import useTranslation from '../../hooks/useTranslation';
 import Tile from './Tile';
@@ -17,9 +23,11 @@ import Tile from './Tile';
 const Discovered: React.FC = () => {
     const { t: translate } = useTranslation();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const content = useSelector((state: any) => state.content);
     const user = useSelector((state: any) => state.user);
     const [isLoading, setIsLoading] = useState(true);
+    const [filter, setFilter] = useState('all');
 
     const handleRefresh = useCallback(() => {
         setIsLoading(true);
@@ -47,7 +55,20 @@ const Discovered: React.FC = () => {
     }, []); // eslint-disable-line
 
     const areas = content.activeMoments || [];
-    const hasContent = areas.length > 0;
+
+    const filteredAreas = useMemo(() => {
+        if (filter === 'moments') return areas.filter((a) => a.areaType !== 'spaces');
+        if (filter === 'spaces') return areas.filter((a) => a.areaType === 'spaces');
+        return areas;
+    }, [areas, filter]);
+
+    const hasContent = filteredAreas.length > 0;
+
+    const filterData = [
+        { label: translate('pages.discovered.filters.all'), value: 'all' },
+        { label: translate('pages.discovered.filters.moments'), value: 'moments' },
+        { label: translate('pages.discovered.filters.spaces'), value: 'spaces' },
+    ];
 
     return (
         <Container id="page_discovered" size="lg" py="xl">
@@ -59,6 +80,15 @@ const Discovered: React.FC = () => {
                     </div>
                 </Group>
 
+                {!isLoading && areas.length > 0 && (
+                    <SegmentedControl
+                        value={filter}
+                        onChange={setFilter}
+                        data={filterData}
+                        size="sm"
+                    />
+                )}
+
                 {isLoading && (
                     <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
                         {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -68,14 +98,22 @@ const Discovered: React.FC = () => {
                 )}
 
                 {!isLoading && !hasContent && (
-                    <Alert variant="light" color="gray" radius="md">
-                        <Text ta="center" c="dimmed">{translate('pages.discovered.noResults')}</Text>
-                    </Alert>
+                    <Paper withBorder p="xl" radius="md">
+                        <Stack align="center" gap="md">
+                            <ThemeIcon size={64} radius="xl" variant="light" color="teal">
+                                <Text size="xl">🔍</Text>
+                            </ThemeIcon>
+                            <Text ta="center" c="dimmed">{translate('pages.discovered.noResults')}</Text>
+                            <Button variant="light" onClick={() => navigate('/locations')}>
+                                {translate('pages.discovered.exploreCta')}
+                            </Button>
+                        </Stack>
+                    </Paper>
                 )}
 
                 {!isLoading && hasContent && (
                     <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-                        {areas.map((area) => (
+                        {filteredAreas.map((area) => (
                             <Tile
                                 key={area.id}
                                 area={area}

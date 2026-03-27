@@ -8,13 +8,20 @@ import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
 import { Content } from 'therr-js-utilities/constants';
 import {
-    Container, Stack, Group, Title, Text, Badge, Anchor,
-    Divider, Image, Skeleton, Breadcrumbs,
+    ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
+    Divider, Image, Skeleton, Breadcrumbs, Tooltip,
     SimpleGrid, Rating as MantineRating, Paper, Avatar,
+    Button, Alert,
 } from '@mantine/core';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
+import ProgressiveImage from '../components/ProgressiveImage';
+
+// Only lazy-load on client (Leaflet requires window/document)
+const SpacesMap = typeof window !== 'undefined'
+    ? React.lazy(() => import('../components/SpacesMap'))
+    : (() => null) as any;
 
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
@@ -33,6 +40,9 @@ const parseOpeningHours = (schema: string[]): { days: string; hours: string }[] 
 });
 
 interface IViewSpaceRouterProps {
+    location: {
+        search: string;
+    };
     navigation: {
         navigate: NavigateFunction;
     };
@@ -42,7 +52,6 @@ interface IViewSpaceRouterProps {
 }
 
 interface IViewSpaceDispatchProps {
-    login: Function;
     getSpaceDetails: Function;
 }
 
@@ -54,6 +63,7 @@ interface IStoreProps extends IViewSpaceDispatchProps {
 
 // Regular component props
 interface IViewSpaceProps extends IViewSpaceRouterProps, IStoreProps {
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 
@@ -64,6 +74,11 @@ interface IViewSpaceState {
     spacePairings: any[];
     isPairingsLoading: boolean;
     pairingFeedback: { [id: string]: boolean };
+    isLinkCopied: boolean;
+    isFromClaimEmail: boolean;
+    isClaimLoading: boolean;
+    claimMessage: string;
+    claimMessageType: 'success' | 'error' | '';
 }
 
 const mapStateToProps = (state: any) => ({
@@ -91,6 +106,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     constructor(props: IViewSpaceProps) {
         super(props);
 
+        const searchParams = new URLSearchParams(props.location?.search || '');
+
         this.state = {
             spaceId: props.routeParams.spaceId,
             spaceMoments: [],
@@ -98,6 +115,11 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             spacePairings: [],
             isPairingsLoading: false,
             pairingFeedback: {},
+            isLinkCopied: false,
+            isFromClaimEmail: searchParams.get('claim') === 'true',
+            isClaimLoading: false,
+            claimMessage: '',
+            claimMessageType: '',
         };
     }
 
@@ -115,6 +137,10 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 document.title = `${fetchedSpace?.notificationMsg} | Therr App`;
                 this.fetchSpaceMoments(spaceId);
                 this.fetchSpacePairings(spaceId);
+                if (this.state.isFromClaimEmail) {
+                    // Allow a render cycle for the claim section to mount
+                    requestAnimationFrame(() => this.scrollToClaimSection());
+                }
             }).catch(() => {
                 this.props.navigation.navigate('/');
             });
@@ -122,6 +148,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             document.title = `${space.notificationMsg} | Therr App`;
             this.fetchSpaceMoments(spaceId);
             this.fetchSpacePairings(spaceId);
+            if (this.state.isFromClaimEmail) {
+                requestAnimationFrame(() => this.scrollToClaimSection());
+            }
         }
     }
 
@@ -164,7 +193,171 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         MapsService.submitPairingFeedback(spaceId, pairedSpaceId, isHelpful).catch(() => {});
     };
 
-    login = (credentials: any) => this.props.login(credentials);
+    handleShare = () => {
+        const url = window.location.href;
+        if (navigator.share) {
+            navigator.share({ url }).catch(() => { /* ignore */ });
+        } else if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(() => {
+                this.setState({ isLinkCopied: true });
+                setTimeout(() => this.setState({ isLinkCopied: false }), 2000);
+            }).catch(() => { /* ignore */ });
+        }
+    };
+
+    scrollToClaimSection = () => {
+        document.getElementById('claim-space-section')?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    handleClaimSpace = () => {
+        const { user, translate } = this.props;
+        const { spaceId } = this.state;
+
+        if (!user?.isAuthenticated) {
+            this.props.navigation.navigate(`/register?returnTo=/spaces/${spaceId}`);
+            return;
+        }
+
+        this.setState({ isClaimLoading: true, claimMessage: '', claimMessageType: '' });
+        MapsService.claimSpace(spaceId)
+            .then(() => {
+                this.setState({
+                    isClaimLoading: false,
+                    claimMessage: translate('pages.viewSpace.claimSpace.successMessage'),
+                    claimMessageType: 'success',
+                });
+            })
+            .catch(() => {
+                this.setState({
+                    isClaimLoading: false,
+                    claimMessage: translate('pages.viewSpace.claimSpace.errorMessage'),
+                    claimMessageType: 'error',
+                });
+            });
+    };
+
+    renderClaimSubtleCTA(space: any): JSX.Element | null {
+        const { user, translate } = this.props;
+        const { isFromClaimEmail } = this.state;
+        const isAuthenticated = user?.isAuthenticated;
+        const isOwner = isAuthenticated && user?.details?.id === space.fromUserId;
+
+        if (!space.isUnclaimed && isOwner) {
+            return (
+                <Button
+                    component="a"
+                    href={`/spaces/${space.id}/edit`}
+                    variant="subtle"
+                    size="compact-sm"
+                >
+                    {translate('pages.viewSpace.claimSpace.editButton')}
+                </Button>
+            );
+        }
+
+        if (space.isUnclaimed && !space.isClaimPending && !space.requestedByUserId) {
+            if (isFromClaimEmail) {
+                return (
+                    <Button
+                        onClick={this.scrollToClaimSection}
+                        variant="light"
+                        size="compact-sm"
+                        color="teal"
+                    >
+                        {translate('pages.viewSpace.claimSpace.subtleCTA')}
+                    </Button>
+                );
+            }
+
+            return (
+                <Anchor onClick={this.scrollToClaimSection} size="xs" c="dimmed" style={{ cursor: 'pointer' }}>
+                    {translate('pages.viewSpace.claimSpace.subtleCTA')}
+                </Anchor>
+            );
+        }
+
+        return null;
+    }
+
+    renderClaimCTA(space: any): JSX.Element | null {
+        const { user, translate } = this.props;
+        const { isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType } = this.state;
+        const isAuthenticated = user?.isAuthenticated;
+
+        if (claimMessageType === 'success') {
+            return (
+                <Alert color="green" radius="md" mt="md" id="claim-space-section">
+                    <Text fw={500}>{claimMessage}</Text>
+                </Alert>
+            );
+        }
+
+        if (space.isClaimPending || space.requestedByUserId) {
+            return (
+                <Paper withBorder p="lg" radius="md" mt="md" id="claim-space-section" style={{ borderColor: '#fbbf24', backgroundColor: '#fffbeb' }}>
+                    <Text fw={600} size="lg">{translate('pages.viewSpace.claimSpace.pendingTitle')}</Text>
+                    <Text size="sm" mt="xs" c="dimmed">{translate('pages.viewSpace.claimSpace.pendingBody')}</Text>
+                </Paper>
+            );
+        }
+
+        if (!space.isUnclaimed) {
+            return null;
+        }
+
+        return (
+            <Paper
+                withBorder
+                p={isFromClaimEmail ? 'xl' : 'lg'}
+                radius="md"
+                mt="md"
+                id="claim-space-section"
+                style={{
+                    borderColor: '#1C7F8A',
+                    backgroundColor: isFromClaimEmail ? '#e6fffa' : '#f0fdfa',
+                    borderWidth: isFromClaimEmail ? 2 : 1,
+                }}
+            >
+                <Title order={isFromClaimEmail ? 2 : 3} size={isFromClaimEmail ? 'h3' : 'h4'}>
+                    {translate(isFromClaimEmail ? 'pages.viewSpace.claimSpace.emailTitle' : 'pages.viewSpace.claimSpace.title')}
+                </Title>
+                <Text size={isFromClaimEmail ? 'md' : 'sm'} mt="xs">
+                    {translate(isFromClaimEmail ? 'pages.viewSpace.claimSpace.emailBody' : 'pages.viewSpace.claimSpace.body')}
+                </Text>
+                {claimMessage && claimMessageType === 'error' && (
+                    <Text size="sm" c="red" mt="xs">{claimMessage}</Text>
+                )}
+                <Group mt="md" gap="md" wrap="wrap">
+                    {isAuthenticated ? (
+                        <Button
+                            onClick={this.handleClaimSpace}
+                            loading={isClaimLoading}
+                            variant="filled"
+                            size="md"
+                            color="teal"
+                        >
+                            {translate('pages.viewSpace.claimSpace.claimButton')}
+                        </Button>
+                    ) : (
+                        <>
+                            <Button
+                                component="a"
+                                href={`/register?returnTo=/spaces/${space.id}`}
+                                variant="filled"
+                                size="md"
+                                color="teal"
+                            >
+                                {translate('pages.viewSpace.claimSpace.claimButton')}
+                            </Button>
+                            <Anchor href={`/login?returnTo=/spaces/${space.id}`} size="sm">
+                                {translate('pages.viewSpace.claimSpace.alreadyHaveAccount')}
+                            </Anchor>
+                        </>
+                    )}
+                </Group>
+            </Paper>
+        );
+    }
 
     renderSkeleton(): JSX.Element {
         return (
@@ -249,38 +442,59 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
     renderAddress(space: any): JSX.Element | null {
         const hasAddress = space.addressStreetAddress || space.addressLocality || space.addressRegion;
-        if (!hasAddress && !space.phoneNumber) return null;
-
         const lat = space.latitude;
         const lng = space.longitude;
+
+        if (!hasAddress && !space.phoneNumber && !lat && !lng) return null;
 
         return (
             <>
                 <Title order={3} size="h4" mt="lg">{this.props.translate('pages.viewSpace.headings.contactAndLocation')}</Title>
-                <address className="space-address">
-                    {space.addressStreetAddress && <Text>{space.addressStreetAddress}</Text>}
-                    {(space.addressLocality || space.addressRegion) && (
-                        <Text>
-                            {[space.addressLocality, space.addressRegion].filter(Boolean).join(', ')}
-                            {space.postalCode ? ` ${space.postalCode}` : ''}
-                        </Text>
-                    )}
-                    {space.region && <Text>{space.region}</Text>}
-                    {space.phoneNumber && (
-                        <Text mt="xs">
-                            <Anchor href={`tel:${space.phoneNumber}`}>{space.phoneNumber}</Anchor>
-                        </Text>
-                    )}
-                </address>
+                {hasAddress && (
+                    <address className="space-address">
+                        {space.addressStreetAddress && <Text>{space.addressStreetAddress}</Text>}
+                        {(space.addressLocality || space.addressRegion) && (
+                            <Text>
+                                {[space.addressLocality, space.addressRegion].filter(Boolean).join(', ')}
+                                {space.postalCode ? ` ${space.postalCode}` : ''}
+                            </Text>
+                        )}
+                        {space.region && <Text>{space.region}</Text>}
+                    </address>
+                )}
+                {space.phoneNumber && (
+                    <Text mt="xs">
+                        <Anchor href={`tel:${space.phoneNumber}`}>{space.phoneNumber}</Anchor>
+                    </Text>
+                )}
                 {lat && lng && (
-                    <Anchor
-                        href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
-                        target="_blank"
-                        mt="xs"
-                        display="inline-block"
-                    >
-                        {this.props.translate('pages.viewSpace.labels.viewOnGoogleMaps')}
-                    </Anchor>
+                    <>
+                        <React.Suspense fallback={<Skeleton height={250} radius="md" mt="sm" />}>
+                            <SpacesMap
+                                spaces={[{
+                                    id: space.id,
+                                    notificationMsg: space.notificationMsg,
+                                    addressReadable: space.addressReadable,
+                                    latitude: lat,
+                                    longitude: lng,
+                                }]}
+                                centerLat={lat}
+                                centerLng={lng}
+                                localePrefix={({ es: '/es', 'fr-ca': '/fr' } as Record<string, string>)[this.props.locale] || ''}
+                                zoom={15}
+                                height={250}
+                                interactive={false}
+                            />
+                        </React.Suspense>
+                        <Anchor
+                            href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                            target="_blank"
+                            mt="xs"
+                            display="inline-block"
+                        >
+                            {this.props.translate('pages.viewSpace.labels.viewOnGoogleMaps')}
+                        </Anchor>
+                    </>
                 )}
             </>
         );
@@ -385,6 +599,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         radius="sm"
                         mah={200}
                         fit="cover"
+                        loading="lazy"
                     />
                 )}
                 {moment.hashTags && (
@@ -449,6 +664,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                         fit="cover"
                                         radius="sm"
                                         mb="sm"
+                                        loading="lazy"
                                     />
                                 )}
                                 <Anchor href={`/spaces/${pairing.id}`} fw={600} size="sm">
@@ -550,19 +766,33 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     {/* Hero Image */}
                     {spaceMedia && (
                         <div className="space-hero-image-wrapper">
-                            <Image
+                            <ProgressiveImage
                                 src={spaceMedia}
                                 alt={space.notificationMsg}
                                 className="space-hero-image"
                                 fallbackSrc="/assets/images/meta-image-logo.png"
                                 radius="md"
+                                fetchPriority="high"
                             />
                         </div>
                     )}
 
                     {/* Title & Meta */}
                     <div className="space-title-section">
-                        <Title order={1}>{space.notificationMsg}</Title>
+                        <Group justify="space-between" align="flex-start" wrap="nowrap">
+                            <div style={{ minWidth: 0 }}>
+                                <Title order={1}>{space.notificationMsg}</Title>
+                                {this.renderClaimSubtleCTA(space)}
+                            </div>
+                            <Tooltip label={this.state.isLinkCopied ? this.props.translate('common.linkCopied') : this.props.translate('common.share')}>
+                                <ActionIcon variant="subtle" size="lg" onClick={this.handleShare} aria-label="Share">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                                    </svg>
+                                </ActionIcon>
+                            </Tooltip>
+                        </Group>
                         {space.addressReadable && (
                             <Title order={2} size="h4" c="dimmed" fw={400}>{space.addressReadable}</Title>
                         )}
@@ -614,6 +844,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     {/* Local (Pairings) */}
                     {this.renderPairings()}
 
+                    {/* Claim This Space CTA */}
+                    {this.renderClaimCTA(space)}
+
                     {/* App Download CTA */}
                     <Paper withBorder p="sm" radius="md" mt="md">
                         <Group justify="center" gap="md" wrap="wrap">
@@ -625,6 +858,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                         maw={120}
                                         src="/assets/images/apple-store-download-button.svg"
                                         alt="Download Therr on the App Store"
+                                        loading="lazy"
                                     />
                                 </Anchor>
                                 <Anchor href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
@@ -633,6 +867,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                         maw={120}
                                         src="/assets/images/play-store-download-button.svg"
                                         alt="Download Therr on Google Play"
+                                        loading="lazy"
                                     />
                                 </Anchor>
                             </Group>

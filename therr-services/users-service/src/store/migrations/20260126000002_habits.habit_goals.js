@@ -15,7 +15,8 @@ exports.up = (knex) => knex.schema.withSchema('habits').createTable('habit_goals
     // Creator
     table.uuid('createdByUserId').notNullable()
         .references('id').inTable('main.users')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
 
     // Template flags
     table.boolean('isTemplate').defaultTo(false); // system-provided template

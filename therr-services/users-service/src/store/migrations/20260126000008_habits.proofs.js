@@ -4,16 +4,20 @@ exports.up = (knex) => knex.schema.withSchema('habits').createTable('proofs', (t
     // References
     table.uuid('userId').notNullable()
         .references('id').inTable('main.users')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('checkinId').notNullable()
         .references('id').inTable('habits.habit_checkins')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('habitGoalId').notNullable()
         .references('id').inTable('habits.habit_goals')
-        .onUpdate('CASCADE').onDelete('CASCADE');
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     table.uuid('pactId')
         .references('id').inTable('habits.pacts')
-        .onUpdate('CASCADE').onDelete('SET NULL');
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL');
 
     // Media
     table.string('mediaType', 20).notNullable(); // image, video
@@ -23,7 +27,9 @@ exports.up = (knex) => knex.schema.withSchema('habits').createTable('proofs', (t
     // Verification
     table.string('verificationStatus', 20).notNullable().defaultTo('pending'); // pending, auto_verified, verified, rejected, flagged
     table.timestamp('verifiedAt', { useTz: true });
-    table.uuid('verifiedByUserId').references('id').inTable('main.users').onUpdate('CASCADE').onDelete('SET NULL');
+    table.uuid('verifiedByUserId').references('id').inTable('main.users')
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL');
     table.text('rejectionReason');
 
     // Metadata

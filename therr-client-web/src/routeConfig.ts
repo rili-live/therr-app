@@ -4,7 +4,7 @@ export default [
         route: '/',
         head: {
             title: 'Create your Social Profile or Business',
-            description: 'Discover local businesses, restaurants, events, and connect with your community. Create your free profile on Therr.',
+            description: 'Discover local businesses, earn rewards for check-ins, and connect with your community. Create your free profile on Therr.',
         },
         view: 'index',
     },
@@ -12,7 +12,7 @@ export default [
         route: '/groups',
         head: {
             title: 'Groups',
-            description: 'Join groups on Therr App to connect with your community. Chat, share events, and meet new people.',
+            description: 'Join groups on Therr to connect with your community. Chat, plan events, and meet people who share your interests.',
         },
         view: 'index',
     },
@@ -20,7 +20,7 @@ export default [
         route: '/create-forum',
         head: {
             title: 'Join Forum',
-            description: 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.',
+            description: 'Start or join a conversation on Therr. Connect with your local community through group chats and discussions.',
         },
         view: 'index',
     },
@@ -28,7 +28,7 @@ export default [
         route: '/login',
         head: {
             title: 'Sign In',
-            description: 'Sign in to Therr app and start discovering food, friends, and events in the local community.',
+            description: 'Sign in to Therr and start discovering local businesses, connecting with friends, and earning rewards in your community.',
         },
         view: 'index',
     },
@@ -36,7 +36,7 @@ export default [
         route: '/register',
         head: {
             title: 'Register',
-            description: 'Create your profile on Therr app and start discovering food, friends, and events in the local community.',
+            description: 'Create your free Therr profile and start discovering local businesses, earning rewards, and connecting with your community.',
         },
         view: 'index',
     },
@@ -44,7 +44,39 @@ export default [
         route: '/user/profile',
         head: {
             title: 'Profile',
-            description: 'Your user profile page',
+            description: 'Manage your Therr profile, connections, and local business listings.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/user/edit-profile',
+        head: {
+            title: 'Edit Profile',
+            description: 'Update your profile information and preferences on Therr.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/spaces/manage',
+        head: {
+            title: 'Manage Locations',
+            description: 'Manage your business locations and listings on Therr.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/spaces/new',
+        head: {
+            title: 'Create Location',
+            description: 'Add your business to Therr and start reaching nearby customers.',
+        },
+        view: 'index',
+    },
+    {
+        route: '/spaces/:spaceId/edit',
+        head: {
+            title: 'Edit Location',
+            description: 'Update your business listing details on Therr.',
         },
         view: 'index',
     },
@@ -59,16 +91,16 @@ export default [
     {
         route: '/locations',
         head: {
-            title: 'Business Locations',
-            description: 'Browse local businesses, restaurants, bars, shops, and events near you. Read reviews, see hours, and get directions.',
+            title: 'Local Business Directory',
+            description: 'Browse local businesses, restaurants, bars, fitness studios, and events near you. Read reviews, see hours, and get directions.',
         },
         view: 'locations',
     },
     {
         route: '/app-feedback',
         head: {
-            title: 'App Feedback',
-            description: 'Your voice matters!',
+            title: 'Share Your Feedback',
+            description: 'Help us build the best local community app. Share your feedback and ideas with the Therr team.',
         },
         view: 'index',
     },
@@ -84,7 +116,7 @@ export default [
         route: '/invite/:username',
         head: {
             title: 'Join Therr App',
-            description: 'Join the local community & rewards app. Sign up with an invite and you both earn rewards!',
+            description: 'Join the local community and rewards app. Sign up with an invite code and you both earn coins!',
         },
         view: 'invite',
     },
@@ -99,8 +131,8 @@ export default [
     {
         route: '/locations/:pageNumber',
         head: {
-            title: 'Business Locations',
-            description: 'Browse local businesses, restaurants, bars, shops, and events near you. Read reviews, see hours, and get directions.',
+            title: 'Local Business Directory',
+            description: 'Browse local businesses, restaurants, bars, fitness studios, and events near you. Read reviews, see hours, and get directions.',
         },
         view: 'locations',
     },
@@ -108,7 +140,7 @@ export default [
         route: '/groups/:groupId',
         head: {
             title: 'Group not Found',
-            description: 'Discover and join community groups on Therr App. Connect with people, chat, and attend local events together.',
+            description: 'Discover and join community groups on Therr. Connect with people, chat, and attend local events together.',
         },
         view: 'groups',
     },
@@ -155,16 +187,16 @@ export default [
     {
         route: '/emails/unsubscribe',
         head: {
-            title: 'E-mail Subscription Preferences',
-            description: 'Manage your Therr email subscription preferences and notification settings.',
+            title: 'Email Preferences',
+            description: 'Manage your Therr email preferences and notification settings.',
         },
         view: 'index',
     },
     {
         route: '/go-mobile',
         head: {
-            title: 'Your Hub',
-            description: 'Explore local people, places, and moments on Therr. Download the mobile app for the full experience.',
+            title: 'Your Local Hub',
+            description: 'Discover local people, places, and deals on Therr. Download the mobile app for check-in rewards and real-time discovery.',
         },
         view: 'index',
     },
@@ -172,7 +204,7 @@ export default [
         route: '*',
         head: {
             title: 'Not Found',
-            description: 'Navigate social media with movement and earn rewards for upvotes & interactions.',
+            description: 'Discover local businesses, earn rewards, and connect with your community on Therr.',
         },
         view: 'index',
     },
