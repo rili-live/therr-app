@@ -110,6 +110,9 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://robohash.org',
                     'https://*.google-analytics.com',
                     'https://*.googletagmanager.com',
+                    // Leaflet map tiles and marker icons
+                    'https://*.tile.openstreetmap.org',
+                    'https://unpkg.com',
                 ],
                 workerSrc: ["'self'", 'blob:'],
             },
