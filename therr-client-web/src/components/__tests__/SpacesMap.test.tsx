@@ -63,12 +63,19 @@ describe('SpacesMap', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        // Re-setup default mocks after clear
+        // Restore mock return values cleared by clearAllMocks
         mockMarker.addTo.mockReturnThis();
         mockMarker.bindPopup.mockReturnThis();
         mockMap.setView.mockReturnThis();
         mockMap.fitBounds.mockReturnThis();
         mockMap.getZoom.mockReturnValue(10);
+        mockLatLngBounds.mockReturnValue([[0, 0], [1, 1]]);
+
+        const L = require('leaflet').default; // eslint-disable-line global-require
+        L.map.mockReturnValue(mockMap);
+        L.tileLayer.mockReturnValue(mockTileLayer);
+        L.marker.mockReturnValue(mockMarker);
+        L.Icon.mockReturnValue(mockIcon);
     });
 
     it('renders a map container div', () => {
