@@ -11,16 +11,6 @@ echo "Current branch is $CURRENT_BRANCH"
 DESTINATION_BRANCH="main"
 echo "Destination branch is $DESTINATION_BRANCH"
 
-# GKE cluster and autoscaler configuration
-GKE_CLUSTER="cluster-1"
-GKE_ZONE="us-central1-a"
-GKE_NODE_POOL="main-pool"
-GKE_MIN_NODES_PER_ZONE=0
-GKE_MAX_NODES_PER_ZONE=1
-GKE_TOTAL_MAX_NODES=4
-GKE_DEPLOY_TOTAL_MIN_NODES=4
-GKE_IDLE_TOTAL_MIN_NODES=1
-
 # This should get us the SHA of the stage branch prior to main that last built and published docker images
 export $(cat VERSIONS.txt)
 GIT_SHA="${LAST_PUBLISHED_GIT_SHA}"
@@ -69,62 +59,6 @@ should_deploy_service()
   has_prev_diff_changes $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
 
-# Scale up: raise the autoscaler's total-min-nodes to force provisioning
-scale_up_nodes() {
-  echo "Setting autoscaler total-min-nodes to $GKE_DEPLOY_TOTAL_MIN_NODES for deploy..."
-  gcloud container clusters update "$GKE_CLUSTER" \
-    --node-pool "$GKE_NODE_POOL" \
-    --zone "$GKE_ZONE" \
-    --enable-autoscaling \
-    --min-nodes "$GKE_MIN_NODES_PER_ZONE" \
-    --max-nodes "$GKE_MAX_NODES_PER_ZONE" \
-    --total-min-nodes "$GKE_DEPLOY_TOTAL_MIN_NODES" \
-    --total-max-nodes "$GKE_TOTAL_MAX_NODES" \
-    --quiet
-  echo "Waiting for nodes to become ready..."
-  kubectl wait --for=condition=Ready nodes --all --timeout=300s
-  echo "Node pool scaled up successfully."
-}
-
-# Scale down: restore the autoscaler's total-min-nodes so it can scale back
-scale_down_nodes() {
-  echo "Restoring autoscaler total-min-nodes to $GKE_IDLE_TOTAL_MIN_NODES..."
-  if ! gcloud container clusters update "$GKE_CLUSTER" \
-    --node-pool "$GKE_NODE_POOL" \
-    --zone "$GKE_ZONE" \
-    --enable-autoscaling \
-    --min-nodes "$GKE_MIN_NODES_PER_ZONE" \
-    --max-nodes "$GKE_MAX_NODES_PER_ZONE" \
-    --total-min-nodes "$GKE_IDLE_TOTAL_MIN_NODES" \
-    --total-max-nodes "$GKE_TOTAL_MAX_NODES" \
-    --quiet; then
-    echo "WARNING: Failed to restore autoscaler settings. Manual intervention may be required."
-    return
-  fi
-  echo "Autoscaler restored. Idle nodes will scale down automatically."
-}
-
-# Track deployments that need rollout completion before scaling down
-UPDATED_DEPLOYMENTS=()
-
-# Wait for all updated deployments to finish rolling out
-wait_for_rollouts() {
-  if [ ${#UPDATED_DEPLOYMENTS[@]} -eq 0 ]; then
-    return
-  fi
-  echo "Waiting for deployment rollouts to complete..."
-  for deploy in "${UPDATED_DEPLOYMENTS[@]}"; do
-    echo "  Waiting for $deploy..."
-    kubectl rollout status "deployments/$deploy" --timeout=300s
-  done
-  echo "All rollouts complete."
-}
-
-# Ensure we scale down even if the deploy fails
-trap scale_down_nodes EXIT
-
-scale_up_nodes
-
 # Kubectl Apply
 kubectl apply -f k8s/prod
 
@@ -146,7 +80,6 @@ if should_deploy_web_app || should_deploy_web_app_dashboard; then
     docker push therrapp/client-web:latest
   fi
   kubectl set image deployments/client-deployment web=therrapp/client-web$SUFFIX:$GIT_SHA
-  UPDATED_DEPLOYMENTS+=("client-deployment")
 else
   echo "Skipping client-web deployment (No Changes)"
 fi
@@ -159,7 +92,6 @@ if should_deploy_service "therr-api-gateway"; then
     docker push therrapp/api-gateway:latest
   fi
   kubectl set image deployments/api-gateway-service-deployment server-api-gateway=therrapp/api-gateway$SUFFIX:$GIT_SHA
-  UPDATED_DEPLOYMENTS+=("api-gateway-service-deployment")
 else
   echo "Skipping api-gateway deployment (No Changes)"
 fi
@@ -172,7 +104,6 @@ if should_deploy_service "therr-services/push-notifications-service"; then
     docker push therrapp/push-notifications-service:latest
   fi
   kubectl set image deployments/push-notifications-service-deployment server-push-notifications=therrapp/push-notifications-service$SUFFIX:$GIT_SHA
-  UPDATED_DEPLOYMENTS+=("push-notifications-service-deployment")
 else
   echo "Skipping push-notifications-service deployment (No Changes)"
 fi
@@ -185,7 +116,6 @@ if should_deploy_service "therr-services/maps-service"; then
     docker push therrapp/maps-service:latest
   fi
   kubectl set image deployments/maps-service-deployment server-maps=therrapp/maps-service$SUFFIX:$GIT_SHA
-  UPDATED_DEPLOYMENTS+=("maps-service-deployment")
 else
   echo "Skipping maps-service deployment (No Changes)"
 fi
@@ -198,7 +128,6 @@ if should_deploy_service "therr-services/messages-service"; then
     docker push therrapp/messages-service:latest
   fi
   kubectl set image deployments/messages-service-deployment server-messages=therrapp/messages-service$SUFFIX:$GIT_SHA
-  UPDATED_DEPLOYMENTS+=("messages-service-deployment")
 else
   echo "Skipping messages-service deployment (No Changes)"
 fi
@@ -211,7 +140,6 @@ if should_deploy_service "therr-services/reactions-service"; then
     docker push therrapp/reactions-service:latest
   fi
   kubectl set image deployments/reactions-service-deployment server-reactions=therrapp/reactions-service$SUFFIX:$GIT_SHA
-  UPDATED_DEPLOYMENTS+=("reactions-service-deployment")
 else
   echo "Skipping reactions-service deployment (No Changes)"
 fi
@@ -224,7 +152,6 @@ if should_deploy_service "therr-services/users-service"; then
     docker push therrapp/users-service:latest
   fi
   kubectl set image deployments/users-service-deployment server-users=therrapp/users-service$SUFFIX:$GIT_SHA
-  UPDATED_DEPLOYMENTS+=("users-service-deployment")
 else
   echo "Skipping users-service deployment (No Changes)"
 fi
@@ -237,13 +164,9 @@ if should_deploy_service "therr-services/websocket-service"; then
     docker push therrapp/websocket-service:latest
   fi
   kubectl set image deployments/websocket-service-deployment server-websocket=therrapp/websocket-service$SUFFIX:$GIT_SHA
-  UPDATED_DEPLOYMENTS+=("websocket-service-deployment")
 else
   echo "Skipping websocket-service deployment (No Changes)"
 fi
-
-# Wait for all rollouts to finish before scaling down
-wait_for_rollouts
 
 echo "Kubectl apply complete for all services with changes"
 
