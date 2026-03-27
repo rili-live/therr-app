@@ -247,31 +247,31 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
         return (
             <Paper key={space.id} withBorder p="md" radius="md" className="space-card">
-                <Group wrap="nowrap" align="flex-start" gap="md">
+                <Group wrap="nowrap" align="flex-start" gap="sm">
                     {spaceImage ? (
                         <Image
                             src={spaceImage}
                             alt={space.notificationMsg}
-                            w={72}
-                            h={72}
+                            w={56}
+                            h={56}
                             radius="md"
                             fit="cover"
                             style={{ flexShrink: 0 }}
                         />
                     ) : (
-                        <Avatar size={72} radius="md" color="teal">
+                        <Avatar size={56} radius="md" color="teal">
                             {(space.notificationMsg || '?').charAt(0).toUpperCase()}
                         </Avatar>
                     )}
                     <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
-                        <Group gap="sm" wrap="wrap">
-                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="lg" style={{ lineHeight: 1.3, wordBreak: 'break-word' }}>
+                        <Group gap="xs" wrap="wrap">
+                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="md" style={{ lineHeight: 1.3, wordBreak: 'break-word' }}>
                                 {space.notificationMsg}
                             </Anchor>
                             {this.renderVisibilityBadge(space)}
                         </Group>
                         {space.addressReadable && (
-                            <Text size="sm" c="dimmed" lineClamp={1}>{space.addressReadable}</Text>
+                            <Text size="xs" c="dimmed" lineClamp={1}>{space.addressReadable}</Text>
                         )}
                         <Group gap="xs" wrap="wrap">
                             {categoryLabel && (

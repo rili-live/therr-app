@@ -28,12 +28,19 @@ const escapeHtml = (str: string): string => {
 const LEAFLET_CSS_ID = 'leaflet-css';
 const ICON_CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
 
-const loadLeafletCss = () => {
-    if (document.getElementById(LEAFLET_CSS_ID)) return;
+const loadLeafletCss = (onLoad?: () => void) => {
+    if (document.getElementById(LEAFLET_CSS_ID)) {
+        onLoad?.();
+        return;
+    }
     const link = document.createElement('link');
     link.id = LEAFLET_CSS_ID;
     link.rel = 'stylesheet';
     link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    if (onLoad) {
+        link.onload = () => onLoad();
+        link.onerror = () => onLoad(); // still recalculate even if CSS fails
+    }
     document.head.appendChild(link);
 };
 
@@ -91,7 +98,12 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
 
         let cancelled = false;
 
-        loadLeafletCss();
+        // Start loading Leaflet CSS; when it finishes, recalculate map size
+        loadLeafletCss(() => {
+            if (!cancelled && leafletMapRef.current) {
+                leafletMapRef.current.invalidateSize();
+            }
+        });
 
         import('leaflet').then((leafletModule) => {
             if (cancelled || !mapRef.current) return;
@@ -128,6 +140,14 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
             }).addTo(map);
 
             leafletMapRef.current = map;
+
+            // Force Leaflet to recalculate container size on next frame
+            // (handles case where CSS loaded before map init)
+            requestAnimationFrame(() => {
+                if (map && !cancelled) {
+                    map.invalidateSize();
+                }
+            });
 
             // Add markers immediately with current spaces data
             const currentSpaces = spacesRef.current;
@@ -176,13 +196,13 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
         }
     }, [spaces, localePrefix, revision, updateMarkers, zoom]);
 
-    const style = height ? { height: `${height}px` } : undefined;
+    const mapHeight = height || 400;
 
     return (
         <div
             ref={mapRef}
             className="spaces-map"
-            style={style}
+            style={{ height: `${mapHeight}px` }}
             role="application"
             aria-label="Map of business locations"
         />
