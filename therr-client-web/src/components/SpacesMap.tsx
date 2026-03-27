@@ -28,20 +28,19 @@ const escapeHtml = (str: string): string => {
 const LEAFLET_CSS_ID = 'leaflet-css';
 const ICON_CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
 
-const loadLeafletCss = (onLoad?: () => void) => {
-    if (document.getElementById(LEAFLET_CSS_ID)) {
-        onLoad?.();
-        return;
-    }
-    const link = document.createElement('link');
-    link.id = LEAFLET_CSS_ID;
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    if (onLoad) {
-        link.onload = () => onLoad();
-        link.onerror = () => onLoad(); // still recalculate even if CSS fails
-    }
-    document.head.appendChild(link);
+const loadLeafletCss = (): Promise<void> => {
+    if (document.getElementById(LEAFLET_CSS_ID)) return Promise.resolve();
+    return new Promise((resolve) => {
+        const link = document.createElement('link');
+        link.id = LEAFLET_CSS_ID;
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        link.onload = () => resolve();
+        link.onerror = () => resolve();
+        document.head.appendChild(link);
+        // Fallback for environments where onload doesn't fire (e.g., jsdom)
+        setTimeout(resolve, 3000);
+    });
 };
 
 const SpacesMap: React.FC<ISpacesMapProps> = ({
@@ -98,14 +97,12 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
 
         let cancelled = false;
 
-        // Start loading Leaflet CSS; when it finishes, recalculate map size
-        loadLeafletCss(() => {
-            if (!cancelled && leafletMapRef.current) {
-                leafletMapRef.current.invalidateSize();
-            }
-        });
-
-        import('leaflet').then((leafletModule) => {
+        // Wait for both Leaflet CSS and JS before initializing the map.
+        // Leaflet requires its CSS to be loaded for correct tile positioning.
+        Promise.all([
+            loadLeafletCss(),
+            import('leaflet'),
+        ]).then(([, leafletModule]) => {
             if (cancelled || !mapRef.current) return;
 
             const L = leafletModule.default || leafletModule;
@@ -196,7 +193,7 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
         }
     }, [spaces, localePrefix, revision, updateMarkers, zoom]);
 
-    const mapHeight = height || 400;
+    const mapHeight = height || 300;
 
     return (
         <div
