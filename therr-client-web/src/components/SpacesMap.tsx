@@ -28,17 +28,20 @@ const escapeHtml = (str: string): string => {
 const LEAFLET_CSS_ID = 'leaflet-css';
 const ICON_CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
 
-const loadLeafletCss = (): Promise<void> => {
-    if (document.getElementById(LEAFLET_CSS_ID)) return Promise.resolve();
-    return new Promise((resolve) => {
-        const link = document.createElement('link');
-        link.id = LEAFLET_CSS_ID;
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-        link.onload = () => resolve();
-        link.onerror = () => resolve(); // resolve anyway so map still initializes
-        document.head.appendChild(link);
-    });
+const loadLeafletCss = (onLoad?: () => void) => {
+    if (document.getElementById(LEAFLET_CSS_ID)) {
+        onLoad?.();
+        return;
+    }
+    const link = document.createElement('link');
+    link.id = LEAFLET_CSS_ID;
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    if (onLoad) {
+        link.onload = () => onLoad();
+        link.onerror = () => onLoad(); // still recalculate even if CSS fails
+    }
+    document.head.appendChild(link);
 };
 
 const SpacesMap: React.FC<ISpacesMapProps> = ({
@@ -95,10 +98,14 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
 
         let cancelled = false;
 
-        Promise.all([
-            loadLeafletCss(),
-            import('leaflet'),
-        ]).then(([, leafletModule]) => {
+        // Start loading Leaflet CSS; when it finishes, recalculate map size
+        loadLeafletCss(() => {
+            if (!cancelled && leafletMapRef.current) {
+                leafletMapRef.current.invalidateSize();
+            }
+        });
+
+        import('leaflet').then((leafletModule) => {
             if (cancelled || !mapRef.current) return;
 
             const L = leafletModule.default || leafletModule;
@@ -134,7 +141,8 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
 
             leafletMapRef.current = map;
 
-            // Force Leaflet to recalculate container size after CSS is loaded
+            // Force Leaflet to recalculate container size on next frame
+            // (handles case where CSS loaded before map init)
             requestAnimationFrame(() => {
                 if (map && !cancelled) {
                     map.invalidateSize();
