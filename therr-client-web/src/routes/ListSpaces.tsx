@@ -63,7 +63,7 @@ interface IListSpacesState {
     itemsPerPage: number;
     searchQuery: string;
     isSearching: boolean;
-    isMapVisible: boolean;
+    isMapExpanded: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -89,7 +89,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
             searchQuery: '',
             isSearching: false,
-            isMapVisible: false,
+            isMapExpanded: false,
         };
     }
 
@@ -207,7 +207,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     };
 
     handleToggleMap = () => {
-        this.setState((prevState) => ({ isMapVisible: !prevState.isMapVisible }));
+        this.setState((prevState) => ({ isMapExpanded: !prevState.isMapExpanded }));
     };
 
     login = (credentials: any) => this.props.login(credentials);
@@ -310,7 +310,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         } = this.props;
         const { pageNumber: pageNumberStr } = routeParams;
         const {
-            itemsPerPage, searchQuery, isSearching, isMapVisible,
+            itemsPerPage, searchQuery, isSearching, isMapExpanded,
         } = this.state;
         const spacesArray = Object.values(map?.spaces || {}) as any[];
         const pageNumber = parseInt(pageNumberStr || '1', 10);
@@ -352,20 +352,22 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                             </Button>
                         )}
                         <Button variant="outline" size="sm" onClick={this.handleToggleMap}>
-                            {isMapVisible
-                                ? this.props.translate('pages.spaces.hideMap')
-                                : this.props.translate('pages.spaces.showMap')}
+                            {isMapExpanded
+                                ? this.props.translate('pages.spaces.collapseMap')
+                                : this.props.translate('pages.spaces.expandMap')}
                         </Button>
                     </Group>
 
-                    {/* Map View */}
-                    {isMapVisible && spacesArray.length > 0 && (
-                        <React.Suspense fallback={<Skeleton height={400} radius="md" />}>
+                    {/* Map View - always visible in compact mode, expandable to full size */}
+                    {spacesArray.length > 0 && (
+                        <React.Suspense fallback={<Skeleton height={isMapExpanded ? 400 : 250} radius="md" />}>
                             <SpacesMap
                                 spaces={spacesArray}
                                 centerLat={centerLat}
                                 centerLng={centerLng}
                                 localePrefix={localePrefix}
+                                height={isMapExpanded ? undefined : 250}
+                                interactive={isMapExpanded}
                             />
                         </React.Suspense>
                     )}
