@@ -18,6 +18,11 @@ import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 import ProgressiveImage from '../components/ProgressiveImage';
 
+// Only lazy-load on client (Leaflet requires window/document)
+const SpacesMap = typeof window !== 'undefined'
+    ? React.lazy(() => import('../components/SpacesMap'))
+    : (() => null) as any;
+
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
     const label = category.replace('categories.', '').replace('/', ' & ');
@@ -402,14 +407,33 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     )}
                 </address>
                 {lat && lng && (
-                    <Anchor
-                        href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
-                        target="_blank"
-                        mt="xs"
-                        display="inline-block"
-                    >
-                        {this.props.translate('pages.viewSpace.labels.viewOnGoogleMaps')}
-                    </Anchor>
+                    <>
+                        <React.Suspense fallback={<Skeleton height={250} radius="md" mt="sm" />}>
+                            <SpacesMap
+                                spaces={[{
+                                    id: space.id,
+                                    notificationMsg: space.notificationMsg,
+                                    addressReadable: space.addressReadable,
+                                    latitude: lat,
+                                    longitude: lng,
+                                }]}
+                                centerLat={lat}
+                                centerLng={lng}
+                                localePrefix=""
+                                zoom={15}
+                                height={250}
+                                interactive={false}
+                            />
+                        </React.Suspense>
+                        <Anchor
+                            href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                            target="_blank"
+                            mt="xs"
+                            display="inline-block"
+                        >
+                            {this.props.translate('pages.viewSpace.labels.viewOnGoogleMaps')}
+                        </Anchor>
+                    </>
                 )}
             </>
         );

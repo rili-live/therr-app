@@ -14,6 +14,9 @@ interface ISpacesMapProps {
     centerLat: number;
     centerLng: number;
     localePrefix: string;
+    zoom?: number;
+    height?: number;
+    interactive?: boolean;
 }
 
 const escapeHtml = (str: string): string => {
@@ -33,15 +36,63 @@ const loadLeafletCss = () => {
     document.head.appendChild(link);
 };
 
+const configureIcons = (leaflet: any) => {
+    // eslint-disable-next-line no-underscore-dangle, no-param-reassign
+    delete (leaflet.Icon.Default.prototype as any)._getIconUrl;
+    const CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
+    leaflet.Icon.Default.mergeOptions({
+        iconRetinaUrl: `${CDN}/marker-icon-2x.png`,
+        iconUrl: `${CDN}/marker-icon.png`,
+        shadowUrl: `${CDN}/marker-shadow.png`,
+    });
+};
+
+const addMarkers = (L: any, map: any, spaces: ISpace[], localePrefix: string) => {
+    // Clear existing markers
+    map.eachLayer((layer: any) => {
+        if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+        }
+    });
+
+    const bounds: any[] = [];
+    const prefix = localePrefix || '';
+
+    spaces.forEach((space) => {
+        if (space.latitude && space.longitude) {
+            const marker = L.marker([space.latitude, space.longitude]).addTo(map);
+            const name = escapeHtml(space.notificationMsg || 'Unknown');
+            const address = space.addressReadable
+                ? `<br/><small>${escapeHtml(space.addressReadable)}</small>`
+                : '';
+            marker.bindPopup(
+                `<a href="${prefix}/spaces/${space.id}"><strong>${name}</strong></a>${address}`,
+            );
+            bounds.push([space.latitude, space.longitude]);
+        }
+    });
+
+    return bounds;
+};
+
 const SpacesMap: React.FC<ISpacesMapProps> = ({
-    spaces, centerLat, centerLng, localePrefix,
+    spaces,
+    centerLat,
+    centerLng,
+    localePrefix,
+    zoom,
+    height,
+    interactive = true,
 }) => {
     const mapRef = React.useRef<HTMLDivElement>(null);
     const leafletMapRef = React.useRef<any>(null);
     const leafletLibRef = React.useRef<any>(null);
-    const [isReady, setIsReady] = React.useState(false);
+    const spacesRef = React.useRef(spaces);
+    spacesRef.current = spaces;
 
-    // Initialize Leaflet map
+    const [revision, setRevision] = React.useState(0);
+
+    // Initialize Leaflet map and add initial markers
     React.useEffect(() => {
         if (!mapRef.current || leafletMapRef.current) return undefined;
 
@@ -55,16 +106,14 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
             const L = leafletModule.default || leafletModule;
             leafletLibRef.current = L;
 
-            // eslint-disable-next-line no-underscore-dangle
-            delete (L.Icon.Default.prototype as any)._getIconUrl;
-            const CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
-            L.Icon.Default.mergeOptions({
-                iconRetinaUrl: `${CDN}/marker-icon-2x.png`,
-                iconUrl: `${CDN}/marker-icon.png`,
-                shadowUrl: `${CDN}/marker-shadow.png`,
-            });
+            configureIcons(L);
 
-            const map = L.map(mapRef.current).setView([centerLat, centerLng], 5);
+            const defaultZoom = zoom || 5;
+            const map = L.map(mapRef.current, {
+                scrollWheelZoom: interactive,
+                dragging: interactive,
+                zoomControl: interactive,
+            }).setView([centerLat, centerLng], defaultZoom);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -72,7 +121,19 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
             }).addTo(map);
 
             leafletMapRef.current = map;
-            setIsReady(true);
+
+            // Add markers immediately with current spaces data
+            const currentSpaces = spacesRef.current;
+            const bounds = addMarkers(L, map, currentSpaces, localePrefix);
+
+            if (!zoom && bounds.length > 1) {
+                map.fitBounds(L.latLngBounds(bounds), { padding: [40, 40], maxZoom: 13 });
+            } else if (!zoom && bounds.length === 1) {
+                map.setView(bounds[0], 15);
+            }
+
+            // Signal that map is ready for subsequent updates
+            setRevision(1);
         });
 
         return () => {
@@ -87,50 +148,33 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
     // Update center when user location changes
     React.useEffect(() => {
         const map = leafletMapRef.current;
-        if (!map) return;
+        if (!map || !revision) return;
 
         map.setView([centerLat, centerLng], map.getZoom());
-    }, [centerLat, centerLng]);
+    }, [centerLat, centerLng, revision]);
 
-    // Update markers when spaces change or map becomes ready
+    // Update markers when spaces change after init
     React.useEffect(() => {
         const map = leafletMapRef.current;
         const L = leafletLibRef.current;
-        if (!map || !L || !isReady) return;
+        if (!map || !L || !revision) return;
 
-        // Clear existing markers
-        map.eachLayer((layer: any) => {
-            if (layer instanceof L.Marker) {
-                map.removeLayer(layer);
-            }
-        });
+        const bounds = addMarkers(L, map, spaces, localePrefix);
 
-        const bounds: any[] = [];
-        const prefix = localePrefix || '';
-
-        spaces.forEach((space) => {
-            if (space.latitude && space.longitude) {
-                const marker = L.marker([space.latitude, space.longitude]).addTo(map);
-                const name = escapeHtml(space.notificationMsg || 'Unknown');
-                const address = space.addressReadable
-                    ? `<br/><small>${escapeHtml(space.addressReadable)}</small>`
-                    : '';
-                marker.bindPopup(
-                    `<a href="${prefix}/spaces/${space.id}"><strong>${name}</strong></a>${address}`,
-                );
-                bounds.push([space.latitude, space.longitude]);
-            }
-        });
-
-        if (bounds.length > 0) {
+        if (!zoom && bounds.length > 1) {
             map.fitBounds(L.latLngBounds(bounds), { padding: [40, 40], maxZoom: 13 });
+        } else if (!zoom && bounds.length === 1) {
+            map.setView(bounds[0], 15);
         }
-    }, [spaces, localePrefix, isReady]);
+    }, [spaces, localePrefix, revision]);
+
+    const style = height ? { height: `${height}px` } : undefined;
 
     return (
         <div
             ref={mapRef}
             className="spaces-map"
+            style={style}
             role="application"
             aria-label="Map of business locations"
         />
