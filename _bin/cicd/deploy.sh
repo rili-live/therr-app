@@ -11,6 +11,13 @@ echo "Current branch is $CURRENT_BRANCH"
 DESTINATION_BRANCH="main"
 echo "Destination branch is $DESTINATION_BRANCH"
 
+# GKE cluster scaling configuration
+GKE_CLUSTER="cluster-1"
+GKE_ZONE="us-central1-a"
+GKE_NODE_POOL="main-pool"
+GKE_DEPLOY_NODE_COUNT=4
+GKE_IDLE_NODE_COUNT=1
+
 # This should get us the SHA of the stage branch prior to main that last built and published docker images
 export $(cat VERSIONS.txt)
 GIT_SHA="${LAST_PUBLISHED_GIT_SHA}"
@@ -58,6 +65,35 @@ should_deploy_service()
   SERVICE_DIR=$1
   has_prev_diff_changes $SERVICE_DIR || [ "$HAS_UTILITIES_LIBRARY_CHANGES" = "true" ] || [ "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = "true" ]
 }
+
+# Scale up the node pool before deploying to ensure enough capacity for pod placement
+scale_up_nodes() {
+  echo "Scaling up node pool '$GKE_NODE_POOL' to $GKE_DEPLOY_NODE_COUNT nodes..."
+  gcloud container clusters resize "$GKE_CLUSTER" \
+    --node-pool "$GKE_NODE_POOL" \
+    --num-nodes "$GKE_DEPLOY_NODE_COUNT" \
+    --zone "$GKE_ZONE" \
+    --quiet
+  echo "Waiting for nodes to become ready..."
+  kubectl wait --for=condition=Ready nodes --all --timeout=300s
+  echo "Node pool scaled up successfully."
+}
+
+# Scale down the node pool after deploying to save costs
+scale_down_nodes() {
+  echo "Scaling down node pool '$GKE_NODE_POOL' to $GKE_IDLE_NODE_COUNT node(s)..."
+  gcloud container clusters resize "$GKE_CLUSTER" \
+    --node-pool "$GKE_NODE_POOL" \
+    --num-nodes "$GKE_IDLE_NODE_COUNT" \
+    --zone "$GKE_ZONE" \
+    --quiet
+  echo "Node pool scaled down successfully."
+}
+
+# Ensure we scale down even if the deploy fails
+trap scale_down_nodes EXIT
+
+scale_up_nodes
 
 # Kubectl Apply
 kubectl apply -f k8s/prod
