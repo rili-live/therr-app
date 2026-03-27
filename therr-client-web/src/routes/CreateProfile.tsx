@@ -2,6 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import ReactGA from 'react-ga4';
+import { Location } from 'react-router-dom';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { ApiService } from 'therr-react/services';
@@ -10,9 +11,10 @@ import VerifyPhoneCodeForm from '../components/forms/VerifyPhoneCodeForm';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
-import { routeAfterLogin } from './Login';
+import { getReturnTo, routeAfterLogin } from './Login';
 
 interface ICreateProfileRouterProps {
+    location: Location;
     navigation: any;
 }
 
@@ -129,7 +131,9 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
     };
 
     onSubmitCode = (updateArgs: any) => {
-        const { navigation, updateUser, user } = this.props;
+        const {
+            location, navigation, updateUser, user,
+        } = this.props;
         this.setState({
             errorMessage: '',
             isSubmitting: true,
@@ -139,7 +143,9 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                 updateUser(user.details.id, {
                     phoneNumber: this.state.phoneNumber,
                 }).then(() => {
-                    navigation.navigate(routeAfterLogin, {
+                    const returnTo = getReturnTo(location?.search);
+                    const destination = returnTo || routeAfterLogin;
+                    navigation.navigate(destination, {
                         state: {
                             successMessage: this.props.translate('pages.createProfile.createProfileSuccess'),
                         },

@@ -7,7 +7,7 @@ import qs from 'qs';
 import { IUserState } from 'therr-react/types';
 import RegisterForm from '../components/forms/RegisterForm';
 import UsersActions from '../redux/actions/UsersActions';
-import { getRouteAfterLogin, shouldRenderLoginForm } from './Login';
+import { getReturnTo, getRouteAfterLogin, shouldRenderLoginForm } from './Login';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 
@@ -57,7 +57,8 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
                 name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
                 email: nextProps.user.details.email,
             });
-            const destination = getRouteAfterLogin(nextProps.user);
+            const returnTo = getReturnTo(nextProps.location?.search);
+            const destination = getRouteAfterLogin(nextProps.user, returnTo);
             setTimeout(() => nextProps.navigation.navigate(destination));
             return null;
         }
@@ -123,7 +124,9 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             ...credentials,
             inviteCode: credentials.inviteCode || inviteCode,
         }).then((response: any) => {
-            this.props.navigation.navigate('/login', {
+            const returnTo = getReturnTo(this.props.location?.search);
+            const returnToParam = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
+            this.props.navigation.navigate(`/login${returnToParam}`, {
                 state: {
                     successMessage: this.props.translate('pages.register.registerSuccess'),
                 },
