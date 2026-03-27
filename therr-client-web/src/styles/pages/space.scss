@@ -113,11 +113,14 @@ $profileImgWidth: rem-calc(100px);
         max-height: 60vh;
         overflow-y: auto;
         overflow-x: hidden;
+
+        @media (max-width: 48em) {
+            max-height: none;
+        }
     }
 
     .space-card {
         transition: transform 0.15s ease, box-shadow 0.15s ease;
-        overflow: hidden;
 
         &:hover {
             transform: translateY(-2px);
