@@ -62,6 +62,11 @@ const ViewThought: React.FC = () => {
             return;
         }
 
+        if (!user?.isAuthenticated) {
+            setIsLoading(false);
+            return;
+        }
+
         // Get existing reaction data from the feed's Redux state
         const cachedThought = activeThoughts?.find((t: any) => t.id === thoughtId);
 
@@ -98,12 +103,12 @@ const ViewThought: React.FC = () => {
                 }
             })
             .catch(() => {
-                navigate('/posts/thoughts');
+                setThought(null);
             })
             .finally(() => {
                 setIsLoading(false);
             });
-    }, [thoughtId]); // eslint-disable-line
+    }, [thoughtId, user?.isAuthenticated]); // eslint-disable-line
 
     const handleLike = useCallback((t: any) => {
         if (!t.isDraft) {
@@ -203,6 +208,20 @@ const ViewThought: React.FC = () => {
     }
 
     if (!thought) {
+        if (!user?.isAuthenticated) {
+            return (
+                <Container id="page_view_thought" size="sm" py="xl">
+                    <Stack gap="lg" align="center">
+                        <Breadcrumbs>{breadcrumbs}</Breadcrumbs>
+                        <Title order={3}>{translate('pages.viewThought.headerTitle')}</Title>
+                        <Text ta="center" c="dimmed">
+                            <Anchor component={Link} to="/login">{translate('pages.viewThought.loginToView')}</Anchor>
+                        </Text>
+                    </Stack>
+                </Container>
+            );
+        }
+
         return null;
     }
 
@@ -246,32 +265,36 @@ const ViewThought: React.FC = () => {
                     )}
 
                     <Group gap="md" className="thought-card-reactions">
-                        <Tooltip label={isLiked ? 'Unlike' : 'Like'}>
-                            <ActionIcon
-                                variant="subtle"
-                                size="sm"
-                                onClick={() => handleLike(thought)}
-                                color={isLiked ? 'red' : 'gray'}
-                            >
-                                <InlineSvg
-                                    name={isLiked ? 'favorite' : 'favorite-border'}
-                                    className={`discovered-tile-icon ${isLiked ? 'discovered-tile-icon-liked' : ''}`}
-                                />
-                            </ActionIcon>
-                        </Tooltip>
-                        <Tooltip label={isBookmarked ? 'Remove bookmark' : 'Bookmark'}>
-                            <ActionIcon
-                                variant="subtle"
-                                size="sm"
-                                onClick={() => handleBookmark(thought)}
-                                color={isBookmarked ? 'dark' : 'gray'}
-                            >
-                                <InlineSvg
-                                    name={isBookmarked ? 'bookmark' : 'bookmark-border'}
-                                    className={`discovered-tile-icon ${isBookmarked ? 'discovered-tile-icon-bookmarked' : ''}`}
-                                />
-                            </ActionIcon>
-                        </Tooltip>
+                        {user?.isAuthenticated && (
+                            <Tooltip label={isLiked ? 'Unlike' : 'Like'}>
+                                <ActionIcon
+                                    variant="subtle"
+                                    size="sm"
+                                    onClick={() => handleLike(thought)}
+                                    color={isLiked ? 'red' : 'gray'}
+                                >
+                                    <InlineSvg
+                                        name={isLiked ? 'favorite' : 'favorite-border'}
+                                        className={`discovered-tile-icon ${isLiked ? 'discovered-tile-icon-liked' : ''}`}
+                                    />
+                                </ActionIcon>
+                            </Tooltip>
+                        )}
+                        {user?.isAuthenticated && (
+                            <Tooltip label={isBookmarked ? 'Remove bookmark' : 'Bookmark'}>
+                                <ActionIcon
+                                    variant="subtle"
+                                    size="sm"
+                                    onClick={() => handleBookmark(thought)}
+                                    color={isBookmarked ? 'dark' : 'gray'}
+                                >
+                                    <InlineSvg
+                                        name={isBookmarked ? 'bookmark' : 'bookmark-border'}
+                                        className={`discovered-tile-icon ${isBookmarked ? 'discovered-tile-icon-bookmarked' : ''}`}
+                                    />
+                                </ActionIcon>
+                            </Tooltip>
+                        )}
                     </Group>
                 </div>
 
@@ -323,21 +346,23 @@ const ViewThought: React.FC = () => {
                                                 </Group>
                                             )}
 
-                                            <Group gap="md" className="thought-card-reactions">
-                                                <Tooltip label={replyIsLiked ? 'Unlike' : 'Like'}>
-                                                    <ActionIcon
-                                                        variant="subtle"
-                                                        size="sm"
-                                                        onClick={() => handleLike(reply)}
-                                                        color={replyIsLiked ? 'red' : 'gray'}
-                                                    >
-                                                        <InlineSvg
-                                                            name={replyIsLiked ? 'favorite' : 'favorite-border'}
-                                                            className={`discovered-tile-icon ${replyIsLiked ? 'discovered-tile-icon-liked' : ''}`}
-                                                        />
-                                                    </ActionIcon>
-                                                </Tooltip>
-                                            </Group>
+                                            {user?.isAuthenticated && (
+                                                <Group gap="md" className="thought-card-reactions">
+                                                    <Tooltip label={replyIsLiked ? 'Unlike' : 'Like'}>
+                                                        <ActionIcon
+                                                            variant="subtle"
+                                                            size="sm"
+                                                            onClick={() => handleLike(reply)}
+                                                            color={replyIsLiked ? 'red' : 'gray'}
+                                                        >
+                                                            <InlineSvg
+                                                                name={replyIsLiked ? 'favorite' : 'favorite-border'}
+                                                                className={`discovered-tile-icon ${replyIsLiked ? 'discovered-tile-icon-liked' : ''}`}
+                                                            />
+                                                        </ActionIcon>
+                                                    </Tooltip>
+                                                </Group>
+                                            )}
                                         </div>
                                     </div>
                                 );

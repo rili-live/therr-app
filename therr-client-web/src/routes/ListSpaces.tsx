@@ -8,7 +8,7 @@ import { IContentState, IMapState, IUserState } from 'therr-react/types';
 import { Content } from 'therr-js-utilities/constants';
 import {
     Stack, Group, Title, Text, Badge, Anchor,
-    Paper, Skeleton, Button, Image, Avatar,
+    Paper, Skeleton, Button, Image, Avatar, Loader, Center,
 } from '@mantine/core';
 import { MantineSearchBox } from 'therr-react/components/mantine';
 import { ILocationState } from '../types/redux/location';
@@ -81,12 +81,17 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * ListSpaces
  */
 export class ListSpacesComponent extends React.Component<IListSpacesProps, IListSpacesState> {
+    private debounceTimeout: ReturnType<typeof setTimeout> | null = null;
+
     constructor(props: IListSpacesProps) {
         super(props);
 
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+        const initialQuery = urlParams.get('q') || '';
+
         this.state = {
             itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
-            searchQuery: '',
+            searchQuery: initialQuery,
             isSearching: false,
             isMapExpanded: false,
         };
@@ -94,10 +99,13 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
         const { map, routeParams } = this.props;
+        const { searchQuery } = this.state;
         const { pageNumber: pn } = routeParams;
         const pageNumberStr = pn || '1';
 
-        document.title = `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
+        document.title = searchQuery
+            ? `${searchQuery} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`
+            : `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
 
         const isValidPage = !Number.isNaN(pageNumberStr) && !Number.isNaN(parseInt(pageNumberStr, 10));
         if (!isValidPage) {
@@ -107,7 +115,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
             this.getLocation();
 
-            if (!Object.values(map?.spaces || {}).length) {
+            if (searchQuery || !Object.values(map?.spaces || {}).length) {
                 this.searchPaginatedSpaces(pageNumber);
             }
         }
@@ -119,6 +127,12 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             const latitude = location?.user?.latitude || DEFAULT_LATITUDE;
             const longitude = location?.user?.longitude || DEFAULT_LONGITUDE;
             this.searchPaginatedSpaces(parseInt(this.props.routeParams.pageNumber, 10), DEFAULT_ITEMS_PER_PAGE, latitude, longitude);
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.debounceTimeout) {
+            clearTimeout(this.debounceTimeout);
         }
     }
 
@@ -149,7 +163,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             queryParams.filterBy = 'distance';
         }
 
-        listSpaces(queryParams, {
+        return listSpaces(queryParams, {
             distanceOverride: 40075 * (1000 / 2), // estimated half distance around world in meters
         }).catch((err) => {
             console.log(err);
@@ -183,25 +197,60 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         }
     };
 
+    updateSearchUrl = (query: string) => {
+        const { navigation, routeParams } = this.props;
+        const pageNumber = parseInt(routeParams.pageNumber || '1', 10);
+        const basePath = pageNumber > 1 ? `/locations/${pageNumber}` : '/locations';
+        const search = query.trim() ? `?q=${encodeURIComponent(query.trim())}` : '';
+
+        navigation.navigate(`${basePath}${search}`, { replace: true });
+    };
+
     handleSearchChange = (_name: string, value: string) => {
-        this.setState({ searchQuery: value });
+        this.setState({ searchQuery: value, isSearching: true });
+
+        if (this.debounceTimeout) {
+            clearTimeout(this.debounceTimeout);
+        }
+
+        this.debounceTimeout = setTimeout(() => {
+            this.updateSearchUrl(value);
+            const { location: loc } = this.props;
+            const latitude = loc?.user?.latitude || DEFAULT_LATITUDE;
+            const longitude = loc?.user?.longitude || DEFAULT_LONGITUDE;
+            this.searchPaginatedSpaces(1, DEFAULT_ITEMS_PER_PAGE, latitude, longitude)
+                .then(() => this.setState({ isSearching: false }));
+        }, 300);
     };
 
     handleSearch = () => {
-        const { location } = this.props;
-        const latitude = location?.user?.latitude || DEFAULT_LATITUDE;
-        const longitude = location?.user?.longitude || DEFAULT_LONGITUDE;
+        const { searchQuery } = this.state;
+
+        if (this.debounceTimeout) {
+            clearTimeout(this.debounceTimeout);
+        }
+
+        this.updateSearchUrl(searchQuery);
+        const { location: loc } = this.props;
+        const latitude = loc?.user?.latitude || DEFAULT_LATITUDE;
+        const longitude = loc?.user?.longitude || DEFAULT_LONGITUDE;
         this.setState({ isSearching: true });
-        this.searchPaginatedSpaces(1, DEFAULT_ITEMS_PER_PAGE, latitude, longitude);
-        setTimeout(() => this.setState({ isSearching: false }), 300);
+        this.searchPaginatedSpaces(1, DEFAULT_ITEMS_PER_PAGE, latitude, longitude)
+            .then(() => this.setState({ isSearching: false }));
     };
 
     handleClearSearch = () => {
-        const { location } = this.props;
-        const latitude = location?.user?.latitude || DEFAULT_LATITUDE;
-        const longitude = location?.user?.longitude || DEFAULT_LONGITUDE;
-        this.setState({ searchQuery: '', isSearching: false }, () => {
-            this.searchPaginatedSpaces(1, DEFAULT_ITEMS_PER_PAGE, latitude, longitude);
+        if (this.debounceTimeout) {
+            clearTimeout(this.debounceTimeout);
+        }
+
+        this.updateSearchUrl('');
+        const { location: loc } = this.props;
+        const latitude = loc?.user?.latitude || DEFAULT_LATITUDE;
+        const longitude = loc?.user?.longitude || DEFAULT_LONGITUDE;
+        this.setState({ searchQuery: '', isSearching: true }, () => {
+            this.searchPaginatedSpaces(1, DEFAULT_ITEMS_PER_PAGE, latitude, longitude)
+                .then(() => this.setState({ isSearching: false }));
         });
     };
 
@@ -341,6 +390,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                             onChange={this.handleSearchChange}
                             onSearch={this.handleSearch}
                             placeholder={this.props.translate('pages.spaces.searchPlaceholder')}
+                            aria-label={this.props.translate('pages.spaces.searchPlaceholder')}
                             style={{ flex: 1 }}
                         />
                         {searchQuery && (
@@ -372,7 +422,11 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     )}
 
                     {/* Results */}
-                    {isSearching && this.renderSkeleton()}
+                    {isSearching && (
+                        <Center py="xl">
+                            <Loader size="md" />
+                        </Center>
+                    )}
                     {!isSearching && spacesArray.length === 0 && (
                         <Paper withBorder p="xl" radius="md">
                             <Text ta="center" c="dimmed">
@@ -389,12 +443,22 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     {/* Pagination */}
                     <Group justify="center" gap="md">
                         {pageNumber > 1 && (
-                            <Button component={Link} to={`/locations/${pageNumber - 1}`} variant="outline" size="sm">
+                            <Button
+                                component={Link}
+                                to={`/locations/${pageNumber - 1}${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
+                                variant="outline"
+                                size="sm"
+                            >
                                 {this.props.translate('pages.spaces.previousPage', { pageNumber: pageNumber - 1 })}
                             </Button>
                         )}
                         {spacesArray.length >= itemsPerPage && (
-                            <Button component={Link} to={`/locations/${pageNumber + 1}`} variant="outline" size="sm">
+                            <Button
+                                component={Link}
+                                to={`/locations/${pageNumber + 1}${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
+                                variant="outline"
+                                size="sm"
+                            >
                                 {this.props.translate('pages.spaces.nextPage', { pageNumber: pageNumber + 1 })}
                             </Button>
                         )}
