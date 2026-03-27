@@ -54,6 +54,7 @@ interface IViewMomentProps extends IViewMomentRouterProps, IStoreProps {
 interface IViewMomentState {
     momentId: string;
     isLinkCopied: boolean;
+    isMapVisible: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -84,6 +85,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         this.state = {
             momentId: props.routeParams.momentId,
             isLinkCopied: false,
+            isMapVisible: false,
         };
     }
 
@@ -228,6 +230,10 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         );
     }
 
+    handleToggleMap = () => {
+        this.setState((prevState) => ({ isMapVisible: !prevState.isMapVisible }));
+    };
+
     renderLocationMap(moment: any): JSX.Element | null {
         const space = moment.space;
         const lat = space?.latitude || moment.latitude;
@@ -235,37 +241,51 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
 
         if (!lat || !lng) return null;
 
+        const { isMapVisible } = this.state;
         const mapLabel = space?.notificationMsg || moment.notificationMsg || '';
         const mapAddress = space?.addressReadable || '';
 
         return (
             <>
-                <React.Suspense fallback={<Skeleton height={200} radius="md" mt="sm" />}>
-                    <SpacesMap
-                        spaces={[{
-                            id: moment.spaceId || moment.id,
-                            notificationMsg: mapLabel,
-                            addressReadable: mapAddress,
-                            latitude: lat,
-                            longitude: lng,
-                        }]}
-                        centerLat={lat}
-                        centerLng={lng}
-                        localePrefix=""
-                        zoom={15}
-                        height={200}
-                        interactive={false}
-                    />
-                </React.Suspense>
-                <Anchor
-                    href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    size="sm"
-                    mt="xs"
-                >
-                    {this.props.translate('pages.viewMoment.labels.viewOnGoogleMaps')}
-                </Anchor>
+                <Group gap="sm" mt="xs">
+                    <Anchor
+                        component="button"
+                        type="button"
+                        size="sm"
+                        onClick={this.handleToggleMap}
+                    >
+                        {isMapVisible
+                            ? this.props.translate('pages.viewMoment.labels.hideMap')
+                            : this.props.translate('pages.viewMoment.labels.showMap')}
+                    </Anchor>
+                    <Anchor
+                        href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        size="sm"
+                    >
+                        {this.props.translate('pages.viewMoment.labels.viewOnGoogleMaps')}
+                    </Anchor>
+                </Group>
+                {isMapVisible && (
+                    <React.Suspense fallback={<Skeleton height={200} radius="md" mt="sm" />}>
+                        <SpacesMap
+                            spaces={[{
+                                id: moment.spaceId || moment.id,
+                                notificationMsg: mapLabel,
+                                addressReadable: mapAddress,
+                                latitude: lat,
+                                longitude: lng,
+                            }]}
+                            centerLat={lat}
+                            centerLng={lng}
+                            localePrefix=""
+                            zoom={15}
+                            height={200}
+                            interactive={false}
+                        />
+                    </React.Suspense>
+                )}
             </>
         );
     }

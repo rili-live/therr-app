@@ -6,15 +6,24 @@ import { mount } from 'enzyme';
 import { act } from 'react-test-renderer';
 
 // Mock leaflet before importing SpacesMap
+// Track markers added to map so eachLayer can enumerate them for removal
+const mapLayers: any[] = [];
 const mockMarker = {
-    addTo: jest.fn().mockReturnThis(),
+    addTo: jest.fn().mockImplementation(function addTo() {
+        mapLayers.push(mockMarker);
+        return mockMarker;
+    }),
     bindPopup: jest.fn().mockReturnThis(),
+    getLatLng: jest.fn().mockReturnValue([0, 0]),
 };
 const mockMap = {
     setView: jest.fn().mockReturnThis(),
     fitBounds: jest.fn().mockReturnThis(),
-    eachLayer: jest.fn(),
-    removeLayer: jest.fn(),
+    eachLayer: jest.fn().mockImplementation((cb) => [...mapLayers].forEach(cb)),
+    removeLayer: jest.fn().mockImplementation((layer) => {
+        const idx = mapLayers.indexOf(layer);
+        if (idx >= 0) mapLayers.splice(idx, 1);
+    }),
     getZoom: jest.fn().mockReturnValue(10),
     remove: jest.fn(),
 };
@@ -63,11 +72,21 @@ describe('SpacesMap', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mapLayers.length = 0;
         // Restore mock return values cleared by clearAllMocks
-        mockMarker.addTo.mockReturnThis();
+        mockMarker.addTo.mockImplementation(() => {
+            mapLayers.push(mockMarker);
+            return mockMarker;
+        });
         mockMarker.bindPopup.mockReturnThis();
+        mockMarker.getLatLng.mockReturnValue([0, 0]);
         mockMap.setView.mockReturnThis();
         mockMap.fitBounds.mockReturnThis();
+        mockMap.eachLayer.mockImplementation((cb) => [...mapLayers].forEach(cb));
+        mockMap.removeLayer.mockImplementation((layer) => {
+            const idx = mapLayers.indexOf(layer);
+            if (idx >= 0) mapLayers.splice(idx, 1);
+        });
         mockMap.getZoom.mockReturnValue(10);
         mockLatLngBounds.mockReturnValue([[0, 0], [1, 1]]);
 
@@ -112,8 +131,8 @@ describe('SpacesMap', () => {
             await new Promise((r) => { setTimeout(r, 0); });
         });
 
-        // One marker per space with valid coordinates
-        expect(L.marker).toHaveBeenCalledTimes(2);
+        // 2 spaces × 2 updateMarkers calls (init + revision sync effect) = 4
+        expect(L.marker).toHaveBeenCalledTimes(4);
         expect(L.marker).toHaveBeenCalledWith(
             [40.7128, -74.006],
             expect.any(Object),
@@ -130,7 +149,8 @@ describe('SpacesMap', () => {
             await new Promise((r) => { setTimeout(r, 0); });
         });
 
-        expect(mockMarker.bindPopup).toHaveBeenCalledTimes(2);
+        // 2 spaces × 2 updateMarkers calls (init + revision sync effect) = 4
+        expect(mockMarker.bindPopup).toHaveBeenCalledTimes(4);
         expect(mockMarker.bindPopup).toHaveBeenCalledWith(
             expect.stringContaining('Coffee Shop'),
         );
@@ -169,8 +189,8 @@ describe('SpacesMap', () => {
             await new Promise((r) => { setTimeout(r, 0); });
         });
 
-        // Still only 2 markers (space-3 has no lat/lng)
-        expect(L.marker).toHaveBeenCalledTimes(2);
+        // 2 valid spaces × 2 updateMarkers calls = 4 (space-3 has no lat/lng, skipped)
+        expect(L.marker).toHaveBeenCalledTimes(4);
     });
 
     it('fits bounds when multiple markers exist and no zoom override', async () => {
