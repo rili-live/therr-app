@@ -89,6 +89,14 @@ export default [
         view: 'moments',
     },
     {
+        route: '/thoughts/:thoughtId',
+        head: {
+            title: 'Post not Found',
+            description: 'No post was found for the given ID.',
+        },
+        view: 'thoughts',
+    },
+    {
         route: '/locations',
         head: {
             title: 'Local Business Directory',

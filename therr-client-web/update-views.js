@@ -8,6 +8,7 @@ const viewFiles = [
     path.join(__dirname, 'src/views/locations.hbs'),
     path.join(__dirname, 'src/views/spaces.hbs'),
     path.join(__dirname, 'src/views/moments.hbs'),
+    path.join(__dirname, 'src/views/thoughts.hbs'),
     path.join(__dirname, 'src/views/users.hbs'),
     path.join(__dirname, 'src/views/events.hbs'),
     path.join(__dirname, 'src/views/groups.hbs'),
