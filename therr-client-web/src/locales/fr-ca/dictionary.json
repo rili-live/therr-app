@@ -742,6 +742,7 @@
       "claimSpace": {
         "title": "C'est votre entreprise?",
         "body": "Réclamez cet espace pour voir l'activité de vos clients en temps réel, être jumelé avec des entreprises locales complémentaires et récompenser les clients qui parlent de vous. Mettez à jour vos informations, ajoutez des photos et prenez le contrôle de votre présence.",
+        "subtleCTA": "C'est votre entreprise? Réclamez-la",
         "claimButton": "Réclamer cet espace",
         "editButton": "Modifier l'espace",
         "alreadyHaveAccount": "Vous avez déjà un compte? Connectez-vous",

@@ -781,6 +781,7 @@
       "claimSpace": {
         "title": "Is this your business?",
         "body": "Claim this space to see real-time customer activity, get paired with complementary local businesses, and reward customers who spread the word. Update your info, add photos, and take control of your presence.",
+        "subtleCTA": "Is this your business? Claim it",
         "claimButton": "Claim This Space",
         "editButton": "Edit Space",
         "alreadyHaveAccount": "Already have an account? Sign in",
