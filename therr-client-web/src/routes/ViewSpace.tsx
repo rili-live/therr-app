@@ -40,6 +40,9 @@ const parseOpeningHours = (schema: string[]): { days: string; hours: string }[] 
 });
 
 interface IViewSpaceRouterProps {
+    location: {
+        search: string;
+    };
     navigation: {
         navigate: NavigateFunction;
     };
@@ -72,6 +75,7 @@ interface IViewSpaceState {
     isPairingsLoading: boolean;
     pairingFeedback: { [id: string]: boolean };
     isLinkCopied: boolean;
+    isFromClaimEmail: boolean;
     isClaimLoading: boolean;
     claimMessage: string;
     claimMessageType: 'success' | 'error' | '';
@@ -102,6 +106,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     constructor(props: IViewSpaceProps) {
         super(props);
 
+        const searchParams = new URLSearchParams(props.location?.search || '');
+
         this.state = {
             spaceId: props.routeParams.spaceId,
             spaceMoments: [],
@@ -110,6 +116,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isPairingsLoading: false,
             pairingFeedback: {},
             isLinkCopied: false,
+            isFromClaimEmail: searchParams.get('claim') === 'true',
             isClaimLoading: false,
             claimMessage: '',
             claimMessageType: '',
@@ -137,6 +144,12 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             document.title = `${space.notificationMsg} | Therr App`;
             this.fetchSpaceMoments(spaceId);
             this.fetchSpacePairings(spaceId);
+        }
+
+        if (this.state.isFromClaimEmail) {
+            setTimeout(() => {
+                document.getElementById('claim-space-section')?.scrollIntoView({ behavior: 'smooth' });
+            }, 500);
         }
     }
 
@@ -222,6 +235,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
     renderClaimSubtleCTA(space: any): JSX.Element | null {
         const { user, translate } = this.props;
+        const { isFromClaimEmail } = this.state;
         const isAuthenticated = user?.isAuthenticated;
         const isOwner = isAuthenticated && user?.details?.id === space.fromUserId;
 
@@ -239,6 +253,20 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         }
 
         if (space.isUnclaimed && !space.isClaimPending && !space.requestedByUserId) {
+            if (isFromClaimEmail) {
+                return (
+                    <Button
+                        component="a"
+                        href="#claim-space-section"
+                        variant="light"
+                        size="compact-sm"
+                        color="teal"
+                    >
+                        {translate('pages.viewSpace.claimSpace.subtleCTA')}
+                    </Button>
+                );
+            }
+
             return (
                 <Anchor href="#claim-space-section" size="xs" c="dimmed">
                     {translate('pages.viewSpace.claimSpace.subtleCTA')}
@@ -251,7 +279,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
     renderClaimCTA(space: any): JSX.Element | null {
         const { user, translate } = this.props;
-        const { isClaimLoading, claimMessage, claimMessageType } = this.state;
+        const { isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType } = this.state;
         const isAuthenticated = user?.isAuthenticated;
 
         if (claimMessageType === 'success') {
@@ -276,9 +304,24 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         }
 
         return (
-            <Paper withBorder p="lg" radius="md" mt="md" id="claim-space-section" style={{ borderColor: '#1C7F8A', backgroundColor: '#f0fdfa' }}>
-                <Title order={3} size="h4">{translate('pages.viewSpace.claimSpace.title')}</Title>
-                <Text size="sm" mt="xs">{translate('pages.viewSpace.claimSpace.body')}</Text>
+            <Paper
+                withBorder
+                p={isFromClaimEmail ? 'xl' : 'lg'}
+                radius="md"
+                mt="md"
+                id="claim-space-section"
+                style={{
+                    borderColor: '#1C7F8A',
+                    backgroundColor: isFromClaimEmail ? '#e6fffa' : '#f0fdfa',
+                    borderWidth: isFromClaimEmail ? 2 : 1,
+                }}
+            >
+                <Title order={isFromClaimEmail ? 2 : 3} size={isFromClaimEmail ? 'h3' : 'h4'}>
+                    {translate(isFromClaimEmail ? 'pages.viewSpace.claimSpace.emailTitle' : 'pages.viewSpace.claimSpace.title')}
+                </Title>
+                <Text size={isFromClaimEmail ? 'md' : 'sm'} mt="xs">
+                    {translate(isFromClaimEmail ? 'pages.viewSpace.claimSpace.emailBody' : 'pages.viewSpace.claimSpace.body')}
+                </Text>
                 {claimMessage && claimMessageType === 'error' && (
                     <Text size="sm" c="red" mt="xs">{claimMessage}</Text>
                 )}
