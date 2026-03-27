@@ -460,7 +460,9 @@
       "previousPage": "Volver a la p\u00e1gina {pageNumber}",
       "nextPage": "Ir a la p\u00e1gina {pageNumber}",
       "expandMap": "Ampliar mapa",
-      "collapseMap": "Contraer mapa"
+      "collapseMap": "Contraer mapa",
+      "signInPrompt": "para ver tus espacios privados y gestionar listados.",
+      "website": "sitio web"
     },
     "home": {
       "pageTitle": "Crea tu perfil social o negocio",
@@ -783,6 +785,9 @@
       "claimSpace": {
         "title": "¿Es este tu negocio?",
         "body": "Reclama este espacio para ver la actividad de clientes en tiempo real, conectarte con negocios locales complementarios y recompensar a los clientes que difunden tu negocio. Actualiza tu información, agrega fotos y toma el control de tu presencia.",
+        "subtleCTA": "¿Es este tu negocio? Reclámalo",
+        "emailTitle": "¡Bienvenido! Reclama tu negocio",
+        "emailBody": "Las personas están descubriendo tu negocio en Therr. Reclama este espacio para ver la actividad de clientes en tiempo real, gestionar tu listado y comenzar a interactuar con tu audiencia hoy.",
         "claimButton": "Reclamar este espacio",
         "editButton": "Editar espacio",
         "alreadyHaveAccount": "¿Ya tienes una cuenta? Inicia sesión",

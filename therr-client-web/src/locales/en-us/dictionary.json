@@ -460,7 +460,9 @@
       "previousPage": "Back To Page {pageNumber}",
       "nextPage": "To Page {pageNumber}",
       "expandMap": "Expand Map",
-      "collapseMap": "Collapse Map"
+      "collapseMap": "Collapse Map",
+      "signInPrompt": "to see your private spaces and manage listings.",
+      "website": "website"
     },
     "home": {
       "pageTitle": "Create your Social Profile or Business",
@@ -783,6 +785,9 @@
       "claimSpace": {
         "title": "Is this your business?",
         "body": "Claim this space to see real-time customer activity, get paired with complementary local businesses, and reward customers who spread the word. Update your info, add photos, and take control of your presence.",
+        "subtleCTA": "Is this your business? Claim it",
+        "emailTitle": "Welcome! Claim Your Business",
+        "emailBody": "People are discovering your business on Therr. Claim this space to see real-time customer activity, manage your listing, and start engaging with your audience today.",
         "claimButton": "Claim This Space",
         "editButton": "Edit Space",
         "alreadyHaveAccount": "Already have an account? Sign in",

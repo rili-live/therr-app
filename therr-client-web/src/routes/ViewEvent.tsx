@@ -63,6 +63,7 @@ interface IStoreProps extends IViewEventDispatchProps {
 
 // Regular component props
 interface IViewEventProps extends IViewEventRouterProps, IStoreProps {
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 
@@ -331,7 +332,7 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
                             }]}
                             centerLat={lat}
                             centerLng={lng}
-                            localePrefix=""
+                            localePrefix={({ es: '/es', 'fr-ca': '/fr' } as Record<string, string>)[this.props.locale] || ''}
                             zoom={15}
                             height={200}
                             interactive={false}
