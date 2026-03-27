@@ -459,8 +459,6 @@
       "yours": "Tuyo",
       "previousPage": "Volver a la p\u00e1gina {pageNumber}",
       "nextPage": "Ir a la p\u00e1gina {pageNumber}",
-      "showMap": "Mostrar mapa",
-      "hideMap": "Ocultar mapa",
       "expandMap": "Ampliar mapa",
       "collapseMap": "Contraer mapa"
     },

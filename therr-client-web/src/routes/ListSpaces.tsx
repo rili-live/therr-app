@@ -359,9 +359,11 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     </Group>
 
                     {/* Map View - always visible in compact mode, expandable to full size */}
+                    {/* key forces Leaflet remount so interactive/height changes take effect */}
                     {spacesArray.length > 0 && (
                         <React.Suspense fallback={<Skeleton height={isMapExpanded ? 400 : 250} radius="md" />}>
                             <SpacesMap
+                                key={isMapExpanded ? 'expanded' : 'compact'}
                                 spaces={spacesArray}
                                 centerLat={centerLat}
                                 centerLng={centerLng}

@@ -459,8 +459,6 @@
       "yours": "Yours",
       "previousPage": "Back To Page {pageNumber}",
       "nextPage": "To Page {pageNumber}",
-      "showMap": "Show Map",
-      "hideMap": "Hide Map",
       "expandMap": "Expand Map",
       "collapseMap": "Collapse Map"
     },
