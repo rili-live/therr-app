@@ -164,6 +164,26 @@
             "postBody1": "¡Gracias por elegir Therr for Business! Estamos mejorando constantemente nuestras herramientas para ayudarte a llegar a más clientes locales. Tus comentarios siempre son bienvenidos.",
             "buttonText": "Ir al panel de control"
         },
+        "unclaimedSpace": {
+            "subject": "La gente está buscando {spaceName}",
+            "header": "Tu negocio está llamando la atención",
+            "preheaderText": "Los clientes están descubriendo y hablando de tu negocio. Reclama tu listado gratuito hoy.",
+            "dearUser": "¡Hola, {spaceName}!",
+            "body1": "Personas en tu área están descubriendo {spaceName} en Therr — y están compartiendo lo que pasa en tu negocio en tiempo real. Los clientes publican sobre sus experiencias, señalan ofertas y avisan a otros cuando hay mucha gente o cuando el ambiente es genial. Tu negocio ya tiene un listado. La pregunta es: ¿quién controla la historia?",
+            "body2": "Cuando reclamas tu página, desbloqueas herramientas que Google no puede ofrecer: ve reportes de clientes en tiempo real sobre tu negocio, conéctate con negocios locales complementarios que te envían clientes, y recompensa a quienes difunden tu negocio. Esto no es solo un listado — es una presencia viva impulsada por la comunidad.",
+            "bodyBold": "Solo toma 60 segundos para comenzar.",
+            "buttonText": "Ver tu página de negocio",
+            "postBody1": "¿Ya tienes una cuenta? Simplemente inicia sesión y reclama tu espacio desde la página del negocio.",
+            "missingFieldsIntro": "A tu listado todavía le faltan algunos detalles clave:",
+            "missingFieldLabels": {
+                "openingHours": "horario de atención",
+                "phoneNumber": "número de teléfono",
+                "websiteUrl": "sitio web",
+                "menuUrl": "menú",
+                "photos": "fotos",
+                "description": "una descripción detallada"
+            }
+        },
         "dashboardSubscriberIntro": {
             "header": "¡Bienvenido/a a {brandName}!",
             "dearUser": "¡Bienvenido/a!",
