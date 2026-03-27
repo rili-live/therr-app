@@ -268,7 +268,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     )}
                     <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
                         <Group gap="sm" wrap="wrap">
-                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="lg" style={{ lineHeight: 1.3 }}>
+                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="lg" style={{ lineHeight: 1.3, wordBreak: 'break-word' }}>
                                 {space.notificationMsg}
                             </Anchor>
                             {this.renderVisibilityBadge(space)}
@@ -322,7 +322,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
         return (
             <div id="page_view_spaces">
-                <Stack gap="lg" p="xl" maw={800} mx="auto">
+                <Stack gap="lg" p={{ base: 'sm', sm: 'xl' }} maw={800} mx="auto">
                     <div>
                         <Title order={1} mb="xs">
                             {this.props.translate('pages.spaces.header1')}
