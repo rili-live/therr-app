@@ -1,4 +1,5 @@
 import * as React from 'react';
+import 'leaflet/dist/leaflet.css';
 
 interface ISpace {
     id: string;
@@ -25,23 +26,7 @@ const escapeHtml = (str: string): string => {
     return div.innerHTML;
 };
 
-const LEAFLET_CSS_ID = 'leaflet-css';
 const ICON_CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
-
-const loadLeafletCss = (): Promise<void> => {
-    if (document.getElementById(LEAFLET_CSS_ID)) return Promise.resolve();
-    return new Promise((resolve) => {
-        const link = document.createElement('link');
-        link.id = LEAFLET_CSS_ID;
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-        link.onload = () => resolve();
-        link.onerror = () => resolve();
-        document.head.appendChild(link);
-        // Fallback for environments where onload doesn't fire (e.g., jsdom)
-        setTimeout(resolve, 3000);
-    });
-};
 
 const SpacesMap: React.FC<ISpacesMapProps> = ({
     spaces,
@@ -97,12 +82,9 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
 
         let cancelled = false;
 
-        // Wait for both Leaflet CSS and JS before initializing the map.
-        // Leaflet requires its CSS to be loaded for correct tile positioning.
-        Promise.all([
-            loadLeafletCss(),
-            import('leaflet'),
-        ]).then(([, leafletModule]) => {
+        // Leaflet CSS is bundled via the import at the top of this file,
+        // so it's available synchronously before the map initializes.
+        import('leaflet').then((leafletModule) => {
             if (cancelled || !mapRef.current) return;
 
             const L = leafletModule.default || leafletModule;
@@ -139,7 +121,6 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
             leafletMapRef.current = map;
 
             // Force Leaflet to recalculate container size on next frame
-            // (handles case where CSS loaded before map init)
             requestAnimationFrame(() => {
                 if (map && !cancelled) {
                     map.invalidateSize();
