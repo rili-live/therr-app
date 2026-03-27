@@ -131,6 +131,8 @@ $profileImgWidth: rem-calc(100px);
         border-radius: 0.5rem;
         border: 1px solid var(--mantine-color-default-border);
         z-index: 1;
+        overflow: hidden;
+        isolation: isolate;
 
         @media (max-width: 48em) {
             height: 300px;
@@ -143,5 +145,7 @@ $profileImgWidth: rem-calc(100px);
     border-radius: 0.5rem;
     border: 1px solid var(--mantine-color-default-border);
     z-index: 1;
+    overflow: hidden;
+    isolation: isolate;
     margin-top: 0.5rem;
 }

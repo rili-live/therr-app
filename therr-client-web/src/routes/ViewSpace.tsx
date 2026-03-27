@@ -52,7 +52,6 @@ interface IViewSpaceRouterProps {
 }
 
 interface IViewSpaceDispatchProps {
-    login: Function;
     getSpaceDetails: Function;
 }
 
@@ -64,6 +63,7 @@ interface IStoreProps extends IViewSpaceDispatchProps {
 
 // Regular component props
 interface IViewSpaceProps extends IViewSpaceRouterProps, IStoreProps {
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 
@@ -204,8 +204,6 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             }).catch(() => { /* ignore */ });
         }
     };
-
-    login = (credentials: any) => this.props.login(credentials);
 
     scrollToClaimSection = () => {
         document.getElementById('claim-space-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -482,7 +480,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                 }]}
                                 centerLat={lat}
                                 centerLng={lng}
-                                localePrefix=""
+                                localePrefix={({ es: '/es', 'fr-ca': '/fr' } as Record<string, string>)[this.props.locale] || ''}
                                 zoom={15}
                                 height={250}
                                 interactive={false}

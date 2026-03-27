@@ -460,7 +460,9 @@
       "previousPage": "Volver a la p\u00e1gina {pageNumber}",
       "nextPage": "Ir a la p\u00e1gina {pageNumber}",
       "expandMap": "Ampliar mapa",
-      "collapseMap": "Contraer mapa"
+      "collapseMap": "Contraer mapa",
+      "signInPrompt": "para ver tus espacios privados y gestionar listados.",
+      "website": "sitio web"
     },
     "home": {
       "pageTitle": "Crea tu perfil social o negocio",

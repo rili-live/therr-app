@@ -460,7 +460,9 @@
       "previousPage": "Back To Page {pageNumber}",
       "nextPage": "To Page {pageNumber}",
       "expandMap": "Expand Map",
-      "collapseMap": "Collapse Map"
+      "collapseMap": "Collapse Map",
+      "signInPrompt": "to see your private spaces and manage listings.",
+      "website": "website"
     },
     "home": {
       "pageTitle": "Create your Social Profile or Business",
