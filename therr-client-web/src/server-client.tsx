@@ -551,6 +551,75 @@ app.use((req: any, res, next) => {
     next();
 });
 
+const renderThoughtView = (req, res, config, {
+    markup,
+    state,
+}, initialState, localeVars) => {
+    const title = config.head.title;
+    const description = config.head.description
+        // eslint-disable-next-line max-len
+        || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
+
+    const thoughtId = req.params?.thoughtId;
+    const userState = initialState?.user || {};
+    const thought = userState?.thoughts?.find((t) => t.id === thoughtId) || null;
+    const thoughtTitle = thought?.message ? thought.message.substring(0, 70) : title;
+    const thoughtDescription = (thought?.message || description).replace(/\\n/g, ' ')
+        .replace(/\\r/g, ' ').substring(0, 300);
+    const authorName = thought?.fromUserFirstName && thought?.fromUserLastName
+        ? `${thought.fromUserFirstName} ${thought.fromUserLastName}` : '';
+    const authorId = thought?.fromUserId || '';
+    const thoughtCategory = thought?.category || '';
+
+    const thoughtSchema: any = {
+        '@context': 'https://schema.org',
+        '@type': 'SocialMediaPosting',
+        '@id': `https://www.therr.com${localeVars.canonicalPath}`,
+        headline: thoughtTitle,
+        datePublished: thought?.createdAt || '',
+        author: {
+            '@type': 'Person',
+            name: authorName,
+            url: authorId ? `https://therr.com/users/${authorId}` : '',
+        },
+    };
+
+    if (thought?.message) {
+        thoughtSchema.articleBody = thoughtDescription;
+    }
+
+    const breadcrumbItems: any[] = [
+        {
+            '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+        },
+        {
+            '@type': 'ListItem', position: 2, name: 'Posts', item: 'https://www.therr.com/posts/thoughts',
+        },
+        { '@type': 'ListItem', position: 3, name: thoughtTitle },
+    ];
+
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbItems,
+    };
+
+    return res.render(config.view, {
+        title: thoughtTitle,
+        description: thoughtDescription,
+        datePublished: thought?.createdAt,
+        authorName,
+        authorId,
+        thoughtCategory,
+        thoughtSchema: JSON.stringify(thoughtSchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        markup,
+        routePath: config.route,
+        state,
+        ...localeVars,
+    });
+};
+
 const renderMomentView = (req, res, config, {
     markup,
     state,
@@ -1403,7 +1472,7 @@ routeConfig.forEach((config) => {
                 const Comp = route.element;
                 const initData = (Comp && route.fetchData) || (() => Promise.resolve());
                 // fetchData calls a dispatch on the store updating the current state before render
-                promises.push(initData(store.dispatch, match.params)
+                promises.push(initData(store.dispatch, match.params, req.query)
                     .catch((error) => {
                         printLogs({
                             level: 'error',
@@ -1461,6 +1530,13 @@ routeConfig.forEach((config) => {
                 ReactGA.send({ hitType: 'pageview', page: req.path, title });
 
                 const localeVars = getLocaleVars(req);
+
+                if (routeView === 'thoughts') {
+                    return renderThoughtView(req, res, config, {
+                        markup,
+                        state,
+                    }, initialState, localeVars);
+                }
 
                 if (routeView === 'moments') {
                     return renderMomentView(req, res, config, {

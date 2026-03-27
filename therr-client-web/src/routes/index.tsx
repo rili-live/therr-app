@@ -3,7 +3,6 @@ import { RouteObject } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
-import { MapsService } from 'therr-react/services';
 import { ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
 import CreateForum from './CreateForum';
@@ -42,7 +41,7 @@ import InviteLanding from './InviteLanding';
 
 export type IRoute = RouteObject & {
     access?: IAccess;
-    fetchData?: (dispatch: any, params?: { [key: string]: any }) => Promise<any>;
+    fetchData?: (dispatch: any, params?: { [key: string]: any }, query?: { [key: string]: any }) => Promise<any>;
     // Overriding this property allows us to add custom paramaters to React components
     redirectPath?: string;
 };
@@ -262,14 +261,9 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     },
     {
         path: '/thoughts/:thoughtId',
-        element: <AuthRoute
-            component={ViewThought}
-            isAuthorized={routePropsConfig.isAuthorized({
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            })}
-            redirectPath={'/create-profile'}
-        />,
+        element: <ViewThought />,
+        // TODO: Add fetchData once getThoughtDetails API supports unauthenticated access (like moments/spaces)
+        // The SSR template (thoughts.hbs) and renderThoughtView are ready for when the endpoint is public
     },
     {
         path: '/moments/:momentId',
@@ -282,30 +276,49 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/locations',
         element: <ListSpaces />,
-        fetchData: (dispatch: any, params: any) => MapActions.listSpaces({
-            // query: '',
-            itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
-            pageNumber: 1,
-            filterBy: 'distance',
-            latitude: DEFAULT_LATITUDE,
-            longitude: DEFAULT_LONGITUDE,
-        }, {
-            distanceOverride: 40075 * (1000 / 2), // estimated half distance around world in meters
-        })(dispatch),
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const searchQuery = query.q || '';
+            const queryParams: any = {
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber: 1,
+                latitude: DEFAULT_LATITUDE,
+                longitude: DEFAULT_LONGITUDE,
+            };
+            if (searchQuery) {
+                queryParams.filterBy = 'notificationMsg';
+                queryParams.filterOperator = 'ilike';
+                queryParams.query = searchQuery;
+            } else {
+                queryParams.filterBy = 'distance';
+            }
+            return MapActions.listSpaces(queryParams, {
+                distanceOverride: 40075 * (1000 / 2),
+            })(dispatch);
+        },
     },
     {
         path: '/locations/:pageNumber',
         element: <ListSpaces />,
-        fetchData: (dispatch: any, params: any) => MapActions.listSpaces({
-            // query: '',
-            itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
-            pageNumber: 1,
-            filterBy: 'distance',
-            latitude: DEFAULT_LATITUDE,
-            longitude: DEFAULT_LONGITUDE,
-        }, {
-            distanceOverride: 40075 * (1000 / 2), // estimated half distance around world in meters
-        })(dispatch),
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const searchQuery = query.q || '';
+            const pageNumber = parseInt(params.pageNumber || '1', 10);
+            const queryParams: any = {
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber,
+                latitude: DEFAULT_LATITUDE,
+                longitude: DEFAULT_LONGITUDE,
+            };
+            if (searchQuery) {
+                queryParams.filterBy = 'notificationMsg';
+                queryParams.filterOperator = 'ilike';
+                queryParams.query = searchQuery;
+            } else {
+                queryParams.filterBy = 'distance';
+            }
+            return MapActions.listSpaces(queryParams, {
+                distanceOverride: 40075 * (1000 / 2),
+            })(dispatch);
+        },
     },
     {
         path: '/events/:eventId',
