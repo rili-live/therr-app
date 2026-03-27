@@ -11,6 +11,9 @@ enum MetricNames {
   SPACE_DISLIKE = 'space.user.dislike',
   SPACE_SUPER_DISLIKE = 'space.user.superDislike',
 
+  // MARKETING
+  SPACE_UNCLAIMED_EMAIL_SENT = 'space.marketing.unclaimedEmailSent',
+
   // USER
   USER_CONTENT_PREF_CAT_PREFIX = 'user.content.preferences.categories.'
 }
