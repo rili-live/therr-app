@@ -37,7 +37,7 @@ const ThoughtCard: React.FC<IThoughtCardProps> = ({ thought, onThoughtClick }) =
             underline="never"
             c="inherit"
             onClick={handleClick}
-            aria-label={thought.message ? thought.message.substring(0, 80) : 'View post'}
+            aria-label={(thought.message || '').substring(0, 80) || undefined}
         >
             <Paper
                 className="thought-card"

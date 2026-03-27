@@ -262,10 +262,8 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/thoughts/:thoughtId',
         element: <ViewThought />,
-        fetchData: (dispatch: any, params: any) => UsersActions.getThoughtDetails(params.thoughtId, {
-            withUser: true,
-            withReplies: true,
-        })(dispatch),
+        // TODO: Add fetchData once getThoughtDetails API supports unauthenticated access (like moments/spaces)
+        // The SSR template (thoughts.hbs) and renderThoughtView are ready for when the endpoint is public
     },
     {
         path: '/moments/:momentId',
