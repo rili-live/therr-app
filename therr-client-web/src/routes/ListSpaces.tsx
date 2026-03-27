@@ -63,7 +63,7 @@ interface IListSpacesState {
     itemsPerPage: number;
     searchQuery: string;
     isSearching: boolean;
-    isMapVisible: boolean;
+    isMapExpanded: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -89,7 +89,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
             searchQuery: '',
             isSearching: false,
-            isMapVisible: false,
+            isMapExpanded: false,
         };
     }
 
@@ -207,7 +207,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     };
 
     handleToggleMap = () => {
-        this.setState((prevState) => ({ isMapVisible: !prevState.isMapVisible }));
+        this.setState((prevState) => ({ isMapExpanded: !prevState.isMapExpanded }));
     };
 
     login = (credentials: any) => this.props.login(credentials);
@@ -268,7 +268,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     )}
                     <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
                         <Group gap="sm" wrap="wrap">
-                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="lg" style={{ lineHeight: 1.3 }}>
+                            <Anchor component={Link} to={`/spaces/${space.id}`} fw={600} size="lg" style={{ lineHeight: 1.3, wordBreak: 'break-word' }}>
                                 {space.notificationMsg}
                             </Anchor>
                             {this.renderVisibilityBadge(space)}
@@ -310,7 +310,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         } = this.props;
         const { pageNumber: pageNumberStr } = routeParams;
         const {
-            itemsPerPage, searchQuery, isSearching, isMapVisible,
+            itemsPerPage, searchQuery, isSearching, isMapExpanded,
         } = this.state;
         const spacesArray = Object.values(map?.spaces || {}) as any[];
         const pageNumber = parseInt(pageNumberStr || '1', 10);
@@ -322,7 +322,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
         return (
             <div id="page_view_spaces">
-                <Stack gap="lg" p="xl" maw={800} mx="auto">
+                <Stack gap="lg" p={{ base: 'sm', sm: 'xl' }} maw={800} mx="auto">
                     <div>
                         <Title order={1} mb="xs">
                             {this.props.translate('pages.spaces.header1')}
@@ -352,20 +352,24 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                             </Button>
                         )}
                         <Button variant="outline" size="sm" onClick={this.handleToggleMap}>
-                            {isMapVisible
-                                ? this.props.translate('pages.spaces.hideMap')
-                                : this.props.translate('pages.spaces.showMap')}
+                            {isMapExpanded
+                                ? this.props.translate('pages.spaces.collapseMap')
+                                : this.props.translate('pages.spaces.expandMap')}
                         </Button>
                     </Group>
 
-                    {/* Map View */}
-                    {isMapVisible && spacesArray.length > 0 && (
-                        <React.Suspense fallback={<Skeleton height={400} radius="md" />}>
+                    {/* Map View - always visible in compact mode, expandable to full size */}
+                    {/* key forces Leaflet remount so interactive/height changes take effect */}
+                    {spacesArray.length > 0 && (
+                        <React.Suspense fallback={<Skeleton height={isMapExpanded ? 400 : 250} radius="md" />}>
                             <SpacesMap
+                                key={isMapExpanded ? 'expanded' : 'compact'}
                                 spaces={spacesArray}
                                 centerLat={centerLat}
                                 centerLng={centerLng}
                                 localePrefix={localePrefix}
+                                height={isMapExpanded ? undefined : 250}
+                                interactive={isMapExpanded}
                             />
                         </React.Suspense>
                     )}

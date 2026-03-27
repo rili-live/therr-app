@@ -459,8 +459,8 @@
       "yours": "Yours",
       "previousPage": "Back To Page {pageNumber}",
       "nextPage": "To Page {pageNumber}",
-      "showMap": "Show Map",
-      "hideMap": "Hide Map"
+      "expandMap": "Expand Map",
+      "collapseMap": "Collapse Map"
     },
     "home": {
       "pageTitle": "Create your Social Profile or Business",
@@ -748,6 +748,8 @@
         "viewSpace": "View Location",
         "viewGroup": "View Group",
         "viewOnGoogleMaps": "View on Google Maps",
+        "showMap": "Show Map",
+        "hideMap": "Hide Map",
         "privateEventMessage": "This event belongs to a private group",
         "privateEventCta": "Sign up or log in to request access",
         "signUpPrompt": "Sign up or log in to see full event details"
@@ -824,7 +826,9 @@
       "labels": {
         "postedBy": "Posted by",
         "viewLocation": "View Location",
-        "viewOnGoogleMaps": "View on Google Maps"
+        "viewOnGoogleMaps": "View on Google Maps",
+        "showMap": "Show Map",
+        "hideMap": "Hide Map"
       }
     },
     "viewUser": {
