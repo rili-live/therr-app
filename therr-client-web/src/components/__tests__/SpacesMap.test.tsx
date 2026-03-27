@@ -74,6 +74,13 @@ describe('SpacesMap', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mapLayers.length = 0;
+        // Pre-create leaflet-css element so loadLeafletCss resolves immediately
+        // (jsdom doesn't fire link.onload, which would cause Promise.all to hang)
+        if (!document.getElementById('leaflet-css')) {
+            const link = document.createElement('link');
+            link.id = 'leaflet-css';
+            document.head.appendChild(link);
+        }
         // Restore mock return values cleared by clearAllMocks
         mockMarker.addTo.mockImplementation(() => {
             mapLayers.push(mockMarker);
