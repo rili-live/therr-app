@@ -83,7 +83,15 @@ export default () => (
                                 </Button>
                             </td>
                             <td className="border-0">
-                                <Button href="https://business.therr.com/" target="_blank" variant="secondary" className="m-0 mt-3">Demo Volt React Pro <FontAwesomeIcon icon={faExternalLinkAlt} className="ms-1" /></Button>
+                                <Button
+                                    href="https://business.therr.com/"
+                                    target="_blank"
+                                    variant="secondary"
+                                    className="m-0 mt-3"
+                                >
+                                    Demo Volt React Pro
+                                    {' '}<FontAwesomeIcon icon={faExternalLinkAlt} className="ms-1" />
+                                </Button>
                             </td>
                         </tr>
                     </tbody>

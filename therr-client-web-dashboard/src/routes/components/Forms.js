@@ -24,7 +24,12 @@ export default () => (
             <Documentation
                 title="Example"
                 description={
-                    <p>Form elements are an important part of the UI to receive text input from the users. The <code>&#x3C;Form&#x3E;</code> component can be used to create forms, form groups, labels, and input elements inside the UI. Check out the following example for a simple email input field and a textarea field:</p>
+                    <p>
+                        Form elements are an important part of the UI to receive text input from
+                        the users. The <code>&#x3C;Form&#x3E;</code> component can be used to create forms,
+                        form groups, labels, and input elements inside the UI. Check out the
+                        following example for a simple email input field and a textarea field:
+                    </p>
                 }
                 scope={{ Form }}
                 imports={'import { Form } from \'@themesberg/react-bootstrap\';'}
@@ -43,7 +48,12 @@ export default () => (
             <Documentation
                 title="Input fields with icon"
                 description={
-                    <p>You can also add icons to the left or right side of the input field by using the <code>&#x3C;InputGroup&#x3E;</code> component and using the <code>&#x3C;InputGroup.Text&#x3E;</code> element with an icon element inside it, either after or before the <code>&#x3C;Form.Control&#x3E;</code> element.</p>
+                    <p>
+                        You can also add icons to the left or right side of the input field by
+                        using the <code>&#x3C;InputGroup&#x3E;</code> component and using
+                        the <code>&#x3C;InputGroup.Text&#x3E;</code> element with an icon element inside
+                        it, either after or before the <code>&#x3C;Form.Control&#x3E;</code> element.
+                    </p>
                 }
                 scope={{
                     Form, InputGroup, FontAwesomeIcon, faSearch,
@@ -72,7 +82,13 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";`}
             <Documentation
                 title="Validation"
                 description={
-                    <p>You can easily update the styles of a valid or invalid styles input field by using the <code>isValid</code> or <code>isInvalid</code> attributes. Additionally, you can use the <code>&#x3C;Form.Control.Feedback&#x3E;</code> component to write the message regarding the success or error message.</p>
+                    <p>
+                        You can easily update the styles of a valid or invalid styles input field
+                        by using the <code>isValid</code> or <code>isInvalid</code> attributes.
+                        Additionally, you can use
+                        the <code>&#x3C;Form.Control.Feedback&#x3E;</code> component to write the message
+                        regarding the success or error message.
+                    </p>
                 }
                 scope={{ Form }}
                 imports={'import { Form } from \'@themesberg/react-bootstrap\';'}
@@ -93,7 +109,12 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";`}
             <Documentation
                 title="Select input"
                 description={
-                    <p>The <code>&#x3C;Form.Select&#x3E;</code> component can be used for option selection from the user. You can use the <code>&#x3C;option&#x3E;</code> elements to add multiple options and use the <code>defaultValue</code> attribute to set the default value of the select field.</p>
+                    <p>
+                        The <code>&#x3C;Form.Select&#x3E;</code> component can be used for option selection
+                        from the user. You can use the <code>&#x3C;option&#x3E;</code> elements to add
+                        multiple options and use the <code>defaultValue</code> attribute to set the
+                        default value of the select field.
+                    </p>
                 }
                 scope={{ Form }}
                 imports={'import { Form } from \'@themesberg/react-bootstrap\';'}
@@ -131,7 +152,11 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";`}
             <Documentation
                 title="Textarea"
                 description={
-                    <p>You can create a textarea input field by adding the <code>as="textarea"</code> modifier attribute to the <code>&#x3C;Form.Control&#x3E;</code> component.</p>
+                    <p>
+                        You can create a textarea input field by adding
+                        the <code>as=&quot;textarea&quot;</code> modifier attribute to
+                        the <code>&#x3C;Form.Control&#x3E;</code> component.
+                    </p>
                 }
                 scope={{ Form }}
                 imports={'import { Form } from \'@themesberg/react-bootstrap\';'}
@@ -146,7 +171,11 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";`}
             <Documentation
                 title="File upload"
                 description={
-                    <p>If you want to use an input field to upload files, you need to add the <code>type="file"</code> attribute to the <code>&#x3C;Form.Control&#x3E;</code> component.</p>
+                    <p>
+                        If you want to use an input field to upload files, you need to add
+                        the <code>type=&quot;file&quot;</code> attribute to
+                        the <code>&#x3C;Form.Control&#x3E;</code> component.
+                    </p>
                 }
                 scope={{ Form }}
                 imports={'import { Form } from \'@themesberg/react-bootstrap\';'}
@@ -159,8 +188,16 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";`}
                 title="Checkboxes"
                 description={
                     <>
-                        <p>Use the <code>&#x3C;Form.Check&#x3E;</code> component to create checkbox items. If you want to disable on them, you need to add the <code>disabled</code> attribute.</p>
-                        <p>Make sure the is a <code>{'id="*"'}</code> and <code>{'htmlFor="*"'}</code> attribute for each element so that clicking on the text will also toggle the element.</p>
+                        <p>
+                            Use the <code>&#x3C;Form.Check&#x3E;</code> component to create checkbox
+                            items. If you want to disable on them, you need to add
+                            the <code>disabled</code> attribute.
+                        </p>
+                        <p>
+                            Make sure the is a <code>{'id="*"'}</code>
+                            and <code>{'htmlFor="*"'}</code> attribute for each element so that
+                            clicking on the text will also toggle the element.
+                        </p>
                     </>
                 }
                 scope={{ Form }}
@@ -175,8 +212,17 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";`}
                 title="Radio buttons"
                 description={
                     <>
-                        <p>If you want to use radio buttons, you need to use the <code>&#x3C;Form.Check&#x3E;</code> component with the <code>type="radio"</code> modifier. You can disable the element by using the <code>disabled</code> attribute.</p>
-                        <p>Make sure the is a <code>{'id="*"'}</code> and <code>{'htmlFor="*"'}</code> attribute for each element so that clicking on the text will also toggle the element.</p>
+                        <p>
+                            If you want to use radio buttons, you need to use
+                            the <code>&#x3C;Form.Check&#x3E;</code> component with
+                            the <code>type=&quot;radio&quot;</code> modifier. You can disable the element
+                            by using the <code>disabled</code> attribute.
+                        </p>
+                        <p>
+                            Make sure the is a <code>{'id="*"'}</code>
+                            and <code>{'htmlFor="*"'}</code> attribute for each element so that
+                            clicking on the text will also toggle the element.
+                        </p>
                     </>
                 }
                 scope={{ Form }}
@@ -218,7 +264,20 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";`}
             <Documentation
                 title="Datepicker"
                 description={
-                    <p>Use the <code>&#x3C;Datetime&#x3E;</code> component to use a datepicker as an input field. You can read more about the options that you can use for this component by reading the <Card.Link href="https://www.npmjs.com/package/react-datetime" target="_blank">react-datetime</Card.Link> documentation.</p>
+                    <p>
+                        Use the <code>&#x3C;Datetime&#x3E;</code> component to use a datepicker as an
+                        input field. You can read more about the options that you can use for
+                        this component by reading the
+                        {' '}
+                        <Card.Link
+                            href="https://www.npmjs.com/package/react-datetime"
+                            target="_blank"
+                        >
+                            react-datetime
+                        </Card.Link>
+                        {' '}
+                        documentation.
+                    </p>
                 }
                 scope={{
                     Datetime, Form, InputGroup, FontAwesomeIcon, faCalendarAlt, moment,
