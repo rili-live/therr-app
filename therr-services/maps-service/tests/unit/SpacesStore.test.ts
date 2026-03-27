@@ -298,6 +298,91 @@ describe('SpacesStore', () => {
         });
     });
 
+    describe('searchSpaces - businessEmail stripping', () => {
+        it('strips businessEmail from search results', () => {
+            const mockRows = [
+                { id: '1', notificationMsg: 'Test', businessEmail: 'secret@example.com' },
+                { id: '2', notificationMsg: 'Test2', businessEmail: 'other@example.com' },
+            ];
+            const mockStore = {
+                read: {
+                    query: sinon.stub().resolves({ rows: mockRows }),
+                },
+            };
+            const mockMediaStore = {
+                write: {
+                    query: sinon.stub().resolves({}),
+                },
+            };
+            const store = new SpacesStore(mockStore, mockMediaStore);
+            return store.searchSpaces({
+                pagination: { itemsPerPage: 10, pageNumber: 1 },
+                filterBy: 'distance',
+                query: 5,
+                longitude: 15,
+                latitude: -1,
+            }, []).then((results: any) => {
+                // Results go through formatSQLJoinAsJSON, so check the raw rows were mutated
+                mockRows.forEach((row: any) => {
+                    expect(row).to.not.have.property('businessEmail');
+                });
+            });
+        });
+    });
+
+    describe('findSpaces - businessEmail stripping', () => {
+        it('strips businessEmail from found spaces', () => {
+            const mockRows = [
+                { id: 'abc', notificationMsg: 'Place', businessEmail: 'biz@example.com', mediaIds: '' },
+            ];
+            const mockStore = {
+                read: {
+                    query: sinon.stub().resolves({ rows: mockRows }),
+                },
+            };
+            const mockMediaStore = {
+                write: {
+                    query: sinon.stub().resolves({}),
+                },
+            };
+            const store = new SpacesStore(mockStore, mockMediaStore);
+            const mockHeaders = { 'x-platform': 'test', 'x-brand-variation': 'therr', 'x-localecode': 'en-us' } as any;
+            return store.findSpaces(mockHeaders, ['abc'], { limit: 1 }).then(({ spaces }: any) => {
+                spaces.forEach((space: any) => {
+                    expect(space).to.not.have.property('businessEmail');
+                });
+            });
+        });
+    });
+
+    describe('updateSpace - businessEmail support', () => {
+        it('includes businessEmail in the update query when provided', () => {
+            const mockStore = {
+                read: {
+                    query: sinon.stub().resolves({ rows: [] }),
+                },
+                write: {
+                    query: sinon.stub().resolves({ rows: [{ id: 'space-1' }] }),
+                },
+            };
+            const mockMediaStore = {
+                write: {
+                    query: sinon.stub().resolves({}),
+                },
+            };
+            const store = new SpacesStore(mockStore, mockMediaStore);
+            return store.updateSpace('space-1', {
+                fromUserId: 'user-1',
+                businessEmail: 'contact@business.com',
+                notificationMsg: 'Updated Name',
+            }).then(() => {
+                const queryStr = mockStore.write.query.args[0][0];
+                expect(queryStr).to.include('businessEmail');
+                expect(queryStr).to.include('contact@business.com');
+            });
+        });
+    });
+
     describe('getById', () => {
         it('queries with a join request', () => {
             const mockId = '12345';
