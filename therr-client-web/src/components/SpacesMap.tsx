@@ -26,6 +26,7 @@ const escapeHtml = (str: string): string => {
 };
 
 const LEAFLET_CSS_ID = 'leaflet-css';
+const ICON_CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
 
 const loadLeafletCss = () => {
     if (document.getElementById(LEAFLET_CSS_ID)) return;
@@ -34,45 +35,6 @@ const loadLeafletCss = () => {
     link.rel = 'stylesheet';
     link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
     document.head.appendChild(link);
-};
-
-const configureIcons = (leaflet: any) => {
-    // eslint-disable-next-line no-underscore-dangle, no-param-reassign
-    delete (leaflet.Icon.Default.prototype as any)._getIconUrl;
-    const CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
-    leaflet.Icon.Default.mergeOptions({
-        iconRetinaUrl: `${CDN}/marker-icon-2x.png`,
-        iconUrl: `${CDN}/marker-icon.png`,
-        shadowUrl: `${CDN}/marker-shadow.png`,
-    });
-};
-
-const addMarkers = (L: any, map: any, spaces: ISpace[], localePrefix: string) => {
-    // Clear existing markers
-    map.eachLayer((layer: any) => {
-        if (layer instanceof L.Marker) {
-            map.removeLayer(layer);
-        }
-    });
-
-    const bounds: any[] = [];
-    const prefix = localePrefix || '';
-
-    spaces.forEach((space) => {
-        if (space.latitude && space.longitude) {
-            const marker = L.marker([space.latitude, space.longitude]).addTo(map);
-            const name = escapeHtml(space.notificationMsg || 'Unknown');
-            const address = space.addressReadable
-                ? `<br/><small>${escapeHtml(space.addressReadable)}</small>`
-                : '';
-            marker.bindPopup(
-                `<a href="${prefix}/spaces/${space.id}"><strong>${name}</strong></a>${address}`,
-            );
-            bounds.push([space.latitude, space.longitude]);
-        }
-    });
-
-    return bounds;
 };
 
 const SpacesMap: React.FC<ISpacesMapProps> = ({
@@ -87,12 +49,43 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
     const mapRef = React.useRef<HTMLDivElement>(null);
     const leafletMapRef = React.useRef<any>(null);
     const leafletLibRef = React.useRef<any>(null);
+    const markerIconRef = React.useRef<any>(null);
     const spacesRef = React.useRef(spaces);
     spacesRef.current = spaces;
 
     const [revision, setRevision] = React.useState(0);
 
-    // Initialize Leaflet map and add initial markers
+    const updateMarkers = React.useCallback((L: any, map: any, spacesList: ISpace[], prefix: string) => {
+        // Clear existing markers (duck-type: has getLatLng and not getTileUrl, excluding tile layers)
+        const markersToRemove: any[] = [];
+        map.eachLayer((layer: any) => {
+            if (layer.getLatLng && !layer.getTileUrl) {
+                markersToRemove.push(layer);
+            }
+        });
+        markersToRemove.forEach((m: any) => map.removeLayer(m));
+
+        const bounds: any[] = [];
+
+        spacesList.forEach((space) => {
+            if (space.latitude && space.longitude) {
+                const markerOpts = markerIconRef.current ? { icon: markerIconRef.current } : {};
+                const marker = L.marker([space.latitude, space.longitude], markerOpts).addTo(map);
+                const name = escapeHtml(space.notificationMsg || 'Unknown');
+                const address = space.addressReadable
+                    ? `<br/><small>${escapeHtml(space.addressReadable)}</small>`
+                    : '';
+                marker.bindPopup(
+                    `<a href="${prefix}/spaces/${space.id}"><strong>${name}</strong></a>${address}`,
+                );
+                bounds.push([space.latitude, space.longitude]);
+            }
+        });
+
+        return bounds;
+    }, []);
+
+    // Initialize Leaflet map
     React.useEffect(() => {
         if (!mapRef.current || leafletMapRef.current) return undefined;
 
@@ -106,7 +99,21 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
             const L = leafletModule.default || leafletModule;
             leafletLibRef.current = L;
 
-            configureIcons(L);
+            // Create explicit icon instance to avoid default icon path issues
+            try {
+                markerIconRef.current = new L.Icon({
+                    iconUrl: `${ICON_CDN}/marker-icon.png`,
+                    iconRetinaUrl: `${ICON_CDN}/marker-icon-2x.png`,
+                    shadowUrl: `${ICON_CDN}/marker-shadow.png`,
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41],
+                });
+            } catch (e) {
+                // Fall back to default icon if custom creation fails
+                markerIconRef.current = null;
+            }
 
             const defaultZoom = zoom || 5;
             const map = L.map(mapRef.current, {
@@ -124,7 +131,8 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
 
             // Add markers immediately with current spaces data
             const currentSpaces = spacesRef.current;
-            const bounds = addMarkers(L, map, currentSpaces, localePrefix);
+            const prefix = localePrefix || '';
+            const bounds = updateMarkers(L, map, currentSpaces, prefix);
 
             if (!zoom && bounds.length > 1) {
                 map.fitBounds(L.latLngBounds(bounds), { padding: [40, 40], maxZoom: 13 });
@@ -132,7 +140,6 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
                 map.setView(bounds[0], 15);
             }
 
-            // Signal that map is ready for subsequent updates
             setRevision(1);
         });
 
@@ -159,14 +166,15 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
         const L = leafletLibRef.current;
         if (!map || !L || !revision) return;
 
-        const bounds = addMarkers(L, map, spaces, localePrefix);
+        const prefix = localePrefix || '';
+        const bounds = updateMarkers(L, map, spaces, prefix);
 
         if (!zoom && bounds.length > 1) {
             map.fitBounds(L.latLngBounds(bounds), { padding: [40, 40], maxZoom: 13 });
         } else if (!zoom && bounds.length === 1) {
             map.setView(bounds[0], 15);
         }
-    }, [spaces, localePrefix, revision]);
+    }, [spaces, localePrefix, revision, updateMarkers, zoom]);
 
     const style = height ? { height: `${height}px` } : undefined;
 
