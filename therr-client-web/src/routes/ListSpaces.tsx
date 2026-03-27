@@ -16,7 +16,10 @@ import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 
-const SpacesMap = React.lazy(() => import('../components/SpacesMap'));
+// Only lazy-load on client (Leaflet requires window/document)
+const SpacesMap = typeof window !== 'undefined'
+    ? React.lazy(() => import('../components/SpacesMap'))
+    : (() => null) as any;
 
 export const DEFAULT_ITEMS_PER_PAGE = 50;
 export const DEFAULT_LATITUDE = 37.1261664; // Middle of U.S. - TODO: Use browser location
@@ -52,6 +55,7 @@ interface IStoreProps extends IListSpacesDispatchProps {
 
 // Regular component props
 interface IListSpacesProps extends IListSpacesRouterProps, IStoreProps {
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 
@@ -302,7 +306,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
     public render(): JSX.Element | null {
         const {
-            location, routeParams, map, user,
+            locale, location, routeParams, map, user,
         } = this.props;
         const { pageNumber: pageNumberStr } = routeParams;
         const {
@@ -313,6 +317,8 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         const isAuthenticated = user?.isAuthenticated;
         const centerLat = location?.user?.latitude || DEFAULT_LATITUDE;
         const centerLng = location?.user?.longitude || DEFAULT_LONGITUDE;
+        const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
+        const localePrefix = localePrefixMap[locale] || '';
 
         return (
             <div id="page_view_spaces">
@@ -359,6 +365,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                                 spaces={spacesArray}
                                 centerLat={centerLat}
                                 centerLng={centerLng}
+                                localePrefix={localePrefix}
                             />
                         </React.Suspense>
                     )}

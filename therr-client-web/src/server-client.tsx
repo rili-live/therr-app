@@ -1154,6 +1154,37 @@ const renderLocationsView = (req, res, config, {
         },
     };
 
+    // Geographic structured data for local directory SEO
+    const geoSpaces = spaces.filter((s: any) => s.latitude && s.longitude).slice(0, 20);
+    const localBusinessSchemas = geoSpaces.map((space: any) => ({
+        '@type': 'LocalBusiness',
+        name: space.notificationMsg || space.id,
+        url: `https://www.therr.com${lp}/spaces/${space.id}`,
+        ...(space.addressReadable && { address: space.addressReadable }),
+        geo: {
+            '@type': 'GeoCoordinates',
+            latitude: space.latitude,
+            longitude: space.longitude,
+        },
+    }));
+
+    const localDirectorySchema = localBusinessSchemas.length > 0
+        ? {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Local Business Directory',
+            description,
+            mainEntity: {
+                '@type': 'ItemList',
+                itemListElement: localBusinessSchemas.map((biz: any, i: number) => ({
+                    '@type': 'ListItem',
+                    position: i + 1,
+                    item: biz,
+                })),
+            },
+        }
+        : null;
+
     // Breadcrumb schema
     const breadcrumbItems: any[] = [
         {
@@ -1178,6 +1209,7 @@ const renderLocationsView = (req, res, config, {
         itemListSchema: JSON.stringify(itemListSchema),
         searchActionSchema: JSON.stringify(searchActionSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        localDirectorySchema: localDirectorySchema ? JSON.stringify(localDirectorySchema) : '',
         prevPage,
         nextPage,
         markup,
