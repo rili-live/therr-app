@@ -41,7 +41,6 @@ interface IListSpacesRouterProps {
 }
 
 interface IListSpacesDispatchProps {
-    login: Function;
     listSpaces: Function;
     updateUserCoordinates: Function;
 }
@@ -210,8 +209,6 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         this.setState((prevState) => ({ isMapExpanded: !prevState.isMapExpanded }));
     };
 
-    login = (credentials: any) => this.props.login(credentials);
-
     renderVisibilityBadge(space: any): JSX.Element | null {
         const { user } = this.props;
         const isAuthenticated = user?.isAuthenticated;
@@ -281,7 +278,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                                 <Badge variant="outline" size="xs">{categoryLabel}</Badge>
                             )}
                             {space.websiteUrl && (
-                                <Anchor href={space.websiteUrl} target="_blank" size="xs">website</Anchor>
+                                <Anchor href={space.websiteUrl} target="_blank" size="xs">{this.props.translate('pages.spaces.website')}</Anchor>
                             )}
                         </Group>
                     </Stack>
@@ -329,8 +326,8 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         </Title>
                         {!isAuthenticated && (
                             <Text size="sm" c="dimmed">
-                                <Anchor component={Link} to="/login" size="sm">Sign in</Anchor>
-                                {' '}to see your private spaces and manage listings.
+                                <Anchor component={Link} to="/login" size="sm">{this.props.translate('components.header.buttons.login')}</Anchor>
+                                {' '}{this.props.translate('pages.spaces.signInPrompt')}
                             </Text>
                         )}
                     </div>

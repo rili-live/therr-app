@@ -36,7 +36,6 @@ interface IViewMomentRouterProps {
 }
 
 interface IViewMomentDispatchProps {
-    login: Function;
     getMomentDetails: Function;
 }
 
@@ -48,6 +47,7 @@ interface IStoreProps extends IViewMomentDispatchProps {
 
 // Regular component props
 interface IViewMomentProps extends IViewMomentRouterProps, IStoreProps {
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 
@@ -119,8 +119,6 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
             }).catch(() => { /* ignore */ });
         }
     };
-
-    login = (credentials: any) => this.props.login(credentials);
 
     renderSkeleton(): JSX.Element {
         return (
@@ -279,7 +277,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
                             }]}
                             centerLat={lat}
                             centerLng={lng}
-                            localePrefix=""
+                            localePrefix={({ es: '/es', 'fr-ca': '/fr' } as Record<string, string>)[this.props.locale] || ''}
                             zoom={15}
                             height={200}
                             interactive={false}

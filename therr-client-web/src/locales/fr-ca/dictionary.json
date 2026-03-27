@@ -460,7 +460,9 @@
       "previousPage": "Retour à la page {pageNumber}",
       "nextPage": "Vers la page {pageNumber}",
       "expandMap": "Agrandir la carte",
-      "collapseMap": "Réduire la carte"
+      "collapseMap": "Réduire la carte",
+      "signInPrompt": "pour voir vos espaces privés et gérer vos annonces.",
+      "website": "site web"
     },
     "home": {
       "pageTitle": "Créez votre profil social ou d'entreprise",
