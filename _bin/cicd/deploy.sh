@@ -82,12 +82,31 @@ scale_up_nodes() {
 # Scale down the node pool after deploying to save costs
 scale_down_nodes() {
   echo "Scaling down node pool '$GKE_NODE_POOL' to $GKE_IDLE_NODE_COUNT node(s)..."
-  gcloud container clusters resize "$GKE_CLUSTER" \
+  if ! gcloud container clusters resize "$GKE_CLUSTER" \
     --node-pool "$GKE_NODE_POOL" \
     --num-nodes "$GKE_IDLE_NODE_COUNT" \
     --zone "$GKE_ZONE" \
-    --quiet
+    --quiet; then
+    echo "WARNING: Failed to scale down node pool. Manual intervention may be required."
+    return
+  fi
   echo "Node pool scaled down successfully."
+}
+
+# Track deployments that need rollout completion before scaling down
+UPDATED_DEPLOYMENTS=()
+
+# Wait for all updated deployments to finish rolling out
+wait_for_rollouts() {
+  if [ ${#UPDATED_DEPLOYMENTS[@]} -eq 0 ]; then
+    return
+  fi
+  echo "Waiting for deployment rollouts to complete..."
+  for deploy in "${UPDATED_DEPLOYMENTS[@]}"; do
+    echo "  Waiting for $deploy..."
+    kubectl rollout status "deployments/$deploy" --timeout=300s
+  done
+  echo "All rollouts complete."
 }
 
 # Ensure we scale down even if the deploy fails
@@ -116,6 +135,7 @@ if should_deploy_web_app || should_deploy_web_app_dashboard; then
     docker push therrapp/client-web:latest
   fi
   kubectl set image deployments/client-deployment web=therrapp/client-web$SUFFIX:$GIT_SHA
+  UPDATED_DEPLOYMENTS+=("client-deployment")
 else
   echo "Skipping client-web deployment (No Changes)"
 fi
@@ -128,6 +148,7 @@ if should_deploy_service "therr-api-gateway"; then
     docker push therrapp/api-gateway:latest
   fi
   kubectl set image deployments/api-gateway-service-deployment server-api-gateway=therrapp/api-gateway$SUFFIX:$GIT_SHA
+  UPDATED_DEPLOYMENTS+=("api-gateway-service-deployment")
 else
   echo "Skipping api-gateway deployment (No Changes)"
 fi
@@ -140,6 +161,7 @@ if should_deploy_service "therr-services/push-notifications-service"; then
     docker push therrapp/push-notifications-service:latest
   fi
   kubectl set image deployments/push-notifications-service-deployment server-push-notifications=therrapp/push-notifications-service$SUFFIX:$GIT_SHA
+  UPDATED_DEPLOYMENTS+=("push-notifications-service-deployment")
 else
   echo "Skipping push-notifications-service deployment (No Changes)"
 fi
@@ -152,6 +174,7 @@ if should_deploy_service "therr-services/maps-service"; then
     docker push therrapp/maps-service:latest
   fi
   kubectl set image deployments/maps-service-deployment server-maps=therrapp/maps-service$SUFFIX:$GIT_SHA
+  UPDATED_DEPLOYMENTS+=("maps-service-deployment")
 else
   echo "Skipping maps-service deployment (No Changes)"
 fi
@@ -164,6 +187,7 @@ if should_deploy_service "therr-services/messages-service"; then
     docker push therrapp/messages-service:latest
   fi
   kubectl set image deployments/messages-service-deployment server-messages=therrapp/messages-service$SUFFIX:$GIT_SHA
+  UPDATED_DEPLOYMENTS+=("messages-service-deployment")
 else
   echo "Skipping messages-service deployment (No Changes)"
 fi
@@ -176,6 +200,7 @@ if should_deploy_service "therr-services/reactions-service"; then
     docker push therrapp/reactions-service:latest
   fi
   kubectl set image deployments/reactions-service-deployment server-reactions=therrapp/reactions-service$SUFFIX:$GIT_SHA
+  UPDATED_DEPLOYMENTS+=("reactions-service-deployment")
 else
   echo "Skipping reactions-service deployment (No Changes)"
 fi
@@ -188,6 +213,7 @@ if should_deploy_service "therr-services/users-service"; then
     docker push therrapp/users-service:latest
   fi
   kubectl set image deployments/users-service-deployment server-users=therrapp/users-service$SUFFIX:$GIT_SHA
+  UPDATED_DEPLOYMENTS+=("users-service-deployment")
 else
   echo "Skipping users-service deployment (No Changes)"
 fi
@@ -200,9 +226,13 @@ if should_deploy_service "therr-services/websocket-service"; then
     docker push therrapp/websocket-service:latest
   fi
   kubectl set image deployments/websocket-service-deployment server-websocket=therrapp/websocket-service$SUFFIX:$GIT_SHA
+  UPDATED_DEPLOYMENTS+=("websocket-service-deployment")
 else
   echo "Skipping websocket-service deployment (No Changes)"
 fi
+
+# Wait for all rollouts to finish before scaling down
+wait_for_rollouts
 
 echo "Kubectl apply complete for all services with changes"
 
