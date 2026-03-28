@@ -12,13 +12,16 @@ export const fallbackToLocale = (originalLocale: string) => {
     return null;
 };
 
-export const configureTranslator = (translations: any) => {
-    const translateInternal = (locale: string, params?: any, key = '') => {
+export type TranslateParams = Record<string, string | number>;
+
+export const configureTranslator = (translations: Record<string, Record<string, unknown>>) => {
+    const translateInternal = (locale: string, params?: TranslateParams, key = ''): string | null => {
         if (!translations[locale]) {
             return null;
         }
         const propertyArray = key.split('.');
-        let translatedValue = translations[locale];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let translatedValue: any = translations[locale];
         propertyArray.forEach((property: string) => {
             if (!translatedValue || !translatedValue[property]) {
                 translatedValue = null;
@@ -29,21 +32,23 @@ export const configureTranslator = (translations: any) => {
 
         // Easter Eag
         if (propertyArray[0] === 'quoteOfTheDay') {
-            const totalQuotes = translations[locale].dailyQuotes.length - 1;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const localeTranslations = translations[locale] as any;
+            const totalQuotes = localeTranslations.dailyQuotes.length - 1;
             const index = Math.floor(Math.random() * totalQuotes);
-            return `${translations[locale].dailyQuotes[index].quote} - ${translations[locale].dailyQuotes[index].author}`; // eslint-disable-line max-len
+            return `${localeTranslations.dailyQuotes[index].quote} - ${localeTranslations.dailyQuotes[index].author}`; // eslint-disable-line max-len
         }
 
-        if (translatedValue && typeof params === 'object' && params != null) {
+        if (translatedValue && typeof translatedValue === 'string' && typeof params === 'object' && params != null) {
             Object.keys(params).forEach((param) => {
-                translatedValue = translatedValue.replace(`{${param}}`, params[param]);
+                translatedValue = translatedValue.replace(`{${param}}`, String(params[param]));
             });
         }
 
         return translatedValue || key;
     };
 
-    return (locale: string, key: string, params?: any) => {
+    return (locale: string, key: string, params?: TranslateParams): string | null => {
         let newLocale = normalizeLocale(locale);
         let translatedValue = translateInternal(newLocale, params, key);
         while (!translatedValue) {
