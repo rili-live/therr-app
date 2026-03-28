@@ -146,7 +146,11 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                 // Request browser geolocation only when no search coordinates in URL
                 this.getLocation();
 
-                if (searchQuery || !Object.values(map?.spaces || {}).length) {
+                if (searchQuery) {
+                    // Geocode the query to get coordinates (e.g. navigated from Explore with ?q=Michigan)
+                    this.setState({ isSearching: true });
+                    this.executeSearch(searchQuery);
+                } else if (!Object.values(map?.spaces || {}).length) {
                     this.searchPaginatedSpaces(pageNumber);
                 }
             }
