@@ -379,7 +379,10 @@ mapsServiceRouter.get('/geocode', geocodeApiLimiter, async (req, res) => {
         const results = response.data;
 
         if (!results || results.length === 0) {
-            return res.status(200).json({ results: [] });
+            const emptyData = { results: [] };
+            // Cache empty results too (shorter TTL) to avoid re-fetching gibberish queries
+            CacheStore.mapsService.setGeocodingResponse(cacheKey, emptyData);
+            return res.status(200).json(emptyData);
         }
 
         const result = results[0];

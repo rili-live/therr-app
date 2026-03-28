@@ -27,6 +27,17 @@ export const DEFAULT_LATITUDE = 37.1261664; // Middle of U.S.
 export const DEFAULT_LONGITUDE = -106.2447206; // Middle of U.S.
 const DEFAULT_DISTANCE_OVERRIDE = 40075 * (1000 / 2); // estimated half distance around world in meters
 
+// TODO: Future enhancements for location search:
+// - Place autocomplete dropdown using existing Google Places Autocomplete API (getPlacesSearchAutoComplete)
+// - "Near me" button to explicitly re-center on browser geolocation
+// - Show result count and distance labels per space card (e.g. "2.3 mi away")
+// - Category filtering alongside location search (combine location + category facets)
+// - Saved/recent searches via localStorage for quick re-use
+// - SEO: geo-targeted meta tags (meta name="geo.position") with dynamic description
+// - SEO: URL slugs for popular locations (e.g. /locations/michigan instead of query params)
+// - Faceted search: combine text + location + category + price range filters
+// - Map-driven search: "search this area" button when user drags the map
+
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
     const label = category.replace('categories.', '').replace('/', ' & ');
@@ -96,18 +107,18 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
         const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
         const initialQuery = urlParams.get('q') || '';
-        const urlLat = urlParams.get('lat');
-        const urlLng = urlParams.get('lng');
-        const urlRadius = urlParams.get('r');
+        const parsedLat = parseFloat(urlParams.get('lat') || '');
+        const parsedLng = parseFloat(urlParams.get('lng') || '');
+        const parsedRadius = parseFloat(urlParams.get('r') || '');
 
         this.state = {
             itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
             searchQuery: initialQuery,
             isSearching: false,
             isMapExpanded: false,
-            searchLat: urlLat ? parseFloat(urlLat) : null,
-            searchLng: urlLng ? parseFloat(urlLng) : null,
-            searchRadius: urlRadius ? parseFloat(urlRadius) : null,
+            searchLat: !Number.isNaN(parsedLat) ? parsedLat : null,
+            searchLng: !Number.isNaN(parsedLng) ? parsedLng : null,
+            searchRadius: !Number.isNaN(parsedRadius) ? parsedRadius : null,
             searchLocationName: '',
         };
     }
@@ -285,24 +296,40 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         }
 
         // Try geocoding the search query
-        geocodeLocation(query.trim()).then((data: any) => {
-            const results = data?.results || [];
+        geocodeLocation(query.trim())
+            .then((data: any) => {
+                const results = data?.results || [];
 
-            if (results.length > 0) {
-                const geo = results[0];
-                const radius = estimateRadiusFromBounds(geo.boundingBox);
-                this.setState({
-                    searchLat: geo.latitude,
-                    searchLng: geo.longitude,
-                    searchRadius: radius,
-                    searchLocationName: geo.displayName,
-                }, () => {
-                    this.updateSearchUrl();
-                    this.searchPaginatedSpaces(1)
-                        .then(() => this.setState({ isSearching: false }));
-                });
-            } else {
-                // Geocoding returned no results — fall back to text search
+                if (results.length > 0) {
+                    const geo = results[0];
+                    const radius = estimateRadiusFromBounds(geo.boundingBox);
+                    this.setState({
+                        searchLat: geo.latitude,
+                        searchLng: geo.longitude,
+                        searchRadius: radius,
+                        searchLocationName: geo.displayName,
+                    }, () => {
+                        document.title = `${query.trim()} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`;
+                        this.updateSearchUrl();
+                        this.searchPaginatedSpaces(1)
+                            .then(() => this.setState({ isSearching: false }));
+                    });
+                } else {
+                    // Geocoding returned no results — fall back to text search
+                    this.setState({
+                        searchLat: null,
+                        searchLng: null,
+                        searchRadius: null,
+                        searchLocationName: '',
+                    }, () => {
+                        this.updateSearchUrl();
+                        this.searchPaginatedSpaces(1)
+                            .then(() => this.setState({ isSearching: false }));
+                    });
+                }
+            })
+            .catch(() => {
+                // Geocoding failed — fall back to text search at current location
                 this.setState({
                     searchLat: null,
                     searchLng: null,
@@ -313,8 +340,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     this.searchPaginatedSpaces(1)
                         .then(() => this.setState({ isSearching: false }));
                 });
-            }
-        });
+            });
     };
 
     handleSearchChange = (_name: string, value: string) => {
@@ -353,6 +379,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             searchRadius: null,
             searchLocationName: '',
         }, () => {
+            document.title = `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
             this.updateSearchUrl();
             this.searchPaginatedSpaces(1)
                 .then(() => this.setState({ isSearching: false }));
