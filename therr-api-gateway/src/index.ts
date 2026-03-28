@@ -12,6 +12,8 @@ import { version as packageVersion } from '../package.json';
 import authenticate from './middleware/authenticate';
 import restrictApiKeyAccess from './middleware/restrictApiKeyAccess';
 import { apiKeyRequestLimiter } from './services/users/limitation/apiKeys';
+import openapiSpec from './docs/openapi.json';
+import getRedocHtml from './docs/redocPage';
 
 tracing.start();
 
@@ -64,6 +66,8 @@ app.use(authenticate.unless({
     path: [
         { url: '/', methods: ['GET'] }, // healthcheck
         { url: '/healthcheck', methods: ['GET'] }, // healthcheck
+        { url: '/v1/docs', methods: ['GET'] }, // API documentation
+        { url: '/v1/docs/openapi.json', methods: ['GET'] }, // OpenAPI spec
         // { url: '/favicon.ico', methods: ['GET'] }, // favicon
         { url: '/v1/users-service/interests', methods: ['GET'] },
         { url: '/v1/users-service/rewards/exchange-rate', methods: ['GET'] },
@@ -113,6 +117,11 @@ app.use((req, res, next) => {
 // Configure routes
 app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.get('/healthcheck', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
+
+// API Documentation (public, unauthenticated)
+app.get(`${API_BASE_ROUTE}/docs/openapi.json`, (req, res) => { res.json(openapiSpec); });
+app.get(`${API_BASE_ROUTE}/docs`, (req, res) => { res.send(getRedocHtml()); });
+
 app.use(API_BASE_ROUTE, router);
 
 const { API_GATEWAY_PORT } = process.env;

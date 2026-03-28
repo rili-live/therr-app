@@ -2,7 +2,6 @@ import handleHttpError from '../utilities/handleHttpError';
 
 /**
  * Allowed endpoint patterns for API key authenticated requests.
- * API keys are restricted to read-heavy/data endpoints only.
  * Account management, payments, and auth endpoints are blocked.
  */
 const ALLOWED_PATTERNS: { method: string; pattern: RegExp }[] = [
@@ -17,6 +16,10 @@ const ALLOWED_PATTERNS: { method: string; pattern: RegExp }[] = [
     { method: 'GET', pattern: /^\/v1\/maps-service\/events\// },
     { method: 'POST', pattern: /^\/v1\/maps-service\/events\/search/ },
     { method: 'POST', pattern: /^\/v1\/maps-service\/events\/.*\/details/ },
+
+    // Maps service - space write (for agency/business listing management)
+    { method: 'POST', pattern: /^\/v1\/maps-service\/spaces$/ },
+    { method: 'PUT', pattern: /^\/v1\/maps-service\/spaces\/[^/]+$/ },
 
     // Users service - read/search (not account management)
     { method: 'GET', pattern: /^\/v1\/users-service\/users\/me$/ },
