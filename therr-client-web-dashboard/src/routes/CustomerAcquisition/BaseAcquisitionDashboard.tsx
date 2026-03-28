@@ -5,20 +5,21 @@ import { NavigateFunction } from 'react-router-dom';
 import { AxiosResponse } from 'axios';
 import classNames from 'classnames';
 import {
+    Alert,
     Button,
+    Card,
     Col,
     Row,
 } from 'react-bootstrap';
 import { ICampaignsState, IUserState } from 'therr-react/types';
 import { OAuthIntegrationProviders } from 'therr-js-utilities/constants';
-import { faBullhorn, faMapMarked, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faBullhorn, faSearch, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CampaignActions } from 'therr-react/redux/actions';
 import translator from '../../services/translator';
 import withNavigation from '../../wrappers/withNavigation';
 import PricingCards from '../../components/PricingCards';
 import { ICampaign } from '../../types';
-import * as facebook from '../../api/facebook';
 import OverviewOfCampaignMetrics from '../Dashboards/OverviewModules/OverviewOfCampaignMetrics';
 
 interface IBaseAcquisitionDashboardRouterProps {
@@ -113,7 +114,12 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
         prefetchPromise.then(() => {
             const { currentCampaignIndex, campaignsInView: updatedCampaignsInView } = this.state;
             const campaign = updatedCampaignsInView[currentCampaignIndex];
-            const { campaigns, getCampaign, user } = this.props;
+            const { campaigns, getCampaign } = this.props;
+
+            if (!campaign) {
+                this.setState({ isLoadingCampaigns: false });
+                return;
+            }
 
             const campaignPromise = (campaign.id && !campaigns.campaigns[campaign.id])
                 ? getCampaign(campaign.id, {
@@ -121,26 +127,12 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
                 })
                 : Promise.resolve(campaigns.campaigns[campaign.id]);
 
-            campaignPromise.then((fetchedCampaign) => {
-                if (fetchedCampaign.integrationDetails?.[OAuthIntegrationProviders.FACEBOOK]?.adAccountId
-                    && fetchedCampaign.integrationDetails?.[OAuthIntegrationProviders.FACEBOOK]?.campaignId
-                    && user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.user_access_token) {
-                    return facebook.getCampaignResults(
-                        user.settings.integrations[OAuthIntegrationProviders.FACEBOOK]?.user_access_token,
-                        fetchedCampaign.integrationDetails?.[OAuthIntegrationProviders.FACEBOOK]?.adAccountId,
-                        fetchedCampaign.integrationDetails?.[OAuthIntegrationProviders.FACEBOOK]?.campaignId,
-                    ).then((response) => {
-                        this.setState({
-                            isLoadingCampaigns: false,
-                            performanceSummary: {
-                                ...this.state.performanceSummary,
-                                [OAuthIntegrationProviders.FACEBOOK]: response?.summary || {},
-                            },
-                        });
-                    });
-                }
-            }).catch((err) => {
+            campaignPromise.catch((err) => {
                 console.log(err);
+            }).finally(() => {
+                this.setState({
+                    isLoadingCampaigns: false,
+                });
             });
         }).catch((err) => {
             console.log(err);
@@ -205,6 +197,29 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
             <div id="page_campaigns_overview" className={containerClassNames}>
                 {
                     isSubscriber && <>
+                        <Row className="mb-4">
+                            <Col>
+                                <h1 className="mb-2">
+                                    <FontAwesomeIcon icon={faUsers} className="me-2" />
+                                    Your Customers
+                                </h1>
+                                <p className="text-muted">
+                                    Track how your campaigns are driving customer engagement and new visitors to your business.
+                                </p>
+                            </Col>
+                        </Row>
+                        <Row className="mb-4">
+                            <Col>
+                                <Alert variant="info" className="d-flex align-items-center">
+                                    <FontAwesomeIcon icon={faBullhorn} className="me-3" size="lg" />
+                                    <div>
+                                        <strong>Customer Insight:</strong> Your active campaigns are reaching potential customers
+                                        in your area. Check the dashboard for space-level engagement metrics including check-ins,
+                                        impressions, and visitor trends.
+                                    </div>
+                                </Alert>
+                            </Col>
+                        </Row>
                         {
                             (campaignsInView?.length > 0 || isLoadingCampaigns)
                             && <OverviewOfCampaignMetrics
@@ -224,18 +239,45 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
                         {
                             (!campaignsInView?.length && !isLoadingCampaigns)
                             && <>
-                                <h3 className="text-center mt-5">
-                                    <FontAwesomeIcon icon={faSearch} className="me-2" />We Found 0 Campaign Metrics Associated with Your Account
+                                <Row className="mt-3">
+                                    <Col md={6} lg={4}>
+                                        <Card className="bg-white shadow-sm mb-3">
+                                            <Card.Body className="text-center py-4">
+                                                <h3 className="mb-1">0</h3>
+                                                <p className="text-muted mb-0">Active Campaigns</p>
+                                            </Card.Body>
+                                        </Card>
+                                    </Col>
+                                    <Col md={6} lg={4}>
+                                        <Card className="bg-white shadow-sm mb-3">
+                                            <Card.Body className="text-center py-4">
+                                                <h3 className="mb-1">--</h3>
+                                                <p className="text-muted mb-0">Campaign Reach</p>
+                                            </Card.Body>
+                                        </Card>
+                                    </Col>
+                                    <Col md={6} lg={4}>
+                                        <Card className="bg-white shadow-sm mb-3">
+                                            <Card.Body className="text-center py-4">
+                                                <h3 className="mb-1">--</h3>
+                                                <p className="text-muted mb-0">Engagement Rate</p>
+                                            </Card.Body>
+                                        </Card>
+                                    </Col>
+                                </Row>
+                                <h3 className="text-center mt-4">
+                                    <FontAwesomeIcon icon={faSearch} className="me-2" />
+                                    No Campaign Metrics Yet
                                 </h3>
                                 <p className="text-center mt-1">
-                                    Ad campaigns are AI optimized marketing initiatives that can be scheduled, updated, and paused at any time.
-                                    Create a campaign to start digital marketing of your business today.
+                                    Create your first campaign to start tracking customer acquisition. Campaigns help you reach
+                                    new customers in your area and drive foot traffic to your business.
                                 </p>
-                                {/* <div className="text-center mt-5">
-                                    <Button variant="secondary" onClick={this.navigateHandler('/campaigns/edit')}>
+                                <div className="text-center mt-3 mb-4">
+                                    <Button variant="secondary" onClick={this.navigateHandler('/campaigns/create')}>
                                         <FontAwesomeIcon icon={faBullhorn} className="me-1" /> Create a Campaign
                                     </Button>
-                                </div> */}
+                                </div>
                             </>
                         }
                     </>

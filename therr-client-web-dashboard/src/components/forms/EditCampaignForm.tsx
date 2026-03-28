@@ -52,8 +52,8 @@ const statusOptions = [
 
 const disabledProvidersStatus = {
     [OAuthIntegrationProviders.THERR]: false,
-    [OAuthIntegrationProviders.FACEBOOK]: false,
-    [OAuthIntegrationProviders.INSTAGRAM]: false,
+    [OAuthIntegrationProviders.FACEBOOK]: true,
+    [OAuthIntegrationProviders.INSTAGRAM]: true,
     [OAuthIntegrationProviders.LINKEDIN]: true,
     [OAuthIntegrationProviders.GOOGLE]: true,
     [OAuthIntegrationProviders.TWITTER]: true,
