@@ -229,8 +229,21 @@ const createCustomerPortalSession = async (req, res) => {
             return res.status(404).send({ message: 'No subscription found for this account' });
         }
 
-        const returnUrl = req.body.returnUrl
-            || `https://${globalConfig[process.env.NODE_ENV].dashboardHost}/settings`;
+        const dashboardHost = globalConfig[process.env.NODE_ENV].dashboardHost;
+        const defaultReturnUrl = `https://${dashboardHost}/settings`;
+        let returnUrl = defaultReturnUrl;
+
+        // Validate returnUrl to prevent open redirect
+        if (req.body.returnUrl) {
+            try {
+                const parsed = new URL(req.body.returnUrl);
+                if (parsed.hostname === dashboardHost || parsed.hostname === whiteLabelOrigin) {
+                    returnUrl = req.body.returnUrl;
+                }
+            } catch {
+                // Invalid URL, use default
+            }
+        }
 
         const portalSession = await stripe.billingPortal.sessions.create({
             customer: customers.data[0].id,

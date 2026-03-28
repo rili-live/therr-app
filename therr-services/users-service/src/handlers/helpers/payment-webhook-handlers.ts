@@ -171,26 +171,25 @@ const revokeDashboardAccess = async (event) => {
     }
 
     const dashboardAccessLevels = getDashboardAccessLevels();
-
-    await Store.users.getUsers({
+    const [user] = await Store.users.getUsers({
         email: normedEmail,
-    }, {}, {}, ['id', 'email', 'accessLevels']).then(([user]) => {
-        if (user) {
-            const updatedAccessLevels = (user.accessLevels || [])
-                .filter((level: string) => !dashboardAccessLevels.includes(level as AccessLevels));
+    }, {}, {}, ['id', 'email', 'accessLevels']);
 
-            return Store.users.updateUser({
-                accessLevels: JSON.stringify(updatedAccessLevels),
-            }, { id: user.id });
-        }
+    if (user) {
+        const updatedAccessLevels = (user.accessLevels || [])
+            .filter((level: string) => !dashboardAccessLevels.includes(level as AccessLevels));
 
+        await Store.users.updateUser({
+            accessLevels: JSON.stringify(updatedAccessLevels),
+        }, { id: user.id });
+    } else {
         logSpan({
             level: 'warn',
             messageOrigin: 'API_SERVER',
             messages: ['User not found for subscription revocation'],
             traceArgs: { 'webhook.email': normedEmail, 'webhook.eventType': event.type },
         });
-    });
+    }
 };
 
 const restoreDashboardAccess = async (event) => {
@@ -211,18 +210,18 @@ const restoreDashboardAccess = async (event) => {
     const product = await stripe.products.retrieve(eventObject.plan?.product);
     const accessLevel = productIdMap[product.id]?.accessLevel || AccessLevels.DASHBOARD_SUBSCRIBER_BASIC;
 
-    await Store.users.getUsers({
+    const [user] = await Store.users.getUsers({
         email: normedEmail,
-    }, {}, {}, ['id', 'email', 'accessLevels']).then(([user]) => {
-        if (user) {
-            const userAccessLevels = new Set(user.accessLevels || []);
-            userAccessLevels.add(accessLevel);
+    }, {}, {}, ['id', 'email', 'accessLevels']);
 
-            return Store.users.updateUser({
-                accessLevels: JSON.stringify([...userAccessLevels]),
-            }, { id: user.id });
-        }
-    });
+    if (user) {
+        const userAccessLevels = new Set(user.accessLevels || []);
+        userAccessLevels.add(accessLevel);
+
+        await Store.users.updateUser({
+            accessLevels: JSON.stringify([...userAccessLevels]),
+        }, { id: user.id });
+    }
 };
 
 const handleSubscriptionDeleted = async (event) => {

@@ -29,6 +29,7 @@ const SubscriptionDetailsForm = ({
     user,
 }: ISubscriptionDetailsFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
     let plan = FREE_PLAN;
     const isSubscribed = user.details.accessLevels
         .some((accessLevel: AccessLevels) => {
@@ -48,6 +49,7 @@ const SubscriptionDetailsForm = ({
 
     const handleManageSubscription = () => {
         setIsLoading(true);
+        setError('');
         UsersService.createCustomerPortalSession()
             .then((response) => {
                 if (response.data?.url) {
@@ -56,6 +58,7 @@ const SubscriptionDetailsForm = ({
             })
             .catch(() => {
                 setIsLoading(false);
+                setError('Failed to load subscription management. Please try again.');
             });
     };
 
@@ -70,6 +73,7 @@ const SubscriptionDetailsForm = ({
                 <p>Switch your subscription to a different type, such as a monthly/annual plan, or basic/advanced/pro plan.</p>
                 <p>Current Plan: <span className="fw-bolder">{plan}</span></p>
 
+                {error && <p className="text-danger mb-3">{error}</p>}
                 {
                     plan !== FREE_PLAN
                     && <Button
