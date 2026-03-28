@@ -345,6 +345,7 @@
       "replyTooShort": "La réponse est trop courte",
       "replyError": "Échec de la publication de la réponse. Veuillez réessayer.",
       "loginToReply": "Connectez-vous pour répondre",
+      "loginToView": "Connectez-vous pour voir cette publication et rejoindre la conversation",
       "backToThoughts": "Retour aux pensées"
     },
     "chatForum": {
@@ -459,8 +460,12 @@
       "yours": "Les vôtres",
       "previousPage": "Retour à la page {pageNumber}",
       "nextPage": "Vers la page {pageNumber}",
-      "showMap": "Afficher la carte",
-      "hideMap": "Masquer la carte"
+      "expandMap": "Agrandir la carte",
+      "collapseMap": "Réduire la carte",
+      "signInPrompt": "pour voir vos espaces privés et gérer vos annonces.",
+      "website": "site web",
+      "nearLocation": "Affichage des espaces près de {location}",
+      "searchPlaceholderLocation": "Rechercher par lieu (ex. Michigan, New York)..."
     },
     "home": {
       "pageTitle": "Créez votre profil social ou d'entreprise",
@@ -742,6 +747,9 @@
       "claimSpace": {
         "title": "C'est votre entreprise?",
         "body": "Réclamez cet espace pour voir l'activité de vos clients en temps réel, être jumelé avec des entreprises locales complémentaires et récompenser les clients qui parlent de vous. Mettez à jour vos informations, ajoutez des photos et prenez le contrôle de votre présence.",
+        "subtleCTA": "C'est votre entreprise? Réclamez-la",
+        "emailTitle": "Bienvenue! Réclamez votre entreprise",
+        "emailBody": "Les gens découvrent votre entreprise sur Therr. Réclamez cet espace pour voir l'activité de vos clients en temps réel, gérer votre fiche et commencer à interagir avec votre audience aujourd'hui.",
         "claimButton": "Réclamer cet espace",
         "editButton": "Modifier l'espace",
         "alreadyHaveAccount": "Vous avez déjà un compte? Connectez-vous",
@@ -812,6 +820,8 @@
         "viewSpace": "Voir l'emplacement",
         "viewGroup": "Voir le groupe",
         "viewOnGoogleMaps": "Voir sur Google Maps",
+        "showMap": "Afficher la carte",
+        "hideMap": "Masquer la carte",
         "privateEventMessage": "Cet événement appartient à un groupe privé",
         "privateEventCta": "Inscrivez-vous ou connectez-vous pour demander l'accès",
         "signUpPrompt": "Inscrivez-vous ou connectez-vous pour voir tous les détails de l'événement"
@@ -821,7 +831,9 @@
       "labels": {
         "postedBy": "Publié par",
         "viewLocation": "Voir l'emplacement",
-        "viewOnGoogleMaps": "Voir sur Google Maps"
+        "viewOnGoogleMaps": "Voir sur Google Maps",
+        "showMap": "Afficher la carte",
+        "hideMap": "Masquer la carte"
       }
     },
     "viewUser": {

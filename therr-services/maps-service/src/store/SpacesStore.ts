@@ -321,7 +321,8 @@ export default class SpacesStore {
         }
         let returningMod = ((returning && returning.length) ? returning : '*');
         returningMod = overrides?.shouldLimitDetail
-            ? ['id', 'addressReadable', 'category', 'websiteUrl', 'notificationMsg', 'createdAt', 'updatedAt']
+            ? ['id', 'addressReadable', 'category', 'websiteUrl', 'notificationMsg', 'latitude', 'longitude',
+                'medias', 'mediaIds', 'createdAt', 'updatedAt']
             : returningMod;
         if (!overrides?.isRequestAuthorized) {
             // Public listing/summary view

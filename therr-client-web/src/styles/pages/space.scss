@@ -90,6 +90,10 @@ $profileImgWidth: rem-calc(100px);
 }
 
 #page_view_spaces {
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
+
     // On mobile, show directory column first (before promotional sidebar)
     @media (max-width: 61.99em) {
         .mantine-SimpleGrid-root {
@@ -108,6 +112,11 @@ $profileImgWidth: rem-calc(100px);
     .spaces-list-scroll {
         max-height: 60vh;
         overflow-y: auto;
+        overflow-x: hidden;
+
+        @media (max-width: 48em) {
+            max-height: none;
+        }
     }
 
     .space-card {
@@ -121,21 +130,22 @@ $profileImgWidth: rem-calc(100px);
 
     .spaces-map {
         width: 100%;
-        height: 400px;
+        min-height: 200px;
         border-radius: 0.5rem;
         border: 1px solid var(--mantine-color-default-border);
         z-index: 1;
-
-        @media (max-width: 48em) {
-            height: 300px;
-        }
+        overflow: hidden;
+        isolation: isolate;
     }
 }
 
 .spaces-map {
     width: 100%;
+    min-height: 200px;
     border-radius: 0.5rem;
     border: 1px solid var(--mantine-color-default-border);
     z-index: 1;
+    overflow: hidden;
+    isolation: isolate;
     margin-top: 0.5rem;
 }
