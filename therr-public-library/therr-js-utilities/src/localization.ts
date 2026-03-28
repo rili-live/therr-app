@@ -48,7 +48,7 @@ export const configureTranslator = (translations: Record<string, Record<string, 
         return translatedValue || key;
     };
 
-    return (locale: string, key: string, params?: TranslateParams): string | null => {
+    return (locale: string, key: string, params?: TranslateParams): string => {
         let newLocale = normalizeLocale(locale);
         let translatedValue = translateInternal(newLocale, params, key);
         while (!translatedValue) {
@@ -59,6 +59,6 @@ export const configureTranslator = (translations: Record<string, Record<string, 
             translatedValue = translateInternal(newLocale, params, key);
         }
 
-        return translatedValue;
+        return translatedValue || key;
     };
 };
