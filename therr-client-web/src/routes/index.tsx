@@ -277,22 +277,26 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/locations',
         element: <ListSpaces />,
         fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
+            const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
+            const radius = parseFloat(query.r) || 40075 * (1000 / 2);
             const searchQuery = query.q || '';
+            const hasCoords = !Number.isNaN(parseFloat(query.lat)) && !Number.isNaN(parseFloat(query.lng));
             const queryParams: any = {
                 itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
                 pageNumber: 1,
-                latitude: DEFAULT_LATITUDE,
-                longitude: DEFAULT_LONGITUDE,
+                latitude: lat,
+                longitude: lng,
+                filterBy: 'distance',
             };
-            if (searchQuery) {
+            // Only use text search when there's a query but no geocoded coordinates
+            if (searchQuery && !hasCoords) {
                 queryParams.filterBy = 'notificationMsg';
                 queryParams.filterOperator = 'ilike';
                 queryParams.query = searchQuery;
-            } else {
-                queryParams.filterBy = 'distance';
             }
             return MapActions.listSpaces(queryParams, {
-                distanceOverride: 40075 * (1000 / 2),
+                distanceOverride: radius,
             })(dispatch);
         },
     },
@@ -300,23 +304,26 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/locations/:pageNumber',
         element: <ListSpaces />,
         fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
+            const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
+            const radius = parseFloat(query.r) || 40075 * (1000 / 2);
             const searchQuery = query.q || '';
+            const hasCoords = !Number.isNaN(parseFloat(query.lat)) && !Number.isNaN(parseFloat(query.lng));
             const pageNumber = parseInt(params.pageNumber || '1', 10);
             const queryParams: any = {
                 itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
                 pageNumber,
-                latitude: DEFAULT_LATITUDE,
-                longitude: DEFAULT_LONGITUDE,
+                latitude: lat,
+                longitude: lng,
+                filterBy: 'distance',
             };
-            if (searchQuery) {
+            if (searchQuery && !hasCoords) {
                 queryParams.filterBy = 'notificationMsg';
                 queryParams.filterOperator = 'ilike';
                 queryParams.query = searchQuery;
-            } else {
-                queryParams.filterBy = 'distance';
             }
             return MapActions.listSpaces(queryParams, {
-                distanceOverride: 40075 * (1000 / 2),
+                distanceOverride: radius,
             })(dispatch);
         },
     },

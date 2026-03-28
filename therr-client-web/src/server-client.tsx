@@ -1186,13 +1186,32 @@ const renderLocationsView = (req, res, config, {
 }, initialState, localeVars) => {
     const routePath = config.route;
     const routeView = config.view;
-    const title = config.head.title;
-    const description = config.head.description
+    const defaultDescription = 'Browse local businesses, restaurants, bars, shops, and events near you. Read reviews, see hours, and get directions.';
+
+    const searchQuery = req.query?.q || '';
+    const hasCoords = req.query?.lat && req.query?.lng;
+
+    // Dynamic title/description when a location search is active
+    const title = searchQuery
+        ? `Spaces near ${searchQuery} - ${config.head.title}`
+        : config.head.title;
+    const description = searchQuery
         // eslint-disable-next-line max-len
-        || 'Browse local businesses, restaurants, bars, shops, and events near you. Read reviews, see hours, and get directions.';
+        ? `Discover local businesses, restaurants, and events near ${searchQuery}. Browse listings, read reviews, and get directions on Therr.`
+        : config.head.description || defaultDescription;
 
     const spaces = initialState?.map?.searchResults || [];
     const pageNumber = parseInt(req.params?.pageNumber, 10) || 1;
+
+    // Build query string for pagination links (preserve search params)
+    const paginationQueryParts: string[] = [];
+    if (searchQuery) paginationQueryParts.push(`q=${encodeURIComponent(searchQuery)}`);
+    if (hasCoords) {
+        paginationQueryParts.push(`lat=${req.query.lat}`);
+        paginationQueryParts.push(`lng=${req.query.lng}`);
+        if (req.query.r) paginationQueryParts.push(`r=${req.query.r}`);
+    }
+    const paginationQs = paginationQueryParts.length > 0 ? `?${paginationQueryParts.join('&')}` : '';
 
     // ItemList schema from prefetched spaces
     const lp = localeVars.localePrefix;
@@ -1203,10 +1222,10 @@ const renderLocationsView = (req, res, config, {
         name: space.notificationMsg || space.id,
     }));
 
-    const itemListSchema = {
+    const itemListSchema: any = {
         '@context': 'https://schema.org',
         '@type': 'ItemList',
-        name: 'Business Locations on Therr',
+        name: searchQuery ? `Spaces near ${searchQuery}` : 'Business Locations on Therr',
         numberOfItems: itemListElements.length,
         itemListElement: itemListElements,
     };
@@ -1241,8 +1260,18 @@ const renderLocationsView = (req, res, config, {
         ? {
             '@context': 'https://schema.org',
             '@type': 'CollectionPage',
-            name: 'Local Business Directory',
+            name: searchQuery ? `Local Businesses near ${searchQuery}` : 'Local Business Directory',
             description,
+            ...(hasCoords && {
+                spatialCoverage: {
+                    '@type': 'Place',
+                    geo: {
+                        '@type': 'GeoCoordinates',
+                        latitude: parseFloat(req.query.lat),
+                        longitude: parseFloat(req.query.lng),
+                    },
+                },
+            }),
             mainEntity: {
                 '@type': 'ItemList',
                 itemListElement: localBusinessSchemas.map((biz: any, i: number) => ({
@@ -1259,8 +1288,13 @@ const renderLocationsView = (req, res, config, {
         {
             '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
         },
-        { '@type': 'ListItem', position: 2, name: 'Locations' },
+        { '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations' },
     ];
+    if (searchQuery) {
+        breadcrumbItems.push({
+            '@type': 'ListItem', position: 3, name: searchQuery,
+        });
+    }
 
     const breadcrumbSchema = {
         '@context': 'https://schema.org',
@@ -1268,9 +1302,11 @@ const renderLocationsView = (req, res, config, {
         itemListElement: breadcrumbItems,
     };
 
-    // Pagination links (include locale prefix)
-    const prevPage = pageNumber > 1 ? `${lp}/locations${pageNumber > 2 ? `/${pageNumber - 1}` : ''}` : '';
-    const nextPage = spaces.length > 0 ? `${lp}/locations/${pageNumber + 1}` : '';
+    // Pagination links (include locale prefix and search params)
+    const prevPage = pageNumber > 1
+        ? `${lp}/locations${pageNumber > 2 ? `/${pageNumber - 1}` : ''}${paginationQs}`
+        : '';
+    const nextPage = spaces.length > 0 ? `${lp}/locations/${pageNumber + 1}${paginationQs}` : '';
 
     return res.render(routeView, {
         title,

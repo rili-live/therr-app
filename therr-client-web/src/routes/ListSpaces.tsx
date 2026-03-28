@@ -15,6 +15,7 @@ import { ILocationState } from '../types/redux/location';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
+import { estimateRadiusFromBounds } from '../utilities/geocode';
 
 // Only lazy-load on client (Leaflet requires window/document)
 const SpacesMap = typeof window !== 'undefined'
@@ -22,8 +23,20 @@ const SpacesMap = typeof window !== 'undefined'
     : (() => null) as any;
 
 export const DEFAULT_ITEMS_PER_PAGE = 50;
-export const DEFAULT_LATITUDE = 37.1261664; // Middle of U.S. - TODO: Use browser location
-export const DEFAULT_LONGITUDE = -106.2447206; // Middle of U.S. - TODO: Use browser location
+export const DEFAULT_LATITUDE = 37.1261664; // Middle of U.S.
+export const DEFAULT_LONGITUDE = -106.2447206; // Middle of U.S.
+const DEFAULT_DISTANCE_OVERRIDE = 40075 * (1000 / 2); // estimated half distance around world in meters
+
+// TODO: Future enhancements for location search:
+// - Place autocomplete dropdown using existing Google Places Autocomplete API (getPlacesSearchAutoComplete)
+// - "Near me" button to explicitly re-center on browser geolocation
+// - Show result count and distance labels per space card (e.g. "2.3 mi away")
+// - Category filtering alongside location search (combine location + category facets)
+// - Saved/recent searches via localStorage for quick re-use
+// - SEO: geo-targeted meta tags (meta name="geo.position") with dynamic description
+// - SEO: URL slugs for popular locations (e.g. /locations/michigan instead of query params)
+// - Faceted search: combine text + location + category + price range filters
+// - Map-driven search: "search this area" button when user drags the map
 
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
@@ -41,6 +54,7 @@ interface IListSpacesRouterProps {
 }
 
 interface IListSpacesDispatchProps {
+    geocodeLocation: Function;
     listSpaces: Function;
     updateUserCoordinates: Function;
 }
@@ -63,6 +77,10 @@ interface IListSpacesState {
     searchQuery: string;
     isSearching: boolean;
     isMapExpanded: boolean;
+    searchLat: number | null;
+    searchLng: number | null;
+    searchRadius: number | null;
+    searchLocationName: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -73,6 +91,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    geocodeLocation: MapActions.geocodeLocation,
     listSpaces: MapActions.listSpaces,
     updateUserCoordinates: MapActions.updateUserCoordinates,
 }, dispatch);
@@ -88,18 +107,25 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
         const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
         const initialQuery = urlParams.get('q') || '';
+        const parsedLat = parseFloat(urlParams.get('lat') || '');
+        const parsedLng = parseFloat(urlParams.get('lng') || '');
+        const parsedRadius = parseFloat(urlParams.get('r') || '');
 
         this.state = {
             itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
             searchQuery: initialQuery,
             isSearching: false,
             isMapExpanded: false,
+            searchLat: !Number.isNaN(parsedLat) ? parsedLat : null,
+            searchLng: !Number.isNaN(parsedLng) ? parsedLng : null,
+            searchRadius: !Number.isNaN(parsedRadius) ? parsedRadius : null,
+            searchLocationName: '',
         };
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
         const { map, routeParams } = this.props;
-        const { searchQuery } = this.state;
+        const { searchQuery, searchLat, searchLng } = this.state;
         const { pageNumber: pn } = routeParams;
         const pageNumberStr = pn || '1';
 
@@ -113,20 +139,23 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         } else {
             const pageNumber = parseInt(pageNumberStr, 10);
 
-            this.getLocation();
-
-            if (searchQuery || !Object.values(map?.spaces || {}).length) {
+            // If URL has coordinates from a previous search, use them directly
+            if (searchLat != null && searchLng != null) {
                 this.searchPaginatedSpaces(pageNumber);
+            } else {
+                // Request browser geolocation only when no search coordinates in URL
+                this.getLocation();
+
+                if (searchQuery || !Object.values(map?.spaces || {}).length) {
+                    this.searchPaginatedSpaces(pageNumber);
+                }
             }
         }
     }
 
     componentDidUpdate(prevProps: Readonly<IListSpacesProps>): void {
         if (prevProps.routeParams.pageNumber !== this.props.routeParams.pageNumber) {
-            const { location } = this.props;
-            const latitude = location?.user?.latitude || DEFAULT_LATITUDE;
-            const longitude = location?.user?.longitude || DEFAULT_LONGITUDE;
-            this.searchPaginatedSpaces(parseInt(this.props.routeParams.pageNumber, 10), DEFAULT_ITEMS_PER_PAGE, latitude, longitude);
+            this.searchPaginatedSpaces(parseInt(this.props.routeParams.pageNumber, 10));
         }
     }
 
@@ -136,35 +165,54 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         }
     }
 
+    getSearchCenter = (): { lat: number; lng: number } => {
+        const { location } = this.props;
+        const { searchLat, searchLng } = this.state;
+
+        // Geocoded search coordinates take priority
+        if (searchLat != null && searchLng != null) {
+            return { lat: searchLat, lng: searchLng };
+        }
+
+        // Fall back to browser location, then defaults
+        return {
+            lat: location?.user?.latitude || DEFAULT_LATITUDE,
+            lng: location?.user?.longitude || DEFAULT_LONGITUDE,
+        };
+    };
+
+    getDistanceOverride = (): number => {
+        const { searchRadius } = this.state;
+        return searchRadius || DEFAULT_DISTANCE_OVERRIDE;
+    };
+
     searchPaginatedSpaces = (
         pageNumber: number,
         itemsPerPage: number = DEFAULT_ITEMS_PER_PAGE,
-        lat = DEFAULT_LATITUDE,
-        lon = DEFAULT_LONGITUDE,
     ) => {
         const { listSpaces } = this.props;
         const { searchQuery } = this.state;
-        this.setState({
-            itemsPerPage,
-        });
+        const { lat, lng } = this.getSearchCenter();
+
+        this.setState({ itemsPerPage });
 
         const queryParams: any = {
             itemsPerPage,
             pageNumber,
             latitude: lat,
-            longitude: lon,
+            longitude: lng,
+            filterBy: 'distance',
         };
 
-        if (searchQuery.trim()) {
+        // When we have a text query but no geocoded coordinates, fall back to text search
+        if (searchQuery.trim() && this.state.searchLat == null) {
             queryParams.filterBy = 'notificationMsg';
             queryParams.filterOperator = 'ilike';
             queryParams.query = searchQuery.trim();
-        } else {
-            queryParams.filterBy = 'distance';
         }
 
         return listSpaces(queryParams, {
-            distanceOverride: 40075 * (1000 / 2), // estimated half distance around world in meters
+            distanceOverride: this.getDistanceOverride(),
         }).catch((err) => {
             console.log(err);
         });
@@ -176,14 +224,16 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             longitude,
         },
     }) => {
-        const { itemsPerPage } = this.state;
+        const { searchLat, searchLng, itemsPerPage } = this.state;
         const { routeParams } = this.props;
         const { pageNumber: pageNumberStr } = routeParams;
-        this.props.updateUserCoordinates({
-            latitude,
-            longitude,
-        });
-        this.searchPaginatedSpaces(parseInt(pageNumberStr, 10), itemsPerPage, latitude, longitude);
+
+        this.props.updateUserCoordinates({ latitude, longitude });
+
+        // Only use browser location if no geocoded search is active
+        if (searchLat == null && searchLng == null) {
+            this.searchPaginatedSpaces(parseInt(pageNumberStr, 10), itemsPerPage);
+        }
     };
 
     // eslint-disable-next-line class-methods-use-this
@@ -192,18 +242,105 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     };
 
     getLocation = () => {
-        if (navigator.geolocation) {
+        if (typeof navigator !== 'undefined' && navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(this.handleLocation, this.handleLocationError);
         }
     };
 
-    updateSearchUrl = (query: string) => {
+    buildSearchParams = (): string => {
+        const {
+            searchQuery, searchLat, searchLng, searchRadius,
+        } = this.state;
+        const params = new URLSearchParams();
+
+        if (searchQuery.trim()) {
+            params.set('q', searchQuery.trim());
+        }
+        if (searchLat != null && searchLng != null) {
+            params.set('lat', searchLat.toFixed(4));
+            params.set('lng', searchLng.toFixed(4));
+            if (searchRadius != null) {
+                params.set('r', Math.round(searchRadius).toString());
+            }
+        }
+
+        const str = params.toString();
+        return str ? `?${str}` : '';
+    };
+
+    updateSearchUrl = () => {
         const { navigation, routeParams } = this.props;
         const pageNumber = parseInt(routeParams.pageNumber || '1', 10);
         const basePath = pageNumber > 1 ? `/locations/${pageNumber}` : '/locations';
-        const search = query.trim() ? `?q=${encodeURIComponent(query.trim())}` : '';
+        const search = this.buildSearchParams();
 
         navigation.navigate(`${basePath}${search}`, { replace: true });
+    };
+
+    executeSearch = (query: string) => {
+        const { geocodeLocation } = this.props;
+
+        if (!query.trim()) {
+            // Clear search: reset to browser location
+            this.setState({
+                searchLat: null,
+                searchLng: null,
+                searchRadius: null,
+                searchLocationName: '',
+            }, () => {
+                this.updateSearchUrl();
+                this.searchPaginatedSpaces(1)
+                    .then(() => this.setState({ isSearching: false }));
+            });
+            return;
+        }
+
+        // Try geocoding the search query
+        geocodeLocation(query.trim())
+            .then((data: any) => {
+                const results = data?.results || [];
+
+                if (results.length > 0) {
+                    const geo = results[0];
+                    const radius = estimateRadiusFromBounds(geo.boundingBox);
+                    this.setState({
+                        searchLat: geo.latitude,
+                        searchLng: geo.longitude,
+                        searchRadius: radius,
+                        searchLocationName: geo.displayName,
+                    }, () => {
+                        document.title = `${query.trim()} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`;
+                        this.updateSearchUrl();
+                        this.searchPaginatedSpaces(1)
+                            .then(() => this.setState({ isSearching: false }));
+                    });
+                } else {
+                    // Geocoding returned no results — fall back to text search
+                    this.setState({
+                        searchLat: null,
+                        searchLng: null,
+                        searchRadius: null,
+                        searchLocationName: '',
+                    }, () => {
+                        this.updateSearchUrl();
+                        this.searchPaginatedSpaces(1)
+                            .then(() => this.setState({ isSearching: false }));
+                    });
+                }
+            })
+            .catch(() => {
+                // Geocoding failed — fall back to text search at current location
+                this.setState({
+                    searchLat: null,
+                    searchLng: null,
+                    searchRadius: null,
+                    searchLocationName: '',
+                }, () => {
+                    this.updateSearchUrl();
+                    this.searchPaginatedSpaces(1)
+                        .then(() => this.setState({ isSearching: false }));
+                });
+            });
     };
 
     handleSearchChange = (_name: string, value: string) => {
@@ -214,13 +351,8 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         }
 
         this.debounceTimeout = setTimeout(() => {
-            this.updateSearchUrl(value);
-            const { location: loc } = this.props;
-            const latitude = loc?.user?.latitude || DEFAULT_LATITUDE;
-            const longitude = loc?.user?.longitude || DEFAULT_LONGITUDE;
-            this.searchPaginatedSpaces(1, DEFAULT_ITEMS_PER_PAGE, latitude, longitude)
-                .then(() => this.setState({ isSearching: false }));
-        }, 300);
+            this.executeSearch(value);
+        }, 500);
     };
 
     handleSearch = () => {
@@ -230,13 +362,8 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             clearTimeout(this.debounceTimeout);
         }
 
-        this.updateSearchUrl(searchQuery);
-        const { location: loc } = this.props;
-        const latitude = loc?.user?.latitude || DEFAULT_LATITUDE;
-        const longitude = loc?.user?.longitude || DEFAULT_LONGITUDE;
         this.setState({ isSearching: true });
-        this.searchPaginatedSpaces(1, DEFAULT_ITEMS_PER_PAGE, latitude, longitude)
-            .then(() => this.setState({ isSearching: false }));
+        this.executeSearch(searchQuery);
     };
 
     handleClearSearch = () => {
@@ -244,12 +371,17 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             clearTimeout(this.debounceTimeout);
         }
 
-        this.updateSearchUrl('');
-        const { location: loc } = this.props;
-        const latitude = loc?.user?.latitude || DEFAULT_LATITUDE;
-        const longitude = loc?.user?.longitude || DEFAULT_LONGITUDE;
-        this.setState({ searchQuery: '', isSearching: true }, () => {
-            this.searchPaginatedSpaces(1, DEFAULT_ITEMS_PER_PAGE, latitude, longitude)
+        this.setState({
+            searchQuery: '',
+            isSearching: true,
+            searchLat: null,
+            searchLng: null,
+            searchRadius: null,
+            searchLocationName: '',
+        }, () => {
+            document.title = `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
+            this.updateSearchUrl();
+            this.searchPaginatedSpaces(1)
                 .then(() => this.setState({ isSearching: false }));
         });
     };
@@ -357,14 +489,20 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         const { pageNumber: pageNumberStr } = routeParams;
         const {
             itemsPerPage, searchQuery, isSearching, isMapExpanded,
+            searchLat, searchLng, searchLocationName,
         } = this.state;
         const spacesArray = Object.values(map?.spaces || {}) as any[];
         const pageNumber = parseInt(pageNumberStr || '1', 10);
         const isAuthenticated = user?.isAuthenticated;
-        const centerLat = location?.user?.latitude || DEFAULT_LATITUDE;
-        const centerLng = location?.user?.longitude || DEFAULT_LONGITUDE;
+
+        // Use geocoded search coordinates if available, otherwise user/default location
+        const centerLat = searchLat ?? location?.user?.latitude ?? DEFAULT_LATITUDE;
+        const centerLng = searchLng ?? location?.user?.longitude ?? DEFAULT_LONGITUDE;
+
         const localePrefixMap: Record<string, string> = { es: '/es', 'fr-ca': '/fr' };
         const localePrefix = localePrefixMap[locale] || '';
+
+        const paginationSearch = this.buildSearchParams();
 
         return (
             <div id="page_view_spaces">
@@ -389,8 +527,8 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                             value={searchQuery}
                             onChange={this.handleSearchChange}
                             onSearch={this.handleSearch}
-                            placeholder={this.props.translate('pages.spaces.searchPlaceholder')}
-                            aria-label={this.props.translate('pages.spaces.searchPlaceholder')}
+                            placeholder={this.props.translate('pages.spaces.searchPlaceholderLocation')}
+                            aria-label={this.props.translate('pages.spaces.searchPlaceholderLocation')}
                             style={{ flex: 1 }}
                         />
                         {searchQuery && (
@@ -405,12 +543,19 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         </Button>
                     </Group>
 
+                    {/* Location context label */}
+                    {searchLocationName && !isSearching && (
+                        <Text size="sm" c="dimmed">
+                            {this.props.translate('pages.spaces.nearLocation', { location: searchLocationName })}
+                        </Text>
+                    )}
+
                     {/* Map View - always visible in compact mode, expandable to full size */}
                     {/* key forces Leaflet remount so interactive/height changes take effect */}
                     {spacesArray.length > 0 && (
                         <React.Suspense fallback={<Skeleton height={isMapExpanded ? 300 : 200} radius="md" />}>
                             <SpacesMap
-                                key={isMapExpanded ? 'expanded' : 'compact'}
+                                key={`${isMapExpanded ? 'expanded' : 'compact'}-${centerLat.toFixed(2)}-${centerLng.toFixed(2)}`}
                                 spaces={spacesArray}
                                 centerLat={centerLat}
                                 centerLng={centerLng}
@@ -445,7 +590,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         {pageNumber > 1 && (
                             <Button
                                 component={Link}
-                                to={`/locations/${pageNumber - 1}${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
+                                to={`/locations/${pageNumber - 1}${paginationSearch}`}
                                 variant="outline"
                                 size="sm"
                             >
@@ -455,7 +600,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         {spacesArray.length >= itemsPerPage && (
                             <Button
                                 component={Link}
-                                to={`/locations/${pageNumber + 1}${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
+                                to={`/locations/${pageNumber + 1}${paginationSearch}`}
                                 variant="outline"
                                 size="sm"
                             >
