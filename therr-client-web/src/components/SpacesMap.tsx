@@ -10,6 +10,12 @@ interface ISpace {
     category?: string;
 }
 
+interface IMapMoveEvent {
+    lat: number;
+    lng: number;
+    radius: number;
+}
+
 interface ISpacesMapProps {
     spaces: ISpace[];
     centerLat: number;
@@ -18,6 +24,7 @@ interface ISpacesMapProps {
     zoom?: number;
     height?: number;
     interactive?: boolean;
+    onMoveEnd?: (event: IMapMoveEvent) => void;
 }
 
 const escapeHtml = (str: string): string => {
@@ -36,6 +43,7 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
     zoom,
     height,
     interactive = true,
+    onMoveEnd,
 }) => {
     const mapRef = React.useRef<HTMLDivElement>(null);
     const leafletMapRef = React.useRef<any>(null);
@@ -43,6 +51,8 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
     const markerIconRef = React.useRef<any>(null);
     const spacesRef = React.useRef(spaces);
     spacesRef.current = spaces;
+    const onMoveEndRef = React.useRef(onMoveEnd);
+    onMoveEndRef.current = onMoveEnd;
 
     const [revision, setRevision] = React.useState(0);
 
@@ -137,6 +147,25 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
             } else if (!zoom && bounds.length === 1) {
                 map.setView(bounds[0], 15);
             }
+
+            // Notify parent when user drags the map
+            // Using dragend (not moveend) to avoid false triggers from
+            // programmatic setView/fitBounds calls during init and updates
+            map.on('dragend', () => {
+                if (onMoveEndRef.current) {
+                    const center = map.getCenter();
+                    const mapBounds = map.getBounds();
+                    const ne = mapBounds.getNorthEast();
+                    const sw = mapBounds.getSouthWest();
+                    // Approximate radius as half the diagonal distance of the visible bounds
+                    const diagDist = map.distance(ne, sw);
+                    onMoveEndRef.current({
+                        lat: center.lat,
+                        lng: center.lng,
+                        radius: Math.round(diagDist / 2),
+                    });
+                }
+            });
 
             setRevision(1);
         });

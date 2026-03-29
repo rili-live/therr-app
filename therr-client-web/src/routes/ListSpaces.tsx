@@ -29,14 +29,12 @@ const DEFAULT_DISTANCE_OVERRIDE = 40075 * (1000 / 2); // estimated half distance
 
 // TODO: Future enhancements for location search:
 // - Place autocomplete dropdown using existing Google Places Autocomplete API (getPlacesSearchAutoComplete)
-// - "Near me" button to explicitly re-center on browser geolocation
 // - Show result count and distance labels per space card (e.g. "2.3 mi away")
 // - Category filtering alongside location search (combine location + category facets)
 // - Saved/recent searches via localStorage for quick re-use
 // - SEO: geo-targeted meta tags (meta name="geo.position") with dynamic description
 // - SEO: URL slugs for popular locations (e.g. /locations/michigan instead of query params)
 // - Faceted search: combine text + location + category + price range filters
-// - Map-driven search: "search this area" button when user drags the map
 
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
@@ -81,6 +79,10 @@ interface IListSpacesState {
     searchLng: number | null;
     searchRadius: number | null;
     searchLocationName: string;
+    mapMovedLat: number | null;
+    mapMovedLng: number | null;
+    mapMovedRadius: number | null;
+    showSearchAreaButton: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -120,6 +122,10 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             searchLng: !Number.isNaN(parsedLng) ? parsedLng : null,
             searchRadius: !Number.isNaN(parsedRadius) ? parsedRadius : null,
             searchLocationName: '',
+            mapMovedLat: null,
+            mapMovedLng: null,
+            mapMovedRadius: null,
+            showSearchAreaButton: false,
         };
     }
 
@@ -291,6 +297,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                 searchLng: null,
                 searchRadius: null,
                 searchLocationName: '',
+                showSearchAreaButton: false,
             }, () => {
                 this.updateSearchUrl();
                 this.searchPaginatedSpaces(1)
@@ -312,6 +319,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         searchLng: geo.longitude,
                         searchRadius: radius,
                         searchLocationName: geo.displayName,
+                        showSearchAreaButton: false,
                     }, () => {
                         document.title = `${query.trim()} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`;
                         this.updateSearchUrl();
@@ -325,6 +333,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         searchLng: null,
                         searchRadius: null,
                         searchLocationName: '',
+                        showSearchAreaButton: false,
                     }, () => {
                         this.updateSearchUrl();
                         this.searchPaginatedSpaces(1)
@@ -339,6 +348,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     searchLng: null,
                     searchRadius: null,
                     searchLocationName: '',
+                    showSearchAreaButton: false,
                 }, () => {
                     this.updateSearchUrl();
                     this.searchPaginatedSpaces(1)
@@ -382,6 +392,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             searchLng: null,
             searchRadius: null,
             searchLocationName: '',
+            showSearchAreaButton: false,
         }, () => {
             document.title = `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
             this.updateSearchUrl();
@@ -391,7 +402,64 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     };
 
     handleToggleMap = () => {
-        this.setState((prevState) => ({ isMapExpanded: !prevState.isMapExpanded }));
+        this.setState((prevState) => ({ isMapExpanded: !prevState.isMapExpanded, showSearchAreaButton: false }));
+    };
+
+    handleNearMe = () => {
+        if (typeof navigator !== 'undefined' && navigator.geolocation) {
+            this.setState({ isSearching: true });
+            navigator.geolocation.getCurrentPosition(
+                ({ coords: { latitude, longitude } }) => {
+                    this.props.updateUserCoordinates({ latitude, longitude });
+                    this.setState({
+                        searchLat: latitude,
+                        searchLng: longitude,
+                        searchRadius: 25000,
+                        searchLocationName: this.props.translate('pages.spaces.yourLocation'),
+                        searchQuery: '',
+                        showSearchAreaButton: false,
+                        isMapExpanded: true,
+                    }, () => {
+                        this.updateSearchUrl();
+                        this.searchPaginatedSpaces(1)
+                            .then(() => this.setState({ isSearching: false }));
+                    });
+                },
+                (err) => {
+                    console.log(err);
+                    this.setState({ isSearching: false });
+                },
+            );
+        }
+    };
+
+    handleMapMoveEnd = ({ lat, lng, radius }: { lat: number; lng: number; radius: number }) => {
+        this.setState({
+            mapMovedLat: lat,
+            mapMovedLng: lng,
+            mapMovedRadius: radius,
+            showSearchAreaButton: true,
+        });
+    };
+
+    handleSearchThisArea = () => {
+        const { mapMovedLat, mapMovedLng, mapMovedRadius } = this.state;
+
+        if (mapMovedLat == null || mapMovedLng == null) return;
+
+        this.setState({
+            searchLat: mapMovedLat,
+            searchLng: mapMovedLng,
+            searchRadius: mapMovedRadius,
+            searchLocationName: '',
+            searchQuery: '',
+            showSearchAreaButton: false,
+            isSearching: true,
+        }, () => {
+            this.updateSearchUrl();
+            this.searchPaginatedSpaces(1)
+                .then(() => this.setState({ isSearching: false }));
+        });
     };
 
     renderVisibilityBadge(space: any): JSX.Element | null {
@@ -493,7 +561,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         const { pageNumber: pageNumberStr } = routeParams;
         const {
             itemsPerPage, searchQuery, isSearching, isMapExpanded,
-            searchLat, searchLng, searchLocationName,
+            searchLat, searchLng, searchLocationName, showSearchAreaButton,
         } = this.state;
         const spacesArray = Object.values(map?.spaces || {}) as any[];
         const pageNumber = parseInt(pageNumberStr || '1', 10);
@@ -540,6 +608,9 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                                 Clear
                             </Button>
                         )}
+                        <Button variant="light" size="sm" onClick={this.handleNearMe}>
+                            {this.props.translate('pages.spaces.nearMe')}
+                        </Button>
                         <Button variant="outline" size="sm" onClick={this.handleToggleMap}>
                             {isMapExpanded
                                 ? this.props.translate('pages.spaces.collapseMap')
@@ -557,17 +628,37 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     {/* Map View - always visible in compact mode, expandable to full size */}
                     {/* key forces Leaflet remount so interactive/height changes take effect */}
                     {spacesArray.length > 0 && (
-                        <React.Suspense fallback={<Skeleton height={isMapExpanded ? 300 : 200} radius="md" />}>
-                            <SpacesMap
-                                key={`${isMapExpanded ? 'expanded' : 'compact'}-${centerLat.toFixed(2)}-${centerLng.toFixed(2)}`}
-                                spaces={spacesArray}
-                                centerLat={centerLat}
-                                centerLng={centerLng}
-                                localePrefix={localePrefix}
-                                height={isMapExpanded ? 300 : 200}
-                                interactive={isMapExpanded}
-                            />
-                        </React.Suspense>
+                        <div style={{ position: 'relative' }}>
+                            <React.Suspense fallback={<Skeleton height={isMapExpanded ? 300 : 200} radius="md" />}>
+                                <SpacesMap
+                                    key={`${isMapExpanded ? 'expanded' : 'compact'}-${centerLat.toFixed(2)}-${centerLng.toFixed(2)}`}
+                                    spaces={spacesArray}
+                                    centerLat={centerLat}
+                                    centerLng={centerLng}
+                                    localePrefix={localePrefix}
+                                    height={isMapExpanded ? 300 : 200}
+                                    interactive={isMapExpanded}
+                                    onMoveEnd={isMapExpanded ? this.handleMapMoveEnd : undefined}
+                                />
+                            </React.Suspense>
+                            {isMapExpanded && showSearchAreaButton && (
+                                <Button
+                                    variant="filled"
+                                    size="sm"
+                                    onClick={this.handleSearchThisArea}
+                                    style={{
+                                        position: 'absolute',
+                                        top: 10,
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        zIndex: 1000,
+                                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                    }}
+                                >
+                                    {this.props.translate('pages.spaces.searchThisArea')}
+                                </Button>
+                            )}
+                        </div>
                     )}
 
                     {/* Results */}

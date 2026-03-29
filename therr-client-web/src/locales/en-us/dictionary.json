@@ -465,7 +465,10 @@
       "signInPrompt": "to see your private spaces and manage listings.",
       "website": "website",
       "nearLocation": "Showing spaces near {location}",
-      "searchPlaceholderLocation": "Search by location (e.g. Michigan, New York)..."
+      "searchPlaceholderLocation": "Search by location (e.g. Michigan, New York)...",
+      "nearMe": "Near Me",
+      "searchThisArea": "Search This Area",
+      "yourLocation": "Your Location"
     },
     "home": {
       "pageTitle": "Create your Social Profile or Business",
