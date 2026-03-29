@@ -22,7 +22,12 @@ export default () => (
             <Documentation
                 title="Example"
                 description={
-                    <p>The <code>&#x3C;Alert&#x3E;</code> component can be used to show your users error, success, informational or warning messages. Use component properties such as  <code>variant="primary</code> or <code>variant="secondary"</code> to use the colors from the Sass variables:</p>
+                    <p>
+                        The <code>&#x3C;Alert&#x3E;</code> component can be used to show your users error,
+                        success, informational or warning messages. Use component properties such
+                        as <code>variant=&quot;primary&quot;</code> or <code>variant=&quot;secondary&quot;</code> to
+                        use the colors from the Sass variables:
+                    </p>
                 }
                 scope={{ Alert }}
                 imports={'import { Alert } from \'@themesberg/react-bootstrap\';'}
@@ -57,7 +62,13 @@ export default () => (
             <Documentation
                 title="Dismissable alerts"
                 description={
-                    <p>The <code>&#x3C;Alert&#x3E;</code> component can be used to create an alert component that can be closed by clicking on the close icon by adding the <code>show</code> and <code>onClose</code> properties. Additionally, you can also use the <code>&#x3C;FontAwesomeIcon&#x3E;</code> component to add an icon inside the alert component.</p>
+                    <p>
+                        The <code>&#x3C;Alert&#x3E;</code> component can be used to create an alert
+                        component that can be closed by clicking on the close icon by adding
+                        the <code>show</code> and <code>onClose</code> properties. Additionally,
+                        you can also use the <code>&#x3C;FontAwesomeIcon&#x3E;</code> component to
+                        add an icon inside the alert component.
+                    </p>
                 }
                 scope={{
                     Alert, Button, FontAwesomeIcon, faBullhorn,

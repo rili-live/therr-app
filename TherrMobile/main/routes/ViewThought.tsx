@@ -34,6 +34,24 @@ import TherrIcon from '../components/TherrIcon';
 import { HAPTIC_FEEDBACK_TYPE } from '../constants';
 import { navToViewContent } from '../utilities/postViewHelpers';
 
+const localStyles = StyleSheet.create({
+    contentContainer: {
+        paddingHorizontal: 10,
+    },
+    replyInput: {
+        flex: 1,
+        fontSize: 16,
+        backgroundColor: 'transparent',
+    },
+    replyInputOutline: {
+        borderRadius: 20,
+    },
+    footerButton: {
+        flex: 1,
+        marginHorizontal: 6,
+    },
+});
+
 const hapticFeedbackOptions = {
     enableVibrateFallback: false,
     ignoreAndroidSystemSettings: false,
@@ -447,23 +465,5 @@ const ViewThought = ({
         </>
     );
 };
-
-const localStyles = StyleSheet.create({
-    contentContainer: {
-        paddingHorizontal: 10,
-    },
-    replyInput: {
-        flex: 1,
-        fontSize: 16,
-        backgroundColor: 'transparent',
-    },
-    replyInputOutline: {
-        borderRadius: 20,
-    },
-    footerButton: {
-        flex: 1,
-        marginHorizontal: 6,
-    },
-});
 
 export default connect(mapStateToProps, mapDispatchToProps)(ViewThought);

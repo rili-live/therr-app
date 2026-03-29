@@ -29,7 +29,7 @@ export default (emailParams: ISendNewUserInviteEmailConfig, templateParams: ITem
     const htmlConfig = {
         header: translate(locale, 'emails.newUserInvite.header'),
         dearUser: translate(locale, 'emails.newUserInvite.dearUser', { toEmail: templateParams.toEmail }),
-        body1: translate(locale, 'emails.newUserInvite.body1', { fromName: templateParams.fromName, fromEmail: templateParams.fromEmail }),
+        body1: translate(locale, 'emails.newUserInvite.body1', { fromName: templateParams.fromName, fromEmail: templateParams.fromEmail, brandName: contextConfig.brandName }),
         body2: translate(locale, 'emails.newUserInvite.body2'),
         bodyBold: templateParams.oneTimePassword,
         buttonHref: linkUrl,

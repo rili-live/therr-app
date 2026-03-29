@@ -2,6 +2,7 @@ import React from 'react';
 import {
     Platform,
     StyleProp,
+    StyleSheet,
     ViewStyle,
     LayoutChangeEvent,
     Pressable,
@@ -64,7 +65,7 @@ export default ({
     return (
         <Pressable
             onPress={onPress}
-            style={[{ display: 'flex', position: 'relative' }, (viewContainerStyles || {})]} onLayout={onLayout}
+            style={[localStyles.mediaContainer, (viewContainerStyles || {})]} onLayout={onLayout}
         >
             {
                 isVisible &&
@@ -84,3 +85,10 @@ export default ({
         </Pressable>
     );
 };
+
+const localStyles = StyleSheet.create({
+    mediaContainer: {
+        display: 'flex',
+        position: 'relative',
+    },
+});

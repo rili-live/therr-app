@@ -3,7 +3,6 @@ build/
 lib/
 coverage/
 test-setup.js
-**/*.ts
 **/*.d.ts
 webpack.config.js
 .eslintrc.js

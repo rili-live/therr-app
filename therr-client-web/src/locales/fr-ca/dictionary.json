@@ -754,7 +754,32 @@
         "viewOnGoogleMaps": "Voir sur Google Maps",
         "getFullExperience": "Profitez de l'expérience complète sur l'application Therr",
         "helpful": "Utile",
-        "notHelpful": "Pas utile"
+        "notHelpful": "Pas utile",
+        "bookmark": "Enregistrer",
+        "removeBookmark": "Retirer le signet"
+      },
+      "loginModal": {
+        "title": "Connexion requise",
+        "body": "Vous devez vous connecter pour effectuer cette action. Créez un compte ou connectez-vous pour continuer.",
+        "signIn": "Se connecter",
+        "register": "Créer un compte"
+      },
+      "addReview": {
+        "title": "Laisser un avis",
+        "locationPrompt": "Activez l'accès à votre position pour vérifier que vous êtes près de cet espace avant de laisser un avis.",
+        "enableLocation": "Activer la localisation",
+        "locationUnavailable": "La géolocalisation n'est pas prise en charge par votre navigateur.",
+        "locationDenied": "L'accès à la localisation a été refusé. Veuillez l'activer dans les paramètres de votre navigateur.",
+        "tooFar": "Vous devez être à moins de 200 mètres de cet emplacement pour laisser un avis. Visitez l'espace et réessayez!",
+        "yourRating": "Votre note :",
+        "messagePlaceholder": "Partagez votre expérience (facultatif)...",
+        "ratingRequired": "Veuillez sélectionner une note.",
+        "retryLocation": "Vérifier la position à nouveau",
+        "writeAnother": "Écrire un autre avis",
+        "signInPrompt": "Connectez-vous pour laisser un avis sur cet espace.",
+        "submitButton": "Soumettre l'avis",
+        "successMessage": "Votre avis a été soumis. Merci!",
+        "errorMessage": "Une erreur s'est produite lors de la soumission de votre avis. Veuillez réessayer."
       },
       "claimSpace": {
         "title": "C'est votre entreprise?",

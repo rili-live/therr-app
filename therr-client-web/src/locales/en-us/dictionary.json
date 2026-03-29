@@ -795,7 +795,32 @@
         "viewOnGoogleMaps": "View on Google Maps",
         "getFullExperience": "Get the full experience on Therr app",
         "helpful": "Helpful",
-        "notHelpful": "Not helpful"
+        "notHelpful": "Not helpful",
+        "bookmark": "Bookmark",
+        "removeBookmark": "Remove bookmark"
+      },
+      "loginModal": {
+        "title": "Sign in required",
+        "body": "You need to sign in to perform this action. Create an account or sign in to continue.",
+        "signIn": "Sign In",
+        "register": "Create Account"
+      },
+      "addReview": {
+        "title": "Leave a Review",
+        "locationPrompt": "Enable location access to verify you are near this space before leaving a review.",
+        "enableLocation": "Enable Location",
+        "locationUnavailable": "Geolocation is not supported by your browser.",
+        "locationDenied": "Location access was denied. Please enable it in your browser settings.",
+        "tooFar": "You need to be within 200 meters of this location to leave a review. Visit the space and try again!",
+        "yourRating": "Your rating:",
+        "messagePlaceholder": "Share your experience (optional)...",
+        "ratingRequired": "Please select a star rating.",
+        "retryLocation": "Check Location Again",
+        "writeAnother": "Write another review",
+        "signInPrompt": "Sign in to leave a review for this space.",
+        "submitButton": "Submit Review",
+        "successMessage": "Your review has been submitted. Thank you!",
+        "errorMessage": "There was an error submitting your review. Please try again."
       },
       "claimSpace": {
         "title": "Is this your business?",

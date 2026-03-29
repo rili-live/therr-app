@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { Pressable, SafeAreaView, View, Text } from 'react-native';
+import { Pressable, SafeAreaView, StyleSheet, View, Text } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import LottieView from 'lottie-react-native';
@@ -90,7 +90,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
             headerLeft: () => (
                 <Pressable
                     onPress={() => this.props.navigation.navigate('Achievements')}
-                    style={{ marginLeft: 12 }}
+                    style={localStyles.headerBackButton}
                 >
                     <TherrIcon name="go-back" size={24} />
                 </Pressable>
@@ -206,10 +206,10 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         return (
             <>
                 <Text style={[this.theme.styles.sectionDescriptionCentered]}>
-                    {`${this.translate('pages.achievements.labels.coinValue')}:`} <Text style={{ fontWeight: '600' }}>{this.translate('pages.achievements.info.numberOfCoins', { pointReward: achievement.pointReward })}</Text>
+                    {`${this.translate('pages.achievements.labels.coinValue')}:`} <Text style={localStyles.fontWeightSemiBold}>{this.translate('pages.achievements.info.numberOfCoins', { pointReward: achievement.pointReward })}</Text>
                 </Text>
                 <Text style={[this.theme.styles.sectionDescriptionCentered]}>
-                    {`${this.translate('pages.achievements.labels.xpValue')}:`} <Text style={{ fontWeight: '600' }}>{this.translate('pages.achievements.info.numberOfXp', { pointReward: achievement.xp })}</Text>
+                    {`${this.translate('pages.achievements.labels.xpValue')}:`} <Text style={localStyles.fontWeightSemiBold}>{this.translate('pages.achievements.info.numberOfXp', { pointReward: achievement.xp })}</Text>
                 </Text>
             </>
         );
@@ -236,14 +236,14 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                                 {pageHeaderAchievements}
                             </Text>
                         </View> */}
-                        <View style={{ display: 'flex', height: 420, width: '100%', justifyContent: 'center', alignItems: 'center' }}>
+                        <View style={localStyles.cardContainer}>
                             <LottieView
                                 source={achievementConfetti}
                                 resizeMode="cover"
                                 speed={1}
                                 autoPlay
                                 loop
-                                style={{ position: 'absolute', width: '100%', height: '100%' }}
+                                style={localStyles.absoluteFill}
                             />
                             <View style={this.themeAchievements.styles.cardImageContainerLarge}>
                                 {/* <Image
@@ -257,7 +257,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                                         speed={2.4}
                                         autoPlay
                                         loop={false}
-                                        style={{ position: 'absolute', width: '100%', height: '100%' }}
+                                        style={localStyles.absoluteFill}
                                     />
                                 </View>
                             </View>
@@ -298,5 +298,26 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    headerBackButton: {
+        marginLeft: 12,
+    },
+    fontWeightSemiBold: {
+        fontWeight: '600',
+    },
+    cardContainer: {
+        display: 'flex',
+        height: 420,
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    absoluteFill: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(AchievementClaim);
