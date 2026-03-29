@@ -169,7 +169,17 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                 .then(([nearbyMoments, nearbySpaces]) => {
                     const filteredMoments = nearbyMoments?.newlyDiscoveredAreas;
                     const filteredSpaces = nearbySpaces?.newlyDiscoveredAreas;
-                    let isCheckIn = false;
+
+                    // Determine isCheckIn synchronously from available space data.
+                    // Home detection (async) only gates the nudge notification, not visit recording.
+                    // A check-in means the user is stationary within 20m of at least one space.
+                    const isCheckIn = (nearbySpaces?.areas || []).some((s) => {
+                        const dist = distanceTo(
+                            { lon: longitude, lat: latitude },
+                            { lon: s.longitude, lat: s.latitude },
+                        );
+                        return dist <= Location.MAX_DISTANCE_TO_CHECK_IN_METERS;
+                    });
 
                     if (filteredSpaces?.length) {
                         Promise.all([
@@ -242,9 +252,6 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                                 });
 
                                 if (possibleSpacesUserIsVisiting.length) {
-                                    // Mark as check-in so visit data is recorded alongside activation
-                                    isCheckIn = true;
-
                                     // Select the first, closest space by default
                                     const spaceWithRewards = possibleSpacesUserIsVisiting[0];
                                     const now = Date.now();
@@ -328,9 +335,11 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                             }).then((reactionsResponse) => {
                                 const reactions = reactionsResponse?.data?.reactions || [];
                                 // Filter for visited but unreviewed spaces where last visit was >2 hours ago
-                                const unreviewedVisits = reactions.filter(
-                                    (r) => r.visitedAt && !r.rating && new Date(r.lastVisitedAt) < postVisitCutoff,
-                                );
+                                const unreviewedVisits = reactions
+                                    .filter(
+                                        (r) => r.visitedAt && !r.rating && new Date(r.lastVisitedAt) < postVisitCutoff,
+                                    )
+                                    .sort((a, b) => new Date(b.lastVisitedAt).getTime() - new Date(a.lastVisitedAt).getTime());
 
                                 if (unreviewedVisits.length) {
                                     const mostRecentVisit = unreviewedVisits[0];
