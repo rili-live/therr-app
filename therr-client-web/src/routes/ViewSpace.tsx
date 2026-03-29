@@ -294,8 +294,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
         if (space.isClaimPending || space.requestedByUserId) {
             return (
-                <Paper withBorder p="lg" radius="md" mt="md" id="claim-space-section" style={{ borderColor: '#fbbf24', backgroundColor: '#fffbeb' }}>
-                    <Text fw={600} size="lg">{translate('pages.viewSpace.claimSpace.pendingTitle')}</Text>
+                <Paper withBorder p="lg" radius="md" mt="md" id="claim-space-section" style={{ borderColor: 'var(--therr-cta-pending-border)', backgroundColor: 'var(--therr-cta-pending-bg)', color: 'var(--therr-cta-pending-text)' }}>
+                    <Text fw={600} size="lg" c="inherit">{translate('pages.viewSpace.claimSpace.pendingTitle')}</Text>
                     <Text size="sm" mt="xs" c="dimmed">{translate('pages.viewSpace.claimSpace.pendingBody')}</Text>
                 </Paper>
             );
@@ -313,15 +313,16 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 mt="md"
                 id="claim-space-section"
                 style={{
-                    borderColor: '#1C7F8A',
-                    backgroundColor: isFromClaimEmail ? '#e6fffa' : '#f0fdfa',
+                    borderColor: 'var(--therr-cta-border)',
+                    backgroundColor: isFromClaimEmail ? 'var(--therr-cta-bg-emphasis)' : 'var(--therr-cta-bg)',
                     borderWidth: isFromClaimEmail ? 2 : 1,
+                    color: 'var(--therr-cta-text)',
                 }}
             >
-                <Title order={isFromClaimEmail ? 2 : 3} size={isFromClaimEmail ? 'h3' : 'h4'}>
+                <Title order={isFromClaimEmail ? 2 : 3} size={isFromClaimEmail ? 'h3' : 'h4'} c="inherit">
                     {translate(isFromClaimEmail ? 'pages.viewSpace.claimSpace.emailTitle' : 'pages.viewSpace.claimSpace.title')}
                 </Title>
-                <Text size={isFromClaimEmail ? 'md' : 'sm'} mt="xs">
+                <Text size={isFromClaimEmail ? 'md' : 'sm'} mt="xs" c="inherit">
                     {translate(isFromClaimEmail ? 'pages.viewSpace.claimSpace.emailBody' : 'pages.viewSpace.claimSpace.body')}
                 </Text>
                 {claimMessage && claimMessageType === 'error' && (
