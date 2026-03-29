@@ -739,13 +739,14 @@ async function main() {
     // ── Enrich-existing mode ──
     let spaces = await querySpacesForEnrichment(db, args);
     if (!args.noSkipProcessed && !args.singleId) {
+      // Only filter by failure types. Success types (WEBSITE_FOUND, etc.) mean
+      // the field was populated in DB, but the space may still need other
+      // enrichment (e.g., has website but still needs email/image). The DB
+      // query already excludes spaces with all fields populated.
       const { filtered, skippedCount } = filterProcessedSpaces(spaces, [
         ProcessedType.NO_WEBSITE_FOUND,
         ProcessedType.NO_EMAIL_FOUND,
         ProcessedType.NO_IMAGE_FOUND,
-        ProcessedType.WEBSITE_FOUND,
-        ProcessedType.EMAIL_FOUND,
-        ProcessedType.IMAGE_FOUND,
       ]);
       if (skippedCount > 0) {
         console.log(`Skipping ${skippedCount} previously processed space(s).`);

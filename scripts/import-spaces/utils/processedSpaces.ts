@@ -57,8 +57,13 @@ function loadFile(type: ProcessedType): IProcessedFile {
   if (!fs.existsSync(fp)) {
     return { type, updatedAt: new Date().toISOString(), entries: [] };
   }
-  const raw = fs.readFileSync(fp, 'utf-8');
-  return JSON.parse(raw) as IProcessedFile;
+  try {
+    const raw = fs.readFileSync(fp, 'utf-8');
+    return JSON.parse(raw) as IProcessedFile;
+  } catch (err) {
+    console.error(`Warning: Could not parse ${fp}, starting fresh. Error: ${(err as Error).message}`);
+    return { type, updatedAt: new Date().toISOString(), entries: [] };
+  }
 }
 
 /**

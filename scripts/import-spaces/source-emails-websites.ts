@@ -310,7 +310,12 @@ async function processEmailSpaces(db: Pool, args: ICliArgs, counters: ICounters)
           console.log(`${progress}   Would also source image from ${space.websiteUrl}`);
         } else {
           const imageSourced = await sourceImageForSpace(db, space, space.websiteUrl, space.fromUserId || args.userId, progress);
-          if (imageSourced) counters.imagesFound++;
+          if (imageSourced) {
+            counters.imagesFound++;
+            markProcessed(ProcessedType.IMAGE_FOUND, space.id, space.notificationMsg);
+          } else {
+            markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
+          }
         }
       }
     } catch (err: any) {
@@ -387,8 +392,11 @@ async function processWebsiteSpaces(db: Pool, args: ICliArgs, counters: ICounter
             `UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2`,
             [bestEmail.email, space.id],
           );
+          markProcessed(ProcessedType.EMAIL_FOUND, space.id, space.notificationMsg);
           counters.emailsFound++;
         }
+      } else if (!args.dryRun) {
+        markProcessed(ProcessedType.NO_EMAIL_FOUND, space.id, space.notificationMsg);
       }
 
       // Optionally source images from the newly discovered website
@@ -399,7 +407,12 @@ async function processWebsiteSpaces(db: Pool, args: ICliArgs, counters: ICounter
           const imageSourced = await sourceImageForSpace(
             db, space, searchResult.websiteUrl, space.fromUserId || args.userId, progress,
           );
-          if (imageSourced) counters.imagesFound++;
+          if (imageSourced) {
+            counters.imagesFound++;
+            markProcessed(ProcessedType.IMAGE_FOUND, space.id, space.notificationMsg);
+          } else {
+            markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
+          }
         }
       }
     } catch (err: any) {
