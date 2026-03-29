@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, View, Text, ViewStyle, TextStyle, StyleProp } from 'react-native';
+import { Pressable, StyleSheet, View, Text, ViewStyle, TextStyle, StyleProp } from 'react-native';
 import { Checkbox, useTheme } from 'react-native-paper';
 
 // ListItem compound component using plain RN primitives + Paper Checkbox.
@@ -58,7 +58,7 @@ const Subtitle = ({ children, style, numberOfLines }: ITextProps) => {
 };
 
 const Content = ({ children }: { children: React.ReactNode }) => (
-    <View style={{ flex: 1 }}>{children}</View>
+    <View style={localStyles.content}>{children}</View>
 );
 
 interface ICheckBoxProps {
@@ -74,6 +74,12 @@ const CheckBox = ({ checked, onPress, checkedColor }: ICheckBoxProps) => (
         color={checkedColor}
     />
 );
+
+const localStyles = StyleSheet.create({
+    content: {
+        flex: 1,
+    },
+});
 
 // Assemble compound component
 export const ListItem = Object.assign(ListItemBase, {

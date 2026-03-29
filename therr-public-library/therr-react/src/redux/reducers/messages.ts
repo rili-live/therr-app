@@ -87,8 +87,8 @@ const messages = produce((draft: IMessagesState, action: any) => {
             break;
         case SocketClientActionTypes.LOGOUT:
             draft.forums = [];
-            draft.dms = [];
-            draft.forumMsgs = [];
+            draft.dms = {};
+            draft.forumMsgs = {};
             break;
         default:
             break;

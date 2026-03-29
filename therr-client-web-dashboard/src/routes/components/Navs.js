@@ -23,7 +23,12 @@ export default () => (
             <Documentation
                 title="Example"
                 description={
-                    <p>The <code>&#x3C;Nav&#x3E;</code> component should be used for app navigation, such as for the navigation bar, a secondary menu, or other. The <code>&#x3C;Nav.Link&#x3E;</code> component can be attributed with the location of the link.</p>
+                    <p>
+                        The <code>&#x3C;Nav&#x3E;</code> component should be used for app navigation,
+                        such as for the navigation bar, a secondary menu, or other.
+                        The <code>&#x3C;Nav.Link&#x3E;</code> component can be attributed with the
+                        location of the link.
+                    </p>
                 }
                 scope={{ Nav, Row, Col }}
                 imports={'import { Nav } from \'@themesberg/react-bootstrap\';'}
@@ -58,7 +63,11 @@ export default () => (
             <Documentation
                 title="Rounded navs"
                 description={
-                    <p>If you want the nav style to be rounded, just add the <code>rounded</code> class name to the main <code>&#x3C;Nav.Link&#x3E;</code> component.</p>
+                    <p>
+                        If you want the nav style to be rounded, just add
+                        the <code>rounded</code> class name to the
+                        main <code>&#x3C;Nav.Link&#x3E;</code> component.
+                    </p>
                 }
                 scope={{ Nav, Row, Col }}
                 imports={'import { Nav } from \'@themesberg/react-bootstrap\';'}

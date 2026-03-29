@@ -128,9 +128,7 @@ describe('Geocode Route', () => {
             };
 
             expect(data.results).to.be.an('array').with.lengthOf(1);
-            expect(data.results[0]).to.have.all.keys(
-                'latitude', 'longitude', 'displayName', 'boundingBox', 'type', 'class',
-            );
+            expect(data.results[0]).to.have.all.keys('latitude', 'longitude', 'displayName', 'boundingBox', 'type', 'class');
         });
 
         it('should return empty results array for no matches', () => {

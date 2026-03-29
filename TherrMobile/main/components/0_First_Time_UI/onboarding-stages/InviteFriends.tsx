@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../BaseButton';
 import { ITherrThemeColors } from '../../../styles/themes';
 import spacingStyles from '../../../styles/layouts/spacing';
@@ -34,18 +34,18 @@ const InviteFriends: React.FC<IInviteFriendsProps> = ({
     return (
         <View style={themeSettingsForm.styles.userContainer}>
             <View style={spacingStyles.marginBotLg}>
-                <Text style={[theme.styles.sectionDescription, { textAlign: 'center', marginBottom: 20 }]}>
+                <Text style={[theme.styles.sectionDescription, localStyles.descriptionText]}>
                     {translate('pages.createProfile.inviteFriends.description')}
                 </Text>
                 <Button
-                    containerStyle={{ marginBottom: 15 }}
+                    containerStyle={localStyles.buttonSpacing}
                     buttonStyle={themeForms.styles.button}
                     titleStyle={themeForms.styles.buttonTitle}
                     title={translate('pages.createProfile.inviteFriends.shareLink')}
                     onPress={onShareLink}
                 />
                 <Button
-                    containerStyle={{ marginBottom: 15 }}
+                    containerStyle={localStyles.buttonSpacing}
                     buttonStyle={themeForms.styles.buttonRoundAlt}
                     titleStyle={themeForms.styles.buttonTitleAlt}
                     title={translate('pages.createProfile.inviteFriends.syncContacts')}
@@ -65,5 +65,15 @@ const InviteFriends: React.FC<IInviteFriendsProps> = ({
         </View>
     );
 };
+
+const localStyles = StyleSheet.create({
+    descriptionText: {
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    buttonSpacing: {
+        marginBottom: 15,
+    },
+});
 
 export default InviteFriends;

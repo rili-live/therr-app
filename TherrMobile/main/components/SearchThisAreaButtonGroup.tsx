@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { FAB } from 'react-native-paper';
 import searchLoading from '../assets/search-loading.json';
 import LottieView from 'lottie-react-native';
@@ -31,7 +31,7 @@ const SearchThisAreaButtonGroup = ({
                         speed={1}
                         autoPlay
                         loop
-                        style={[{position: 'absolute', top: 0, width: '100%', height: 65}]}
+                        style={[localStyles.searchLoadingLottie]}
                     /> :
                     <FAB
                         icon="magnify"
@@ -45,5 +45,14 @@ const SearchThisAreaButtonGroup = ({
         </View>
     );
 };
+
+const localStyles = StyleSheet.create({
+    searchLoadingLottie: {
+        position: 'absolute',
+        top: 0,
+        width: '100%',
+        height: 65,
+    },
+});
 
 export default React.memo(SearchThisAreaButtonGroup);
