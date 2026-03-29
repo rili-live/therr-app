@@ -345,6 +345,7 @@
       "replyTooShort": "La réponse est trop courte",
       "replyError": "Échec de la publication de la réponse. Veuillez réessayer.",
       "loginToReply": "Connectez-vous pour répondre",
+      "loginToView": "Connectez-vous pour voir cette publication et rejoindre la conversation",
       "backToThoughts": "Retour aux pensées"
     },
     "chatForum": {
@@ -462,7 +463,15 @@
       "expandMap": "Agrandir la carte",
       "collapseMap": "Réduire la carte",
       "signInPrompt": "pour voir vos espaces privés et gérer vos annonces.",
-      "website": "site web"
+      "website": "site web",
+      "nearLocation": "Affichage des espaces près de {location}",
+      "searchPlaceholderLocation": "Rechercher par lieu (ex. Michigan, New York)...",
+      "nearMe": "Près de moi",
+      "searchThisArea": "Rechercher dans cette zone",
+      "yourLocation": "Votre position",
+      "clear": "Effacer",
+      "reset": "Réinitialiser",
+      "locationError": "L'accès à la localisation est requis. Veuillez activer la localisation dans les paramètres de votre navigateur."
     },
     "home": {
       "pageTitle": "Créez votre profil social ou d'entreprise",

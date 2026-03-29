@@ -338,6 +338,7 @@
       "replyTooShort": "Reply is too short",
       "replyError": "Failed to post reply. Please try again.",
       "loginToReply": "Log in to reply",
+      "loginToView": "Log in to view this post and join the conversation",
       "backToThoughts": "Back to Thoughts"
     },
     "explorePeople": {
@@ -462,7 +463,15 @@
       "expandMap": "Expand Map",
       "collapseMap": "Collapse Map",
       "signInPrompt": "to see your private spaces and manage listings.",
-      "website": "website"
+      "website": "website",
+      "nearLocation": "Showing spaces near {location}",
+      "searchPlaceholderLocation": "Search by location (e.g. Michigan, New York)...",
+      "nearMe": "Near Me",
+      "searchThisArea": "Search This Area",
+      "yourLocation": "Your Location",
+      "clear": "Clear",
+      "reset": "Reset",
+      "locationError": "Location access is required. Please enable location in your browser settings."
     },
     "home": {
       "pageTitle": "Create your Social Profile or Business",

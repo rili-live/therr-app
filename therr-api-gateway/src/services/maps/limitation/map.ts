@@ -41,6 +41,9 @@ const pairingFeedbackLimiter = buildRateLimiter(pairingFeedbackLimitReachedMessa
 const placesApiLimitReachedMessage = 'Places search is limited. Try again later.';
 const placesApiLimiter = buildRateLimiter(placesApiLimitReachedMessage, 60, 1); // 60 per minute per IP
 
+const geocodeApiLimitReachedMessage = 'Geocoding is limited. Try again later.';
+const geocodeApiLimiter = buildRateLimiter(geocodeApiLimitReachedMessage, 30, 1); // 30 per minute per IP
+
 export {
     createCheckInLimiter,
     createActivityLimiter,
@@ -49,4 +52,5 @@ export {
     createSpaceLimiter,
     pairingFeedbackLimiter,
     placesApiLimiter,
+    geocodeApiLimiter,
 };

@@ -338,6 +338,7 @@
       "replyTooShort": "La respuesta es demasiado corta",
       "replyError": "No se pudo publicar la respuesta. Por favor, int\u00e9ntalo de nuevo.",
       "loginToReply": "Inicia sesi\u00f3n para responder",
+      "loginToView": "Inicia sesi\u00f3n para ver esta publicaci\u00f3n y unirte a la conversaci\u00f3n",
       "backToThoughts": "Volver a Pensamientos"
     },
     "explorePeople": {
@@ -462,7 +463,15 @@
       "expandMap": "Ampliar mapa",
       "collapseMap": "Contraer mapa",
       "signInPrompt": "para ver tus espacios privados y gestionar listados.",
-      "website": "sitio web"
+      "website": "sitio web",
+      "nearLocation": "Mostrando espacios cerca de {location}",
+      "searchPlaceholderLocation": "Buscar por ubicación (ej. Michigan, Nueva York)...",
+      "nearMe": "Cerca de mí",
+      "searchThisArea": "Buscar en esta zona",
+      "yourLocation": "Tu ubicación",
+      "clear": "Borrar",
+      "reset": "Restablecer",
+      "locationError": "Se requiere acceso a la ubicación. Habilita la ubicación en la configuración de tu navegador."
     },
     "home": {
       "pageTitle": "Crea tu perfil social o negocio",
