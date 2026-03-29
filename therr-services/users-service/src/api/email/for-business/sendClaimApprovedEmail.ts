@@ -31,9 +31,9 @@ export default (emailParams: ISendClaimApprovedEmailConfig, templateParams: ITem
     const htmlConfig = {
         header: translate(locale, 'emails.claimApproved.header'),
         dearUser,
-        body1: translate(locale, 'emails.claimApproved.body1', { spaceName: templateParams.spaceName }),
+        body1: translate(locale, 'emails.claimApproved.body1', { spaceName: templateParams.spaceName, brandName: contextConfig.brandName }),
         body2: translate(locale, 'emails.claimApproved.body2'),
-        postBody1: translate(locale, 'emails.claimApproved.postBody1'),
+        postBody1: translate(locale, 'emails.claimApproved.postBody1', { brandName: contextConfig.brandName }),
         buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/spaces/${templateParams.spaceId}`,
         buttonText: contextConfig.brandGoLinkText,
     };

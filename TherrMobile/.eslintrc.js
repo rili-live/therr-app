@@ -26,6 +26,8 @@ module.exports = {
         semi: 'error',
         'comma-dangle': ['error', 'always-multiline'],
         'no-trailing-spaces': 'error',
+        '@typescript-eslint/no-use-before-define': 'off',
+        'no-use-before-define': 'off',
     },
     settings: {
         'import/external-module-folders': ['../node_modules', '../node_modules/@types'],

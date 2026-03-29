@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from './BaseButton';
@@ -17,9 +17,7 @@ const Title = ({
     <AttachStep index={4}>
         <Text style={[
             themeForms.styles.buttonLinkHeader,
-            {
-                textAlign: 'center',
-            },
+            localStyles.textCenter,
         ]}>{buttonTitle}</Text>
     </AttachStep>
 );
@@ -126,5 +124,11 @@ class HeaderMenuRight extends React.Component<
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    textCenter: {
+        textAlign: 'center',
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(HeaderMenuRight);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import 'react-native-gesture-handler';
 import BaseInput from './';
 
@@ -17,7 +17,7 @@ export class RoundInput extends BaseInput {
                 style={ !value?.length ? themeForms.styles.placeholderText : themeForms.styles.inputText }
                 placeholderTextColor={themeForms.styles.placeholderText.color}
                 inputContainerStyle={themeForms.styles.inputContainerRound}
-                underlineStyle={{ display: 'none' }}
+                underlineStyle={localStyles.hidden}
                 roundness={15}
                 value={value}
                 {...restProps}
@@ -27,5 +27,11 @@ export class RoundInput extends BaseInput {
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    hidden: {
+        display: 'none',
+    },
+});
 
 export default RoundInput;

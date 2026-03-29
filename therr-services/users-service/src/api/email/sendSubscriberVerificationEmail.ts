@@ -26,7 +26,7 @@ export default (emailParams: ISendSubscriberVerificationEmailConfig, templatePar
     const htmlConfig = {
         header: translate(locale, 'emails.subscriberVerification.header', { brandName: contextConfig.brandName }),
         dearUser: translate(locale, 'emails.subscriberVerification.dearUser'),
-        body1: translate(locale, 'emails.subscriberVerification.body1'),
+        body1: translate(locale, 'emails.subscriberVerification.body1', { brandName: contextConfig.brandName }),
         fromEmailTitle: `${contextConfig.brandName} Newsletter`,
     };
 

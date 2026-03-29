@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../BaseButton';
 import { ITherrThemeColors } from '../../../styles/themes';
 import spacingStyles from '../../../styles/layouts/spacing';
@@ -126,7 +126,7 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                         speed={1}
                         autoPlay
                         loop
-                        style={[{width: '100%', height: 65, marginVertical: 30 }]}
+                        style={localStyles.loadingAnimation}
                     />
                 }
                 <View style={spacingStyles.marginBotLg}>
@@ -135,10 +135,10 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                             const interests = availableInterests[categoryTranslationKey];
                             return (
                                 <View key={categoryTranslationKey} style={theme.styles.sectionContainer}>
-                                    <Text style={[{ marginBottom: 20, color: theme.colors.textWhite }]}>
+                                    <Text style={[localStyles.categoryLabel, { color: theme.colors.textWhite }]}>
                                         {translate(categoryTranslationKey)}
                                     </Text>
-                                    <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+                                    <View style={localStyles.interestsRow}>
                                         {
                                             interests.map((interest) => {
                                                 const style = interest.isEnabled
@@ -148,7 +148,7 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
                                                     <Pressable
                                                         key={interest.id}
                                                         onPress={() => this.onPressInterest(interest)}
-                                                        style={[style, { padding: 2, paddingHorizontal: 6, margin: 4 }]}
+                                                        style={[style, localStyles.interestPill]}
                                                     >
                                                         <Text style={{ color: theme.colors.textWhite }}>
                                                             {interest.emoji} {translate(interest.displayNameKey)}
@@ -179,5 +179,26 @@ class CreateProfileInterests extends React.Component<ICreateProfileInterestsProp
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    loadingAnimation: {
+        width: '100%',
+        height: 65,
+        marginVertical: 30,
+    },
+    categoryLabel: {
+        marginBottom: 20,
+    },
+    interestsRow: {
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    interestPill: {
+        padding: 2,
+        paddingHorizontal: 6,
+        margin: 4,
+    },
+});
 
 export default CreateProfileInterests;

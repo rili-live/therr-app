@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
 
 interface IModalButtonProps {
@@ -23,13 +24,26 @@ const ModalButton = ({ color, disabled, loading, title, iconName, onPress, iconR
             loading={loading}
             icon={iconName}
             textColor={textColor}
-            contentStyle={iconRight ? { flexDirection: 'row-reverse' } : undefined}
-            style={{ flex: 1, minWidth: 0 }}
-            labelStyle={{ fontSize: 15 }}
+            contentStyle={iconRight ? localStyles.rowReverse : undefined}
+            style={localStyles.buttonFlex}
+            labelStyle={localStyles.labelText}
         >
             {title}
         </Button>
     );
 };
+
+const localStyles = StyleSheet.create({
+    rowReverse: {
+        flexDirection: 'row-reverse',
+    },
+    buttonFlex: {
+        flex: 1,
+        minWidth: 0,
+    },
+    labelText: {
+        fontSize: 15,
+    },
+});
 
 export default ModalButton;

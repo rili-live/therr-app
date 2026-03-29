@@ -14,6 +14,15 @@ interface IContentOption {
     type: IContentSelectionType;
 }
 
+const ContentOptionIcon = ({ iconName, iconColor, style }: { iconName: string; iconColor: string | undefined; style: any }) => (
+    <MaterialIcon
+        name={iconName}
+        size={22}
+        color={iconColor}
+        style={style}
+    />
+);
+
 const ContentOptionsSheet = (props: SheetProps<'content-options-sheet'>) => {
     const { payload } = props;
     const contentType = payload?.contentType;
@@ -44,12 +53,7 @@ const ContentOptionsSheet = (props: SheetProps<'content-options-sheet'>) => {
                         title={payload?.translate(`modals.contentOptions.buttons.${option.title}`)}
                         titleStyle={{ color: iconColor }}
                         left={(listProps) => (
-                            <MaterialIcon
-                                name={option.icon}
-                                size={22}
-                                color={iconColor}
-                                style={listProps.style}
-                            />
+                            <ContentOptionIcon iconName={option.icon} iconColor={iconColor} style={listProps.style} />
                         )}
                         onPress={() => {
                             SheetManager.hide('content-options-sheet');

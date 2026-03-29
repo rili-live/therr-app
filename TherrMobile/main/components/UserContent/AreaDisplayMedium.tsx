@@ -4,6 +4,7 @@ import {
     ActivityIndicator,
     Dimensions,
     Pressable,
+    StyleSheet,
     Text,
     TouchableWithoutFeedbackComponent,
     View,
@@ -221,11 +222,11 @@ export const AreaDisplayContent = ({
     // };
 
     return (
-        <View style={{ display: 'flex', flexDirection: 'row', flex: 1 }}>
+        <View style={localStyles.rowContainer}>
             <PresssableWithDoubleTap
                 onPress={inspectContent}
                 onDoubleTap={onDoubleTap || (() => {})}
-                style={{ paddingLeft: 14, paddingTop: 8 }}
+                style={localStyles.mediaPressable}
             >
                 {/* <UserMedia
                     viewportWidth={mediaWidth}
@@ -240,11 +241,10 @@ export const AreaDisplayContent = ({
                             source={{
                                 uri: areaMedia,
                             }}
-                            style={{
+                            style={[localStyles.mediaImage, {
                                 width: mediaWidth,
                                 height: mediaWidth,
-                                borderRadius: 7,
-                            }}
+                            }]}
                             resizeMode="contain"
                             PlaceholderContent={<ActivityIndicator />}
                         /> :
@@ -308,3 +308,18 @@ export const AreaDisplayContent = ({
         </View>
     );
 };
+
+const localStyles = StyleSheet.create({
+    rowContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        flex: 1,
+    },
+    mediaPressable: {
+        paddingLeft: 14,
+        paddingTop: 8,
+    },
+    mediaImage: {
+        borderRadius: 7,
+    },
+});
