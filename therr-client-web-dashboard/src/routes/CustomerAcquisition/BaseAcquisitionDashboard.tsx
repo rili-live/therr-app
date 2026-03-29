@@ -91,7 +91,7 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
 
     navigateHandler = (routeName: string) => () => this.props.navigation.navigate(routeName);
 
-    fetchDashboardCampaigns = (latitude?: number, longitude?: number) => {
+    fetchDashboardCampaigns = () => {
         const { fetchCampaigns } = this.props;
 
         return fetchCampaigns().then((response) => new Promise((resolve) => {
@@ -127,15 +127,15 @@ export class BaseAcquisitionDashboardComponent extends React.Component<IBaseAcqu
                 })
                 : Promise.resolve(campaigns.campaigns[campaign.id]);
 
-            campaignPromise.catch((err) => {
-                console.log(err);
+            campaignPromise.catch(() => {
+                // Campaign fetch failed silently
             }).finally(() => {
                 this.setState({
                     isLoadingCampaigns: false,
                 });
             });
-        }).catch((err) => {
-            console.log(err);
+        }).catch(() => {
+            // Pre-fetch failed silently
         }).finally(() => {
             this.setState({
                 isLoadingCampaigns: false,

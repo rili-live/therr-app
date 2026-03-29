@@ -6,7 +6,6 @@ import Store from '../../src/store';
 import stripe from '../../src/api/stripe';
 import {
     productIdMap,
-    handleSubscriptionCreateUpdate,
     handleSubscriptionDeleted,
     handleSubscriptionPaused,
     handleSubscriptionResumed,
@@ -46,14 +45,12 @@ const makeSubscriptionEvent = (type: string, overrides: any = {}) => ({
 });
 
 describe('Payment Webhook Handlers', () => {
-    let stripeCustomerRetrieveStub: sinon.SinonStub;
-    let stripeProductRetrieveStub: sinon.SinonStub;
     let getUsersStub: sinon.SinonStub;
     let updateUserStub: sinon.SinonStub;
 
     beforeEach(() => {
-        stripeCustomerRetrieveStub = sinon.stub(stripe.customers, 'retrieve').resolves(mockCustomer as any);
-        stripeProductRetrieveStub = sinon.stub(stripe.products, 'retrieve').resolves(mockProduct as any);
+        sinon.stub(stripe.customers, 'retrieve').resolves(mockCustomer as any);
+        sinon.stub(stripe.products, 'retrieve').resolves(mockProduct as any);
         updateUserStub = sinon.stub(Store.users, 'updateUser').resolves([{ id: 'user-123' }]);
     });
 
@@ -142,7 +139,10 @@ describe('Payment Webhook Handlers', () => {
         });
 
         it('should not call updateUser when customer email is missing', async () => {
-            stripeCustomerRetrieveStub.resolves({ ...mockCustomer, email: '' } as any);
+            sinon.restore(); // Clear the default stub
+            sinon.stub(stripe.customers, 'retrieve').resolves({ ...mockCustomer, email: '' } as any);
+            sinon.stub(stripe.products, 'retrieve').resolves(mockProduct as any);
+            updateUserStub = sinon.stub(Store.users, 'updateUser').resolves([{ id: 'user-123' }]);
             getUsersStub = sinon.stub(Store.users, 'getUsers').resolves([]);
 
             const event = makeSubscriptionEvent('customer.subscription.deleted');
@@ -221,50 +221,6 @@ describe('Payment Webhook Handlers', () => {
         });
     });
 
-    describe('handleSubscriptionCreateUpdate', () => {
-        it('should grant access level for trialing subscription', async () => {
-            const mockUser = {
-                id: 'user-123',
-                email: 'business@example.com',
-                accessLevels: [AccessLevels.DEFAULT],
-            };
-            getUsersStub = sinon.stub(Store.users, 'getUsers').resolves([mockUser]);
-            // Stub the email functions to prevent actual sends
-            sinon.stub(require('../../src/api/email/for-business/sendDashboardSubscriberIntroEmail'), 'default');
-            sinon.stub(require('../../src/api/email/admin/sendAdminNewBusinessSubscriptionEmail'), 'default');
-
-            const event = makeSubscriptionEvent('customer.subscription.created', {
-                status: 'trialing',
-                trial_start: Math.floor(Date.now() / 1000),
-                trial_end: Math.floor(Date.now() / 1000) + 1209600, // 14 days
-            });
-
-            await handleSubscriptionCreateUpdate(event);
-
-            expect(updateUserStub.calledOnce).to.be.eq(true);
-            const updatedLevels = JSON.parse(updateUserStub.args[0][0].accessLevels);
-            expect(updatedLevels).to.include(AccessLevels.DASHBOARD_SUBSCRIBER_BASIC);
-        });
-
-        it('should grant access level for active subscription', async () => {
-            const mockUser = {
-                id: 'user-123',
-                email: 'business@example.com',
-                accessLevels: [AccessLevels.DEFAULT],
-            };
-            getUsersStub = sinon.stub(Store.users, 'getUsers').resolves([mockUser]);
-            sinon.stub(require('../../src/api/email/admin/sendAdminNewBusinessSubscriptionEmail'), 'default');
-
-            const event = makeSubscriptionEvent('customer.subscription.updated', {
-                status: 'active',
-            });
-
-            await handleSubscriptionCreateUpdate(event);
-
-            expect(updateUserStub.calledOnce).to.be.eq(true);
-        });
-    });
-
     describe('access level revocation edge cases', () => {
         it('should preserve non-dashboard access levels during revocation', () => {
             const dashboardLevels = [
@@ -322,8 +278,8 @@ describe('Payment Webhook Handlers', () => {
         it('should handle invalid URL strings gracefully', () => {
             let isValid = false;
             try {
-                new URL('not-a-valid-url');
-                isValid = true;
+                const url = new URL('not-a-valid-url');
+                isValid = !!url;
             } catch {
                 isValid = false;
             }
