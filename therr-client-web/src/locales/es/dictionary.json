@@ -809,6 +809,9 @@
         "yourRating": "Tu calificación:",
         "messagePlaceholder": "Comparte tu experiencia (opcional)...",
         "ratingRequired": "Por favor selecciona una calificación.",
+        "retryLocation": "Verificar ubicación de nuevo",
+        "writeAnother": "Escribir otra reseña",
+        "signInPrompt": "Inicia sesión para dejar una reseña de este espacio.",
         "submitButton": "Enviar reseña",
         "successMessage": "Tu reseña ha sido enviada. ¡Gracias!",
         "errorMessage": "Hubo un error al enviar tu reseña. Por favor, intenta de nuevo."

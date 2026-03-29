@@ -439,9 +439,33 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             <Paper withBorder p="lg" radius="md" mt="lg">
                 <Title order={3} size="h4" mb="sm">{translate('pages.viewSpace.addReview.title')}</Title>
 
-                {reviewSuccess ? (
+                {!isAuthenticated ? (
+                    <>
+                        <Text size="sm" c="dimmed" mb="sm">
+                            {translate('pages.viewSpace.addReview.signInPrompt')}
+                        </Text>
+                        <Button
+                            onClick={() => this.setState({ isLoginModalOpen: true, loginModalAction: 'review' })}
+                            variant="light"
+                            color="teal"
+                            size="sm"
+                        >
+                            {translate('pages.viewSpace.loginModal.signIn')}
+                        </Button>
+                    </>
+                ) : reviewSuccess ? (
                     <Alert color="green" radius="md">
                         <Text fw={500}>{reviewSuccess}</Text>
+                        <Anchor
+                            component="button"
+                            type="button"
+                            size="sm"
+                            mt="xs"
+                            display="inline-block"
+                            onClick={() => this.setState({ reviewSuccess: '' })}
+                        >
+                            {translate('pages.viewSpace.addReview.writeAnother')}
+                        </Anchor>
                     </Alert>
                 ) : (
                     <>
@@ -467,11 +491,23 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         )}
 
                         {hasLocation && !isNearby && (
-                            <Alert color="yellow" radius="md" mb="sm">
-                                <Text size="sm">
-                                    {translate('pages.viewSpace.addReview.tooFar')}
-                                </Text>
-                            </Alert>
+                            <>
+                                <Alert color="yellow" radius="md" mb="sm">
+                                    <Text size="sm">
+                                        {translate('pages.viewSpace.addReview.tooFar')}
+                                    </Text>
+                                </Alert>
+                                <Button
+                                    onClick={this.handleRequestLocation}
+                                    loading={isLocationLoading}
+                                    variant="light"
+                                    color="teal"
+                                    size="sm"
+                                    mb="sm"
+                                >
+                                    {translate('pages.viewSpace.addReview.retryLocation')}
+                                </Button>
+                            </>
                         )}
 
                         {hasLocation && isNearby && (
@@ -480,7 +516,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                     <Text size="sm" fw={500}>{translate('pages.viewSpace.addReview.yourRating')}</Text>
                                     <MantineRating
                                         value={reviewRating}
-                                        onChange={(val) => this.setState({ reviewRating: val, reviewError: '' })}
+                                        onChange={isReviewSubmitting ? undefined : (val) => this.setState({ reviewRating: val, reviewError: '' })}
                                         size="lg"
                                     />
                                 </Group>
@@ -488,6 +524,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                     placeholder={translate('pages.viewSpace.addReview.messagePlaceholder')}
                                     value={reviewMessage}
                                     onChange={(e) => this.setState({ reviewMessage: e.currentTarget.value })}
+                                    disabled={isReviewSubmitting}
                                     minRows={3}
                                     maxRows={6}
                                     mb="sm"
@@ -496,7 +533,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                     <Text size="sm" c="red" mb="sm">{reviewError}</Text>
                                 )}
                                 <Button
-                                    onClick={isAuthenticated ? this.handleSubmitReview : () => this.setState({ isLoginModalOpen: true, loginModalAction: 'review' })}
+                                    onClick={this.handleSubmitReview}
                                     loading={isReviewSubmitting}
                                     variant="filled"
                                     color="teal"
@@ -1062,10 +1099,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                             </div>
                             <Group gap="xs">
                                 <Tooltip label={space.reaction?.userBookmarkCategory ? this.props.translate('pages.viewSpace.labels.removeBookmark') : this.props.translate('pages.viewSpace.labels.bookmark')}>
-                                    <ActionIcon variant="subtle" size="lg" onClick={this.handleBookmarkPress} aria-label="Bookmark" color={space.reaction?.userBookmarkCategory ? 'teal' : 'gray'}>
+                                    <ActionIcon variant="subtle" size="lg" onClick={this.handleBookmarkPress} aria-label="Bookmark" color={space.reaction?.userBookmarkCategory ? 'teal' : 'gray'} className="space-bookmark-icon">
                                         <InlineSvg
                                             name={space.reaction?.userBookmarkCategory ? 'bookmark' : 'bookmark-border'}
-                                            className="discovered-tile-icon"
                                         />
                                     </ActionIcon>
                                 </Tooltip>

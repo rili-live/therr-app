@@ -809,6 +809,9 @@
         "yourRating": "Your rating:",
         "messagePlaceholder": "Share your experience (optional)...",
         "ratingRequired": "Please select a star rating.",
+        "retryLocation": "Check Location Again",
+        "writeAnother": "Write another review",
+        "signInPrompt": "Sign in to leave a review for this space.",
         "submitButton": "Submit Review",
         "successMessage": "Your review has been submitted. Thank you!",
         "errorMessage": "There was an error submitting your review. Please try again."

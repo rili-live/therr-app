@@ -768,6 +768,9 @@
         "yourRating": "Votre note :",
         "messagePlaceholder": "Partagez votre expérience (facultatif)...",
         "ratingRequired": "Veuillez sélectionner une note.",
+        "retryLocation": "Vérifier la position à nouveau",
+        "writeAnother": "Écrire un autre avis",
+        "signInPrompt": "Connectez-vous pour laisser un avis sur cet espace.",
         "submitButton": "Soumettre l'avis",
         "successMessage": "Votre avis a été soumis. Merci!",
         "errorMessage": "Une erreur s'est produite lors de la soumission de votre avis. Veuillez réessayer."
