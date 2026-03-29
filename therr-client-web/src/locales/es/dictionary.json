@@ -469,6 +469,7 @@
       "nearMe": "Cerca de mí",
       "searchThisArea": "Buscar en esta zona",
       "yourLocation": "Tu ubicación",
+      "clear": "Borrar",
       "reset": "Restablecer",
       "locationError": "Se requiere acceso a la ubicación. Habilita la ubicación en la configuración de tu navegador."
     },

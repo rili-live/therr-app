@@ -469,6 +469,7 @@
       "nearMe": "Near Me",
       "searchThisArea": "Search This Area",
       "yourLocation": "Your Location",
+      "clear": "Clear",
       "reset": "Reset",
       "locationError": "Location access is required. Please enable location in your browser settings."
     },

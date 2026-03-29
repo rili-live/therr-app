@@ -291,6 +291,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
     executeSearch = (query: string) => {
         const { geocodeLocation } = this.props;
+        this.setState({ locationError: false });
 
         if (!query.trim()) {
             // Clear search: reset to browser location
@@ -395,6 +396,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             searchRadius: null,
             searchLocationName: '',
             showSearchAreaButton: false,
+            locationError: false,
         }, () => {
             document.title = `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
             this.updateSearchUrl();
@@ -460,6 +462,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             searchQuery: '',
             showSearchAreaButton: false,
             isSearching: true,
+            locationError: false,
         }, () => {
             this.updateSearchUrl();
             this.searchPaginatedSpaces(1)
@@ -611,7 +614,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                             />
                             {searchQuery && (
                                 <Button variant="subtle" size="sm" onClick={this.handleClearSearch}>
-                                    Clear
+                                    {this.props.translate('pages.spaces.clear')}
                                 </Button>
                             )}
                             {!searchQuery && !isSearching && spacesArray.length === 0 && (

@@ -469,6 +469,7 @@
       "nearMe": "Près de moi",
       "searchThisArea": "Rechercher dans cette zone",
       "yourLocation": "Votre position",
+      "clear": "Effacer",
       "reset": "Réinitialiser",
       "locationError": "L'accès à la localisation est requis. Veuillez activer la localisation dans les paramètres de votre navigateur."
     },
