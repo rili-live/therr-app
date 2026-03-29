@@ -1,6 +1,6 @@
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import reducer from '../habits';
 import { HabitsActionTypes } from '../../../types/redux/habits';
-import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 
 describe('habits reducer', () => {
     let initialState: any;
@@ -196,11 +196,15 @@ describe('habits reducer', () => {
     it('handles CREATE_CHECKIN (updates existing by habitGoalId+scheduledDate)', () => {
         const populated = reducer(initialState, {
             type: HabitsActionTypes.GET_TODAY_CHECKINS,
-            data: [{ id: 'c1', habitGoalId: 'g1', scheduledDate: '2024-01-01', status: 'pending' }],
+            data: [{
+                id: 'c1', habitGoalId: 'g1', scheduledDate: '2024-01-01', status: 'pending',
+            }],
         });
         const result = reducer(populated, {
             type: HabitsActionTypes.CREATE_CHECKIN,
-            data: { id: 'c1', habitGoalId: 'g1', scheduledDate: '2024-01-01', status: 'completed' },
+            data: {
+                id: 'c1', habitGoalId: 'g1', scheduledDate: '2024-01-01', status: 'completed',
+            },
         });
         expect(result.todayCheckins.length).toBe(1);
         expect(result.todayCheckins[0].status).toBe('completed');

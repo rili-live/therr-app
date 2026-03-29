@@ -1,6 +1,6 @@
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import reducer from '../campaigns';
 import { CampaignActionTypes } from '../../../types/redux/campaigns';
-import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 
 describe('campaigns reducer', () => {
     let initialState: any;
@@ -24,8 +24,8 @@ describe('campaigns reducer', () => {
                 ],
             },
         });
-        expect(result.campaigns['c1'].title).toBe('Campaign 1');
-        expect(result.campaigns['c2'].title).toBe('Campaign 2');
+        expect(result.campaigns.c1.title).toBe('Campaign 1');
+        expect(result.campaigns.c2.title).toBe('Campaign 2');
     });
 
     it('handles UPDATE_CAMPAIGN by merging', () => {
@@ -37,8 +37,8 @@ describe('campaigns reducer', () => {
             type: CampaignActionTypes.UPDATE_CAMPAIGN,
             data: { campaigns: [{ id: 'c1', title: 'Updated' }] },
         });
-        expect(result.campaigns['c1'].title).toBe('Updated');
-        expect(result.campaigns['c1'].status).toBe('draft');
+        expect(result.campaigns.c1.title).toBe('Updated');
+        expect(result.campaigns.c1.status).toBe('draft');
     });
 
     it('handles GET_CAMPAIGN for new campaign', () => {
@@ -46,7 +46,7 @@ describe('campaigns reducer', () => {
             type: CampaignActionTypes.GET_CAMPAIGN,
             data: { id: 'c1', title: 'Fetched' },
         });
-        expect(result.campaigns['c1'].title).toBe('Fetched');
+        expect(result.campaigns.c1.title).toBe('Fetched');
     });
 
     it('handles GET_CAMPAIGN for existing campaign (merges)', () => {
@@ -58,8 +58,8 @@ describe('campaigns reducer', () => {
             type: CampaignActionTypes.GET_CAMPAIGN,
             data: { id: 'c1', title: 'Updated' },
         });
-        expect(result.campaigns['c1'].title).toBe('Updated');
-        expect(result.campaigns['c1'].status).toBe('active');
+        expect(result.campaigns.c1.title).toBe('Updated');
+        expect(result.campaigns.c1.status).toBe('active');
     });
 
     it('handles SEARCH_MY_CAMPAIGNS', () => {
@@ -72,8 +72,8 @@ describe('campaigns reducer', () => {
                 ],
             },
         });
-        expect(result.searchResults['c1'].title).toBe('Search Result 1');
-        expect(result.searchResults['c2'].title).toBe('Search Result 2');
+        expect(result.searchResults.c1.title).toBe('Search Result 1');
+        expect(result.searchResults.c2.title).toBe('Search Result 2');
     });
 
     it('handles LOGOUT', () => {

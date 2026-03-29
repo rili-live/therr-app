@@ -34,7 +34,7 @@ export default (emailParams: ISendNewGroupInviteEmailConfig, templateParams: ITe
     const linkUrl = `${globalConfig[process.env.NODE_ENV].hostFull}/groups/${templateParams.groupId}`;
 
     const htmlConfig = {
-        header: translate(locale, 'emails.newGroupInvite.header'),
+        header: translate(locale, 'emails.newGroupInvite.header', { groupName: templateParams.groupName }),
         body1: translate(locale, 'emails.newGroupInvite.body1', { fromUserName: templateParams.fromUserName, groupName: templateParams.groupName }),
         body2: translate(locale, 'emails.newGroupInvite.body2'),
         buttonHref: linkUrl,

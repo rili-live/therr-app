@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet';
 import { Button } from '../BaseButton';
 import OctIcon from 'react-native-vector-icons/Octicons';
@@ -20,7 +20,7 @@ const VisibilityPickerSheet = (props: SheetProps<'visibility-picker-sheet'>) => 
                 { paddingBottom: bottomSafeAreaInset },
             ]}>
                 <Button
-                    containerStyle={{ marginBottom: 10, width: '100%' }}
+                    containerStyle={localStyles.sheetButton}
                     buttonStyle={payload?.themeForms.styles.buttonRound}
                     disabledStyle={payload?.themeForms.styles.buttonRoundDisabled}
                     disabledTitleStyle={payload?.themeForms.styles.buttonTitleDisabled}
@@ -63,5 +63,12 @@ const VisibilityPickerSheet = (props: SheetProps<'visibility-picker-sheet'>) => 
         </ActionSheet>
     );
 };
+
+const localStyles = StyleSheet.create({
+    sheetButton: {
+        marginBottom: 10,
+        width: '100%',
+    },
+});
 
 export default VisibilityPickerSheet;

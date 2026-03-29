@@ -6,7 +6,6 @@ const SECURE_KEYS = ['therrRefreshToken'];
 let Keychain: any = null;
 
 try {
-    // eslint-disable-next-line global-require
     Keychain = require('react-native-keychain');
 } catch (e) {
     // react-native-keychain not installed, fall back to AsyncStorage

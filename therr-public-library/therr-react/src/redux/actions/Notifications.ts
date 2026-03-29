@@ -56,9 +56,7 @@ const Notification = {
             }
 
             return Promise.allSettled(
-                batch.map((notification) =>
-                    NotificationsService.update(notification.id, { isUnread: false })
-                )
+                batch.map((notification) => NotificationsService.update(notification.id, { isUnread: false })),
             ).then(() => processBatch(startIdx + batchSize));
         };
 

@@ -29,18 +29,20 @@ const getUserReducer = (socketIO) => produce((draft: IUserState, action: any) =>
 
         return acc;
     }, {});
-    const modifiedMightKnowUsers: { [key: string]: any } = Object.entries(draft.usersMightKnow || {}).slice(0, 100).reduce((acc: { [key: string]: any }, cur) => {
-        const [key, value] = cur;
-        acc[key] = value;
+    const modifiedMightKnowUsers: { [key: string]: any } = Object.entries(draft.usersMightKnow || {})
+        .slice(0, 100).reduce((acc: { [key: string]: any }, cur) => {
+            const [key, value] = cur;
+            acc[key] = value;
 
-        return acc;
-    }, {});
-    const modifiedInfluencerPairings: { [key: string]: any } = Object.entries(draft.influencerPairings || {}).slice(0, 100).reduce((acc: { [key: string]: any }, cur) => {
-        const [key, value] = cur;
-        acc[key] = value;
+            return acc;
+        }, {});
+    const modifiedInfluencerPairings: { [key: string]: any } = Object.entries(draft.influencerPairings || {})
+        .slice(0, 100).reduce((acc: { [key: string]: any }, cur) => {
+            const [key, value] = cur;
+            acc[key] = value;
 
-        return acc;
-    }, {});
+            return acc;
+        }, {});
     const modifiedMyUserGroups: { [key: string]: any } = Object.entries(draft.myUserGroups || {}).slice(0, 100).reduce((acc: { [key: string]: any }, cur) => {
         const [key, value] = cur;
         acc[key] = value;

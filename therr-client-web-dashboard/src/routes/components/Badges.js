@@ -20,7 +20,11 @@ export default () => (
             <Documentation
                 title="Example"
                 description={
-                    <p>Use the <code>&#x3C;Badge&#x3E;</code> component to show and highlight labeled text. You can update the colors using the following modifier classes (ie. <code>bg-primary</code>, <code>bg-secondary</code>):</p>
+                    <p>
+                        Use the <code>&#x3C;Badge&#x3E;</code> component to show and highlight labeled
+                        text. You can update the colors using the following modifier
+                        classes (ie. <code>bg-primary</code>, <code>bg-secondary</code>):
+                    </p>
                 }
                 scope={{ Badge }}
                 imports={'import { Badge } from \'@themesberg/react-bootstrap\';'}
@@ -40,7 +44,10 @@ export default () => (
                 title="Sizing with badges"
                 description=
                     {
-                        <p>To update the size of the <code>&#x3C;Badge&#x3E;</code> component you can use the size modified classes, such as <code>badge-md</code> or <code>badge-lg</code>.</p>
+                        <p>
+                            To update the size of the <code>&#x3C;Badge&#x3E;</code> component you can use
+                            the size modified classes, such as <code>badge-md</code> or <code>badge-lg</code>.
+                        </p>
                     }
                 scope={{ Badge }}
                 imports={'import { Badge } from \'@themesberg/react-bootstrap\';'}
