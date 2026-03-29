@@ -14,6 +14,7 @@ import {
 } from '@mantine/core';
 import { InlineSvg } from 'therr-react/components';
 import getUserContentUri from '../../utilities/getUserContentUri';
+import useTranslation from '../../hooks/useTranslation';
 
 interface ITileProps {
     area: any;
@@ -22,6 +23,7 @@ interface ITileProps {
 }
 
 const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
+    const { t: translate } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const content = useSelector((state: any) => state.content);
@@ -118,7 +120,7 @@ const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
                             onClick={handleCardClick}
                             style={{ cursor: 'pointer' }}
                         >
-                            {area.notificationMsg || area.message || 'Untitled'}
+                            {area.notificationMsg || area.message || translate('components.tile.untitled')}
                         </Text>
                         <Text size="xs" c="dimmed" lineClamp={1}>
                             {area.fromUserName}

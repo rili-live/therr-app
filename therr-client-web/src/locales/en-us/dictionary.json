@@ -44,6 +44,9 @@
     "linkCopied": "Link copied!"
   },
   "components": {
+    "tile": {
+      "untitled": "Untitled"
+    },
     "layout": {
       "floatingButton": {
         "tooltip": "Share a thought"

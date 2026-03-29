@@ -44,6 +44,9 @@
     "linkCopied": "\u00a1Enlace copiado!"
   },
   "components": {
+    "tile": {
+      "untitled": "Sin t\u00edtulo"
+    },
     "layout": {
       "floatingButton": {
         "tooltip": "Comparte un pensamiento"
