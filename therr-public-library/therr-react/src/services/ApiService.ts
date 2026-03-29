@@ -8,7 +8,7 @@ class ApiService {
         data: {
             phoneNumber,
         },
-    })
+    });
 
     validateCode = (verificationCode) => axios({
         method: 'post',
@@ -16,7 +16,7 @@ class ApiService {
         data: {
             verificationCode,
         },
-    })
+    });
 }
 
 export default new ApiService();

@@ -281,7 +281,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
     renderClaimCTA(space: any): JSX.Element | null {
         const { user, translate } = this.props;
-        const { isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType } = this.state;
+        const {
+            isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType,
+        } = this.state;
         const isAuthenticated = user?.isAuthenticated;
 
         if (claimMessageType === 'success') {
