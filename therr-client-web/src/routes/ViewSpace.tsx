@@ -3,7 +3,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { NavigateFunction } from 'react-router-dom';
-import { MapActions } from 'therr-react/redux/actions';
+import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
 import { Content } from 'therr-js-utilities/constants';
@@ -11,8 +11,9 @@ import {
     ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
     Divider, Image, Skeleton, Breadcrumbs, Tooltip,
     SimpleGrid, Rating as MantineRating, Paper, Avatar,
-    Button, Alert,
+    Button, Alert, Modal, Textarea,
 } from '@mantine/core';
+import { InlineSvg } from 'therr-react/components';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
@@ -52,6 +53,7 @@ interface IViewSpaceRouterProps {
 }
 
 interface IViewSpaceDispatchProps {
+    createOrUpdateSpaceReaction: Function;
     getSpaceDetails: Function;
 }
 
@@ -79,6 +81,17 @@ interface IViewSpaceState {
     isClaimLoading: boolean;
     claimMessage: string;
     claimMessageType: 'success' | 'error' | '';
+    isLoginModalOpen: boolean;
+    loginModalAction: 'bookmark' | 'review' | '';
+    reviewRating: number;
+    reviewMessage: string;
+    isReviewSubmitting: boolean;
+    reviewError: string;
+    reviewSuccess: string;
+    userLatitude: number | null;
+    userLongitude: number | null;
+    isLocationLoading: boolean;
+    locationError: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -88,6 +101,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
     getSpaceDetails: MapActions.getSpaceDetails,
 }, dispatch);
 
@@ -120,6 +134,17 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isClaimLoading: false,
             claimMessage: '',
             claimMessageType: '',
+            isLoginModalOpen: false,
+            loginModalAction: '',
+            reviewRating: 0,
+            reviewMessage: '',
+            isReviewSubmitting: false,
+            reviewError: '',
+            reviewSuccess: '',
+            userLatitude: null,
+            userLongitude: null,
+            isLocationLoading: false,
+            locationError: '',
         };
     }
 
@@ -236,6 +261,306 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             });
     };
 
+    handleBookmarkPress = () => {
+        const { createOrUpdateSpaceReaction, map, user } = this.props;
+        const { spaceId } = this.state;
+        const space = map?.spaces[spaceId];
+
+        if (!user?.isAuthenticated) {
+            this.setState({ isLoginModalOpen: true, loginModalAction: 'bookmark' });
+            return;
+        }
+
+        const reactionData: any = {
+            userBookmarkCategory: space?.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+            spaceId: space?.id,
+        };
+        createOrUpdateSpaceReaction(space?.id, reactionData, space?.fromUserId, user?.details?.userName);
+    };
+
+    handleRequestLocation = () => {
+        if (typeof window === 'undefined' || !navigator.geolocation) {
+            this.setState({ locationError: this.props.translate('pages.viewSpace.addReview.locationUnavailable') });
+            return;
+        }
+
+        this.setState({ isLocationLoading: true, locationError: '' });
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                this.setState({
+                    userLatitude: position.coords.latitude,
+                    userLongitude: position.coords.longitude,
+                    isLocationLoading: false,
+                    locationError: '',
+                });
+            },
+            () => {
+                this.setState({
+                    isLocationLoading: false,
+                    locationError: this.props.translate('pages.viewSpace.addReview.locationDenied'),
+                });
+            },
+            { enableHighAccuracy: true, timeout: 10000 },
+        );
+    };
+
+    getDistanceToSpace = (): number | null => {
+        const { map } = this.props;
+        const { spaceId, userLatitude, userLongitude } = this.state;
+        const space = map?.spaces[spaceId];
+
+        if (userLatitude == null || userLongitude == null || !space?.latitude || !space?.longitude) {
+            return null;
+        }
+
+        const R = 6371e3; // Earth radius in meters
+        const toRad = (deg: number) => (deg * Math.PI) / 180;
+        const dLat = toRad(space.latitude - userLatitude);
+        const dLon = toRad(space.longitude - userLongitude);
+        const a = Math.sin(dLat / 2) ** 2
+            + Math.cos(toRad(userLatitude)) * Math.cos(toRad(space.latitude)) * Math.sin(dLon / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    handleSubmitReview = () => {
+        const {
+            createOrUpdateSpaceReaction, map, user, translate,
+        } = this.props;
+        const { spaceId, reviewRating, reviewMessage } = this.state;
+        const space = map?.spaces[spaceId];
+
+        if (!user?.isAuthenticated) {
+            this.setState({ isLoginModalOpen: true, loginModalAction: 'review' });
+            return;
+        }
+
+        if (reviewRating === 0) {
+            this.setState({ reviewError: translate('pages.viewSpace.addReview.ratingRequired') });
+            return;
+        }
+
+        this.setState({ isReviewSubmitting: true, reviewError: '', reviewSuccess: '' });
+
+        // Submit rating via space reaction
+        const ratingPromise = createOrUpdateSpaceReaction(
+            space?.id,
+            { spaceId: space?.id, rating: reviewRating },
+            space?.fromUserId,
+            user?.details?.userName,
+        );
+
+        // Create moment linked to space if message is provided
+        const momentPromise = reviewMessage.trim()
+            ? MapsService.createMoment({
+                fromUserId: Number(user?.details?.id),
+                locale: this.props.locale || 'en-us',
+                isPublic: true,
+                message: reviewMessage.trim(),
+                notificationMsg: `Review of ${space?.notificationMsg || ''}`.substring(0, 100),
+                latitude: String(this.state.userLatitude),
+                longitude: String(this.state.userLongitude),
+                spaceId,
+            } as any)
+            : Promise.resolve(null);
+
+        Promise.all([ratingPromise, momentPromise])
+            .then(() => {
+                this.setState({
+                    isReviewSubmitting: false,
+                    reviewSuccess: translate('pages.viewSpace.addReview.successMessage'),
+                    reviewRating: 0,
+                    reviewMessage: '',
+                });
+                // Refresh moments list
+                this.fetchSpaceMoments(spaceId);
+            })
+            .catch(() => {
+                this.setState({
+                    isReviewSubmitting: false,
+                    reviewError: translate('pages.viewSpace.addReview.errorMessage'),
+                });
+            });
+    };
+
+    renderLoginModal(): JSX.Element {
+        const { translate } = this.props;
+        const { spaceId, isLoginModalOpen } = this.state;
+
+        return (
+            <Modal
+                opened={isLoginModalOpen}
+                onClose={() => this.setState({ isLoginModalOpen: false, loginModalAction: '' })}
+                title={translate('pages.viewSpace.loginModal.title')}
+                centered
+            >
+                <Text size="sm" mb="lg">
+                    {translate('pages.viewSpace.loginModal.body')}
+                </Text>
+                <Group justify="center" gap="md">
+                    <Button
+                        component="a"
+                        href={`/login?returnTo=/spaces/${spaceId}`}
+                        variant="filled"
+                        color="teal"
+                    >
+                        {translate('pages.viewSpace.loginModal.signIn')}
+                    </Button>
+                    <Button
+                        component="a"
+                        href={`/register?returnTo=/spaces/${spaceId}`}
+                        variant="outline"
+                        color="teal"
+                    >
+                        {translate('pages.viewSpace.loginModal.register')}
+                    </Button>
+                </Group>
+            </Modal>
+        );
+    }
+
+    renderAddReviewContent(): JSX.Element {
+        const { translate } = this.props;
+        const {
+            reviewRating, reviewMessage, isReviewSubmitting,
+            reviewError, reviewSuccess, userLatitude,
+            isLocationLoading, locationError,
+        } = this.state;
+
+        if (reviewSuccess) {
+            return (
+                <Alert color="green" radius="md">
+                    <Text fw={500}>{reviewSuccess}</Text>
+                    <Anchor
+                        component="button"
+                        type="button"
+                        size="sm"
+                        mt="xs"
+                        display="inline-block"
+                        onClick={() => this.setState({ reviewSuccess: '' })}
+                    >
+                        {translate('pages.viewSpace.addReview.writeAnother')}
+                    </Anchor>
+                </Alert>
+            );
+        }
+
+        const MAX_REVIEW_DISTANCE_METERS = 200;
+        const distance = this.getDistanceToSpace();
+        const isNearby = distance !== null && distance <= MAX_REVIEW_DISTANCE_METERS;
+        const hasLocation = userLatitude != null;
+
+        return (
+            <>
+                {!hasLocation && (
+                    <>
+                        <Text size="sm" c="dimmed" mb="sm">
+                            {translate('pages.viewSpace.addReview.locationPrompt')}
+                        </Text>
+                        <Button
+                            onClick={this.handleRequestLocation}
+                            loading={isLocationLoading}
+                            variant="light"
+                            color="teal"
+                            size="sm"
+                            mb="sm"
+                        >
+                            {translate('pages.viewSpace.addReview.enableLocation')}
+                        </Button>
+                        {locationError && (
+                            <Text size="sm" c="red" mb="sm">{locationError}</Text>
+                        )}
+                    </>
+                )}
+
+                {hasLocation && !isNearby && (
+                    <>
+                        <Alert color="yellow" radius="md" mb="sm">
+                            <Text size="sm">
+                                {translate('pages.viewSpace.addReview.tooFar')}
+                            </Text>
+                        </Alert>
+                        <Button
+                            onClick={this.handleRequestLocation}
+                            loading={isLocationLoading}
+                            variant="light"
+                            color="teal"
+                            size="sm"
+                            mb="sm"
+                        >
+                            {translate('pages.viewSpace.addReview.retryLocation')}
+                        </Button>
+                    </>
+                )}
+
+                {hasLocation && isNearby && (
+                    <>
+                        <Group gap="xs" mb="sm">
+                            <Text size="sm" fw={500}>{translate('pages.viewSpace.addReview.yourRating')}</Text>
+                            <MantineRating
+                                value={reviewRating}
+                                onChange={isReviewSubmitting ? undefined : (val) => this.setState({ reviewRating: val, reviewError: '' })}
+                                size="lg"
+                            />
+                        </Group>
+                        <Textarea
+                            placeholder={translate('pages.viewSpace.addReview.messagePlaceholder')}
+                            value={reviewMessage}
+                            onChange={(e) => this.setState({ reviewMessage: e.currentTarget.value })}
+                            disabled={isReviewSubmitting}
+                            minRows={3}
+                            maxRows={6}
+                            mb="sm"
+                        />
+                        {reviewError && (
+                            <Text size="sm" c="red" mb="sm">{reviewError}</Text>
+                        )}
+                        <Button
+                            onClick={this.handleSubmitReview}
+                            loading={isReviewSubmitting}
+                            variant="filled"
+                            color="teal"
+                        >
+                            {translate('pages.viewSpace.addReview.submitButton')}
+                        </Button>
+                    </>
+                )}
+            </>
+        );
+    }
+
+    renderAddReview(space: any): JSX.Element | null {
+        const { user, translate } = this.props;
+        const isAuthenticated = user?.isAuthenticated;
+
+        // Cannot verify proximity without space coordinates
+        if (!space.latitude || !space.longitude) {
+            return null;
+        }
+
+        return (
+            <Paper withBorder p="lg" radius="md" mt="lg">
+                <Title order={3} size="h4" mb="sm">{translate('pages.viewSpace.addReview.title')}</Title>
+                {!isAuthenticated ? (
+                    <>
+                        <Text size="sm" c="dimmed" mb="sm">
+                            {translate('pages.viewSpace.addReview.signInPrompt')}
+                        </Text>
+                        <Button
+                            onClick={() => this.setState({ isLoginModalOpen: true, loginModalAction: 'review' })}
+                            variant="light"
+                            color="teal"
+                            size="sm"
+                        >
+                            {translate('pages.viewSpace.loginModal.signIn')}
+                        </Button>
+                    </>
+                ) : (
+                    this.renderAddReviewContent()
+                )}
+            </Paper>
+        );
+    }
+
     renderClaimSubtleCTA(space: any): JSX.Element | null {
         const { user, translate } = this.props;
         const { isFromClaimEmail } = this.state;
@@ -281,7 +606,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
     renderClaimCTA(space: any): JSX.Element | null {
         const { user, translate } = this.props;
-        const { isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType } = this.state;
+        const {
+            isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType,
+        } = this.state;
         const isAuthenticated = user?.isAuthenticated;
 
         if (claimMessageType === 'success') {
@@ -294,8 +621,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
         if (space.isClaimPending || space.requestedByUserId) {
             return (
-                <Paper withBorder p="lg" radius="md" mt="md" id="claim-space-section" style={{ borderColor: '#fbbf24', backgroundColor: '#fffbeb' }}>
-                    <Text fw={600} size="lg">{translate('pages.viewSpace.claimSpace.pendingTitle')}</Text>
+                <Paper withBorder p="lg" radius="md" mt="md" id="claim-space-section" style={{ borderColor: 'var(--therr-cta-pending-border)', backgroundColor: 'var(--therr-cta-pending-bg)', color: 'var(--therr-cta-pending-text)' }}>
+                    <Text fw={600} size="lg" c="inherit">{translate('pages.viewSpace.claimSpace.pendingTitle')}</Text>
                     <Text size="sm" mt="xs" c="dimmed">{translate('pages.viewSpace.claimSpace.pendingBody')}</Text>
                 </Paper>
             );
@@ -313,15 +640,16 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 mt="md"
                 id="claim-space-section"
                 style={{
-                    borderColor: '#1C7F8A',
-                    backgroundColor: isFromClaimEmail ? '#e6fffa' : '#f0fdfa',
+                    borderColor: 'var(--therr-cta-border)',
+                    backgroundColor: isFromClaimEmail ? 'var(--therr-cta-bg-emphasis)' : 'var(--therr-cta-bg)',
                     borderWidth: isFromClaimEmail ? 2 : 1,
+                    color: 'var(--therr-cta-text)',
                 }}
             >
-                <Title order={isFromClaimEmail ? 2 : 3} size={isFromClaimEmail ? 'h3' : 'h4'}>
+                <Title order={isFromClaimEmail ? 2 : 3} size={isFromClaimEmail ? 'h3' : 'h4'} c="inherit">
                     {translate(isFromClaimEmail ? 'pages.viewSpace.claimSpace.emailTitle' : 'pages.viewSpace.claimSpace.title')}
                 </Title>
-                <Text size={isFromClaimEmail ? 'md' : 'sm'} mt="xs">
+                <Text size={isFromClaimEmail ? 'md' : 'sm'} mt="xs" c="inherit">
                     {translate(isFromClaimEmail ? 'pages.viewSpace.claimSpace.emailBody' : 'pages.viewSpace.claimSpace.body')}
                 </Text>
                 {claimMessage && claimMessageType === 'error' && (
@@ -784,14 +1112,23 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                                 <Title order={1}>{space.notificationMsg}</Title>
                                 {this.renderClaimSubtleCTA(space)}
                             </div>
-                            <Tooltip label={this.state.isLinkCopied ? this.props.translate('common.linkCopied') : this.props.translate('common.share')}>
-                                <ActionIcon variant="subtle" size="lg" onClick={this.handleShare} aria-label="Share">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                                        <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                                    </svg>
-                                </ActionIcon>
-                            </Tooltip>
+                            <Group gap="xs">
+                                <Tooltip label={space.reaction?.userBookmarkCategory ? this.props.translate('pages.viewSpace.labels.removeBookmark') : this.props.translate('pages.viewSpace.labels.bookmark')}>
+                                    <ActionIcon variant="subtle" size="lg" onClick={this.handleBookmarkPress} aria-label="Bookmark" color={space.reaction?.userBookmarkCategory ? 'teal' : 'gray'} className="space-bookmark-icon">
+                                        <InlineSvg
+                                            name={space.reaction?.userBookmarkCategory ? 'bookmark' : 'bookmark-border'}
+                                        />
+                                    </ActionIcon>
+                                </Tooltip>
+                                <Tooltip label={this.state.isLinkCopied ? this.props.translate('common.linkCopied') : this.props.translate('common.share')}>
+                                    <ActionIcon variant="subtle" size="lg" onClick={this.handleShare} aria-label="Share">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                                        </svg>
+                                    </ActionIcon>
+                                </Tooltip>
+                            </Group>
                         </Group>
                         {space.addressReadable && (
                             <Title order={2} size="h4" c="dimmed" fw={400}>{space.addressReadable}</Title>
@@ -838,6 +1175,15 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     {/* Events */}
                     {this.renderEvents(space)}
 
+                    {/* Add Review */}
+                    {/* TODO: Review submission is disabled on web for now. Our anti-fake-content strategy */}
+                    {/* relies on location verification, which is clunky on web browsers compared to mobile. */}
+                    {/* A separate PR is in progress to improve visited-space tracking. Once we can reliably */}
+                    {/* determine that a user has visited a space (via check-in data), we can re-enable */}
+                    {/* reviews on both web and mobile without requiring real-time geolocation proximity. */}
+                    {/* To re-enable: uncomment the line below */}
+                    {/* {this.renderAddReview(space)} */}
+
                     {/* Community Posts (Moments) */}
                     {this.renderCommunityPosts()}
 
@@ -874,6 +1220,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                         </Group>
                     </Paper>
                 </Stack>
+                {this.renderLoginModal()}
             </Container>
         );
     }
