@@ -30,6 +30,16 @@ module.exports = {
             },
         ],
     },
+    overrides: [
+        {
+            files: ['tests/**/*.ts', 'tests/**/*.tsx'],
+            rules: {
+                'no-unused-expressions': 'off',
+                '@typescript-eslint/no-unused-expressions': 'off',
+                '@typescript-eslint/no-empty-function': 'off',
+            },
+        },
+    ],
     settings: {
         'import/external-module-folders': ['../node_modules', '../node_modules/@types'],
         'import/parsers': {
