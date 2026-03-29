@@ -1091,6 +1091,17 @@ const verifyUserAccount = (req, res) => {
                     statusCode: 404,
                 });
             }
+
+            const existingAccessLevels = userSearchResults[0].accessLevels || [];
+            if (existingAccessLevels.includes(AccessLevels.EMAIL_VERIFIED)
+                || existingAccessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
+                return handleHttpError({
+                    res,
+                    message: 'Email already verified',
+                    statusCode: 400,
+                });
+            }
+
             const userVerificationCodes = userSearchResults[0].verificationCodes;
             return Store.verificationCodes.getCode({
                 code: decodedToken.code,

@@ -51,7 +51,7 @@ h4 {
     // border-left: rem-calc(4px) double $therr-primary-2;
     // border-right: rem-calc(4px) double $therr-primary-2;
     margin: $header-height-small 0;
-    padding: 1.5rem 1rem;
+    padding: 1.5rem 1rem $footer-height-small;
     box-shadow: none;
     min-height: calc(100vh - #{$header-height-small} - #{$footer-height-small});
     box-sizing: border-box;

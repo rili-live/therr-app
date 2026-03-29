@@ -450,7 +450,7 @@ const ViewEvent = ({
                         <PaperButton
                             mode="contained"
                             onPress={handleAttendingSave}
-                            buttonColor={brandColor}
+                            buttonColor={theme.colors.brandingBlueGreen}
                             textColor={theme.colors.brandingWhite}
                         >
                             {translate('forms.editEvent.modal.attendingModal.buttons.save')}

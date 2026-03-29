@@ -217,11 +217,13 @@ const getUserHelper = ({
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
 const isUserProfileIncomplete = (updateArgs, existingUser?) => {
+    const isBusiness = updateArgs?.isBusinessAccount || existingUser?.isBusinessAccount;
+
     if (!existingUser) {
         const requestIsMissingProperties = !updateArgs?.phoneNumber
             || !updateArgs?.userName
             || !updateArgs?.firstName
-            || !updateArgs?.lastName;
+            || (!isBusiness && !updateArgs?.lastName);
 
         return requestIsMissingProperties;
     }
@@ -230,7 +232,7 @@ const isUserProfileIncomplete = (updateArgs, existingUser?) => {
     const requestDoesNotCompleteProfile = !(updateArgs.phoneNumber || existingUser.phoneNumber)
         || !(updateArgs.userName || existingUser.userName)
         || !(updateArgs.firstName || existingUser.firstName)
-        || !(updateArgs.lastName || existingUser.lastName);
+        || (!isBusiness && !(updateArgs.lastName || existingUser.lastName));
 
     return requestDoesNotCompleteProfile;
 };

@@ -86,8 +86,9 @@ const initInterceptors = (
         if (error.response) {
             const is401 = Number(error.response.status) === 401 || Number(error.response.data?.statusCode) === 401;
 
-            // Attempt token refresh on 401 (but not for refresh requests themselves)
-            if (is401 && !originalRequest.isRetry && !originalRequest.url?.includes('/auth/token/refresh')) {
+            // Attempt token refresh on 401 (but not for auth endpoints like login, logout, or refresh)
+            const isAuthEndpoint = originalRequest.url?.includes('/users-service/auth');
+            if (is401 && !originalRequest.isRetry && !isAuthEndpoint) {
                 originalRequest.isRetry = true;
 
                 if (!isRefreshing) {
@@ -167,8 +168,8 @@ const initInterceptors = (
                 });
             }
 
-            // Non-refreshable 401 or already retried
-            if (is401) {
+            // Non-refreshable 401 or already retried (skip for auth endpoints — let the form handle the error)
+            if (is401 && !isAuthEndpoint) {
                 if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
                     store.dispatch(UsersActions.logout());
                     logoutAttemptCount += 1;

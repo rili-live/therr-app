@@ -18,6 +18,11 @@ import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
 import ProgressiveImage from '../components/ProgressiveImage';
 
+// Only lazy-load on client (Leaflet requires window/document)
+const SpacesMap = typeof window !== 'undefined'
+    ? React.lazy(() => import('../components/SpacesMap'))
+    : (() => null) as any;
+
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
     const label = category.replace('categories.', '').replace('/', ' & ');
@@ -58,6 +63,7 @@ interface IStoreProps extends IViewEventDispatchProps {
 
 // Regular component props
 interface IViewEventProps extends IViewEventRouterProps, IStoreProps {
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 
@@ -66,6 +72,7 @@ interface IViewEventState {
     groupDetails: any;
     accessRestricted: boolean;
     isGroupPublic: boolean;
+    isMapVisible: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -99,6 +106,7 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
             groupDetails: null,
             accessRestricted: false,
             isGroupPublic: true,
+            isMapVisible: false,
         };
     }
 
@@ -256,18 +264,82 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
                         </Group>
                     </Paper>
                 </Anchor>
-                {spaceAddress && (
+                {this.renderLocationMap(event, space)}
+            </div>
+        );
+    }
+
+    handleToggleMap = () => {
+        this.setState((prevState) => ({ isMapVisible: !prevState.isMapVisible }));
+    };
+
+    renderLocationMap(event: any, space: any): JSX.Element | null {
+        const lat = space?.latitude || event.latitude;
+        const lng = space?.longitude || event.longitude;
+
+        if (!lat || !lng) {
+            // Fall back to address-only Google Maps link
+            const spaceAddress = space?.addressReadable || '';
+            if (!spaceAddress) return null;
+            return (
+                <Anchor
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spaceAddress)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    size="sm"
+                    mt="xs"
+                >
+                    {this.props.translate('pages.viewEvent.labels.viewOnGoogleMaps')}
+                </Anchor>
+            );
+        }
+
+        const { isMapVisible } = this.state;
+        const mapLabel = space?.notificationMsg || event.notificationMsg || '';
+        const mapAddress = space?.addressReadable || '';
+
+        return (
+            <>
+                <Group gap="sm" mt="xs">
                     <Anchor
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spaceAddress)}`}
+                        component="button"
+                        type="button"
+                        size="sm"
+                        onClick={this.handleToggleMap}
+                    >
+                        {isMapVisible
+                            ? this.props.translate('pages.viewEvent.labels.hideMap')
+                            : this.props.translate('pages.viewEvent.labels.showMap')}
+                    </Anchor>
+                    <Anchor
+                        href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         size="sm"
-                        mt="xs"
                     >
                         {this.props.translate('pages.viewEvent.labels.viewOnGoogleMaps')}
                     </Anchor>
+                </Group>
+                {isMapVisible && (
+                    <React.Suspense fallback={<Skeleton height={200} radius="md" mt="sm" />}>
+                        <SpacesMap
+                            spaces={[{
+                                id: event.spaceId || event.id,
+                                notificationMsg: mapLabel,
+                                addressReadable: mapAddress,
+                                latitude: lat,
+                                longitude: lng,
+                            }]}
+                            centerLat={lat}
+                            centerLng={lng}
+                            localePrefix={({ es: '/es', 'fr-ca': '/fr' } as Record<string, string>)[this.props.locale] || ''}
+                            zoom={15}
+                            height={200}
+                            interactive={false}
+                        />
+                    </React.Suspense>
                 )}
-            </div>
+            </>
         );
     }
 
@@ -397,6 +469,9 @@ export class ViewEventComponent extends React.Component<IViewEventProps, IViewEv
 
                     {/* Venue / Space Card */}
                     {this.renderSpaceCard(event)}
+
+                    {/* Standalone map when event has coordinates but no linked space */}
+                    {!event.spaceId && this.renderLocationMap(event, null)}
 
                     {/* Group & Organizer */}
                     {this.renderGroupCard(event)}

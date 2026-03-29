@@ -187,9 +187,6 @@ export default class SpacesStore {
         let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(SPACES_TABLE_NAME)
-            // TODO: Determine a better way to select spaces that are most relevant to the user
-            // .orderBy(`${SPACES_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
-            // NOTE: Cast to a geography type to search distance within n meters
             .where({
                 fromUserId: userId,
                 isMatureContent: false, // content that has been blocked
@@ -199,7 +196,6 @@ export default class SpacesStore {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
 
-            queryString = queryString.andWhere(conditions.filterBy, operator, query);
             queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
                 builder.where(conditions.filterBy, operator, query);
                 if (includePublicResults) {
@@ -213,11 +209,14 @@ export default class SpacesStore {
         }
 
         queryString = queryString
+            .orderBy('createdAt', 'desc')
             .limit(limit)
             .offset(offset)
             .toString();
 
         return this.db.read.query(queryString).then((response) => {
+            // Strip internal-only fields from API responses
+            response.rows.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
             const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
             return configuredResponse;
         });
@@ -322,7 +321,8 @@ export default class SpacesStore {
         }
         let returningMod = ((returning && returning.length) ? returning : '*');
         returningMod = overrides?.shouldLimitDetail
-            ? ['id', 'addressReadable', 'category', 'websiteUrl', 'notificationMsg', 'createdAt', 'updatedAt']
+            ? ['id', 'addressReadable', 'category', 'websiteUrl', 'notificationMsg', 'latitude', 'longitude',
+                'medias', 'mediaIds', 'createdAt', 'updatedAt']
             : returningMod;
         if (!overrides?.isRequestAuthorized) {
             // Public listing/summary view
@@ -362,15 +362,22 @@ export default class SpacesStore {
         if (conditions.filterBy !== 'isClaimPending') {
             firstWhere.isClaimPending = false; // hide pending claim requests
         }
+        const hasGeoCoordinates = conditions.longitude != null && conditions.latitude != null; // eslint-disable-line eqeqeq
+        const isUserIdFilter = conditions.filterBy === 'fromUserIds' && fromUserIds.length > 0;
+
         let queryString: any = knexBuilder
             .select(returningMod)
-            .from(SPACES_TABLE_NAME)
-            // TODO: Determine a better way to select spaces that are most relevant to the user
-            // .orderBy(`${SPACES_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
+            .from(SPACES_TABLE_NAME);
+
+        // Skip geospatial filter when searching for a specific user's spaces (no coordinates needed)
+        if (hasGeoCoordinates && !isUserIdFilter) {
             // NOTE: Cast to a geography type to search distance within n meters
             // Use geomCenter (POINT) instead of geom (POLYGON) for faster proximity checks
-            .where(knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])) // eslint-disable-line quotes, max-len
-            .andWhere(firstWhere);
+            queryString = queryString.where(knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])) // eslint-disable-line quotes, max-len
+                .andWhere(firstWhere);
+        } else {
+            queryString = queryString.where(firstWhere);
+        }
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq
             const operator = conditions.filterOperator || '=';
@@ -390,7 +397,6 @@ export default class SpacesStore {
                     }
                 });
             } else {
-                queryString = queryString.andWhere(conditions.filterBy, operator, query);
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
                     builder.where(conditions.filterBy, operator, query);
                     if (includePublicResults) {
@@ -400,12 +406,23 @@ export default class SpacesStore {
             }
         }
 
+        // Sort by distance when geo coordinates are available, otherwise by creation date
+        if (hasGeoCoordinates) {
+            queryString = queryString
+                .orderByRaw('ST_Distance("geomCenter"::geography, ST_MakePoint(?, ?)::geography) ASC', [conditions.longitude, conditions.latitude]);
+        } else {
+            queryString = queryString
+                .orderBy('createdAt', 'desc');
+        }
+
         queryString = queryString
             .limit(limit)
             .offset(offset)
             .toString();
 
         return this.db.read.query(queryString).then((response) => {
+            // Strip internal-only fields from API responses
+            response.rows.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
             const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
             return configuredResponse;
         });
@@ -450,7 +467,11 @@ export default class SpacesStore {
         query = query.orderBy('dist')
             .limit(5);
 
-        return this.db.read.query(query.toString()).then((response) => response.rows);
+        return this.db.read.query(query.toString()).then((response) => {
+            // Strip internal-only fields from API responses
+            response.rows.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
+            return response.rows;
+        });
     }
 
     findSpaces(internalReqHeaders: InternalConfigHeaders, spaceIds, filters, options: any = {}) {
@@ -476,6 +497,9 @@ export default class SpacesStore {
         }
 
         return this.db.read.query(query.toString()).then(async ({ rows: spaces }) => {
+            // Strip internal-only fields from API responses
+            spaces.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
+
             if (options.withMedia || options.withUser || options.withRatings) {
                 const mediaIds: string[] = [];
                 const userIds: string[] = [];

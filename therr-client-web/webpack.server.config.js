@@ -85,6 +85,17 @@ const common = merge([
     parts.clean(),
     parts.loadSvg(),
     parts.processTypescript([PATHS.src], false),
+    // Ignore CSS imports on the server (they are only needed client-side)
+    {
+        module: {
+            rules: [
+                {
+                    test: /\.css$/,
+                    loader: require.resolve('./noop-css-loader'),
+                },
+            ],
+        },
+    },
     parts.generateSourcemaps('source-map'),
     parts.deDupe(),
 ]);
