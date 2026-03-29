@@ -232,11 +232,11 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                                     }))
                                     .sort((a, b) => a.distanceFromUserMeters - b.distanceFromUserMeters);
                                 spacesOrderedByDistance.some((space) => {
-                                    const isUserWithinDistance = space.distanceFromUserMeters <= Location.MAX_DISTANCE_TO_CHECK_IN_METERS;
+                                    if (space.distanceFromUserMeters > Location.MAX_DISTANCE_TO_CHECK_IN_METERS) {
+                                        return true; // stop without pushing out-of-range space
+                                    }
                                     possibleSpacesUserIsVisiting.push(space);
-
-                                    // stop when user is out of range of remaining spaces
-                                    return !isUserWithinDistance;
+                                    return false;
                                 });
 
                                 logSpan({

@@ -99,14 +99,12 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
             existingMapped[reaction.spaceId] = reaction;
             return [userId, reaction.spaceId];
         });
-        let updatedReactions;
-        if (existing?.length) {
-            Store.spaceReactions.update({}, updateParams, {
+        const updatePromise = existing?.length
+            ? Store.spaceReactions.update({}, updateParams, {
                 columns: ['userId', 'spaceId'],
                 whereInArray: existingReactions,
             })
-                .then((spaceReactions) => { updatedReactions = spaceReactions; });
-        }
+            : Promise.resolve([]);
 
         const createArray = spaceIds
             .filter((id) => !existingMapped[id])
@@ -116,7 +114,11 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
                 ...createParams,
             }));
 
-        return Store.spaceReactions.create(createArray).then((createdReactions) => res.status(200).send({
+        const createPromise = createArray.length
+            ? Store.spaceReactions.create(createArray)
+            : Promise.resolve([]);
+
+        return Promise.all([updatePromise, createPromise]).then(([updatedReactions, createdReactions]) => res.status(200).send({
             created: createdReactions,
             updated: updatedReactions,
         }));

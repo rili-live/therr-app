@@ -484,15 +484,15 @@ const activateAreasAndNotify = (
         const spacesProspected: any = [];
         spaces.forEach((space) => {
             const distanceFromSpace = distanceTo({
-                lon: userLocation.latitude,
-                lat: userLocation.longitude,
+                lon: userLocation.longitude,
+                lat: userLocation.latitude,
             }, {
                 lon: space.longitude,
                 lat: space.latitude,
             });
 
             // If user is very close to a space, we consider it visited
-            if (distanceFromSpace > Location.AREA_PROXIMITY_METERS - 1) {
+            if (distanceFromSpace <= Location.AREA_PROXIMITY_METERS) {
                 spacesVisited.push(space);
             } else {
                 // Otherwise the user is a "prospective" customer
