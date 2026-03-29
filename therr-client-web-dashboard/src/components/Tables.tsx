@@ -227,9 +227,14 @@ export const TransactionsTable = () => {
         const {
             invoiceNumber, subscription, price, issueDate, dueDate, status,
         } = props;
-        const statusVariant = status === 'Paid' ? 'success'
-            : status === 'Due' ? 'warning'
-                : status === 'Canceled' ? 'danger' : 'primary';
+        let statusVariant = 'primary';
+        if (status === 'Paid') {
+            statusVariant = 'success';
+        } else if (status === 'Due') {
+            statusVariant = 'warning';
+        } else if (status === 'Canceled') {
+            statusVariant = 'danger';
+        }
 
         return (
             <tr>

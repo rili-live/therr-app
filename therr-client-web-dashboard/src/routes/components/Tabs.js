@@ -24,9 +24,28 @@ export default () => (
                 title="Example"
                 description={
                     <>
-                        <p>The <code>&#x3C;Tab&#x3E;</code> component is great if you want to show multiple resources of content with an easy partitioning using nav tabs. First you need to use the <code>&#x3C;Tab.Container&#x3E;</code> component to wrap around the content.</p>
-                        <p>The first part of the component will be the <code>&#x3C;Nav&#x3E;</code> component where you can add as many <code>&#x3C;NavItem&#x3E;</code> components as you'd like. The <code>&#x3C;Nav.Link&#x3E;</code> component can then be used to set the tab panel that it should open up when clicking on it.</p>
-                        <p>The <code>&#x3C;Tab.Content&#x3E;</code> component and its subcomponents are the content that will be shown based on which <code>&#x3C;Nav.Link&#x3E;</code> is being clicked on. The <code>eventKey="*"</code> attribute should be used for both the <code>&#x3C;Nav.Link&#x3E;</code> and <code>&#x3C;Tab.Content&#x3E;</code> to link the two together.</p>
+                        <p>
+                            The <code>&#x3C;Tab&#x3E;</code> component is great if you want to show
+                            multiple resources of content with an easy partitioning using nav
+                            tabs. First you need to use
+                            the <code>&#x3C;Tab.Container&#x3E;</code> component to wrap around
+                            the content.
+                        </p>
+                        <p>
+                            The first part of the component will be
+                            the <code>&#x3C;Nav&#x3E;</code> component where you can add as
+                            many <code>&#x3C;NavItem&#x3E;</code> components as you would like.
+                            The <code>&#x3C;Nav.Link&#x3E;</code> component can then be used to set
+                            the tab panel that it should open up when clicking on it.
+                        </p>
+                        <p>
+                            The <code>&#x3C;Tab.Content&#x3E;</code> component and its subcomponents
+                            are the content that will be shown based on
+                            which <code>&#x3C;Nav.Link&#x3E;</code> is being clicked on.
+                            The <code>eventKey=&quot;*&quot;</code> attribute should be used for both
+                            the <code>&#x3C;Nav.Link&#x3E;</code>
+                            and <code>&#x3C;Tab.Content&#x3E;</code> to link the two together.
+                        </p>
                     </>
                 }
                 scope={{ Nav, Tab }}
@@ -52,26 +71,41 @@ export default () => (
   <Tab.Content>
     <Tab.Pane eventKey="home" className="py-4">
       <p>
-        Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed. Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do umami readymade swag.
+        Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed.
+        Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident
+        chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do
+        umami readymade swag.
       </p>
       <p>
-        Day handsome addition horrible sensible goodness two contempt. Evening for married his account removal. Estimable me disposing of be moonlight cordially curiosity.
+        Day handsome addition horrible sensible goodness two contempt. Evening for
+        married his account removal. Estimable me disposing of be moonlight cordially
+        curiosity.
       </p>
     </Tab.Pane>
     <Tab.Pane eventKey="profile" className="py-4">
       <p>
-        Photo booth stumptown tote bag Banksy, elit small batch freegan sed. Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do umami readymade swag.
+        Photo booth stumptown tote bag Banksy, elit small batch freegan sed.
+        Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident
+        chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do
+        umami readymade swag.
       </p>
       <p>
-        Day handsome addition horrible sensible goodness two contempt. Evening for married his account removal. Estimable me disposing of be moonlight cordially curiosity.
+        Day handsome addition horrible sensible goodness two contempt. Evening for
+        married his account removal. Estimable me disposing of be moonlight cordially
+        curiosity.
       </p>
     </Tab.Pane>
     <Tab.Pane eventKey="messages" className="py-4">
       <p>
-        Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed. Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do umami readymade swag.
+        Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed.
+        Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident
+        chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do
+        umami readymade swag.
       </p>
       <p>
-        Day handsome addition horrible sensible goodness two contempt. Evening for married his account removal. Estimable me disposing of be moonlight cordially curiosity.
+        Day handsome addition horrible sensible goodness two contempt. Evening for
+        married his account removal. Estimable me disposing of be moonlight cordially
+        curiosity.
       </p>
     </Tab.Pane>
   </Tab.Content>
@@ -81,7 +115,11 @@ export default () => (
             <Documentation
                 title="Example with icons"
                 description={
-                    <p>The following example shows how you can add an icon using the <code>&#x3C;FontAwesomeIcon&#x3E;</code> component inside the navigation item component.</p>
+                    <p>
+                        The following example shows how you can add an icon using
+                        the <code>&#x3C;FontAwesomeIcon&#x3E;</code> component inside the
+                        navigation item component.
+                    </p>
                 }
                 scope={{
                     Row, Col, Nav, Tab, FontAwesomeIcon, faPalette, faLaptopCode, faUser,
@@ -113,26 +151,41 @@ import { faUser } from "@fortawesome/free-regular-svg-icons";`}
       <Tab.Content>
         <Tab.Pane eventKey="visual_design" className="py-4">
           <p>
-            Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed. Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do umami readymade swag.
+            Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed.
+        Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident
+        chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do
+        umami readymade swag.
           </p>
           <p>
-            Day handsome addition horrible sensible goodness two contempt. Evening for married his account removal. Estimable me disposing of be moonlight cordially curiosity.
+            Day handsome addition horrible sensible goodness two contempt. Evening for
+        married his account removal. Estimable me disposing of be moonlight cordially
+        curiosity.
           </p>
         </Tab.Pane>
         <Tab.Pane eventKey="code_friendly" className="py-4">
           <p>
-            Photo booth stumptown tote bag Banksy, elit small batch freegan sed. Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do umami readymade swag.
+            Photo booth stumptown tote bag Banksy, elit small batch freegan sed.
+        Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident
+        chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do
+        umami readymade swag.
           </p>
           <p>
-            Day handsome addition horrible sensible goodness two contempt. Evening for married his account removal. Estimable me disposing of be moonlight cordially curiosity.
+            Day handsome addition horrible sensible goodness two contempt. Evening for
+        married his account removal. Estimable me disposing of be moonlight cordially
+        curiosity.
           </p>
         </Tab.Pane>
         <Tab.Pane eventKey="user_experience" className="py-4">
           <p>
-            Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed. Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do umami readymade swag.
+            Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed.
+        Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident
+        chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do
+        umami readymade swag.
           </p>
           <p>
-            Day handsome addition horrible sensible goodness two contempt. Evening for married his account removal. Estimable me disposing of be moonlight cordially curiosity.
+            Day handsome addition horrible sensible goodness two contempt. Evening for
+        married his account removal. Estimable me disposing of be moonlight cordially
+        curiosity.
           </p>
         </Tab.Pane>
       </Tab.Content>
@@ -173,26 +226,41 @@ import { faUser } from "@fortawesome/free-regular-svg-icons";`}
       <Tab.Content>
         <Tab.Pane eventKey="home" className="py-4">
           <p>
-            Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed. Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do umami readymade swag.
+            Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed.
+        Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident
+        chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do
+        umami readymade swag.
           </p>
           <p>
-            Day handsome addition horrible sensible goodness two contempt. Evening for married his account removal. Estimable me disposing of be moonlight cordially curiosity.
+            Day handsome addition horrible sensible goodness two contempt. Evening for
+        married his account removal. Estimable me disposing of be moonlight cordially
+        curiosity.
           </p>
         </Tab.Pane>
         <Tab.Pane eventKey="profile" className="py-4">
           <p>
-            Photo booth stumptown tote bag Banksy, elit small batch freegan sed. Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do umami readymade swag.
+            Photo booth stumptown tote bag Banksy, elit small batch freegan sed.
+        Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident
+        chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do
+        umami readymade swag.
           </p>
           <p>
-            Day handsome addition horrible sensible goodness two contempt. Evening for married his account removal. Estimable me disposing of be moonlight cordially curiosity.
+            Day handsome addition horrible sensible goodness two contempt. Evening for
+        married his account removal. Estimable me disposing of be moonlight cordially
+        curiosity.
           </p>
         </Tab.Pane>
         <Tab.Pane eventKey="messages" className="py-4">
           <p>
-            Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed. Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do umami readymade swag.
+            Exercitation photo booth stumptown tote bag Banksy, elit small batch freegan sed.
+        Craft beer elit seitan exercitation, photo booth et 8-bit kale chips proident
+        chillwave deep v laborum. Aliquip veniam delectus, Marfa eiusmod Pinterest in do
+        umami readymade swag.
           </p>
           <p>
-            Day handsome addition horrible sensible goodness two contempt. Evening for married his account removal. Estimable me disposing of be moonlight cordially curiosity.
+            Day handsome addition horrible sensible goodness two contempt. Evening for
+        married his account removal. Estimable me disposing of be moonlight cordially
+        curiosity.
           </p>
         </Tab.Pane>
       </Tab.Content>

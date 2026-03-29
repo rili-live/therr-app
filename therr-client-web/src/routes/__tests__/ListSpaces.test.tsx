@@ -3,6 +3,10 @@
  */
 
 // Mock utilities that depend on global-config
+import {
+    ListSpacesComponent, DEFAULT_LATITUDE, DEFAULT_LONGITUDE, DEFAULT_ITEMS_PER_PAGE,
+} from '../ListSpaces';
+
 jest.mock('../../utilities/getUserContentUri', () => ({
     __esModule: true,
     default: () => 'https://example.com/image.jpg',
@@ -34,10 +38,6 @@ jest.mock('therr-react/components/mantine', () => {
 
 // Mock Leaflet/SpacesMap (not available in jsdom)
 jest.mock('../../components/SpacesMap', () => () => null);
-
-import {
-    ListSpacesComponent, DEFAULT_LATITUDE, DEFAULT_LONGITUDE, DEFAULT_ITEMS_PER_PAGE,
-} from '../ListSpaces';
 
 describe('ListSpaces', () => {
     const mockNavigate = jest.fn();
