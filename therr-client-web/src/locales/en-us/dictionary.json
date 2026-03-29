@@ -44,6 +44,9 @@
     "linkCopied": "Link copied!"
   },
   "components": {
+    "tile": {
+      "untitled": "Untitled"
+    },
     "layout": {
       "floatingButton": {
         "tooltip": "Share a thought"
@@ -165,6 +168,7 @@
     "userMenu": {
       "buttons": {
         "changePassword": "Change Password",
+        "bookmarks": "My Bookmarks",
         "discovered": "Discovered Feed",
         "editProfile": "Edit Profile",
         "explore": "Explore All",
@@ -256,6 +260,18 @@
       "returnToLogin": "Return to login page",
       "sectionHeaders": {
         "response": "A brief app feedback survey"
+      }
+    },
+    "bookmarks": {
+      "pageTitle": "My Bookmarks",
+      "subtitle": "Content you have saved for later",
+      "noResults": "You haven't bookmarked anything yet. Browse the community and bookmark content you want to revisit.",
+      "exploreCta": "Discover content",
+      "filters": {
+        "all": "All",
+        "moments": "Moments",
+        "spaces": "Spaces",
+        "thoughts": "Thoughts"
       }
     },
     "discovered": {
