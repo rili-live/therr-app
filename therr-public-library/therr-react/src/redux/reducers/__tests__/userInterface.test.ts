@@ -1,6 +1,6 @@
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import reducer from '../userInterface';
 import { UserInterfaceActionTypes } from '../../../types/redux/userInterface';
-import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 
 describe('userInterface reducer', () => {
     let initialState: any;

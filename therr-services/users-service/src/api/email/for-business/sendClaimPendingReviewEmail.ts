@@ -33,7 +33,7 @@ export default (emailParams: ISendClaimPendingReviewEmailConfig, templateParams:
         body1: translate(locale, 'emails.claimPendingReview.body1', { spaceName: templateParams.spaceName }),
         body2: translate(locale, 'emails.claimPendingReview.body2'),
         bodyBold: translate(locale, 'emails.claimPendingReview.bodyBold'),
-        postBody1: translate(locale, 'emails.claimPendingReview.postBody1'),
+        postBody1: translate(locale, 'emails.claimPendingReview.postBody1', { brandName: contextConfig.brandName }),
         buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/login`,
         buttonText: translate(locale, 'emails.claimPendingReview.buttonText'),
     };

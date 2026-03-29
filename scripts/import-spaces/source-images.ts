@@ -15,6 +15,12 @@ import { CITIES, IMPORT_USER_ID } from './config';
 import { crawlForImages, ICrawlResult } from './sources/crawl';
 import { downloadAndValidateImage } from './utils/imageValidation';
 import { uploadImage } from './utils/gcs';
+import {
+  ProcessedType,
+  markProcessed,
+  filterProcessedSpaces,
+  getProcessedStats,
+} from './utils/processedSpaces';
 
 // Load .env from scripts/import-spaces/ first, fall back to root .env
 dotenv.config({ path: path.resolve(__dirname, '.env') });
@@ -39,6 +45,7 @@ Options:
   --user-id <uuid>     Override fromUserId for media records
                        (default: ${IMPORT_USER_ID})
   --dry-run            Crawl and log results without uploading/updating
+  --no-skip-processed  Re-process spaces even if previously attempted
   --help, -h           Show this help message
 
 Examples:
@@ -54,6 +61,7 @@ interface ICliArgs {
   limit: number;
   delay: number;
   userId: string;
+  noSkipProcessed: boolean;
 }
 
 // ── CLI arg parsing ──────────────────────────────────────────────────────────
@@ -67,6 +75,8 @@ function parseArgs(): ICliArgs {
       process.exit(0);
     } else if (args[i] === '--dry-run') {
       parsed.dryRun = 'true';
+    } else if (args[i] === '--no-skip-processed') {
+      parsed.noSkipProcessed = 'true';
     } else if (args[i].startsWith('--') && i + 1 < args.length) {
       parsed[args[i].replace('--', '')] = args[i + 1];
       i++;
@@ -80,6 +90,7 @@ function parseArgs(): ICliArgs {
     limit: parsed.limit ? parseInt(parsed.limit, 10) : 0,
     delay: parsed.delay ? parseInt(parsed.delay, 10) : 2000,
     userId: parsed['user-id'] || IMPORT_USER_ID,
+    noSkipProcessed: parsed.noSkipProcessed === 'true',
   };
 }
 
@@ -174,7 +185,19 @@ async function main() {
     process.exit(1);
   }
 
-  const spaces = await querySpaces(db, args);
+  let spaces = await querySpaces(db, args);
+
+  if (!args.noSkipProcessed) {
+    const { filtered, skippedCount } = filterProcessedSpaces(spaces, [
+      ProcessedType.NO_IMAGE_FOUND,
+      ProcessedType.IMAGE_FOUND,
+    ]);
+    if (skippedCount > 0) {
+      console.log(`Skipping ${skippedCount} previously processed space(s) for image lookup.`);
+    }
+    spaces = filtered;
+  }
+
   console.log(`Found ${spaces.length} spaces needing images.\n`);
 
   if (spaces.length === 0) {
@@ -198,6 +221,9 @@ async function main() {
       const candidates = await crawlForImages(space.websiteUrl);
       if (candidates.length === 0) {
         console.log(`${progress} SKIP (no image found): ${space.notificationMsg} — ${space.websiteUrl}`);
+        if (!args.dryRun) {
+          markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
+        }
         skippedNoImage++;
         if (i < spaces.length - 1) await sleep(args.delay);
         continue;
@@ -226,6 +252,7 @@ async function main() {
 
       if (!validImage) {
         console.log(`  SKIP (all candidates invalid/too small): ${space.notificationMsg}`);
+        markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
         skippedTooSmall++;
         if (i < spaces.length - 1) await sleep(args.delay);
         continue;
@@ -259,6 +286,7 @@ async function main() {
       );
 
       console.log(`  Updated space ${space.id} with media ${mediaId}`);
+      markProcessed(ProcessedType.IMAGE_FOUND, space.id, space.notificationMsg);
       updated++;
     } catch (err: any) {
       console.error(`${progress} ERROR: ${space.notificationMsg} — ${err.message}`);
@@ -280,6 +308,17 @@ async function main() {
   console.log(`Skipped (too small):      ${skippedTooSmall}`);
   console.log(`Errors:                   ${errors}`);
   console.log('══════════════════════════════════════\n');
+
+  // Show processed-spaces tracking stats
+  const stats = getProcessedStats();
+  const hasStats = Object.values(stats).some((v) => v > 0);
+  if (hasStats) {
+    console.log('Processed-spaces tracking:');
+    for (const [type, count] of Object.entries(stats)) {
+      if (count > 0) console.log(`  ${type}: ${count}`);
+    }
+    console.log('');
+  }
 
   await db.end();
 }

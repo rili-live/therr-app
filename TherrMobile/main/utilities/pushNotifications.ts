@@ -11,14 +11,6 @@ import notifee, {
 } from '@notifee/react-native';
 import { AndroidChannelIds, getAndroidChannel } from '../constants';
 
-/**
- * Sends a Notifee push notification when a data-only Firebase notification is received in the background
- */
-const sendBackgroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
-    // Request permissions (required for iOS)
-    return sendForegroundNotification(notification, androidChannel, AndroidImportance.HIGH, true);
-};
-
 const sendForegroundNotification = (
     notification: Notification,
     androidChannel?: AndroidChannel,
@@ -51,6 +43,14 @@ const sendForegroundNotification = (
                 data: notification.data,
             });
         });
+};
+
+/**
+ * Sends a Notifee push notification when a data-only Firebase notification is received in the background
+ */
+const sendBackgroundNotification = (notification: Notification, androidChannel?: AndroidChannel) => {
+    // Request permissions (required for iOS)
+    return sendForegroundNotification(notification, androidChannel, AndroidImportance.HIGH, true);
 };
 
 const sendTriggerNotification = async (

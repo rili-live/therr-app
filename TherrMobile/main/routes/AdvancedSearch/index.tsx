@@ -50,6 +50,50 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
+const styles = StyleSheet.create({
+    container: {
+        padding: 16,
+        paddingBottom: 120,
+    },
+    sectionHeader: {
+        marginBottom: 12,
+    },
+    segmentedButtons: {
+        marginBottom: 24,
+    },
+    divider: {
+        marginBottom: 20,
+    },
+    selectAllChip: {
+        borderRadius: 20,
+        marginBottom: 16,
+        justifyContent: 'center',
+    },
+    selectAllChipText: {
+        fontSize: 15,
+    },
+    chipsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    chip: {
+        borderRadius: 20,
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    footerButton: {
+        flex: 1,
+        marginHorizontal: 6,
+    },
+});
+
 const AdvancedSearch = ({
     content,
     map,
@@ -275,49 +319,5 @@ const AdvancedSearch = ({
         </>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        padding: 16,
-        paddingBottom: 120,
-    },
-    sectionHeader: {
-        marginBottom: 12,
-    },
-    segmentedButtons: {
-        marginBottom: 24,
-    },
-    divider: {
-        marginBottom: 20,
-    },
-    selectAllChip: {
-        borderRadius: 20,
-        marginBottom: 16,
-        justifyContent: 'center',
-    },
-    selectAllChipText: {
-        fontSize: 15,
-    },
-    chipsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    chip: {
-        borderRadius: 20,
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderTopWidth: StyleSheet.hairlineWidth,
-    },
-    footerButton: {
-        flex: 1,
-        marginHorizontal: 6,
-    },
-});
 
 export default connect(mapStateToProps, mapDispatchToProps)(AdvancedSearch);

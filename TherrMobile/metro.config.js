@@ -11,7 +11,7 @@ const path = require('path');
 // Block React packages from root node_modules to prevent version conflicts
 const rootNodeModules = path.join(__dirname, '/../node_modules');
 // Escape special regex characters in path
-const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
 const escapedRoot = escapeRegex(rootNodeModules);
 const blockList = [
     new RegExp(`${escapedRoot}[\\/]react[\\/].*`),

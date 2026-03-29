@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, Platform, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Badge } from 'react-native-paper';
@@ -151,7 +151,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
         return (
             <>
                 <RoundInput
-                    errorStyle={{ display: 'none' }}
+                    errorStyle={localStyles.hidden}
                     style={textStyle}
                     containerStyle={[theme.styles.headerSearchContainer, { width: containerWidth }]}
                     inputStyle={
@@ -159,7 +159,9 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                             Platform.OS !== 'ios'
                                 ? themeForms.styles.input
                                 : themeForms.styles.inputAlt,
-                            { fontSize: Platform.OS !== 'ios' ? 16 : 19 },
+                            Platform.OS !== 'ios'
+                                ? localStyles.fontSizeDefault
+                                : localStyles.fontSizeIos,
                         ]
                     }
                     inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
@@ -194,5 +196,17 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    hidden: {
+        display: 'none',
+    },
+    fontSizeDefault: {
+        fontSize: 16,
+    },
+    fontSizeIos: {
+        fontSize: 19,
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(HeaderSearchInput);

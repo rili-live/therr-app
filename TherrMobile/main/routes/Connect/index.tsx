@@ -414,8 +414,12 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     sortMessages = (): any[] => {
-        const { messages } = this.props;
+        const { messages, user } = this.props;
+        const blockedUsers = user?.details?.blockedUsers || [];
         // TODO: Determine if user is active an list unread message count
+        if (blockedUsers.length && messages?.myDMs?.length) {
+            return messages.myDMs.filter((dm) => !blockedUsers.includes(dm.userDetails?.id));
+        }
         return messages?.myDMs;
     };
 
@@ -473,7 +477,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
-                        ref={(component) => this.peopleListRef = component}
+                        ref={(component) => { this.peopleListRef = component; }}
                         data={people}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: user }) => (
@@ -532,7 +536,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
-                        ref={(component) => this.messagesListRef = component}
+                        ref={(component) => { this.messagesListRef = component; }}
                         data={messagedConnections}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: messageSummary }) => (
@@ -567,7 +571,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
-                        ref={(component) => this.connectionsListRef = component}
+                        ref={(component) => { this.connectionsListRef = component; }}
                         data={connections}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: connection }) => (
