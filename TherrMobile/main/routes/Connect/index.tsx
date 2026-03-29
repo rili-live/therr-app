@@ -477,7 +477,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
-                        ref={(component) => this.peopleListRef = component}
+                        ref={(component) => { this.peopleListRef = component; }}
                         data={people}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: user }) => (
@@ -536,7 +536,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
-                        ref={(component) => this.messagesListRef = component}
+                        ref={(component) => { this.messagesListRef = component; }}
                         data={messagedConnections}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: messageSummary }) => (
@@ -571,7 +571,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
                 return (
                     <FlatList
-                        ref={(component) => this.connectionsListRef = component}
+                        ref={(component) => { this.connectionsListRef = component; }}
                         data={connections}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item: connection }) => (

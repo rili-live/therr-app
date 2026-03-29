@@ -2,6 +2,7 @@ import 'react-native';
 import React from 'react';
 
 // Note: test renderer must be required after react-native.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import renderer from 'react-test-renderer';
 
 // Note: import explicitly to use the types shipped with jest.
@@ -72,6 +73,7 @@ const createFeatureFlagContext = (featureFlags: Record<string, boolean>): IFeatu
 // FeatureGate Logic (mirroring main/components/FeatureGate.tsx)
 // ============================================================================
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface IFeatureGateProps {
     feature?: string;
     features?: string[];

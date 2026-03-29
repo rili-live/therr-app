@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Button } from '../../BaseButton';
 import { ApiService } from 'therr-react/services';
 import { ErrorCodes } from 'therr-js-utilities/constants';
@@ -254,7 +254,7 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
                             />
                             <Button
                                 type="clear"
-                                containerStyle={{ marginTop: 10 }}
+                                containerStyle={localStyles.resendCodeButton}
                                 titleStyle={themeForms.styles.buttonLink}
                                 title={translate(
                                     'forms.createProfile.buttons.resendCode'
@@ -268,5 +268,11 @@ class CreateProfilePhoneVerify extends React.Component<ICreateProfilePhoneVerify
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    resendCodeButton: {
+        marginTop: 10,
+    },
+});
 
 export default CreateProfilePhoneVerify;
