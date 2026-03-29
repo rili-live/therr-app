@@ -465,7 +465,13 @@
       "signInPrompt": "to see your private spaces and manage listings.",
       "website": "website",
       "nearLocation": "Showing spaces near {location}",
-      "searchPlaceholderLocation": "Search by location (e.g. Michigan, New York)..."
+      "searchPlaceholderLocation": "Search by location (e.g. Michigan, New York)...",
+      "nearMe": "Near Me",
+      "searchThisArea": "Search This Area",
+      "yourLocation": "Your Location",
+      "clear": "Clear",
+      "reset": "Reset",
+      "locationError": "Location access is required. Please enable location in your browser settings."
     },
     "home": {
       "pageTitle": "Create your Social Profile or Business",
