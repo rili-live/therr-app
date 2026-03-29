@@ -13,6 +13,15 @@ export interface IUserProfileAction {
     title: string;
 }
 
+const UserProfileIcon = ({ iconName, iconColor, style }: { iconName: string; iconColor: string | undefined; style: any }) => (
+    <MaterialIcon
+        name={iconName}
+        size={22}
+        color={iconColor}
+        style={style}
+    />
+);
+
 const UserProfileSheet = (props: SheetProps<'user-profile-sheet'>) => {
     const { payload } = props;
     const actions = payload?.actions || [];
@@ -32,12 +41,7 @@ const UserProfileSheet = (props: SheetProps<'user-profile-sheet'>) => {
                         title={payload?.translate(item.title)}
                         titleStyle={{ color: iconColor }}
                         left={(listProps) => (
-                            <MaterialIcon
-                                name={item.icon}
-                                size={22}
-                                color={iconColor}
-                                style={listProps.style}
-                            />
+                            <UserProfileIcon iconName={item.icon} iconColor={iconColor} style={listProps.style} />
                         )}
                         onPress={() => {
                             SheetManager.hide('user-profile-sheet');

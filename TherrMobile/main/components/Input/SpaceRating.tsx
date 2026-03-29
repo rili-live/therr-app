@@ -27,14 +27,14 @@ const SpaceRating = ({
     const [rating, setRating] = useState<undefined | number>(initialRating);
     const star = starSize || 40;
 
-    const handlePress = (rating: number) => () => {
+    const handlePress = (value: number) => () => {
         if (!isEditable || !onSelectRating) {
             return;
         }
 
-        setRating(rating);
+        setRating(value);
 
-        onSelectRating(rating);
+        onSelectRating(value);
     };
 
     return <View style={[

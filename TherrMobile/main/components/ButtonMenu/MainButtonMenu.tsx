@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Dimensions, View } from 'react-native';
+import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Button } from '../BaseButton';
 import { Image } from '../BaseImage';
@@ -260,7 +260,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                         speed={0.5}
                         autoPlay
                         loop
-                        style={{ width: 75, height: '100%', marginRight: 10 }}
+                        style={localStyles.toastLottie}
                     />
                 ),
             },
@@ -452,5 +452,13 @@ class MainButtonMenuAlt extends ButtonMenu {
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    toastLottie: {
+        width: 75,
+        height: '100%',
+        marginRight: 10,
+    },
+});
 
 export default (connect(mapStateToProps, mapDispatchToProps)(React.memo(MainButtonMenuAlt)));

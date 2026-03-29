@@ -1,6 +1,6 @@
+import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 import reducer from '../forums';
 import { ForumActionTypes } from '../../../types/redux/forums';
-import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 
 describe('forums reducer', () => {
     let initialState: any;

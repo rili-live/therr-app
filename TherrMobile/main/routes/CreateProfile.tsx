@@ -522,7 +522,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     isLoading={isLoadingInterests}
                                     isDisabled={this.isFormInterestsDisabled()}
                                     onChange={this.onInterestsChange}
-                                    onSubmit={(interests) => this.onSubmitInterests(stage, interests)}
+                                    onSubmit={(selectedInterests) => this.onSubmitInterests(stage, selectedInterests)}
                                     translate={this.translate}
                                     theme={this.theme}
                                     themeForms={this.themeForms}

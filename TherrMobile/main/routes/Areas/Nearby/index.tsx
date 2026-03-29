@@ -86,7 +86,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     <NearbyWrapper
-                        carouselRef={(component) => this.carouselRef = component}
+                        carouselRef={(component) => { this.carouselRef = component; }}
                         displaySize={displaySize}
                         navigation={navigation}
                         shouldDisableLocationSendEvent={shouldDisableLocationSendEvent}

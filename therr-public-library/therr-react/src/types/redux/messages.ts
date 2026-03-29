@@ -5,6 +5,7 @@ export interface IDirectMsg {
     text: string;
     time: string;
     isAnnouncement?: boolean;
+    isFirstMessage?: boolean;
 }
 
 export interface IForumMsg {
@@ -21,14 +22,10 @@ export type IForumMsgs = {[index: string]: IForumMsgList};
 
 export interface IMessagesState {
     forums: any[];
-    dms: {
-        [key: string]: IDirectMsg;
-    } | {};
+    dms: Record<string, IDirectMsg[]>;
     myDMs: any;
     myDMsPagination?: any;
-    forumMsgs: {
-        [key: string]: IForumMsgList;
-    } | {};
+    forumMsgs: Record<string, IForumMsgList>;
     hasUnreadDms: boolean;
 }
 

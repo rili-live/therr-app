@@ -49,6 +49,7 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
     const leafletMapRef = React.useRef<any>(null);
     const leafletLibRef = React.useRef<any>(null);
     const markerIconRef = React.useRef<any>(null);
+    const resizeObserverRef = React.useRef<ResizeObserver | null>(null);
     const spacesRef = React.useRef(spaces);
     spacesRef.current = spaces;
     const onMoveEndRef = React.useRef(onMoveEnd);
@@ -137,6 +138,16 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
                 }
             });
 
+            // Watch for container resizes (e.g. page layout shifts after navigation)
+            // so Leaflet re-renders tiles that were in grey/unloaded regions
+            if (typeof ResizeObserver !== 'undefined' && mapRef.current) {
+                const ro = new ResizeObserver(() => {
+                    map.invalidateSize();
+                });
+                ro.observe(mapRef.current);
+                resizeObserverRef.current = ro;
+            }
+
             // Add markers immediately with current spaces data
             const currentSpaces = spacesRef.current;
             const prefix = localePrefix || '';
@@ -172,6 +183,10 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
 
         return () => {
             cancelled = true;
+            if (resizeObserverRef.current) {
+                resizeObserverRef.current.disconnect();
+                resizeObserverRef.current = null;
+            }
             if (leafletMapRef.current) {
                 leafletMapRef.current.remove();
                 leafletMapRef.current = null;

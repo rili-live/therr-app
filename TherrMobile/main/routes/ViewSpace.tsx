@@ -52,6 +52,85 @@ import { isUserAuthenticated } from '../utilities/authUtils';
 
 const { width: screenWidth } = Dimensions.get('window');
 
+const localStyles = StyleSheet.create({
+    footer: {
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+    },
+    footerButton: {
+        flex: 1,
+        marginHorizontal: 4,
+    },
+    incentiveButton: {
+        marginTop: 8,
+    },
+    pairingsSection: {
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 80,
+    },
+    pairingsTitle: {
+        marginBottom: 4,
+    },
+    pairingsDescription: {
+        textAlign: 'center',
+        marginBottom: 12,
+        fontSize: 13,
+    },
+    pairingsLoader: {
+        marginVertical: 20,
+    },
+    pairingCard: {
+        borderWidth: 1,
+        borderRadius: 10,
+        marginBottom: 12,
+        overflow: 'hidden',
+    },
+    pairingImage: {
+        width: '100%',
+        height: 120,
+    },
+    pairingContent: {
+        padding: 12,
+    },
+    pairingTitle: {
+        fontSize: 15,
+        fontWeight: '600',
+        marginBottom: 4,
+    },
+    pairingBadge: {
+        alignSelf: 'flex-start',
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        marginTop: 4,
+    },
+    pairingBadgeText: {
+        fontSize: 11,
+        fontWeight: '500',
+    },
+    pairingAddress: {
+        fontSize: 12,
+        marginTop: 4,
+    },
+    pairingFeedbackRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    pairingFeedbackLink: {
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    pairingFeedbackSeparator: {
+        fontSize: 12,
+        marginHorizontal: 6,
+    },
+    pairingFeedbackText: {
+        fontSize: 12,
+    },
+});
+
 interface IViewSpaceDispatchProps {
     getSpaceDetails: Function;
     deleteSpace: Function;
@@ -752,84 +831,5 @@ const ViewSpace = ({
         </>
     );
 };
-
-const localStyles = StyleSheet.create({
-    footer: {
-        justifyContent: 'space-between',
-        paddingHorizontal: 10,
-    },
-    footerButton: {
-        flex: 1,
-        marginHorizontal: 4,
-    },
-    incentiveButton: {
-        marginTop: 8,
-    },
-    pairingsSection: {
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 80,
-    },
-    pairingsTitle: {
-        marginBottom: 4,
-    },
-    pairingsDescription: {
-        textAlign: 'center',
-        marginBottom: 12,
-        fontSize: 13,
-    },
-    pairingsLoader: {
-        marginVertical: 20,
-    },
-    pairingCard: {
-        borderWidth: 1,
-        borderRadius: 10,
-        marginBottom: 12,
-        overflow: 'hidden',
-    },
-    pairingImage: {
-        width: '100%',
-        height: 120,
-    },
-    pairingContent: {
-        padding: 12,
-    },
-    pairingTitle: {
-        fontSize: 15,
-        fontWeight: '600',
-        marginBottom: 4,
-    },
-    pairingBadge: {
-        alignSelf: 'flex-start',
-        borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        marginTop: 4,
-    },
-    pairingBadgeText: {
-        fontSize: 11,
-        fontWeight: '500',
-    },
-    pairingAddress: {
-        fontSize: 12,
-        marginTop: 4,
-    },
-    pairingFeedbackRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 8,
-    },
-    pairingFeedbackLink: {
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    pairingFeedbackSeparator: {
-        fontSize: 12,
-        marginHorizontal: 6,
-    },
-    pairingFeedbackText: {
-        fontSize: 12,
-    },
-});
 
 export default connect(mapStateToProps, mapDispatchToProps)(ViewSpace);

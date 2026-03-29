@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FAB } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -159,8 +159,8 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
             modifiedGroup = modifiedGroup.map(x => ({ ...x, isChecked: modifiedGroup[index].isChecked}));
         } else {
             // Select All box
-            modifiedGroup[0].isChecked = modifiedGroup.every((item, index) => {
-                if (index === 0) { return true; }
+            modifiedGroup[0].isChecked = modifiedGroup.every((item, idx) => {
+                if (idx === 0) { return true; }
                 return item.isChecked;
             });
         }
@@ -210,7 +210,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
                         contentInsetAdjustmentBehavior="automatic"
                         style={this.theme.styles.scrollViewFull}
                     >
-                        <View style={[this.theme.styles.body, { marginBottom: 80 }]}>
+                        <View style={[this.theme.styles.body, localStyles.bodyBottomMargin]}>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
                                     {this.translate('pages.mapFilteredSearch.h2.categoryFilters')}
@@ -318,5 +318,11 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    bodyBottomMargin: {
+        marginBottom: 80,
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapFilteredSearch);

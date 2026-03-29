@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, Platform, TextInputProps } from 'react-native';
+import { Dimensions, Platform, StyleSheet, TextInputProps } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import 'react-native-gesture-handler';
@@ -109,7 +109,7 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
         return (
             <>
                 <RoundInput
-                    errorStyle={{ display: 'none' }}
+                    errorStyle={localStyles.hidden}
                     style={textStyle}
                     containerStyle={[theme.styles.headerSearchContainer, { width: containerWidth }]}
                     inputStyle={
@@ -117,7 +117,9 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
                             Platform.OS !== 'ios'
                                 ? themeForms.styles.input
                                 : themeForms.styles.inputAlt,
-                            { fontSize: Platform.OS !== 'ios' ? 16 : 19 },
+                            Platform.OS !== 'ios'
+                                ? localStyles.fontSizeDefault
+                                : localStyles.fontSizeIos,
                         ]
                     }
                     inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
@@ -141,5 +143,17 @@ export class HeaderSearchUsersInput extends React.Component<IHeaderSearchUsersIn
         );
     }
 }
+
+const localStyles = StyleSheet.create({
+    hidden: {
+        display: 'none',
+    },
+    fontSizeDefault: {
+        fontSize: 16,
+    },
+    fontSizeIos: {
+        fontSize: 19,
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(HeaderSearchUsersInput);
