@@ -43,6 +43,22 @@ const getBtnGroupBtnStyles = (theme: ITherrTheme): any => ({
     justifyContent: 'center',
 });
 
+const getFloatingBtnContainer = (theme: ITherrTheme): any => ({
+    position: 'absolute',
+    shadowColor: theme.colors.brandingBlack,
+    shadowOffset: {
+        height: 1,
+        width: 1,
+    },
+    shadowRadius: 4,
+    borderRadius: 100,
+    padding: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    display: 'flex',
+    zIndex: floatingButtonContainerZIndex,
+});
+
 const getBottomLeftBtnViewStyles = (theme: ITherrTheme): any => ({
     ...getFloatingBtnContainer(theme),
     left: 18,
@@ -70,22 +86,6 @@ const getLeftMiniButton1ViewStyles = (theme: ITherrTheme): any => ({
     ...getFloatingBtnContainer(theme),
     left: 18,
     bottom: 120 + buttonMenuHeight - collapseOffset,
-});
-
-const getFloatingBtnContainer = (theme: ITherrTheme): any => ({
-    position: 'absolute',
-    shadowColor: theme.colors.brandingBlack,
-    shadowOffset: {
-        height: 1,
-        width: 1,
-    },
-    shadowRadius: 4,
-    borderRadius: 100,
-    padding: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    display: 'flex',
-    zIndex: floatingButtonContainerZIndex,
 });
 
 const buttonGroupStyles: any = {

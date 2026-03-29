@@ -1,7 +1,7 @@
+import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 import getUserReducer from '../user';
 import { UserActionTypes } from '../../../types/redux/user';
 import { ForumActionTypes } from '../../../types';
-import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 
 describe('user reducer', () => {
     let initialState: any;
@@ -44,9 +44,9 @@ describe('user reducer', () => {
                 mightKnowResults: [{ id: 'u3' }],
             },
         });
-        expect(result.users['u1'].userName).toBe('user1');
-        expect(result.users['u2'].userName).toBe('user2');
-        expect(result.usersMightKnow['u3']).toBeDefined();
+        expect(result.users.u1.userName).toBe('user1');
+        expect(result.users.u2.userName).toBe('user2');
+        expect(result.usersMightKnow.u3).toBeDefined();
     });
 
     it('handles GET_USERS_REFETCH (clears stale results)', () => {
@@ -58,8 +58,8 @@ describe('user reducer', () => {
             type: UserActionTypes.GET_USERS_REFETCH,
             data: { results: [{ id: 'u2' }] },
         });
-        expect(result.users['u1']).toBeUndefined();
-        expect(result.users['u2']).toBeDefined();
+        expect(result.users.u1).toBeUndefined();
+        expect(result.users.u2).toBeDefined();
     });
 
     it('handles GET_USERS_UPDATE', () => {
@@ -71,7 +71,7 @@ describe('user reducer', () => {
             type: UserActionTypes.GET_USERS_UPDATE,
             data: { id: 'u1', updates: { userName: 'new' } },
         });
-        expect(result.users['u1'].userName).toBe('new');
+        expect(result.users.u1.userName).toBe('new');
     });
 
     it('handles GET_USERS_PAIRINGS', () => {
@@ -81,7 +81,7 @@ describe('user reducer', () => {
                 results: [{ id: 'p1', name: 'Pairing 1' }],
             },
         });
-        expect(result.influencerPairings['p1'].name).toBe('Pairing 1');
+        expect(result.influencerPairings.p1.name).toBe('Pairing 1');
     });
 
     // Achievements
@@ -228,7 +228,7 @@ describe('user reducer', () => {
             type: UserActionTypes.GET_USER_GROUPS,
             data: { userGroups: [{ groupId: 'g1', name: 'Group 1' }] },
         });
-        expect(result.myUserGroups['g1'].name).toBe('Group 1');
+        expect(result.myUserGroups.g1.name).toBe('Group 1');
     });
 
     it('handles USER_GROUP_CREATED', () => {
@@ -236,7 +236,7 @@ describe('user reducer', () => {
             type: UserActionTypes.USER_GROUP_CREATED,
             data: { groupId: 'g1', name: 'New Group' },
         });
-        expect(result.myUserGroups['g1'].name).toBe('New Group');
+        expect(result.myUserGroups.g1.name).toBe('New Group');
     });
 
     it('handles USER_GROUP_DELETED', () => {
@@ -248,7 +248,7 @@ describe('user reducer', () => {
             type: UserActionTypes.USER_GROUP_DELETED,
             data: { groupId: 'g1' },
         });
-        expect(result.myUserGroups['g1']).toBeUndefined();
+        expect(result.myUserGroups.g1).toBeUndefined();
     });
 
     // Logout

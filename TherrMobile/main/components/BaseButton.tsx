@@ -134,7 +134,7 @@ export const Button = ({
     );
 
     if (containerStyle) {
-        return <View style={[containerStyle, { overflow: 'hidden' }]}>{button}</View>;
+        return <View style={[containerStyle, styles.container]}>{button}</View>;
     }
 
     return button;

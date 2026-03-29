@@ -23,9 +23,23 @@ export default () => (
                 title="Pagination"
                 description={
                     <>
-                        <p>The <code>&#x3C;Pagination&#x3E;</code> component is important to use when you have data that can be potentially so numerous that you need to paginate it. We've created two main handles that you can use when the previous or next item button has been click, called <code>onPrevItem</code> and <code>onNextItem</code>.</p>
-                        <p>You can use the <code>items = []</code> array to add the number of pagination items, and set the <code>totalPages</code> pages constant to set that maximum amount of pages to show in the pagination element.</p>
-                        <p>Also you can use a function as <code>handlePaginationChange</code> to add some custome logic when user goes to another page (e.g fetch new data).</p>
+                        <p>
+                            The <code>&#x3C;Pagination&#x3E;</code> component is important to use when
+                            you have data that can be potentially so numerous that you need to
+                            paginate it. We have created two main handles that you can use when
+                            the previous or next item button has been click,
+                            called <code>onPrevItem</code> and <code>onNextItem</code>.
+                        </p>
+                        <p>
+                            You can use the <code>items = []</code> array to add the number of
+                            pagination items, and set the <code>totalPages</code> pages constant to
+                            set that maximum amount of pages to show in the pagination element.
+                        </p>
+                        <p>
+                            Also you can use a function
+                            as <code>handlePaginationChange</code> to add some custom logic when
+                            user goes to another page (e.g fetch new data).
+                        </p>
                     </>
                 }
                 scope={{
@@ -156,7 +170,11 @@ render(
             <Documentation
                 title="Sizing"
                 description={
-                    <p>As throughout the whole app, you can use either the <code>sm</code>, default or <code>lg</code> size modifiers by updating the <code>size</code> attribute.</p>
+                    <p>
+                        As throughout the whole app, you can use either
+                        the <code>sm</code>, default or <code>lg</code> size modifiers by
+                        updating the <code>size</code> attribute.
+                    </p>
                 }
                 scope={{
                     Col, Card, Pagination, FontAwesomeIcon, faAngleDoubleLeft, faAngleDoubleRight,

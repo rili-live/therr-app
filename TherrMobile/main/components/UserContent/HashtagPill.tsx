@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { Chip } from 'react-native-paper';
 
 export default ({ tag, onPress, hasIcon = true, styles }) => {
@@ -7,7 +8,7 @@ export default ({ tag, onPress, hasIcon = true, styles }) => {
             compact
             mode="outlined"
             theme={{ roundness: 10 }}
-            textStyle={[styles.buttonPillTitle, { fontSize: 13 }]}
+            textStyle={[styles.buttonPillTitle, localStyles.pillText]}
             style={[
                 styles.buttonPill,
                 styles.buttonPillContainer,
@@ -20,3 +21,9 @@ export default ({ tag, onPress, hasIcon = true, styles }) => {
         </Chip>
     );
 };
+
+const localStyles = StyleSheet.create({
+    pillText: {
+        fontSize: 13,
+    },
+});

@@ -1,7 +1,7 @@
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import reducer from '../content';
 import { ContentActionTypes } from '../../../types/redux/content';
 import { MapActionTypes } from '../../../types/redux/maps';
-import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 
 describe('content reducer', () => {
     let initialState: any;

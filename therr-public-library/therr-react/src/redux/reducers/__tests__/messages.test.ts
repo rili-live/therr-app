@@ -1,6 +1,6 @@
+import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 import reducer from '../messages';
 import { MessageActionTypes } from '../../../types/redux/messages';
-import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 
 describe('messages reducer', () => {
     let initialState: any;
@@ -24,8 +24,8 @@ describe('messages reducer', () => {
                 message: { key: 'msg1', text: 'Hello' },
             },
         });
-        expect(result.forumMsgs['room1'].length).toBe(1);
-        expect(result.forumMsgs['room1'][0].text).toBe('Hello');
+        expect(result.forumMsgs.room1.length).toBe(1);
+        expect(result.forumMsgs.room1[0].text).toBe('Hello');
     });
 
     it('handles SEND_MESSAGE by prepending to room', () => {
@@ -43,8 +43,8 @@ describe('messages reducer', () => {
                 message: { key: 'msg2', text: 'Second' },
             },
         });
-        expect(result.forumMsgs['room1'].length).toBe(2);
-        expect(result.forumMsgs['room1'][0].text).toBe('Second');
+        expect(result.forumMsgs.room1.length).toBe(2);
+        expect(result.forumMsgs.room1[0].text).toBe('Second');
     });
 
     it('handles GET_FORUM_MESSAGES', () => {
@@ -55,7 +55,7 @@ describe('messages reducer', () => {
                 messages: [{ key: 'msg1' }, { key: 'msg2' }],
             },
         });
-        expect(result.forumMsgs['room1'].length).toBe(2);
+        expect(result.forumMsgs.room1.length).toBe(2);
     });
 
     // DMs
@@ -68,7 +68,7 @@ describe('messages reducer', () => {
                 isLastPage: false,
             },
         });
-        expect(result.dms['user1'].length).toBe(2);
+        expect(result.dms.user1.length).toBe(2);
     });
 
     it('handles GET_DIRECT_MESSAGES marks last message on last page', () => {
@@ -80,7 +80,7 @@ describe('messages reducer', () => {
                 isLastPage: true,
             },
         });
-        expect(result.dms['user1'][1].isFirstMessage).toBe(true);
+        expect(result.dms.user1[1].isFirstMessage).toBe(true);
     });
 
     it('handles GET_MORE_DIRECT_MESSAGES appending', () => {
@@ -100,7 +100,7 @@ describe('messages reducer', () => {
                 isLastPage: false,
             },
         });
-        expect(result.dms['user1'].length).toBe(2);
+        expect(result.dms.user1.length).toBe(2);
     });
 
     it('handles GET_MY_DIRECT_MESSAGES', () => {
@@ -150,8 +150,8 @@ describe('messages reducer', () => {
                 message: { key: 'dm2', text: 'New message' },
             },
         });
-        expect(result.dms['user1'].length).toBe(2);
-        expect(result.dms['user1'][0].text).toBe('New message');
+        expect(result.dms.user1.length).toBe(2);
+        expect(result.dms.user1[0].text).toBe('New message');
     });
 
     it('handles LOGOUT by clearing', () => {
@@ -166,8 +166,8 @@ describe('messages reducer', () => {
             type: SocketClientActionTypes.LOGOUT,
         });
         expect(result.forums).toEqual([]);
-        expect(result.dms).toEqual([]);
-        expect(result.forumMsgs).toEqual([]);
+        expect(result.dms).toEqual({});
+        expect(result.forumMsgs).toEqual({});
     });
 
     it('returns state unchanged for unknown action', () => {

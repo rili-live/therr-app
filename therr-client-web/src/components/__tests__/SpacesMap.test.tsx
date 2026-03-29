@@ -9,7 +9,7 @@ import { act } from 'react-test-renderer';
 // Track markers added to map so eachLayer can enumerate them for removal
 const mapLayers: any[] = [];
 const mockMarker = {
-    addTo: jest.fn().mockImplementation(function addTo() {
+    addTo: jest.fn().mockImplementation(() => {
         mapLayers.push(mockMarker);
         return mockMarker;
     }),

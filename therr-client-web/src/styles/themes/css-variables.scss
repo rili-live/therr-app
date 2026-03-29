@@ -62,6 +62,15 @@
   --therr-header-bg: #1C7F8A;
   --therr-footer-bg: #1C7F8A;
 
+  // CTA card colors
+  --therr-cta-bg: #f0fdfa;
+  --therr-cta-bg-emphasis: #e6fffa;
+  --therr-cta-border: #1C7F8A;
+  --therr-cta-text: #1f2937;
+  --therr-cta-pending-bg: #fffbeb;
+  --therr-cta-pending-border: #fbbf24;
+  --therr-cta-pending-text: #1f2937;
+
   // Mantine component overrides
   --mantine-color-body: #ffffff;
   --mantine-color-text: #1f2937;
@@ -126,6 +135,15 @@
   // Header/footer bar colors (dark surfaces)
   --therr-header-bg: #1E1E1E;
   --therr-footer-bg: #1E1E1E;
+
+  // CTA card colors
+  --therr-cta-bg: #1a2e2e;
+  --therr-cta-bg-emphasis: #1a3a3a;
+  --therr-cta-border: #22A5B4;
+  --therr-cta-text: #E0E0E0;
+  --therr-cta-pending-bg: #2a2510;
+  --therr-cta-pending-border: #d4a017;
+  --therr-cta-pending-text: #E0E0E0;
 
   // Mantine component overrides
   --mantine-color-body: #1E1E1E;

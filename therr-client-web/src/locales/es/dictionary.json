@@ -789,7 +789,32 @@
         "viewOnGoogleMaps": "Ver en Google Maps",
         "getFullExperience": "Obtén la experiencia completa en la app Therr",
         "helpful": "Útil",
-        "notHelpful": "No útil"
+        "notHelpful": "No útil",
+        "bookmark": "Guardar",
+        "removeBookmark": "Quitar guardado"
+      },
+      "loginModal": {
+        "title": "Inicio de sesión requerido",
+        "body": "Necesitas iniciar sesión para realizar esta acción. Crea una cuenta o inicia sesión para continuar.",
+        "signIn": "Iniciar sesión",
+        "register": "Crear cuenta"
+      },
+      "addReview": {
+        "title": "Deja una reseña",
+        "locationPrompt": "Activa el acceso a tu ubicación para verificar que estás cerca de este espacio antes de dejar una reseña.",
+        "enableLocation": "Activar ubicación",
+        "locationUnavailable": "La geolocalización no es compatible con tu navegador.",
+        "locationDenied": "Se denegó el acceso a la ubicación. Actívalo en la configuración de tu navegador.",
+        "tooFar": "Debes estar a menos de 200 metros de esta ubicación para dejar una reseña. ¡Visita el espacio e inténtalo de nuevo!",
+        "yourRating": "Tu calificación:",
+        "messagePlaceholder": "Comparte tu experiencia (opcional)...",
+        "ratingRequired": "Por favor selecciona una calificación.",
+        "retryLocation": "Verificar ubicación de nuevo",
+        "writeAnother": "Escribir otra reseña",
+        "signInPrompt": "Inicia sesión para dejar una reseña de este espacio.",
+        "submitButton": "Enviar reseña",
+        "successMessage": "Tu reseña ha sido enviada. ¡Gracias!",
+        "errorMessage": "Hubo un error al enviar tu reseña. Por favor, intenta de nuevo."
       },
       "claimSpace": {
         "title": "¿Es este tu negocio?",

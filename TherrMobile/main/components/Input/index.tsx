@@ -1,8 +1,14 @@
 import React from 'react';
-import { View, TextInputProps } from 'react-native';
+import { StyleSheet, View, TextInputProps } from 'react-native';
 import { TextInput as PaperTextInput, HelperText } from 'react-native-paper';
 import 'react-native-gesture-handler';
 import { ITherrThemeColors } from '../../styles/themes';
+
+const inputStyles = StyleSheet.create({
+    transparentBg: {
+        backgroundColor: 'transparent',
+    },
+});
 
 // Props interface for the BaseInput component.
 export interface IBaseInputProps extends TextInputProps {
@@ -100,7 +106,7 @@ export class BaseInput extends React.Component<IBaseInputProps, any> {
                     left={left}
                     theme={paperTheme}
                     style={[
-                        { backgroundColor: 'transparent' },
+                        inputStyles.transparentBg,
                         inputContainerStyle,
                         inputStyle || themeForms.styles.input,
                         style,

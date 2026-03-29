@@ -36,6 +36,30 @@ import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
 const { width: screenWidth } = Dimensions.get('window');
 
+const localStyles = StyleSheet.create({
+    footer: {
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+    },
+    footerButton: {
+        flex: 1,
+        marginHorizontal: 4,
+    },
+    validationContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+        marginTop: 8,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: 'rgba(0,0,0,0.1)',
+    },
+    validationButton: {
+        flex: 1,
+        marginHorizontal: 6,
+    },
+});
+
 interface IViewMomentDispatchProps {
     getMomentDetails: Function;
     deleteMoment: Function;
@@ -471,29 +495,5 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         );
     }
 }
-
-const localStyles = StyleSheet.create({
-    footer: {
-        justifyContent: 'space-between',
-        paddingHorizontal: 10,
-    },
-    footerButton: {
-        flex: 1,
-        marginHorizontal: 4,
-    },
-    validationContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-        marginTop: 8,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: 'rgba(0,0,0,0.1)',
-    },
-    validationButton: {
-        flex: 1,
-        marginHorizontal: 6,
-    },
-});
 
 export default connect(mapStateToProps, mapDispatchToProps)(ViewMoment);

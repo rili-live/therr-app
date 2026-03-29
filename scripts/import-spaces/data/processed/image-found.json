@@ -1,0 +1,141 @@
+{
+  "type": "image-found",
+  "updatedAt": "2026-03-29T15:37:07.816Z",
+  "entries": [
+    {
+      "id": "38e932b4-2909-4563-9cde-cdc31e7b7cf9",
+      "name": "SoFo Tap",
+      "processedAt": "2026-03-29T14:35:28.055Z"
+    },
+    {
+      "id": "b4670632-7bac-45ce-911a-7c2822ae3e9b",
+      "name": "Altiro Latin Fusion",
+      "processedAt": "2026-03-29T14:37:39.897Z"
+    },
+    {
+      "id": "dd1215ba-d07d-4a12-b39d-d484e819d61e",
+      "name": "Royal Sports Bar",
+      "processedAt": "2026-03-29T14:48:33.607Z"
+    },
+    {
+      "id": "2c73452f-a4d9-4202-86e0-b2e1e39ac4c9",
+      "name": "Phoebe's Restaurant & Coffee Lounge",
+      "processedAt": "2026-03-29T14:48:42.529Z"
+    },
+    {
+      "id": "8a225070-bf43-4a21-8295-c686a0920921",
+      "name": "Urban Lounge",
+      "processedAt": "2026-03-29T14:48:46.238Z"
+    },
+    {
+      "id": "b0875182-ea4c-4625-a8b4-37c32efd4251",
+      "name": "answer. restaurant",
+      "processedAt": "2026-03-29T14:49:12.029Z"
+    },
+    {
+      "id": "e77e8206-2f0b-460a-835e-5a2803e33f79",
+      "name": "Finnegan's Wake",
+      "processedAt": "2026-03-29T14:50:03.893Z"
+    },
+    {
+      "id": "70d9b18b-4da4-48a3-a922-9bbbe656e4ec",
+      "name": "Mazadar Restaurant",
+      "processedAt": "2026-03-29T14:51:27.446Z"
+    },
+    {
+      "id": "df7bf33b-1726-4def-abd7-83288e37172b",
+      "name": "JoEllen’s",
+      "processedAt": "2026-03-29T14:51:33.595Z"
+    },
+    {
+      "id": "d94cd2f7-40e6-4550-8df9-c3fdfe457cec",
+      "name": "Dari-Villa Restaurant",
+      "processedAt": "2026-03-29T14:51:52.457Z"
+    },
+    {
+      "id": "c4b94b35-ecda-4d19-95db-5eaa7a115ea2",
+      "name": "In Bocca al Lupo",
+      "processedAt": "2026-03-29T14:53:55.776Z"
+    },
+    {
+      "id": "740b3ca5-f73a-4b62-8a98-8b44265bf6d3",
+      "name": "Dolly's Restaurant",
+      "processedAt": "2026-03-29T14:54:01.955Z"
+    },
+    {
+      "id": "548b75e7-9ba1-4f29-93a2-432ce181f173",
+      "name": "Erling Jensen The Restaurant",
+      "processedAt": "2026-03-29T14:58:11.263Z"
+    },
+    {
+      "id": "3d5e1116-a125-421f-9205-933dd78413bb",
+      "name": "Safeway",
+      "processedAt": "2026-03-29T15:01:52.036Z"
+    },
+    {
+      "id": "25e7bece-3e35-4945-b386-ee750b6340fb",
+      "name": "Liberty Bar",
+      "processedAt": "2026-03-29T15:07:02.003Z"
+    },
+    {
+      "id": "14564a1d-8496-457f-9ead-5e7eb52c3246",
+      "name": "Bullwinkle's Saloon",
+      "processedAt": "2026-03-29T15:07:10.543Z"
+    },
+    {
+      "id": "44e72587-14c8-4c34-b967-e159cf0789fe",
+      "name": "In's Kitchen",
+      "processedAt": "2026-03-29T15:07:51.571Z"
+    },
+    {
+      "id": "5aba7759-a557-45cf-8175-cba61db7f49e",
+      "name": "Ivar's Seafood Bar",
+      "processedAt": "2026-03-29T15:08:41.194Z"
+    },
+    {
+      "id": "9deedd76-4334-4a4a-9175-c211b23a0c74",
+      "name": "Aglaïa",
+      "processedAt": "2026-03-29T15:12:17.267Z"
+    },
+    {
+      "id": "23f241b8-2131-4a15-8fe8-826dd8aeba92",
+      "name": "La Cabañita Mexican Restaurant",
+      "processedAt": "2026-03-29T15:13:14.910Z"
+    },
+    {
+      "id": "90f3c4bb-82f5-4617-a3e7-0809cd1ac002",
+      "name": "Fritz & Franz Bierhaus",
+      "processedAt": "2026-03-29T15:16:56.097Z"
+    },
+    {
+      "id": "9e89e73d-87b9-404f-a0d1-2a4aea7db4f5",
+      "name": "Noli's Vite",
+      "processedAt": "2026-03-29T15:20:00.738Z"
+    },
+    {
+      "id": "d4220d77-43b3-438a-9192-82743f1bb971",
+      "name": "Mama Carolla's",
+      "processedAt": "2026-03-29T15:33:50.079Z"
+    },
+    {
+      "id": "c2bf0ff0-c0ed-4329-9f16-5670a9ece14a",
+      "name": "El Salvador Restaurant MKE",
+      "processedAt": "2026-03-29T15:34:56.260Z"
+    },
+    {
+      "id": "09f04c2e-71e9-4214-b797-97a13d309028",
+      "name": "Alcove Cafe & Bakery",
+      "processedAt": "2026-03-29T15:35:03.305Z"
+    },
+    {
+      "id": "fcbedb74-fbc2-45a8-a599-6baef4144e36",
+      "name": "Landmark Lanes",
+      "processedAt": "2026-03-29T15:35:54.935Z"
+    },
+    {
+      "id": "c0ec7b66-6412-41a0-862d-d320fc8d60e7",
+      "name": "ZOLA",
+      "processedAt": "2026-03-29T15:37:07.816Z"
+    }
+  ]
+}

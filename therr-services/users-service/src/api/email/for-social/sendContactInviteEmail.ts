@@ -27,7 +27,7 @@ export default (emailParams: ISendContactInviteEmailConfig, templateParams: ITem
     const htmlConfig = {
         header: translate(locale, 'emails.contactInvite.header', { fromName: templateParams.fromName }),
         dearUser: translate(locale, 'emails.contactInvite.dearUser', { toEmail: templateParams.toEmail }),
-        body1: translate(locale, 'emails.contactInvite.body1', { fromName: templateParams.fromName, fromEmail: templateParams.fromEmail }),
+        body1: translate(locale, 'emails.contactInvite.body1', { fromName: templateParams.fromName, fromEmail: templateParams.fromEmail, brandName: contextConfig.brandName }),
         body2: translate(locale, 'emails.contactInvite.body2'),
         buttonHref: linkUrl,
         buttonText: contextConfig.brandGoLinkText,
