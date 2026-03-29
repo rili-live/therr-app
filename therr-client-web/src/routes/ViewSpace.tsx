@@ -1161,7 +1161,13 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                     {this.renderEvents(space)}
 
                     {/* Add Review */}
-                    {this.renderAddReview(space)}
+                    {/* TODO: Review submission is disabled on web for now. Our anti-fake-content strategy */}
+                    {/* relies on location verification, which is clunky on web browsers compared to mobile. */}
+                    {/* A separate PR is in progress to improve visited-space tracking. Once we can reliably */}
+                    {/* determine that a user has visited a space (via check-in data), we can re-enable */}
+                    {/* reviews on both web and mobile without requiring real-time geolocation proximity. */}
+                    {/* To re-enable: uncomment the line below */}
+                    {/* {this.renderAddReview(space)} */}
 
                     {/* Community Posts (Moments) */}
                     {this.renderCommunityPosts()}
