@@ -39,6 +39,7 @@ export interface ICreateSpaceParams extends ICreateAreaParams {
     featuredIncentiveRewardValue?: number;
     featuredIncentiveCurrencyId?: string;
     phoneNumber?: string;
+    businessEmail?: string;
     websiteUrl?: string;
     menuUrl?: string;
     orderUrl?: string;
@@ -60,7 +61,12 @@ const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?
     const matchingUsers: any = {};
     const signingPromises: any = [];
 
-    // TODO: Optimize
+    // Build a Map for O(1) user lookups instead of O(n) array.find per space
+    const usersMap: Map<string, any> = new Map();
+    if (users) {
+        users.forEach((user) => usersMap.set(user.id, user));
+    }
+
     const mappedSpaces = spaces.map((space, index) => {
         const modifiedSpace = space;
         modifiedSpace.media = [];
@@ -74,7 +80,6 @@ const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?
                     const bucket = getBucket(m.type);
                     if (bucket) {
                         let promise;
-                        // TODO: Consider alternatives to cache these urls (per user) and their expire time
                         if (bucket === getBucket(Content.mediaTypes.USER_IMAGE_PRIVATE)) {
                             promise = Promise.resolve({
                                 [m.path]: `${process.env.IMAGE_KIT_URL_PRIVATE}${m.path}`,
@@ -87,7 +92,6 @@ const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?
                                     version: 'v4',
                                     action: 'read',
                                     expires: imageExpireTime,
-                                    // TODO: Test is cache-control headers work here
                                     extensionHeaders: {
                                         'Cache-Control': 'public, max-age=43200', // 1 day
                                     },
@@ -112,17 +116,15 @@ const getSpacesToMediaAndUsersAndRatings = (spaces: any[], media?: any[], users?
             });
         }
 
-        // USER
-        if (users) {
-            const matchingUser = users.find((user) => user.id === modifiedSpace.fromUserId);
-            if (matchingUser) {
-                matchingUsers[matchingUser.id] = matchingUser;
-                modifiedSpace.fromUserName = matchingUser.userName;
-                modifiedSpace.fromUserFirstName = matchingUser.firstName;
-                modifiedSpace.fromUserLastName = matchingUser.lastName;
-                modifiedSpace.fromUserMedia = matchingUser.media;
-                modifiedSpace.fromUserIsSuperUser = matchingUser.isSuperUser;
-            }
+        // USER - O(1) Map lookup
+        const matchingUser = usersMap.get(modifiedSpace.fromUserId);
+        if (matchingUser) {
+            matchingUsers[matchingUser.id] = matchingUser;
+            modifiedSpace.fromUserName = matchingUser.userName;
+            modifiedSpace.fromUserFirstName = matchingUser.firstName;
+            modifiedSpace.fromUserLastName = matchingUser.lastName;
+            modifiedSpace.fromUserMedia = matchingUser.media;
+            modifiedSpace.fromUserIsSuperUser = matchingUser.isSuperUser;
         }
 
         return modifiedSpace;
@@ -185,9 +187,6 @@ export default class SpacesStore {
         let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(SPACES_TABLE_NAME)
-            // TODO: Determine a better way to select spaces that are most relevant to the user
-            // .orderBy(`${SPACES_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
-            // NOTE: Cast to a geography type to search distance within n meters
             .where({
                 fromUserId: userId,
                 isMatureContent: false, // content that has been blocked
@@ -197,7 +196,6 @@ export default class SpacesStore {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
 
-            queryString = queryString.andWhere(conditions.filterBy, operator, query);
             queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
                 builder.where(conditions.filterBy, operator, query);
                 if (includePublicResults) {
@@ -211,11 +209,14 @@ export default class SpacesStore {
         }
 
         queryString = queryString
+            .orderBy('createdAt', 'desc')
             .limit(limit)
             .offset(offset)
             .toString();
 
         return this.db.read.query(queryString).then((response) => {
+            // Strip internal-only fields from API responses
+            response.rows.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
             const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
             return configuredResponse;
         });
@@ -292,8 +293,8 @@ export default class SpacesStore {
         let queryString = knexBuilder
             .from(SPACES_TABLE_NAME)
             .count('*')
-            // NOTE: Cast to a geography type to search distance within n meters
-            .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${proximityMax})`));
+            // Use geomCenter (POINT) instead of geom (POLYGON) for faster proximity checks
+            .where(knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [params.longitude, params.latitude, proximityMax]));
 
         if ((params.filterBy && params.filterBy !== 'distance')) {
             if (params.filterBy === 'fromUserIds') {
@@ -320,7 +321,8 @@ export default class SpacesStore {
         }
         let returningMod = ((returning && returning.length) ? returning : '*');
         returningMod = overrides?.shouldLimitDetail
-            ? ['id', 'addressReadable', 'category', 'websiteUrl', 'notificationMsg', 'createdAt', 'updatedAt']
+            ? ['id', 'addressReadable', 'category', 'websiteUrl', 'notificationMsg', 'latitude', 'longitude',
+                'medias', 'mediaIds', 'createdAt', 'updatedAt']
             : returningMod;
         if (!overrides?.isRequestAuthorized) {
             // Public listing/summary view
@@ -360,14 +362,22 @@ export default class SpacesStore {
         if (conditions.filterBy !== 'isClaimPending') {
             firstWhere.isClaimPending = false; // hide pending claim requests
         }
+        const hasGeoCoordinates = conditions.longitude != null && conditions.latitude != null; // eslint-disable-line eqeqeq
+        const isUserIdFilter = conditions.filterBy === 'fromUserIds' && fromUserIds.length > 0;
+
         let queryString: any = knexBuilder
             .select(returningMod)
-            .from(SPACES_TABLE_NAME)
-            // TODO: Determine a better way to select spaces that are most relevant to the user
-            // .orderBy(`${SPACES_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
+            .from(SPACES_TABLE_NAME);
+
+        // Skip geospatial filter when searching for a specific user's spaces (no coordinates needed)
+        if (hasGeoCoordinates && !isUserIdFilter) {
             // NOTE: Cast to a geography type to search distance within n meters
-            .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)) // eslint-disable-line quotes, max-len
-            .andWhere(firstWhere);
+            // Use geomCenter (POINT) instead of geom (POLYGON) for faster proximity checks
+            queryString = queryString.where(knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [conditions.longitude, conditions.latitude, proximityMax])) // eslint-disable-line quotes, max-len
+                .andWhere(firstWhere);
+        } else {
+            queryString = queryString.where(firstWhere);
+        }
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq
             const operator = conditions.filterOperator || '=';
@@ -387,7 +397,6 @@ export default class SpacesStore {
                     }
                 });
             } else {
-                queryString = queryString.andWhere(conditions.filterBy, operator, query);
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
                     builder.where(conditions.filterBy, operator, query);
                     if (includePublicResults) {
@@ -397,12 +406,23 @@ export default class SpacesStore {
             }
         }
 
+        // Sort by distance when geo coordinates are available, otherwise by creation date
+        if (hasGeoCoordinates) {
+            queryString = queryString
+                .orderByRaw('ST_Distance("geomCenter"::geography, ST_MakePoint(?, ?)::geography) ASC', [conditions.longitude, conditions.latitude]);
+        } else {
+            queryString = queryString
+                .orderBy('createdAt', 'desc');
+        }
+
         queryString = queryString
             .limit(limit)
             .offset(offset)
             .toString();
 
         return this.db.read.query(queryString).then((response) => {
+            // Strip internal-only fields from API responses
+            response.rows.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
             const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
             return configuredResponse;
         });
@@ -435,7 +455,7 @@ export default class SpacesStore {
             query = query
                 .andWhere(
                     // eslint-disable-next-line max-len
-                    knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${overrides.requestorLongitude}, ${overrides.requestorLatitude})::geography, ${proximityMax})`),
+                    knexBuilder.raw('ST_DWithin("geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)', [overrides.requestorLongitude, overrides.requestorLatitude, proximityMax]),
                 );
         }
 
@@ -447,7 +467,11 @@ export default class SpacesStore {
         query = query.orderBy('dist')
             .limit(5);
 
-        return this.db.read.query(query.toString()).then((response) => response.rows);
+        return this.db.read.query(query.toString()).then((response) => {
+            // Strip internal-only fields from API responses
+            response.rows.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
+            return response.rows;
+        });
     }
 
     findSpaces(internalReqHeaders: InternalConfigHeaders, spaceIds, filters, options: any = {}) {
@@ -473,6 +497,9 @@ export default class SpacesStore {
         }
 
         return this.db.read.query(query.toString()).then(async ({ rows: spaces }) => {
+            // Strip internal-only fields from API responses
+            spaces.forEach((s) => { delete s.businessEmail; }); // eslint-disable-line no-param-reassign
+
             if (options.withMedia || options.withUser || options.withRatings) {
                 const mediaIds: string[] = [];
                 const userIds: string[] = [];
@@ -570,6 +597,7 @@ export default class SpacesStore {
                 featuredIncentiveRewardValue: params.featuredIncentiveRewardValue,
                 featuredIncentiveCurrencyId: params.featuredIncentiveCurrencyId,
                 phoneNumber: params.phoneNumber,
+                businessEmail: params.businessEmail,
                 websiteUrl: params.websiteUrl,
                 menuUrl: params.menuUrl,
                 orderUrl: params.orderUrl,
@@ -660,6 +688,7 @@ export default class SpacesStore {
                 incentiveCurrencyId: params.incentiveCurrencyId,
                 mediaIds: mediaIds || params.mediaIds || undefined,
                 phoneNumber: params.phoneNumber,
+                businessEmail: params.businessEmail,
                 websiteUrl: params.websiteUrl,
                 menuUrl: params.menuUrl,
                 orderUrl: params.orderUrl,
@@ -758,7 +787,7 @@ export default class SpacesStore {
                 AND s."isPublic" = true
                 AND s."isMatureContent" = false
                 AND s."isClaimPending" = false
-                AND ST_DWithin(s.geom, ST_MakePoint(?, ?)::geography, ?)
+                AND ST_DWithin(s."geomCenter"::geography, ST_MakePoint(?, ?)::geography, ?)
             ORDER BY "catScore" DESC, "distInMeters" ASC
             LIMIT 6
         `, [

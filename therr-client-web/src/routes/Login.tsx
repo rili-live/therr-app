@@ -2,7 +2,9 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import LogRocket from 'logrocket';
+import qs from 'qs';
 import { IUserState } from 'therr-react/types';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { Location, NavigateFunction } from 'react-router-dom';
 import LoginForm from '../components/forms/LoginForm';
 import UsersActions from '../redux/actions/UsersActions';
@@ -15,6 +17,30 @@ export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
     || !props.user.details.accessLevels.length;
 
 export const routeAfterLogin = '/explore';
+
+/**
+ * Extracts and validates the returnTo query parameter from a location search string.
+ * Only allows relative paths starting with '/' to prevent open redirect vulnerabilities.
+ */
+export const getReturnTo = (locationSearch?: string): string | undefined => {
+    if (!locationSearch) return undefined;
+    const searchParams = qs.parse(locationSearch, { ignoreQueryPrefix: true });
+    const returnTo = searchParams?.returnTo as string;
+    if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+        return returnTo;
+    }
+    return undefined;
+};
+
+export const getRouteAfterLogin = (user: IUserState, returnTo?: string) => {
+    const accessLevels = user?.details?.accessLevels || [];
+    if (accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)
+        && !accessLevels.includes(AccessLevels.EMAIL_VERIFIED)) {
+        const returnToParam = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
+        return `/create-profile${returnToParam}`;
+    }
+    return returnTo || routeAfterLogin;
+};
 
 interface ILoginRouterProps {
     location: Location;
@@ -53,16 +79,14 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  */
 export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     static getDerivedStateFromProps(nextProps: ILoginProps) {
-        // TODO: Choose route based on accessLevels
         if (!shouldRenderLoginForm(nextProps)) {
             LogRocket.identify(nextProps.user.details.id, {
                 name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
                 email: nextProps.user.details.email,
-                // Add your own custom user variables below:
             });
-            // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
-            // Causes a flicker / Need to investigate further
-            setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
+            const returnTo = getReturnTo(nextProps.location?.search);
+            const destination = getRouteAfterLogin(nextProps.user, returnTo);
+            setTimeout(() => nextProps.navigation.navigate(destination));
             return null;
         }
         return {};

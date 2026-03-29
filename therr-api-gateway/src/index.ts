@@ -74,6 +74,7 @@ app.use(authenticate.unless({
         { url: '/v1/users-service/payments/webhook', methods: ['POST'] }, // webhook
         { url: '/v1/users-service/users', methods: ['POST'] }, // register
         { url: /\/v1\/users-service\/users\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/, methods: ['GET'] },
+        { url: '/v1/users-service/auth/token/refresh', methods: ['POST'] }, // token refresh
         { url: '/v1/users-service/users/forgot-password', methods: ['POST'] }, // one time password
         { url: '/v1/users-service/social-sync/oauth2-tiktok', methods: ['GET'] }, // TikTok OAuth
         { url: '/v1/users-service/social-sync/oauth2-facebook', methods: ['GET'] }, // Facebook OAuth
@@ -83,6 +84,7 @@ app.use(authenticate.unless({
         { url: /\/v1\/users-service\/users\/by-username\/.*/, methods: ['GET'] }, // Get public/private profile
         { url: /\/v1\/user-files\/.*/, methods: ['GET'] }, // image proxy
         { url: /\/v1\/maps-service\/place\/*/, methods: ['GET'] }, // Google Maps: Places proxy
+        { url: '/v1/maps-service/geocode', methods: ['GET'] }, // Nominatim geocoding proxy
         { url: /\/v1\/maps-service\/moments\/.*\/details/, methods: ['POST'] },
         { url: '/v1/maps-service/spaces/list', methods: ['POST'] },
         { url: /\/v1\/maps-service\/spaces\/.*\/details/, methods: ['POST'] },

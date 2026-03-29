@@ -3,7 +3,6 @@ import { RouteObject } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
-import { MapsService } from 'therr-react/services';
 import { ForumActions, MapActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
 import CreateForum from './CreateForum';
@@ -19,6 +18,10 @@ import Login from './Login';
 import ListSpaces, { DEFAULT_ITEMS_PER_PAGE, DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from './ListSpaces';
 import UserProfile from './UserProfile';
 import ChangePassword from './ChangePassword';
+import EditProfile from './EditProfile';
+import EditSpace from './EditSpace';
+import CreateSpace from './CreateSpace';
+import ManageSpaces from './ManageSpaces';
 import Discovered from './Discovered';
 import Explore from './Explore';
 import ExploreMoments from './Explore/ExploreMoments';
@@ -27,7 +30,9 @@ import ExplorePeople from './Explore/ExplorePeople';
 import UnderConstruction from './UnderConstruction';
 import ViewEvent from './ViewEvent';
 import ViewMoment from './ViewMoment';
+import ViewThought from './ViewThought';
 import ViewUser from './ViewUser';
+import UserLocations from './UserLocations';
 import EmailPreferences from './EmailPreferences';
 import AppFeedback from './AppFeedback';
 import ChildSafety from './ChildSafety';
@@ -36,7 +41,7 @@ import InviteLanding from './InviteLanding';
 
 export type IRoute = RouteObject & {
     access?: IAccess;
-    fetchData?: (dispatch: any, params?: { [key: string]: any }) => Promise<any>;
+    fetchData?: (dispatch: any, params?: { [key: string]: any }, query?: { [key: string]: any }) => Promise<any>;
     // Overriding this property allows us to add custom paramaters to React components
     redirectPath?: string;
 };
@@ -145,6 +150,50 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
+        path: '/user/edit-profile',
+        element: <AuthRoute
+            render={() => <EditProfile />}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/spaces/manage',
+        element: <AuthRoute
+            component={ManageSpaces}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/spaces/new',
+        element: <AuthRoute
+            component={CreateSpace}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/spaces/:spaceId/edit',
+        element: <AuthRoute
+            component={EditSpace}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
         path: '/explore',
         element: <AuthRoute
             component={Explore}
@@ -211,6 +260,12 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         />,
     },
     {
+        path: '/thoughts/:thoughtId',
+        element: <ViewThought />,
+        // TODO: Add fetchData once getThoughtDetails API supports unauthenticated access (like moments/spaces)
+        // The SSR template (thoughts.hbs) and renderThoughtView are ready for when the endpoint is public
+    },
+    {
         path: '/moments/:momentId',
         element: <ViewMoment />,
         fetchData: (dispatch: any, params: any) => MapActions.getMomentDetails(params.momentId, {
@@ -221,30 +276,56 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/locations',
         element: <ListSpaces />,
-        fetchData: (dispatch: any, params: any) => MapActions.listSpaces({
-            // query: '',
-            itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
-            pageNumber: 1,
-            filterBy: 'distance',
-            latitude: DEFAULT_LATITUDE,
-            longitude: DEFAULT_LONGITUDE,
-        }, {
-            distanceOverride: 40075 * (1000 / 2), // estimated half distance around world in meters
-        })(dispatch),
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
+            const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
+            const radius = parseFloat(query.r) || 40075 * (1000 / 2);
+            const searchQuery = query.q || '';
+            const hasCoords = !Number.isNaN(parseFloat(query.lat)) && !Number.isNaN(parseFloat(query.lng));
+            const queryParams: any = {
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber: 1,
+                latitude: lat,
+                longitude: lng,
+                filterBy: 'distance',
+            };
+            // Only use text search when there's a query but no geocoded coordinates
+            if (searchQuery && !hasCoords) {
+                queryParams.filterBy = 'notificationMsg';
+                queryParams.filterOperator = 'ilike';
+                queryParams.query = searchQuery;
+            }
+            return MapActions.listSpaces(queryParams, {
+                distanceOverride: radius,
+            })(dispatch);
+        },
     },
     {
         path: '/locations/:pageNumber',
         element: <ListSpaces />,
-        fetchData: (dispatch: any, params: any) => MapActions.listSpaces({
-            // query: '',
-            itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
-            pageNumber: 1,
-            filterBy: 'distance',
-            latitude: DEFAULT_LATITUDE,
-            longitude: DEFAULT_LONGITUDE,
-        }, {
-            distanceOverride: 40075 * (1000 / 2), // estimated half distance around world in meters
-        })(dispatch),
+        fetchData: (dispatch: any, params: any, query: any = {}) => {
+            const lat = parseFloat(query.lat) || DEFAULT_LATITUDE;
+            const lng = parseFloat(query.lng) || DEFAULT_LONGITUDE;
+            const radius = parseFloat(query.r) || 40075 * (1000 / 2);
+            const searchQuery = query.q || '';
+            const hasCoords = !Number.isNaN(parseFloat(query.lat)) && !Number.isNaN(parseFloat(query.lng));
+            const pageNumber = parseInt(params.pageNumber || '1', 10);
+            const queryParams: any = {
+                itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+                pageNumber,
+                latitude: lat,
+                longitude: lng,
+                filterBy: 'distance',
+            };
+            if (searchQuery && !hasCoords) {
+                queryParams.filterBy = 'notificationMsg';
+                queryParams.filterOperator = 'ilike';
+                queryParams.query = searchQuery;
+            }
+            return MapActions.listSpaces(queryParams, {
+                distanceOverride: radius,
+            })(dispatch);
+        },
     },
     {
         path: '/events/:eventId',
@@ -264,6 +345,11 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
             withRatings: true,
             withEvents: true,
         })(dispatch),
+    },
+    {
+        path: '/users/:userId/locations',
+        element: <UserLocations />,
+        fetchData: (dispatch: any, params: any) => UsersActions.get(params.userId)(dispatch),
     },
     {
         path: '/users/:userId',

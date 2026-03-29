@@ -3,7 +3,11 @@ import { Redis } from 'ioredis';
 import { IAreaType } from 'therr-js-utilities/types';
 
 const MAPS_STORE_PREFIX = 'MAPS_STORE:';
+const PLACES_CACHE_PREFIX = 'PLACES_CACHE:';
+const GEOCODING_CACHE_PREFIX = 'GEOCODING_CACHE:';
 const DEFAULT_TTL_SECONDS = 300;
+const PLACES_TTL_SECONDS = 600; // 10 minutes for Places API responses
+const GEOCODING_TTL_SECONDS = 86400; // 24 hours - locations don't change
 
 class MapsServiceCache {
     private cache: Redis;
@@ -39,6 +43,44 @@ class MapsServiceCache {
 
         return this.cache.setex(`${MAPS_STORE_PREFIX}${areaType}:${areaId}`, ttl, JSON.stringify(data)).catch((error) => {
             console.error(`Error setting ${areaType} in cache`, error);
+        });
+    }
+
+    public getPlacesResponse(cacheKey: string) {
+        return this.cache.get(`${PLACES_CACHE_PREFIX}${cacheKey}`).then((response) => {
+            if (!response) {
+                return undefined;
+            }
+
+            return JSON.parse(response);
+        }).catch((error) => {
+            console.error('Error getting places response from cache', error);
+            return undefined;
+        });
+    }
+
+    public setPlacesResponse(cacheKey: string, data: any) {
+        return this.cache.setex(`${PLACES_CACHE_PREFIX}${cacheKey}`, PLACES_TTL_SECONDS, JSON.stringify(data)).catch((error) => {
+            console.error('Error setting places response in cache', error);
+        });
+    }
+
+    public getGeocodingResponse(cacheKey: string) {
+        return this.cache.get(`${GEOCODING_CACHE_PREFIX}${cacheKey}`).then((response) => {
+            if (!response) {
+                return undefined;
+            }
+
+            return JSON.parse(response);
+        }).catch((error) => {
+            console.error('Error getting geocoding response from cache', error);
+            return undefined;
+        });
+    }
+
+    public setGeocodingResponse(cacheKey: string, data: any) {
+        return this.cache.setex(`${GEOCODING_CACHE_PREFIX}${cacheKey}`, GEOCODING_TTL_SECONDS, JSON.stringify(data)).catch((error) => {
+            console.error('Error setting geocoding response in cache', error);
         });
     }
 

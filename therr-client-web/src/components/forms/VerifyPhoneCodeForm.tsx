@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Stack } from '@mantine/core';
+import { Alert, Stack } from '@mantine/core';
 import {
     MantineButton,
     MantineInput,
@@ -8,6 +8,7 @@ import withTranslation from '../../wrappers/withTranslation';
 
 // Regular component props
 interface IVerifyPhoneCodeFormProps {
+  errorMessage?: string;
   isSubmitting: boolean;
   onSubmit: Function;
   onSubmitVerify: Function;
@@ -71,6 +72,11 @@ export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCo
                 <div className="flex fill">
                     <Stack gap="sm">
                         <h1 className="text-center">{this.props.title}</h1>
+                        {this.props.errorMessage && (
+                            <Alert color="red" variant="light">
+                                {this.props.errorMessage}
+                            </Alert>
+                        )}
 
                         <MantineInput
                             type="text"

@@ -5,8 +5,11 @@ import {
     MantineButton,
     MantineInput,
 } from 'therr-react/components/mantine';
+import { AccessLevels, SocketClientActionTypes } from 'therr-js-utilities/constants';
 import * as globalConfig from '../../../global-config';
 import VerificationCodesService from '../services/VerificationCodesService';
+import store from '../store';
+import { routeAfterLogin } from './Login';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 
@@ -53,26 +56,72 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
         const queryParams = new URLSearchParams(window.location.search);
         const verificationToken = queryParams.get('token');
         VerificationCodesService.verifyEmail(verificationToken)
-            .then(() => {
-                this.setState({
-                    verificationStatus: 'success',
-                }, () => {
-                    this.props.navigation.navigate('/login', {
-                        state: {
-                            successMessage: this.props.translate('pages.emailVerification.successVerifiedMessage'),
-                        },
+            .then((response) => {
+                const { idToken, refreshToken, id } = response?.data || {};
+
+                if (idToken && id) {
+                    // Auto-login: store tokens and dispatch login
+                    const userData = {
+                        ...response.data,
+                    };
+                    delete userData.message;
+
+                    sessionStorage.setItem('therrUser', JSON.stringify(userData));
+                    localStorage.setItem('therrUser', JSON.stringify(userData));
+                    if (refreshToken) {
+                        sessionStorage.setItem('therrRefreshToken', refreshToken);
+                        localStorage.setItem('therrRefreshToken', refreshToken);
+                    }
+
+                    store.dispatch({
+                        type: SocketClientActionTypes.LOGIN,
+                        data: userData,
                     });
-                });
-            })
-            .catch((error) => {
-                if (error.message === 'Token has expired') {
+                    // UserActionTypes.LOGIN sets isAuthenticated = true in the user reducer
+                    store.dispatch({
+                        type: 'LOGIN',
+                        data: userData,
+                    });
+
+                    const accessLevels = userData.accessLevels || [];
+                    const destination = accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)
+                        && !accessLevels.includes(AccessLevels.EMAIL_VERIFIED)
+                        ? '/create-profile'
+                        : routeAfterLogin;
                     this.setState({
-                        errorReason: 'TokenExpired',
+                        verificationStatus: 'success',
+                    }, () => {
+                        this.props.navigation.navigate(destination);
+                    });
+                } else {
+                    // Fallback: redirect to login page if no token returned
+                    this.setState({
+                        verificationStatus: 'success',
+                    }, () => {
+                        this.props.navigation.navigate('/login', {
+                            state: {
+                                successMessage: this.props.translate('pages.emailVerification.successVerifiedMessage'),
+                            },
+                        });
                     });
                 }
-                this.setState({
-                    verificationStatus: 'failed',
-                });
+            })
+            .catch((error) => {
+                if (error.message === 'Email already verified') {
+                    this.setState({
+                        errorReason: 'AlreadyVerified',
+                        verificationStatus: 'failed',
+                    });
+                } else if (error.message === 'Token has expired') {
+                    this.setState({
+                        errorReason: 'TokenExpired',
+                        verificationStatus: 'failed',
+                    });
+                } else {
+                    this.setState({
+                        verificationStatus: 'failed',
+                    });
+                }
             });
     }
 
@@ -130,6 +179,10 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                                 && <Alert color="green" variant="light">{this.props.translate('pages.emailVerification.successMessage')}</Alert>
                             }
                             {
+                                verificationStatus === 'failed' && errorReason === 'AlreadyVerified'
+                                && <Alert color="blue" variant="light">{this.props.translate('pages.emailVerification.failedMessageAlreadyVerified')}</Alert>
+                            }
+                            {
                                 verificationStatus === 'failed' && errorReason === 'TokenExpired'
                                 && <Alert color="red" variant="light">{this.props.translate('pages.emailVerification.failedMessageExpired')}</Alert>
                             }
@@ -138,7 +191,10 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                                 && <Alert color="red" variant="light">{this.props.translate('pages.emailVerification.failedMessageUserNotFound')}</Alert>
                             }
                             {
-                                verificationStatus === 'failed' && errorReason !== 'TokenExpired' && errorReason !== 'UserNotFound'
+                                verificationStatus === 'failed'
+                                && errorReason !== 'AlreadyVerified'
+                                && errorReason !== 'TokenExpired'
+                                && errorReason !== 'UserNotFound'
                                 && <Alert color="red" variant="light">{this.props.translate('pages.emailVerification.failedMessage')}</Alert>
                             }
                             <div className="text-center">
@@ -146,7 +202,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                             </div>
 
                             {
-                                verificationStatus === 'failed'
+                                verificationStatus === 'failed' && errorReason !== 'AlreadyVerified'
                                 && <>
                                     <MantineInput
                                         type="text"

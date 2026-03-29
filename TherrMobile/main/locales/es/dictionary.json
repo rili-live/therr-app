@@ -756,6 +756,8 @@
         "repeatPassword": "Repetir contraseña",
         "firstName": "Nombre",
         "lastName": "Apellido",
+        "businessName": "Nombre del negocio",
+        "businessSuffix": "Sufijo comercial (ej. Inc., LLC)",
         "userName": "Nombre de usuario",
         "hideReportedContent": "Ocultar contenido para adultos",
         "showReportedContent": "Mostrar contenido para adultos",

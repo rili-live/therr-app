@@ -1,6 +1,6 @@
 {
   "branding": {
-    "motto": "Este es nuestro momento, y estos son nuestros espacios. Comparte un momento."
+    "motto": "Explora tu barrio. Conéctate con tu comunidad. Gana recompensas."
   },
   "validations": {
     "email": "Correo electr\u00f3nico inv\u00e1lido",
@@ -39,7 +39,16 @@
     "nightLife": "Vida nocturna / Social",
     "sports": "Deportes"
   },
+  "common": {
+    "share": "Compartir",
+    "linkCopied": "\u00a1Enlace copiado!"
+  },
   "components": {
+    "layout": {
+      "floatingButton": {
+        "tooltip": "Comparte un pensamiento"
+      }
+    },
     "header": {
       "buttons": {
         "login": "Iniciar sesi\u00f3n"
@@ -48,6 +57,14 @@
     "footer": {
       "buttons": {
         "locations": "Ubicaciones"
+      },
+      "labels": {
+        "home": "Inicio",
+        "discovered": "Descubiertos",
+        "messages": "Mensajes",
+        "explore": "Explorar",
+        "locations": "Lugares",
+        "info": "Info"
       }
     },
     "createProfileForm": {
@@ -57,7 +74,12 @@
         "resend": "Reenviar"
       },
       "labels": {
+        "accountType": "Tipo de cuenta",
+        "personal": "Personal",
+        "business": "Negocio",
         "firstName": "Nombre",
+        "businessName": "Nombre del negocio",
+        "businessSuffix": "Sufijo comercial (ej. S.A., S.L., etc.)",
         "lastName": "Apellido",
         "mobilePhone": "Tel\u00e9fono m\u00f3vil #",
         "userName": "Nombre de usuario",
@@ -125,13 +147,15 @@
         "repeatPassword": "Repetir contrase\u00f1a",
         "termsAndConditions": "Acepto los t\u00e9rminos y condiciones",
         "userName": "Nombre de usuario",
-        "mySweet": "\u00bfEres dulce?"
+        "mySweet": "\u00bfEres dulce?",
+        "inviteCode": "C\u00f3digo de invitaci\u00f3n"
       },
       "validationErrors": {
         "phoneNumber": "N\u00famero de tel\u00e9fono inv\u00e1lido"
       },
       "text": {
-        "signupForRewards": "Reg\u00edstrate con el c\u00f3digo de invitaci\u00f3n de {userName}: \u00a1ellos ganan 10 monedas y t\u00fa ganas 5!"
+        "signupForRewards": "Reg\u00edstrate con el c\u00f3digo de invitaci\u00f3n de {userName}: \u00a1ellos ganan 10 monedas y t\u00fa ganas 5!",
+        "inviteCodeHint": "Introduce el c\u00f3digo de invitaci\u00f3n de un amigo para ganar monedas extra"
       },
       "sso": {
         "orDivider": "o",
@@ -163,7 +187,8 @@
         "locationMap": "Explorar",
         "notifications": "Notificaciones",
         "profileSettings": "Configuraci\u00f3n de perfil"
-      }
+      },
+      "noNotifications": "Aún no tienes notificaciones."
     }
   },
   "pages": {
@@ -236,13 +261,20 @@
     "discovered": {
       "pageTitle": "Descubierto",
       "subtitle": "Momentos y espacios compartidos recientemente por la comunidad",
-      "noResults": "Nada que mostrar a\u00fan. Vuelve m\u00e1s tarde para ver nuevo contenido de la comunidad."
+      "noResults": "Nada que mostrar a\u00fan. Vuelve m\u00e1s tarde para ver nuevo contenido de la comunidad.",
+      "exploreCta": "Explorar espacios cercanos",
+      "filters": {
+        "all": "Todo",
+        "moments": "Momentos",
+        "spaces": "Espacios"
+      }
     },
     "explore": {
       "pageTitle": "Explorar",
       "subtitle": "Descubre momentos, espacios, pensamientos y personas en tu comunidad",
       "recentContent": "Contenido reciente",
       "viewAll": "Ver todo",
+      "searchPlaceholder": "Buscar espacios, momentos y m\u00e1s...",
       "noResults": "Nada que mostrar a\u00fan. Vuelve m\u00e1s tarde para ver nuevo contenido.",
       "categories": {
         "momentsTitle": "Momentos",
@@ -295,6 +327,19 @@
       "postSuccess": "\u00a1Pensamiento publicado!",
       "postError": "No se pudo publicar el pensamiento. Por favor, int\u00e9ntalo de nuevo.",
       "messageTooShort": "El mensaje es demasiado corto"
+    },
+    "viewThought": {
+      "headerTitle": "Pensamiento",
+      "reply": "Respuesta",
+      "replies": "Respuestas",
+      "noReplies": "A\u00fan no hay respuestas. S\u00e9 el primero en responder.",
+      "replyPlaceholder": "Escribe una respuesta...",
+      "replyButton": "Responder",
+      "replyTooShort": "La respuesta es demasiado corta",
+      "replyError": "No se pudo publicar la respuesta. Por favor, int\u00e9ntalo de nuevo.",
+      "loginToReply": "Inicia sesi\u00f3n para responder",
+      "loginToView": "Inicia sesi\u00f3n para ver esta publicaci\u00f3n y unirte a la conversaci\u00f3n",
+      "backToThoughts": "Volver a Pensamientos"
     },
     "explorePeople": {
       "pageTitle": "Buscar personas",
@@ -358,20 +403,20 @@
       "failedToUpdateMessage": "Ocurri\u00f3 un error al intentar actualizar tus preferencias de correo electr\u00f3nico. Por favor, int\u00e9ntalo de nuevo m\u00e1s tarde.",
       "failedMessageUserNotFound": "No se encontr\u00f3 ning\u00fan usuario.",
       "labels": {
-        "email": "Correo electr\u00f3nico",
-        "settingsEmailBusMarketing": "Correos de marketing del panel de negocios",
-        "settingsEmailMarketing": "Correos de marketing de salud social",
-        "settingsEmailLikes": "Correos de interacci\u00f3n de la aplicaci\u00f3n social",
-        "settingsEmailInvites": "Correos de invitaciones de usuarios o grupos",
-        "settingsEmailMentions": "Correos de 'menciones' de la aplicaci\u00f3n social",
-        "settingsEmailMessages": "Correos de 'mensajes' de la aplicaci\u00f3n social",
-        "settingsEmailReminders": "Correos de recordatorios de la aplicaci\u00f3n social",
-        "settingsEmailBackground": "Correos automatizados de la aplicaci\u00f3n social"
+        "email": "Correo electrónico",
+        "settingsEmailBusMarketing": "Consejos y novedades del panel de negocios",
+        "settingsEmailMarketing": "Novedades de la comunidad y nuevas funciones",
+        "settingsEmailLikes": "Me gusta e interacciones en tus publicaciones",
+        "settingsEmailInvites": "Solicitudes de amistad e invitaciones a grupos",
+        "settingsEmailMentions": "Menciones y etiquetas",
+        "settingsEmailMessages": "Nuevos mensajes",
+        "settingsEmailReminders": "Recordatorios y avisos",
+        "settingsEmailBackground": "Actualizaciones automáticas de actividad"
       },
-      "returnToLogin": "Volver a la p\u00e1gina de inicio de sesi\u00f3n",
+      "returnToLogin": "Volver a la página de inicio de sesión",
       "sectionHeaders": {
         "marketing": "Correos de marketing",
-        "social": "Correos de la aplicaci\u00f3n social"
+        "social": "Correos de actividad"
       }
     },
     "emailVerification": {
@@ -414,20 +459,32 @@
       "private": "Privado",
       "yours": "Tuyo",
       "previousPage": "Volver a la p\u00e1gina {pageNumber}",
-      "nextPage": "Ir a la p\u00e1gina {pageNumber}"
+      "nextPage": "Ir a la p\u00e1gina {pageNumber}",
+      "expandMap": "Ampliar mapa",
+      "collapseMap": "Contraer mapa",
+      "signInPrompt": "para ver tus espacios privados y gestionar listados.",
+      "website": "sitio web",
+      "nearLocation": "Mostrando espacios cerca de {location}",
+      "searchPlaceholderLocation": "Buscar por ubicación (ej. Michigan, Nueva York)...",
+      "nearMe": "Cerca de mí",
+      "searchThisArea": "Buscar en esta zona",
+      "yourLocation": "Tu ubicación",
+      "clear": "Borrar",
+      "reset": "Restablecer",
+      "locationError": "Se requiere acceso a la ubicación. Habilita la ubicación en la configuración de tu navegador."
     },
     "home": {
       "pageTitle": "Crea tu perfil social o negocio",
-      "welcome": "Descubre lo local. Gana recompensas. Haz que te noten.",
+      "welcome": "Descubre lo local. Gana recompensas. Conecta de verdad.",
       "apple": "Apple",
       "android": "Android",
       "devices": "dispositivos",
       "eventOrganizers": "Comercios",
       "freelancers": "Freelancers",
       "or": "o",
-      "info": "Therr te conecta con las personas, lugares y negocios de tu comunidad. Publica contenido basado en ubicaci\u00f3n, descubre joyas ocultas cercanas y gana recompensas solo por explorar.",
-      "info2": "\u00bfEres un influencer local o creador de contenido? Asoc\u00edate con negocios cercanos, haz crecer tu audiencia y consigue colaboraciones, todo a trav\u00e9s de la aplicaci\u00f3n.",
-      "info3": "Descarga la aplicaci\u00f3n gratuita para desbloquear la experiencia completa."
+      "info": "Therr te conecta con las personas, lugares y negocios de tu barrio. Comparte publicaciones geolocalizadas, descubre joyas ocultas cercanas y gana recompensas solo por explorar tu comunidad.",
+      "info2": "¿Eres influencer local o creador de contenido? Asóciate con negocios cercanos, haz crecer tu audiencia y consigue colaboraciones pagadas, todo a través de la app.",
+      "info3": "Descarga la app gratuita para desbloquear la experiencia completa."
     },
     "createForum": {
       "buttons": {
@@ -454,12 +511,16 @@
       "pageTitleVerify": "Crear perfil: Verificar tel\u00e9fono",
       "createProfileSuccess": "\u00a1Perfil actualizado exitosamente!",
       "createProfileError": "Vaya, algo sali\u00f3 mal",
+      "updateProfileError": "No se pudo actualizar el perfil. Por favor, int\u00e9ntalo de nuevo.",
+      "verifyPhoneError": "No se pudo enviar el c\u00f3digo de verificaci\u00f3n. Por favor, int\u00e9ntalo de nuevo.",
+      "authError": "Tu sesi\u00f3n ha expirado. Por favor, inicia sesi\u00f3n de nuevo.",
       "phoneNumberAlreadyInUseError": "El n\u00famero de tel\u00e9fono ya est\u00e1 en uso para este tipo de cuenta",
+      "phoneRegionNotSupportedError": "La verificaci\u00f3n por SMS no est\u00e1 disponible para tu regi\u00f3n. Por favor, usa un n\u00famero de tel\u00e9fono diferente.",
       "tooManyAccounts": "Los usuarios est\u00e1n limitados a uno de cada tipo de cuenta (personal, creador, negocio)",
       "invalidRegion": "Regi\u00f3n inv\u00e1lida",
       "invalidCode": "El c\u00f3digo es inv\u00e1lido o ha expirado. Int\u00e9ntalo de nuevo o reenv\u00eda.",
-      "infoTitle": "\u00bfPor qu\u00e9 se requiere tel\u00e9fono?",
-      "info": "Estamos comprometidos con prevenir usuarios falsos, por lo que la autenticaci\u00f3n multifactor es indispensable. Requerir un correo electr\u00f3nico y un n\u00famero de tel\u00e9fono junto con requisitos de publicaci\u00f3n con geoetiqueta limita dr\u00e1sticamente la posibilidad de usuarios falsos."
+      "infoTitle": "\u00bfPor qu\u00e9 verificamos tu n\u00famero de tel\u00e9fono?",
+      "info": "Tu seguridad es nuestra prioridad. La verificaci\u00f3n telef\u00f3nica nos ayuda a mantener una comunidad aut\u00e9ntica y libre de cuentas falsas. Junto con el correo electr\u00f3nico y las protecciones basadas en ubicaci\u00f3n, garantizamos que te conectes con personas reales en un entorno de confianza."
     },
     "login": {
       "pageTitle": "Iniciar sesi\u00f3n",
@@ -485,19 +546,31 @@
     },
     "userProfile": {
       "buttons": {
+        "changePassword": "Cambiar contrase\u00f1a",
         "createAForum": "Crear un chat grupal",
+        "editProfile": "Editar Perfil",
+        "manageSpaces": "Administrar ubicaciones",
+        "editSpace": "Editar",
+        "postUpdate": "Publicar actualizaci\u00f3n",
         "sendRequest": "Enviar solicitud"
       },
       "connectionSent": "\u00a1Tu solicitud de conexi\u00f3n est\u00e1 en camino!",
       "h2": {
         "accountDetails": "Detalles de la cuenta",
         "addConnection": "Agregar nueva conexi\u00f3n",
-        "connections": "Conexiones"
+        "connections": "Conexiones",
+        "myLocations": "Mis ubicaciones",
+        "myEvents": "Mis eventos",
+        "myUpdates": "Mis actualizaciones"
       },
       "labels": {
+        "businessName": "Nombre del negocio",
         "email": "Correo electr\u00f3nico",
         "firstName": "Nombre",
         "lastName": "Apellido",
+        "noLocations": "A\u00fan no se han agregado ubicaciones. Crea tu primer espacio para comenzar.",
+        "noEvents": "No hay eventos pr\u00f3ximos",
+        "noUpdates": "A\u00fan no se han publicado actualizaciones",
         "phone": "Tel\u00e9fono",
         "phoneNumber": "N\u00famero de tel\u00e9fono",
         "userName": "Nombre de usuario"
@@ -508,43 +581,149 @@
         "phoneNumber": "N\u00famero de tel\u00e9fono inv\u00e1lido"
       }
     },
+    "editProfile": {
+      "pageTitle": "Editar Perfil",
+      "successMessage": "Tu perfil se ha actualizado correctamente.",
+      "failedMessageBadRequest": "Por favor revisa tu informaci\u00f3n e int\u00e9ntalo de nuevo.",
+      "failedMessageServer": "Ocurri\u00f3 un error inesperado. Por favor int\u00e9ntalo m\u00e1s tarde.",
+      "h2": {
+        "profileInfo": "Informaci\u00f3n del Perfil",
+        "businessInfo": "Informaci\u00f3n del Negocio",
+        "privacy": "Privacidad y Contenido",
+        "display": "Configuraci\u00f3n de Pantalla",
+        "account": "Cuenta"
+      },
+      "labels": {
+        "firstName": "Nombre",
+        "businessName": "Nombre del negocio",
+        "isBusinessAccount": "Cuenta de negocio",
+        "organizationDescription": "Descripci\u00f3n de la organizaci\u00f3n",
+        "businessType": "Tipo de negocio",
+        "lastName": "Apellido",
+        "businessSuffix": "Sufijo comercial (ej. Inc., LLC, etc.)",
+        "userName": "Nombre de usuario",
+        "email": "Correo electr\u00f3nico",
+        "bio": "Biograf\u00eda",
+        "profilePublic": "Perfil P\u00fablico",
+        "hideMatureContent": "Ocultar Contenido para Adultos",
+        "theme": "Tema",
+        "language": "Idioma"
+      },
+      "buttons": {
+        "save": "Guardar Cambios",
+        "changePassword": "Cambiar Contrase\u00f1a",
+        "viewProfile": "Ver Perfil"
+      },
+      "themeOptions": {
+        "light": "Claro",
+        "dark": "Oscuro",
+        "retro": "Retro"
+      },
+      "businessTypeOptions": {
+        "small-business": "Peque\u00f1o negocio",
+        "restaurant-services": "Restaurante / Servicios de comida",
+        "retail": "Comercio minorista",
+        "health-wellness": "Salud y bienestar",
+        "professional-services": "Servicios profesionales",
+        "entertainment": "Entretenimiento",
+        "other": "Otro"
+      }
+    },
+    "editSpace": {
+      "pageTitle": "Editar ubicaci\u00f3n",
+      "successMessage": "Tu ubicaci\u00f3n se ha actualizado correctamente.",
+      "failedMessageBadRequest": "Por favor revisa tu informaci\u00f3n e int\u00e9ntalo de nuevo.",
+      "failedMessageServer": "Ocurri\u00f3 un error inesperado. Por favor int\u00e9ntalo m\u00e1s tarde.",
+      "h2": {
+        "basicInfo": "Informaci\u00f3n b\u00e1sica",
+        "contactLinks": "Contacto y enlaces"
+      },
+      "labels": {
+        "name": "Nombre de la ubicaci\u00f3n",
+        "description": "Descripci\u00f3n",
+        "address": "Direcci\u00f3n",
+        "phoneNumber": "N\u00famero de tel\u00e9fono",
+        "websiteUrl": "URL del sitio web",
+        "menuUrl": "URL del men\u00fa",
+        "orderUrl": "URL de pedido / entrega",
+        "reservationUrl": "URL de reservaci\u00f3n"
+      },
+      "buttons": {
+        "save": "Guardar cambios",
+        "backToProfile": "Volver al perfil"
+      }
+    },
+    "manageSpaces": {
+      "pageTitle": "Administrar ubicaciones",
+      "noLocations": "A\u00fan no has creado ninguna ubicaci\u00f3n.",
+      "buttons": {
+        "createNew": "Crear nueva ubicaci\u00f3n",
+        "createFirst": "Crea tu primera ubicaci\u00f3n",
+        "backToProfile": "Volver al perfil"
+      }
+    },
+    "createSpace": {
+      "pageTitle": "Crear ubicaci\u00f3n",
+      "failedMessageBadRequest": "Por favor revisa tu informaci\u00f3n e int\u00e9ntalo de nuevo.",
+      "failedMessageServer": "Ocurri\u00f3 un error inesperado. Por favor int\u00e9ntalo m\u00e1s tarde.",
+      "h2": {
+        "basicInfo": "Informaci\u00f3n b\u00e1sica",
+        "contactLinks": "Contacto y enlaces"
+      },
+      "labels": {
+        "name": "Nombre de la ubicaci\u00f3n",
+        "description": "Descripci\u00f3n",
+        "address": "Direcci\u00f3n",
+        "latitude": "Latitud",
+        "longitude": "Longitud",
+        "phoneNumber": "N\u00famero de tel\u00e9fono",
+        "websiteUrl": "URL del sitio web",
+        "menuUrl": "URL del men\u00fa",
+        "orderUrl": "URL de pedido / entrega",
+        "reservationUrl": "URL de reservaci\u00f3n"
+      },
+      "buttons": {
+        "create": "Crear ubicaci\u00f3n",
+        "cancel": "Cancelar"
+      }
+    },
     "underConstruction": {
       "pageTitle": "Obt\u00e9n la app",
       "welcome": "Obt\u00e9n la aplicaci\u00f3n m\u00f3vil",
       "info": "\u00a1Parece que buscas la aplicaci\u00f3n m\u00f3vil! Encu\u00e9ntrala a continuaci\u00f3n. Por ahora, la aplicaci\u00f3n de escritorio solo admite funciones b\u00e1sicas como actualizar tu contrase\u00f1a o los detalles de tu cuenta."
     },
     "goMobile": {
-      "pageTitle": "Tu centro",
+      "pageTitle": "Tu centro local",
       "welcome": "Hola Therr",
-      "subtitle": "Descubre personas, lugares y momentos locales directamente desde tu navegador. Explora lo que est\u00e1 pasando a tu alrededor y con\u00e9ctate con tu comunidad. Obt\u00e9n la aplicaci\u00f3n m\u00f3vil para disfrutar de toda la diversi\u00f3n en movimiento",
+      "subtitle": "Descubre personas, lugares y momentos locales directamente desde tu navegador. Mira lo que está pasando a tu alrededor y conéctate con tu comunidad. Obtén la app móvil para la experiencia completa en movimiento.",
       "featuresHeading": "Comienza a explorar",
       "features": {
         "explore": {
           "title": "Explora lo cercano",
-          "description": "Navega por publicaciones populares y descubre lo que la gente comparte en tu zona."
+          "description": "Mira publicaciones populares y descubre lo que la gente comparte en tu barrio."
         },
         "locations": {
-          "title": "Encuentra ubicaciones",
-          "description": "Busca negocios locales, eventos y joyas ocultas cerca de ti."
+          "title": "Encuentra lugares locales",
+          "description": "Descubre negocios locales, eventos y joyas ocultas cerca de ti."
         },
         "moments": {
           "title": "Ver momentos",
-          "description": "Mira fotos y videos compartidos por la comunidad."
+          "description": "Explora fotos e historias compartidas por tu comunidad."
         },
         "connect": {
-          "title": "Conoce personas",
-          "description": "Encuentra y con\u00e9ctate con personas que comparten tus intereses cerca de ti."
+          "title": "Conoce gente cercana",
+          "description": "Conéctate con personas que comparten tus intereses en tu zona."
         }
       },
-      "ctaHeading": "Desbloquea la experiencia completa",
-      "ctaInfo": "\u00bfTe gusta lo que ves? La aplicaci\u00f3n m\u00f3vil va m\u00e1s all\u00e1, con descubrimiento de ubicaci\u00f3n en tiempo real, notificaciones push, recompensas y mucho m\u00e1s. Desc\u00e1rgala gratis y no te pierdas nada de lo que sucede a tu alrededor."
+      "ctaHeading": "Obtén la experiencia completa",
+      "ctaInfo": "¿Te gusta lo que ves? La app móvil va más allá, con descubrimiento en tiempo real, recompensas por check-in y notificaciones de ofertas cercanas. Descárgala gratis y no te pierdas nada de lo que sucede a tu alrededor."
     },
     "inviteLanding": {
-      "title": "\u00a1{username} te invit\u00f3 a Therr!",
-      "description": "\u00danete a la comunidad local y la aplicaci\u00f3n de recompensas. \u00a1Reg\u00edstrate con su c\u00f3digo de invitaci\u00f3n y ambos ganar\u00e1n recompensas!",
-      "joinButton": "\u00danete ahora y gana 5 monedas",
-      "appStoreText": "Tambi\u00e9n disponible en m\u00f3vil",
-      "returnHome": "Volver a la p\u00e1gina de inicio"
+      "title": "¡{username} te invitó a Therr!",
+      "description": "Únete a la app de comunidad local y recompensas. ¡Regístrate con su código de invitación y ambos ganarán monedas!",
+      "joinButton": "Únete ahora y gana 5 monedas",
+      "appStoreText": "También disponible en móvil",
+      "returnHome": "Volver a la página de inicio"
     },
     "viewGroup": {
       "headings": {
@@ -580,6 +759,8 @@
         "viewSpace": "Ver ubicación",
         "viewGroup": "Ver grupo",
         "viewOnGoogleMaps": "Ver en Google Maps",
+        "showMap": "Mostrar mapa",
+        "hideMap": "Ocultar mapa",
         "privateEventMessage": "Este evento pertenece a un grupo privado",
         "privateEventCta": "Regístrate o inicia sesión para solicitar acceso",
         "signUpPrompt": "Regístrate o inicia sesión para ver todos los detalles del evento"
@@ -609,12 +790,79 @@
         "getFullExperience": "Obtén la experiencia completa en la app Therr",
         "helpful": "Útil",
         "notHelpful": "No útil"
+      },
+      "claimSpace": {
+        "title": "¿Es este tu negocio?",
+        "body": "Reclama este espacio para ver la actividad de clientes en tiempo real, conectarte con negocios locales complementarios y recompensar a los clientes que difunden tu negocio. Actualiza tu información, agrega fotos y toma el control de tu presencia.",
+        "subtleCTA": "¿Es este tu negocio? Reclámalo",
+        "emailTitle": "¡Bienvenido! Reclama tu negocio",
+        "emailBody": "Las personas están descubriendo tu negocio en Therr. Reclama este espacio para ver la actividad de clientes en tiempo real, gestionar tu listado y comenzar a interactuar con tu audiencia hoy.",
+        "claimButton": "Reclamar este espacio",
+        "editButton": "Editar espacio",
+        "alreadyHaveAccount": "¿Ya tienes una cuenta? Inicia sesión",
+        "pendingTitle": "Solicitud de reclamo pendiente",
+        "pendingBody": "Se ha enviado una solicitud de reclamo para este espacio y está siendo revisada.",
+        "successMessage": "Tu solicitud de reclamo ha sido enviada. Serás notificado una vez que sea aprobada.",
+        "errorMessage": "Hubo un error al enviar tu solicitud. Por favor, intenta de nuevo más tarde."
+      }
+    },
+    "editSpace": {
+      "pageTitle": "Editar espacio",
+      "successMessage": "Tu espacio ha sido actualizado exitosamente.",
+      "errorGeneric": "Ocurrió un error al guardar. Por favor, intenta de nuevo.",
+      "headings": {
+        "contactInfo": "Información de contacto"
+      },
+      "labels": {
+        "businessName": "Nombre del negocio",
+        "category": "Categoría",
+        "selectCategory": "Selecciona una categoría",
+        "description": "Descripción",
+        "hashTags": "Etiquetas",
+        "hashTagsHint": "Separadas por comas (ej. café, wifi, terraza)",
+        "image": "Foto del negocio",
+        "chooseImage": "Elegir una imagen",
+        "phoneNumber": "Número de teléfono",
+        "websiteUrl": "Sitio web",
+        "menuUrl": "URL del menú",
+        "orderUrl": "URL de pedidos / entregas",
+        "reservationUrl": "URL de reservaciones"
+      },
+      "buttons": {
+        "save": "Guardar cambios",
+        "backToSpace": "Volver al espacio"
+      }
+    },
+    "viewMoment": {
+      "labels": {
+        "postedBy": "Publicado por",
+        "viewLocation": "Ver ubicación",
+        "viewOnGoogleMaps": "Ver en Google Maps",
+        "showMap": "Mostrar mapa",
+        "hideMap": "Ocultar mapa"
       }
     },
     "viewUser": {
       "buttons": {
-        "chat": "Chat"
+        "chat": "Chat",
+        "follow": "Seguir",
+        "viewAll": "Ver todo"
+      },
+      "headings": {
+        "about": "Acerca de",
+        "locations": "Nuestras ubicaciones",
+        "upcomingEvents": "Pr\u00f3ximos eventos",
+        "latestUpdates": "\u00daltimas actualizaciones"
+      },
+      "labels": {
+        "noLocations": "A\u00fan no hay ubicaciones listadas",
+        "noEvents": "No hay pr\u00f3ximos eventos",
+        "noUpdates": "No hay actualizaciones recientes"
       }
+    },
+    "userLocations": {
+      "pageTitle": "Ubicaciones",
+      "headingWithName": "Ubicaciones de {name}"
     }
   }
 }

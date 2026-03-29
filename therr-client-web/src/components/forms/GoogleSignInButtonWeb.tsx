@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { Loader } from '@mantine/core';
 
 interface IGoogleSignInButtonWebProps {
+    isLoading?: boolean;
     onSuccess: (ssoData: {
         isSSO: boolean;
         idToken: string;
@@ -16,6 +18,7 @@ interface IGoogleSignInButtonWebProps {
 }
 
 const GoogleSignInButtonWeb: React.FC<IGoogleSignInButtonWebProps> = ({
+    isLoading,
     onSuccess,
     onError,
     buttonText,
@@ -43,15 +46,6 @@ const GoogleSignInButtonWeb: React.FC<IGoogleSignInButtonWebProps> = ({
         try {
             const payloadBase64 = credential.split('.')[1];
             const payload = JSON.parse(atob(payloadBase64));
-            console.log('[GoogleSSO] JWT decoded', { // eslint-disable-line no-console
-                email: payload.email,
-                givenName: payload.given_name,
-                familyName: payload.family_name,
-                iss: payload.iss,
-                aud: payload.aud,
-                exp: payload.exp,
-                expDate: new Date(payload.exp * 1000).toISOString(),
-            });
             const ssoData = {
                 isSSO: true,
                 idToken: credential,
@@ -78,6 +72,14 @@ const GoogleSignInButtonWeb: React.FC<IGoogleSignInButtonWebProps> = ({
 
     if (!isMounted) {
         return null;
+    }
+
+    if (isLoading) {
+        return (
+            <div className="google-signin-button-container" style={{ display: 'flex', justifyContent: 'center', padding: '0.5rem 0' }}>
+                <Loader size="sm" />
+            </div>
+        );
     }
 
     return (

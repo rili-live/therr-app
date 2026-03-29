@@ -7,12 +7,18 @@ import { MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState } from 'therr-react/types';
 import { Content } from 'therr-js-utilities/constants';
 import {
-    Container, Stack, Group, Title, Text, Badge, Anchor,
-    Divider, Image, Skeleton, Breadcrumbs, Paper,
+    ActionIcon, Container, Stack, Group, Title, Text, Badge, Anchor,
+    Divider, Image, Skeleton, Breadcrumbs, Paper, Tooltip,
 } from '@mantine/core';
 import withNavigation from '../wrappers/withNavigation';
 import withTranslation from '../wrappers/withTranslation';
 import getUserContentUri from '../utilities/getUserContentUri';
+import ProgressiveImage from '../components/ProgressiveImage';
+
+// Only lazy-load on client (Leaflet requires window/document)
+const SpacesMap = typeof window !== 'undefined'
+    ? React.lazy(() => import('../components/SpacesMap'))
+    : (() => null) as any;
 
 const formatCategoryLabel = (category: string): string => {
     if (!category) return '';
@@ -30,7 +36,6 @@ interface IViewMomentRouterProps {
 }
 
 interface IViewMomentDispatchProps {
-    login: Function;
     getMomentDetails: Function;
 }
 
@@ -42,11 +47,14 @@ interface IStoreProps extends IViewMomentDispatchProps {
 
 // Regular component props
 interface IViewMomentProps extends IViewMomentRouterProps, IStoreProps {
+    locale: string;
     translate: (key: string, params?: any) => string;
 }
 
 interface IViewMomentState {
     momentId: string;
+    isLinkCopied: boolean;
+    isMapVisible: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -76,6 +84,8 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
 
         this.state = {
             momentId: props.routeParams.momentId,
+            isLinkCopied: false,
+            isMapVisible: false,
         };
     }
 
@@ -98,7 +108,17 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         }
     }
 
-    login = (credentials: any) => this.props.login(credentials);
+    handleShare = () => {
+        const url = window.location.href;
+        if (navigator.share) {
+            navigator.share({ url }).catch(() => { /* ignore */ });
+        } else if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(() => {
+                this.setState({ isLinkCopied: true });
+                setTimeout(() => this.setState({ isLinkCopied: false }), 2000);
+            }).catch(() => { /* ignore */ });
+        }
+    };
 
     renderSkeleton(): JSX.Element {
         return (
@@ -147,7 +167,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
 
         return (
             <Group gap="xs" mt="xs">
-                <Text size="sm" c="dimmed">Posted by</Text>
+                <Text size="sm" c="dimmed">{this.props.translate('pages.viewMoment.labels.postedBy')}</Text>
                 {moment.fromUserId ? (
                     <Anchor href={`/users/${moment.fromUserId}`} size="sm">{authorName}</Anchor>
                 ) : (
@@ -166,7 +186,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
         if (!moment.spaceId) return null;
 
         const space = moment.space;
-        const spaceName = space?.notificationMsg || moment.areaTitle || 'View Location';
+        const spaceName = space?.notificationMsg || moment.areaTitle || this.props.translate('pages.viewMoment.labels.viewLocation');
         const spaceAddress = space?.addressReadable || '';
 
         // Get space media if available
@@ -192,6 +212,7 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
                                 h={80}
                                 radius="sm"
                                 fit="cover"
+                                loading="lazy"
                             />
                         )}
                         <Stack gap={4}>
@@ -204,6 +225,66 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
                     </Group>
                 </Paper>
             </Anchor>
+        );
+    }
+
+    handleToggleMap = () => {
+        this.setState((prevState) => ({ isMapVisible: !prevState.isMapVisible }));
+    };
+
+    renderLocationMap(moment: any): JSX.Element | null {
+        const space = moment.space;
+        const lat = space?.latitude || moment.latitude;
+        const lng = space?.longitude || moment.longitude;
+
+        if (!lat || !lng) return null;
+
+        const { isMapVisible } = this.state;
+        const mapLabel = space?.notificationMsg || moment.notificationMsg || '';
+        const mapAddress = space?.addressReadable || '';
+
+        return (
+            <>
+                <Group gap="sm" mt="xs">
+                    <Anchor
+                        component="button"
+                        type="button"
+                        size="sm"
+                        onClick={this.handleToggleMap}
+                    >
+                        {isMapVisible
+                            ? this.props.translate('pages.viewMoment.labels.hideMap')
+                            : this.props.translate('pages.viewMoment.labels.showMap')}
+                    </Anchor>
+                    <Anchor
+                        href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        size="sm"
+                    >
+                        {this.props.translate('pages.viewMoment.labels.viewOnGoogleMaps')}
+                    </Anchor>
+                </Group>
+                {isMapVisible && (
+                    <React.Suspense fallback={<Skeleton height={200} radius="md" mt="sm" />}>
+                        <SpacesMap
+                            spaces={[{
+                                id: moment.spaceId || moment.id,
+                                notificationMsg: mapLabel,
+                                addressReadable: mapAddress,
+                                latitude: lat,
+                                longitude: lng,
+                            }]}
+                            centerLat={lat}
+                            centerLng={lng}
+                            localePrefix={({ es: '/es', 'fr-ca': '/fr' } as Record<string, string>)[this.props.locale] || ''}
+                            zoom={15}
+                            height={200}
+                            interactive={false}
+                        />
+                    </React.Suspense>
+                )}
+            </>
         );
     }
 
@@ -234,19 +315,30 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
                     {/* Hero Image */}
                     {momentMedia && (
                         <div className="moment-hero-image-wrapper">
-                            <Image
+                            <ProgressiveImage
                                 src={momentMedia}
                                 alt={moment.notificationMsg}
                                 className="moment-hero-image"
                                 fallbackSrc="/assets/images/meta-image-logo.png"
                                 radius="md"
+                                fetchPriority="high"
                             />
                         </div>
                     )}
 
                     {/* Title & Meta */}
                     <div className="moment-title-section">
-                        <Title order={1}>{moment.notificationMsg}</Title>
+                        <Group justify="space-between" align="flex-start" wrap="nowrap">
+                            <Title order={1}>{moment.notificationMsg}</Title>
+                            <Tooltip label={this.state.isLinkCopied ? this.props.translate('common.linkCopied') : this.props.translate('common.share')}>
+                                <ActionIcon variant="subtle" size="lg" onClick={this.handleShare} aria-label="Share">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                                    </svg>
+                                </ActionIcon>
+                            </Tooltip>
+                        </Group>
 
                         <Group gap="sm" mt="xs" wrap="wrap">
                             {categoryLabel && (
@@ -260,6 +352,9 @@ export class ViewMomentComponent extends React.Component<IViewMomentProps, IView
 
                     {/* Space Card */}
                     {this.renderSpaceCard(moment)}
+
+                    {/* Location Map */}
+                    {this.renderLocationMap(moment)}
 
                     <Divider />
 

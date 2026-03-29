@@ -85,7 +85,7 @@ if (process.env.NODE_ENV === 'development' && module.hot) {
     module.hot.dispose(() => server.close());
 }
 
-process.on('uncaughtExceptionMonitorMonitor', (err, origin) => {
+process.on('uncaughtExceptionMonitor', (err, origin) => {
     logSpan({
         level: 'error',
         messageOrigin: 'API_SERVER',
