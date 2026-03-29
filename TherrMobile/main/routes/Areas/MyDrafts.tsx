@@ -120,9 +120,9 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         });
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
-            const draftMomentsPromise = this.handleRefresh();
+            const focusDraftMomentsPromise = this.handleRefresh();
 
-            Promise.all([draftMomentsPromise]).finally(() => {
+            Promise.all([focusDraftMomentsPromise]).finally(() => {
                 this.setState({
                     isLoading: false,
                 });

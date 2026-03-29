@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Button } from './BaseButton';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
@@ -39,7 +39,7 @@ export default ({
                     <View style={themeButtons.styles.momentLayerOption3}>
                         <Button
                             buttonStyle={themeButtons.styles.btnMedium}
-                            containerStyle={{ borderRadius: 100 }}
+                            containerStyle={localStyles.roundContainer}
                             titleStyle={themeButtons.styles.btnTextWhite}
                             icon={
                                 <FontAwesomeIcon
@@ -55,7 +55,7 @@ export default ({
                     <View style={themeButtons.styles.momentLayerOption4}>
                         <Button
                             buttonStyle={themeButtons.styles.btnMedium}
-                            containerStyle={{ borderRadius: 100 }}
+                            containerStyle={localStyles.roundContainer}
                             icon={
                                 <FontAwesomeIcon
                                     name="child"
@@ -90,3 +90,9 @@ export default ({
         </>
     );
 };
+
+const localStyles = StyleSheet.create({
+    roundContainer: {
+        borderRadius: 100,
+    },
+});

@@ -1,6 +1,6 @@
+import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 import reducer from '../notifications';
 import { NotificationActionTypes } from '../../../types/redux/notifications';
-import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 
 describe('notifications reducer', () => {
     let initialState: any;

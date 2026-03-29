@@ -182,7 +182,6 @@ describe('MomentsStore', () => {
             expect(query).to.include('limit 25');
             expect(query).to.include('offset 50');
         });
-
     });
 
     describe('searchMyMoments', () => {

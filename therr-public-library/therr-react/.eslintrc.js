@@ -1,38 +1,30 @@
 const path = require('path');
+const baseConfig = require('../../eslint-config/base');
 
-// .eslintrc.js
+// therr-react: shared React library for web and mobile.
 module.exports = {
+    ...baseConfig,
     env: {
         browser: true,
         jest: true,
     },
     extends: [
-        'airbnb-base',
-        'plugin:@typescript-eslint/recommended',
+        ...baseConfig.extends,
         'plugin:react/recommended',
     ],
-    plugins: [
-        '@typescript-eslint',
-    ],
-    parser: '@typescript-eslint/parser',
-    ignorePatterns: ["**/.eslintrc.js"],
     rules: {
+        ...baseConfig.rules,
         'react/jsx-indent': [2, 4],
         'react/jsx-indent-props': [2, 4],
+        'react/prop-types': 'off',
+        'react/display-name': 'off',
         'react/sort-comp': [
             2,
             {
                 order: ['static-variables', 'static-methods', 'instance-variables', 'constructor', 'lifecycle', 'everything-else', 'render'],
             },
         ],
-        indent: [2, 4, { SwitchCase: 1 }],
-        'max-len': [2, { code: 140 }],
-        '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/interface-name-prefix': 0,
-        'consistent-return': 'off',
-        'prefer-destructuring': 'off',
-        'import/prefer-default-export': 'off',
+        'no-param-reassign': ['error', { props: true, ignorePropertyModificationsFor: ['draft', 'acc', 'staticContext'] }],
         'import/extensions': [
             'error',
             'always',
@@ -53,8 +45,6 @@ module.exports = {
                 ],
             },
         ],
-        'no-use-before-define': 'off',
-        '@typescript-eslint/no-use-before-define': ['error'],
     },
     settings: {
         'import/external-module-folders': ['../../node_modules', '../../node_modules/@types'],
@@ -62,13 +52,12 @@ module.exports = {
             '@typescript-eslint/parser': ['.ts', '.tsx'],
         },
         'import/resolver': {
-            // NOTE: These aliases must match aliases in webpack.config.js
             alias: {
                 map: [
                     ['therr-styles/*', path.join(__dirname, '../therr-styles')],
                     ['therr-js-utilities/*', path.join(__dirname, '../therr-js-utilities/lib')],
                 ],
-                extensions: ['.js', '.jsx', '.json', '.scss'],
+                extensions: ['.js', '.jsx', '.ts', '.d.ts', '.json', '.scss'],
             },
             node: {
                 extensions: ['.js', '.jsx', '.ts', '.tsx'],
