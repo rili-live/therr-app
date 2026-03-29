@@ -279,7 +279,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     };
 
     handleRequestLocation = () => {
-        if (!navigator.geolocation) {
+        if (typeof window === 'undefined' || !navigator.geolocation) {
             this.setState({ locationError: this.props.translate('pages.viewSpace.addReview.locationUnavailable') });
             return;
         }
@@ -350,7 +350,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         // Create moment linked to space if message is provided
         const momentPromise = reviewMessage.trim()
             ? MapsService.createMoment({
-                fromUserId: user?.details?.id,
+                fromUserId: Number(user?.details?.id),
                 locale: this.props.locale || 'en-us',
                 isPublic: true,
                 message: reviewMessage.trim(),
@@ -358,7 +358,7 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                 latitude: String(this.state.userLatitude),
                 longitude: String(this.state.userLongitude),
                 spaceId,
-            })
+            } as any)
             : Promise.resolve(null);
 
         Promise.all([ratingPromise, momentPromise])
@@ -424,6 +424,11 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
             isLocationLoading, locationError,
         } = this.state;
         const isAuthenticated = user?.isAuthenticated;
+
+        // Cannot verify proximity without space coordinates
+        if (!space.latitude || !space.longitude) {
+            return null;
+        }
 
         const MAX_REVIEW_DISTANCE_METERS = 200;
         const distance = this.getDistanceToSpace();
