@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+/* eslint-disable react/display-name, import/first, import/order, import/newline-after-import, @typescript-eslint/no-var-requires */
 
 // Mock therr-react modules
 jest.mock('therr-react/redux/actions', () => ({
@@ -86,7 +87,6 @@ jest.mock('@mantine/core', () => {
     };
 });
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { MapsService } = require('therr-react/services');
 import { ViewSpaceComponent } from '../ViewSpace';
 
@@ -255,7 +255,7 @@ describe('ViewSpace', () => {
             (instance as any).state.userLatitude = 40.7218;
             (instance as any).state.userLongitude = -74.0060;
 
-            const distance = instance.getDistanceToSpace()!;
+            const distance = instance.getDistanceToSpace() as number;
             expect(distance).toBeGreaterThan(900);
             expect(distance).toBeLessThan(1100);
         });
@@ -266,7 +266,7 @@ describe('ViewSpace', () => {
             (instance as any).state.userLatitude = 51.5074;
             (instance as any).state.userLongitude = -0.1278;
 
-            const distance = instance.getDistanceToSpace()!;
+            const distance = instance.getDistanceToSpace() as number;
             expect(distance).toBeGreaterThan(5000000); // >5000km
         });
 

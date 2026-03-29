@@ -323,7 +323,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
     };
 
     handleSubmitReview = () => {
-        const { createOrUpdateSpaceReaction, map, user, translate } = this.props;
+        const {
+            createOrUpdateSpaceReaction, map, user, translate,
+        } = this.props;
         const { spaceId, reviewRating, reviewMessage } = this.state;
         const space = map?.spaces[spaceId];
 
@@ -416,18 +418,30 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         );
     }
 
-    renderAddReview(space: any): JSX.Element | null {
-        const { user, translate } = this.props;
+    renderAddReviewContent(): JSX.Element {
+        const { translate } = this.props;
         const {
             reviewRating, reviewMessage, isReviewSubmitting,
             reviewError, reviewSuccess, userLatitude,
             isLocationLoading, locationError,
         } = this.state;
-        const isAuthenticated = user?.isAuthenticated;
 
-        // Cannot verify proximity without space coordinates
-        if (!space.latitude || !space.longitude) {
-            return null;
+        if (reviewSuccess) {
+            return (
+                <Alert color="green" radius="md">
+                    <Text fw={500}>{reviewSuccess}</Text>
+                    <Anchor
+                        component="button"
+                        type="button"
+                        size="sm"
+                        mt="xs"
+                        display="inline-block"
+                        onClick={() => this.setState({ reviewSuccess: '' })}
+                    >
+                        {translate('pages.viewSpace.addReview.writeAnother')}
+                    </Anchor>
+                </Alert>
+            );
         }
 
         const MAX_REVIEW_DISTANCE_METERS = 200;
@@ -436,9 +450,96 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
         const hasLocation = userLatitude != null;
 
         return (
+            <>
+                {!hasLocation && (
+                    <>
+                        <Text size="sm" c="dimmed" mb="sm">
+                            {translate('pages.viewSpace.addReview.locationPrompt')}
+                        </Text>
+                        <Button
+                            onClick={this.handleRequestLocation}
+                            loading={isLocationLoading}
+                            variant="light"
+                            color="teal"
+                            size="sm"
+                            mb="sm"
+                        >
+                            {translate('pages.viewSpace.addReview.enableLocation')}
+                        </Button>
+                        {locationError && (
+                            <Text size="sm" c="red" mb="sm">{locationError}</Text>
+                        )}
+                    </>
+                )}
+
+                {hasLocation && !isNearby && (
+                    <>
+                        <Alert color="yellow" radius="md" mb="sm">
+                            <Text size="sm">
+                                {translate('pages.viewSpace.addReview.tooFar')}
+                            </Text>
+                        </Alert>
+                        <Button
+                            onClick={this.handleRequestLocation}
+                            loading={isLocationLoading}
+                            variant="light"
+                            color="teal"
+                            size="sm"
+                            mb="sm"
+                        >
+                            {translate('pages.viewSpace.addReview.retryLocation')}
+                        </Button>
+                    </>
+                )}
+
+                {hasLocation && isNearby && (
+                    <>
+                        <Group gap="xs" mb="sm">
+                            <Text size="sm" fw={500}>{translate('pages.viewSpace.addReview.yourRating')}</Text>
+                            <MantineRating
+                                value={reviewRating}
+                                onChange={isReviewSubmitting ? undefined : (val) => this.setState({ reviewRating: val, reviewError: '' })}
+                                size="lg"
+                            />
+                        </Group>
+                        <Textarea
+                            placeholder={translate('pages.viewSpace.addReview.messagePlaceholder')}
+                            value={reviewMessage}
+                            onChange={(e) => this.setState({ reviewMessage: e.currentTarget.value })}
+                            disabled={isReviewSubmitting}
+                            minRows={3}
+                            maxRows={6}
+                            mb="sm"
+                        />
+                        {reviewError && (
+                            <Text size="sm" c="red" mb="sm">{reviewError}</Text>
+                        )}
+                        <Button
+                            onClick={this.handleSubmitReview}
+                            loading={isReviewSubmitting}
+                            variant="filled"
+                            color="teal"
+                        >
+                            {translate('pages.viewSpace.addReview.submitButton')}
+                        </Button>
+                    </>
+                )}
+            </>
+        );
+    }
+
+    renderAddReview(space: any): JSX.Element | null {
+        const { user, translate } = this.props;
+        const isAuthenticated = user?.isAuthenticated;
+
+        // Cannot verify proximity without space coordinates
+        if (!space.latitude || !space.longitude) {
+            return null;
+        }
+
+        return (
             <Paper withBorder p="lg" radius="md" mt="lg">
                 <Title order={3} size="h4" mb="sm">{translate('pages.viewSpace.addReview.title')}</Title>
-
                 {!isAuthenticated ? (
                     <>
                         <Text size="sm" c="dimmed" mb="sm">
@@ -453,96 +554,8 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
                             {translate('pages.viewSpace.loginModal.signIn')}
                         </Button>
                     </>
-                ) : reviewSuccess ? (
-                    <Alert color="green" radius="md">
-                        <Text fw={500}>{reviewSuccess}</Text>
-                        <Anchor
-                            component="button"
-                            type="button"
-                            size="sm"
-                            mt="xs"
-                            display="inline-block"
-                            onClick={() => this.setState({ reviewSuccess: '' })}
-                        >
-                            {translate('pages.viewSpace.addReview.writeAnother')}
-                        </Anchor>
-                    </Alert>
                 ) : (
-                    <>
-                        {!hasLocation && (
-                            <>
-                                <Text size="sm" c="dimmed" mb="sm">
-                                    {translate('pages.viewSpace.addReview.locationPrompt')}
-                                </Text>
-                                <Button
-                                    onClick={this.handleRequestLocation}
-                                    loading={isLocationLoading}
-                                    variant="light"
-                                    color="teal"
-                                    size="sm"
-                                    mb="sm"
-                                >
-                                    {translate('pages.viewSpace.addReview.enableLocation')}
-                                </Button>
-                                {locationError && (
-                                    <Text size="sm" c="red" mb="sm">{locationError}</Text>
-                                )}
-                            </>
-                        )}
-
-                        {hasLocation && !isNearby && (
-                            <>
-                                <Alert color="yellow" radius="md" mb="sm">
-                                    <Text size="sm">
-                                        {translate('pages.viewSpace.addReview.tooFar')}
-                                    </Text>
-                                </Alert>
-                                <Button
-                                    onClick={this.handleRequestLocation}
-                                    loading={isLocationLoading}
-                                    variant="light"
-                                    color="teal"
-                                    size="sm"
-                                    mb="sm"
-                                >
-                                    {translate('pages.viewSpace.addReview.retryLocation')}
-                                </Button>
-                            </>
-                        )}
-
-                        {hasLocation && isNearby && (
-                            <>
-                                <Group gap="xs" mb="sm">
-                                    <Text size="sm" fw={500}>{translate('pages.viewSpace.addReview.yourRating')}</Text>
-                                    <MantineRating
-                                        value={reviewRating}
-                                        onChange={isReviewSubmitting ? undefined : (val) => this.setState({ reviewRating: val, reviewError: '' })}
-                                        size="lg"
-                                    />
-                                </Group>
-                                <Textarea
-                                    placeholder={translate('pages.viewSpace.addReview.messagePlaceholder')}
-                                    value={reviewMessage}
-                                    onChange={(e) => this.setState({ reviewMessage: e.currentTarget.value })}
-                                    disabled={isReviewSubmitting}
-                                    minRows={3}
-                                    maxRows={6}
-                                    mb="sm"
-                                />
-                                {reviewError && (
-                                    <Text size="sm" c="red" mb="sm">{reviewError}</Text>
-                                )}
-                                <Button
-                                    onClick={this.handleSubmitReview}
-                                    loading={isReviewSubmitting}
-                                    variant="filled"
-                                    color="teal"
-                                >
-                                    {translate('pages.viewSpace.addReview.submitButton')}
-                                </Button>
-                            </>
-                        )}
-                    </>
+                    this.renderAddReviewContent()
                 )}
             </Paper>
         );
@@ -593,7 +606,9 @@ export class ViewSpaceComponent extends React.Component<IViewSpaceProps, IViewSp
 
     renderClaimCTA(space: any): JSX.Element | null {
         const { user, translate } = this.props;
-        const { isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType } = this.state;
+        const {
+            isFromClaimEmail, isClaimLoading, claimMessage, claimMessageType,
+        } = this.state;
         const isAuthenticated = user?.isAuthenticated;
 
         if (claimMessageType === 'success') {
