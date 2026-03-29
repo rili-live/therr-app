@@ -465,7 +465,13 @@
       "signInPrompt": "para ver tus espacios privados y gestionar listados.",
       "website": "sitio web",
       "nearLocation": "Mostrando espacios cerca de {location}",
-      "searchPlaceholderLocation": "Buscar por ubicación (ej. Michigan, Nueva York)..."
+      "searchPlaceholderLocation": "Buscar por ubicación (ej. Michigan, Nueva York)...",
+      "nearMe": "Cerca de mí",
+      "searchThisArea": "Buscar en esta zona",
+      "yourLocation": "Tu ubicación",
+      "clear": "Borrar",
+      "reset": "Restablecer",
+      "locationError": "Se requiere acceso a la ubicación. Habilita la ubicación en la configuración de tu navegador."
     },
     "home": {
       "pageTitle": "Crea tu perfil social o negocio",

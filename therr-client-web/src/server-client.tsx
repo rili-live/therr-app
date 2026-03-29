@@ -58,6 +58,9 @@ if (process.env.NODE_ENV !== 'development') {
     app.use(helmet({
         // Allow Google Sign-In popup to communicate back via postMessage
         crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+        // Use strict-origin-when-cross-origin so OSM tile servers receive a Referer header
+        // (Helmet defaults to no-referrer which causes OSM to block tile requests)
+        referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
