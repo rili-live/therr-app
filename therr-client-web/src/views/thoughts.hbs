@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="{{htmlLang}}">
+
+<head>
+    <meta charset="utf-8" />
+    <title>{{title}} | Therr App</title>
+    <link rel="canonical" href="https://www.therr.com{{canonicalPath}}" />
+    <link rel="alternate" hreflang="en-US" href="https://www.therr.com{{hreflangEn}}" />
+    <link rel="alternate" hreflang="es-MX" href="https://www.therr.com{{hreflangEs}}" />
+    <link rel="alternate" hreflang="fr-CA" href="https://www.therr.com{{hreflangFr}}" />
+    <link rel="alternate" hreflang="x-default" href="https://www.therr.com{{hreflangEn}}" />
+
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://ik.imagekit.io">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Lexend:wght@200;400;600;800&display=swap">
+    <link rel="preload" as="style" href="/vendor.css">
+    <link rel="preload" as="style" href="/app.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{description}}">
+    <meta name="author" content="{{#if authorName}}{{authorName}}{{else}}Therr{{/if}}">
+    <meta name="keywords" content="therr, therr app, social network, thoughts, posts, community, local businesses, mobile, social platform">
+
+    <meta property="og:site_name" content="Therr" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="{{ogLocale}}" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:locale:alternate" content="es_MX" />
+    <meta property="og:locale:alternate" content="fr_CA" />
+    <meta property="og:url" content="https://www.therr.com{{canonicalPath}}" />
+    <meta property="og:title" content="{{title}} | Therr App" />
+    <meta property="og:image" content="https://therr.com/assets/images/meta-image-logo.png" />
+    <meta property="og:description" content="{{description}}" />
+    {{#if datePublished}}
+    <meta property="article:published_time" content="{{datePublished}}" />
+    {{/if}}
+    {{#if authorName}}
+    <meta property="article:author" content="{{authorName}}" />
+    {{/if}}
+    {{#if thoughtCategory}}
+    <meta property="article:section" content="{{thoughtCategory}}" />
+    {{/if}}
+    <meta name="twitter:image" content="https://therr.com/assets/images/meta-image-logo.png" />
+    <meta name="twitter:title" content="{{title}} | Therr App" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@therr_app" />
+
+    {{#if googleSiteVerification}}<meta name="google-site-verification" content="{{googleSiteVerification}}" />{{/if}}
+    {{#if bingSiteVerification}}<meta name="msvalidate.01" content="{{bingSiteVerification}}" />{{/if}}
+    {{#if pinterestVerification}}<meta name="p:domain_verify" content="{{pinterestVerification}}" />{{/if}}
+    <link rel="search" type="application/opensearchdescription+xml" title="Therr" href="/opensearch.xml" />
+    <meta name="apple-itunes-app" content="app-id=1569988763">
+    <link rel="icon" href="/assets/images/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16x16.png">
+    <link rel="mask-icon" href="/assets/images/safari-pinned-tab.svg" color="#5bbad5">
+    <script>document.documentElement.setAttribute('data-mantine-color-scheme', (document.cookie.match(/therr-color-scheme=(light|dark)/)||[])[1]||'light');</script>
+    <link rel="stylesheet" type="text/css" href="/vendor.css">
+    <link rel="stylesheet" type="text/css" href="/app.css">
+
+    <script type="application/ld+json">{{{thoughtSchema}}}</script>
+    <script type="application/ld+json">{{{breadcrumbSchema}}}</script>
+</head>
+
+<body>
+    <div id="app" class="view">{{{markup}}}</div>
+    <script>
+        window.__PRELOADED_STATE__ = "{{state}}"
+    </script>
+    <script defer src="/runtime.js"></script>
+    <script defer src="/vendor.js"></script>
+    <script defer src="/app.js"></script>
+</body>
+
+</html>

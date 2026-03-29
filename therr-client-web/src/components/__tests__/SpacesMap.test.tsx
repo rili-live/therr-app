@@ -25,6 +25,7 @@ const mockMap = {
         if (idx >= 0) mapLayers.splice(idx, 1);
     }),
     getZoom: jest.fn().mockReturnValue(10),
+    invalidateSize: jest.fn(),
     remove: jest.fn(),
 };
 const mockTileLayer = {

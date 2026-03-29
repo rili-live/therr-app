@@ -1,4 +1,5 @@
 import * as React from 'react';
+import 'leaflet/dist/leaflet.css';
 
 interface ISpace {
     id: string;
@@ -9,6 +10,12 @@ interface ISpace {
     category?: string;
 }
 
+interface IMapMoveEvent {
+    lat: number;
+    lng: number;
+    radius: number;
+}
+
 interface ISpacesMapProps {
     spaces: ISpace[];
     centerLat: number;
@@ -17,6 +24,7 @@ interface ISpacesMapProps {
     zoom?: number;
     height?: number;
     interactive?: boolean;
+    onMoveEnd?: (event: IMapMoveEvent) => void;
 }
 
 const escapeHtml = (str: string): string => {
@@ -25,17 +33,7 @@ const escapeHtml = (str: string): string => {
     return div.innerHTML;
 };
 
-const LEAFLET_CSS_ID = 'leaflet-css';
 const ICON_CDN = 'https://unpkg.com/leaflet@1.9.4/dist/images';
-
-const loadLeafletCss = () => {
-    if (document.getElementById(LEAFLET_CSS_ID)) return;
-    const link = document.createElement('link');
-    link.id = LEAFLET_CSS_ID;
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(link);
-};
 
 const SpacesMap: React.FC<ISpacesMapProps> = ({
     spaces,
@@ -45,6 +43,7 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
     zoom,
     height,
     interactive = true,
+    onMoveEnd,
 }) => {
     const mapRef = React.useRef<HTMLDivElement>(null);
     const leafletMapRef = React.useRef<any>(null);
@@ -52,6 +51,8 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
     const markerIconRef = React.useRef<any>(null);
     const spacesRef = React.useRef(spaces);
     spacesRef.current = spaces;
+    const onMoveEndRef = React.useRef(onMoveEnd);
+    onMoveEndRef.current = onMoveEnd;
 
     const [revision, setRevision] = React.useState(0);
 
@@ -91,8 +92,8 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
 
         let cancelled = false;
 
-        loadLeafletCss();
-
+        // Leaflet CSS is bundled via the import at the top of this file,
+        // so it's available synchronously before the map initializes.
         import('leaflet').then((leafletModule) => {
             if (cancelled || !mapRef.current) return;
 
@@ -129,6 +130,13 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
 
             leafletMapRef.current = map;
 
+            // Force Leaflet to recalculate container size on next frame
+            requestAnimationFrame(() => {
+                if (map && !cancelled) {
+                    map.invalidateSize();
+                }
+            });
+
             // Add markers immediately with current spaces data
             const currentSpaces = spacesRef.current;
             const prefix = localePrefix || '';
@@ -139,6 +147,25 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
             } else if (!zoom && bounds.length === 1) {
                 map.setView(bounds[0], 15);
             }
+
+            // Notify parent when user drags the map
+            // Using dragend (not moveend) to avoid false triggers from
+            // programmatic setView/fitBounds calls during init and updates
+            map.on('dragend', () => {
+                if (onMoveEndRef.current) {
+                    const center = map.getCenter();
+                    const mapBounds = map.getBounds();
+                    const ne = mapBounds.getNorthEast();
+                    const sw = mapBounds.getSouthWest();
+                    // Approximate radius as half the diagonal distance of the visible bounds
+                    const diagDist = map.distance(ne, sw);
+                    onMoveEndRef.current({
+                        lat: center.lat,
+                        lng: center.lng,
+                        radius: Math.round(diagDist / 2),
+                    });
+                }
+            });
 
             setRevision(1);
         });
@@ -176,13 +203,13 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
         }
     }, [spaces, localePrefix, revision, updateMarkers, zoom]);
 
-    const style = height ? { height: `${height}px` } : undefined;
+    const mapHeight = height || 300;
 
     return (
         <div
             ref={mapRef}
             className="spaces-map"
-            style={style}
+            style={{ height: `${mapHeight}px` }}
             role="application"
             aria-label="Map of business locations"
         />

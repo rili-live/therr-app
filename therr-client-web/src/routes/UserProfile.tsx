@@ -197,6 +197,10 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         this.props.navigation.navigate(`/spaces/${spaceId}/edit`);
     };
 
+    handleThoughtClick = (thoughtId: string) => {
+        this.props.navigation.navigate(`/thoughts/${thoughtId}`);
+    };
+
     onCreateForumClick = () => {
         this.props.navigation.navigate('/create-forum');
     };
@@ -353,7 +357,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                     {!isBusinessDataLoading && (
                                         <Stack gap="sm">
                                             {myThoughts.slice(0, 5).map((thought: any) => (
-                                                <ThoughtCard key={thought.id} thought={thought} />
+                                                <ThoughtCard key={thought.id} thought={thought} onThoughtClick={this.handleThoughtClick} />
                                             ))}
                                         </Stack>
                                     )}
@@ -497,7 +501,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         {!isThoughtsLoading && myThoughts.length > 0 && (
                             <Stack gap="sm">
                                 {myThoughts.map((thought: any) => (
-                                    <ThoughtCard key={thought.id} thought={thought} />
+                                    <ThoughtCard key={thought.id} thought={thought} onThoughtClick={this.handleThoughtClick} />
                                 ))}
                             </Stack>
                         )}
