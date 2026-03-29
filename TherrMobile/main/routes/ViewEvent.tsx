@@ -37,6 +37,41 @@ import getDirections from '../utilities/getDirections';
 
 const { width: screenWidth } = Dimensions.get('window');
 
+const localStyles = StyleSheet.create({
+    footer: {
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+    },
+    footerButton: {
+        flex: 1,
+        marginHorizontal: 4,
+    },
+    rsvpDialog: {
+        borderRadius: 12,
+    },
+    switchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingBottom: 16,
+        paddingTop: 4,
+    },
+    switchControl: {
+        marginHorizontal: 12,
+    },
+    switchLabel: {
+        fontSize: 16,
+        fontWeight: '400',
+    },
+    switchLabelActive: {
+        fontSize: 16,
+        fontWeight: '800',
+    },
+    guestLabel: {
+        marginBottom: 8,
+    },
+});
+
 interface IViewEventDispatchProps {
     getEventDetails: Function;
     deleteEvent: Function;
@@ -476,40 +511,5 @@ const ViewEvent = ({
         </>
     );
 };
-
-const localStyles = StyleSheet.create({
-    footer: {
-        justifyContent: 'space-between',
-        paddingHorizontal: 10,
-    },
-    footerButton: {
-        flex: 1,
-        marginHorizontal: 4,
-    },
-    rsvpDialog: {
-        borderRadius: 12,
-    },
-    switchRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingBottom: 16,
-        paddingTop: 4,
-    },
-    switchControl: {
-        marginHorizontal: 12,
-    },
-    switchLabel: {
-        fontSize: 16,
-        fontWeight: '400',
-    },
-    switchLabelActive: {
-        fontSize: 16,
-        fontWeight: '800',
-    },
-    guestLabel: {
-        marginBottom: 8,
-    },
-});
 
 export default connect(mapStateToProps, mapDispatchToProps)(ViewEvent);

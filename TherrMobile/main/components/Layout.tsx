@@ -357,10 +357,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         // Get the token
                         return getToken(getMessaging());
                     })
-                    .then((token) => {
-                        axios.defaults.headers['x-user-device-token'] = token;
-                        if (user.details.deviceMobileFirebaseToken !== token) {
-                            updateUser(user.details.id, { deviceMobileFirebaseToken: token });
+                    .then((deviceToken) => {
+                        axios.defaults.headers['x-user-device-token'] = deviceToken;
+                        if (user.details.deviceMobileFirebaseToken !== deviceToken) {
+                            updateUser(user.details.id, { deviceMobileFirebaseToken: deviceToken });
                         }
                         this.unsubscribePushNotifications = onMessage(getMessaging(), async remoteMessage => {
                             await wrapOnMessageReceived(true, remoteMessage);
@@ -1177,7 +1177,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             },
             user
         );
-        const isUserEmailVerified = UsersService.isAuthorized(
+        const isEmailVerified = UsersService.isAuthorized(
             {
                 type: AccessCheckType.ANY,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
@@ -1203,7 +1203,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } else if (url?.includes('verify-account')) {
             if (urlSplit[1] && urlSplit[1].includes('token=')) {
                 const verificationToken = urlSplit[1]?.split('token=')[1];
-                if (!isUserLoggedIn && !isUserEmailVerified) {
+                if (!isUserLoggedIn && !isEmailVerified) {
                     RootNavigation.navigate('EmailVerification', {
                         verificationToken,
                     });
@@ -1393,7 +1393,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             console.error(`Failed to stop background location after logout: ${err}`);
             logEvent(getAnalytics(),'background_location_stop_error', {
                 userId: this.props.user?.details?.id,
-            }).catch((err) => console.log(err));
+            }).catch((logErr) => console.log(logErr));
         });
 
         return logout(userDetails);

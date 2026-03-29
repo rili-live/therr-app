@@ -313,4 +313,18 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     },
 ];
 
+// Route path constants used by data/pages.js and other template files
+export const Routes = {
+    DashboardOverview: { path: '/dashboard' },
+    Transactions: { path: '/transactions' },
+    Settings: { path: '/settings' },
+    Signin: { path: '/login' },
+    Signup: { path: '/register' },
+    Lock: { path: '/lock' },
+    ForgotPassword: { path: '/forgot-password' },
+    ResetPassword: { path: '/reset-password' },
+    NotFound: { path: '/404' },
+    ServerError: { path: '/500' },
+};
+
 export default getRoutes;

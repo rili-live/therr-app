@@ -154,7 +154,7 @@
     "svg-inline-loader": "^0.8.2",
     "svg-url-loader": "^8.0.0",
     "terser-webpack-plugin": "^5.3.16",
-    "ts-jest": "^29.2.6",
+    "ts-jest": "^29.4.6",
     "ts-keycode-enum": "^1.0.6",
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",

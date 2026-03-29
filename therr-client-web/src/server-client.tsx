@@ -1291,7 +1291,9 @@ const renderLocationsView = (req, res, config, {
         {
             '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
         },
-        { '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations' },
+        {
+            '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations',
+        },
     ];
     if (searchQuery) {
         breadcrumbItems.push({
