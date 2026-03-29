@@ -41,39 +41,55 @@ const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
     }
 
     const isSpace = areaType === 'spaces';
+    const isThought = areaType === 'thoughts';
 
-    const onBookmarkPress = useCallback(() => {
-        const reactionData: any = {
-            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
-        };
+    const dispatchReaction = useCallback((reactionData: any) => {
         if (isSpace) {
-            reactionData.spaceId = area.id;
-            dispatch(ContentActions.createOrUpdateSpaceReaction(area.id, reactionData, area.fromUserId, userDetails.userName) as any);
+            const spaceReactionData = { ...reactionData, spaceId: area.id };
+            dispatch(ContentActions.createOrUpdateSpaceReaction(area.id, spaceReactionData, area.fromUserId, userDetails.userName) as any);
+        } else if (isThought) {
+            dispatch(ContentActions.createOrUpdateThoughtReaction(area.id, reactionData, area.fromUserId, userDetails.userName) as any);
         } else {
             dispatch(ContentActions.createOrUpdateMomentReaction(area.id, reactionData, area.fromUserId, userDetails.userName) as any);
         }
-    }, [dispatch, isSpace, area.id, area.reaction?.userBookmarkCategory, area.fromUserId, userDetails.userName]);
+    }, [dispatch, isSpace, isThought, area.id, area.fromUserId, userDetails.userName]);
+
+    const onBookmarkPress = useCallback(() => {
+        dispatchReaction({
+            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+        });
+    }, [dispatchReaction, area.reaction?.userBookmarkCategory]);
 
     const onLikePress = useCallback(() => {
         if (!area.isDraft) {
-            const reactionData: any = {
+            dispatchReaction({
                 userHasLiked: !area.reaction?.userHasLiked,
-            };
-            if (isSpace) {
-                reactionData.spaceId = area.id;
-                dispatch(ContentActions.createOrUpdateSpaceReaction(area.id, reactionData, area.fromUserId, userDetails.userName) as any);
-            } else {
-                dispatch(ContentActions.createOrUpdateMomentReaction(area.id, reactionData, area.fromUserId, userDetails.userName) as any);
-            }
+            });
         }
-    }, [dispatch, isSpace, area.id, area.isDraft, area.reaction?.userHasLiked, area.fromUserId, userDetails.userName]);
+    }, [dispatchReaction, area.isDraft, area.reaction?.userHasLiked]);
 
     const handleCardClick = useCallback(() => {
-        const route = areaType === 'spaces' ? `/spaces/${area.id}` : `/moments/${area.id}`;
+        let route;
+        if (isSpace) {
+            route = `/spaces/${area.id}`;
+        } else if (isThought) {
+            route = `/thoughts/${area.id}`;
+        } else {
+            route = `/moments/${area.id}`;
+        }
         navigate(route);
-    }, [navigate, areaType, area.id]);
+    }, [navigate, isSpace, isThought, area.id]);
 
-    const typeLabel = areaType === 'spaces' ? 'Space' : 'Moment';
+    let typeLabel = 'Moment';
+    let badgeColor = 'blue';
+    if (isSpace) {
+        typeLabel = 'Space';
+        badgeColor = 'teal';
+    }
+    if (isThought) {
+        typeLabel = 'Thought';
+        badgeColor = 'grape';
+    }
 
     return (
         <Card shadow="sm" padding={0} radius="md" withBorder className="discovered-tile">
@@ -108,7 +124,7 @@ const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
                             {area.fromUserName}
                         </Text>
                     </div>
-                    <Badge variant="light" size="xs" color={areaType === 'spaces' ? 'teal' : 'blue'}>
+                    <Badge variant="light" size="xs" color={badgeColor}>
                         {typeLabel}
                     </Badge>
                 </Group>

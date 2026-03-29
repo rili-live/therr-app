@@ -165,6 +165,7 @@
     "userMenu": {
       "buttons": {
         "changePassword": "Changer le mot de passe",
+        "bookmarks": "Mes signets",
         "discovered": "Fil des découvertes",
         "editProfile": "Modifier le profil",
         "explore": "Tout explorer",
@@ -256,6 +257,18 @@
       "returnToLogin": "Retour à la page de connexion",
       "sectionHeaders": {
         "response": "Un bref sondage sur l'application"
+      }
+    },
+    "bookmarks": {
+      "pageTitle": "Mes signets",
+      "subtitle": "Contenu que vous avez enregistré pour plus tard",
+      "noResults": "Vous n'avez encore rien enregistré. Parcourez la communauté et enregistrez le contenu que vous souhaitez revoir.",
+      "exploreCta": "Découvrir du contenu",
+      "filters": {
+        "all": "Tout",
+        "moments": "Moments",
+        "spaces": "Espaces",
+        "thoughts": "Pensées"
       }
     },
     "discovered": {

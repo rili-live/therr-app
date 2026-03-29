@@ -338,19 +338,24 @@ const getSpaceDetails = (req, res) => {
                 promises.push(Promise.resolve([]));
             }
 
-            return Promise.all(promises).then(([isActivated, eventCount, events]) => {
+            return Promise.all(promises).then(([reactionOrActivated, eventCount, events]) => {
                 if (userId && userId !== space.fromUserId) {
                     incrementInterestEngagement(space.interestsKeys, 2, req.headers);
                 }
                 serializedSpace.likeCount = parseInt(eventCount?.count || 0, 10);
                 serializedSpace.events = events;
 
+                // Attach full reaction data if available (for bookmark/like status)
+                if (reactionOrActivated && typeof reactionOrActivated === 'object') {
+                    serializedSpace.reaction = reactionOrActivated;
+                }
+
                 return res.status(200).send({
                     events,
                     space: serializedSpace,
                     media,
                     users,
-                    isActivated,
+                    isActivated: !!reactionOrActivated,
                 });
             });
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));

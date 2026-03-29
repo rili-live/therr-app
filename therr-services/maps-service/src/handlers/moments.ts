@@ -857,8 +857,8 @@ const getMomentDetails = (req, res) => {
             }
 
             // Verify that user has activated moment and has access to view it
-            return userHasAccessPromise().then((isActivated) => {
-                if (!isActivated) {
+            return userHasAccessPromise().then((reactionOrActivated) => {
+                if (!reactionOrActivated) {
                     return handleHttpError({
                         res,
                         message: translate(locale, 'momentReactions.momentNotActivated'),
@@ -908,6 +908,12 @@ const getMomentDetails = (req, res) => {
 
                     moment.viewCount = parseInt(viewCount || '0', 10);
                     moment.likeCount = parseInt(momentCount?.count || 0, 10);
+
+                    // Attach full reaction data if available (for bookmark/like status)
+                    if (reactionOrActivated && typeof reactionOrActivated === 'object') {
+                        moment.reaction = reactionOrActivated;
+                    }
+
                     return res.status(200).send({
                         moment,
                         media,
