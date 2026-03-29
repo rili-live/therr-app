@@ -468,7 +468,9 @@
       "searchPlaceholderLocation": "Search by location (e.g. Michigan, New York)...",
       "nearMe": "Near Me",
       "searchThisArea": "Search This Area",
-      "yourLocation": "Your Location"
+      "yourLocation": "Your Location",
+      "reset": "Reset",
+      "locationError": "Location access is required. Please enable location in your browser settings."
     },
     "home": {
       "pageTitle": "Create your Social Profile or Business",

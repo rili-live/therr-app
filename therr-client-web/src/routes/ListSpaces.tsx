@@ -83,6 +83,7 @@ interface IListSpacesState {
     mapMovedLng: number | null;
     mapMovedRadius: number | null;
     showSearchAreaButton: boolean;
+    locationError: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -126,6 +127,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             mapMovedLng: null,
             mapMovedRadius: null,
             showSearchAreaButton: false,
+            locationError: false,
         };
     }
 
@@ -407,7 +409,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
     handleNearMe = () => {
         if (typeof navigator !== 'undefined' && navigator.geolocation) {
-            this.setState({ isSearching: true });
+            this.setState({ isSearching: true, locationError: false });
             navigator.geolocation.getCurrentPosition(
                 ({ coords: { latitude, longitude } }) => {
                     this.props.updateUserCoordinates({ latitude, longitude });
@@ -419,6 +421,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         searchQuery: '',
                         showSearchAreaButton: false,
                         isMapExpanded: true,
+                        locationError: false,
                     }, () => {
                         this.updateSearchUrl();
                         this.searchPaginatedSpaces(1)
@@ -427,9 +430,11 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                 },
                 (err) => {
                     console.log(err);
-                    this.setState({ isSearching: false });
+                    this.setState({ isSearching: false, locationError: true });
                 },
             );
+        } else {
+            this.setState({ locationError: true });
         }
     };
 
@@ -561,7 +566,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         const { pageNumber: pageNumberStr } = routeParams;
         const {
             itemsPerPage, searchQuery, isSearching, isMapExpanded,
-            searchLat, searchLng, searchLocationName, showSearchAreaButton,
+            searchLat, searchLng, searchLocationName, showSearchAreaButton, locationError,
         } = this.state;
         const spacesArray = Object.values(map?.spaces || {}) as any[];
         const pageNumber = parseInt(pageNumberStr || '1', 10);
@@ -609,6 +614,11 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                                     Clear
                                 </Button>
                             )}
+                            {!searchQuery && !isSearching && spacesArray.length === 0 && (
+                                <Button variant="subtle" size="sm" onClick={this.handleClearSearch}>
+                                    {this.props.translate('pages.spaces.reset')}
+                                </Button>
+                            )}
                         </Group>
                         <Group gap="sm">
                             <Button variant="light" size="sm" onClick={this.handleNearMe}>
@@ -621,6 +631,13 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                             </Button>
                         </Group>
                     </Group>
+
+                    {/* Location error message */}
+                    {locationError && (
+                        <Text size="sm" c="red">
+                            {this.props.translate('pages.spaces.locationError')}
+                        </Text>
+                    )}
 
                     {/* Location context label */}
                     {searchLocationName && !isSearching && (

@@ -468,7 +468,9 @@
       "searchPlaceholderLocation": "Buscar por ubicación (ej. Michigan, Nueva York)...",
       "nearMe": "Cerca de mí",
       "searchThisArea": "Buscar en esta zona",
-      "yourLocation": "Tu ubicación"
+      "yourLocation": "Tu ubicación",
+      "reset": "Restablecer",
+      "locationError": "Se requiere acceso a la ubicación. Habilita la ubicación en la configuración de tu navegador."
     },
     "home": {
       "pageTitle": "Crea tu perfil social o negocio",
