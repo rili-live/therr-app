@@ -321,6 +321,7 @@ const getSpaceDetails = (req, res) => {
             const serializedSpace = {
                 ...space,
                 message: space.message?.replace(/"/g, '\\"'),
+                isUnclaimed: space.fromUserId === SUPER_ADMIN_ID && !space.requestedByUserId,
             };
 
             const promises = [

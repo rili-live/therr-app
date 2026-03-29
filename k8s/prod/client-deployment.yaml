@@ -54,14 +54,6 @@ spec:
           periodSeconds: 15
           timeoutSeconds: 5
           failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /healthcheck
-            port: 7070
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 5
         env:
           - name: USERS_SERVICE_API_PORT
             value: "7771"
