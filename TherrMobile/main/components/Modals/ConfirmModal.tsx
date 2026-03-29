@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { Dialog, Divider, Portal } from 'react-native-paper';
 import { ScrollView } from 'react-native-gesture-handler';
 import { ITherrThemeColors } from '../../styles/themes';
@@ -65,7 +65,7 @@ export default ({
                         <>
                             <Dialog.Title style={themeModal.styles.headerText}>{headerText}</Dialog.Title>
                             <Divider />
-                            <Dialog.ScrollArea style={[themeModal.styles.body, { borderColor: 'transparent' }]}>
+                            <Dialog.ScrollArea style={[themeModal.styles.body, localStyles.transparentBorder]}>
                                 <ScrollView>
                                     <Text style={themeModal.styles.bodyText}>{text}</Text>
                                     {
@@ -74,7 +74,7 @@ export default ({
                                 </ScrollView>
                             </Dialog.ScrollArea>
                         </> :
-                        <Dialog.ScrollArea style={{ borderColor: 'transparent' }}>
+                        <Dialog.ScrollArea style={localStyles.transparentBorder}>
                             <ScrollView>
                                 <Text style={themeModal.styles.bodyTextBold}>{text}</Text>
                             </ScrollView>
@@ -104,3 +104,9 @@ export default ({
         </Portal>
     );
 };
+
+const localStyles = StyleSheet.create({
+    transparentBorder: {
+        borderColor: 'transparent',
+    },
+});

@@ -14,8 +14,8 @@ if (__DEV__) {
         .configure({ host, name: 'TherrMobile' })
         .useReactNative({
             networking: {
-                ignoreUrls: /symbolicate|logs/
-            }
+                ignoreUrls: /symbolicate|logs/,
+            },
         })
         .connect();
 

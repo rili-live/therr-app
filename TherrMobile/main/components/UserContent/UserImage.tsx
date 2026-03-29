@@ -24,7 +24,7 @@ const handleImagePress = (onImageReady, user) => {
     }).catch((err) => {
         logEvent(getAnalytics(),'user_image_upload_error', {
             userId: user?.details?.id,
-        }).catch((err) => console.log(err));
+        }).catch((logErr) => console.log(logErr));
         if (err?.message.toLowerCase().includes('cancel')) {
             onImageReady({
                 didCancel: true,
