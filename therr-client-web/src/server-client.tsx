@@ -58,6 +58,9 @@ if (process.env.NODE_ENV !== 'development') {
     app.use(helmet({
         // Allow Google Sign-In popup to communicate back via postMessage
         crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+        // Use strict-origin-when-cross-origin so OSM tile servers receive a Referer header
+        // (Helmet defaults to no-referrer which causes OSM to block tile requests)
+        referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
@@ -110,6 +113,9 @@ if (process.env.NODE_ENV !== 'development') {
                     'https://robohash.org',
                     'https://*.google-analytics.com',
                     'https://*.googletagmanager.com',
+                    // Leaflet map tiles and marker icons
+                    'https://*.tile.openstreetmap.org',
+                    'https://unpkg.com',
                 ],
                 workerSrc: ["'self'", 'blob:'],
             },
@@ -368,8 +374,17 @@ app.get(/^\/sitemap-spaces-(\d+)\.xml$/, async (req, res) => {
         return res.status(404).send('Not found');
     }
 
+    // Filter out non-public spaces (e.g. businesses marked as closed).
+    // The API does not filter by isPublic, so we must do it client-side.
+    // This may result in some sitemap pages having fewer entries than SPACES_PER_SITEMAP.
+    const publicSpaces = spaces.filter((space: any) => space.isPublic !== false);
+
+    if (publicSpaces.length === 0) {
+        return res.status(404).send('Not found');
+    }
+
     const today = new Date().toISOString().split('T')[0];
-    const urls = spaces.map((space: any) => {
+    const urls = publicSpaces.map((space: any) => {
         const lastmod = space.updatedAt ? new Date(space.updatedAt).toISOString().split('T')[0] : today;
         return buildUrlSet(`/spaces/${space.id}`, lastmod, '0.7');
     });
@@ -410,12 +425,15 @@ app.get(/^\/sitemap-events-(\d+)\.xml$/, async (req, res) => {
         });
     }
 
-    if (events.length === 0) {
+    // Filter out non-public events (API does not filter by isPublic)
+    const publicEvents = events.filter((event: any) => event.isPublic !== false);
+
+    if (publicEvents.length === 0) {
         return res.status(404).send('Not found');
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const urls = events.map((event: any) => {
+    const urls = publicEvents.map((event: any) => {
         const lastmod = event.updatedAt ? new Date(event.updatedAt).toISOString().split('T')[0] : today;
         return buildUrlSet(`/events/${event.id}`, lastmod, '0.7');
     });
@@ -455,12 +473,15 @@ app.get(/^\/sitemap-groups-(\d+)\.xml$/, async (req, res) => {
         });
     }
 
-    if (groups.length === 0) {
+    // Filter out non-public groups (API does not filter by isPublic)
+    const publicGroups = groups.filter((group: any) => group.isPublic !== false);
+
+    if (publicGroups.length === 0) {
         return res.status(404).send('Not found');
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const urls = groups.map((group: any) => {
+    const urls = publicGroups.map((group: any) => {
         const lastmod = group.updatedAt ? new Date(group.updatedAt).toISOString().split('T')[0] : today;
         return buildUrlSet(`/groups/${group.id}`, lastmod, '0.7');
     });
@@ -532,6 +553,75 @@ app.use((req: any, res, next) => {
     }
     next();
 });
+
+const renderThoughtView = (req, res, config, {
+    markup,
+    state,
+}, initialState, localeVars) => {
+    const title = config.head.title;
+    const description = config.head.description
+        // eslint-disable-next-line max-len
+        || 'Therr App is local-first community app and social network that allows connections through the digital space around us. We help you grow authentic connections daily.';
+
+    const thoughtId = req.params?.thoughtId;
+    const userState = initialState?.user || {};
+    const thought = userState?.thoughts?.find((t) => t.id === thoughtId) || null;
+    const thoughtTitle = thought?.message ? thought.message.substring(0, 70) : title;
+    const thoughtDescription = (thought?.message || description).replace(/\\n/g, ' ')
+        .replace(/\\r/g, ' ').substring(0, 300);
+    const authorName = thought?.fromUserFirstName && thought?.fromUserLastName
+        ? `${thought.fromUserFirstName} ${thought.fromUserLastName}` : '';
+    const authorId = thought?.fromUserId || '';
+    const thoughtCategory = thought?.category || '';
+
+    const thoughtSchema: any = {
+        '@context': 'https://schema.org',
+        '@type': 'SocialMediaPosting',
+        '@id': `https://www.therr.com${localeVars.canonicalPath}`,
+        headline: thoughtTitle,
+        datePublished: thought?.createdAt || '',
+        author: {
+            '@type': 'Person',
+            name: authorName,
+            url: authorId ? `https://therr.com/users/${authorId}` : '',
+        },
+    };
+
+    if (thought?.message) {
+        thoughtSchema.articleBody = thoughtDescription;
+    }
+
+    const breadcrumbItems: any[] = [
+        {
+            '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
+        },
+        {
+            '@type': 'ListItem', position: 2, name: 'Posts', item: 'https://www.therr.com/posts/thoughts',
+        },
+        { '@type': 'ListItem', position: 3, name: thoughtTitle },
+    ];
+
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbItems,
+    };
+
+    return res.render(config.view, {
+        title: thoughtTitle,
+        description: thoughtDescription,
+        datePublished: thought?.createdAt,
+        authorName,
+        authorId,
+        thoughtCategory,
+        thoughtSchema: JSON.stringify(thoughtSchema),
+        breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        markup,
+        routePath: config.route,
+        state,
+        ...localeVars,
+    });
+};
 
 const renderMomentView = (req, res, config, {
     markup,
@@ -1099,13 +1189,32 @@ const renderLocationsView = (req, res, config, {
 }, initialState, localeVars) => {
     const routePath = config.route;
     const routeView = config.view;
-    const title = config.head.title;
-    const description = config.head.description
+    const defaultDescription = 'Browse local businesses, restaurants, bars, shops, and events near you. Read reviews, see hours, and get directions.';
+
+    const searchQuery = req.query?.q || '';
+    const hasCoords = req.query?.lat && req.query?.lng;
+
+    // Dynamic title/description when a location search is active
+    const title = searchQuery
+        ? `Spaces near ${searchQuery} - ${config.head.title}`
+        : config.head.title;
+    const description = searchQuery
         // eslint-disable-next-line max-len
-        || 'Browse local businesses, restaurants, bars, shops, and events near you. Read reviews, see hours, and get directions.';
+        ? `Discover local businesses, restaurants, and events near ${searchQuery}. Browse listings, read reviews, and get directions on Therr.`
+        : config.head.description || defaultDescription;
 
     const spaces = initialState?.map?.searchResults || [];
     const pageNumber = parseInt(req.params?.pageNumber, 10) || 1;
+
+    // Build query string for pagination links (preserve search params)
+    const paginationQueryParts: string[] = [];
+    if (searchQuery) paginationQueryParts.push(`q=${encodeURIComponent(searchQuery)}`);
+    if (hasCoords) {
+        paginationQueryParts.push(`lat=${req.query.lat}`);
+        paginationQueryParts.push(`lng=${req.query.lng}`);
+        if (req.query.r) paginationQueryParts.push(`r=${req.query.r}`);
+    }
+    const paginationQs = paginationQueryParts.length > 0 ? `?${paginationQueryParts.join('&')}` : '';
 
     // ItemList schema from prefetched spaces
     const lp = localeVars.localePrefix;
@@ -1116,10 +1225,10 @@ const renderLocationsView = (req, res, config, {
         name: space.notificationMsg || space.id,
     }));
 
-    const itemListSchema = {
+    const itemListSchema: any = {
         '@context': 'https://schema.org',
         '@type': 'ItemList',
-        name: 'Business Locations on Therr',
+        name: searchQuery ? `Spaces near ${searchQuery}` : 'Business Locations on Therr',
         numberOfItems: itemListElements.length,
         itemListElement: itemListElements,
     };
@@ -1136,13 +1245,59 @@ const renderLocationsView = (req, res, config, {
         },
     };
 
+    // Geographic structured data for local directory SEO
+    const geoSpaces = spaces.filter((s: any) => s.latitude && s.longitude).slice(0, 20);
+    const localBusinessSchemas = geoSpaces.map((space: any) => ({
+        '@type': 'LocalBusiness',
+        name: space.notificationMsg || space.id,
+        url: `https://www.therr.com${lp}/spaces/${space.id}`,
+        ...(space.addressReadable && { address: space.addressReadable }),
+        geo: {
+            '@type': 'GeoCoordinates',
+            latitude: space.latitude,
+            longitude: space.longitude,
+        },
+    }));
+
+    const localDirectorySchema = localBusinessSchemas.length > 0
+        ? {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: searchQuery ? `Local Businesses near ${searchQuery}` : 'Local Business Directory',
+            description,
+            ...(hasCoords && {
+                spatialCoverage: {
+                    '@type': 'Place',
+                    geo: {
+                        '@type': 'GeoCoordinates',
+                        latitude: parseFloat(req.query.lat),
+                        longitude: parseFloat(req.query.lng),
+                    },
+                },
+            }),
+            mainEntity: {
+                '@type': 'ItemList',
+                itemListElement: localBusinessSchemas.map((biz: any, i: number) => ({
+                    '@type': 'ListItem',
+                    position: i + 1,
+                    item: biz,
+                })),
+            },
+        }
+        : null;
+
     // Breadcrumb schema
     const breadcrumbItems: any[] = [
         {
             '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.therr.com/',
         },
-        { '@type': 'ListItem', position: 2, name: 'Locations' },
+        { '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://www.therr.com/locations' },
     ];
+    if (searchQuery) {
+        breadcrumbItems.push({
+            '@type': 'ListItem', position: 3, name: searchQuery,
+        });
+    }
 
     const breadcrumbSchema = {
         '@context': 'https://schema.org',
@@ -1150,9 +1305,11 @@ const renderLocationsView = (req, res, config, {
         itemListElement: breadcrumbItems,
     };
 
-    // Pagination links (include locale prefix)
-    const prevPage = pageNumber > 1 ? `${lp}/locations${pageNumber > 2 ? `/${pageNumber - 1}` : ''}` : '';
-    const nextPage = spaces.length > 0 ? `${lp}/locations/${pageNumber + 1}` : '';
+    // Pagination links (include locale prefix and search params)
+    const prevPage = pageNumber > 1
+        ? `${lp}/locations${pageNumber > 2 ? `/${pageNumber - 1}` : ''}${paginationQs}`
+        : '';
+    const nextPage = spaces.length > 0 ? `${lp}/locations/${pageNumber + 1}${paginationQs}` : '';
 
     return res.render(routeView, {
         title,
@@ -1160,6 +1317,7 @@ const renderLocationsView = (req, res, config, {
         itemListSchema: JSON.stringify(itemListSchema),
         searchActionSchema: JSON.stringify(searchActionSchema),
         breadcrumbSchema: JSON.stringify(breadcrumbSchema),
+        localDirectorySchema: localDirectorySchema ? JSON.stringify(localDirectorySchema) : '',
         prevPage,
         nextPage,
         markup,
@@ -1353,7 +1511,7 @@ routeConfig.forEach((config) => {
                 const Comp = route.element;
                 const initData = (Comp && route.fetchData) || (() => Promise.resolve());
                 // fetchData calls a dispatch on the store updating the current state before render
-                promises.push(initData(store.dispatch, match.params)
+                promises.push(initData(store.dispatch, match.params, req.query)
                     .catch((error) => {
                         printLogs({
                             level: 'error',
@@ -1411,6 +1569,13 @@ routeConfig.forEach((config) => {
                 ReactGA.send({ hitType: 'pageview', page: req.path, title });
 
                 const localeVars = getLocaleVars(req);
+
+                if (routeView === 'thoughts') {
+                    return renderThoughtView(req, res, config, {
+                        markup,
+                        state,
+                    }, initialState, localeVars);
+                }
 
                 if (routeView === 'moments') {
                     return renderMomentView(req, res, config, {

@@ -31,6 +31,24 @@ export const CITIES: Record<string, ICityConfig> = {
     countryCode: 'US',
     bbox: { south: 41.6445, west: -87.9401, north: 42.0230, east: -87.5240 },
   },
+  naperville: {
+    name: 'Naperville',
+    slug: 'naperville-il',
+    region: 'Illinois',
+    regionCode: 'IL',
+    country: 'United States',
+    countryCode: 'US',
+    bbox: { south: 41.5458, west: -88.4443, north: 41.9458, east: -88.0443 },
+  },
+  detroit: {
+    name: 'Detroit',
+    slug: 'detroit-il',
+    region: 'Michigan',
+    regionCode: 'MI',
+    country: 'United States',
+    countryCode: 'US',
+    bbox: { south: 41.3290, west: -84.0452, north: 42.9290, east: -82.0452 },
+  },
   'los-angeles': {
     name: 'Los Angeles',
     slug: 'los-angeles-ca',
@@ -66,6 +84,15 @@ export const CITIES: Record<string, ICityConfig> = {
     country: 'United States',
     countryCode: 'US',
     bbox: { south: 43.9888, west: -123.2087, north: 44.0918, east: -123.0366 },
+  },
+  'new-york': {
+    name: 'New York',
+    slug: 'new-york-ny',
+    region: 'New York',
+    regionCode: 'NY',
+    country: 'United States',
+    countryCode: 'US',
+    bbox: { south: 40.4774, west: -74.2591, north: 40.9176, east: -73.7004 },
   },
   // ── United States (Spanish-speaking) ────────────────────────────────────
   miami: {

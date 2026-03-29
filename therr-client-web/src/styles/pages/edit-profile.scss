@@ -51,8 +51,21 @@
 
     .edit-profile-actions {
         display: flex;
-        justify-content: flex-end;
+        flex-direction: column-reverse;
         gap: 0.75rem;
         margin-top: 0.5rem;
+
+        button {
+            width: 100%;
+        }
+
+        @media only screen and (min-width: $screen-small) {
+            flex-direction: row;
+            justify-content: flex-end;
+
+            button {
+                width: auto;
+            }
+        }
     }
 }

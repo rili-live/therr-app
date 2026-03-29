@@ -2,6 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import LogRocket from 'logrocket';
+import qs from 'qs';
 import { IUserState } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { Location, NavigateFunction } from 'react-router-dom';
@@ -17,13 +18,28 @@ export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
 
 export const routeAfterLogin = '/explore';
 
-export const getRouteAfterLogin = (user: IUserState) => {
+/**
+ * Extracts and validates the returnTo query parameter from a location search string.
+ * Only allows relative paths starting with '/' to prevent open redirect vulnerabilities.
+ */
+export const getReturnTo = (locationSearch?: string): string | undefined => {
+    if (!locationSearch) return undefined;
+    const searchParams = qs.parse(locationSearch, { ignoreQueryPrefix: true });
+    const returnTo = searchParams?.returnTo as string;
+    if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+        return returnTo;
+    }
+    return undefined;
+};
+
+export const getRouteAfterLogin = (user: IUserState, returnTo?: string) => {
     const accessLevels = user?.details?.accessLevels || [];
     if (accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)
         && !accessLevels.includes(AccessLevels.EMAIL_VERIFIED)) {
-        return '/create-profile';
+        const returnToParam = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
+        return `/create-profile${returnToParam}`;
     }
-    return routeAfterLogin;
+    return returnTo || routeAfterLogin;
 };
 
 interface ILoginRouterProps {
@@ -68,7 +84,8 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                 name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
                 email: nextProps.user.details.email,
             });
-            const destination = getRouteAfterLogin(nextProps.user);
+            const returnTo = getReturnTo(nextProps.location?.search);
+            const destination = getRouteAfterLogin(nextProps.user, returnTo);
             setTimeout(() => nextProps.navigation.navigate(destination));
             return null;
         }

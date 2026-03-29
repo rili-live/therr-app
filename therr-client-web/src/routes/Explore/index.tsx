@@ -14,6 +14,7 @@ import {
     Paper,
     ThemeIcon,
 } from '@mantine/core';
+import { MantineSearchBox } from 'therr-react/components/mantine';
 import useTranslation from '../../hooks/useTranslation';
 import Tile from '../Discovered/Tile';
 
@@ -63,6 +64,7 @@ const Explore: React.FC = () => {
     const content = useSelector((state: any) => state.content);
     const user = useSelector((state: any) => state.user);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleRefresh = useCallback(() => {
         setIsLoading(true);
@@ -89,6 +91,16 @@ const Explore: React.FC = () => {
         handleRefresh();
     }, []); // eslint-disable-line
 
+    const handleSearchChange = (_name: string, value: string) => {
+        setSearchQuery(value);
+    };
+
+    const handleSearch = () => {
+        if (searchQuery.trim()) {
+            navigate(`/locations?q=${encodeURIComponent(searchQuery.trim())}`);
+        }
+    };
+
     const recentAreas = (content.activeMoments || []).slice(0, 6);
     const hasContent = recentAreas.length > 0;
 
@@ -99,6 +111,16 @@ const Explore: React.FC = () => {
                     <Title order={2}>{translate('pages.explore.pageTitle')}</Title>
                     <Text size="sm" c="dimmed">{translate('pages.explore.subtitle')}</Text>
                 </div>
+
+                {/* Search Bar */}
+                <MantineSearchBox
+                    id="explore-search"
+                    name="exploreSearch"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    onSearch={handleSearch}
+                    placeholder={translate('pages.explore.searchPlaceholder')}
+                />
 
                 {/* Category Navigation Cards */}
                 <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">

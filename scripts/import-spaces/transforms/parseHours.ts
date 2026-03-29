@@ -11,12 +11,17 @@
  */
 
 // City name to IANA timezone
-const CITY_TIMEZONE_MAP: Record<string, string> = {
+export const CITY_TIMEZONE_MAP: Record<string, string> = {
   Chicago: 'America/Chicago',
   'Los Angeles': 'America/Los_Angeles',
   Seattle: 'America/Los_Angeles',
   Portland: 'America/Los_Angeles',
   Eugene: 'America/Los_Angeles',
+  Miami: 'America/New_York',
+  'San Antonio': 'America/Chicago',
+  Houston: 'America/Chicago',
+  'El Paso': 'America/Denver',
+  Dallas: 'America/Chicago',
   'Mexico City': 'America/Mexico_City',
   Guadalajara: 'America/Mexico_City',
   Monterrey: 'America/Monterrey',

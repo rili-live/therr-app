@@ -104,6 +104,7 @@ Read these files when relevant to the task:
 - `docs/niche-sub-apps/<TAG>_PROJECT_BRIEF.md` - Niche app variant context (see "Project Brief Context" above)
 - `docs/LOCALE_URL_ROUTING.md` - Locale-prefixed URL routing, i18n architecture, SEO strategy
 - `docs/NICHE_APP_SETUP_STEPS.md` - Brand variation setup process
+- `docs/TARGET_MARKETS.md` - Consumer and business target market definitions (core Therr App)
 
 ## Monorepo Structure
 
@@ -229,11 +230,12 @@ Feature flags will be implemented via:
 
 ## Localization / i18n
 
-When adding or modifying user-facing text in `therr-client-web`, always maintain translation strings in **both** locale dictionaries:
-- `therr-client-web/src/locales/en-us/dictionary.json`
-- `therr-client-web/src/locales/es/dictionary.json`
+When adding or modifying user-facing text in `therr-client-web`, always maintain translation strings in **all three** locale dictionaries:
+- `therr-client-web/src/locales/en-us/dictionary.json` (English)
+- `therr-client-web/src/locales/es/dictionary.json` (Spanish)
+- `therr-client-web/src/locales/fr-ca/dictionary.json` (Canadian French)
 
-Use the `useTranslation` hook (or `withTranslation` HOC for class components) instead of hardcoded strings. Never add a key to one dictionary without adding it to the other.
+Use the `useTranslation` hook (or `withTranslation` HOC for class components) instead of hardcoded strings. Never add a key to one dictionary without adding it to all others.
 
 ## Notes
 
