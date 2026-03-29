@@ -21,6 +21,12 @@ import { searchForWebsite } from './sources/searchWeb';
 import { crawlForImages } from './sources/crawl';
 import { downloadAndValidateImage } from './utils/imageValidation';
 import { uploadImage } from './utils/gcs';
+import {
+  ProcessedType,
+  markProcessed,
+  filterProcessedSpaces,
+  getProcessedStats,
+} from './utils/processedSpaces';
 
 // Load .env from scripts/import-spaces/ first, fall back to root .env
 dotenv.config({ path: path.resolve(__dirname, '.env') });
@@ -50,6 +56,7 @@ Options:
                        (default: ${IMPORT_USER_ID})
   --source-images      Also source images for spaces with a website but no media
   --dry-run            Crawl and log results without updating database
+  --no-skip-processed  Re-process spaces even if previously attempted
   --help, -h           Show this help message
 
 Examples:
@@ -69,6 +76,7 @@ interface ICliArgs {
   limit: number;
   delay: number;
   userId: string;
+  noSkipProcessed: boolean;
 }
 
 // ── CLI arg parsing ──────────────────────────────────────────────────────────
@@ -84,6 +92,8 @@ function parseArgs(): ICliArgs {
       parsed.dryRun = 'true';
     } else if (args[i] === '--source-images') {
       parsed.sourceImages = 'true';
+    } else if (args[i] === '--no-skip-processed') {
+      parsed.noSkipProcessed = 'true';
     } else if (args[i].startsWith('--') && i + 1 < args.length) {
       parsed[args[i].replace('--', '')] = args[i + 1];
       i++;
@@ -105,6 +115,7 @@ function parseArgs(): ICliArgs {
     limit: parsed.limit ? parseInt(parsed.limit, 10) : 0,
     delay: parsed.delay ? parseInt(parsed.delay, 10) : 2000,
     userId: parsed['user-id'] || IMPORT_USER_ID,
+    noSkipProcessed: parsed.noSkipProcessed === 'true',
   };
 }
 
@@ -244,7 +255,19 @@ async function sourceImageForSpace(
 
 // ── Process spaces that need emails ──────────────────────────────────────────
 async function processEmailSpaces(db: Pool, args: ICliArgs, counters: ICounters) {
-  const spaces = await querySpacesForEmails(db, args);
+  let spaces = await querySpacesForEmails(db, args);
+
+  if (!args.noSkipProcessed) {
+    const { filtered, skippedCount } = filterProcessedSpaces(spaces, [
+      ProcessedType.NO_EMAIL_FOUND,
+      ProcessedType.EMAIL_FOUND,
+    ]);
+    if (skippedCount > 0) {
+      console.log(`Skipping ${skippedCount} previously processed space(s) for email lookup.`);
+    }
+    spaces = filtered;
+  }
+
   console.log(`Found ${spaces.length} spaces with websites needing email extraction.\n`);
 
   for (let i = 0; i < spaces.length; i++) {
@@ -256,6 +279,9 @@ async function processEmailSpaces(db: Pool, args: ICliArgs, counters: ICounters)
 
       if (emailResults.length === 0) {
         console.log(`${progress} SKIP (no email found): ${space.notificationMsg} — ${space.websiteUrl}`);
+        if (!args.dryRun) {
+          markProcessed(ProcessedType.NO_EMAIL_FOUND, space.id, space.notificationMsg);
+        }
         counters.skippedNoEmail++;
         if (i < spaces.length - 1) await sleep(args.delay);
         continue;
@@ -274,6 +300,7 @@ async function processEmailSpaces(db: Pool, args: ICliArgs, counters: ICounters)
           `UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2`,
           [bestEmail.email, space.id],
         );
+        markProcessed(ProcessedType.EMAIL_FOUND, space.id, space.notificationMsg);
         counters.emailsFound++;
       }
 
@@ -297,7 +324,19 @@ async function processEmailSpaces(db: Pool, args: ICliArgs, counters: ICounters)
 
 // ── Process spaces that need websites ────────────────────────────────────────
 async function processWebsiteSpaces(db: Pool, args: ICliArgs, counters: ICounters) {
-  const spaces = await querySpacesForWebsites(db, args);
+  let spaces = await querySpacesForWebsites(db, args);
+
+  if (!args.noSkipProcessed) {
+    const { filtered, skippedCount } = filterProcessedSpaces(spaces, [
+      ProcessedType.NO_WEBSITE_FOUND,
+      ProcessedType.WEBSITE_FOUND,
+    ]);
+    if (skippedCount > 0) {
+      console.log(`Skipping ${skippedCount} previously processed space(s) for website lookup.`);
+    }
+    spaces = filtered;
+  }
+
   console.log(`Found ${spaces.length} spaces needing website discovery.\n`);
 
   for (let i = 0; i < spaces.length; i++) {
@@ -313,6 +352,9 @@ async function processWebsiteSpaces(db: Pool, args: ICliArgs, counters: ICounter
 
       if (!searchResult) {
         console.log(`${progress} SKIP (no website found): ${space.notificationMsg}`);
+        if (!args.dryRun) {
+          markProcessed(ProcessedType.NO_WEBSITE_FOUND, space.id, space.notificationMsg);
+        }
         counters.skippedNoWebsite++;
         if (i < spaces.length - 1) await sleep(args.delay);
         continue;
@@ -328,6 +370,7 @@ async function processWebsiteSpaces(db: Pool, args: ICliArgs, counters: ICounter
           `UPDATE main.spaces SET "websiteUrl" = $1, "updatedAt" = NOW() WHERE id = $2`,
           [searchResult.websiteUrl, space.id],
         );
+        markProcessed(ProcessedType.WEBSITE_FOUND, space.id, space.notificationMsg);
         counters.websitesFound++;
       }
 
@@ -444,6 +487,17 @@ async function main() {
   console.log(`Skipped (no website):       ${counters.skippedNoWebsite}`);
   console.log(`Errors:                     ${counters.errors}`);
   console.log('══════════════════════════════════════\n');
+
+  // Show processed-spaces tracking stats
+  const stats = getProcessedStats();
+  const hasStats = Object.values(stats).some((v) => v > 0);
+  if (hasStats) {
+    console.log('Processed-spaces tracking:');
+    for (const [type, count] of Object.entries(stats)) {
+      if (count > 0) console.log(`  ${type}: ${count}`);
+    }
+    console.log('');
+  }
 
   await db.end();
 }
