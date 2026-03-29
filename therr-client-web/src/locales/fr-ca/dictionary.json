@@ -465,7 +465,10 @@
       "signInPrompt": "pour voir vos espaces privés et gérer vos annonces.",
       "website": "site web",
       "nearLocation": "Affichage des espaces près de {location}",
-      "searchPlaceholderLocation": "Rechercher par lieu (ex. Michigan, New York)..."
+      "searchPlaceholderLocation": "Rechercher par lieu (ex. Michigan, New York)...",
+      "nearMe": "Près de moi",
+      "searchThisArea": "Rechercher dans cette zone",
+      "yourLocation": "Votre position"
     },
     "home": {
       "pageTitle": "Créez votre profil social ou d'entreprise",
