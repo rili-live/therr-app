@@ -83,6 +83,7 @@ interface IListSpacesState {
     mapMovedLng: number | null;
     mapMovedRadius: number | null;
     showSearchAreaButton: boolean;
+    locationError: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -126,6 +127,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             mapMovedLng: null,
             mapMovedRadius: null,
             showSearchAreaButton: false,
+            locationError: false,
         };
     }
 
@@ -289,6 +291,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
     executeSearch = (query: string) => {
         const { geocodeLocation } = this.props;
+        this.setState({ locationError: false });
 
         if (!query.trim()) {
             // Clear search: reset to browser location
@@ -393,6 +396,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             searchRadius: null,
             searchLocationName: '',
             showSearchAreaButton: false,
+            locationError: false,
         }, () => {
             document.title = `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
             this.updateSearchUrl();
@@ -407,7 +411,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
 
     handleNearMe = () => {
         if (typeof navigator !== 'undefined' && navigator.geolocation) {
-            this.setState({ isSearching: true });
+            this.setState({ isSearching: true, locationError: false });
             navigator.geolocation.getCurrentPosition(
                 ({ coords: { latitude, longitude } }) => {
                     this.props.updateUserCoordinates({ latitude, longitude });
@@ -419,6 +423,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         searchQuery: '',
                         showSearchAreaButton: false,
                         isMapExpanded: true,
+                        locationError: false,
                     }, () => {
                         this.updateSearchUrl();
                         this.searchPaginatedSpaces(1)
@@ -427,9 +432,11 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                 },
                 (err) => {
                     console.log(err);
-                    this.setState({ isSearching: false });
+                    this.setState({ isSearching: false, locationError: true });
                 },
             );
+        } else {
+            this.setState({ locationError: true });
         }
     };
 
@@ -455,6 +462,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             searchQuery: '',
             showSearchAreaButton: false,
             isSearching: true,
+            locationError: false,
         }, () => {
             this.updateSearchUrl();
             this.searchPaginatedSpaces(1)
@@ -561,7 +569,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
         const { pageNumber: pageNumberStr } = routeParams;
         const {
             itemsPerPage, searchQuery, isSearching, isMapExpanded,
-            searchLat, searchLng, searchLocationName, showSearchAreaButton,
+            searchLat, searchLng, searchLocationName, showSearchAreaButton, locationError,
         } = this.state;
         const spacesArray = Object.values(map?.spaces || {}) as any[];
         const pageNumber = parseInt(pageNumberStr || '1', 10);
@@ -592,31 +600,47 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     </div>
 
                     {/* Search Input */}
-                    <Group gap="sm">
-                        <MantineSearchBox
-                            id="space-search"
-                            name="spaceSearch"
-                            value={searchQuery}
-                            onChange={this.handleSearchChange}
-                            onSearch={this.handleSearch}
-                            placeholder={this.props.translate('pages.spaces.searchPlaceholderLocation')}
-                            aria-label={this.props.translate('pages.spaces.searchPlaceholderLocation')}
-                            style={{ flex: 1 }}
-                        />
-                        {searchQuery && (
-                            <Button variant="subtle" size="sm" onClick={this.handleClearSearch}>
-                                Clear
+                    <Group gap="sm" wrap="wrap">
+                        <Group gap="sm" style={{ flex: 1, minWidth: 200 }}>
+                            <MantineSearchBox
+                                id="space-search"
+                                name="spaceSearch"
+                                value={searchQuery}
+                                onChange={this.handleSearchChange}
+                                onSearch={this.handleSearch}
+                                placeholder={this.props.translate('pages.spaces.searchPlaceholderLocation')}
+                                aria-label={this.props.translate('pages.spaces.searchPlaceholderLocation')}
+                                style={{ flex: 1 }}
+                            />
+                            {searchQuery && (
+                                <Button variant="subtle" size="sm" onClick={this.handleClearSearch}>
+                                    {this.props.translate('pages.spaces.clear')}
+                                </Button>
+                            )}
+                            {!searchQuery && !isSearching && spacesArray.length === 0 && (
+                                <Button variant="subtle" size="sm" onClick={this.handleClearSearch}>
+                                    {this.props.translate('pages.spaces.reset')}
+                                </Button>
+                            )}
+                        </Group>
+                        <Group gap="sm">
+                            <Button variant="light" size="sm" onClick={this.handleNearMe}>
+                                {this.props.translate('pages.spaces.nearMe')}
                             </Button>
-                        )}
-                        <Button variant="light" size="sm" onClick={this.handleNearMe}>
-                            {this.props.translate('pages.spaces.nearMe')}
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={this.handleToggleMap}>
-                            {isMapExpanded
-                                ? this.props.translate('pages.spaces.collapseMap')
-                                : this.props.translate('pages.spaces.expandMap')}
-                        </Button>
+                            <Button variant="outline" size="sm" onClick={this.handleToggleMap}>
+                                {isMapExpanded
+                                    ? this.props.translate('pages.spaces.collapseMap')
+                                    : this.props.translate('pages.spaces.expandMap')}
+                            </Button>
+                        </Group>
                     </Group>
+
+                    {/* Location error message */}
+                    {locationError && (
+                        <Text size="sm" c="red">
+                            {this.props.translate('pages.spaces.locationError')}
+                        </Text>
+                    )}
 
                     {/* Location context label */}
                     {searchLocationName && !isSearching && (
@@ -648,7 +672,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                                     onClick={this.handleSearchThisArea}
                                     style={{
                                         position: 'absolute',
-                                        top: 10,
+                                        top: 14,
                                         left: '50%',
                                         transform: 'translateX(-50%)',
                                         zIndex: 1000,

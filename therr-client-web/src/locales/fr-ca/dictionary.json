@@ -468,7 +468,10 @@
       "searchPlaceholderLocation": "Rechercher par lieu (ex. Michigan, New York)...",
       "nearMe": "Près de moi",
       "searchThisArea": "Rechercher dans cette zone",
-      "yourLocation": "Votre position"
+      "yourLocation": "Votre position",
+      "clear": "Effacer",
+      "reset": "Réinitialiser",
+      "locationError": "L'accès à la localisation est requis. Veuillez activer la localisation dans les paramètres de votre navigateur."
     },
     "home": {
       "pageTitle": "Créez votre profil social ou d'entreprise",
