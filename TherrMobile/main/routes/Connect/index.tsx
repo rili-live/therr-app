@@ -414,8 +414,12 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     sortMessages = (): any[] => {
-        const { messages } = this.props;
+        const { messages, user } = this.props;
+        const blockedUsers = user?.details?.blockedUsers || [];
         // TODO: Determine if user is active an list unread message count
+        if (blockedUsers.length && messages?.myDMs?.length) {
+            return messages.myDMs.filter((dm) => !blockedUsers.includes(dm.userDetails?.id));
+        }
         return messages?.myDMs;
     };
 
