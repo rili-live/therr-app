@@ -297,6 +297,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                 searchLng: null,
                 searchRadius: null,
                 searchLocationName: '',
+                showSearchAreaButton: false,
             }, () => {
                 this.updateSearchUrl();
                 this.searchPaginatedSpaces(1)
@@ -318,6 +319,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         searchLng: geo.longitude,
                         searchRadius: radius,
                         searchLocationName: geo.displayName,
+                        showSearchAreaButton: false,
                     }, () => {
                         document.title = `${query.trim()} - ${this.props.translate('pages.spaces.pageTitle')} | Therr`;
                         this.updateSearchUrl();
@@ -331,6 +333,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                         searchLng: null,
                         searchRadius: null,
                         searchLocationName: '',
+                        showSearchAreaButton: false,
                     }, () => {
                         this.updateSearchUrl();
                         this.searchPaginatedSpaces(1)
@@ -345,6 +348,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     searchLng: null,
                     searchRadius: null,
                     searchLocationName: '',
+                    showSearchAreaButton: false,
                 }, () => {
                     this.updateSearchUrl();
                     this.searchPaginatedSpaces(1)
@@ -388,6 +392,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
             searchLng: null,
             searchRadius: null,
             searchLocationName: '',
+            showSearchAreaButton: false,
         }, () => {
             document.title = `Therr | ${this.props.translate('pages.spaces.pageTitle')}`;
             this.updateSearchUrl();
@@ -397,7 +402,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
     };
 
     handleToggleMap = () => {
-        this.setState((prevState) => ({ isMapExpanded: !prevState.isMapExpanded }));
+        this.setState((prevState) => ({ isMapExpanded: !prevState.isMapExpanded, showSearchAreaButton: false }));
     };
 
     handleNearMe = () => {

@@ -148,8 +148,10 @@ const SpacesMap: React.FC<ISpacesMapProps> = ({
                 map.setView(bounds[0], 15);
             }
 
-            // Notify parent when user drags/zooms the map
-            map.on('moveend', () => {
+            // Notify parent when user drags the map
+            // Using dragend (not moveend) to avoid false triggers from
+            // programmatic setView/fitBounds calls during init and updates
+            map.on('dragend', () => {
                 if (onMoveEndRef.current) {
                     const center = map.getCenter();
                     const mapBounds = map.getBounds();
