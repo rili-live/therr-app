@@ -94,7 +94,9 @@ export class ListGroupsComponent extends React.Component<IListGroupsProps, IList
     }
 
     componentDidMount() {
-        const { forums, searchCategories, user, getUserGroups } = this.props;
+        const {
+            forums, searchCategories, user, getUserGroups,
+        } = this.props;
 
         document.title = `Therr | ${this.props.translate('pages.listGroups.pageTitle')}`;
 
@@ -149,7 +151,7 @@ export class ListGroupsComponent extends React.Component<IListGroupsProps, IList
         }
 
         searchForums(searchParams, searchArgs)
-            .catch(() => {})
+            .catch(() => { /* noop */ })
             .finally(() => this.setState({ isRefreshing: false }));
     };
 
@@ -164,7 +166,7 @@ export class ListGroupsComponent extends React.Component<IListGroupsProps, IList
             searchMyForums(
                 { itemsPerPage: DEFAULT_PAGE_SIZE, pageNumber: 1, order: 'desc' },
                 { forumIds: myGroupIds },
-            ).catch(() => {});
+            ).catch(() => { /* noop */ });
         }
     };
 
