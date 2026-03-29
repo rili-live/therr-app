@@ -118,7 +118,7 @@ const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
                             onClick={handleCardClick}
                             style={{ cursor: 'pointer' }}
                         >
-                            {area.notificationMsg || 'Untitled'}
+                            {area.notificationMsg || area.message || 'Untitled'}
                         </Text>
                         <Text size="xs" c="dimmed" lineClamp={1}>
                             {area.fromUserName}
@@ -129,7 +129,7 @@ const Tile: React.FC<ITileProps> = ({ area, areaType, userDetails }) => {
                     </Badge>
                 </Group>
 
-                {area.message && (
+                {area.message && area.notificationMsg && (
                     <Text size="xs" c="dimmed" lineClamp={2} mb="xs">
                         {area.message}
                     </Text>

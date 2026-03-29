@@ -790,6 +790,7 @@ const getMomentDetails = (req, res) => {
         }]) => {
             const moment = moments[0];
             let userHasAccessPromise = () => Promise.resolve(true);
+            let needsSeparateReactionFetch = !!userId; // Assume we need to fetch unless access check already does it
             const isOwnMoment = userId === moment?.fromUserId;
 
             if (!moment) {
@@ -808,6 +809,7 @@ const getMomentDetails = (req, res) => {
 
                     // Private moments require a reactions/activation
                     if (userId && !userAccessLevels?.includes(AccessLevels.SUPER_ADMIN)) {
+                        needsSeparateReactionFetch = false; // getReactions will return reaction data
                         return getReactions('moment', momentId, req.headers);
                     }
 
@@ -867,15 +869,18 @@ const getMomentDetails = (req, res) => {
                     });
                 }
 
-                const promises = [
+                const promises: any[] = [
                     countReactions('moment', momentId, req.headers),
+                    needsSeparateReactionFetch
+                        ? getReactions('moment', momentId, req.headers)
+                        : Promise.resolve(false),
                 ];
 
                 if (moment.spaceId) {
                     promises.push(Store.spaces.getByIdSimple(moment.spaceId).then(([space]) => space));
                 }
 
-                return Promise.all(promises).then(([momentCount, space]) => {
+                return Promise.all(promises).then(([momentCount, userReaction, space]) => {
                     if (space) {
                         // Response including space details for navigation
                         moment.space = space;
@@ -910,8 +915,10 @@ const getMomentDetails = (req, res) => {
                     moment.likeCount = parseInt(momentCount?.count || 0, 10);
 
                     // Attach full reaction data if available (for bookmark/like status)
-                    if (reactionOrActivated && typeof reactionOrActivated === 'object') {
-                        moment.reaction = reactionOrActivated;
+                    const reaction = (reactionOrActivated && typeof reactionOrActivated === 'object' && reactionOrActivated)
+                        || (userReaction && typeof userReaction === 'object' && userReaction);
+                    if (reaction) {
+                        moment.reaction = reaction;
                     }
 
                     return res.status(200).send({
