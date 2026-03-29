@@ -2,17 +2,20 @@ import { Location, PushNotifications } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import { distanceTo } from 'geolocation-utils';
 import logSpan from 'therr-js-utilities/log-or-update-span';
-import { InternalConfigHeaders } from 'therr-js-utilities/internal-rest-request';
+import { InternalConfigHeaders, internalRestRequest } from 'therr-js-utilities/internal-rest-request';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import UserLocationCache from '../store/UserLocationCache';
 import {
     createAppAndPushNotification,
     getAllNearbyAreas,
+    hasSentNotificationRecently,
     selectAreasAndActivate,
 } from './helpers/areaLocationHelpers';
 import { createUserLocation, getUserLocations, updateUserLocation } from './helpers/userLocations';
 import { getCurrentUser } from './helpers/user';
+import { predictAndSendNotification } from '../api/firebaseAdmin';
+import * as globalConfig from '../../../../global-config';
 // import translate from '../utilities/translator';
 
 // CREATE/UPDATE
@@ -166,6 +169,8 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                 .then(([nearbyMoments, nearbySpaces]) => {
                     const filteredMoments = nearbyMoments?.newlyDiscoveredAreas;
                     const filteredSpaces = nearbySpaces?.newlyDiscoveredAreas;
+                    let isCheckIn = false;
+
                     if (filteredSpaces?.length) {
                         Promise.all([
                             userLocationPromise,
@@ -237,6 +242,9 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                                 });
 
                                 if (possibleSpacesUserIsVisiting.length) {
+                                    // Mark as check-in so visit data is recorded alongside activation
+                                    isCheckIn = true;
+
                                     // Select the first, closest space by default
                                     const spaceWithRewards = possibleSpacesUserIsVisiting[0];
                                     const now = Date.now();
@@ -267,9 +275,9 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                                                         featuredIncentiveRewardKey: s.featuredIncentiveRewardKey,
                                                     })), // Top 3 are most relevant and keeps payload within limits
                                             },
-                                            false, // TODO: Support checking in and/or posting after leaving a spaces
+                                            false,
                                             null,
-                                            PushNotifications.Types.nudgeSpaceEngagement, // TODO: Create a new push notification type
+                                            PushNotifications.Types.nudgeSpaceEngagement,
                                         ).then(() => {
                                             logSpan({
                                                 level: 'info',
@@ -297,6 +305,65 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                         });
                     }
 
+                    // When cache was invalidated (user moved >402m), check for unreviewed visited spaces
+                    // and send a post-visit review reminder
+                    if (isCacheInvalid && !filteredSpaces?.length) {
+                        userLocationCache.getLastSpaceNotificationDate().then((lastNotificationDate) => {
+                            if (hasSentNotificationRecently(lastNotificationDate, true)) {
+                                return;
+                            }
+
+                            // Find spaces user visited but hasn't reviewed yet
+                            const postVisitCutoff = new Date(Date.now() - Location.MIN_TIME_BEFORE_POST_VISIT_NOTIFICATION_MS);
+                            internalRestRequest({
+                                headers,
+                            }, {
+                                method: 'post',
+                                // eslint-disable-next-line max-len
+                                url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/space-reactions/find/dynamic`,
+                                data: {
+                                    userHasActivated: true,
+                                    limit: 10,
+                                },
+                            }).then((reactionsResponse) => {
+                                const reactions = reactionsResponse?.data?.reactions || [];
+                                // Filter for visited but unreviewed spaces where last visit was >2 hours ago
+                                const unreviewedVisits = reactions.filter(
+                                    (r) => r.visitedAt && !r.rating && new Date(r.lastVisitedAt) < postVisitCutoff,
+                                );
+
+                                if (unreviewedVisits.length) {
+                                    const mostRecentVisit = unreviewedVisits[0];
+                                    predictAndSendNotification(
+                                        PushNotifications.Types.postVisitReviewReminder,
+                                        {
+                                            area: {
+                                                id: mostRecentVisit.spaceId,
+                                            },
+                                        },
+                                        {
+                                            deviceToken: headers['x-user-device-token'] || '',
+                                            userId: headers['x-userid'] || '',
+                                            userLocale: headers['x-localecode'] || 'en-us',
+                                        },
+                                        {},
+                                        headers['x-brand-variation'] as any,
+                                    );
+                                    userLocationCache.setLastSpaceNotificationDate(); // fire and forget
+                                }
+                            }).catch((err) => {
+                                logSpan({
+                                    level: 'error',
+                                    messageOrigin: 'API_SERVER',
+                                    messages: ['Post-visit review reminder check failed'],
+                                    traceArgs: {
+                                        'error.message': err?.message,
+                                    },
+                                });
+                            });
+                        });
+                    }
+
                     return selectAreasAndActivate(
                         headers,
                         userLocationCache,
@@ -306,6 +373,7 @@ const processUserBackgroundLocation: RequestHandler = (req, res) => {
                         },
                         filteredMoments,
                         filteredSpaces,
+                        isCheckIn,
                     );
                 })
                 .then(([momentsToActivate, spacesToActivate]) => {

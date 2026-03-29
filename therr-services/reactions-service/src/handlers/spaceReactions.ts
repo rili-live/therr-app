@@ -1,10 +1,13 @@
 import { RequestHandler } from 'express';
+import KnexBuilder, { Knex } from 'knex';
 import { parseHeaders } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import incrementInterestEngagement from '../utilities/incrementInterestEngagement';
 // import * as globalConfig from '../../../../global-config';
+
+const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 // CREATE/UPDATE
 const createOrUpdateSpaceReaction = (req, res) => {
@@ -55,9 +58,36 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
-    const { spaceIds } = req.body;
+    const { spaceIds, recordVisit } = req.body;
     const params = { ...req.body };
     delete params.spaceIds;
+    delete params.recordVisit;
+
+    const now = new Date();
+
+    // Build visit-aware params for updates
+    const updateParams: any = {
+        ...params,
+        userLocale: locale,
+    };
+
+    // Build visit-aware params for creates
+    const createParams: any = {
+        ...params,
+        userLocale: locale,
+    };
+
+    if (recordVisit) {
+        // For updates: increment visitCount and set timestamps using raw SQL
+        updateParams.visitCount = knexBuilder.raw('"visitCount" + 1');
+        updateParams.visitedAt = knexBuilder.raw('COALESCE("visitedAt", ?)', [now]);
+        updateParams.lastVisitedAt = now;
+
+        // For creates: set initial visit data
+        createParams.visitedAt = now;
+        createParams.lastVisitedAt = now;
+        createParams.visitCount = 1;
+    }
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
@@ -71,10 +101,7 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
         });
         let updatedReactions;
         if (existing?.length) {
-            Store.spaceReactions.update({}, {
-                ...params,
-                userLocale: locale,
-            }, {
+            Store.spaceReactions.update({}, updateParams, {
                 columns: ['userId', 'spaceId'],
                 whereInArray: existingReactions,
             })
@@ -86,8 +113,7 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
             .map((spaceId) => ({
                 userId,
                 spaceId,
-                ...params,
-                userLocale: locale,
+                ...createParams,
             }));
 
         return Store.spaceReactions.create(createArray).then((createdReactions) => res.status(200).send({
@@ -231,11 +257,25 @@ const countSpaceReactions: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
 };
 
+const getVisitedSpaces: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+
+    return Store.spaceReactions.getVisitedSpaces(
+        userId,
+        parseInt(req.query.limit || 100, 10),
+        parseInt(req.query.offset || 0, 10),
+        req.query.order || 'DESC',
+    )
+        .then((reactions) => res.status(200).send({ reactions }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
+};
+
 export {
     getSpaceReactions,
     getSpaceRatings,
     getBatchSpaceRatings,
     getReactionsBySpaceId,
+    getVisitedSpaces,
     createOrUpdateSpaceReaction,
     createOrUpdateMultiSpaceReactions,
     findSpaceReactions,

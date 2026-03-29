@@ -17,6 +17,9 @@ export interface ICreateSpaceReactionParams {
     userHasSuperDisliked?: boolean;
     userLocale?: string;
     rating?: number;
+    visitedAt?: Date;
+    lastVisitedAt?: Date;
+    visitCount?: number;
 }
 
 export interface IUpdateSpaceReactionConditions {
@@ -34,6 +37,9 @@ export interface IUpdateSpaceReactionParams {
     userHasSuperDisliked?: boolean;
     userLocale?: string;
     rating?: number;
+    visitedAt?: Date;
+    lastVisitedAt?: Date;
+    visitCount?: number;
 }
 
 interface IUpdateWhereInConfig {
@@ -155,6 +161,35 @@ export default class SpaceReactionsStore {
         }
 
         return this.db.write.query(queryString.toString()).then((response) => response.rows);
+    }
+
+    getVisitedSpaces(userId: string, limit = 100, offset = 0, order = 'DESC') {
+        const restrictedLimit = Math.min(limit, 1000);
+
+        const queryString = knexBuilder.select('*')
+            .from(SPACE_REACTIONS_TABLE_NAME)
+            .where({ userId })
+            .whereNotNull('visitedAt')
+            .where('visitCount', '>', 0)
+            .limit(restrictedLimit)
+            .offset(offset)
+            .orderBy('lastVisitedAt', order);
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
+    }
+
+    getUnreviewedVisitedSpaces(userId: string, lastVisitedBefore: Date, limit = 5) {
+        const queryString = knexBuilder.select('*')
+            .from(SPACE_REACTIONS_TABLE_NAME)
+            .where({ userId })
+            .whereNotNull('visitedAt')
+            .where('visitCount', '>', 0)
+            .whereNull('rating')
+            .where('lastVisitedAt', '<', lastVisitedBefore)
+            .limit(limit)
+            .orderBy('lastVisitedAt', 'DESC');
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
     delete(userId: string) {
