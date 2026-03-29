@@ -166,8 +166,8 @@ describe('messages reducer', () => {
             type: SocketClientActionTypes.LOGOUT,
         });
         expect(result.forums).toEqual([]);
-        expect(result.dms).toEqual([]);
-        expect(result.forumMsgs).toEqual([]);
+        expect(result.dms).toEqual({});
+        expect(result.forumMsgs).toEqual({});
     });
 
     it('returns state unchanged for unknown action', () => {
