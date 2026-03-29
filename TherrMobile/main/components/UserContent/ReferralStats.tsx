@@ -88,6 +88,13 @@ const styles = StyleSheet.create({
     shareButtonTitle: {
         fontSize: 14,
     },
+    textWhite: {
+        color: '#fff',
+    },
+    badgeHighlight: {
+        backgroundColor: 'rgba(255,255,255,0.3)',
+        color: '#fff',
+    },
 });
 
 const ReferralStats: React.FC<IReferralStatsProps> = ({
@@ -123,11 +130,11 @@ const ReferralStats: React.FC<IReferralStatsProps> = ({
             <Pressable onPress={toggleExpanded} style={[styles.header, { backgroundColor: theme.colors.brandingBlueGreen || theme.colors.primary3 }]}>
                 <View style={styles.headerLeft}>
                     <MaterialIcon name="person-add" size={18} color="#fff" />
-                    <Text style={[styles.title, { color: '#fff' }]}>
+                    <Text style={[styles.title, styles.textWhite]}>
                         {translate('components.referralStats.title')}
                     </Text>
                     {referralCount > 0 && (
-                        <Text style={[styles.badge, { backgroundColor: 'rgba(255,255,255,0.3)', color: '#fff' }]}>
+                        <Text style={[styles.badge, styles.badgeHighlight]}>
                             {referralCount}
                         </Text>
                     )}

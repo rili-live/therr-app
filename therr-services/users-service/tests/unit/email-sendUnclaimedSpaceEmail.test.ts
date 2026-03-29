@@ -1,11 +1,11 @@
 /* eslint-disable quotes, max-len */
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-
 import { expect } from 'chai';
 import sinon from 'sinon';
 import sendUnclaimedSpaceEmail, { hasAlreadySentEmail } from '../../src/api/email/for-business/sendUnclaimedSpaceEmail';
 import { awsSES } from '../../src/api/aws';
 import Store from '../../src/store';
+
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 describe('sendUnclaimedSpaceEmail', () => {
     let sesStub: sinon.SinonStub;

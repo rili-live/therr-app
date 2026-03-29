@@ -1,4 +1,5 @@
 import React,{ useRef, useMemo, useCallback, useState } from 'react';
+import { StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { ITherrThemeColors } from '../../styles/themes';
@@ -66,16 +67,29 @@ const BottomSheetPlus = ({
             enablePanDownToClose
             snapPoints={snapPoints}
             onChange={handleSheetChanges}
-            containerStyle={{ backgroundColor: 'transparent' }}
-            handleStyle={{ height: 30 }}
+            containerStyle={localStyles.transparentBackground}
+            handleStyle={localStyles.handle}
             handleIndicatorStyle={{}}
             backgroundStyle={backgroundStyle}
         >
-            <BottomSheetView style={{ flex: 1, width: '100%' }}>
+            <BottomSheetView style={localStyles.sheetContent}>
                 { children }
             </BottomSheetView>
         </BottomSheet>
     );
 };
+
+const localStyles = StyleSheet.create({
+    transparentBackground: {
+        backgroundColor: 'transparent',
+    },
+    handle: {
+        height: 30,
+    },
+    sheetContent: {
+        flex: 1,
+        width: '100%',
+    },
+});
 
 export default React.memo(BottomSheetPlus);

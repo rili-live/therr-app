@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ActivityIndicator, View, Text, Pressable } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, Text, Pressable } from 'react-native';
 import { Image } from './BaseImage';
 import Autolink from 'react-native-autolink';
 import { getUserImageUri } from '../utilities/content';
@@ -45,7 +45,7 @@ export default ({
             </View>
             {
                 isFirstOfMessage &&
-                <View style={[themeMessage.styles.sectionContainer, { justifyContent: isYou() ? 'flex-end' : 'flex-start' }]}>
+                <View style={[themeMessage.styles.sectionContainer, isYou() ? localStyles.justifyEnd : localStyles.justifyStart]}>
                     <Pressable
                         onPress={onUserPress}
                     >
@@ -63,3 +63,12 @@ export default ({
         </>
     );
 };
+
+const localStyles = StyleSheet.create({
+    justifyEnd: {
+        justifyContent: 'flex-end',
+    },
+    justifyStart: {
+        justifyContent: 'flex-start',
+    },
+});

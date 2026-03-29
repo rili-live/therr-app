@@ -1,7 +1,7 @@
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import reducer from '../map';
 import { MapActionTypes } from '../../../types/redux/maps';
 import { ContentActionTypes } from '../../../types/redux/content';
-import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 
 describe('map reducer', () => {
     let initialState: any;
@@ -40,8 +40,8 @@ describe('map reducer', () => {
                 ],
             },
         });
-        expect(result.events['e1']).toBeDefined();
-        expect(result.events['e2']).toBeDefined();
+        expect(result.events.e1).toBeDefined();
+        expect(result.events.e2).toBeDefined();
     });
 
     it('handles GET_EVENTS filters items without coordinates', () => {
@@ -54,8 +54,8 @@ describe('map reducer', () => {
                 ],
             },
         });
-        expect(result.events['e1']).toBeDefined();
-        expect(result.events['e2']).toBeUndefined();
+        expect(result.events.e1).toBeDefined();
+        expect(result.events.e2).toBeUndefined();
     });
 
     it('handles GET_EVENT_DETAILS for new event', () => {
@@ -63,20 +63,24 @@ describe('map reducer', () => {
             type: MapActionTypes.GET_EVENT_DETAILS,
             data: { event: { id: 'e1', title: 'Test' } },
         });
-        expect(result.events['e1'].title).toBe('Test');
+        expect(result.events.e1.title).toBe('Test');
     });
 
     it('handles GET_EVENT_DETAILS for existing event (merges)', () => {
         const populated = reducer(initialState, {
             type: MapActionTypes.GET_EVENTS,
-            data: { results: [{ id: 'e1', longitude: 1, latitude: 1, title: 'Old' }] },
+            data: {
+                results: [{
+                    id: 'e1', longitude: 1, latitude: 1, title: 'Old',
+                }],
+            },
         });
         const result = reducer(populated, {
             type: MapActionTypes.GET_EVENT_DETAILS,
             data: { event: { id: 'e1', title: 'Updated' } },
         });
-        expect(result.events['e1'].title).toBe('Updated');
-        expect(result.events['e1'].longitude).toBe(1);
+        expect(result.events.e1.title).toBe('Updated');
+        expect(result.events.e1.longitude).toBe(1);
     });
 
     it('handles EVENT_CREATED', () => {
@@ -84,7 +88,7 @@ describe('map reducer', () => {
             type: MapActionTypes.EVENT_CREATED,
             data: { id: 'e1', title: 'New' },
         });
-        expect(result.events['e1'].title).toBe('New');
+        expect(result.events.e1.title).toBe('New');
     });
 
     it('handles EVENT_DELETED', () => {
@@ -96,7 +100,7 @@ describe('map reducer', () => {
             type: MapActionTypes.EVENT_DELETED,
             data: { id: 'e1' },
         });
-        expect(result.events['e1']).toBeUndefined();
+        expect(result.events.e1).toBeUndefined();
     });
 
     // Moments
@@ -107,7 +111,7 @@ describe('map reducer', () => {
                 results: [{ id: 'm1', longitude: 1, latitude: 1 }],
             },
         });
-        expect(result.moments['m1']).toBeDefined();
+        expect(result.moments.m1).toBeDefined();
     });
 
     it('handles MOMENT_CREATED', () => {
@@ -115,7 +119,7 @@ describe('map reducer', () => {
             type: MapActionTypes.MOMENT_CREATED,
             data: { id: 'm1', title: 'New Moment' },
         });
-        expect(result.moments['m1'].title).toBe('New Moment');
+        expect(result.moments.m1.title).toBe('New Moment');
     });
 
     it('handles MOMENT_DELETED', () => {
@@ -127,7 +131,7 @@ describe('map reducer', () => {
             type: MapActionTypes.MOMENT_DELETED,
             data: { id: 'm1' },
         });
-        expect(result.moments['m1']).toBeUndefined();
+        expect(result.moments.m1).toBeUndefined();
     });
 
     // Spaces
@@ -138,7 +142,7 @@ describe('map reducer', () => {
                 results: [{ id: 's1', longitude: 1, latitude: 1 }],
             },
         });
-        expect(result.spaces['s1']).toBeDefined();
+        expect(result.spaces.s1).toBeDefined();
     });
 
     it('handles LIST_SPACES (resets to fresh object)', () => {
@@ -154,8 +158,8 @@ describe('map reducer', () => {
                 results: [{ id: 's2', name: 'Listed' }],
             },
         });
-        expect(result.spaces['s1']).toBeUndefined();
-        expect(result.spaces['s2'].name).toBe('Listed');
+        expect(result.spaces.s1).toBeUndefined();
+        expect(result.spaces.s2.name).toBe('Listed');
     });
 
     it('handles SPACE_CREATED', () => {
@@ -163,7 +167,7 @@ describe('map reducer', () => {
             type: MapActionTypes.SPACE_CREATED,
             data: { id: 's1', title: 'New Space' },
         });
-        expect(result.spaces['s1'].title).toBe('New Space');
+        expect(result.spaces.s1.title).toBe('New Space');
     });
 
     it('handles SPACE_DELETED', () => {
@@ -175,7 +179,7 @@ describe('map reducer', () => {
             type: MapActionTypes.SPACE_DELETED,
             data: { id: 's1' },
         });
-        expect(result.spaces['s1']).toBeUndefined();
+        expect(result.spaces.s1).toBeUndefined();
     });
 
     it('handles UPDATE_RECENT_ENGAGEMENTS', () => {
@@ -183,14 +187,16 @@ describe('map reducer', () => {
             type: MapActionTypes.UPDATE_RECENT_ENGAGEMENTS,
             data: { spaceId: 's1', type: 'check-in' },
         });
-        expect(result.recentEngagements['s1'].type).toBe('check-in');
+        expect(result.recentEngagements.s1.type).toBe('check-in');
     });
 
     // Map view
     it('handles UPDATE_MAP_VIEW_COORDS', () => {
         const result = reducer(initialState, {
             type: MapActionTypes.UPDATE_MAP_VIEW_COORDS,
-            data: { longitude: 10, latitude: 20, longitudeDelta: 0.1, latitudeDelta: 0.1 },
+            data: {
+                longitude: 10, latitude: 20, longitudeDelta: 0.1, latitudeDelta: 0.1,
+            },
         });
         expect(result.longitude).toBe(10);
         expect(result.latitude).toBe(20);

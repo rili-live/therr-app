@@ -39,6 +39,12 @@ import { crawlForImages } from './sources/crawl';
 import { crawlForDetails, fetchPage } from './sources/crawlDetails';
 import { downloadAndValidateImage } from './utils/imageValidation';
 import { uploadImage } from './utils/gcs';
+import {
+  ProcessedType,
+  markProcessed,
+  filterProcessedSpaces,
+  getProcessedStats,
+} from './utils/processedSpaces';
 import { CITY_TIMEZONE_MAP } from './transforms/parseHours';
 
 // Load .env from scripts/import-spaces/ first, fall back to root .env
@@ -74,6 +80,7 @@ Options:
   --skip-dedup         Skip duplicate checking during import
   --skip-enrich        Import only — skip the enrichment phase
   --dry-run            Preview results without database changes
+  --no-skip-processed  Re-process spaces even if previously attempted
   --help, -h           Show this help message
 
 Examples:
@@ -106,6 +113,7 @@ interface ICliArgs {
   limit: number;
   delay: number;
   userId: string;
+  noSkipProcessed: boolean;
 }
 
 // ── CLI arg parsing ──────────────────────────────────────────────────────────
@@ -123,6 +131,8 @@ function parseArgs(): ICliArgs {
       parsed.skipDedup = 'true';
     } else if (args[i] === '--skip-enrich') {
       parsed.skipEnrich = 'true';
+    } else if (args[i] === '--no-skip-processed') {
+      parsed.noSkipProcessed = 'true';
     } else if (args[i] === '--enrich-existing') {
       parsed.enrichExisting = 'true';
     } else if (args[i].startsWith('--') && i + 1 < args.length) {
@@ -151,6 +161,7 @@ function parseArgs(): ICliArgs {
     limit: parsed.limit ? parseInt(parsed.limit, 10) : 0,
     delay: parsed.delay ? parseInt(parsed.delay, 10) : 2000,
     userId: parsed['user-id'] || IMPORT_USER_ID,
+    noSkipProcessed: parsed.noSkipProcessed === 'true',
   };
 }
 
@@ -450,10 +461,14 @@ async function enrichSpace(
           `UPDATE main.spaces SET "websiteUrl" = $1, "updatedAt" = NOW() WHERE id = $2`,
           [websiteUrl, space.id],
         );
+        markProcessed(ProcessedType.WEBSITE_FOUND, space.id, space.notificationMsg);
       }
       counters.websitesFound++;
     } else {
       console.log(`${progress} No website found for: ${space.notificationMsg}`);
+      if (!args.dryRun) {
+        markProcessed(ProcessedType.NO_WEBSITE_FOUND, space.id, space.notificationMsg);
+      }
       return; // Can't do much without a website
     }
   }
@@ -480,8 +495,11 @@ async function enrichSpace(
           `UPDATE main.spaces SET "businessEmail" = $1, "updatedAt" = NOW() WHERE id = $2`,
           [bestEmail.email, space.id],
         );
+        markProcessed(ProcessedType.EMAIL_FOUND, space.id, space.notificationMsg);
       }
       counters.emailsFound++;
+    } else if (!args.dryRun) {
+      markProcessed(ProcessedType.NO_EMAIL_FOUND, space.id, space.notificationMsg);
     }
   }
 
@@ -541,7 +559,12 @@ async function enrichSpace(
       const imageSourced = await sourceImageForSpace(
         db, space, websiteUrl, space.fromUserId || args.userId, progress,
       );
-      if (imageSourced) counters.imagesFound++;
+      if (imageSourced) {
+        counters.imagesFound++;
+        markProcessed(ProcessedType.IMAGE_FOUND, space.id, space.notificationMsg);
+      } else {
+        markProcessed(ProcessedType.NO_IMAGE_FOUND, space.id, space.notificationMsg);
+      }
     }
   }
 }
@@ -714,7 +737,22 @@ async function main() {
 
   if (args.enrichExisting) {
     // ── Enrich-existing mode ──
-    const spaces = await querySpacesForEnrichment(db, args);
+    let spaces = await querySpacesForEnrichment(db, args);
+    if (!args.noSkipProcessed && !args.singleId) {
+      // Only filter by failure types. Success types (WEBSITE_FOUND, etc.) mean
+      // the field was populated in DB, but the space may still need other
+      // enrichment (e.g., has website but still needs email/image). The DB
+      // query already excludes spaces with all fields populated.
+      const { filtered, skippedCount } = filterProcessedSpaces(spaces, [
+        ProcessedType.NO_WEBSITE_FOUND,
+        ProcessedType.NO_EMAIL_FOUND,
+        ProcessedType.NO_IMAGE_FOUND,
+      ]);
+      if (skippedCount > 0) {
+        console.log(`Skipping ${skippedCount} previously processed space(s).`);
+      }
+      spaces = filtered;
+    }
     if (spaces.length === 0) {
       console.log('No spaces found needing enrichment.');
     } else {
@@ -742,6 +780,18 @@ async function main() {
   }
 
   printSummary(args, counters);
+
+  // Show processed-spaces tracking stats
+  const stats = getProcessedStats();
+  const hasStats = Object.values(stats).some((v) => v > 0);
+  if (hasStats) {
+    console.log('Processed-spaces tracking:');
+    for (const [type, count] of Object.entries(stats)) {
+      if (count > 0) console.log(`  ${type}: ${count}`);
+    }
+    console.log('');
+  }
+
   await db.end();
 }
 

@@ -3,6 +3,9 @@
  */
 
 // Mock socket-io-middleware before any imports that depend on it
+import { AccessLevels } from 'therr-js-utilities/constants';
+import { getReturnTo, getRouteAfterLogin } from '../Login';
+
 jest.mock('../../socket-io-middleware', () => ({
     socketIO: {
         on: jest.fn(),
@@ -16,9 +19,6 @@ jest.mock('../../socket-io-middleware', () => ({
 jest.mock('../../redux/actions/UsersActions', () => ({
     default: {},
 }));
-
-import { AccessLevels } from 'therr-js-utilities/constants';
-import { getReturnTo, getRouteAfterLogin } from '../Login';
 
 describe('getReturnTo', () => {
     it('returns the path for a valid returnTo param', () => {

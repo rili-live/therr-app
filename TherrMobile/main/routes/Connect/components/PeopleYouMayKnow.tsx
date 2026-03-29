@@ -96,17 +96,17 @@ const PeopleYouMayKnow = ({
                 </>
             }
             {
-                mightKnowUsers.map((user) => (
+                mightKnowUsers.map((mightKnowUser) => (
                     <UserSearchItem
-                        key={user.id}
-                        userDetails={getConnectionOrUserDetails(user)}
+                        key={mightKnowUser.id}
+                        userDetails={getConnectionOrUserDetails(mightKnowUser)}
                         getUserSubtitle={getConnectionSubtitle}
                         goToViewUser={goToViewUser}
                         onSendConnectRequest={onSendConnectRequest}
                         theme={theme}
                         themeButtons={themeButtons}
                         translate={translate}
-                        user={user}
+                        user={mightKnowUser}
                     />
                 ))
             }

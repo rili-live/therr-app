@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import userContentStyles from '../../styles/user-content';
 import HashtagPill from './HashtagPill';
 
@@ -25,7 +25,7 @@ export default React.memo(({ hasIcon = true, hashtags, onHashtagPress, visibleCo
     }
 
     return (
-        <View style={[userContentStyles.hashtagsContainer, { justifyContent: right ? 'flex-end' : 'flex-start' }]}>
+        <View style={[userContentStyles.hashtagsContainer, right ? localStyles.justifyEnd : localStyles.justifyStart]}>
             {
                 visibleHashtags.map((tag, i) => (
                     <HashtagPill tag={tag} hasIcon={hasIcon} key={i} onPress={onHashtagPress} styles={styles} />
@@ -34,4 +34,13 @@ export default React.memo(({ hasIcon = true, hashtags, onHashtagPress, visibleCo
             }
         </View>
     );
+});
+
+const localStyles = StyleSheet.create({
+    justifyEnd: {
+        justifyContent: 'flex-end',
+    },
+    justifyStart: {
+        justifyContent: 'flex-start',
+    },
 });

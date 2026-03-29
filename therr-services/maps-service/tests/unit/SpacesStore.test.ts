@@ -333,7 +333,9 @@ describe('SpacesStore', () => {
     describe('findSpaces - businessEmail stripping', () => {
         it('strips businessEmail from found spaces', () => {
             const mockRows = [
-                { id: 'abc', notificationMsg: 'Place', businessEmail: 'biz@example.com', mediaIds: '' },
+                {
+                    id: 'abc', notificationMsg: 'Place', businessEmail: 'biz@example.com', mediaIds: '',
+                },
             ];
             const mockStore = {
                 read: {

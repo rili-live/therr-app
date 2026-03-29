@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../BaseButton';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
@@ -63,7 +63,7 @@ const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> 
                 type="error"
                 themeAlerts={themeAlerts}
             />
-            <View style={{ marginBottom: 50 }}>
+            <View style={localStyles.accountTypeContainer}>
                 <Text style={theme.styles.sectionTitleSmallCenter}>
                     {translate(
                         'forms.settings.labels.accountTypeLabel'
@@ -161,5 +161,11 @@ const CreateProfileDetails: React.FunctionComponent<ICreateProfileDetailsProps> 
         </View>
     );
 };
+
+const localStyles = StyleSheet.create({
+    accountTypeContainer: {
+        marginBottom: 50,
+    },
+});
 
 export default CreateProfileDetails;
