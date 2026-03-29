@@ -592,30 +592,34 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                     </div>
 
                     {/* Search Input */}
-                    <Group gap="sm">
-                        <MantineSearchBox
-                            id="space-search"
-                            name="spaceSearch"
-                            value={searchQuery}
-                            onChange={this.handleSearchChange}
-                            onSearch={this.handleSearch}
-                            placeholder={this.props.translate('pages.spaces.searchPlaceholderLocation')}
-                            aria-label={this.props.translate('pages.spaces.searchPlaceholderLocation')}
-                            style={{ flex: 1 }}
-                        />
-                        {searchQuery && (
-                            <Button variant="subtle" size="sm" onClick={this.handleClearSearch}>
-                                Clear
+                    <Group gap="sm" wrap="wrap">
+                        <Group gap="sm" style={{ flex: 1, minWidth: 200 }}>
+                            <MantineSearchBox
+                                id="space-search"
+                                name="spaceSearch"
+                                value={searchQuery}
+                                onChange={this.handleSearchChange}
+                                onSearch={this.handleSearch}
+                                placeholder={this.props.translate('pages.spaces.searchPlaceholderLocation')}
+                                aria-label={this.props.translate('pages.spaces.searchPlaceholderLocation')}
+                                style={{ flex: 1 }}
+                            />
+                            {searchQuery && (
+                                <Button variant="subtle" size="sm" onClick={this.handleClearSearch}>
+                                    Clear
+                                </Button>
+                            )}
+                        </Group>
+                        <Group gap="sm">
+                            <Button variant="light" size="sm" onClick={this.handleNearMe}>
+                                {this.props.translate('pages.spaces.nearMe')}
                             </Button>
-                        )}
-                        <Button variant="light" size="sm" onClick={this.handleNearMe}>
-                            {this.props.translate('pages.spaces.nearMe')}
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={this.handleToggleMap}>
-                            {isMapExpanded
-                                ? this.props.translate('pages.spaces.collapseMap')
-                                : this.props.translate('pages.spaces.expandMap')}
-                        </Button>
+                            <Button variant="outline" size="sm" onClick={this.handleToggleMap}>
+                                {isMapExpanded
+                                    ? this.props.translate('pages.spaces.collapseMap')
+                                    : this.props.translate('pages.spaces.expandMap')}
+                            </Button>
+                        </Group>
                     </Group>
 
                     {/* Location context label */}
@@ -648,7 +652,7 @@ export class ListSpacesComponent extends React.Component<IListSpacesProps, IList
                                     onClick={this.handleSearchThisArea}
                                     style={{
                                         position: 'absolute',
-                                        top: 10,
+                                        top: 14,
                                         left: '50%',
                                         transform: 'translateX(-50%)',
                                         zIndex: 1000,
