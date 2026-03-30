@@ -64,6 +64,7 @@ interface IThoughtDisplayProps {
 }
 
 interface IThoughtDisplayState {
+    isLiked: boolean;
     likeCount: number | null;
 }
 
@@ -83,6 +84,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         super(props);
 
         this.state = {
+            isLiked: !!props.thought.reaction?.userHasLiked,
             likeCount: props.thought.likeCount,
         };
     }
@@ -106,18 +108,17 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         if (!thought.isDraft) {
             // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateThoughtReaction, user } = this.props;
+            const newIsLiked = !this.state.isLiked;
 
-            // Only display on own user post
-            if (this.props.thought.likeCount != null) {
-                this.setState({
-                    likeCount: !thought.reaction?.userHasLiked
-                        ? (this.state.likeCount || 0) + 1
-                        : (this.state.likeCount || 0) - 1,
-                });
-            }
+            this.setState({
+                isLiked: newIsLiked,
+                likeCount: this.props.thought.likeCount != null
+                    ? (this.state.likeCount || 0) + (newIsLiked ? 1 : -1)
+                    : this.state.likeCount,
+            });
 
             updateThoughtReaction(thought.id, {
-                userHasLiked: !thought.reaction?.userHasLiked,
+                userHasLiked: newIsLiked,
             }, thought.fromUserId, user?.details?.userName);
         }
     };
@@ -137,10 +138,9 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             themeForms,
             themeViewContent,
         } = this.props;
-        const { likeCount } = this.state;
+        const { isLiked, likeCount } = this.state;
 
         const isBookmarked = thought.reaction?.userBookmarkCategory;
-        const isLiked = thought.reaction?.userHasLiked;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
         const dateTime = formatDate(thought.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;

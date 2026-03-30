@@ -77,6 +77,7 @@ interface IAreaDisplayMediumProps extends IAreaDisplayContentProps {
 }
 
 interface IAreaDisplayMediumState {
+    isLiked: boolean;
     mediaWidth: number;
 }
 
@@ -85,6 +86,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         super(props);
 
         this.state = {
+            isLiked: !!props.area.reaction?.userHasLiked,
             mediaWidth: viewportWidth / 4,
         };
     }
@@ -107,9 +109,12 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         if (!area.isDraft) {
             // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateAreaReaction, user } = this.props;
+            const newIsLiked = !this.state.isLiked;
+
+            this.setState({ isLiked: newIsLiked });
 
             updateAreaReaction(area.id, {
-                userHasLiked: !area.reaction?.userHasLiked,
+                userHasLiked: newIsLiked,
             }, area.fromUserId, user?.details?.userName);
         }
     };
