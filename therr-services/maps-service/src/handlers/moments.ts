@@ -335,6 +335,15 @@ const createMoment = async (req, res) => {
                                 });
                             });
                         }
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['failed sightengine media safety check'],
+                            traceArgs: {
+                                'error.message': err?.message,
+                            },
+                        });
                     });
                 }
 
@@ -508,6 +517,15 @@ const createIntegratedMomentBase = ({
                             });
                         });
                     }
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['failed sightengine media safety check'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    });
                 });
 
                 return Promise.all([

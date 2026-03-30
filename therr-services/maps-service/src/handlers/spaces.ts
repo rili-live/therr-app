@@ -142,6 +142,15 @@ const createSpace = async (req, res) => {
                             });
                         });
                     }
+                }).catch((err) => {
+                    logSpan({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['failed sightengine media safety check'],
+                        traceArgs: {
+                            'error.message': err?.message,
+                        },
+                    });
                 });
             }
 
@@ -756,6 +765,15 @@ const requestSpace: RequestHandler = async (req: any, res: any) => {
                                 });
                             });
                         }
+                    }).catch((err) => {
+                        logSpan({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['failed sightengine media safety check'],
+                            traceArgs: {
+                                'error.message': err?.message,
+                            },
+                        });
                     });
                 }
             })).catch((err) => {
