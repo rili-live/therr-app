@@ -1892,7 +1892,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 hideCreateActions={this.hideCreateActions}
                                 isScrollEnabled={isScrollEnabled}
                                 onMapLayout={this.onMapLayout}
-                                // /* rn-maps-clustering */
+                                // /* clustering */
                                 // onClusterPress={this.onClusterPress}
                                 updateCircleCenter={this.updateCircleCenter}
                             />

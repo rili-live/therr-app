@@ -1,7 +1,7 @@
 import React, { Ref } from 'react';
 import { Animated, Dimensions, View } from 'react-native';
-import ClusteredMapView from 'rn-maps-clustering';
 import MapView, { PROVIDER_GOOGLE, Circle, Marker, MapPressEvent, MarkerPressEvent } from 'react-native-maps';
+import ClusteredMapView from '../../components/ClusteredMapView';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { PushNotificationsService } from 'therr-react/services';
@@ -908,7 +908,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     followsUserLocation={shouldFollowUserLocation}
                     scrollEnabled={isScrollEnabled}
                     minZoomLevel={MIN_ZOOM_LEVEL}
-                    /* rn-maps-clustering */
+                    /* clustering */
                     clusterColor={this.theme.colors.brandingBlueGreen}
                     clusterFontFamily={this.theme.styles.headerTitleStyle.fontFamily}
                     clusterTextColor={this.theme.colors.brandingWhite}

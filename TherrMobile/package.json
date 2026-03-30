@@ -109,8 +109,8 @@
     "react-test-renderer": "19.0.0",
     "redux": "^5.0.1",
     "redux-logger": "^3.0.6",
-    "rn-maps-clustering": "^0.1.2",
-    "rn-placeholder": "^3.0.3"
+    "rn-placeholder": "^3.0.3",
+    "supercluster": "^8.0.1"
   },
   "devDependencies": {
     "@react-native-community/cli": "^18.0.0",
