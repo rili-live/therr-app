@@ -326,6 +326,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             longitude = route.params.area?.longitude;
         }
 
+        const sanitizedRadius = Math.max(MIN_RADIUS_PRIVATE, Math.min(MAX_RADIUS_PRIVATE, parseInt(radius, 10) || MIN_RADIUS_PRIVATE));
+
         const createArgs: any = {
             category,
             fromUserId: user.details.id,
@@ -337,7 +339,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             latitude,
             longitude,
             maxViews,
-            radius,
+            radius: sanitizedRadius,
             rating,
             skipReward: shouldSkipRewards,
             spaceId,

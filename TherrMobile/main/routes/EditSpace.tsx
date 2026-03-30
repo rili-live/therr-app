@@ -424,6 +424,8 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             longitude,
         } = route.params;
 
+        const sanitizedRadius = Math.max(MIN_RADIUS_PUBLIC, Math.min(MAX_RADIUS_PUBLIC, parseInt(radius, 10) || MIN_RADIUS_PUBLIC));
+
         let createArgs: any = {
             category,
             featuredIncentiveKey,
@@ -439,7 +441,7 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
             latitude: addressLatitude || latitude,
             longitude: addressLongitude || longitude,
             maxViews,
-            radius,
+            radius: sanitizedRadius,
             expiresAt,
         };
 
