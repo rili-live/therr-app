@@ -260,7 +260,28 @@
     "seasonal": "Temporada / Festividades",
     "drinks": "Happy Hour / Bebidas",
     "nightLife": "Vida nocturna / Social",
-    "sports": "Deportes"
+    "sports": "Deportes",
+    "happeningNow": "Pasando ahora",
+    "longWait": "Larga espera",
+    "liveEntertainment": "Entretenimiento en vivo",
+    "crowdAlert": "Lleno de gente",
+    "hiddenGem": "Joya oculta",
+    "localDeal": "Gran oferta"
+  },
+  "quickReports": {
+    "title": "Que esta pasando aqui?",
+    "happeningNow": "Pasando ahora",
+    "longWait": "Larga espera",
+    "liveEntertainment": "Entretenimiento en vivo",
+    "crowdAlert": "Lleno de gente",
+    "hiddenGem": "Joya oculta",
+    "localDeal": "Gran oferta",
+    "addDetails": "Agregar detalles (opcional)",
+    "submitSuccess": "Reporte enviado!",
+    "submitError": "Error al enviar reporte",
+    "stillTrue": "Aun es cierto",
+    "notAnymore": "Ya no",
+    "confirmCount": "{{count}} confirmaron"
   },
   "components": {
     "activeConnections": {
@@ -954,6 +975,7 @@
       "claimASpace": "Reclamar un espacio",
       "createEvent": "Crear un evento",
       "addACheckIn": "Registrarse",
+      "quickReport": "Reporte rapido",
       "requestASpace": "Solicitar un espacio",
       "shareAThought": "Compartir un pensamiento",
       "uploadAMoment": "Crear un momento",

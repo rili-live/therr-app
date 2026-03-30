@@ -134,6 +134,7 @@ interface IMapDispatchProps {
     searchSpaces: Function;
     setInitialUserLocation: Function;
     setSearchDropdownVisibility: Function;
+    createMoment: Function;
     deleteMoment: Function;
     createSpaceCheckInMetrics: Function;
     updateGpsStatus: Function;
@@ -223,6 +224,7 @@ const mapDispatchToProps = (dispatch: any) =>
             setInitialUserLocation: MapActions.setInitialUserLocation,
             setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
             setMapFilters: MapActions.setMapFilters,
+            createMoment: MapActions.createMoment,
             deleteMoment: MapActions.deleteMoment,
             createSpaceCheckInMetrics: MapActions.createSpaceCheckInMetrics,
             createOrUpdateMomentReaction: ReactionActions.createOrUpdateMomentReaction,
@@ -785,6 +787,16 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     });
                 }
 
+                return;
+            }
+
+            if (action === 'quick-report') {
+                this.setState({
+                    bottomSheetContentType: 'quick-report',
+                });
+                if (this.bottomSheetRef?.current) {
+                    this.bottomSheetRef.current.snapToIndex(1);
+                }
                 return;
             }
 
@@ -1826,7 +1838,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldFollowUserLocation,
             shouldRenderMapCircles,
         } = this.state;
-        const { captureClickTarget, location, map, navigation, notifications, route, updateTour, user } = this.props;
+        const { captureClickTarget, createMoment, location, map, navigation, notifications, route, updateTour, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
         const isAutoCompleteSearching = map?.searchPredictions?.isSearching;
@@ -2004,8 +2016,12 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                         overrideSnapPoints={bottomSheetSnapPoints}
                     >
                         <MapBottomSheetContent
+                            circleCenter={circleCenter}
                             contentType={bottomSheetContentType}
+                            createMoment={createMoment}
                             navigation={navigation}
+                            nearbySpaces={nearbySpaces}
+                            onClose={this.onBottomSheetClose}
                             theme={this.theme}
                             themeBottomSheet={this.themeBottomSheet}
                             themeViewArea={this.themeViewArea}
