@@ -2,6 +2,7 @@ import * as express from 'express';
 import {
     createSpace,
     getSpaceDetails,
+    getSpaceReportsSummary,
     searchSpaces,
     searchMySpaces,
     claimSpace,
@@ -20,6 +21,7 @@ const router = express.Router();
 
 // PAIRINGS (must be before /:spaceId catch-all patterns)
 router.get('/:spaceId/pairings', getSpacePairings);
+router.get('/:spaceId/reports-summary', getSpaceReportsSummary);
 router.post('/:spaceId/pairings/feedback', submitPairingFeedback);
 
 // WRITE

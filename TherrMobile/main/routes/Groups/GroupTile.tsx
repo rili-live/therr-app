@@ -9,7 +9,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { GroupRequestStatuses } from 'therr-js-utilities/constants';
 import therrIconConfig from '../../assets/therr-font-config.json';
-import { getUserImageUri } from '../../utilities/content';
+import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import spacingStyles from '../../styles/layouts/spacing';
 
 const TherrIcon = createIconSetFromIcoMoon(
@@ -54,7 +54,7 @@ export default ({
     user,
 }) => {
     const [isJoining, setIsJoining] = React.useState(false);
-    const membershipStatus = user?.myUserGroups[group.id]?.status || '';
+    const membershipStatus = user?.myUserGroups?.[group.id]?.status || '';
     const onPressJoinGroup = () => {
         setIsJoining(true);
         handleJoinGroup(group);
@@ -74,15 +74,27 @@ export default ({
                 <Avatar
                     title={`${group.title?.substring(0, 1)}`}
                     rounded
-                    // TODO: Include use media in list groups response
-                    source={{ uri: getUserImageUri({ details: { id: group.authorId, media: group.author?.media } }, 150) }}
+                    source={{
+                        uri: group.media?.featuredImage
+                            ? getUserContentUri(group.media.featuredImage, 150, 150)
+                            : getUserImageUri({ details: { id: group.authorId, media: group.author?.media } }, 150),
+                    }}
                     size="medium"
                 />
             </Pressable>
             <View style={spacingStyles.flexOne}>
                 <ListItem.Title style={{ fontWeight: '500' }} numberOfLines={2}>{group.title}</ListItem.Title>
                 {
-                    group.memberCount &&
+                    group.city &&
+                    <ListItem.Subtitle
+                        style={{ fontWeight: '400', fontSize: 12, color: '#888', marginBottom: 2 }}
+                        numberOfLines={1}
+                    >
+                        {[group.city, group.region].filter(Boolean).join(', ')}
+                    </ListItem.Subtitle>
+                }
+                {
+                    group.memberCount > 0 &&
                     <ListItem.Subtitle
                         style={[{ fontWeight: '300', fontSize: 13 }, spacingStyles.marginBotSm]}
                         numberOfLines={2}>{translate('pages.groups.labels.memberCount', {
@@ -90,7 +102,7 @@ export default ({
                         })}
                     </ListItem.Subtitle>
                 }
-                <ListItem.Subtitle numberOfLines={4}>{group.description}</ListItem.Subtitle>
+                <ListItem.Subtitle numberOfLines={3}>{group.description}</ListItem.Subtitle>
                 <View style={themeChatTile.styles.footer}>
                     <View style={themeChatTile.styles.footerIconsContainer}>
                         {

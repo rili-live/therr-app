@@ -1,4 +1,16 @@
-#page_chat_forum {
+#page_list_groups {
+    .group-list-card {
+        transition: box-shadow 0.15s, transform 0.15s;
+
+        &:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+    }
+}
+
+#page_chat_forum,
+#page_view_group {
     .forum-header {
         display: flex;
         flex-direction: row;

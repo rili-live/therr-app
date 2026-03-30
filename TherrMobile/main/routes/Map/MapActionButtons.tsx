@@ -16,7 +16,7 @@ import claimASpace from '../../assets/claim-a-space.json';
 import { MIN_TIME_BTW_CHECK_INS_MS, MIN_TIME_BTW_MOMENTS_MS } from '../../constants';
 import numberToCurrencyStr from '../../utilities/numberToCurrencyStr';
 
-export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in' | 'event';
+export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment' | 'check-in' | 'event' | 'quick-report';
 
 interface MapActionButtonsProps {
     exchangeRate: number;
@@ -99,6 +99,9 @@ const renderCalendarIcon = (props: { size: number; color: string }) => (
 );
 const renderRoadMapIcon = (props: { size: number; color: string }) => (
     <TherrIcon name="road-map" size={props.size} color={props.color} />
+);
+const renderFlagIcon = (props: { size: number; color: string }) => (
+    <TherrIcon name="flag" size={props.size} color={props.color} />
 );
 const renderMapMarkerPlusIcon = (props: { size: number; color: string }) => (
     <TherrIcon name="map-marker-plus" size={props.size} color={props.color} />
@@ -336,6 +339,19 @@ export default ({
                         />
                     </View>
                 </>
+            }
+            {
+                shouldShowCreateActions &&
+                <View style={themeButtons.styles.quickReport}>
+                    <FAB
+                        icon={renderFlagIcon}
+                        label={translate('menus.mapActions.quickReport')}
+                        variant="secondary"
+                        size="small"
+                        style={fabStyle}
+                        onPress={() => handleCreate('quick-report')}
+                    />
+                </View>
             }
             <View style={[
                 themeButtons.styles.createEvent,

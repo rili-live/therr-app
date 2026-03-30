@@ -115,6 +115,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                 title: group?.title || '',
                 subtitle: group?.subtitle || '',
                 description: group?.description || '',
+                city: group?.city || '',
+                region: group?.region || '',
                 iconGroup: group?.iconGroup || '',
                 iconId: group?.iconId || '',
                 iconColor: group?.iconColor || '',
@@ -184,6 +186,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             title,
             subtitle,
             description,
+            city,
+            region,
             integrationIds,
             invitees,
             iconGroup,
@@ -199,8 +203,10 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             title,
             subtitle: subtitle || title,
             description,
+            city: city || undefined,
+            region: region || undefined,
             // TODO: Implement end-to-end logic to support updating categoryTags
-            categoryTags: categories.filter(c => c.isActive).map(c => c.tag) || ['general'],
+            categoryTags: categories.filter(c => c.isActive).map(c => c.tag),
             hashTags: hashtags.join(','),
             integrationIds: integrationIds ? integrationIds.join(',') : '',
             invitees: invitees ? invitees.join('') : '',
@@ -466,6 +472,28 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 }
                                 minHeight={150}
                                 numberOfLines={7}
+                                themeForms={this.themeForms}
+                            />
+                            <RoundInput
+                                containerStyle={{ marginTop: 14 }}
+                                placeholder={this.translate(
+                                    'forms.editGroup.placeholders.city'
+                                )}
+                                value={inputs.city}
+                                onChangeText={(text) =>
+                                    this.onInputChange('city', text)
+                                }
+                                themeForms={this.themeForms}
+                            />
+                            <RoundInput
+                                containerStyle={{ marginTop: 14 }}
+                                placeholder={this.translate(
+                                    'forms.editGroup.placeholders.region'
+                                )}
+                                value={inputs.region}
+                                onChangeText={(text) =>
+                                    this.onInputChange('region', text)
+                                }
                                 themeForms={this.themeForms}
                             />
                             <RoundInput
