@@ -47,7 +47,7 @@ describe('Content Redux Actions - Error Propagation', () => {
 
     beforeEach(() => {
         dispatch = jest.fn();
-        consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+        consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
     });
 
     afterEach(() => {

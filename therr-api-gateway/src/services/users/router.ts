@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import logSpan from 'therr-js-utilities/log-or-update-span';
 import * as globalConfig from '../../../../global-config';
 import authenticateOptional from '../../middleware/authenticateOptional';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
@@ -97,7 +98,12 @@ usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, async (r
         }
     } catch (err) {
         // Log but don't block logout if blacklisting fails
-        console.error('Failed to blacklist token on logout:', err);
+        logSpan({
+            level: 'error',
+            messageOrigin: 'API_GATEWAY_USERS_ROUTER',
+            messages: ['Failed to blacklist token on logout'],
+            traceArgs: { 'error.message': err?.message },
+        });
     }
     return next();
 }, handleServiceRequest({

@@ -97,7 +97,7 @@ const createOrUpdateMultiSpaceReactions = async (req, res) => {
             updated: updatedReactions,
         });
     } catch (err) {
-        return handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' });
+        return handleHttpError({ err: err as Error, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' });
     }
 };
 

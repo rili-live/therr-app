@@ -1,6 +1,6 @@
 {
   "type": "email-found",
-  "updatedAt": "2026-03-29T16:35:13.139Z",
+  "updatedAt": "2026-03-30T19:19:30.845Z",
   "entries": [
     {
       "id": "9fbe963b-6e01-494c-acee-d628cc40ce01",
@@ -796,6 +796,221 @@
       "id": "6e7bce6b-aa05-4927-a414-4a6410862aff",
       "name": "Banyan Tree Restaurant",
       "processedAt": "2026-03-29T16:35:13.139Z"
+    },
+    {
+      "id": "011c8890-9f0f-4a2f-919e-dd7dd91c0445",
+      "name": "Ali Baba Restaurant",
+      "processedAt": "2026-03-30T19:02:20.690Z"
+    },
+    {
+      "id": "7f91ad1a-df22-432a-b3ca-09b7abeefd3f",
+      "name": "The Mucky Duck Bar",
+      "processedAt": "2026-03-30T19:02:23.373Z"
+    },
+    {
+      "id": "03977780-1f8d-4b21-a668-01c58e9a5b4a",
+      "name": "Pasta Max Cafe",
+      "processedAt": "2026-03-30T19:02:31.657Z"
+    },
+    {
+      "id": "b535d0fc-74fa-4496-b0cf-52eed1da95f1",
+      "name": "Milwaukee Public Museum",
+      "processedAt": "2026-03-30T19:02:53.031Z"
+    },
+    {
+      "id": "a2626514-6a6e-49f1-a8d8-2541c9fec734",
+      "name": "MoMA PS1",
+      "processedAt": "2026-03-30T19:02:59.625Z"
+    },
+    {
+      "id": "65f0dc4f-796b-471e-b227-a33492fd0101",
+      "name": "Bowlski's Lakewood Theater",
+      "processedAt": "2026-03-30T19:03:31.726Z"
+    },
+    {
+      "id": "d01959a0-e583-4d6b-9040-3ca2b0a529e4",
+      "name": "Lodi Lanes",
+      "processedAt": "2026-03-30T19:03:53.587Z"
+    },
+    {
+      "id": "676e3d61-7ad3-4407-a5a2-3c9c05bfcbdc",
+      "name": "C3 Bar",
+      "processedAt": "2026-03-30T19:03:56.337Z"
+    },
+    {
+      "id": "a81c032e-862c-4348-8cb0-71b3a2547916",
+      "name": "The Publican",
+      "processedAt": "2026-03-30T19:04:01.726Z"
+    },
+    {
+      "id": "a78074c4-b9c4-4c4b-b9ff-a81ffd714db9",
+      "name": "Il Milanese",
+      "processedAt": "2026-03-30T19:04:52.623Z"
+    },
+    {
+      "id": "e1896157-ef9b-4d3d-98ed-da3295055df1",
+      "name": "The Music Room",
+      "processedAt": "2026-03-30T19:05:19.945Z"
+    },
+    {
+      "id": "6ebd1baa-76fb-4e57-8ef9-67d6334d9062",
+      "name": "Lizard Lounge",
+      "processedAt": "2026-03-30T19:06:10.749Z"
+    },
+    {
+      "id": "a1e94bae-d458-4944-826a-471e42da5732",
+      "name": "Bowlero Pasadena",
+      "processedAt": "2026-03-30T19:07:01.893Z"
+    },
+    {
+      "id": "69ff47db-de62-46f6-8492-64c5d78a38fb",
+      "name": "The Continental Club",
+      "processedAt": "2026-03-30T19:07:04.622Z"
+    },
+    {
+      "id": "f5d55a36-e441-4ce6-9369-a68145693f2b",
+      "name": "Baramor",
+      "processedAt": "2026-03-30T19:07:15.657Z"
+    },
+    {
+      "id": "412a59ea-f307-414f-8210-238a80902628",
+      "name": "El Salvador Restaurant",
+      "processedAt": "2026-03-30T19:07:27.463Z"
+    },
+    {
+      "id": "6b101a35-6bed-416d-b0ce-f42a2346deb9",
+      "name": "Bowlero Marietta",
+      "processedAt": "2026-03-30T19:07:39.403Z"
+    },
+    {
+      "id": "d3de9d54-c6a5-4caa-b238-cd8407932d8c",
+      "name": "The Mold bookshop",
+      "processedAt": "2026-03-30T19:08:05.382Z"
+    },
+    {
+      "id": "e2af385d-1c4b-428b-a77e-93411eda8f09",
+      "name": "The Kings Contrivance",
+      "processedAt": "2026-03-30T19:08:55.560Z"
+    },
+    {
+      "id": "4d94ceea-76c8-4525-906e-2c3255d9c7c4",
+      "name": "Skooners Grill & Bar",
+      "processedAt": "2026-03-30T19:09:15.768Z"
+    },
+    {
+      "id": "a323ab5c-bfb6-4b15-a7e3-ac01c3f4c770",
+      "name": "Los Angeles County Museum of Art",
+      "processedAt": "2026-03-30T19:09:42.661Z"
+    },
+    {
+      "id": "6b8fbbac-2a69-4385-90d6-a1fefc3bd77f",
+      "name": "Nader Museum",
+      "processedAt": "2026-03-30T19:10:07.194Z"
+    },
+    {
+      "id": "ba6808aa-7b70-42e9-b263-d670a511b9d7",
+      "name": "Pot Luck Cafe",
+      "processedAt": "2026-03-30T19:10:45.478Z"
+    },
+    {
+      "id": "2780354a-2b94-43ad-841b-30460048cea7",
+      "name": "Charis Books & More",
+      "processedAt": "2026-03-30T19:11:06.658Z"
+    },
+    {
+      "id": "f3df4060-5766-4a46-918a-b8d9959cf176",
+      "name": "Balloon Museum | Let's Fly Atlanta",
+      "processedAt": "2026-03-30T19:11:09.963Z"
+    },
+    {
+      "id": "1fea67bf-70ac-46bc-b0b0-7ea010c5c581",
+      "name": "The Tap",
+      "processedAt": "2026-03-30T19:11:31.499Z"
+    },
+    {
+      "id": "eb13470a-6833-4786-833e-2dac2d567a14",
+      "name": "Made in House",
+      "processedAt": "2026-03-30T19:11:42.574Z"
+    },
+    {
+      "id": "a0a21d20-5118-432c-b7d9-1be4f9f5f02e",
+      "name": "Cedar Room",
+      "processedAt": "2026-03-30T19:11:50.185Z"
+    },
+    {
+      "id": "40908c41-3063-44e6-8499-f7f3977a0792",
+      "name": "The Tin Lizzie Lounge",
+      "processedAt": "2026-03-30T19:12:00.899Z"
+    },
+    {
+      "id": "10a629d7-6ffe-4785-9661-33caa0e50154",
+      "name": "Del Rio Lanes",
+      "processedAt": "2026-03-30T19:12:27.389Z"
+    },
+    {
+      "id": "701a86c6-5ff6-4438-9639-1b8c75bfdee8",
+      "name": "People's Book",
+      "processedAt": "2026-03-30T19:14:17.944Z"
+    },
+    {
+      "id": "0c878049-f21d-4128-95e7-c2b0c3017dd6",
+      "name": "El Patio Restaurant",
+      "processedAt": "2026-03-30T19:14:26.629Z"
+    },
+    {
+      "id": "9b4fc256-bef9-4941-8fb1-3a9b3673e183",
+      "name": "Iberian Lounge",
+      "processedAt": "2026-03-30T19:14:55.217Z"
+    },
+    {
+      "id": "43a7d9ba-5895-4a1c-a489-4cb0bddaa36a",
+      "name": "The Nashville Tap House",
+      "processedAt": "2026-03-30T19:14:57.891Z"
+    },
+    {
+      "id": "98fc3e70-c8d0-4c32-b98b-d954101c7e6a",
+      "name": "Bowlero Euless",
+      "processedAt": "2026-03-30T19:15:42.303Z"
+    },
+    {
+      "id": "388f38c6-1736-466c-8043-717661de47c4",
+      "name": "Yono's",
+      "processedAt": "2026-03-30T19:16:38.131Z"
+    },
+    {
+      "id": "4de89210-906a-4f77-b0b4-80eba63ecfaa",
+      "name": "Sherrill Park Golf Course",
+      "processedAt": "2026-03-30T19:17:34.179Z"
+    },
+    {
+      "id": "8bb73a30-df90-4daf-96ad-c5d5aaf503e6",
+      "name": "Triple B Restaurant",
+      "processedAt": "2026-03-30T19:17:38.058Z"
+    },
+    {
+      "id": "b6b3ad8b-b04f-41d1-94c6-9ff43e525524",
+      "name": "El Novillo Restaurant",
+      "processedAt": "2026-03-30T19:17:42.602Z"
+    },
+    {
+      "id": "33d3666c-cd16-452f-b16e-9836d73f8c85",
+      "name": "Back Alley Bowling - Northridge (formerly Matador Bowl)",
+      "processedAt": "2026-03-30T19:17:50.902Z"
+    },
+    {
+      "id": "a7114c2f-7b50-4423-913f-ab8573e39236",
+      "name": "Musaafer",
+      "processedAt": "2026-03-30T19:17:53.793Z"
+    },
+    {
+      "id": "5bc68377-9428-4710-84c0-af5f4cbde56d",
+      "name": "Driftwood",
+      "processedAt": "2026-03-30T19:18:58.672Z"
+    },
+    {
+      "id": "725f362a-6287-473d-bcbc-01a0058fb17e",
+      "name": "Museum of Contemporary Art of the Americas",
+      "processedAt": "2026-03-30T19:19:30.845Z"
     }
   ]
 }
