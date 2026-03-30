@@ -16,6 +16,8 @@ const getHighlightValues = (notification: any): string[] => {
     const params = notification.messageParams;
     const type = notification.type;
 
+    console.log(params)
+
     // Add dynamic param values (user names, group names, counts, etc.)
     if (params) {
         if (params.firstName && params.lastName) {
