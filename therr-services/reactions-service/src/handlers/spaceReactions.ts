@@ -50,7 +50,7 @@ const createOrUpdateSpaceReaction = (req, res) => {
 };
 
 // CREATE/UPDATE
-const createOrUpdateMultiSpaceReactions = (req, res) => {
+const createOrUpdateMultiSpaceReactions = async (req, res) => {
     // TODO: This endpoint should be secure/non-public so user's cannot activate spaces on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
@@ -61,9 +61,11 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
 
     // TODO: Use INSERT...ON CONFLICT...MERGE
     // Use the resulting created at vs. updated at to determine if this was an INSERT or an UPDATE
-    return Store.spaceReactions.get({
-        userId,
-    }, spaceIds).then((existing) => {
+    try {
+        const existing = await Store.spaceReactions.get({
+            userId,
+        }, spaceIds);
+
         const existingMapped = {};
         const existingReactions: string[][] = existing.map((reaction) => {
             existingMapped[reaction.spaceId] = reaction;
@@ -71,14 +73,13 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
         });
         let updatedReactions;
         if (existing?.length) {
-            Store.spaceReactions.update({}, {
+            updatedReactions = await Store.spaceReactions.update({}, {
                 ...params,
                 userLocale: locale,
             }, {
                 columns: ['userId', 'spaceId'],
                 whereInArray: existingReactions,
-            })
-                .then((spaceReactions) => { updatedReactions = spaceReactions; });
+            });
         }
 
         const createArray = spaceIds
@@ -90,11 +91,14 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
                 userLocale: locale,
             }));
 
-        return Store.spaceReactions.create(createArray).then((createdReactions) => res.status(200).send({
+        const createdReactions = await Store.spaceReactions.create(createArray);
+        return res.status(200).send({
             created: createdReactions,
             updated: updatedReactions,
-        }));
-    }).catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
+        });
+    } catch (err) {
+        return handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' });
+    }
 };
 
 // READ

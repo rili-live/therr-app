@@ -20,7 +20,7 @@ const Messages = {
             type: query.pageNumber > 1 ? MessageActionTypes.GET_MORE_DIRECT_MESSAGES : MessageActionTypes.GET_DIRECT_MESSAGES,
             data,
         });
-    }),
+    }).catch((err) => { throw err; }),
     searchMyDMs: (query: any, userDetails) => (dispatch: any) => MessagesService.searchMyDMs(query).then((response: any) => {
         dispatch({
             type: query.pageNumber > 1 ? MessageActionTypes.GET_MORE_OF_MY_DIRECT_MESSAGES : MessageActionTypes.GET_MY_DIRECT_MESSAGES,
@@ -28,7 +28,7 @@ const Messages = {
         });
 
         return response?.data;
-    }),
+    }).catch((err) => { throw err; }),
     markDmsRead: () => (dispatch: any) => {
         dispatch({ type: MessageActionTypes.MARK_DMS_READ });
     },
@@ -50,7 +50,8 @@ const Messages = {
                     isLastPage: response.data.results.length < query.itemsPerPage,
                 },
             });
-        }),
+        })
+        .catch((err) => { throw err; }),
 };
 
 export default Messages;
