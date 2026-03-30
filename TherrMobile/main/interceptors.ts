@@ -1,7 +1,7 @@
 import axios from 'axios';
 // import { AlertActions } from './library/alerts';
 // import { LoaderActions } from './library/loader';
-import UsersService from 'therr-react/services/UsersService';
+import { UsersService } from 'therr-react/services';
 import SecureStorage from './utilities/SecureStorage';
 import { CURRENT_BRAND_VARIATION } from './config/brandConfig';
 import getConfig from './utilities/getConfig';

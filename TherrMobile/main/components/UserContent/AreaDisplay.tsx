@@ -727,7 +727,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 spacingStyles.alignCenter,
                                 spacingStyles.flexRow,
                             ]}>
-                                <Text style={[spacingStyles.padRtTiny, localStyles.ratingText]}>
+                                <Text style={[spacingStyles.padRtTiny, localStyles.ratingText,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary }]}>
                                     {area.rating?.avgRating}
                                 </Text>
                                 <SpaceRating
@@ -740,7 +741,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                         localStyles.ratingStars,
                                     ]}
                                 />
-                                <Text style={[spacingStyles.padLtTiny, localStyles.ratingText]}>
+                                <Text style={[spacingStyles.padLtTiny, localStyles.ratingText,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary }]}>
                                     ({area.rating.totalRatings})
                                 </Text>
                             </View>
