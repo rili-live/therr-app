@@ -194,6 +194,72 @@ describe('Notifications Handler', () => {
 
             expect(result).to.have.property('message');
         });
+
+        it('should interpolate {userName} from messageParams object', () => {
+            const mockNotification = {
+                messageLocaleKey: 'notifications.newThoughtReplyReceived',
+                messageParams: { userName: 'zanselm5', postType: 'thoughts' },
+            };
+
+            const result = translateNotification(mockNotification, 'en-us');
+
+            expect(result.message).to.equal('zanselm5 replied to your post');
+        });
+
+        it('should interpolate {userName} when messageParams is a JSON string', () => {
+            const mockNotification = {
+                messageLocaleKey: 'notifications.newThoughtReplyReceived',
+                messageParams: JSON.stringify({ userName: 'zanselm5', postType: 'thoughts' }),
+            };
+
+            const result = translateNotification(mockNotification, 'en-us');
+
+            expect(result.message).to.equal('zanselm5 replied to your post');
+        });
+
+        it('should fall back to fromUserName when userName is missing', () => {
+            const mockNotification = {
+                messageLocaleKey: 'notifications.newThoughtReplyReceived',
+                messageParams: { fromUserName: 'zanselm5', postType: 'thoughts' },
+            };
+
+            const result = translateNotification(mockNotification, 'en-us');
+
+            expect(result.message).to.equal('zanselm5 replied to your post');
+        });
+
+        it('should fall back to fromUserName from a JSON string when userName is missing', () => {
+            const mockNotification = {
+                messageLocaleKey: 'notifications.newThoughtReplyReceived',
+                messageParams: JSON.stringify({ fromUserName: 'zanselm5', postType: 'thoughts' }),
+            };
+
+            const result = translateNotification(mockNotification, 'en-us');
+
+            expect(result.message).to.equal('zanselm5 replied to your post');
+        });
+
+        it('should interpolate {userName} for like notifications', () => {
+            const mockNotification = {
+                messageLocaleKey: 'notifications.reactionLikeReceived',
+                messageParams: { userName: 'testuser' },
+            };
+
+            const result = translateNotification(mockNotification, 'en-us');
+
+            expect(result.message).to.equal('testuser liked your post');
+        });
+
+        it('should interpolate {firstName} and {lastName} for connection notifications', () => {
+            const mockNotification = {
+                messageLocaleKey: 'notifications.connectionRequestReceived',
+                messageParams: { firstName: 'John', lastName: 'Doe' },
+            };
+
+            const result = translateNotification(mockNotification, 'en-us');
+
+            expect(result.message).to.equal('You have a new connection request from John Doe');
+        });
     });
 
     describe('notification types', () => {
