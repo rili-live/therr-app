@@ -1,7 +1,7 @@
 import React, { Ref } from 'react';
 import { Dimensions, PermissionsAndroid, Keyboard, Platform, SafeAreaView } from 'react-native';
 import { StackActions } from '@react-navigation/native';
-import MapView from 'react-native-map-clustering';
+import MapView from 'react-native-maps';
 import AnimatedOverlay from 'react-native-modal-overlay';
 import { bindActionCreators } from 'redux';
 import Toast from 'react-native-toast-message';
@@ -401,6 +401,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
             const { map, location, route: inScopeRoute } = this.props;
+            const restoredScrollIndex = inScopeRoute?.params?.previewScrollIndex || 0;
             this.expandBottomSheet(-1);
             this.setState({
                 areButtonsVisible: true,
@@ -413,6 +414,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 ((map?.latitude && map?.longitude) || (location?.user?.latitude && location?.user?.longitude))) {
                 navigation.setParams({
                     shouldShowPreview: false,
+                    previewScrollIndex: undefined,
                 });
 
                 const searchRadiusMeters = 4 * MAX_ANIMATION_LATITUDE_DELTA * 69 * 1609.34;
@@ -428,7 +430,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                     longitude: longitude,
                                 },
                             },
-                        }, true);
+                        }, true, restoredScrollIndex);
                     });
             }
 
@@ -1892,9 +1894,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 hideCreateActions={this.hideCreateActions}
                                 isScrollEnabled={isScrollEnabled}
                                 onMapLayout={this.onMapLayout}
-                                // /* react-native-map-clustering */
+                                // /* clustering */
                                 // onClusterPress={this.onClusterPress}
-                                // // preserveClusterPressBehavior={true}
                                 updateCircleCenter={this.updateCircleCenter}
                             />
                             <AnimatedOverlay
