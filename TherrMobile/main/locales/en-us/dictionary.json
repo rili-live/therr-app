@@ -1290,8 +1290,13 @@
       "h2": {
         "claimRewards": "Claim Your Rewards",
         "requirements": "Steps",
+        "hours": "Hours",
+        "contactAndLocation": "Contact & Location",
         "events": "Upcoming Events",
         "moments": "Guest Posts"
+      },
+      "labels": {
+        "viewOnGoogleMaps": "View on Google Maps"
       },
       "info": {
         "shareAMoment": {
@@ -1459,6 +1464,13 @@
       "locationDescription1": "See posts from nearby users in the local community where you currently are.",
       "locationDescription2": "Use the awareness and influence sliders to control content distance and your own visibility.",
       "locationDescription3": "Enable location services to activate this feature."
+    },
+    "activatedAreas": {
+      "headerTitle": "Recently Activated",
+      "description": "These are the moments and spaces you recently activated.",
+      "noAreasFound": "No activated areas found",
+      "backToNotifications": "Back to Notifications",
+      "discoverMore": "Discover more moments and spaces nearby"
     },
     "notifications": {
       "headerTitle": "Notifications",
