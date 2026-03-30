@@ -78,15 +78,29 @@ interface IAreaDisplayMediumProps extends IAreaDisplayContentProps {
 
 interface IAreaDisplayMediumState {
     isLiked: boolean;
+    likeCount: number | null;
     mediaWidth: number;
 }
 
 export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediumProps, IAreaDisplayMediumState> {
+    static getDerivedStateFromProps(nextProps: IAreaDisplayMediumProps, nextState: IAreaDisplayMediumState) {
+        if (nextProps.area?.likeCount != null
+            && (nextState.likeCount == null)) {
+            return {
+                isLiked: !!nextProps.area.reaction?.userHasLiked,
+                likeCount: nextProps.area?.likeCount,
+            };
+        }
+
+        return null;
+    }
+
     constructor(props: IAreaDisplayMediumProps) {
         super(props);
 
         this.state = {
             isLiked: !!props.area.reaction?.userHasLiked,
+            likeCount: props.area.likeCount,
             mediaWidth: viewportWidth / 4,
         };
     }
@@ -111,7 +125,12 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
             const { updateAreaReaction, user } = this.props;
             const newIsLiked = !this.state.isLiked;
 
-            this.setState({ isLiked: newIsLiked });
+            this.setState({
+                isLiked: newIsLiked,
+                likeCount: this.props.area.likeCount != null
+                    ? (this.state.likeCount || 0) + (newIsLiked ? 1 : -1)
+                    : this.state.likeCount,
+            });
 
             updateAreaReaction(area.id, {
                 userHasLiked: newIsLiked,

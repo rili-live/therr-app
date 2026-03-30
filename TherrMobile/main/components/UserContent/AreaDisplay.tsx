@@ -110,6 +110,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         if (nextProps.area?.likeCount != null
             && (nextState.likeCount == null)) {
             return {
+                isLiked: !!nextProps.area.reaction?.userHasLiked,
                 likeCount: nextProps.area?.likeCount,
             };
         }
