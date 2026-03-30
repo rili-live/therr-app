@@ -201,7 +201,7 @@ export default class ForumsStore {
         // Filter by city name (case-insensitive partial match)
         if (options.nearbyCity) {
             queryString = queryString.andWhereRaw(
-                `LOWER("city") LIKE ?`,
+                'LOWER("city") LIKE ?',
                 [`%${options.nearbyCity.toLowerCase()}%`],
             );
         }
@@ -210,7 +210,7 @@ export default class ForumsStore {
         if (options.nearbyLatitude != null && options.nearbyLongitude != null) {
             const maxDistMeters = (options.nearbyMaxDistanceKm || 200) * 1000;
             queryString = queryString.andWhereRaw(
-                `("localLocation" IS NULL OR ST_DWithin("localLocation"::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?))`,
+                '("localLocation" IS NULL OR ST_DWithin("localLocation"::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?))',
                 [options.nearbyLongitude, options.nearbyLatitude, maxDistMeters],
             );
         }
