@@ -101,6 +101,7 @@ interface IAreaDisplayProps {
 }
 
 interface IAreaDisplayState {
+    isLiked: boolean;
     likeCount: number | null;
 }
 
@@ -120,6 +121,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         super(props);
 
         this.state = {
+            isLiked: !!props.area.reaction?.userHasLiked,
             likeCount: props.area.likeCount,
         };
     }
@@ -168,18 +170,17 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         if (!area.isDraft) {
             // ReactNativeHapticFeedback.trigger(HAPTIC_FEEDBACK_TYPE, hapticFeedbackOptions);
             const { updateAreaReaction, user } = this.props;
+            const newIsLiked = !this.state.isLiked;
 
-            // Only display on own user post
-            if (this.props.area.likeCount != null) {
-                this.setState({
-                    likeCount: !area.reaction?.userHasLiked
-                        ? (this.state.likeCount || 0) + 1
-                        : (this.state.likeCount || 0) - 1,
-                });
-            }
+            this.setState({
+                isLiked: newIsLiked,
+                likeCount: this.props.area.likeCount != null
+                    ? (this.state.likeCount || 0) + (newIsLiked ? 1 : -1)
+                    : this.state.likeCount,
+            });
 
             updateAreaReaction(area.id, {
-                userHasLiked: !area.reaction?.userHasLiked,
+                userHasLiked: newIsLiked,
             }, area.fromUserId, user?.details?.userName);
         }
     };
@@ -362,13 +363,12 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             translate,
             user,
         } = this.props;
-        const { likeCount } = this.state;
+        const { isLiked, likeCount } = this.state;
 
         const dateTime = formatDate(area.createdAt);
         const dateStr = !dateTime.date ? '' : `${dateTime.date} | ${dateTime.time}`;
         const mediaPadding = areaMediaPadding || 0;
         const isBookmarked = area.reaction?.userBookmarkCategory;
-        const isLiked = area.reaction?.userHasLiked;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
         const shouldDisplayRewardsBanner = area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey
