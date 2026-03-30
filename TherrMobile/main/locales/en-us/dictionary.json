@@ -523,6 +523,7 @@
         "maxViews": "Max views (per person)",
         "expiresAt": "Countdown",
         "radius": "Radius: {meters} meters",
+        "radiusPlaceholder": "Radius ({min}-{max} meters)",
         "unselected": "Select a Space"
       },
       "headers": {
@@ -650,6 +651,7 @@
         "maxViews": "Max views (per person)",
         "expiresAt": "Countdown",
         "radius": "Radius: {meters} meters",
+        "radiusPlaceholder": "Radius ({min}-{max} meters)",
         "incentiveRequirement": "Reward Requirement",
         "unselectedIncentiveRequirement": "Select a Requirement",
         "incentiveReward": "Reward for Participation",

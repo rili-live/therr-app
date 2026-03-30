@@ -523,6 +523,7 @@
         "maxViews": "Máx. vistas (por persona)",
         "expiresAt": "Cuenta regresiva",
         "radius": "Radio: {meters} metros",
+        "radiusPlaceholder": "Radio ({min}-{max} metros)",
         "unselected": "Seleccionar un espacio"
       },
       "headers": {
@@ -650,6 +651,7 @@
         "maxViews": "Máx. vistas (por persona)",
         "expiresAt": "Cuenta regresiva",
         "radius": "Radio: {meters} metros",
+        "radiusPlaceholder": "Radio ({min}-{max} metros)",
         "incentiveRequirement": "Requisito de recompensa",
         "unselectedIncentiveRequirement": "Seleccionar un requisito",
         "incentiveReward": "Recompensa por participación",
