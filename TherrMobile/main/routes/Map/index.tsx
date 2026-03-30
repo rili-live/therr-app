@@ -1831,6 +1831,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         const { captureClickTarget, location, map, navigation, notifications, route, updateTour, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
+        const isAutoCompleteSearching = map?.searchPredictions?.isSearching;
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         const isTouring = !!user?.settings?.isTouring;
         const mapFilters = {
@@ -1866,6 +1867,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 isDropdownVisible &&
                                 <SearchTypeAheadResults
                                     handleSelect={this.handleSearchSelect}
+                                    isSearching={isAutoCompleteSearching}
                                     searchPredictionResults={searchPredictionResults}
                                     themeSearch={this.themeSearch}
                                 />

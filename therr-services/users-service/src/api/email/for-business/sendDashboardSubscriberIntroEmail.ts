@@ -32,7 +32,7 @@ export default (emailParams: ISendDashboardSubscriberIntroEmailConfig, templateP
         dearUser: translate(locale, 'emails.dashboardSubscriberIntro.dearUser'),
         body1: translate(locale, 'emails.dashboardSubscriberIntro.body1', { productPlanName }),
         body2: translate(locale, 'emails.dashboardSubscriberIntro.body2'),
-        body3: translate(locale, 'emails.dashboardSubscriberIntro.body3', { feedbackEmail: process.env.AWS_FEEDBACK_EMAIL_ADDRESS }),
+        body3: translate(locale, 'emails.dashboardSubscriberIntro.body3', { feedbackEmail: process.env.AWS_FEEDBACK_EMAIL_ADDRESS || '' }),
         bodyBold: translate(locale, 'emails.dashboardSubscriberIntro.bodyBold'),
         buttonHref: linkUrl,
         buttonText: translate(locale, 'emails.dashboardSubscriberIntro.buttonText'),
