@@ -1140,13 +1140,21 @@ export class EditSpace extends React.PureComponent<IEditSpaceProps, IEditSpaceSt
                             <RoundInput
                                 containerStyle={{ marginBottom: 4 }}
                                 placeholder={this.translate('forms.editSpace.labels.radius', { meters: '' })}
-                                value={String(inputs.radius)}
+                                value={inputs.radius === '' ? '' : String(inputs.radius)}
                                 onChangeText={(text) => {
-                                    const num = parseInt(text, 10);
-                                    if (!isNaN(num)) {
-                                        this.onInputChange('radius', Math.min(MAX_RADIUS_PUBLIC, Math.max(MIN_RADIUS_PUBLIC, num)));
-                                    } else if (text === '') {
-                                        this.onInputChange('radius', MIN_RADIUS_PUBLIC);
+                                    const stripped = text.replace(/[^0-9]/g, '');
+                                    if (stripped === '') {
+                                        this.onInputChange('radius', '' as any);
+                                    } else {
+                                        this.onInputChange('radius', parseInt(stripped, 10) as any);
+                                    }
+                                }}
+                                onBlur={() => {
+                                    const num = parseInt(inputs.radius, 10);
+                                    if (isNaN(num) || num < MIN_RADIUS_PUBLIC) {
+                                        this.onInputChange('radius', MIN_RADIUS_PUBLIC as any);
+                                    } else if (num > MAX_RADIUS_PUBLIC) {
+                                        this.onInputChange('radius', MAX_RADIUS_PUBLIC as any);
                                     }
                                 }}
                                 keyboardType="number-pad"
