@@ -281,8 +281,12 @@ const map = produce((draft: IMapState, action: any) => {
         case MapActionTypes.USER_LOCATION_DETERMINED:
             draft.hasUserLocationLoaded = true;
             break;
+        case MapActionTypes.AUTOCOMPLETE_SEARCHING:
+            draft.searchPredictions.isSearching = true;
+            break;
         case MapActionTypes.AUTOCOMPLETE_UPDATE:
             draft.searchPredictions.results = action.data.predictions;
+            draft.searchPredictions.isSearching = false;
             break;
         case MapActionTypes.SET_DROPDOWN_VISIBILITY:
             draft.searchPredictions.isSearchDropdownVisible = action.data.isSearchDropdownVisible;
