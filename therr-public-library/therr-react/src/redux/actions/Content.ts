@@ -33,7 +33,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     searchActiveEventsByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveEventsByIds(options, ids)
         .then((response: any) => {
@@ -42,7 +42,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     updateActiveEventsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveEvents(options, limit)
         .then((response: any) => {
@@ -51,7 +51,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     createOrUpdateEventReaction: (
         eventId: number,
         params: ICreateOrUpdateEventReactionBody,
@@ -81,7 +81,7 @@ const Content = {
                 });
             }
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     searchBookmarkedEvents: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedEvents(options, 100)
         .then((response: any) => {
@@ -90,7 +90,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
 
     // Moments
     insertActiveMoments: (newActiveMoments: any) => (dispatch: any) => dispatch({
@@ -108,7 +108,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     searchActiveMomentsByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveMomentsByIds(options, ids)
         .then((response: any) => {
@@ -117,7 +117,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     setActiveMomentsFilters: (filters: IActiveMomentsFilters) => (dispatch: any) => dispatch({
         type: ContentActionTypes.SET_ACTIVE_AREAS_FILTERS,
         data: filters,
@@ -130,7 +130,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     createOrUpdateMomentReaction: (
         momentId: number,
         params: ICreateOrUpdateAreaReactionBody,
@@ -160,7 +160,7 @@ const Content = {
                 });
             }
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     searchBookmarkedMoments: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedMoments(options, 100)
         .then((response: any) => {
@@ -169,7 +169,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     searchMyDrafts: (query: ISearchQuery, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
         .searchMyMoments(query, data).then((response: any) => {
             dispatch({
@@ -177,7 +177,7 @@ const Content = {
                 data: response.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     deleteDraft: (id: string) => (dispatch: any) => MapsService.deleteMoments({ ids: [id] }).then(() => {
         dispatch({
             type: ContentActionTypes.MOMENT_DRAFT_DELETED,
@@ -186,7 +186,7 @@ const Content = {
             },
         });
     })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
 
     // Spaces
     insertActiveSpaces: (newActiveSpaces: any) => (dispatch: any) => {
@@ -203,7 +203,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     searchActiveSpacesByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
         .searchActiveSpacesByIds(options, ids)
         .then((response: any) => {
@@ -212,7 +212,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     updateActiveSpacesStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveSpaces(options, limit)
         .then((response: any) => {
@@ -221,7 +221,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     createOrUpdateSpaceReaction: (
         spaceId: number,
         params: ICreateOrUpdateSpaceReactionBody,
@@ -251,7 +251,7 @@ const Content = {
                 });
             }
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     searchBookmarkedSpaces: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedSpaces(options, 100)
         .then((response: any) => {
@@ -260,7 +260,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
 
     // Thoughts
     insertActiveThoughts: (newActiveThoughts: any) => (dispatch: any) => {
@@ -277,7 +277,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     updateActiveThoughtsStream: (options: ISearchActiveAreasParams, limit = POST_FEED_PAGE_SIZE) => (dispatch: any) => ReactionsService
         .searchActiveThoughts(options, limit)
         .then((response: any) => {
@@ -288,7 +288,7 @@ const Content = {
 
             return response?.data;
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     createOrUpdateThoughtReaction: (
         thoughtId: number,
         params: ICreateOrUpdateAreaReactionBody,
@@ -319,7 +319,7 @@ const Content = {
             }
             return response?.data;
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
     searchBookmarkedThoughts: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedThoughts(options, 100)
         .then((response: any) => {
@@ -328,7 +328,7 @@ const Content = {
                 data: response?.data,
             });
         })
-        .catch((err) => { throw err; }),
+        .catch((err) => { console.log(err); throw err; }),
 };
 
 export default Content;
