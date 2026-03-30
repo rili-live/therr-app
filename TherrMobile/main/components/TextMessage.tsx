@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { ActivityIndicator, StyleSheet, View, Text, Pressable } from 'react-native';
 import { Image } from './BaseImage';
-import Autolink from 'react-native-autolink';
 import { getUserImageUri } from '../utilities/content';
+import RichText from './RichText';
+import handleMentionPress from '../utilities/handleMentionPress';
 
 export default ({
     connectionDetails,
@@ -32,13 +33,12 @@ export default ({
     return (
         <>
             <View style={isLeft ? themeMessage.styles.messageContainerLeft : themeMessage.styles.messageContainerRight}>
-                <Text style={isLeft ? themeMessage.styles.messageTextLeft : themeMessage.styles.messageTextRight}>
-                    <Autolink
-                        text={message.text}
-                        linkStyle={theme.styles.link}
-                        phone="sms"
-                    />
-                </Text>
+                <RichText
+                    style={isLeft ? themeMessage.styles.messageTextLeft : themeMessage.styles.messageTextRight}
+                    text={message.text}
+                    linkStyle={theme.styles.link}
+                    onMentionPress={(username) => handleMentionPress(username, goToUser)}
+                />
                 <Text style={isLeft ? themeMessage.styles.messageDateLeft : themeMessage.styles.messageDateRight}>
                     {message.time}
                 </Text>

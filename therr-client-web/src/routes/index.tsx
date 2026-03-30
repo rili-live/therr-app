@@ -23,6 +23,7 @@ import EditProfile from './EditProfile';
 import EditSpace from './EditSpace';
 import CreateSpace from './CreateSpace';
 import ManageSpaces from './ManageSpaces';
+import Bookmarks from './Bookmarks';
 import Discovered from './Discovered';
 import Explore from './Explore';
 import ExploreMoments from './Explore/ExploreMoments';
@@ -240,6 +241,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
         path: '/users',
         element: <AuthRoute
             component={ExplorePeople}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/bookmarks',
+        element: <AuthRoute
+            component={Bookmarks}
             isAuthorized={routePropsConfig.isAuthorized({
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

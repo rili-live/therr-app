@@ -44,6 +44,9 @@
     "linkCopied": "¡Enlace copiado!"
   },
   "components": {
+    "tile": {
+      "untitled": "Sin t\u00edtulo"
+    },
     "layout": {
       "floatingButton": {
         "tooltip": "Comparte un pensamiento"
@@ -165,7 +168,8 @@
     },
     "userMenu": {
       "buttons": {
-        "changePassword": "Cambiar contraseña",
+        "changePassword": "Cambiar contrase\u00f1a",
+        "bookmarks": "Mis marcadores",
         "discovered": "Contenido descubierto",
         "editProfile": "Editar perfil",
         "explore": "Explorar todo",
@@ -257,6 +261,18 @@
       "returnToLogin": "Volver a la página de inicio de sesión",
       "sectionHeaders": {
         "response": "Una breve encuesta sobre la aplicación"
+      }
+    },
+    "bookmarks": {
+      "pageTitle": "Mis marcadores",
+      "subtitle": "Contenido que has guardado para m\u00e1s tarde",
+      "noResults": "A\u00fan no has guardado nada. Explora la comunidad y guarda contenido que quieras volver a ver.",
+      "exploreCta": "Descubrir contenido",
+      "filters": {
+        "all": "Todo",
+        "moments": "Momentos",
+        "spaces": "Espacios",
+        "thoughts": "Pensamientos"
       }
     },
     "discovered": {

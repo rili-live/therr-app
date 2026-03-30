@@ -149,6 +149,8 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 return this.props.navigation.navigate('/user/edit-profile');
             case 'discovered':
                 return this.props.navigation.navigate('/discovered');
+            case 'bookmarks':
+                return this.props.navigation.navigate('/bookmarks');
             case 'explore':
                 return this.props.navigation.navigate('/explore');
             case 'explore-moments':
@@ -193,6 +195,15 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                     leftSection={<InlineSvg name="bookmark" />}
                     text={this.props.translate('components.userMenu.buttons.discovered')}
                     onClick={this.navigate('discovered')}
+                    variant="subtle"
+                    fullWidth
+                />
+                <MantineButton
+                    id="nav_menu_bookmarks"
+                    className="menu-item left-icon"
+                    leftSection={<InlineSvg name="bookmark" />}
+                    text={this.props.translate('components.userMenu.buttons.bookmarks')}
+                    onClick={this.navigate('bookmarks')}
                     variant="subtle"
                     fullWidth
                 />
