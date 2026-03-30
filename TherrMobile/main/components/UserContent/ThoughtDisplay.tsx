@@ -73,6 +73,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         if (nextProps.thought?.likeCount != null
             && nextState.likeCount == null) {
             return {
+                isLiked: !!nextProps.thought.reaction?.userHasLiked,
                 likeCount: nextProps.thought?.likeCount,
             };
         }

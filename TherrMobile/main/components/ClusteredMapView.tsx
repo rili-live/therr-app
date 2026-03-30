@@ -41,7 +41,7 @@ const calculateBBox = (region: Region): [number, number, number, number] => {
 };
 
 const getZoomLevel = (region: Region, width: number): number => {
-    return Math.round(Math.log2(360 / region.longitudeDelta) * (width / 256));
+    return Math.ceil(Math.log2(360 * (width / 256) / region.longitudeDelta));
 };
 
 const getClusterStyle = (pointCount: number) => {
