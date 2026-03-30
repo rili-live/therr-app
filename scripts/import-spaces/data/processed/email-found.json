@@ -1,6 +1,6 @@
 {
   "type": "email-found",
-  "updatedAt": "2026-03-30T19:19:30.845Z",
+  "updatedAt": "2026-03-30T19:20:26.057Z",
   "entries": [
     {
       "id": "9fbe963b-6e01-494c-acee-d628cc40ce01",
@@ -1011,6 +1011,11 @@
       "id": "725f362a-6287-473d-bcbc-01a0058fb17e",
       "name": "Museum of Contemporary Art of the Americas",
       "processedAt": "2026-03-30T19:19:30.845Z"
+    },
+    {
+      "id": "0378c8cc-07bd-4ae1-9cde-1e5e4502db82",
+      "name": "The PATH Museum",
+      "processedAt": "2026-03-30T19:20:26.057Z"
     }
   ]
 }

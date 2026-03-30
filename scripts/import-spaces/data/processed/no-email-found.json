@@ -1,6 +1,6 @@
 {
   "type": "no-email-found",
-  "updatedAt": "2026-03-30T19:20:07.340Z",
+  "updatedAt": "2026-03-30T19:20:31.509Z",
   "entries": [
     {
       "id": "026a9415-fadb-4ca5-b54b-ee93abb63935",
@@ -6171,6 +6171,46 @@
       "id": "7ca7b020-ec23-4915-97d7-dd8795e56cad",
       "name": "Los Mariachis Restaurant",
       "processedAt": "2026-03-30T19:20:07.340Z"
+    },
+    {
+      "id": "7edcfd68-3544-4ca0-8824-9b6668bdfb4b",
+      "name": "Dairy Queen Grill & Chill",
+      "processedAt": "2026-03-30T19:20:09.654Z"
+    },
+    {
+      "id": "443315f1-9518-48b7-a6db-489033c7aa90",
+      "name": "Halligan Bar",
+      "processedAt": "2026-03-30T19:20:12.131Z"
+    },
+    {
+      "id": "198f83a5-987e-4d4e-ba7a-89d862276dbb",
+      "name": "Clear Springs Restaurant",
+      "processedAt": "2026-03-30T19:20:14.481Z"
+    },
+    {
+      "id": "288130d7-6cec-41f3-bcbf-adb56f1d2c1a",
+      "name": "Al Sultan Restaurant",
+      "processedAt": "2026-03-30T19:20:16.945Z"
+    },
+    {
+      "id": "999ccf79-ef16-4c63-98d1-4d7ec9102b81",
+      "name": "Leo's Restaurant",
+      "processedAt": "2026-03-30T19:20:19.392Z"
+    },
+    {
+      "id": "6fcf79bf-6346-46c9-b066-de1246a5377e",
+      "name": "The Goat",
+      "processedAt": "2026-03-30T19:20:22.155Z"
+    },
+    {
+      "id": "0516a0b1-098f-4f87-ac79-16ce917bd37f",
+      "name": "Rockabillies",
+      "processedAt": "2026-03-30T19:20:28.921Z"
+    },
+    {
+      "id": "98feb350-9d3a-414c-9037-a025d2d12e9b",
+      "name": "Rudyard's",
+      "processedAt": "2026-03-30T19:20:31.509Z"
     }
   ]
 }
