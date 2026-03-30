@@ -317,19 +317,14 @@ class Groups extends React.Component<IGroupsProps, IGroupsState> {
     };
 
     handleSearchTextChange = (text: string) => {
-        this.setState({ searchText: text });
-
-        if (this.searchDebounceTimer) {
-            clearTimeout(this.searchDebounceTimer);
-        }
-        this.searchDebounceTimer = setTimeout(() => {
-            this.handleRefreshDiscoverSearch();
-        }, 400);
+        this.setState({ searchText: text }, this.debouncedDiscoverSearch);
     };
 
     handleCitySearchChange = (text: string) => {
-        this.setState({ citySearchText: text });
+        this.setState({ citySearchText: text }, this.debouncedDiscoverSearch);
+    };
 
+    debouncedDiscoverSearch = () => {
         if (this.searchDebounceTimer) {
             clearTimeout(this.searchDebounceTimer);
         }

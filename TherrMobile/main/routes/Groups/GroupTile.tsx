@@ -54,7 +54,7 @@ export default ({
     user,
 }) => {
     const [isJoining, setIsJoining] = React.useState(false);
-    const membershipStatus = user?.myUserGroups[group.id]?.status || '';
+    const membershipStatus = user?.myUserGroups?.[group.id]?.status || '';
     const onPressJoinGroup = () => {
         setIsJoining(true);
         handleJoinGroup(group);
@@ -94,7 +94,7 @@ export default ({
                     </ListItem.Subtitle>
                 }
                 {
-                    group.memberCount &&
+                    group.memberCount > 0 &&
                     <ListItem.Subtitle
                         style={[{ fontWeight: '300', fontSize: 13 }, spacingStyles.marginBotSm]}
                         numberOfLines={2}>{translate('pages.groups.labels.memberCount', {

@@ -171,13 +171,11 @@ export class ListGroupsComponent extends React.Component<IListGroupsProps, IList
     };
 
     handleSearchTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ searchText: e.target.value });
-        this.debouncedSearch();
+        this.setState({ searchText: e.target.value }, this.debouncedSearch);
     };
 
     handleCitySearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ citySearchText: e.target.value });
-        this.debouncedSearch();
+        this.setState({ citySearchText: e.target.value }, this.debouncedSearch);
     };
 
     debouncedSearch = () => {
@@ -232,7 +230,7 @@ export class ListGroupsComponent extends React.Component<IListGroupsProps, IList
                         {locationText && (
                             <Text size="xs" c="dimmed">{locationText}</Text>
                         )}
-                        {group.memberCount && (
+                        {group.memberCount > 0 && (
                             <Text size="xs" c="dimmed">
                                 {this.props.translate('pages.listGroups.labels.memberCount', { count: group.memberCount })}
                             </Text>

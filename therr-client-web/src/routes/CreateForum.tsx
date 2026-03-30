@@ -188,7 +188,7 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
             description,
             city: city || undefined,
             region: region || undefined,
-            categoryTags: categories.filter((c) => c.isActive).map((c) => c.tag) || ['general'],
+            categoryTags: categories.filter((c) => c.isActive).map((c) => c.tag),
             hashTags: hashtags.join(','),
             integrationIds: integrationIds ? integrationIds.join(',') : '',
             invitees: invitees ? invitees.join('') : '',

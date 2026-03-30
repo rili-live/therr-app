@@ -206,7 +206,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             city: city || undefined,
             region: region || undefined,
             // TODO: Implement end-to-end logic to support updating categoryTags
-            categoryTags: categories.filter(c => c.isActive).map(c => c.tag) || ['general'],
+            categoryTags: categories.filter(c => c.isActive).map(c => c.tag),
             hashTags: hashtags.join(','),
             integrationIds: integrationIds ? integrationIds.join(',') : '',
             invitees: invitees ? invitees.join('') : '',
