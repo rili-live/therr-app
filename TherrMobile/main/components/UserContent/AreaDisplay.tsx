@@ -40,6 +40,14 @@ import handleMentionPress from '../../utilities/handleMentionPress';
 
 const envConfig = getConfig();
 const { width: viewportWidth } = Dimensions.get('window');
+
+const formatCategoryLabel = (category: string): string => {
+    if (!category) return '';
+    const label = category.replace('categories.', '').replace('/', ' & ');
+    return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
+const formatPriceRange = (priceRange: number): string => '$'.repeat(priceRange);
 // const hapticFeedbackOptions = {
 //     enableVibrateFallback: false,
 //     ignoreAndroidSystemSettings: false,
@@ -676,6 +684,36 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         </Pressable>
                     </Pressable>
                 }
+                {
+                    isSpace && isExpanded && (area.category || area.priceRange > 0) &&
+                    <View style={[spacingStyles.flexRow, spacingStyles.alignCenter, spacingStyles.padHorizMd, spacingStyles.padVertSm, localStyles.metaRow]}>
+                        {area.category ? (
+                            <View style={[localStyles.categoryBadge, { backgroundColor: theme.colors.primary3 }]}>
+                                <Text style={[localStyles.categoryBadgeText, {
+                                    color: isDarkMode ? theme.colors.textWhite : theme.colors.primary4,
+                                }]}>
+                                    {formatCategoryLabel(area.category)}
+                                </Text>
+                            </View>
+                        ) : null}
+                        {area.priceRange > 0 ? (
+                            <Text style={[localStyles.priceRangeText, { color: theme.colors.textGray }]}>
+                                {formatPriceRange(area.priceRange)}
+                            </Text>
+                        ) : null}
+                    </View>
+                }
+                {
+                    isSpace && isExpanded && area.addressReadable &&
+                    <View style={[spacingStyles.padHorizMd, localStyles.addressSection]}>
+                        <View style={[spacingStyles.flexRow, spacingStyles.alignCenter]}>
+                            <Icon name="place" size={16} color={theme.colors.textGray} />
+                            <Text style={[localStyles.addressText, { color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark }]}>
+                                {area.addressReadable}
+                            </Text>
+                        </View>
+                    </View>
+                }
                 <View style={[
                     spacingStyles.flexRow,
                 ]}>
@@ -690,7 +728,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 spacingStyles.alignCenter,
                                 spacingStyles.flexRow,
                             ]}>
-                                <Text style={[spacingStyles.padRtTiny, localStyles.ratingText]}>
+                                <Text style={[spacingStyles.padRtTiny, localStyles.ratingText,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary }]}>
                                     {area.rating?.avgRating}
                                 </Text>
                                 <SpaceRating
@@ -703,7 +742,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                         localStyles.ratingStars,
                                     ]}
                                 />
-                                <Text style={[spacingStyles.padLtTiny, localStyles.ratingText]}>
+                                <Text style={[spacingStyles.padLtTiny, localStyles.ratingText,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary }]}>
                                     ({area.rating.totalRatings})
                                 </Text>
                             </View>
@@ -870,6 +910,76 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     </View>
                 }
                 {
+                    isSpace && isExpanded && area.openingHours?.schema?.length > 0
+                    && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
+                        <Text style={theme.styles.sectionTitleCenter}>
+                            {translate('pages.viewSpace.h2.hours')}
+                        </Text>
+                        <View style={localStyles.hoursGrid}>
+                            {area.openingHours.schema.map((entry: string) => {
+                                const parts = entry.split(' ');
+                                const days = parts[0] || '';
+                                const hours = parts.slice(1).join(' ') || '';
+                                return (
+                                    <View key={entry} style={localStyles.hoursRow}>
+                                        <Text style={[localStyles.hoursDayText, {
+                                            color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark,
+                                        }]}>
+                                            {days}
+                                        </Text>
+                                        <Text style={[localStyles.hoursTimeText, { color: theme.colors.textGray }]}>
+                                            {hours}
+                                        </Text>
+                                    </View>
+                                );
+                            })}
+                        </View>
+                    </View>
+                }
+                {
+                    isSpace && isExpanded && (area.addressStreetAddress || area.addressLocality || area.addressRegion || area.phoneNumber)
+                    && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertSm]}>
+                        <Text style={theme.styles.sectionTitleCenter}>
+                            {translate('pages.viewSpace.h2.contactAndLocation')}
+                        </Text>
+                        {area.addressStreetAddress ? (
+                            <Text style={[localStyles.contactText, {
+                                color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark,
+                            }]}>
+                                {area.addressStreetAddress}
+                            </Text>
+                        ) : null}
+                        {(area.addressLocality || area.addressRegion) ? (
+                            <Text style={[localStyles.contactText, {
+                                color: isDarkMode ? theme.colors.textWhite : theme.colors.textDark,
+                            }]}>
+                                {[area.addressLocality, area.addressRegion].filter(Boolean).join(', ')}
+                                {area.postalCode ? ` ${area.postalCode}` : ''}
+                            </Text>
+                        ) : null}
+                        {area.phoneNumber ? (
+                            <Pressable onPress={() => Linking.openURL(`tel:${area.phoneNumber}`)}>
+                                <Text style={[localStyles.contactLinkText, {
+                                    color: isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen,
+                                }]}>
+                                    {area.phoneNumber}
+                                </Text>
+                            </Pressable>
+                        ) : null}
+                        {area.latitude && area.longitude ? (
+                            <Pressable onPress={() => Linking.openURL(
+                                `https://www.google.com/maps/search/?api=1&query=${area.latitude},${area.longitude}`
+                            )}>
+                                <Text style={[localStyles.contactLinkText, {
+                                    color: isDarkMode ? theme.colors.textWhite : theme.colors.brandingBlueGreen,
+                                }]}>
+                                    {translate('pages.viewSpace.labels.viewOnGoogleMaps')}
+                                </Text>
+                            </Pressable>
+                        ) : null}
+                    </View>
+                }
+                {
                     isSpace && isExpanded && area.events?.length > 0
                     && <View style={[spacingStyles.padHorizMd, spacingStyles.padVertMd]}>
                         <Text style={theme.styles.sectionTitleCenter}>
@@ -946,5 +1056,59 @@ const localStyles = StyleSheet.create({
     },
     distanceText: {
         width: 'auto',
+    },
+    metaRow: {
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    categoryBadge: {
+        borderRadius: 12,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+    },
+    categoryBadgeText: {
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    priceRangeText: {
+        fontSize: 15,
+        fontWeight: '600',
+    },
+    addressSection: {
+        paddingBottom: 4,
+    },
+    addressText: {
+        fontSize: 13,
+        marginLeft: 4,
+        flexShrink: 1,
+    },
+    hoursGrid: {
+        marginTop: 8,
+    },
+    hoursRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+    },
+    hoursDayText: {
+        fontSize: 14,
+        fontWeight: '600',
+        minWidth: 80,
+    },
+    hoursTimeText: {
+        fontSize: 14,
+        flex: 1,
+        textAlign: 'right',
+    },
+    contactText: {
+        fontSize: 14,
+        textAlign: 'center',
+        marginTop: 4,
+    },
+    contactLinkText: {
+        fontSize: 14,
+        textAlign: 'center',
+        marginTop: 8,
     },
 });
