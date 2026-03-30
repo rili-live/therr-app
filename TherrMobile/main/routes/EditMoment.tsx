@@ -734,9 +734,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     <LottieView
                                         source={require('../assets/missing-image-storefront.json')}
                                         resizeMode="contain"
-                                        speed={1}
+                                        speed={0.8}
                                         autoPlay
-                                        loop={false}
+                                        loop
                                         style={{
                                             width: viewportWidth - (2 * this.themeAccentLayout.styles.container.padding),
                                             height: 160,
@@ -884,8 +884,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         style={[this.themeForms.styles.inputSliderContainer, { paddingBottom: 20 }]}
                     >
                         <RoundInput
-                            containerStyle={{ marginBottom: 4 }}
-                            placeholder={this.translate('forms.editMoment.labels.radius', { meters: '' })}
+                            placeholder={this.translate('forms.editMoment.labels.radiusPlaceholder', {
+                                min: MIN_RADIUS_PRIVATE,
+                                max: MAX_RADIUS_PRIVATE,
+                            })}
                             value={inputs.radius === '' ? '' : String(inputs.radius)}
                             onChangeText={(text) => {
                                 const stripped = text.replace(/[^0-9]/g, '');
@@ -906,9 +908,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             keyboardType="number-pad"
                             themeForms={this.themeForms}
                         />
-                        <Text style={this.themeForms.styles.inputLabelDark}>
+                        {inputs.radius !== '' && <Text style={this.themeForms.styles.inputLabelDark}>
                             {`${this.translate('forms.editMoment.labels.radius', { meters: inputs.radius })}`}
-                        </Text>
+                        </Text>}
                     </View>
                     <Alert
                         containerStyles={addMargins({
