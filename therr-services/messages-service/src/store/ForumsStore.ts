@@ -26,6 +26,11 @@ export interface ICreateForumParams {
     maxCommentsPerMin?: number;
     doesExpire?: boolean;
     isPublic?: boolean;
+    city?: string;
+    region?: string;
+    country?: string;
+    localLatitude?: number;
+    localLongitude?: number;
 }
 
 export interface IUpdateForumConditions {
@@ -50,12 +55,21 @@ export interface IUpdateForumParams {
     maxCommentsPerMin?: number;
     doesExpire?: boolean;
     isPublic?: boolean;
+    city?: string;
+    region?: string;
+    country?: string;
+    localLatitude?: number;
+    localLongitude?: number;
 }
 
 export interface ISearchForumOptions {
     usersInvitedForumIds?: string[];
     categoryTags?: string[];
     forumIds?: string[];
+    nearbyCity?: string;
+    nearbyLatitude?: number;
+    nearbyLongitude?: number;
+    nearbyMaxDistanceKm?: number;
 }
 
 export default class ForumsStore {
@@ -136,6 +150,11 @@ export default class ForumsStore {
                 `${FORUMS_TABLE_NAME}.doesExpire`,
                 `${FORUMS_TABLE_NAME}.isPublic`,
                 `${FORUMS_TABLE_NAME}.media`,
+                `${FORUMS_TABLE_NAME}.city`,
+                `${FORUMS_TABLE_NAME}.region`,
+                `${FORUMS_TABLE_NAME}.country`,
+                `${FORUMS_TABLE_NAME}.localLatitude`,
+                `${FORUMS_TABLE_NAME}.localLongitude`,
                 `${FORUMS_TABLE_NAME}.createdAt`,
                 `${FORUMS_TABLE_NAME}.updatedAt`,
             ])
@@ -177,6 +196,23 @@ export default class ForumsStore {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
             queryString = queryString.andWhere(conditions.filterBy, operator, query);
+        }
+
+        // Filter by city name (case-insensitive partial match)
+        if (options.nearbyCity) {
+            queryString = queryString.andWhereRaw(
+                'LOWER("city") LIKE ?',
+                [`%${options.nearbyCity.toLowerCase()}%`],
+            );
+        }
+
+        // Filter by proximity to coordinates using PostGIS
+        if (options.nearbyLatitude != null && options.nearbyLongitude != null) {
+            const maxDistMeters = (options.nearbyMaxDistanceKm || 200) * 1000;
+            queryString = queryString.andWhereRaw(
+                '("localLocation" IS NULL OR ST_DWithin("localLocation"::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?))',
+                [options.nearbyLongitude, options.nearbyLatitude, maxDistMeters],
+            );
         }
 
         queryString = queryString

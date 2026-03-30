@@ -239,12 +239,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         addACheckIn: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,
-            bottom: 300 + buttonMenuHeight - collapseOffset,
+            bottom: 360 + buttonMenuHeight - collapseOffset,
         },
         addACheckInBadge: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20 + (btnLargeWidth - 10),
-            bottom: 300 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
+            bottom: 360 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
             zIndex: 20,
         },
         addACheckInFeatured: {
@@ -268,22 +268,27 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         claimASpace: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,
-            bottom: 180 + buttonMenuHeight - collapseOffset,
+            bottom: 240 + buttonMenuHeight - collapseOffset,
         },
-        createEvent: {
+        quickReport: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,
             bottom: 120 + buttonMenuHeight - collapseOffset,
         },
+        createEvent: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 20,
+            bottom: 180 + buttonMenuHeight - collapseOffset,
+        },
         uploadMoment: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20,
-            bottom: 240 + buttonMenuHeight - collapseOffset,
+            bottom: 300 + buttonMenuHeight - collapseOffset,
         },
         uploadMomentBadge: {
             ...getFloatingBtnContainer(therrTheme),
             right: 20 + (btnLargeWidth - 10),
-            bottom: 240 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
+            bottom: 300 + buttonMenuHeight + (btnLargeWidth - 10) - collapseOffset,
             zIndex: 20,
         },
         uploadMomentFeatured: {

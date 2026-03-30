@@ -124,7 +124,8 @@
     },
     "messagesMenu": {
       "buttons": {
-        "createForum": "Create a Hosted Chat"
+        "createForum": "Create a Hosted Chat",
+        "browseGroups": "Browse All Groups"
       },
       "h2": {
         "messaging": "Messaging",
@@ -511,13 +512,18 @@
         "subtitle": "Subtitle",
         "hashTags": "Tags",
         "description": "Description",
-        "activeForums": "Total Active Chats"
+        "activeForums": "Total Active Chats",
+        "city": "City",
+        "region": "State / Region",
+        "categories": "Categories"
       },
       "placeholders": {
         "title": "A catchy title...",
         "subtitle": "An optional subtitle",
         "hashTags": "Tags (ie. my_tag, MyTag)",
-        "description": "A brief description of the chat..."
+        "description": "A brief description of the chat...",
+        "city": "e.g. Austin",
+        "region": "e.g. Texas"
       },
       "noForumsMessage": "No chats are currently active. Click 'Create Hosted Chat' to start a new one.",
       "pageTitle": "Hosted Chats"
@@ -900,6 +906,27 @@
         "noEvents": "No upcoming events",
         "noUpdates": "No recent updates"
       }
+    },
+    "listGroups": {
+      "pageTitle": "Groups",
+      "tabs": {
+        "discover": "Discover",
+        "myGroups": "My Groups"
+      },
+      "placeholders": {
+        "search": "Search groups by name...",
+        "city": "Filter by city..."
+      },
+      "labels": {
+        "joined": "Joined",
+        "memberCount": "{count} members",
+        "clearFilters": "Clear filters"
+      },
+      "buttons": {
+        "createGroup": "+ Create Group"
+      },
+      "noResultsFound": "No groups found. Try adjusting your search or filters.",
+      "noMyGroupsFound": "You haven't joined any groups yet. Discover groups and join to see them here."
     },
     "userLocations": {
       "pageTitle": "Locations",

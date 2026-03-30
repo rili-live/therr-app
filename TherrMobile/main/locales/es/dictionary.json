@@ -260,7 +260,28 @@
     "seasonal": "Temporada / Festividades",
     "drinks": "Happy Hour / Bebidas",
     "nightLife": "Vida nocturna / Social",
-    "sports": "Deportes"
+    "sports": "Deportes",
+    "happeningNow": "Pasando ahora",
+    "longWait": "Larga espera",
+    "liveEntertainment": "Entretenimiento en vivo",
+    "crowdAlert": "Lleno de gente",
+    "hiddenGem": "Joya oculta",
+    "localDeal": "Gran oferta"
+  },
+  "quickReports": {
+    "title": "Que esta pasando aqui?",
+    "happeningNow": "Pasando ahora",
+    "longWait": "Larga espera",
+    "liveEntertainment": "Entretenimiento en vivo",
+    "crowdAlert": "Lleno de gente",
+    "hiddenGem": "Joya oculta",
+    "localDeal": "Gran oferta",
+    "addDetails": "Agregar detalles (opcional)",
+    "submitSuccess": "Reporte enviado!",
+    "submitError": "Error al enviar reporte",
+    "stillTrue": "Aun es cierto",
+    "notAnymore": "Ya no",
+    "confirmCount": "{{count}} confirmaron"
   },
   "components": {
     "activeConnections": {
@@ -419,7 +440,8 @@
     },
     "groups": {
       "noResultsFound": "No se encontraron resultados...",
-      "searchPlaceholder": "Buscar por nombre..."
+      "searchPlaceholder": "Buscar por nombre...",
+      "cityPlaceholder": "Filtrar por ciudad..."
     },
     "loginForm": {
       "buttons": {
@@ -465,7 +487,9 @@
         "description": "Un breve resumen del grupo...",
         "hashTags": "Etiquetas (ej. mi_etiqueta, miEtiqueta)",
         "maxComments": "Máx. comentarios (por minuto)",
-        "expiresAt": "Cuenta regresiva"
+        "expiresAt": "Cuenta regresiva",
+        "city": "Ciudad (ej. Ciudad de México)",
+        "region": "Estado/Región (ej. CDMX)"
       },
       "archiveSuccess": "Archivado exitosamente",
       "backendSuccessHeader": "¡Éxito!",
@@ -872,10 +896,8 @@
       "tableTopGames": "Juegos de mesa",
       "boardGames": "Juegos de mesa y noche de juegos"
     },
-    "homeGarden": {
-    },
-    "nature": {
-    },
+    "homeGarden": {},
+    "nature": {},
     "sports": {
       "basketball": "Baloncesto",
       "baseball": "Béisbol",
@@ -904,8 +926,7 @@
       "cars": "Autos",
       "bikes": "Motos y motocicletas"
     },
-    "tv": {
-    }
+    "tv": {}
   },
   "interestsCategories": {
     "arts": "Arte y creatividad",
@@ -946,13 +967,15 @@
       "invite": "+",
       "media": "Multimedia",
       "news": "Noticias",
-      "thoughts": "Pensamientos"
+      "thoughts": "Pensamientos",
+      "groupsDiscover": "Descubrir"
     },
     "mapActions": {
       "create": "Crear",
       "claimASpace": "Reclamar un espacio",
       "createEvent": "Crear un evento",
       "addACheckIn": "Registrarse",
+      "quickReport": "Reporte rapido",
       "requestASpace": "Solicitar un espacio",
       "shareAThought": "Compartir un pensamiento",
       "uploadAMoment": "Crear un momento",
@@ -1215,7 +1238,8 @@
         "description": "Descripción:",
         "subtitle": "Titular:",
         "memberCount": "{count} miembros"
-      }
+      },
+      "noMyGroupsFound": "Aún no te has unido a ningún grupo. Descubre y únete a grupos para verlos aquí."
     },
     "invite": {
       "headerTitle": "Invitar"
