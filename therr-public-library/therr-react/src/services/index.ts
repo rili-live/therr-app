@@ -1,3 +1,4 @@
+import ApiKeysService from './ApiKeysService';
 import ApiService from './ApiService';
 import CampaignsService from './CampaignsService';
 import ForumsService from './ForumsService';
@@ -21,6 +22,7 @@ import HabitCheckinsService, { ICreateCheckinBody, IUpdateCheckinBody } from './
 import StreaksService from './StreaksService';
 
 export {
+    ApiKeysService,
     ApiService,
     CampaignsService,
     ForumsService,

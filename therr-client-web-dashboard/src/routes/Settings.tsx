@@ -1,8 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { NavigateFunction } from 'react-router-dom';
+import { Link, NavigateFunction } from 'react-router-dom';
 import {
+    Card,
     Col,
     Row,
     Button,
@@ -161,6 +162,20 @@ export class SettingsComponent extends React.Component<ISettingsProps, ISettings
                             brandContext={brandContext}
                             user={user}
                         />
+                    </Col>
+
+                    <Col xs={12} xl={10} xxl={8}>
+                        <Card border="light" className="bg-white shadow-sm mb-4">
+                            <Card.Body className="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 className="mb-1">API Keys</h5>
+                                    <p className="text-muted mb-0">Manage your API keys for programmatic access</p>
+                                </div>
+                                <Link to="/api-keys">
+                                    <Button variant="outline-primary">Manage Keys</Button>
+                                </Link>
+                            </Card.Body>
+                        </Card>
                     </Col>
                 </Row>
                 <ToastContainer className="p-3" position={'bottom-end'}>

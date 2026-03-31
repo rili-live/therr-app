@@ -2,6 +2,7 @@ import { combineReducers } from 'redux';
 import { routerReducer as routing } from 'react-router-redux';
 // import {user, users, isAuthenticated, redirectRoute} from '../library/authentication';
 // import {loader} from '../library/loader';
+import apiKeys from './apiKeys';
 import campaigns from './campaigns';
 import content from './content';
 import forums from './forums';
@@ -21,6 +22,7 @@ export default (socketIO, additionalReducers = {}) => combineReducers({
     // isAuthenticated,
     // loader,
     // redirectRoute,
+    apiKeys,
     campaigns,
     content,
     forums,

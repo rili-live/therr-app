@@ -299,6 +299,9 @@
     },
     "adminCampaignsOverview": {
       "pageTitle": "Campaigns Overview"
+    },
+    "apiKeys": {
+      "pageTitle": "API Keys"
     }
   }
 }

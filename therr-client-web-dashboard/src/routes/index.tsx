@@ -9,6 +9,7 @@ import AdminDashboardOverview from './Dashboards/AdminDashboardOverview';
 import DashboardOverview from './Dashboards/DashboardOverview';
 import PageNotFound from './PageNotFound';
 import Register from './Register';
+import ApiKeys from './ApiKeys';
 import Settings from './Settings';
 import EmailVerification from './EmailVerification';
 import ResetPassword from './ResetPassword';
@@ -264,6 +265,17 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.MOBILE_VERIFIED],
             })}
             redirectPath={'/create-profile'}
+        />,
+    },
+    {
+        path: '/api-keys',
+        element: <AuthRoute
+            component={ApiKeys}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/login'}
         />,
     },
     {

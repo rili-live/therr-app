@@ -6,7 +6,7 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import { generateApiKey, hashApiKey, parseApiKey } from '../utilities/apiKeyHelpers';
 
-const MAX_KEYS_PER_USER = 5;
+const MAX_KEYS_PER_USER = 3;
 
 // Access levels that grant permission to create API keys (dashboard subscribers)
 const API_KEY_ELIGIBLE_LEVELS = [

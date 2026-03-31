@@ -1,3 +1,4 @@
+import ApiKeyActions from './ApiKeys';
 import CampaignActions from './Campaigns';
 import ContentActions from './Content';
 import ForumActions from './Forums';
@@ -12,6 +13,7 @@ import UserInterfaceActions from './UserInterface';
 import UsersActions from './Users';
 
 export {
+    ApiKeyActions,
     CampaignActions,
     ContentActions,
     ForumActions,
