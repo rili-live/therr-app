@@ -224,6 +224,53 @@ export const revokeAllUserRefreshTokens = async (userId: string): Promise<void> 
     }
 };
 
+// API key cache helpers (short TTL for fast auth without DB hit on every request)
+const API_KEY_CACHE_PREFIX = 'api-key-cache:';
+const API_KEY_CACHE_TTL = 300; // 5 minutes
+
+export interface ICachedApiKeyContext {
+    userId: string;
+    userName: string;
+    accessLevels: string[];
+    organizations: { [key: string]: string[] };
+    keyPrefix: string;
+}
+
+export const cacheApiKeyContext = async (keyPrefix: string, context: ICachedApiKeyContext): Promise<void> => {
+    try {
+        await redisClient.set(
+            `${API_KEY_CACHE_PREFIX}${keyPrefix}`,
+            JSON.stringify(context),
+            'EX',
+            API_KEY_CACHE_TTL,
+        );
+    } catch (err) {
+        console.error('Failed to cache API key context:', err);
+    }
+};
+
+export const getCachedApiKeyContext = async (keyPrefix: string): Promise<ICachedApiKeyContext | null> => {
+    try {
+        const result = await redisClient.get(`${API_KEY_CACHE_PREFIX}${keyPrefix}`);
+        if (result) {
+            return JSON.parse(result);
+        }
+        return null;
+    } catch (err) {
+        // Fail open: if Redis is down, fall through to DB validation
+        console.error('Failed to get cached API key context:', err);
+        return null;
+    }
+};
+
+export const invalidateApiKeyCache = async (keyPrefix: string): Promise<void> => {
+    try {
+        await redisClient.del(`${API_KEY_CACHE_PREFIX}${keyPrefix}`);
+    } catch (err) {
+        console.error('Failed to invalidate API key cache:', err);
+    }
+};
+
 export {
     redisEphemeralClient,
 };

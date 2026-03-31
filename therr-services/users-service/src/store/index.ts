@@ -1,4 +1,5 @@
 import connection, { IConnection } from './connection';
+import ApiKeysStore from './ApiKeysStore';
 import BlacklistedEmailsStore from './BlacklistedEmailsStore';
 import CampaignsStore from './CampaignsStore';
 import CampaignAdGroupsStore from './CampaignAdGroupsStore';
@@ -30,6 +31,8 @@ import StreaksStore from './StreaksStore';
 
 class Store {
     db: IConnection;
+
+    apiKeys: ApiKeysStore;
 
     blacklistedEmails: BlacklistedEmailsStore;
 
@@ -89,6 +92,7 @@ class Store {
     constructor(dbConnection) {
         this.db = dbConnection;
 
+        this.apiKeys = new ApiKeysStore(this.db);
         this.blacklistedEmails = new BlacklistedEmailsStore(this.db);
         this.campaigns = new CampaignsStore(this.db);
         this.campaignAdGroups = new CampaignAdGroupsStore(this.db);
