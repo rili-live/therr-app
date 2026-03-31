@@ -1717,6 +1717,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.setState({
             areButtonsVisible: true,
             areLayersVisible: false,
+            bottomSheetContentType: 'nearby',
+            bottomSheetSnapPoints: defaultSnapPoints,
             shouldFollowUserLocation: false,
             isScrollEnabled: true,
         });
