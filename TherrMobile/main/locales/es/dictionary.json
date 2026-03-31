@@ -1133,7 +1133,11 @@
         "asc": "Más antiguos primero",
         "desc": "Más recientes primero",
         "categories": "Filtros de categoría",
-        "searchOrder": "Ordenar resultados por: Fecha"
+        "searchOrder": "Ordenar resultados por: Fecha",
+        "contentType": "Tipo de contenido",
+        "all": "Todos",
+        "moments": "Momentos",
+        "thoughts": "Pensamientos"
       }
     },
     "advancedSettings": {

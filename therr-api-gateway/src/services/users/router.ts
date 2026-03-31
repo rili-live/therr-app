@@ -102,7 +102,7 @@ usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, async (r
             level: 'error',
             messageOrigin: 'API_GATEWAY_USERS_ROUTER',
             messages: ['Failed to blacklist token on logout'],
-            traceArgs: { 'error.message': err?.message },
+            traceArgs: { 'error.message': err instanceof Error ? err.message : String(err) },
         });
     }
     return next();
