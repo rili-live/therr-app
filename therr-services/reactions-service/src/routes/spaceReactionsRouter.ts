@@ -6,6 +6,7 @@ import {
     getSpaceRatings,
     getBatchSpaceRatings,
     getReactionsBySpaceId,
+    getVisitedSpaces,
     countSpaceReactions,
     findSpaceReactions,
 } from '../handlers/spaceReactions';
@@ -18,6 +19,9 @@ router.post('/:spaceId', createOrUpdateSpaceReaction);
 router.post('/create-update/multiple', createOrUpdateMultiSpaceReactions);
 // GET
 router.get('/', getSpaceReactions);
+
+// GET - visited spaces (must be before /:spaceId to avoid param conflict)
+router.get('/visited', getVisitedSpaces);
 
 // GET
 router.get('/:spaceId/ratings', getSpaceRatings);
