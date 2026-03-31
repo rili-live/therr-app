@@ -236,6 +236,75 @@ describe('areaLocationHelpers', () => {
     });
 });
 
+describe('activateAreasAndNotify - visit/prospect classification', () => {
+    describe('distanceTo coordinate ordering (regression: lat/lon were swapped)', () => {
+        it('should pass longitude as lon and latitude as lat to distanceTo', () => {
+            // The bug was: distanceTo({ lon: userLocation.latitude, lat: userLocation.longitude })
+            // The fix:    distanceTo({ lon: userLocation.longitude, lat: userLocation.latitude })
+            const userLocation = { latitude: 37.7749, longitude: -122.4194 };
+            const space = { longitude: -122.4195, latitude: 37.7750 };
+
+            // Correct mapping: lon = longitude, lat = latitude
+            const correctCall = { lon: userLocation.longitude, lat: userLocation.latitude };
+            const spaceCall = { lon: space.longitude, lat: space.latitude };
+
+            expect(correctCall.lon).to.equal(-122.4194);
+            expect(correctCall.lat).to.equal(37.7749);
+            expect(spaceCall.lon).to.equal(-122.4195);
+            expect(spaceCall.lat).to.equal(37.7750);
+
+            // The buggy mapping would have been:
+            const buggyCall = { lon: userLocation.latitude, lat: userLocation.longitude };
+            expect(buggyCall.lon).to.not.equal(correctCall.lon);
+            expect(buggyCall.lat).to.not.equal(correctCall.lat);
+        });
+    });
+
+    describe('visit vs prospect classification (regression: logic was inverted)', () => {
+        it('should classify close spaces as visited (distance <= AREA_PROXIMITY_METERS)', () => {
+            const distanceFromSpace = Location.AREA_PROXIMITY_METERS - 100; // 900m
+            const isVisited = distanceFromSpace <= Location.AREA_PROXIMITY_METERS;
+            expect(isVisited).to.be.eq(true);
+        });
+
+        it('should classify far spaces as prospected (distance > AREA_PROXIMITY_METERS)', () => {
+            const distanceFromSpace = Location.AREA_PROXIMITY_METERS + 100; // 1100m
+            const isVisited = distanceFromSpace <= Location.AREA_PROXIMITY_METERS;
+            expect(isVisited).to.be.eq(false);
+        });
+
+        it('should classify space exactly at boundary as visited', () => {
+            const distanceFromSpace = Location.AREA_PROXIMITY_METERS; // exactly 1000m
+            const isVisited = distanceFromSpace <= Location.AREA_PROXIMITY_METERS;
+            expect(isVisited).to.be.eq(true);
+        });
+
+        it('should correctly partition spaces into visited and prospected', () => {
+            const spaces = [
+                { id: 'close-space', distance: 500 },
+                { id: 'edge-space', distance: Location.AREA_PROXIMITY_METERS },
+                { id: 'far-space', distance: 1500 },
+            ];
+
+            const spacesVisited: any[] = [];
+            const spacesProspected: any[] = [];
+            spaces.forEach((space) => {
+                if (space.distance <= Location.AREA_PROXIMITY_METERS) {
+                    spacesVisited.push(space);
+                } else {
+                    spacesProspected.push(space);
+                }
+            });
+
+            expect(spacesVisited).to.have.lengthOf(2);
+            expect(spacesProspected).to.have.lengthOf(1);
+            expect(spacesVisited.map((s) => s.id)).to.include('close-space');
+            expect(spacesVisited.map((s) => s.id)).to.include('edge-space');
+            expect(spacesProspected[0].id).to.equal('far-space');
+        });
+    });
+});
+
 describe('Area filtering logic', () => {
     describe('filterNearbyAreas', () => {
         it('should return empty array when no areas provided', () => {

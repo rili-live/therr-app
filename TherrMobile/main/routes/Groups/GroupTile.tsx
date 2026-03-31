@@ -11,15 +11,13 @@ import { GroupRequestStatuses } from 'therr-js-utilities/constants';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import { getUserContentUri, getUserImageUri } from '../../utilities/content';
 import spacingStyles from '../../styles/layouts/spacing';
+import { getDisplayTitle } from './groupUtils';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
     'TherrFont',
     'TherrFont.ttf'
 );
-
-const getDisplayTitle = (title: any): string =>
-    typeof title === 'object' ? (title?.title || title?.name || '') : (title || '');
 
 const renderChatIcon = (item, style = {}) => {
     const props = {
