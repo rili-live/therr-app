@@ -33,8 +33,9 @@ const createApiKey = async (req, res) => {
     if (!hasApiKeyEligibility(userAccessLevels)) {
         return handleHttpError({
             res,
-            message: 'Insufficient access level to create API keys. A dashboard subscription is required.',
-            statusCode: 403,
+            message: 'An active paid subscription is required to create API keys.'
+                + ' Please subscribe to a dashboard plan to enable API access.',
+            statusCode: 400,
         });
     }
 
@@ -266,6 +267,19 @@ const validateApiKey = async (req, res) => {
         }
 
         const user = userResults[0];
+
+        // Verify user still has an active paid subscription
+        const userAccessLevels = Array.isArray(user.accessLevels)
+            ? user.accessLevels
+            : JSON.parse(user.accessLevels || '[]');
+
+        if (!hasApiKeyEligibility(userAccessLevels)) {
+            return handleHttpError({
+                res,
+                message: 'API key owner no longer has an active subscription. Please renew your subscription to restore API access.',
+                statusCode: 403,
+            });
+        }
 
         // Load user organizations
         const userOrgs = await Store.userOrganizations.get({ userId: user.id });
